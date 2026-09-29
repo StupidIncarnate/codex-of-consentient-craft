@@ -27,7 +27,7 @@ describe('QuestAbandonResponder', () => {
       async (status) => {
         const proxy = QuestAbandonResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupAbandonQuest({ questId, abandoned: true });
 
@@ -47,7 +47,7 @@ describe('QuestAbandonResponder', () => {
       async (status) => {
         const proxy = QuestAbandonResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -88,7 +88,7 @@ describe('QuestAbandonResponder', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestAbandonResponderProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
-      const quest = QuestStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
       proxy.setupQuest({ quest });
       proxy.setupAbandonQuestError({ questId, message: 'Quest abandon failed' });
 

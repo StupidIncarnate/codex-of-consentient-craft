@@ -26,7 +26,7 @@ describe('QuestPauseResponder', () => {
       async (status) => {
         const proxy = QuestPauseResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupPauseQuest({ questId, paused: true });
 
@@ -46,7 +46,7 @@ describe('QuestPauseResponder', () => {
       async (status) => {
         const proxy = QuestPauseResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -87,7 +87,7 @@ describe('QuestPauseResponder', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestPauseResponderProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
-      const quest = QuestStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
       proxy.setupQuest({ quest });
       proxy.setupPauseQuestError({ questId, message: 'Quest pause failed' });
 

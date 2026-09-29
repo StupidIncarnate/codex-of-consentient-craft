@@ -7,7 +7,7 @@ describe('SessionListResponder', () => {
     it('VALID: {valid guildId} => returns 200 with sessions', async () => {
       const proxy = SessionListResponderProxy();
       const guildId = GuildIdStub();
-      const guild = GuildStub({ id: guildId, path: '/test/project' as never });
+      const guild = GuildStub({ id: guildId, path: '/test/project' });
 
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/testuser' });
@@ -88,7 +88,7 @@ describe('SessionListResponder', () => {
     it('EMPTY: {guild with no sessions} => returns 200 with empty array', async () => {
       const proxy = SessionListResponderProxy();
       const guildId = GuildIdStub();
-      const guild = GuildStub({ id: guildId, path: '/home/user/my-guild' as never });
+      const guild = GuildStub({ id: guildId, path: '/home/user/my-guild' });
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/user' });
       proxy.setupGlobFiles({ files: [] });

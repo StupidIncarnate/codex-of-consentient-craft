@@ -29,7 +29,7 @@ describe('QuestStartResponder', () => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
         const processId = ProcessIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupStartQuest({ questId, processId });
         proxy.setupDispatchPlays();
@@ -55,7 +55,7 @@ describe('QuestStartResponder', () => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
         const processId = ProcessIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupStartQuest({ questId, processId });
         proxy.setupDispatchPlays();
@@ -71,7 +71,7 @@ describe('QuestStartResponder', () => {
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupDispatchPlays();
 
@@ -87,7 +87,7 @@ describe('QuestStartResponder', () => {
       const proxy = QuestStartResponderProxy();
       const questId = QuestIdStub();
       const processId = ProcessIdStub();
-      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      const quest = QuestStub({ id: questId, status: 'approved' });
       proxy.setupQuest({ quest });
       proxy.setupStartQuest({ questId, processId });
       proxy.setupDispatchError({ message: 'dispatch state write failed' });
@@ -107,7 +107,7 @@ describe('QuestStartResponder', () => {
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -170,7 +170,7 @@ describe('QuestStartResponder', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = QuestStartResponderProxy();
       const questId = QuestIdStub({ value: 'test-quest' });
-      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      const quest = QuestStub({ id: questId, status: 'approved' });
       proxy.setupQuest({ quest });
       proxy.setupStartQuestError({ questId, message: 'Quest start failed' });
 

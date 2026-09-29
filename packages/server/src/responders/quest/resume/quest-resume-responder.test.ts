@@ -35,7 +35,7 @@ describe('QuestResumeResponder', () => {
         const questId = QuestIdStub();
         const quest = QuestStub({
           id: questId,
-          status: status as never,
+          status,
           pausedAtStatus: 'in_progress',
           workItems: [WorkItemStub({ status: 'pending' })],
         });
@@ -66,7 +66,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
         workItems: [WorkItemStub({ status: 'pending' })],
       });
@@ -84,7 +84,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
         workItems: [WorkItemStub({ status: 'pending' })],
       });
@@ -109,7 +109,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
         workItems: [WorkItemStub({ status: 'pending' })],
       });
@@ -128,7 +128,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
         workItems: [WorkItemStub({ status: 'complete' })],
         operations: [OperationItemStub({ status: 'complete' })],
@@ -156,7 +156,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'approved',
         operations: [OperationItemStub({ role: 'codeweaver', status: 'pending' })],
       });
@@ -183,7 +183,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub();
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
       });
       proxy.setupQuest({ quest });
@@ -218,12 +218,12 @@ describe('QuestResumeResponder', () => {
         const questId = QuestIdStub();
         const quest = QuestStub({
           id: questId,
-          status: 'paused' as never,
-          pausedAtStatus: restoredStatus as never,
+          status: 'paused',
+          pausedAtStatus: restoredStatus,
           workItems: [WorkItemStub({ status: 'pending' })],
         });
         proxy.setupQuest({ quest });
-        proxy.setupResumeQuest({ questId, resumed: true, restoredStatus: restoredStatus as never });
+        proxy.setupResumeQuest({ questId, resumed: true, restoredStatus });
         proxy.setupDispatchPlays();
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -242,7 +242,7 @@ describe('QuestResumeResponder', () => {
       async (status) => {
         const proxy = QuestResumeResponderProxy();
         const questId = QuestIdStub();
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
 
         const result = await proxy.callResponder({ params: { questId } });
@@ -285,7 +285,7 @@ describe('QuestResumeResponder', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const quest = QuestStub({
         id: questId,
-        status: 'paused' as never,
+        status: 'paused',
         pausedAtStatus: 'in_progress',
       });
       proxy.setupQuest({ quest });

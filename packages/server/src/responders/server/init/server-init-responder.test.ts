@@ -540,17 +540,17 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-with-comments-1' });
       const bareComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'start' as never,
-        text: 'Badge and panel should see this live' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01',
+        flowId: 'login-flow',
+        nodeId: 'start',
+        text: 'Badge and panel should see this live',
       });
       const observableComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'end' as never,
-        observableId: 'login-redirects-to-dashboard' as never,
-        text: 'Anchored to an observable, must survive same as the bare-node comment' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02',
+        flowId: 'login-flow',
+        nodeId: 'end',
+        observableId: 'login-redirects-to-dashboard',
+        text: 'Anchored to an observable, must survive same as the bare-node comment',
       });
       const quest = QuestStub({
         id: questId,
@@ -606,10 +606,10 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-with-comments-outbox-1' });
       const bareComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da10' as never,
-        flowId: 'alpha-flow' as never,
-        nodeId: 'node-one' as never,
-        text: 'Present before the mutation' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da10',
+        flowId: 'alpha-flow',
+        nodeId: 'node-one',
+        text: 'Present before the mutation',
       });
       const initialQuest = QuestStub({
         id: questId,
@@ -640,11 +640,11 @@ describe('ServerInitResponder', () => {
       sendMock.mockClear();
 
       const observableComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da11' as never,
-        flowId: 'beta-flow' as never,
-        nodeId: 'node-two' as never,
-        observableId: 'checkout-completes-order' as never,
-        text: 'Added by the real mutation the outbox watcher observed' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da11',
+        flowId: 'beta-flow',
+        nodeId: 'node-two',
+        observableId: 'checkout-completes-order',
+        text: 'Added by the real mutation the outbox watcher observed',
       });
       const mutatedQuest = QuestStub({
         id: questId,

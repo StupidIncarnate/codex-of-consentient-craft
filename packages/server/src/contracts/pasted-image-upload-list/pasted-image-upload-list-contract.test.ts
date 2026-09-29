@@ -53,7 +53,7 @@ describe('pastedImageUploadListContract', () => {
       expect(() =>
         pastedImageUploadListContract.parse([
           { mediaType: 'image/svg+xml', dataBase64: 'iVBORw0KGgo=' },
-        ] as never),
+        ]),
       ).toThrow(/Invalid option/u);
     });
 
@@ -66,7 +66,7 @@ describe('pastedImageUploadListContract', () => {
       expect(() =>
         pastedImageUploadListContract.parse([
           { mediaType: PastedImageMediaTypeStub(), dataBase64: overCeiling },
-        ] as never),
+        ]),
       ).toThrow(expectedMessage);
     });
   });

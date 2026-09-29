@@ -7,7 +7,7 @@ describe('GuildUpdateResponder', () => {
     it('VALID: {guildId, name, path} => returns 200 with updated guild', async () => {
       const proxy = GuildUpdateResponderProxy();
       const guildId = GuildIdStub();
-      const guild = GuildStub({ id: guildId, name: 'Updated' as never });
+      const guild = GuildStub({ id: guildId, name: 'Updated' });
       proxy.setupUpdateGuild({ guild });
 
       const result = await proxy.callResponder({
@@ -24,7 +24,7 @@ describe('GuildUpdateResponder', () => {
     it('VALID: {guildId, name only} => returns 200 with updated guild', async () => {
       const proxy = GuildUpdateResponderProxy();
       const guildId = GuildIdStub();
-      const guild = GuildStub({ id: guildId, name: 'Updated' as never });
+      const guild = GuildStub({ id: guildId, name: 'Updated' });
       proxy.setupUpdateGuild({ guild });
 
       const result = await proxy.callResponder({

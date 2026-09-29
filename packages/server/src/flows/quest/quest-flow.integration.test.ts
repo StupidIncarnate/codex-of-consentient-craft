@@ -62,31 +62,31 @@ describe('QuestFlow', () => {
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [
-          FlowNodeStub({ id: 'start' as never, label: 'Start' as never }),
-          FlowNodeStub({ id: 'end' as never, label: 'End' as never }),
+          FlowNodeStub({ id: 'start', label: 'Start' }),
+          FlowNodeStub({ id: 'end', label: 'End' }),
         ],
         edges: [],
       });
       const bareComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'start' as never,
-        text: 'Visible to the browser, never to an agent' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901',
+        flowId: 'login-flow',
+        nodeId: 'start',
+        text: 'Visible to the browser, never to an agent',
       });
       const observableComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d902' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'end' as never,
-        observableId: 'login-redirects-to-dashboard' as never,
-        text: 'Anchored to an observable, must survive same as the bare-node comment' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d902',
+        flowId: 'login-flow',
+        nodeId: 'end',
+        observableId: 'login-redirects-to-dashboard',
+        text: 'Anchored to an observable, must survive same as the bare-node comment',
       });
       const quest = await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'flows_approved' as never,
+          status: 'flows_approved',
           flows: [flow],
           comments: [bareComment, observableComment],
         },
@@ -155,31 +155,31 @@ describe('QuestFlow', () => {
       });
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login Page' as never,
+            id: 'login-page',
+            label: 'Login Page',
             observables: [
               FlowObservableStub({
-                id: 'crash-on-bleh' as never,
-                type: 'api-call' as never,
-                description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
-                addedBy: 'siegemaster' as never,
+                id: 'crash-on-bleh',
+                type: 'api-call',
+                description: 'POST /api/auth/login returns 400 for a non-JSON body',
+                addedBy: 'siegemaster',
               }),
             ],
           }),
           FlowNodeStub({
-            id: 'dashboard' as never,
-            label: 'Dashboard' as never,
+            id: 'dashboard',
+            label: 'Dashboard',
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-success' as never,
-            from: 'login-page' as never,
-            to: 'dashboard' as never,
-            label: 'success' as never,
+            id: 'e-success',
+            from: 'login-page',
+            to: 'dashboard',
+            label: 'success',
           }),
         ],
       });
@@ -187,7 +187,7 @@ describe('QuestFlow', () => {
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'in_progress' as never,
+          status: 'in_progress',
           flows: [flow],
           planningNotes: {
             blightLedger: [],
@@ -297,7 +297,7 @@ describe('QuestFlow', () => {
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'in_progress' as never,
+          status: 'in_progress',
           operations: [
             OperationItemStub({
               id: opId,
@@ -619,21 +619,21 @@ describe('QuestFlow', () => {
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
         edges: [],
       });
       const existingComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d900' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'start' as never,
-        text: 'Pre-existing comment that must survive a rejected empty batch' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d900',
+        flowId: 'login-flow',
+        nodeId: 'start',
+        text: 'Pre-existing comment that must survive a rejected empty batch',
       });
       const quest = await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'flows_approved' as never,
+          status: 'flows_approved',
           flows: [flow],
           comments: [existingComment],
         },
@@ -693,21 +693,21 @@ describe('QuestFlow', () => {
       const garbageFlowId = `X${'x'.repeat(299)}`;
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
         edges: [],
       });
       const existingComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'start' as never,
-        text: 'Pre-existing comment that must survive a rejected malformed batch' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901',
+        flowId: 'login-flow',
+        nodeId: 'start',
+        text: 'Pre-existing comment that must survive a rejected malformed batch',
       });
       const quest = await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'flows_approved' as never,
+          status: 'flows_approved',
           flows: [flow],
           comments: [existingComment],
         },
@@ -744,15 +744,15 @@ describe('QuestFlow', () => {
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
         edges: [],
       });
       const quest = await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'flows_approved' as never,
+          status: 'flows_approved',
           flows: [flow],
           workItems: [],
         },
@@ -816,8 +816,8 @@ describe('QuestFlow', () => {
         const cli = harness.configureFakeClaudeCli();
 
         const flow = FlowStub({
-          id: 'login-flow' as never,
-          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
           edges: [],
         });
         seededSessionId = SessionIdStub({ value: 'bbbbbbbb-2222-4222-8222-444444444444' });
@@ -829,7 +829,7 @@ describe('QuestFlow', () => {
           guildName: 'Stale Anchor Guild',
           guildPath: dungeonmasterHome,
           fields: {
-            status: 'flows_approved' as never,
+            status: 'flows_approved',
             flows: [flow],
             workItems: [
               WorkItemStub({
@@ -929,15 +929,15 @@ describe('QuestFlow', () => {
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
         edges: [],
       });
       const quest = await harness.seedQuestFields({
         dungeonmasterHome,
         guildId,
         fields: {
-          status: 'flows_approved' as never,
+          status: 'flows_approved',
           flows: [flow],
           workItems: [
             WorkItemStub({
@@ -1400,7 +1400,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-local-image-source-kept';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-8001-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8001-4222-8222-444444444444' }),
@@ -1447,7 +1447,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-local-image-copy-survives';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-8002-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8002-4222-8222-444444444444' }),
@@ -1503,7 +1503,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-local-image-trailer-once';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-8003-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8003-4222-8222-444444444444' }),
@@ -1571,7 +1571,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-local-image-text-only';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-8004-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-8004-4222-8222-444444444444' }),
@@ -1635,7 +1635,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-no-absolute-path';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9001-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9001-4222-8222-444444444444' }),
@@ -1686,7 +1686,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-missing-file';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9002-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9002-4222-8222-444444444444' }),
@@ -1748,7 +1748,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-no-images-key';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9003-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9003-4222-8222-444444444444' }),
@@ -1814,7 +1814,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-every-shape';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9004-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9004-4222-8222-444444444444' }),
@@ -1906,7 +1906,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-already-tokenised';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9005-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9005-4222-8222-444444444444' }),
@@ -1963,7 +1963,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-ordinal-continues';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9006-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9006-4222-8222-444444444444' }),
@@ -2041,7 +2041,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-cap-both-kinds';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9008-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9008-4222-8222-444444444444' }),
@@ -2124,7 +2124,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-unreadable-file';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9009-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9009-4222-8222-444444444444' }),
@@ -2190,7 +2190,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-copy-fails';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9010-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9010-4222-8222-444444444444' }),
@@ -2256,7 +2256,7 @@ describe('QuestFlow', () => {
       const questId = 'server-http-screenshot-source-and-copy-survive';
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-9011-4222-8222-444444444444' });
       const quest = QuestStub({
-        id: questId as never,
+        id: questId,
         workItems: [
           WorkItemStub({
             id: QuestWorkItemIdStub({ value: 'aaaaaaaa-9011-4222-8222-444444444444' }),
