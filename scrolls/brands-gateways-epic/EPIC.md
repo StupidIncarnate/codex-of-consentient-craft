@@ -781,7 +781,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | ID | Needed by | Scripts | Who | Status | Notes |
 |---|---|---|---|---|---|
 | SD1 | L2 | Retype narrowing; printer for the 218 unprinted stub trees; malformed-node test deletion list | 1 agent | active | agent SD1 (2026-09-29) |
-| SD2 | 3.3 | The 34 production files importing a stub | 1 agent | active | agent SD2 (2026-09-29) |
+| SD2 | 3.3 | The 34 production files importing a stub | 1 agent | done | `phase34-scripts/b03-stub-type-alias/run.cjs`: 34 of 43 imports (30 orchestrator files whose stub only names a type) become `import type` from the contract; proven on copies, 0 new diagnostics. Hand queue: 9 names in 4 files (8 hydration-recipes builders, 1 testing `FlowObservableStub`), `out/leftovers.json`. Run it in wave 3.3 before 3.3-S2. |
 | SD3 | W3, W4 | Id-brand codemod | 1 agent | todo | |
 | SD4 | W5 | Value-brand codemod and the build-through-root-parse rewriter | 1 agent | todo | |
 | SD5 | W6 | Object-brand construction-site fallout | 1 agent | todo | |
