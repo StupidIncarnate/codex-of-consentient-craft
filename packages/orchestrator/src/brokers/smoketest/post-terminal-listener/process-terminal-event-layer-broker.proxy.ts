@@ -80,7 +80,9 @@ export const processTerminalEventLayerBrokerProxy = (): {
       }>({
         module: './process-terminal-event-layer-broker',
       });
-      mocked.calledWith([]).implement(realMod.processTerminalEventLayerBroker);
+      const isTerminalEventCall = (call: unknown): boolean =>
+        typeof call === 'object' && call !== null && 'questId' in call;
+      mocked.calledWith([isTerminalEventCall]).implement(realMod.processTerminalEventLayerBroker);
     },
     setupQuestDeleted: ({
       homeDir,

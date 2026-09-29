@@ -405,6 +405,9 @@ export const StartOrchestratorProxy = (): {
   stopAllChatsHandle.calledWith([]).returns(undefined);
   findQuestByWorkItemIdHandle.calledWith([]).resolves(null);
 
+  const isObjectArgument = (argument: unknown): boolean =>
+    typeof argument === 'object' && argument !== null;
+
   const monitorWatcherStopState = { called: false };
 
   return {
@@ -771,14 +774,14 @@ export const StartOrchestratorProxy = (): {
       stopAllChatsHandle.calledWith([]).throws(error);
     },
     stopAllChatsWasCalled: (): boolean => stopAllChatsHandle.callsMatching([]).length > 0,
-    // No address: the adapter discards whatever replayChatHistory resolves to (it always returns
-    // { success: true } itself), and callers set up a blanket success/failure without knowing
-    // which session the flow under test resolves to.
+    // Any `{ ... }` call: the adapter discards whatever replayChatHistory resolves to (it always
+    // returns { success: true } itself), and callers set up a blanket success/failure without
+    // knowing which session the flow under test resolves to.
     replayChatHistorySetupSuccess: (): void => {
-      replayChatHistoryHandle.calledWith([]).resolves(undefined);
+      replayChatHistoryHandle.calledWith([isObjectArgument]).resolves(undefined);
     },
     replayChatHistorySetupFailure: ({ error }: { error: Error }): void => {
-      replayChatHistoryHandle.calledWith([]).rejects(error);
+      replayChatHistoryHandle.calledWith([isObjectArgument]).rejects(error);
     },
     replayChatHistoryGetCalls: (): readonly unknown[] =>
       replayChatHistoryHandle.callsMatching([]).map((call) => call[0]),

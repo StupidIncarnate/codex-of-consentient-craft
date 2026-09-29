@@ -68,7 +68,11 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       }>({
         module: './smoketest-clear-prior-quests-broker',
       });
-      mocked.calledWith([]).implement(realMod.smoketestClearPriorQuestsBroker);
+      // Any `{ questSource }` call: the real run is opt-in, and the test's own quest source is the
+      // one thing the scenarios seeded below never name.
+      const isClearCall = (call: unknown): boolean =>
+        typeof call === 'object' && call !== null && 'questSource' in call;
+      mocked.calledWith([isClearCall]).implement(realMod.smoketestClearPriorQuestsBroker);
       // Cascading passthrough: smoketestClearPriorQuestsBroker calls smoketestEnsureGuildBroker
       // internally, which is also module-mocked. The downstream test still primes the guild list
       // chain via setupSmoketestGuildPresent, so ensure-guild must run real here too.
