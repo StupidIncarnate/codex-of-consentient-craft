@@ -1,3 +1,4 @@
+import { pid } from '#gateway/node/process';
 import {
   FilePathStub,
   GuildIdStub,
@@ -27,6 +28,30 @@ const UNOWNED_EVIDENCE_PATH = FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE 
 
 describe('instanceStartBroker', () => {
   describe('reservation ordering', () => {
+    it('VALID: {start} => writes the registry reservation before the boot lock file', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+      });
+
+      await instanceStartBroker({
+        specName: SpecNameStub({ value: 'api' }),
+        questId: null,
+        guildId: null,
+        seed: null,
+      });
+
+      expect(proxy.getRegistryAndBootLockWriteOrder()).toStrictEqual([
+        '/home/user/.dungeonmaster/siegelense/registry.json.tmp',
+        '/home/user/.dungeonmaster/siegelense/boot.lock',
+      ]);
+    });
+
     it('VALID: {start} => writes the boot lock file naming the reserved instance', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
@@ -47,7 +72,7 @@ describe('instanceStartBroker', () => {
 
       expect(proxy.getWrittenBootLock()).toStrictEqual({
         heldBy: instanceId,
-        heldByPid: String(process.pid),
+        heldByPid: String(pid),
         acquiredAtMs: EpochMsStub().valueOf(),
       });
     });

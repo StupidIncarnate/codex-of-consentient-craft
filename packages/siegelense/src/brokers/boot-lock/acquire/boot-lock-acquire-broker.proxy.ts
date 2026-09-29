@@ -1,5 +1,6 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -69,6 +70,8 @@ export const bootLockAcquireBrokerProxy = (): {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsBootLockPathFindBrokerProxy();
   const mkdirProxy = ensureDirProxy();
+  // The retry poll's delay keeps its real timer; composed for enforce-proxy-child-creation.
+  setTimeoutProxy();
   // rootPath is fixed for every test in this file (never runtime-computed here), so the one path
   // this broker ever ensureDirs is staged once, unconditionally, rather than per scenario.
   mkdirProxy.succeeds({ path: rootPath });

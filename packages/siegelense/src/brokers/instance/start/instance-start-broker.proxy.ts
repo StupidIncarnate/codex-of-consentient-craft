@@ -65,6 +65,7 @@ const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 const CWD_PATH_VALUE = '/default/cwd';
+const BOOT_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/boot.lock`;
 // Built from locationsStatics rather than a re-hardcoded literal, so this constant tracks
 // locationsRepoLinkPathFindBroker's own linkPath composition instead of drifting the moment the
 // nesting under repoRoot changes again. Plain string interpolation, NOT the real `join` call every
@@ -133,6 +134,7 @@ export const instanceStartBrokerProxy = (): {
   stageBootLockAcquireFailsWithReadError: (params: { registry: Registry }) => void;
   stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
   getWrittenBootLock: () => unknown;
+  getRegistryAndBootLockWriteOrder: () => readonly unknown[];
   getBootLockReleasedPaths: () => unknown[];
   getLastRegistryWriteContent: () => unknown;
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
@@ -477,6 +479,9 @@ export const instanceStartBrokerProxy = (): {
     },
 
     getWrittenBootLock: (): unknown => bootLockAcquireProxy.getWrittenLock(),
+
+    getRegistryAndBootLockWriteOrder: (): readonly unknown[] =>
+      reserveProxy.getRegistryWritePathsInOrder({ alongside: BOOT_LOCK_PATH_VALUE }),
 
     getBootLockReleasedPaths: (): unknown[] => bootLockReleaseProxy.getDeletedPaths(),
 

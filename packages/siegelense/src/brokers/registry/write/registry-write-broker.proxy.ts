@@ -29,6 +29,7 @@ export const registryWriteBrokerProxy = (): {
   getWrittenContent: () => unknown;
   getRenamedFrom: () => unknown;
   getRenamedTo: () => unknown;
+  getWritePathsInOrder: (params: { alongside: string }) => readonly unknown[];
 } => {
   // registryWriteBroker calls locationsRootPathFindBroker() directly (for ensureDir + the tmp-path
   // join), then locationsRegistryPathFindBroker() (which recomputes the root path internally on
@@ -75,5 +76,14 @@ export const registryWriteBrokerProxy = (): {
 
     getRenamedTo: (): unknown =>
       registryRename.getCallsFor({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE }).at(-1)?.[1],
+
+    // One `fs/promises` writeFile mock answers every gateway write wrapper, so the tmp write and a
+    // caller's own write to `alongside` (a `writeFileExclusive` lock) share one call list, in order.
+    getWritePathsInOrder: ({ alongside }: { alongside: string }): readonly unknown[] =>
+      writeProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => value === TMP_PATH_VALUE || value === alongside,
+        })
+        .map((call) => call[0]),
   };
 };
