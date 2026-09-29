@@ -8,11 +8,10 @@
  *
  * USAGE:
  * checkFolderReturnTypeLayerBroker({ node, ctx, folderType: FolderTypeStub({value: 'brokers'}) });
- * // Returns AdapterResult; reports lint error if a void-like return discards an informative
+ * // Returns void; reports lint error if a void-like return discards an informative
  * // gateway/broker call, or unknown/object/Record loose returns, or (for guards) a non-boolean
  */
-import type { AdapterResult, FolderType } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
@@ -30,16 +29,14 @@ export const checkFolderReturnTypeLayerBroker = ({
   ctx?: TSESLint.RuleContext<string, unknown[]>;
   folderType?: FolderType | undefined;
   isProxyFile?: boolean;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
-
+}): void => {
   if (!node || !ctx || !folderType) {
-    return result;
+    return;
   }
 
   const { returnType } = node;
   if (!returnType) {
-    return result;
+    return;
   }
 
   const { typeAnnotation } = returnType;
@@ -113,7 +110,7 @@ export const checkFolderReturnTypeLayerBroker = ({
               : 'folderDisguisedVoidReturn',
         data: { folderType },
       });
-      return result;
+      return;
     }
   }
 
@@ -130,7 +127,7 @@ export const checkFolderReturnTypeLayerBroker = ({
         messageId: 'folderUnknownReturn',
         data: { folderType },
       });
-      return result;
+      return;
     }
     if (typeAnnotation.type === AST_NODE_TYPES.TSObjectKeyword) {
       ctx.report({
@@ -138,7 +135,7 @@ export const checkFolderReturnTypeLayerBroker = ({
         messageId: 'folderObjectReturn',
         data: { folderType },
       });
-      return result;
+      return;
     }
     const recordKeyParam = typeArgs?.params[0];
     const recordValueParam = typeArgs?.params[1];
@@ -157,7 +154,7 @@ export const checkFolderReturnTypeLayerBroker = ({
         messageId: 'folderRecordUnknownReturn',
         data: { folderType },
       });
-      return result;
+      return;
     }
   }
 
@@ -172,5 +169,4 @@ export const checkFolderReturnTypeLayerBroker = ({
       });
     }
   }
-  return result;
 };

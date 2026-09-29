@@ -143,7 +143,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
       const ctx = RuleContextStub({ report: mockReport });
-      const code = 'const f = (): AdapterResult => { otherBroker(); };';
+      const code = 'const f = (): true => { otherBroker(); };';
       const callNode = CallExpressionStub({ code });
       const node = ArrowFunctionExpressionStub({ code });
 
@@ -174,7 +174,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
       const ctx = RuleContextStub({ report: mockReport });
-      const code = 'const f = (): AdapterResult => { doNothingBroker(); };';
+      const code = 'const f = (): true => { doNothingBroker(); };';
       const callNode = CallExpressionStub({ code });
       const node = ArrowFunctionExpressionStub({ code });
 

@@ -3,10 +3,8 @@
  *
  * USAGE:
  * checkDiscriminatedUnionVariantsLayerBroker({ node: callExpressionNode, ctx });
- * // Returns AdapterResult; reports `banUnknownPayload` or `banUnknownRecordPayload` for each offending property.
+ * // Returns void; reports `banUnknownPayload` or `banUnknownRecordPayload` for each offending property.
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
@@ -18,18 +16,16 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
 }: {
   node?: TSESTree.Node;
   ctx?: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
-
-  if (!node || !ctx) return result;
-  if (!isAstMethodCallGuard({ node, object: 'z', method: 'discriminatedUnion' })) return result;
+}): void => {
+  if (!node || !ctx) return;
+  if (!isAstMethodCallGuard({ node, object: 'z', method: 'discriminatedUnion' })) return;
 
   // 2nd argument is the variants array
   const variantsArg =
     node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.NewExpression
       ? node.arguments[1]
       : undefined;
-  if (!variantsArg || variantsArg.type !== AST_NODE_TYPES.ArrayExpression) return result;
+  if (!variantsArg || variantsArg.type !== AST_NODE_TYPES.ArrayExpression) return;
 
   for (const variant of variantsArg.elements) {
     if (!variant) continue;
@@ -106,6 +102,4 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
       }
     }
   }
-
-  return result;
 };

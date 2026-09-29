@@ -11,7 +11,6 @@
  * // Reports 'wrongBrandText' when `z.instanceof(ChildProcess).brand<'#GatewayWrongName'>()`'s
  * // literal does not read '#GatewayChildProcess'
  */
-import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -21,13 +20,12 @@ export const checkSchemaBrandTextLayerBroker = ({
 }: {
   node: TSESTree.CallExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const receiver =
     node.callee.type === AST_NODE_TYPES.MemberExpression ? node.callee.object : undefined;
 
   if (receiver?.type !== AST_NODE_TYPES.CallExpression) {
-    return result;
+    return;
   }
 
   const receiverCallee = receiver.callee;
@@ -56,7 +54,7 @@ export const checkSchemaBrandTextLayerBroker = ({
   })();
 
   if (typeName === undefined) {
-    return result;
+    return;
   }
 
   const brandParam = node.typeArguments?.params[0];
@@ -65,7 +63,7 @@ export const checkSchemaBrandTextLayerBroker = ({
   const brandText = brandLiteral?.type === AST_NODE_TYPES.Literal ? brandLiteral.value : undefined;
 
   if (typeof brandText !== 'string') {
-    return result;
+    return;
   }
 
   const expectedBrandText = `#Gateway${typeName}`;
@@ -77,6 +75,4 @@ export const checkSchemaBrandTextLayerBroker = ({
       data: { brandText, expectedBrandText },
     });
   }
-
-  return result;
 };

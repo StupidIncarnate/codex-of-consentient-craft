@@ -11,19 +11,22 @@ describe('checkUnboundTypePropertiesLayerBroker', () => {
       const mockReport = jest.fn();
       const ctx = RuleContextStub({ report: mockReport });
 
-      const result = checkUnboundTypePropertiesLayerBroker({ ctx });
+      checkUnboundTypePropertiesLayerBroker({ ctx });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
-      expect(result.success).toBe(true);
     });
 
     it('VALID: no ctx => does not report', () => {
       checkUnboundTypePropertiesLayerBrokerProxy();
-      const node = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const mockReport = jest.fn();
+      RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({
+        code: 'const f = ({ contents }: { filepath: string; contents: string }) => {};',
+      });
 
-      const result = checkUnboundTypePropertiesLayerBroker({ node });
+      checkUnboundTypePropertiesLayerBroker({ node });
 
-      expect(result.success).toBe(true);
+      expect(mockReport).toHaveBeenCalledTimes(0);
     });
 
     it('VALID: no params => does not report', () => {

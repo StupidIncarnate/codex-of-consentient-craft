@@ -11,10 +11,9 @@ describe('checkDiscriminatedUnionVariantsLayerBroker', () => {
       const mockReport = jest.fn();
       const ctx = RuleContextStub({ report: mockReport });
 
-      const result = checkDiscriminatedUnionVariantsLayerBroker({ ctx });
+      checkDiscriminatedUnionVariantsLayerBroker({ ctx });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
-      expect(result.success).toBe(true);
     });
 
     it('VALID: non-discriminatedUnion CallExpression => does not report', () => {

@@ -33,8 +33,7 @@ export const configWorkspacePackageNamesBroker = ({
 
   const rootPackageJsonPath = filePathContract.parse(`${workspaceRoot.rootDir}/package.json`);
   const contents = readFileSync(rootPackageJsonPath);
-  const parsed: unknown = JSON.parse(contents);
-  const rootPackageJson = workspaceRootPackageJsonContract.parse(parsed);
+  const rootPackageJson = workspaceRootPackageJsonContract.parse(JSON.parse(contents));
 
   const globs = Array.isArray(rootPackageJson.workspaces)
     ? rootPackageJson.workspaces

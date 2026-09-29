@@ -5,8 +5,6 @@
  * validateProxyConstructorSideEffectsLayerBroker({ functionNode, context });
  * // Reports error if proxy constructor has side effects like API calls, database operations, etc. before return
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
@@ -17,11 +15,10 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
 }: {
   functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const { body } = functionNode;
 
-  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return;
 
   const statements = body.body;
 
@@ -34,7 +31,7 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
     }
   }
 
-  if (returnStatementIndex === -1) return result;
+  if (returnStatementIndex === -1) return;
 
   // Check statements before return for side effects
   for (let i = 0; i < returnStatementIndex; i++) {
@@ -100,5 +97,4 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
       }
     }
   }
-  return result;
 };

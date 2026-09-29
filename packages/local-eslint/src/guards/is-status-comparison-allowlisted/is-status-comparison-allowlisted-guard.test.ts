@@ -75,8 +75,6 @@ describe('isStatusComparisonAllowlistedGuard', () => {
       '/repo/packages/shared/src/statics/work-item-status-metadata/work-item-status-metadata-statics.ts',
       '/repo/packages/shared/src/contracts/quest-status/quest-status-contract.ts',
       '/repo/packages/shared/src/contracts/work-item-status/work-item-status-contract.ts',
-      '/repo/packages/shared/src/contracts/quest-status-metadata/quest-status-metadata-contract.ts',
-      '/repo/packages/shared/src/contracts/work-item-status-metadata/work-item-status-metadata-contract.ts',
       '/repo/packages/shared/src/contracts/display-header/display-header-contract.ts',
       // Pure metadata-table lookups: `metadata.statuses[status].field` — no literal comparison.
       '/repo/packages/shared/src/transformers/next-approval-quest-status/next-approval-quest-status-transformer.ts',

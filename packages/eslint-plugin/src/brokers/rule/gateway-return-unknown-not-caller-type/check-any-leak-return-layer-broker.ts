@@ -11,7 +11,6 @@
  * // Reports 'anyLeakNoReturnType' for `const data = JSON.parse(text); return data;` when the
  * // enclosing function declares no return type
  */
-import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { findEnclosingFunctionLayerBroker } from './find-enclosing-function-layer-broker';
@@ -23,26 +22,25 @@ export const checkAnyLeakReturnLayerBroker = ({
 }: {
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const enclosingFunction = findEnclosingFunctionLayerBroker({ node: node.parent });
 
   if (
     !enclosingFunction ||
     ('returnType' in enclosingFunction ? enclosingFunction.returnType : undefined)
   ) {
-    return result;
+    return;
   }
 
   const argument = 'argument' in node ? node.argument : undefined;
 
   if (isJsonParseOrDynamicImportCallLayerBroker({ node: argument })) {
     context.report({ node, messageId: 'anyLeakNoReturnType' });
-    return result;
+    return;
   }
 
   if (argument?.type !== AST_NODE_TYPES.Identifier) {
-    return result;
+    return;
   }
 
   const targetName = argument.name;
@@ -71,6 +69,4 @@ export const checkAnyLeakReturnLayerBroker = ({
   if (hasRiskyDeclarator) {
     context.report({ node, messageId: 'anyLeakNoReturnType' });
   }
-
-  return result;
 };

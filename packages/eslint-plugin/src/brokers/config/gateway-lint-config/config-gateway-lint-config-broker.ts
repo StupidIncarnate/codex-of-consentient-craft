@@ -16,11 +16,11 @@
  */
 import {
   filePathContract,
-  gatewayLintConfigContract,
   type FilePath,
   type GatewayLintConfig,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
@@ -34,9 +34,8 @@ export const configGatewayLintConfigBroker = ({
   if (existsSync(configPath)) {
     try {
       const contents = readFileSync(configPath);
-      const parsed = JSON.parse(contents) as Record<PropertyKey, unknown>;
-      const validated = gatewayLintConfigContract.safeParse(parsed.gateway ?? {});
-      return validated.success ? validated.data : {};
+      const validated = gatewayLintConfigFileContract.safeParse(JSON.parse(contents));
+      return validated.success ? (validated.data.gateway ?? {}) : {};
     } catch {
       return {};
     }

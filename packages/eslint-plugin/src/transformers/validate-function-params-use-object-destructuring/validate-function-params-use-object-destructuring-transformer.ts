@@ -10,8 +10,6 @@
  *
  * WHEN-TO-USE: Within ESLint rule implementations to enforce object destructuring for function parameters
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -22,14 +20,13 @@ export const validateFunctionParamsUseObjectDestructuringTransformer = ({
   node:
     TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   if (node.params.length === 0) {
-    return result;
+    return;
   }
 
   if (node.returnType?.typeAnnotation.type === AST_NODE_TYPES.TSTypePredicate) {
-    return result;
+    return;
   }
 
   for (const param of node.params) {
@@ -45,5 +42,4 @@ export const validateFunctionParamsUseObjectDestructuringTransformer = ({
       });
     }
   }
-  return result;
 };

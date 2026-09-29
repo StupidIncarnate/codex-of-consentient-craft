@@ -5,8 +5,6 @@
  * validateReturnStatementLayerBroker({ statement, context, functionNode });
  * // Reports error if return statement returns void, primitive, or array instead of object
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
@@ -19,8 +17,7 @@ export const validateReturnStatementLayerBroker = ({
   statement: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   functionNode: TSESTree.Node;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   if (statement.type === AST_NODE_TYPES.ReturnStatement) {
     const { argument } = statement;
 
@@ -29,7 +26,7 @@ export const validateReturnStatementLayerBroker = ({
         node: functionNode,
         messageId: 'proxyMustReturnObject',
       });
-      return result;
+      return;
     }
 
     if (
@@ -42,12 +39,11 @@ export const validateReturnStatementLayerBroker = ({
         node: functionNode,
         messageId: 'proxyMustReturnObject',
       });
-      return result;
+      return;
     }
 
     if (argument.type === AST_NODE_TYPES.ObjectExpression) {
       validateObjectExpressionLayerBroker({ objectNode: argument, context });
     }
   }
-  return result;
 };

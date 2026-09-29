@@ -5,8 +5,6 @@
  * validateHarnessConstructorSideEffectsLayerBroker({ functionNode, context });
  * // Reports error if harness constructor has disallowed side effects before return statement
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { harnessLifecycleStatics } from '../../../statics/harness-lifecycle/harness-lifecycle-statics';
@@ -18,11 +16,10 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
 }: {
   functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const { body } = functionNode;
 
-  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return;
 
   const statements = body.body;
 
@@ -35,7 +32,7 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
     }
   }
 
-  if (returnStatementIndex === -1) return result;
+  if (returnStatementIndex === -1) return;
 
   for (let i = 0; i < returnStatementIndex; i++) {
     const statement = statements[i];
@@ -142,5 +139,4 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
       }
     }
   }
-  return result;
 };

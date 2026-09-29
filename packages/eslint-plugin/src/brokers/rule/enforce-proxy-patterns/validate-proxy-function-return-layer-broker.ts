@@ -5,8 +5,6 @@
  * validateProxyFunctionReturnLayerBroker({ functionNode, context });
  * // Reports error if proxy function returns void, string, number, boolean, or array instead of object
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateReturnStatementLayerBroker } from './validate-return-statement-layer-broker';
@@ -18,8 +16,7 @@ export const validateProxyFunctionReturnLayerBroker = ({
 }: {
   functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const { returnType, body } = functionNode;
 
   // Check explicit return type annotation if present
@@ -39,7 +36,7 @@ export const validateProxyFunctionReturnLayerBroker = ({
         node: functionNode,
         messageId: 'proxyMustReturnObject',
       });
-      return result;
+      return;
     }
   }
 
@@ -77,5 +74,4 @@ export const validateProxyFunctionReturnLayerBroker = ({
       messageId: 'proxyMustReturnObject',
     });
   }
-  return result;
 };

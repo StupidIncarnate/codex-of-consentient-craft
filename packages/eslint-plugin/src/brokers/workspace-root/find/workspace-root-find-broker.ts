@@ -32,11 +32,10 @@ export const workspaceRootFindBroker = ({
 
   if (existsSync(packageJsonPath)) {
     const contents = readFileSync(packageJsonPath);
-    const parsed: unknown = JSON.parse(contents);
-    const workspaceRoot = workspaceRootPackageJsonContract.safeParse(parsed);
+    const workspaceRoot = workspaceRootPackageJsonContract.safeParse(JSON.parse(contents));
 
     if (workspaceRoot.success) {
-      const withDeps = gatewayConsumerPackageJsonContract.parse(parsed);
+      const withDeps = gatewayConsumerPackageJsonContract.parse(JSON.parse(contents));
       const packageNames = Object.keys({
         ...withDeps.dependencies,
         ...withDeps.devDependencies,

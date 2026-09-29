@@ -12,8 +12,6 @@
  * });
  * // Reports error if primitive is used in a forbidden context (e.g., return type when allowPrimitiveReturns is false)
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -31,8 +29,7 @@ export const checkPrimitiveViolationLayerBroker = ({
   allowPrimitiveInputs: boolean;
   allowPrimitiveReturns: boolean;
   ctx: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   // Walk up the AST to determine context
   let current = node.parent;
   let isParameter = false;
@@ -88,11 +85,11 @@ export const checkPrimitiveViolationLayerBroker = ({
 
   const isInputContext = isParameter || isPropertyInParameter;
   if (isInputContext && allowPrimitiveInputs) {
-    return result;
+    return;
   }
 
   if (isReturnType && allowPrimitiveReturns) {
-    return result;
+    return;
   }
 
   ctx.report({
@@ -103,5 +100,4 @@ export const checkPrimitiveViolationLayerBroker = ({
       suggestion,
     },
   });
-  return result;
 };

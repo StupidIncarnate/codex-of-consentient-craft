@@ -12,8 +12,6 @@
  * reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody, filename });
  * // Calls ctx.report() when the resolved command names a homed program, otherwise does nothing
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { binProgramHomeStatics } from '../../../statics/bin-program-home/bin-program-home-statics';
@@ -33,7 +31,7 @@ export const reportBinProgramSpawnLayerBroker = ({
   argsNode: TSESTree.Node | undefined;
   moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
-}): AdapterResult => {
+}): void => {
   const program = resolveSpawnedProgramLayerBroker({
     commandNode,
     argsNode,
@@ -57,8 +55,5 @@ export const reportBinProgramSpawnLayerBroker = ({
     });
   }
 
-  // ESLint rule listeners return void; AdapterResult is this file's non-void substitute so
-  // enforce-folder-return-types is satisfied without inventing a meaning for "success: false" that
-  // this side-effect-only function does not have.
-  return adapterResultContract.parse({ success: true });
+  // Returns void: its only effect is the ctx.report call above, and that call tells it nothing back.
 };

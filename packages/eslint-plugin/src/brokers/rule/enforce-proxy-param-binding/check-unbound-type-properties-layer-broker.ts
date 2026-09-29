@@ -5,8 +5,6 @@
  * checkUnboundTypePropertiesLayerBroker({ node: arrowFunctionExpressionNode, ctx });
  * // Reports `unboundProxyParam` for each type-literal property with no matching pattern key
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -17,10 +15,8 @@ export const checkUnboundTypePropertiesLayerBroker = ({
   node?:
     TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
   ctx?: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
-
-  if (!node || !ctx) return result;
+}): void => {
+  if (!node || !ctx) return;
 
   for (const param of node.params) {
     // Unwrap a defaulted param, e.g. `({ a }: { a: A } = {})` — the type lives on `.left`.
@@ -61,6 +57,4 @@ export const checkUnboundTypePropertiesLayerBroker = ({
       });
     }
   }
-
-  return result;
 };

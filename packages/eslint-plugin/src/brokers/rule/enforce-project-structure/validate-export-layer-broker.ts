@@ -5,8 +5,7 @@
  * validateExportLayerBroker({node, context, filename, firstFolder, folderConfig, collectedExports});
  * // Reports all export naming violations found; no return value (terminal layer)
  */
-import type { AdapterResult, Identifier } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -30,8 +29,7 @@ export const validateExportLayerBroker = ({
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   collectedExports: CollectedExport[];
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const isProxy = hasFileSuffixGuard({ filename, suffix: 'proxy' });
   const fileExtension = getFileExtensionTransformer({ filename, includesDot: true });
   const proxySuffix = fileExtension === '.tsx' ? '.proxy.tsx' : '.proxy.ts';
@@ -57,7 +55,7 @@ export const validateExportLayerBroker = ({
         data: { expectedName: expectedExportName, actualCount: '0' },
       });
     }
-    return result;
+    return;
   }
 
   if (valueExports.length > 1) {
@@ -71,11 +69,11 @@ export const validateExportLayerBroker = ({
         exportNames,
       },
     });
-    return result;
+    return;
   }
 
   const [singleExport] = valueExports;
-  if (!singleExport) return result;
+  if (!singleExport) return;
   const exportName = singleExport.name ?? '';
 
   const hasSuffixError = exportSuffix !== '' && !exportName.endsWith(exportSuffix);
@@ -117,5 +115,4 @@ export const validateExportLayerBroker = ({
       data: { exportName, expectedName: expectedExportName },
     });
   }
-  return result;
 };

@@ -50,8 +50,9 @@ export const resolveWorkspaceGlobLayerBroker = ({
 
       try {
         const contents = readFileSync(memberPackageJsonPath);
-        const parsed: unknown = JSON.parse(contents);
-        const memberPackageJson = gatewayConsumerPackageJsonContract.safeParse(parsed);
+        const memberPackageJson = gatewayConsumerPackageJsonContract.safeParse(
+          JSON.parse(contents),
+        );
         return memberPackageJson.success ? memberPackageJson.data.name : null;
       } catch {
         return null;

@@ -11,8 +11,6 @@
  *
  * WHEN-TO-USE: When TypeScript ESLint or other plugins override base ESLint rules
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 export const eslintRulesDisableConflictsTransformer = ({
@@ -21,7 +19,7 @@ export const eslintRulesDisableConflictsTransformer = ({
 }: {
   mergedRules: TSESLint.SharedConfig.RulesRecord;
   overrideRules: TSESLint.SharedConfig.RulesRecord;
-}): AdapterResult => {
+}): void => {
   for (const ruleKey of Object.keys(overrideRules)) {
     const slashIndex = ruleKey.indexOf('/');
     if (slashIndex !== -1) {
@@ -32,5 +30,4 @@ export const eslintRulesDisableConflictsTransformer = ({
       }
     }
   }
-  return adapterResultContract.parse({ success: true });
 };

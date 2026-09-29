@@ -33,8 +33,7 @@ export const repoScopeResolveBroker = ({ startDir }: { startDir: FilePath }): Pa
 
   if (existsSync(packageJsonPath)) {
     const contents = readFileSync(packageJsonPath);
-    const parsedPackageJson: unknown = JSON.parse(contents);
-    const workspaceRoot = workspaceRootPackageJsonContract.safeParse(parsedPackageJson);
+    const workspaceRoot = workspaceRootPackageJsonContract.safeParse(JSON.parse(contents));
 
     if (workspaceRoot.success) {
       return packageScopeFromNameTransformer({ rootPackageName: workspaceRoot.data.name });

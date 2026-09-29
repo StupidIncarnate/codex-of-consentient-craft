@@ -5,8 +5,6 @@
  * validateAdapterMockSetupLayerBroker({ functionNode, context });
  * // Reports error if adapter proxy uses jest.mocked() but doesn't call mockImplementation/mockResolvedValue before return
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
@@ -17,11 +15,10 @@ export const validateAdapterMockSetupLayerBroker = ({
 }: {
   functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
   context: TSESLint.RuleContext<string, unknown[]>;
-}): AdapterResult => {
-  const result = adapterResultContract.parse({ success: true });
+}): void => {
   const { body } = functionNode;
 
-  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return;
 
   const statements = body.body;
 
@@ -34,7 +31,7 @@ export const validateAdapterMockSetupLayerBroker = ({
     }
   }
 
-  if (returnStatementIndex === -1) return result;
+  if (returnStatementIndex === -1) return;
 
   // Check statements before return for jest mocking calls and mock setup calls
   let hasJestMocking = false;
@@ -100,5 +97,4 @@ export const validateAdapterMockSetupLayerBroker = ({
       messageId: 'adapterProxyMustSetupMocks',
     });
   }
-  return result;
 };
