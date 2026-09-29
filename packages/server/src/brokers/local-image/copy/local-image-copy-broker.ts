@@ -12,8 +12,10 @@
  * // write fails is simply absent from the map — the broker itself always resolves.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { readFileBytes, writeFileBytes } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -32,7 +34,7 @@ export const localImageCopyBroker = async ({
     matches.map(
       async (match): Promise<readonly [PastedImageOrdinal, AbsoluteFilePath] | undefined> => {
         if (imageContentTypeTransformer({ filePath: match.path }) === null) {
-          process.stderr.write(
+          stderr.write(
             `[local-image-copy-broker] skipped ${match.path}: not a served image type\n`,
           );
           return undefined;
@@ -47,7 +49,7 @@ export const localImageCopyBroker = async ({
         // this changes no behaviour there — it keeps the quest's images directory uniform.
         const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
         const destination = absoluteFilePathContract.parse(
-          join(imagesDirPath, `${crypto.randomUUID()}.${extension}`),
+          join(imagesDirPath, `${randomUUID()}.${extension}`),
         );
 
         try {
@@ -56,7 +58,7 @@ export const localImageCopyBroker = async ({
           try {
             await writeFileBytes(destination, bytes);
           } catch (writeError: unknown) {
-            process.stderr.write(
+            stderr.write(
               `[local-image-copy-broker] failed to write ${destination}: ${String(writeError)}\n`,
             );
             return undefined;
@@ -64,7 +66,7 @@ export const localImageCopyBroker = async ({
 
           return [match.ordinal, destination] as const;
         } catch (readError: unknown) {
-          process.stderr.write(
+          stderr.write(
             `[local-image-copy-broker] failed to read ${match.path}: ${String(readError)}\n`,
           );
           return undefined;

@@ -50,10 +50,7 @@ describe('localImageCopyBroker', () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/missing.png', ordinal: 1 });
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: ['016612e6-8f4a-726a-802b-10c043690d99'] });
-      proxy.sourceReadFails({
-        filePath: match.path,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      proxy.sourceReadFails({ filePath: match.path });
 
       await localImageCopyBroker({ matches: [match], imagesDirPath });
 
@@ -70,10 +67,7 @@ describe('localImageCopyBroker', () => {
       const goodUuid = '5858f7d1-cf11-5633-a358-b63524fb50c4';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [badUuid, goodUuid] });
-      proxy.sourceReadFails({
-        filePath: badMatch.path,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      proxy.sourceReadFails({ filePath: badMatch.path });
       proxy.sourceReads({ filePath: goodMatch.path, bytes });
 
       const result = await localImageCopyBroker({ matches: [badMatch, goodMatch], imagesDirPath });
@@ -128,14 +122,14 @@ describe('localImageCopyBroker', () => {
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });
       const destination = AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.png` });
-      proxy.destinationWriteFails({
-        filePath: destination,
-        error: new Error('EACCES: permission denied'),
-      });
+      proxy.destinationWriteFails({ filePath: destination });
 
       const result = await localImageCopyBroker({ matches: [match], imagesDirPath });
 
       expect([...result.entries()]).toStrictEqual([]);
+      expect(proxy.stderrText()).toBe(
+        `[local-image-copy-broker] failed to write ${destination}: Error: EACCES: op '${destination}'\n`,
+      );
     });
   });
 });

@@ -1,8 +1,9 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileFromBase64Proxy } from '#gateway/node/fs__promises/write-file-from-base64/write-file-from-base64.proxy';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBrokerProxy,
@@ -30,8 +31,8 @@ export const pastedImagePersistBrokerProxy = (): {
   sourceReadAttemptedPaths: () => unknown[];
   stageCopyIds: (params: { ids: readonly string[] }) => void;
   sourceReads: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
-  sourceReadFails: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
-  destinationWriteFails: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
+  sourceReadFails: (params: { filePath: AbsoluteFilePath }) => void;
+  destinationWriteFails: (params: { filePath: AbsoluteFilePath }) => void;
   writtenDestinations: () => AbsoluteFilePath[];
   writtenBytesFor: (params: { filePath: AbsoluteFilePath }) => unknown;
 } => {
@@ -43,7 +44,7 @@ export const pastedImagePersistBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   locationsQuestFolderPathFindBrokerProxy();
   locationsQuestImagesPathFindBrokerProxy();
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  const uuidHandle = registerMock({ fn: randomUUID });
   // This broker's own images-directory resolution (locationsQuestFolderPathFindBroker ->
   // locationsGuildQuestsPathFindBroker -> locationsGuildPathFindBroker ->
   // dungeonmasterHomeFindBroker) reaches homedir() through '#gateway/node/os' — the SAME
@@ -88,12 +89,12 @@ export const pastedImagePersistBrokerProxy = (): {
     stageImageIds: ({ ids }: { ids: readonly string[] }): void => {
       stageImagesFolder();
       // Each id answers ONE call, consumed in the order staged. images.map() invokes
-      // crypto.randomUUID() synchronously per image before any write starts, so staging order
-      // lines up with input order. Registered on the SAME shared crypto.randomUUID queue the
+      // randomUUID() synchronously per image before any write starts, so staging order
+      // lines up with input order. Registered on the SAME shared gateway randomUUID queue the
       // composed localImageCopyBrokerProxy's stageCopyIds appends to below, so a test that stages
       // uploads then copies gets upload ids consumed first, copy ids second.
       for (const id of ids) {
-        uuidSpy.onceFor([]).returns(id);
+        uuidHandle.onceFor([]).returns(id);
       }
     },
     mkdirRequestedDirPaths: (): unknown[] =>
@@ -123,19 +124,13 @@ export const pastedImagePersistBrokerProxy = (): {
       stageImagesFolder();
       copyProxy.sourceReads({ filePath, bytes });
     },
-    sourceReadFails: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
+    sourceReadFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
       stageImagesFolder();
-      copyProxy.sourceReadFails({ filePath, error });
+      copyProxy.sourceReadFails({ filePath });
     },
-    destinationWriteFails: ({
-      filePath,
-      error,
-    }: {
-      filePath: AbsoluteFilePath;
-      error: Error;
-    }): void => {
+    destinationWriteFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
       stageImagesFolder();
-      copyProxy.destinationWriteFails({ filePath, error });
+      copyProxy.destinationWriteFails({ filePath });
     },
     writtenDestinations: (): AbsoluteFilePath[] => copyProxy.writtenDestinations(),
     writtenBytesFor: ({ filePath }: { filePath: AbsoluteFilePath }): unknown =>

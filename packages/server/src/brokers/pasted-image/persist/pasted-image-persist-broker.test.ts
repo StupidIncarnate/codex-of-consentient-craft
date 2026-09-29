@@ -192,7 +192,6 @@ describe('pastedImagePersistBroker', () => {
       proxy.stageCopyIds({ ids: ['facefeed-0000-4000-8000-000000000000'] });
       proxy.sourceReadFails({
         filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
-        error: new Error('EACCES: permission denied'),
       });
 
       const result = await pastedImagePersistBroker({
@@ -254,7 +253,6 @@ describe('pastedImagePersistBroker', () => {
       });
       proxy.destinationWriteFails({
         filePath: AbsoluteFilePathStub({ value: `${imagesDirPath}/${copyId}.png` }),
-        error: new Error('EACCES: permission denied'),
       });
 
       const result = await pastedImagePersistBroker({
@@ -369,7 +367,6 @@ describe('pastedImagePersistBroker', () => {
       proxy.stageCopyIds({ ids: ['deadbeef-0000-4000-8000-000000000000'] });
       proxy.sourceReadFails({
         filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
-        error: new Error('ENOENT: no such file or directory'),
       });
 
       const result = await pastedImagePersistBroker({

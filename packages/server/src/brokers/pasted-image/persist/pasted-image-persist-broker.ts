@@ -15,6 +15,7 @@
  * // Writes each image under the quest's images dir and returns the message with its tokens rewritten
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir, writeFileFromBase64 } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import {
@@ -62,7 +63,7 @@ export const pastedImagePersistBroker = async ({
     images.map(async (image) => {
       const extension = image.mediaType.split('/')[1] ?? '';
       const filePath = absoluteFilePathContract.parse(
-        join(imagesDirPath, `${crypto.randomUUID()}.${extension}`),
+        join(imagesDirPath, `${randomUUID()}.${extension}`),
       );
 
       await writeFileFromBase64(filePath, image.dataBase64);
