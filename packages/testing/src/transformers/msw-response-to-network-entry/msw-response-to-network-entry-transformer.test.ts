@@ -1,5 +1,6 @@
 import { mswResponseToNetworkEntryTransformer } from './msw-response-to-network-entry-transformer';
 import { NetworkLogEntryStub } from '../../contracts/network-log-entry/network-log-entry.stub';
+import { Response } from '#gateway/node/Response';
 
 describe('mswResponseToNetworkEntryTransformer', () => {
   describe('response body capture', () => {

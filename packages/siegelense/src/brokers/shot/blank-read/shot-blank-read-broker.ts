@@ -20,6 +20,7 @@ import type { BlankReading } from '../../../contracts/blank-reading/blank-readin
 import { colourChannelContract } from '../../../contracts/colour-channel/colour-channel-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
 import { rgbaToHexTransformer } from '../../../transformers/rgba-to-hex/rgba-to-hex-transformer';
+import { Buffer } from '#gateway/node/buffer';
 
 const RGBA_CHANNEL_COUNT = 4;
 const RED_BYTE_OFFSET = 0;

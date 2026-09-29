@@ -24,6 +24,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const PERCENT_MULTIPLIER = 100;
 

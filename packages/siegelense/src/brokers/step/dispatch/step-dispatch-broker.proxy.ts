@@ -17,6 +17,7 @@ import { perceptionStatics } from '../../../statics/perception/perception-static
 import { shotBlankReadBrokerProxy } from '../../shot/blank-read/shot-blank-read-broker.proxy';
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
 import { runVerbLayerBrokerProxy } from './run-verb-layer-broker.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const TWO_MATCHES_COUNT = 2;

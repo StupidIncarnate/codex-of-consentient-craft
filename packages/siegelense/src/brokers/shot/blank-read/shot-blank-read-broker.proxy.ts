@@ -14,6 +14,7 @@ import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/r
 import { PNG } from '#gateway/npm/pngjs';
 import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { Buffer } from '#gateway/node/buffer';
 
 export const shotBlankReadBrokerProxy = (): {
   stagesShot: (params: {

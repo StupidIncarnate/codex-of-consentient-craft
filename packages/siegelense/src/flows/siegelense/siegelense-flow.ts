@@ -74,6 +74,7 @@ import { SiegelenseRunLayerFlow } from './siegelense-run-layer-flow';
 import { SiegelenseSnapshotsLayerFlow } from './siegelense-snapshots-layer-flow';
 import { SiegelenseStartLayerFlow } from './siegelense-start-layer-flow';
 import { SiegelenseStatusLayerFlow } from './siegelense-status-layer-flow';
+import { stdout } from '#gateway/node/process';
 
 const HELP_FLAG = siegelenseOutputStatics.flags.help;
 const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
@@ -114,7 +115,7 @@ export const SiegelenseFlow = async ({
 }): Promise<AdapterResult> => {
   if (!isEpipeGuardInstalled) {
     isEpipeGuardInstalled = true;
-    process.stdout.on(STDOUT_ERROR_EVENT, (error: NodeJS.ErrnoException) => {
+    stdout.on(STDOUT_ERROR_EVENT, (error: NodeJS.ErrnoException) => {
       if (error.code !== EPIPE_ERROR_CODE) {
         throw error;
       }
@@ -124,7 +125,7 @@ export const SiegelenseFlow = async ({
   const [callName, ...callArgs] = args;
 
   if (callName === HELP_FLAG || callName === HELP_SHORT_FLAG) {
-    process.stdout.write(siegelenseHelpRenderTransformer({ call: null }));
+    stdout.write(siegelenseHelpRenderTransformer({ call: null }));
     return adapterResultContract.parse({ success: true });
   }
 
@@ -179,7 +180,7 @@ export const SiegelenseFlow = async ({
 
   if (call !== undefined && routeHandler !== undefined) {
     if (callArgs.includes(HELP_FLAG) || callArgs.includes(HELP_SHORT_FLAG)) {
-      process.stdout.write(siegelenseHelpRenderTransformer({ call }));
+      stdout.write(siegelenseHelpRenderTransformer({ call }));
       return adapterResultContract.parse({ success: true });
     }
 

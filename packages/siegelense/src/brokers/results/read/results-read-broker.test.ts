@@ -16,6 +16,7 @@ import { StepReadingStub } from '../../../contracts/step-reading/step-reading.st
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { resultsReadBroker } from './results-read-broker';
 import { resultsReadBrokerProxy } from './results-read-broker.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 type RunId = ReturnType<typeof RunIdStub>;
 

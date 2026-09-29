@@ -3,6 +3,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { pastePayloadLayerBroker } from './paste-payload-layer-broker';
 import { pastePayloadLayerBrokerProxy } from './paste-payload-layer-broker.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('pastePayloadLayerBroker', () => {
   describe('a value', () => {

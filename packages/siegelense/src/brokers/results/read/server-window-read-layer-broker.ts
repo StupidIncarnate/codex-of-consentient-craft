@@ -30,6 +30,7 @@ import type { StepIndex } from '../../../contracts/step-index/step-index-contrac
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
+import { Buffer } from '#gateway/node/buffer';
 
 export const serverWindowReadLayerBroker = async ({
   evidencePath,

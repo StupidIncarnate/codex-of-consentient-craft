@@ -2,6 +2,7 @@ import { http, HttpResponse } from '#gateway/npm/msw';
 
 import { mswServerState } from './msw-server-state';
 import { mswServerStateProxy } from './msw-server-state.proxy';
+import { fetch } from '#gateway/node/fetch';
 
 const parseBody = async (response: Response): Promise<unknown> =>
   JSON.parse(JSON.stringify(await response.json())) as unknown;

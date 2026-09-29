@@ -6,6 +6,7 @@ import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.st
 
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const flush = async (): Promise<void> => {
   await new Promise((resolve) => {

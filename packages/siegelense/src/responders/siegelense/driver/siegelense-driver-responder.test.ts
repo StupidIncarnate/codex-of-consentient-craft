@@ -10,6 +10,7 @@ import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
+import { pid } from '#gateway/node/process';
 
 const SPEC_NAME = SpecNameStub({ value: 'api' });
 
@@ -46,7 +47,7 @@ describe('SiegelenseDriverResponder', () => {
         pgids: stampedRow?.pgids,
         socketPath: stampedRow?.socketPath,
       }).toStrictEqual({
-        pid: String(process.pid),
+        pid: String(pid),
         pgids: lane.pgids,
         socketPath: proxy.getExpectedSocketPath({ instanceId }),
       });

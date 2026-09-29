@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 import {
   dungeonmasterRuleEnforceOnStatics,
   gatewayLocationsStatics,

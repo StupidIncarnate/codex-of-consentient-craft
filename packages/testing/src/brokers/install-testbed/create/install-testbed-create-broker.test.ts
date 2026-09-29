@@ -7,6 +7,7 @@ import { FileContentStub } from '../../../contracts/file-content/file-content.st
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { RelativePathStub } from '../../../contracts/relative-path/relative-path.stub';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('installTestbedCreateBroker', () => {
   describe('testbed creation', () => {

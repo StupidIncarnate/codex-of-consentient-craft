@@ -2,6 +2,7 @@ import { locationsSocketPathFindBroker } from './locations-socket-path-find-brok
 import { locationsSocketPathFindBrokerProxy } from './locations-socket-path-find-broker.proxy';
 import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('locationsSocketPathFindBroker', () => {
   describe('socket path resolution', () => {

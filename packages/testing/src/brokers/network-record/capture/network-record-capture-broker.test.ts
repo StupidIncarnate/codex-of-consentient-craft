@@ -1,6 +1,7 @@
 import { networkRecordCaptureBroker } from './network-record-capture-broker';
 import { networkRecordCaptureBrokerProxy } from './network-record-capture-broker.proxy';
 import { http, HttpResponse } from '#gateway/npm/msw';
+import { fetch } from '#gateway/node/fetch';
 
 describe('networkRecordCaptureBroker', () => {
   describe('start and capture', () => {

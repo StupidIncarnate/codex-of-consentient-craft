@@ -1,5 +1,7 @@
 import { isTimerHoldingLoopGuard } from './is-timer-holding-loop-guard';
 import { TimerHandleStub } from '../../contracts/timer-handle/timer-handle.stub';
+import { setInterval } from '#gateway/node/setInterval';
+import { clearInterval } from '#gateway/node/clearInterval';
 
 describe('isTimerHoldingLoopGuard', () => {
   describe('handles that hold the loop', () => {

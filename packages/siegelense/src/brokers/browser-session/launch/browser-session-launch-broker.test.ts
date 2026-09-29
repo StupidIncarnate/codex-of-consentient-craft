@@ -10,6 +10,7 @@ import { VideoActionStub } from '../../../contracts/video-action/video-action.st
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { browserSessionLaunchBroker } from './browser-session-launch-broker';
 import { browserSessionLaunchBrokerProxy } from './browser-session-launch-broker.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 const BASE_URL = 'http://localhost:5555';
 const EVIDENCE_PATH = AbsoluteFilePathStub({

@@ -4,6 +4,7 @@ import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
 import { CommandNameStub } from '../../../contracts/command-name/command-name.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('integrationEnvironmentCreateBroker', () => {
   describe('project creation', () => {

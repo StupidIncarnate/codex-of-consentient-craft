@@ -1,5 +1,7 @@
 import { timerHandleContract } from './timer-handle-contract';
 import { TimerHandleStub } from './timer-handle.stub';
+import { setInterval } from '#gateway/node/setInterval';
+import { clearInterval } from '#gateway/node/clearInterval';
 
 describe('timerHandleContract', () => {
   describe('valid handles', () => {

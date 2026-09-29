@@ -1,16 +1,17 @@
 import { spyOnRegisterMiddleware } from './spy-on-register-middleware';
 import { spyOnRegisterMiddlewareProxy } from './spy-on-register-middleware.proxy';
+import { stdout } from '#gateway/node/process';
 
 describe('spyOnRegisterMiddleware', () => {
   describe('basic spy', () => {
     it('VALID: {object: process.stdout, method: write} => intercepts calls and tracks them', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith([]).returns(true);
 
-      process.stdout.write('hello');
+      stdout.write('hello');
 
       expect(handle.callsMatching([])).toStrictEqual([['hello']]);
     });
@@ -20,14 +21,14 @@ describe('spyOnRegisterMiddleware', () => {
     it('VALID: {two calledWith descriptions} => each call answers by its own argument regardless of call order', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith(['alpha']).returns(true);
       handle.calledWith(['beta']).returns(false);
 
       // Called in the opposite order to the staging — order must not matter
-      const betaResult = process.stdout.write('beta');
-      const alphaResult = process.stdout.write('alpha');
+      const betaResult = stdout.write('beta');
+      const alphaResult = stdout.write('alpha');
 
       expect(betaResult).toBe(false);
       expect(alphaResult).toBe(true);
@@ -36,12 +37,12 @@ describe('spyOnRegisterMiddleware', () => {
     it('VALID: {two proxies spying the same global} => share the same staged descriptions', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const firstHandle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
-      const secondHandle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const firstHandle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
+      const secondHandle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       firstHandle.calledWith(['shared']).returns(true);
 
-      const result = process.stdout.write('shared');
+      const result = stdout.write('shared');
 
       expect(result).toBe(true);
       expect(secondHandle.callsMatching([])).toStrictEqual([['shared']]);
@@ -50,13 +51,13 @@ describe('spyOnRegisterMiddleware', () => {
     it('VALID: {onceFor same args} => one-shot answers first, sticky answers after', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith(['line']).returns(true);
       handle.onceFor(['line']).returns(false);
 
-      const result1 = process.stdout.write('line');
-      const result2 = process.stdout.write('line');
+      const result1 = stdout.write('line');
+      const result2 = stdout.write('line');
 
       expect(result1).toBe(false);
       expect(result2).toBe(true);
@@ -67,13 +68,13 @@ describe('spyOnRegisterMiddleware', () => {
     it('VALID: {writes with two different args} => returns only the calls for the requested argument', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith([]).returns(true);
 
-      process.stdout.write('alpha');
-      process.stdout.write('beta');
-      process.stdout.write('alpha');
+      stdout.write('alpha');
+      stdout.write('beta');
+      stdout.write('alpha');
 
       expect(handle.callsMatching(['alpha'])).toStrictEqual([['alpha'], ['alpha']]);
     });
@@ -81,11 +82,11 @@ describe('spyOnRegisterMiddleware', () => {
     it('EMPTY: {argument never written} => returns no calls', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith([]).returns(true);
 
-      process.stdout.write('beta');
+      stdout.write('beta');
 
       expect(handle.callsMatching(['alpha'])).toStrictEqual([]);
     });
@@ -95,25 +96,21 @@ describe('spyOnRegisterMiddleware', () => {
     it('ERROR: {staging present, call matches nothing} => throws naming the call and what was described', () => {
       spyOnRegisterMiddlewareProxy();
 
-      const handle = spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      const handle = spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
       handle.calledWith(['alpha']).returns(true);
 
-      expect(() => process.stdout.write('gamma')).toThrow(
-        /^registerMock: nothing set up for the call/u,
-      );
-      expect(() => process.stdout.write('gamma')).toThrow(/"gamma"/u);
-      expect(() => process.stdout.write('gamma')).toThrow(/Calls that ARE set up: \("alpha"\)/u);
+      expect(() => stdout.write('gamma')).toThrow(/^registerMock: nothing set up for the call/u);
+      expect(() => stdout.write('gamma')).toThrow(/"gamma"/u);
+      expect(() => stdout.write('gamma')).toThrow(/Calls that ARE set up: \("alpha"\)/u);
     });
 
     it('ERROR: {nothing staged at all} => throws unconditionally', () => {
       spyOnRegisterMiddlewareProxy();
 
-      spyOnRegisterMiddleware({ object: process.stdout, method: 'write' });
+      spyOnRegisterMiddleware({ object: stdout, method: 'write' });
 
-      expect(() => process.stdout.write('anything')).toThrow(
-        /^registerMock: nothing set up for the call/u,
-      );
+      expect(() => stdout.write('anything')).toThrow(/^registerMock: nothing set up for the call/u);
     });
   });
 
@@ -122,14 +119,14 @@ describe('spyOnRegisterMiddleware', () => {
       spyOnRegisterMiddlewareProxy();
 
       const handle = spyOnRegisterMiddleware({
-        object: process.stdout,
+        object: stdout,
         method: 'write',
         passthrough: true,
       });
 
       handle.calledWith(['alpha']).returns(false);
 
-      const result = process.stdout.write('unstaged-call');
+      const result = stdout.write('unstaged-call');
 
       expect(result).toBe(true);
     });
@@ -137,9 +134,9 @@ describe('spyOnRegisterMiddleware', () => {
     it('VALID: {passthrough: true, nothing staged at all} => never throws', () => {
       spyOnRegisterMiddlewareProxy();
 
-      spyOnRegisterMiddleware({ object: process.stdout, method: 'write', passthrough: true });
+      spyOnRegisterMiddleware({ object: stdout, method: 'write', passthrough: true });
 
-      const result = process.stdout.write('anything');
+      const result = stdout.write('anything');
 
       expect(result).toBe(true);
     });

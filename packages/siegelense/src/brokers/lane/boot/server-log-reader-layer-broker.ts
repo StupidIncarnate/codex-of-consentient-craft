@@ -22,6 +22,7 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 
 import { serverLogByteCountContract } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
 import type { ServerLogByteCount } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
+import { Buffer } from '#gateway/node/buffer';
 
 export const serverLogReaderLayerBroker = ({
   logPath,

@@ -11,7 +11,7 @@
  * proxy.stagesShot({ path: framePath, width: 10, height: 10, pixels: new Uint8Array([...]) });
  */
 
-import { PNG } from 'pngjs';
+import { PNG } from '#gateway/npm/pngjs';
 import { copyFileProxy } from '#gateway/node/fs__promises/copy-file/copy-file.proxy';
 import { dirname, join } from '#gateway/node/path';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
@@ -20,6 +20,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
 import { holdStatics } from '../../../statics/hold/hold-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // The gaps between frames the hold tests drive: the default, and the one second the run-verb and
 // dispatch tests pass. Each answers at once, so a hold never waits on a real timer.

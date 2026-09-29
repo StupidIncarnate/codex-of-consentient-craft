@@ -14,7 +14,7 @@
  */
 
 import { existsSync, readFileSync } from 'fs';
-import { resolve } from 'path';
+import { resolve } from '#gateway/node/path';
 
 const PACKAGE_ROOT = resolve(__dirname, '..');
 

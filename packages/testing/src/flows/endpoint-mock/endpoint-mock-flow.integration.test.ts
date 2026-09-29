@@ -1,5 +1,6 @@
 import { EndpointMockFlow } from './endpoint-mock-flow';
 import { EndpointMockSetupResponder } from '../../responders/endpoint-mock/setup/endpoint-mock-setup-responder';
+import { fetch } from '#gateway/node/fetch';
 
 const BASE = 'http://localhost';
 

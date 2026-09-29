@@ -6,6 +6,7 @@ import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { serverWindowReadLayerBrokerProxy } from './server-window-read-layer-broker.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',

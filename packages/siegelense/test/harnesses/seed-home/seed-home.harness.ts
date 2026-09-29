@@ -33,7 +33,7 @@
  * });
  */
 import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 
 import { dynamicImport } from '#gateway/node/module';
 import type { StubArgument } from '@dungeonmaster/shared/@types';

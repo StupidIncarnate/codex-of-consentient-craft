@@ -1,5 +1,7 @@
 import { EndpointMockListenResponder } from './endpoint-mock-listen-responder';
 import { EndpointMockListenResponderProxy } from './endpoint-mock-listen-responder.proxy';
+import { fetch } from '#gateway/node/fetch';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 const NOT_FOUND = 404;
 const NO_CONTENT = 204;
