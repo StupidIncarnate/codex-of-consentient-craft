@@ -27,6 +27,7 @@
           "readyPath": "/api/guilds",
           "env": {
             "DUNGEONMASTER_PORT": "{apiPort}",
+            "DUNGEONMASTER_WEB_PORT": "{webPort}",
             "DUNGEONMASTER_HOME": "{home}",
             "HOME": "{home}",
             "GIT_CONFIG_NOSYSTEM": "1",

@@ -1,4 +1,4 @@
-import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, QuestIdStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -58,7 +58,52 @@ describe('SiegelenseStartResponder', () => {
       await SiegelenseStartResponder({ specName, questId, guildId, seed: null, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+      ]);
+    });
+  });
+
+  describe('a raised idle timeout', () => {
+    it('VALID: {idleTimeoutMs: 1_800_000} => the human summary states the raised timeout', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const manifest = InstanceManifestStub({ specName });
+      const idleTimeoutMs = TimeoutMsStub({ value: 1_800_000 });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs,
+      });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        startAnswerRenderTransformer({ manifest, idleTimeoutMs }),
+      ]);
+      expect(startAnswerRenderTransformer({ manifest, idleTimeoutMs }).split('\n')[6]).toBe(
+        'IDLE TIMEOUT: 30m (raised from the 15m default)',
+      );
+    });
+
+    it('VALID: {idleTimeoutMs: 1_800_000, isJson: true} => the JSON document carries idleTimeoutMs 1800000', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+        isJson: true,
+      });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 1_800_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -205,7 +250,7 @@ describe('SiegelenseStartResponder', () => {
       });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -250,7 +295,7 @@ describe('SiegelenseStartResponder', () => {
       });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });

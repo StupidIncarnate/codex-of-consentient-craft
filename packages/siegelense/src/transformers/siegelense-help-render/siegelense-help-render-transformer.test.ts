@@ -137,10 +137,10 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'REFUSES\n' +
           '  A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.\n' +
-          '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
+          '  --idle-timeout-ms only RAISES the ceiling for this one instance — a value below 900000 is refused, and it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included.\n' +
+          '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, the idle timeout (IDLE TIMEOUT:), and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included, plus `idleTimeoutMs`.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense start --spec stack\n',
