@@ -6,6 +6,7 @@
  * // Loads and displays raw tool output for the specified check type in the specified run
  */
 
+import { stderr } from '#gateway/node/process';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -28,7 +29,7 @@ export const WardRawResponder = async ({
   const checkTypeArg = args[SECOND_POSITIONAL_INDEX];
 
   if (!runIdArg || !checkTypeArg) {
-    process.stderr.write('Usage: ward raw <run-id> <check-type>\n');
+    stderr.write('Usage: ward raw <run-id> <check-type>\n');
     return result;
   }
 

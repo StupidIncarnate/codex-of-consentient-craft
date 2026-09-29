@@ -1,4 +1,3 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { commandListBrokerProxy } from '../../../brokers/command/list/command-list-broker.proxy';
 import { WardListResponder } from './ward-list-responder';
 
@@ -11,13 +10,6 @@ export const WardListResponderProxy = (): {
 } => {
   const listProxy = commandListBrokerProxy();
 
-  // write()'s return value never varies by content — what was written is read back via
-  // callsMatching below, so the catch-all stays unaddressed.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
-  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.calledWith([]).returns(true);
-
   return {
     callResponder: WardListResponder,
 
@@ -29,8 +21,8 @@ export const WardListResponderProxy = (): {
       listProxy.setupNoResult();
     },
 
-    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStderrCalls: (): unknown[] => listProxy.getStderrCalls().map((call) => call[0]),
 
-    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
+    getStdoutCalls: (): unknown[] => listProxy.getStdoutCalls().map((call) => call[0]),
   };
 };

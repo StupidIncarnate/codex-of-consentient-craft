@@ -6,6 +6,7 @@
  * // Loads and displays detailed errors in JSON format
  */
 
+import { stderr } from '#gateway/node/process';
 import {
   adapterResultContract,
   type AbsoluteFilePath,
@@ -33,7 +34,7 @@ export const WardDetailResponder = async ({
   const [runIdArg, filePathArg] = positionalArgs;
 
   if (!runIdArg) {
-    process.stderr.write('Usage: ward detail <run-id> [file-path] [--json]\n');
+    stderr.write('Usage: ward detail <run-id> [file-path] [--json]\n');
     return result;
   }
 
