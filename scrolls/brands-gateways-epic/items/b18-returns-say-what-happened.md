@@ -435,3 +435,423 @@ Both fixes replace a hand-written `(x): x is OurType` with a plain `!== null` fi
 
 `npm run ward -- --only lint,typecheck,unit,integration -- <the files above>`, then `npm run ward -- --only unit -- packages/orchestrator packages/server packages/mcp` for the whole-package regression (orchestration-loop's and work-item-insert's proxies are composed only within `orchestrator`; nothing here is imported by `server` or `mcp`, but the wide run is cheap insurance).
 
+
+## Plan — Split (b): every remaining `AdapterResult` and `{ success: true }` return
+
+Checked against code on 2026-09-29 (the worktree at `cf49035d0` plus the uncommitted `@gateway/npm` edit). Everything
+below comes from a fresh dry run of `phase34-scripts/b18-adapter-result/run.cjs` over the whole repo
+(`--no-verify --sample-out=tmp/b18-sample --leftovers=tmp/b18-left.json`, about 2 minutes) and a scan of the tree, not
+from the census earlier in this file.
+
+Measured by that run: 174 functions found, **163 convert**, 177 discarding callers, 50 forwarders, 11 function types
+retyped, 216 files rewritten (153 source, 61 tests, 2 proxies), 182 asserts rewritten to `.toBeUndefined()`, 0 new
+diagnostics in the script's own verify pass. Hand queue: the same 11 functions as `leftovers.json`, 4 stubs, 4 proxies,
+19 comment-only files, 50 `{ success: true }` asserts left alone. Nothing in the run touches `src/adapters/`: no
+package has that folder any more, so the census under "Split (b): Broad Census per Package" above is history, and this
+section is the scope.
+
+### How the script is run
+
+1. Once, from the worktree root: `cp -a scrolls/brands-gateways-epic/phase34-scripts tmp/phase34`.
+2. Per package: `node tmp/phase34/b18-adapter-result/run.cjs --pkgs=<pkg> --sample-out=tmp/b18-sample-<pkg> --leftovers=tmp/b18-left-<pkg>.json`.
+   It writes copies only. Prove them with `lib/verify-sample.cjs --check=...` (see the script's header), then copy the
+   sample tree over `packages/` with plain `cp -a` (an overwrite, no deletion). The script matches imports by the
+   imported NAME (`AdapterResult`, `adapterResultContract`, `AdapterResultStub`), never by module specifier, so it
+   works on barrel imports and on 3.3's per-file imports alike.
+3. **A per-package run converts more than the whole-repo run.** Measured: `--pkgs=orchestrator` converts all 46 of
+   orchestrator's functions (the whole-repo run converts 41 and leaves `guildRemoveBroker`, `questDeleteBroker`,
+   `GuildRemoveResponder`, the `GuildFlow.remove` slot and the `removeGuild` slot), because a caller in another package
+   that parses or forwards the value is out of that run's sight. So per-package runs are safe only for packages no
+   other package's forwarder or parse depends on. The hand queue below is written for the whole-repo leftover set;
+   after each per-package run, diff its `converted` count against the whole-repo figure (table below). A larger number
+   means the run took a hand-queue function, and its dependents' typecheck goes red until that hand batch lands.
+4. Every run is typecheck-proof only. `unit` runs before each package's commit (README row `b18-adapter-result`).
+
+### Script order and gate
+
+Dependency order, leaf packages first. `converted` is what the whole-repo run gives that package.
+
+| # | Package | functions / converted | Files the script rewrites | Gate (`npm run ward -- --only lint,typecheck,unit -- packages/<pkg>`; dependents get `--only typecheck,unit`) |
+|---|---|---|---|---|
+| 1 | `testing` | 1 / 1 | 1 | testing |
+| 2 | `config` | 1 / 1 | 1 | config + orchestrator, siegelense, ward (typecheck,unit) |
+| 3 | `session-forensics` | 1 / 1 | 1 | session-forensics |
+| 4 | `tooling` | 6 / 6 | 4 | tooling |
+| 5 | `hooks` | 13 / 13 | 14 | hooks |
+| 6 | `eslint-plugin` | 17 / 17 | 19 | eslint-plugin + local-eslint, mcp (typecheck,unit) |
+| 7 | `ward` | 16 / 16 | 23 | ward + mcp (typecheck,unit) |
+| 8 | `web` | 12 / 12 | 21 | web |
+| 9 | `orchestrator` | 46 / 41 | 53 | orchestrator + cli, hydration-recipes, mcp, server (typecheck,unit) |
+| 10 | `hydration-recipes` | 9 / 8 | 14 | hydration-recipes + server, web (typecheck,unit) |
+| 11 | `server` | 6 / 6 | 8 | server + cli (typecheck,unit) |
+| 12 | `mcp` | 4 / 4 | 6 | mcp |
+| 13 | `cli` | 7 / 3 | 5 | cli + siegelense (typecheck,unit) |
+| 14 | `siegelense` | 35 / 34 | 46 | siegelense |
+
+`shared`, `hydration` and `local-eslint` have no function to convert; `shared` is edited only by the last step. Linked
+group: run orchestrator, hydration-recipes, server and mcp in that order as one wave and gate them together at the end
+of it (orchestrator's `StartOrchestrator` methods are what server and mcp forward, and `start-orchestrator.proxy.ts`
+is composed by server and mcp proxies), so a red between two of them is expected and is not a stop. cli and
+siegelense reach each other only through `dynamicImport`, which types nothing, so their order is free.
+
+### Files the script rewrites (per package, from `tmp/b18-sample`)
+
+Each package's list is its agent's complete scope for the script step. Hand-queue files appear here too when the
+script also edits them; the hand batch then starts from the script's output.
+
+
+**testing** (1 files)
+
+- `packages/testing/src/brokers/integration-environment/cleanup-all/integration-environment-cleanup-all-broker.ts`
+
+**config** (1 files)
+
+- `packages/config/src/brokers/config/resolve/find-parent-configs-layer-broker.ts`
+
+**session-forensics** (1 files)
+
+- `packages/session-forensics/src/startup/start-session-forensics.ts`
+
+**tooling** (4 files)
+
+- `packages/tooling/src/responders/adapter-census/run/adapter-census-run-responder.ts`
+- `packages/tooling/src/responders/primitive-duplicate-detection/run/primitive-duplicate-detection-run-responder.ts`
+- `packages/tooling/src/startup/start-adapter-census.ts`
+- `packages/tooling/src/startup/start-primitive-duplicate-detection.ts`
+
+**hooks** (14 files)
+
+- `packages/hooks/src/brokers/install/agents-setup/install-agents-setup-broker.test.ts`
+- `packages/hooks/src/brokers/install/agents-setup/install-agents-setup-broker.ts`
+- `packages/hooks/src/startup/start-agy-pre-tool-hook.ts`
+- `packages/hooks/src/startup/start-agy-stop-hook.ts`
+- `packages/hooks/src/startup/start-post-ask-question-hook.ts`
+- `packages/hooks/src/startup/start-post-edit-hook.ts`
+- `packages/hooks/src/startup/start-pre-bash-hook.ts`
+- `packages/hooks/src/startup/start-pre-edit-hook.ts`
+- `packages/hooks/src/startup/start-pre-folder-detail-hook.ts`
+- `packages/hooks/src/startup/start-pre-mcp-caller-hook.ts`
+- `packages/hooks/src/startup/start-pre-search-hook.ts`
+- `packages/hooks/src/startup/start-session-snippet-hook.ts`
+- `packages/hooks/src/startup/start-subagent-stop-hook.ts`
+- `packages/hooks/src/startup/start-worktree-create-hook.ts`
+
+**eslint-plugin** (19 files)
+
+- `packages/eslint-plugin/src/brokers/rule/ban-primitives/check-primitive-violation-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/report-bin-program-spawn-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-project-structure/validate-export-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-param-binding/check-unbound-type-properties-layer-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-param-binding/check-unbound-type-properties-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-adapter-mock-setup-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-no-exposed-child-proxies-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-object-expression-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-proxy-constructor-side-effects-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-proxy-function-return-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-return-statement-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/check-any-leak-return-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/gateway-schema-brand/check-schema-brand-text-layer-broker.ts`
+- `packages/eslint-plugin/src/transformers/eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer.ts`
+- `packages/eslint-plugin/src/transformers/validate-function-params-use-object-destructuring/validate-function-params-use-object-destructuring-transformer.ts`
+
+**ward** (23 files)
+
+- `packages/ward/src/brokers/command/detail/command-detail-broker.ts`
+- `packages/ward/src/brokers/command/list/command-list-broker.ts`
+- `packages/ward/src/brokers/command/raw/command-raw-broker.ts`
+- `packages/ward/src/brokers/command/run/command-run-broker.ts`
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.test.ts`
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts`
+- `packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.test.ts`
+- `packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.ts`
+- `packages/ward/src/brokers/jest-cache/prune/jest-cache-prune-broker.test.ts`
+- `packages/ward/src/brokers/jest-cache/prune/jest-cache-prune-broker.ts`
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.test.ts`
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts`
+- `packages/ward/src/brokers/storage/save/storage-save-broker.test.ts`
+- `packages/ward/src/brokers/storage/save/storage-save-broker.ts`
+- `packages/ward/src/flows/ward/ward-flow.integration.test.ts`
+- `packages/ward/src/flows/ward/ward-flow.ts`
+- `packages/ward/src/responders/ward/detail/ward-detail-responder.ts`
+- `packages/ward/src/responders/ward/list/ward-list-responder.ts`
+- `packages/ward/src/responders/ward/raw/ward-raw-responder.ts`
+- `packages/ward/src/responders/ward/run/ward-run-responder.ts`
+- `packages/ward/src/responders/ward/scan/ward-scan-responder.ts`
+- `packages/ward/src/startup/start-ward.integration.test.ts`
+- `packages/ward/src/startup/start-ward.ts`
+
+**web** (21 files)
+
+- `packages/web/src/bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.test.ts`
+- `packages/web/src/bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.ts`
+- `packages/web/src/brokers/composer/insert-image/composer-insert-image-broker.test.ts`
+- `packages/web/src/brokers/composer/insert-image/composer-insert-image-broker.ts`
+- `packages/web/src/brokers/composer/insert-text/composer-insert-text-broker.test.ts`
+- `packages/web/src/brokers/composer/insert-text/composer-insert-text-broker.ts`
+- `packages/web/src/brokers/composer/write/composer-write-broker.test.ts`
+- `packages/web/src/brokers/composer/write/composer-write-broker.ts`
+- `packages/web/src/brokers/draft-images/read/migrate-legacy-records-layer-broker.test.ts`
+- `packages/web/src/brokers/draft-images/read/migrate-legacy-records-layer-broker.ts`
+- `packages/web/src/brokers/draft-images/save/draft-images-save-broker.test.ts`
+- `packages/web/src/brokers/draft-images/save/draft-images-save-broker.ts`
+- `packages/web/src/brokers/quest/modify/quest-modify-broker.test.ts`
+- `packages/web/src/brokers/quest/modify/quest-modify-broker.ts`
+- `packages/web/src/brokers/react-root/mount/react-root-mount-broker.ts`
+- `packages/web/src/flows/app-mount/app-mount-flow.tsx`
+- `packages/web/src/responders/app/mount/app-mount-responder.test.ts`
+- `packages/web/src/responders/app/mount/app-mount-responder.ts`
+- `packages/web/src/responders/web-socket-channel/connect/web-socket-channel-connect-responder.test.ts`
+- `packages/web/src/responders/web-socket-channel/connect/web-socket-channel-connect-responder.ts`
+- `packages/web/src/startup/start-app.ts`
+
+**orchestrator** (53 files)
+
+- `packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.test.ts`
+- `packages/orchestrator/src/brokers/chat/history-replay/chat-history-replay-broker.ts`
+- `packages/orchestrator/src/brokers/guild-config/write/guild-config-write-broker.ts`
+- `packages/orchestrator/src/brokers/planned-work/write/planned-work-write-broker.test.ts`
+- `packages/orchestrator/src/brokers/planned-work/write/planned-work-write-broker.ts`
+- `packages/orchestrator/src/brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/monitor-jsonl-watcher/start-subagent-tail-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/spawn-batch-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/spawn-batch-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/spawn-one-agent-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/spawn-one-agent-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker.ts`
+- `packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts`
+- `packages/orchestrator/src/brokers/quest/orchestration-loop/run-chat-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/orchestration-loop/run-chat-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts`
+- `packages/orchestrator/src/brokers/quest/persist/quest-persist-broker.ts`
+- `packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/queue-sync-listener/process-sync-event-layer-broker.ts`
+- `packages/orchestrator/src/brokers/riftcarver/persist-result/riftcarver-persist-result-broker.test.ts`
+- `packages/orchestrator/src/brokers/riftcarver/persist-result/riftcarver-persist-result-broker.ts`
+- `packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.ts`
+- `packages/orchestrator/src/brokers/smoketest/scenario-driver/smoketest-sweep-pending-work-items-layer-broker.ts`
+- `packages/orchestrator/src/brokers/smoketest/sign-outstanding-units/smoketest-sign-outstanding-units-broker.ts`
+- `packages/orchestrator/src/brokers/smoketest/stamp-override/smoketest-stamp-override-broker.ts`
+- `packages/orchestrator/src/brokers/smoketest/teardown-quest/smoketest-teardown-quest-broker.test.ts`
+- `packages/orchestrator/src/brokers/smoketest/teardown-quest/smoketest-teardown-quest-broker.ts`
+- `packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts`
+- `packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/seed-dist/worktree-seed-dist-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/seed-dist/worktree-seed-dist-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/verify-links/worktree-verify-links-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/verify-links/worktree-verify-links-broker.ts`
+- `packages/orchestrator/src/contracts/node-dispatch-runner/node-dispatch-runner-contract.ts`
+- `packages/orchestrator/src/flows/chat-stop-all/chat-stop-all-flow.ts`
+- `packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts`
+- `packages/orchestrator/src/responders/chat/stop-all/chat-stop-all-responder.ts`
+- `packages/orchestrator/src/responders/clarify/answer/clarify-answer-responder.ts`
+- `packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts`
+- `packages/orchestrator/src/responders/quest/handle-signal-back/quest-handle-signal-back-responder.integration.test.ts`
+- `packages/orchestrator/src/responders/quest/handle-signal-back/quest-handle-signal-back-responder.test.ts`
+- `packages/orchestrator/src/responders/quest/handle-signal-back/quest-handle-signal-back-responder.ts`
+- `packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.proxy.ts`
+- `packages/orchestrator/src/responders/smoketest/run/overwrite-work-items-layer-responder.ts`
+- `packages/orchestrator/src/startup/start-orchestrator.ts`
+
+**hydration-recipes** (14 files)
+
+- `packages/hydration-recipes/src/brokers/guild/directory-ensure/guild-directory-ensure-broker.ts`
+- `packages/hydration-recipes/src/brokers/operation/remove-route/operation-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/operation/remove-route/operation-remove-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/corrupt-to-legacy-schema/quest-corrupt-to-legacy-schema-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/persist-direct/quest-persist-direct-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/persist-direct/quest-persist-direct-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/ward-result-detail-write/quest-ward-result-detail-write-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/ward-result-detail-write/quest-ward-result-detail-write-broker.ts`
+- `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.ts`
+- `packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.ts`
+
+**server** (8 files)
+
+- `packages/server/src/brokers/process/dev-log/process-dev-log-broker.ts`
+- `packages/server/src/flows/graph-reachability-boot/graph-reachability-boot-flow.integration.test.ts`
+- `packages/server/src/flows/graph-reachability-boot/graph-reachability-boot-flow.ts`
+- `packages/server/src/flows/server/server-flow.ts`
+- `packages/server/src/responders/graph-reachability/check/graph-reachability-check-responder.test.ts`
+- `packages/server/src/responders/graph-reachability/check/graph-reachability-check-responder.ts`
+- `packages/server/src/responders/server/init/server-init-responder.ts`
+- `packages/server/src/startup/start-server.ts`
+
+**mcp** (6 files)
+
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.test.ts`
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.ts`
+- `packages/mcp/src/flows/mcp-server/mcp-server-flow.ts`
+- `packages/mcp/src/responders/server/init/server-init-responder.test.ts`
+- `packages/mcp/src/responders/server/init/server-init-responder.ts`
+- `packages/mcp/src/startup/start-mcp-server.ts`
+
+**cli** (5 files)
+
+- `packages/cli/src/responders/cli/init/cli-init-responder.ts`
+- `packages/cli/src/responders/cli/serve/cli-serve-responder.test.ts`
+- `packages/cli/src/responders/cli/serve/cli-serve-responder.ts`
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.test.ts`
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.ts`
+
+**siegelense** (46 files)
+
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.test.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts`
+- `packages/siegelense/src/brokers/registry/lock-release/registry-lock-release-broker.test.ts`
+- `packages/siegelense/src/brokers/registry/lock-release/registry-lock-release-broker.ts`
+- `packages/siegelense/src/brokers/step/target-resolve/step-target-resolve-broker.test.ts`
+- `packages/siegelense/src/brokers/step/target-resolve/step-target-resolve-broker.ts`
+- `packages/siegelense/src/flows/driver/driver-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-capacity-layer-flow.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-capacity-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-cleanup-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-compare-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-docs-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-flow.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-kill-layer-flow.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-kill-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-recipes-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-results-layer-flow.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-results-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-run-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-snapshots-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-start-layer-flow.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-status-layer-flow.ts`
+- `packages/siegelense/src/responders/siegelense/capacity/siegelense-capacity-responder.test.ts`
+- `packages/siegelense/src/responders/siegelense/capacity/siegelense-capacity-responder.ts`
+- `packages/siegelense/src/responders/siegelense/cleanup/siegelense-cleanup-responder.ts`
+- `packages/siegelense/src/responders/siegelense/compare/siegelense-compare-responder.ts`
+- `packages/siegelense/src/responders/siegelense/docs/siegelense-docs-responder.test.ts`
+- `packages/siegelense/src/responders/siegelense/docs/siegelense-docs-responder.ts`
+- `packages/siegelense/src/responders/siegelense/driver/driver-serve-layer-responder.ts`
+- `packages/siegelense/src/responders/siegelense/driver/siegelense-driver-responder.ts`
+- `packages/siegelense/src/responders/siegelense/kill/siegelense-kill-responder.ts`
+- `packages/siegelense/src/responders/siegelense/prune/siegelense-prune-responder.test.ts`
+- `packages/siegelense/src/responders/siegelense/prune/siegelense-prune-responder.ts`
+- `packages/siegelense/src/responders/siegelense/recipes/siegelense-recipes-responder.ts`
+- `packages/siegelense/src/responders/siegelense/results/siegelense-results-responder.ts`
+- `packages/siegelense/src/responders/siegelense/run/siegelense-run-responder.ts`
+- `packages/siegelense/src/responders/siegelense/snapshots/siegelense-snapshots-responder.ts`
+- `packages/siegelense/src/responders/siegelense/start/siegelense-start-responder.ts`
+- `packages/siegelense/src/responders/siegelense/status/siegelense-status-responder.ts`
+- `packages/siegelense/src/startup/start-siegelense-driver.ts`
+- `packages/siegelense/src/startup/start-siegelense.ts`
+
+### Hand queue, in batches of 2-4 files
+
+Every batch: run after that package's script step, then `npm run ward -- --only lint,typecheck,unit -- <the batch files>`.
+The rule for what a function returns instead: it returns what its calls told it, and `void` when they told it nothing
+(R1, "Why" above). No batch below invents a value.
+
+**cli** (5 batches)
+
+- **B18b-cli-1** `packages/cli/src/contracts/siegelense-module/siegelense-module-contract.ts`, `packages/cli/src/contracts/siegelense-module/siegelense-module.stub.ts`, `packages/cli/src/contracts/siegelense-module/siegelense-module-contract.test.ts`. `StartSiegelenseFn` becomes `(params) => Promise<void>`; the stub's `StartSiegelense` resolves `undefined`; the contract test's line 18 asserts `toBeUndefined()` and its title says "resolving undefined".
+- **B18b-cli-2** `packages/cli/src/responders/cli/siegelense/cli-siegelense-responder.ts`, `packages/cli/src/responders/cli/siegelense/cli-siegelense-responder.test.ts`. `CliSiegelenseResponder` returns `Promise<void>`. What replaces `adapterResultContract.parse(result)`: nothing. `StartSiegelense` is the module contract's own `Promise<void>` function, so the responder ends at `await siegelenseModule.StartSiegelense({ args });`, and the parse's runtime check is gone because a `void` result has no shape to check (the module contract already checks that the export is a function). The test's seven `jest.fn().mockResolvedValue({ success: true })` become `mockResolvedValue(undefined)`.
+- **B18b-cli-3** `packages/cli/src/contracts/start-server-module/start-server-module-contract.ts`, `packages/cli/src/contracts/start-server-module/start-server-module.stub.ts`, `packages/cli/src/contracts/start-server-module/start-server-module-contract.test.ts`. `StartServerFn` returns `void` (the script converts `StartServer` in server); the stub's `StartServer: () => undefined`; the test's line 18 asserts `toBeUndefined()`.
+- **B18b-cli-4** `packages/cli/src/responders/cli/create-package/cli-create-package-responder.ts`, `packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts`. `CliCreatePackageResponder` returns `Promise<void>`: the dry-run branch is a bare `return;`, the tail returns nothing. Every call it makes returns either `void` (`stdout.write`) or a value it already uses (`writtenFiles`, `registered`). Five asserts (lines 39, 87, 132, 178, 356) become `toBeUndefined()`.
+- **B18b-cli-5** `packages/cli/src/flows/cli/cli-flow.ts`, `packages/cli/src/startup/start-cli.ts`, `packages/cli/src/flows/cli/cli-flow.integration.test.ts`, `packages/cli/src/startup/start-cli.integration.test.ts`. `CliFlow` and `StartCli` return `Promise<void>`. The `init`, `statusline-tap` and `start` branches drop their `return adapterResultContract.parse(...)`; the `create-package` and `siegelense` branches return their responder's promise. Read both integration tests for a `.resolves` on the old constant and assert `toBeUndefined()`.
+
+**hydration-recipes** (2 batches)
+
+- **B18b-hr-1** `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.ts`, `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.test.ts`, `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.proxy.ts`. Returns `Promise<void>`. What replaces `adapterResultContract.parse(body)` on the HTTP branch: the `dmHttpResponseUnwrapTransformer({ response, url })` call stays as a bare statement, because that transformer is what throws on a non-2xx response; its body is `{ success: true }` (`GuildRemoveResponder`'s reply) and says nothing further, so nothing parses it. The in-process branch is `await guildRemoveBroker({ guildId });`. The test's asserts at lines 17, 41, 57 become `toBeUndefined()`; the proxy needs no edit unless it types a resolved value (read it).
+- **B18b-hr-2** `packages/hydration-recipes/src/brokers/quest/remove-route/quest-remove-route-broker.ts`, `packages/hydration-recipes/src/brokers/quest/remove-route/quest-remove-route-broker.test.ts`. Not in `leftovers.json` and it reads `.success` (SD10's case): `const { success } = await questDeleteBroker(...)` cannot compile once `questDeleteBroker` is `void`. Becomes `await questDeleteBroker({ questId, guildId }); return { deleted: true };`. Decision for the agent to report: `rm` with `force: true` and the outbox append tell `questDeleteBroker` nothing, so `deleted: true` restates "it did not throw"; if the route's return contract lets the field go, drop it instead.
+
+**orchestrator** (4 batches)
+
+- **B18b-orch-1** `packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.ts`, `packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.test.ts`. `Promise<void>`; its calls (`guildConfigReadBroker`, `guildConfigWriteBroker`) already return `void` or are used; the not-found case still throws `GuildNotFoundError`. Test lines 22 and 43 become `.resolves.toBeUndefined()`.
+- **B18b-orch-2** `packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.ts`, `packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.test.ts`. Returns `Promise<void>` (drop `{ success: true as const }`); test lines 20 and 39 become `toBeUndefined()`. Callers `orchestration-delete-responder.ts` and `smoketest-clear-prior-quests-broker.ts` are script files.
+- **B18b-orch-3** `packages/orchestrator/src/responders/guild/remove/guild-remove-responder.ts`, `packages/orchestrator/src/responders/guild/remove/guild-remove-responder.test.ts`, `packages/orchestrator/src/startup/start-orchestrator.ts`. The responder ends `await guildRemoveBroker({ guildId });` and returns `Promise<void>`; the test at line 16 becomes `.resolves.toBeUndefined()`; `removeGuild` (line 121) returns `Promise<void>`. `packages/orchestrator/src/flows/guild/guild-flow.ts` line 39 needs no edit: its `RemoveResult` is `Awaited<ReturnType<typeof GuildRemoveResponder>>`, so it follows.
+- **B18b-orch-4** `packages/orchestrator/src/contracts/node-dispatch-runner/node-dispatch-runner.stub.ts`, `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy.ts`, `packages/orchestrator/src/startup/start-orchestrator.proxy.ts`, `packages/orchestrator/src/brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker.test.ts`. The controller stub's `start`, `stop` and `kick` return `undefined` (`kick` resolves `undefined`); the loop proxy's `spawnBatchMock` resolves `undefined`; `start-orchestrator.proxy.ts` drops its `AdapterResult` alias (line 74) and the `result: AdapterResult` parameters (lines 301, 935) of the `handleSignalBack` staging, whose mock resolves `undefined`; the runner test replaces its ten `AdapterResultStub()` uses with `undefined`. Lands together with B18b-server-1 and B18b-mcp-1, which pass `result:` into that staging.
+
+**server** (1 batch)
+
+- **B18b-server-1** `packages/server/src/responders/quest/signal-back/quest-signal-back-responder.proxy.ts`, `packages/server/src/responders/quest/signal-back/quest-signal-back-responder.test.ts`. Drop the `AdapterResult` alias and the `result` parameter; the test stops passing `result: AdapterResultStub()`.
+
+**mcp** (1 batch)
+
+- **B18b-mcp-1** `packages/mcp/src/responders/interaction/handle/interaction-handle-responder.proxy.ts`, `packages/mcp/src/responders/interaction/handle/interaction-handle-responder.test.ts`. `handleSignalBackResolves({ result: AdapterResultStub() })` becomes `handleSignalBackResolves()`; read the test for the same argument.
+
+**siegelense** (4 batches)
+
+- **B18b-sg-1** `packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.ts`, `packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.test.ts`, `packages/siegelense/src/responders/siegelense/driver/driver-serve-layer-responder.proxy.ts`. `driverHeartbeatTickBroker` returns `Promise<void>` (its `heartbeatWriteBroker` result is used inside; the sampler `.catch` swallows nothing new). The caller the script refused, `const firstBeat = driverHeartbeatTickBroker(...).catch(...)` in `driver-serve-layer-responder.ts` line 128, only awaits the promise (lines 175, 203), so it needs no change beyond the script's. The tests' asserts at lines 36 and 114 become `.toBeUndefined()`; the proxy's `heartbeatTickHandle.calledWith(...).resolves({ success: true })` (line 121) becomes `.resolves(undefined)`.
+- **B18b-sg-2** `packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts`. The five asserts (lines 517, 540, 561, 582, 605) read a prune flow result that is `void` once the script lands; assert `toBeUndefined()` after confirming each subject's type in the typechecker.
+
+**web** (1 batch)
+
+- **B18b-web-1** `packages/web/src/responders/web-socket-channel/connect/web-socket-channel-connect-responder.test.ts`. Its `AdapterResult` mention is a live line, not a comment: replace with `undefined` per the responder's converted signature.
+
+**eslint-plugin and shared fixtures** (1 batch each)
+
+- **B18b-ep-1** `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.test.ts`, `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts`. Two live `AdapterResult` lines in the test (fixture strings) and one comment in the broker. Rewrite the fixtures to a plain `boolean` or `void` return, and the comment to say what the rule reports now.
+- **B18b-sh-1** `packages/shared/src/transformers/hook-flow-import-extract/hook-flow-import-extract-transformer.test.ts`. Two fixture-string lines name `adapterResultContract`; replace with another contract name so the last step's scan is clean.
+
+**Comment-only files** (19 files, 5 batches; each comment states what the function returns now, in the present tense, no history)
+
+- **B18b-c-1** `packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts`, `packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/report-bin-program-spawn-layer-broker.ts`, `packages/orchestrator/src/brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.ts`, `packages/orchestrator/src/brokers/quest/monitor-jsonl-watcher/start-subagent-tail-layer-broker.ts`
+- **B18b-c-2** `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts`, `packages/siegelense/src/flows/siegelense/siegelense-capacity-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-cleanup-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-compare-layer-flow.ts`
+- **B18b-c-3** `packages/siegelense/src/flows/siegelense/siegelense-docs-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-recipes-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-results-layer-flow.ts`
+- **B18b-c-4** `packages/siegelense/src/flows/siegelense/siegelense-run-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-snapshots-layer-flow.ts`, `packages/siegelense/src/flows/siegelense/siegelense-status-layer-flow.ts`, `packages/siegelense/src/startup/start-siegelense-driver.ts`
+- **B18b-c-5** `packages/web/src/brokers/draft-images/read/migrate-legacy-records-layer-broker.ts`, `packages/web/src/brokers/draft-images/save/draft-images-save-broker.ts`
+
+Batch count per package: cli 5, hydration-recipes 2, orchestrator 4, server 1, mcp 1, siegelense 2 (plus comments), web 1 (plus comments), eslint-plugin 1, shared 1, comment-only 5. Total 23. Every other package (config, hooks, session-forensics, testing, tooling, ward) is script-only.
+
+Asserts left alone on purpose (`{ success: true }` belongs to another contract; 50 in the run): `quest-modify-broker.test.ts` (17 asserts), `quest-modify-or-throw-broker.test.ts`, `quest-work-item-insert-broker.test.ts` (F54 returns `ModifyQuestResult`), `mcp-server-flow.integration.test.ts` (3, modify-quest tool JSON), `content-item-agent-id-set-at-index-transformer.test.ts`, and the `add-quest-result`, `modify-quest-result`, `get-quest-status-result`, `quest-modify-response` contract tests. Read each once: a subject that turns out to be `void` is a batch miss, not a leave.
+
+### Last step: remove `adapterResultContract`
+
+Runs only after every batch above is merged and this scan is empty (python `os.walk` over `packages/`, regex
+`AdapterResult|adapterResult|adapter-result`, excluding `node_modules`, `dist`, `.ward`) apart from the contract's own
+folder, `packages/shared/contracts.ts` (or, after 3.3-S1, `packages/shared/src/contracts/contracts.ts`), and
+`packages/mcp/src/statics/folder-constraints/adapters-constraints.md` (three lines; teaching text, Z03's).
+
+1. `mkdir -p tmp/deletions/b18/packages/shared/src/contracts/adapter-result`.
+2. `mv` each of `packages/shared/src/contracts/adapter-result/adapter-result-contract.ts`, `adapter-result-contract.test.ts`, `adapter-result.stub.ts`, `adapter-result.stub.test.ts` to that folder (rule 20; no `rm`). Report them under DELETIONS.
+3. Drop the two barrel lines, `export * from './src/contracts/adapter-result/adapter-result-contract';` and `export * from './src/contracts/adapter-result/adapter-result.stub';` (lines 417 and 418 of `packages/shared/contracts.ts` today).
+4. Gate: `npm run ward -- --only lint,typecheck,unit -- packages/shared`, then `--only typecheck,unit` on every other package. Then the operator runs `npm run build:clean` and `npm run check:consumer` (the contract is published API of `@dungeonmaster/shared/contracts`).
+
+### Collisions with wave 3.3
+
+3.3-S1 and S2 rewrite import lines in every package; B18-b edits the same lines (it drops `AdapterResult`,
+`adapterResultContract` and `AdapterResultStub` from named imports) and the same test and proxy files. Two runs on one
+file must go in sequence, and the second starts from the first's output. Recommended: **B18-b after 3.3, per package,
+right after that package's S3.** The script keys on names, so it works on per-file imports.
+
+| Where | Collides with 3.3? |
+|---|---|
+| Script step, every package | Yes: every rewritten file imports from `@dungeonmaster/shared/contracts` or its stub. Run after that package's S2/S3. 3.3 groups: shared; config, hydration, session-forensics, eslint-plugin, local-eslint, tooling, testing; orchestrator, hydration-recipes, siegelense, ward, hooks; cli, mcp, server, web. |
+| B18b-cli-1, cli-3 | Yes: the two module stubs import `AdapterResultStub` from shared (S2 and SD2 rewrite stub imports). |
+| B18b-cli-2, cli-4, cli-5, hr-1, orch-1, orch-2, orch-3, sg-1 | Yes: each source file imports `AdapterResult` and `adapterResultContract` from the barrel. |
+| B18b-orch-4, server-1, mcp-1, web-1 | Yes: proxy, stub and test imports of `AdapterResultStub` (3.3-S3 also deletes `testing.ts` barrels these proxies may sit behind). |
+| B18b-hr-2, sg-2 | No: neither imports the contract. |
+| B18b-ep-1, sh-1 | Partly: strings only, but `check-folder-return-type-layer-broker.test.ts` is also eslint-plugin's L2 (`TSESTree` retype) territory; run it after L2 or before, never beside it. |
+| B18b-c-1 to c-5 | No: comments only, no import line. Runnable in any free slot, including during 3.3. |
+| Last step | Yes: 3.3-S1 for `shared` moves the contracts barrel into `src/contracts/`, and B18-b's `shared` edit must follow it there. Run it last of everything, after 3.3-R. |
+
+### What in the old text no longer matches
+
+- The split (b) census above lists `src/adapters/` files in "deferred" packages. No package has `src/adapters/` now (A19); those files are gateway wrappers or brokers, or gone.
+- Figures: "116 of 118", "87 adapter tests", "~143 usages across 11 packages" (this file), "156 candidate functions, 38 by script" (EPIC row B18 and the Filler lane) and "172 / 161 / 213 files" (EPIC row SD10, README) are all superseded by the numbers at the top of this plan: 174 / 163 / 216, on a tree that moved.
+- The row-SD10 "1 diagnostic left (the orchestrator `node-dispatch-runner.stub.ts:10`)" no longer shows: this run reports 0. The stub still names `adapterResultContract`, so it stays in B18b-orch-4 for the scan, not for a diagnostic.
+- Work items 1, 2, 7 and 8 (rule rewrite, `pre-edit` tag, `StartOrchestrator.bootstrap()`) are split (a), done. F54 (the `Plan — F54 and F53` section) is applied in the tree: `quest-advance-broker`, `quest-session-record-broker` return `Promise<boolean>` and `quest-work-item-insert-broker` returns `ModifyQuestResult`, so the script does not touch them and they are not in this queue.
+- "Delete `adapterResultContract`" (item step 6) is rule 20's move to `tmp/deletions/`, not a delete.
