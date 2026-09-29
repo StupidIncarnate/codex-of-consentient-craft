@@ -6,6 +6,7 @@ import { readPackageDescriptionLayerBrokerProxy } from './read-package-descripti
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const DEFAULT_LEAF_FILE_COUNT = 3;
 
@@ -186,7 +187,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
           ) {
             return ContentTextStub({ value: JSON.stringify({ description }) });
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: String(filePath) });
         },
       });
     },
@@ -237,7 +238,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
               return ContentTextStub({ value: JSON.stringify({ description: desc }) });
             }
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: String(filePath) });
         },
       });
     },
@@ -294,7 +295,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
           if (description !== undefined && String(filePath).endsWith('package.json')) {
             return ContentTextStub({ value: JSON.stringify({ description }) });
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: String(filePath) });
         },
       });
     },
@@ -306,7 +307,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
 
       descriptionProxy.setupImplementation({
         fn: (): ContentText => {
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub();
         },
       });
     },

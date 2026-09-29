@@ -1,6 +1,7 @@
 import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('countFilesRecursiveLayerBroker', () => {
   describe('flat directory', () => {
@@ -51,7 +52,7 @@ describe('countFilesRecursiveLayerBroker', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
       const dirPath = AbsoluteFilePathStub({ value: '/nonexistent' });
 
-      proxy.setupError({ dirPath, error: new Error('ENOENT') });
+      proxy.setupError({ dirPath, error: FileMissingErrorStub({ path: dirPath }) });
 
       const result = countFilesRecursiveLayerBroker({ dirPath });
 

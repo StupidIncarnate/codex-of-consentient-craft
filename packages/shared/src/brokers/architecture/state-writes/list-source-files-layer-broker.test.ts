@@ -1,6 +1,7 @@
 import { listSourceFilesLayerBroker } from './list-source-files-layer-broker';
 import { listSourceFilesLayerBrokerProxy } from './list-source-files-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('listSourceFilesLayerBroker', () => {
   describe('flat directory', () => {
@@ -87,7 +88,7 @@ describe('listSourceFilesLayerBroker', () => {
 
       proxy.setupImplementation({
         fn: () => {
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: dirPath });
         },
       });
 

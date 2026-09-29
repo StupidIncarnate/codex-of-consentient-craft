@@ -3,6 +3,7 @@ import { walkReachableFilesLayerBrokerProxy } from './walk-reachable-files-layer
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { Dirent } from '#gateway/node/fs';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const fileEntry = ({ name }: { name: string }): Dirent =>
   ({
@@ -19,7 +20,7 @@ const fileEntry = ({ name }: { name: string }): Dirent =>
   }) as Dirent;
 
 const throwEnoent = (): never => {
-  throw new Error('ENOENT');
+  throw FileMissingErrorStub();
 };
 
 const dispatchByPath =

@@ -3,6 +3,7 @@ import type { Dirent } from '#gateway/node/fs';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const makeFileDirent = ({ name }: { name: string }): Dirent =>
   ({
@@ -65,7 +66,7 @@ export const readPackageCliContentLayerBrokerProxy = (): {
               return ContentTextStub({ value: content });
             }
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: filePathStr });
         },
       });
     },

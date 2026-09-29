@@ -1,6 +1,8 @@
 import { tailFile } from './tail-file';
 import { tailFileProxy } from './tail-file.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { FileMissingErrorStub } from '../file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '../is-fs-error/fs-error.stub';
 
 const flushOnce = async (): Promise<void> =>
   new Promise((resolve) => {
@@ -199,7 +201,7 @@ describe('tailFile: error handling', () => {
 
     tailFile({ path: TEST_PATH, onLine: () => undefined, onError });
 
-    const watchError = new Error('ENOENT: file removed');
+    const watchError = FileMissingErrorStub({ path: TEST_PATH });
     proxy.triggerWatchError({ path: TEST_PATH, error: watchError });
 
     expect(onError).toHaveBeenCalledTimes(1);
@@ -216,7 +218,7 @@ describe('tailFile: error handling', () => {
 
     tailFile({ path: TEST_PATH, onLine: () => undefined, onError });
 
-    const streamError = new Error('EACCES: permission denied');
+    const streamError = FsErrorStub({ code: 'EACCES', path: TEST_PATH, syscall: 'read' });
     proxy.setupStreamError({ path: TEST_PATH, error: streamError });
     proxy.triggerChange({ path: TEST_PATH });
     await flushPromises();
@@ -247,12 +249,13 @@ describe('tailFile: error handling', () => {
     tailFile({ path: TEST_PATH, onLine: () => undefined, onError });
 
     proxy.setupLines({ path: TEST_PATH, lines: ['data'] });
-    proxy.setupStatError({ path: TEST_PATH, error: new Error('ENOENT: file deleted') });
+    const statError = FileMissingErrorStub({ path: TEST_PATH });
+    proxy.setupStatError({ path: TEST_PATH, error: statError });
     proxy.triggerChange({ path: TEST_PATH });
     await flushPromises();
 
     expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenNthCalledWith(1, { error: new Error('ENOENT: file deleted') });
+    expect(onError).toHaveBeenNthCalledWith(1, { error: statError });
   });
 
   it('ERROR: statSync fails during a drain after stop => onError not called', async () => {
@@ -263,7 +266,8 @@ describe('tailFile: error handling', () => {
     const handle = tailFile({ path: TEST_PATH, onLine: () => undefined, onError });
 
     proxy.setupLines({ path: TEST_PATH, lines: ['data'] });
-    proxy.setupStatError({ path: TEST_PATH, error: new Error('ENOENT: file deleted') });
+    const statError = FileMissingErrorStub({ path: TEST_PATH });
+    proxy.setupStatError({ path: TEST_PATH, error: statError });
     handle.stop();
     proxy.triggerChange({ path: TEST_PATH });
     await flushPromises();
@@ -295,7 +299,10 @@ describe('tailFile: error handling', () => {
 
     const handle = tailFile({ path: TEST_PATH, onLine: () => undefined, onError });
 
-    proxy.setupStreamError({ path: TEST_PATH, error: new Error('EACCES') });
+    proxy.setupStreamError({
+      path: TEST_PATH,
+      error: FsErrorStub({ code: 'EACCES', path: TEST_PATH, syscall: 'read' }),
+    });
     handle.stop();
     proxy.triggerChange({ path: TEST_PATH });
     await flushPromises();
@@ -416,7 +423,7 @@ describe('tailFile: initialDrain', () => {
   it('ERROR: {stream error during the first drain} => initialDrain still resolves', async () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
-    const streamError = new Error('EACCES: permission denied');
+    const streamError = FsErrorStub({ code: 'EACCES', path: TEST_PATH, syscall: 'read' });
 
     proxy.setupStreamError({ path: TEST_PATH, error: streamError });
 

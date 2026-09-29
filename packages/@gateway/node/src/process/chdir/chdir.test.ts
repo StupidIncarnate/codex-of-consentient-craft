@@ -22,9 +22,7 @@ describe('chdir', () => {
 
     expect(() => {
       chdir(missing);
-    }).toThrow(
-      new Error(`ENOENT: no such file or directory, chdir '${startingDirectory}' -> '${missing}'`),
-    );
+    }).toThrow(`ENOENT: no such file or directory, chdir '${startingDirectory}' -> '${missing}'`);
   });
 
   describe('restore', () => {

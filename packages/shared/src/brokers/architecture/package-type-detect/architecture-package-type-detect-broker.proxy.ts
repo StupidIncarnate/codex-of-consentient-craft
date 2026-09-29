@@ -9,6 +9,7 @@ import { binEntryCountLayerBrokerProxy } from './bin-entry-count-layer-broker.pr
 import { detectPackageTypeLayerBrokerProxy } from './detect-package-type-layer-broker.proxy';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const makeDirDirent = ({ name }: { name: string }): Dirent =>
   ({
@@ -156,7 +157,7 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
             if (startupFileContent !== undefined) {
               return startupFileContent;
             }
-            throw new Error('ENOENT');
+            throw FileMissingErrorStub({ path: String(filePath) });
           }
           if (
             binFileName !== undefined &&
@@ -169,9 +170,9 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
             if (flowFileContent !== undefined) {
               return flowFileContent;
             }
-            throw new Error('ENOENT');
+            throw FileMissingErrorStub({ path: String(filePath) });
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: String(filePath) });
         },
       });
     },

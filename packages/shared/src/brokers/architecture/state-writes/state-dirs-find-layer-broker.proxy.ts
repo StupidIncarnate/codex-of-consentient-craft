@@ -2,6 +2,7 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const buildDirDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
@@ -38,7 +39,7 @@ export const stateDirsFindLayerBrokerProxy = (): {
 
     setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
       const dirPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src/state` });
-      readdirProxy.setupError({ dirPath, error: new Error('ENOENT: no such file or directory') });
+      readdirProxy.setupError({ dirPath, error: FileMissingErrorStub({ path: dirPath }) });
     },
   };
 };
