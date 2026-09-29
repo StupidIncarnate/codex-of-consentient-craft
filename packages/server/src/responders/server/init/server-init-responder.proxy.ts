@@ -73,6 +73,8 @@ export const ServerInitResponderProxy = (): {
   callResponder: (params?: { serveWebBundle?: boolean }) => void;
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
+  setWebPort: (params: { value: string }) => void;
+  clearWebPort: () => void;
   setupWebBundleFile: (params: { contents: FileContents }) => void;
   simulateConnection: (params: { client: WsClient }) => void;
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
@@ -135,6 +137,12 @@ export const ServerInitResponderProxy = (): {
   portProxy.setEnvPort({ value: '3737' });
 
   return {
+    clearWebPort: (): void => {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_WEB_PORT');
+    },
+    setWebPort: ({ value }: { value: string }): void => {
+      process.env.DUNGEONMASTER_WEB_PORT = value;
+    },
     callResponder: ({ serveWebBundle = false }: { serveWebBundle?: boolean } = {}): void => {
       // Clean up leftover signal handlers from previous tests to prevent listener leaks.
       // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
