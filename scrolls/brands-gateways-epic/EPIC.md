@@ -788,7 +788,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | SD6 | W7 | B14 generator residue (79 of 204 shapes) | 1 agent | todo | |
 | SD7 | W8 | `z.unknown()` replacements from the decisions table | 1 agent | todo | |
 | SD8 | W9 | Dead re-parse provenance and the 16 failing files | 1 agent | todo | |
-| SD9 | B17 | The 83 `JSON.parse` hand sites | 1 agent | active | agent SD9 (2026-09-29) |
+| SD9 | B17 | The 83 `JSON.parse` hand sites | 1 agent | done | `phase34-scripts/b17-json-parse/run.cjs` (+ `sites.cjs`): re-census 166 sites, 68 direct, 98 not; 25 scripted (19 single-use, 3 multi-parse, 3 cast-contract), 0 new diagnostics on 22 copies. Hand queue 73 in `b17-json-parse/leftovers.txt` (21 server `c.req.json()` into responders, 9 hooks flows, 6 testing endpoint-mock, 7 web try/catch fallbacks, rest small). Cast-contract rewrites add validation: run unit tests, not only typecheck. |
 | SD10 | B18 | `.success` readers and proxy mock types | 1 agent | active | agent SD10 (2026-09-29) |
 | SD11 | T05 | Invented errors with a Node `code` become recorded failures | 1 agent | todo | |
 | SD12 | W3 | Test-side fallout of the parameter retype (1,823 diagnostics) | 1 agent | todo | |
