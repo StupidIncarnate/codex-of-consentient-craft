@@ -1,7 +1,6 @@
 import { outOfMemoryReportTransformer } from './out-of-memory-report-transformer';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { RawOutputStub } from '../../contracts/raw-output/raw-output.stub';
-import { ProcessSignalStub } from '@dungeonmaster/shared/contracts/process-signal/process-signal.stub';
 
 describe('outOfMemoryReportTransformer', () => {
   describe('V8 heap limit', () => {
@@ -48,7 +47,7 @@ describe('outOfMemoryReportTransformer', () => {
         projectFolder: ProjectFolderStub({ name: 'shared' }),
         rawOutput: RawOutputStub({
           exitCode: 1,
-          signal: ProcessSignalStub({ value: 'SIGABRT' }),
+          signal: 'SIGABRT',
         }),
       });
 
@@ -64,7 +63,7 @@ describe('outOfMemoryReportTransformer', () => {
         projectFolder: ProjectFolderStub({ name: 'orchestrator' }),
         rawOutput: RawOutputStub({
           exitCode: 1,
-          signal: ProcessSignalStub({ value: 'SIGKILL' }),
+          signal: 'SIGKILL',
         }),
       });
 

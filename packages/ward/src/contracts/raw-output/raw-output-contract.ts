@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { processSignalContract } from '@dungeonmaster/shared/contracts';
 
 export const rawOutputContract = z.object({
   stdout: z.string().brand<'Stdout'>(),
@@ -21,7 +20,10 @@ export const rawOutputContract = z.object({
   // `null` rather than absent, so one value means "this process was not killed" whether the field
   // was written, left off by an early return that spawned nothing, or saved to `.ward/` before the
   // field existed. Three ways of saying the same thing would each need their own branch downstream.
-  signal: processSignalContract.nullable().default(null),
+  signal: z
+    .custom<NodeJS.Signals>((value) => typeof value === 'string' && value.length > 0)
+    .nullable()
+    .default(null),
 });
 
 export type RawOutput = z.infer<typeof rawOutputContract>;

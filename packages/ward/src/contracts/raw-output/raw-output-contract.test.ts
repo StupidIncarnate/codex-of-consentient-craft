@@ -28,6 +28,37 @@ describe('rawOutputContract', () => {
     });
   });
 
+  describe('signal', () => {
+    it("VALID: {signal: 'SIGKILL'} => parses to itself", () => {
+      const result = rawOutputContract.parse({
+        stdout: '',
+        stderr: '',
+        exitCode: 1,
+        signal: 'SIGKILL',
+      });
+
+      expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 1, signal: 'SIGKILL' });
+    });
+
+    it('VALID: {signal: null} => stays null', () => {
+      const result = rawOutputContract.parse({ stdout: '', stderr: '', exitCode: 0, signal: null });
+
+      expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0, signal: null });
+    });
+
+    it('VALID: {signal absent} => defaults to null', () => {
+      const result = rawOutputContract.parse({ stdout: '', stderr: '', exitCode: 0 });
+
+      expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0, signal: null });
+    });
+
+    it('INVALID: {signal: ""} => throws validation error', () => {
+      expect(() =>
+        rawOutputContract.parse({ stdout: '', stderr: '', exitCode: 1, signal: '' }),
+      ).toThrow(/Invalid input/u);
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: {exitCode: "zero"} => throws validation error', () => {
       expect(() =>

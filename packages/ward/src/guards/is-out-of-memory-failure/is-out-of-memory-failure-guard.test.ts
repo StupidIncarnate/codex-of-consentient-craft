@@ -1,6 +1,5 @@
 import { isOutOfMemoryFailureGuard } from './is-out-of-memory-failure-guard';
 import { RawOutputStub } from '../../contracts/raw-output/raw-output.stub';
-import { ProcessSignalStub } from '@dungeonmaster/shared/contracts/process-signal/process-signal.stub';
 
 describe('isOutOfMemoryFailureGuard', () => {
   describe('out of memory', () => {
@@ -35,7 +34,7 @@ describe('isOutOfMemoryFailureGuard', () => {
       // this is byte-identical to a tool that failed on the user's own code.
       const rawOutput = RawOutputStub({
         exitCode: 1,
-        signal: ProcessSignalStub({ value: 'SIGKILL' }),
+        signal: 'SIGKILL',
       });
 
       expect(isOutOfMemoryFailureGuard({ rawOutput })).toBe(true);
@@ -44,7 +43,7 @@ describe('isOutOfMemoryFailureGuard', () => {
     it('VALID: {signal: SIGABRT} => returns true', () => {
       const rawOutput = RawOutputStub({
         exitCode: 1,
-        signal: ProcessSignalStub({ value: 'SIGABRT' }),
+        signal: 'SIGABRT',
       });
 
       expect(isOutOfMemoryFailureGuard({ rawOutput })).toBe(true);
@@ -74,7 +73,7 @@ describe('isOutOfMemoryFailureGuard', () => {
       // out-of-memory death, and reporting it as memory would send a reader after the wrong thing.
       const rawOutput = RawOutputStub({
         exitCode: 1,
-        signal: ProcessSignalStub({ value: 'SIGTERM' }),
+        signal: 'SIGTERM',
       });
 
       expect(isOutOfMemoryFailureGuard({ rawOutput })).toBe(false);
