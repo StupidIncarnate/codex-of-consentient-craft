@@ -36,7 +36,7 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_type',
-          expected: "'walking' | 'attacking' | 'fixing'",
+          expected: "'walking' | 'attacking' | 'fixing' | 'seeding'",
           received: 'undefined',
           path: ['scope'],
           message: 'Required',
@@ -51,11 +51,11 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_enum_value',
-          options: ['walking', 'attacking', 'fixing'],
+          options: ['walking', 'attacking', 'fixing', 'seeding'],
           path: ['scope'],
           received: 'reader',
           message:
-            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing', received 'reader'",
+            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing' | 'seeding', received 'reader'",
         },
       ]);
     });

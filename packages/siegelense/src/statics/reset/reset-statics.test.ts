@@ -6,11 +6,12 @@ describe('resetStatics', () => {
       notCleared: {
         page: ['disk', 'server memory'],
         state: ['server memory', 'open websockets'],
-        instance: ['server memory', 'open websockets'],
+        instance: [],
       },
       storageSkipped: {
         noOrigin: 'browser storage (page has no origin yet)',
       },
+      blankPageUrl: 'about:blank',
     });
   });
 
@@ -22,7 +23,7 @@ describe('resetStatics', () => {
     expect(resetStatics.notCleared.state).toStrictEqual(['server memory', 'open websockets']);
   });
 
-  it('VALID: notCleared.instance => contains server memory and open websockets (DEF-82: no CLI kill+start happens inside a reset step)', () => {
-    expect(resetStatics.notCleared.instance).toStrictEqual(['server memory', 'open websockets']);
+  it('EMPTY: notCleared.instance => lists nothing, because the servers restart', () => {
+    expect(resetStatics.notCleared.instance).toStrictEqual([]);
   });
 });

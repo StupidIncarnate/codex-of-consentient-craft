@@ -275,11 +275,12 @@ describe('runArgsParseTransformer', () => {
   });
 
   describe('every step example on a siegelense docs role page survives the same parse run --steps uses (DEF-79)', () => {
-    it('VALID: {walking, attacking, fixing} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
+    it('VALID: {walking, attacking, fixing, seeding} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
       const allLines = [
         ...docsStatics.scopes.walking.sections,
         ...docsStatics.scopes.attacking.sections,
         ...docsStatics.scopes.fixing.sections,
+        ...docsStatics.scopes.seeding.sections,
       ].flatMap((section) => section.lines);
       const fencedLines = allLines.filter((line) => line.startsWith('{ "step":'));
 

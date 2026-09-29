@@ -14,6 +14,10 @@
  * teardown can only close what boot hands it here. `ServerLogByteCount` lives in its own
  * `server-log-byte-count-contract.ts` rather than a brand declared inline in this file, because the
  * value is constructed inside a `brokers/` file, which may not import `zod` to brand a number itself.
+ * `pgids` is the LIVE list: its array is the same object for the lane's whole life and
+ * `startProcesses` rewrites its contents after a `reset level: 'instance'` restart, so a reader holding
+ * the session always sees the groups running now. `stopProcesses`/`startProcesses` are the two halves
+ * of that restart — split so the caller can restore disk while nothing is running.
  *
  * USAGE:
  * const lane: LaneSession = await laneBootBroker({ spec: LaneSpecStub({ browser: false }) });
@@ -25,7 +29,7 @@
 
 import { z } from 'zod';
 
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult, ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../browser-session/browser-session-contract';
 import type { FileDescriptor } from '../file-descriptor/file-descriptor-contract';
@@ -48,4 +52,6 @@ export type LaneSession = z.infer<typeof laneSessionContract> & {
   logFds: readonly FileDescriptor[];
   readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly ContentText[];
   serverLogLength: () => ServerLogByteCount;
+  stopProcesses: () => Promise<AdapterResult>;
+  startProcesses: () => Promise<AdapterResult>;
 };

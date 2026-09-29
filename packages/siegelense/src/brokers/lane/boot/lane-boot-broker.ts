@@ -21,6 +21,13 @@
  * every other relative `env` value is (see `laneEnvSubstituteTransformer`'s own header) — rather
  * than through an env var this broker discovers on its own.
  *
+ * The session it returns also carries the two halves of a `reset level: 'instance'` restart:
+ * `stopProcesses` stops every current group and waits until each has exited, and `startProcesses`
+ * respawns from the SAME resolved launches boot used (ports, home, env, args, and the same
+ * append-mode log fds), waits for readiness against `spec.bootTimeoutMs`, rewrites `session.pgids`
+ * in place and re-stamps the registry row, then throws `LaneRestartFailedError` if any process did
+ * not come back. The restart lives here because only this call holds the resolved launches.
+ *
  * USAGE:
  * const lane = await laneBootBroker({
  *   spec: LaneSpecStub({ browser: false }),
@@ -41,25 +48,29 @@ import {
   filePathContract,
   packageTypeContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
+import { processesRestartLayerBroker } from './processes-restart-layer-broker';
+import { processesSpawnLayerBroker } from './processes-spawn-layer-broker';
+import { processesStopLayerBroker } from './processes-stop-layer-broker';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
-import { laneReadyWaitBroker } from '../ready-wait/lane-ready-wait-broker';
 import { laneWorkspaceResolveBroker } from '../workspace-resolve/lane-workspace-resolve-broker';
 import { isLaneSpecTokenReferencedGuard } from '../../../guards/is-lane-spec-token-referenced/is-lane-spec-token-referenced-guard';
 import { laneEnvSubstituteTransformer } from '../../../transformers/lane-env-substitute/lane-env-substitute-transformer';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { laneLaunchContract } from '../../../contracts/lane-launch/lane-launch-contract';
+import type { LaneLaunch } from '../../../contracts/lane-launch/lane-launch-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
+import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 export const laneBootBroker = async ({
@@ -137,7 +148,7 @@ export const laneBootBroker = async ({
     repoRoot: spawnCwd,
   });
 
-  const booted = spec.processes.map((laneProcess) => {
+  const launches: readonly LaneLaunch[] = spec.processes.map((laneProcess) => {
     const logPath = absoluteFilePathContract.parse(
       pathJoinAdapter({ paths: [evidencePath, laneProcess.logFileName] }),
     );
@@ -184,15 +195,6 @@ export const laneBootBroker = async ({
       ),
     };
 
-    const { pid, pgid } = childProcessSpawnDetachedAdapter({
-      command: laneProcess.command,
-      args: substitutedArgs,
-      cwd: spawnCwd,
-      env: mergedEnv,
-      stdoutFd: fd,
-      stderrFd: fd,
-    });
-
     const port = laneProcessPortResolveTransformer({ portRole: laneProcess.portRole, ports });
     const readyUrl =
       laneProcess.readyPath === null || port === null
@@ -209,25 +211,29 @@ export const laneBootBroker = async ({
             },
           )}`;
 
-    return { name: laneProcess.name, fd, pid, pgid, logPath, readyUrl };
+    return laneLaunchContract.parse({
+      name: laneProcess.name,
+      command: laneProcess.command,
+      args: substitutedArgs,
+      env: mergedEnv,
+      logPath,
+      fd,
+      readyUrl,
+    });
   });
 
-  const deadlineMs = Date.now() + spec.bootTimeoutMs;
+  const booted = await processesSpawnLayerBroker({
+    launches,
+    cwd: spawnCwd,
+    bootTimeoutMs: spec.bootTimeoutMs,
+  });
 
-  const readiness = await Promise.all(
-    booted.map(async (entry) =>
-      entry.readyUrl === null ? true : laneReadyWaitBroker({ url: entry.readyUrl, deadlineMs }),
-    ),
-  );
-
-  const unready = booted.filter((_entry, index) => readiness[index] !== true);
-
-  if (unready.length > 0) {
-    booted.forEach((entry) => {
-      processKillGroupAdapter({ pgid: entry.pgid, signal: 'SIGKILL' });
+  if (booted.unready.length > 0) {
+    booted.pgids.forEach((pgid) => {
+      processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
     });
-    booted.forEach((entry) => {
-      fsCloseFdAdapter({ fd: entry.fd });
+    launches.forEach((launch) => {
+      fsCloseFdAdapter({ fd: launch.fd });
     });
     // homePath only — never evidencePath. Evidence (the logs `unready` names) is the one record of
     // why this boot failed, and outlives the instance; see packages/siegelense/CLAUDE.md.
@@ -236,8 +242,8 @@ export const laneBootBroker = async ({
     throw new LaneBootFailedError({
       specName: spec.name,
       instanceId,
-      unready: unready.map((entry) => entry.name),
-      logPaths: unready.map((entry) => entry.logPath),
+      unready: booted.unready.map((launch) => launch.name),
+      logPaths: booted.unready.map((launch) => launch.logPath),
     });
   }
 
@@ -248,16 +254,23 @@ export const laneBootBroker = async ({
 
   // laneSpecContract refines on `processes.length > 0`, so this is always populated — the check is
   // only here to satisfy noUncheckedIndexedAccess, never a real "empty spec" path.
-  const [firstProcess] = booted;
-  if (firstProcess === undefined) {
+  const [firstLaunch] = launches;
+  if (firstLaunch === undefined) {
     throw new Error(
       `Spec ${spec.name} declares no processes to boot — add at least one process to it before ` +
         `starting an instance.`,
     );
   }
+  // Every log fd is opened in append mode and reused by a restart's respawn, so a restarted process
+  // writes after its predecessor's last byte and every offset this reader handed out stays valid.
   const { readServerLogSince, serverLogLength } = serverLogReaderLayerBroker({
-    logPath: firstProcess.logPath,
+    logPath: firstLaunch.logPath,
   });
+
+  // The ONE array `session.pgids` points at for the lane's whole life. A restart rewrites its
+  // contents in place, so teardown, the heartbeat ticker and anything else holding this session
+  // read the groups that are running NOW — never the ones a restart killed.
+  const livePgids: ProcessGroupId[] = [...booted.pgids];
 
   return {
     specName: spec.name,
@@ -270,10 +283,21 @@ export const laneBootBroker = async ({
     apiBaseUrl: contentTextContract.parse(
       `http://${environmentStatics.hostname}:${String(ports.api)}`,
     ),
-    pgids: booted.map((entry) => entry.pgid),
+    pgids: livePgids,
     browser,
-    logFds: booted.map((entry) => entry.fd),
+    logFds: launches.map((launch) => launch.fd),
     readServerLogSince,
     serverLogLength,
+    stopProcesses: async (): Promise<AdapterResult> =>
+      processesStopLayerBroker({ pgids: livePgids }),
+    startProcesses: async (): Promise<AdapterResult> =>
+      processesRestartLayerBroker({
+        launches,
+        cwd: spawnCwd,
+        bootTimeoutMs: spec.bootTimeoutMs,
+        instanceId,
+        specName: spec.name,
+        livePgids,
+      }),
   };
 };

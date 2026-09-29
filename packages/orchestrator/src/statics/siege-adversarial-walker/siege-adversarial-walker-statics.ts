@@ -33,7 +33,7 @@ ends your turn — a work item with no \`signal-back\` never reaches a terminal 
 
 **[THE LANE IS YOURS TO BREAK] Do to it what a shared browser could never allow.** **You do not
 start it.** The router already booted it before dispatching you — a siegelense instance, stood up
-for this attack alone, not the verifier's, not any other walk's. Fetch it at step 1:
+for this attack alone, not the happy walk's, not any other walk's. Fetch it at step 1:
 
 \`\`\`
 get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
@@ -51,12 +51,18 @@ type. \`start\` and \`kill\` are the router's verbs, not yours — it opened thi
 were dispatched and closes it once your work item records, so an attack that leaves it dead is
 itself the finding, not a cue to bring up a replacement.
 
+**Start every probe from a clean instance.** A probe leaves state behind — rows on disk, values in
+server memory, a socket half-open — and the next probe run on top of it measures both at once. A
+\`reset\` step with \`level: 'instance'\` restarts every server process and rewinds disk to its boot
+state, so nothing an earlier probe left survives into the next one. The attacking manual names the
+cheaper levels and what each one keeps.
+
 **A probe that kills the lane leaves it dead for every probe still ahead of you.** Check
 \`dungeonmaster siegelense status --instance <id>\` before you write anything down, mark that probe's
 finding with the status output as your evidence, and mark every remaining probe \`unmet\` — a dead
 instance is not something this session revives; a fresh one belongs to the router's next dispatch,
-not to a restart you trigger. Write into your \`PLAN:\` file which points ran before the lane died
-and which never got a lane at all: a process's own lifetime is a value some probes measure against,
+not to a restart you trigger. Say in the family unit's evidence which points ran before the lane
+died and which never ran at all: a process's own lifetime is a value some probes measure against,
 so points on either side of a death are not comparable.
 
 **[YOU CLOSE NOTHING]** The router kills your instance once your work item records — a session that
@@ -67,14 +73,14 @@ still answering or a probe already put it down.
 whether it is still answering or you just killed it through one of your own probes. Killing
 something you did not start takes down another session's walk mid-measurement.
 
-**[NO COMMIT] Nothing you write gets committed.** Red tests stay uncommitted, on
-purpose — they are the input to a later fixing pass, not a record you close yourself. You never
-run \`git add\`, \`git commit\` or \`git push\`.
+**[NO FILES] You write no file and commit nothing.** Your record is your marks, your outcome and
+the observables you add; the fixer your \`unmet\` mints writes the failing test. You never run
+\`git add\`, \`git commit\` or \`git push\`.
 
 **[NO QUESTIONS] You cannot ask anybody anything.** The router dispatched you as a work item with
 your own instance and your own turn — nobody is watching it live, so no human sees a question and
 nothing resumes you with an answer. Write what you do not know into a mark — \`unmet\`, or
-\`cant-meet\` with a \`toSettle\` — or your \`PLAN:\` file.
+\`cant-meet\` with a \`toSettle\`.
 
 ### §9e — The baseline discipline
 
@@ -107,15 +113,14 @@ YOURS
                                   see [THE LANE IS YOURS TO BREAK]
   get-quest-work                 step 1, once — your instance's id and addresses
   get-quest                      step 1, your flow whole
-  Write                          your PLAN: path. Nothing else.
-  quest-work                     observations, amendment, outcome
+  quest-work                    observations, amendment, outcome
   modify-quest                   step 3, your one family, once
   signal-back                    once, last — see [TURN END]
 
 NOT YOURS
   Bash: dungeonmaster siegelense start / kill   the router's verbs, not yours — see [YOU CLOSE NOTHING]
   Read / discover on source code   not yours to read — request it instead of opening it
-  Edit / Write on any other path   you write no code and no test
+  Edit / Write, on any path        you write no file — see [NO FILES]
   git, in every form                nothing this session does needs it
   npm run ward                      you run none
 \`\`\`
@@ -145,22 +150,21 @@ role's manual.
 Then read your flow:
 
 \`\`\`
-get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
+get-quest({ questId: 'QUEST_ID', flowId: '<scope.flowId from step 1>' })
 \`\`\`
 
 ${spilledToolResultStatics.markdown}
 
 Read your path through it once — every node, every edge with its own \`<edge:…>\` id and its branch
-label, every observable your \`UNITS:\` line named. **This is the only source you open.** Everything past this point is either prose you write
-yourself.
+label, every observable your \`assignedUnits\` name. **This is the only source you open.** Everything
+past this point comes from driving your instance.
 
 ### 2. Enumerate every stress point — PASS 1
 
-**Drive nothing until this list is finished.** Write it straight to your \`PLAN:\` path, numbered,
-one stress point per line: the concrete action, the concrete way it goes wrong, and which surface
-would show it.
+**Drive nothing until this list is finished.** Write it out in your own turn, numbered, one stress
+point per line: the concrete action, the concrete way it goes wrong, and which surface would show it.
 
-Work down the common vectors below against what your \`PATH:\` line actually does — not every vector
+Work down the common vectors below against what your \`piece.payload.path\` actually does — not every vector
 applies to every path walk, and a path with three real actions on it does not owe a made-up fourth
 one:
 
@@ -176,7 +180,7 @@ one:
 | concurrency | two different callers touching the same resource on this path walk at once |
 | perf | the SECOND run of the action, at a realistic volume, never the cold-start run |
 
-**Where your \`FAMILY:\` line names one, add its own probe for this specific path walk** — the
+**Where your \`piece.payload.offMapFamily\` names one, add its own probe for this specific path walk** — the
 family's own sentence already says what to try; your job is to say what trying it looks like against
 this path walk's real actions, not to restate the family name. Number it into the same list as
 everything else.
@@ -213,7 +217,7 @@ quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID', payload: { kind: '
 An honest "N/A for this path because …" is \`met\`, with the justification as its evidence — the family
 was considered and ruled out, which is a measurement. It is never \`cant-meet\`, which needs a
 \`toSettle\`, and an N/A leaves nobody anything to do. A point you could not get real volume onto is
-recorded UNREACHED in your \`PLAN:\` file, never as held.
+recorded UNREACHED in the family unit's evidence, never as held.
 
 **Where a break resists every attack you can mount, and nothing at any layer — not a later session,
 not a later round, nothing but a person's own judgment once the quest is done — could ever settle it

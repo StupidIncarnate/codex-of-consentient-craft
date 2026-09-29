@@ -19,6 +19,7 @@ import { siegemasterReaderStatics } from '../../statics/siegemaster-reader/siege
 import { siegePlannerStatics } from '../../statics/siege-planner/siege-planner-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
+import { writeIngredientStatics } from '../../statics/write-ingredient/write-ingredient-statics';
 import { agentNameToPromptTransformer } from './agent-name-to-prompt-transformer';
 
 const UNSERVED_PROMPT_NAMES = ['codeweaver', 'flowrider', 'siegemaster'] as const;
@@ -128,6 +129,11 @@ const EXPECTED_BY_NAME = {
   warpgate: {
     model: roleToModelStatics.warpgate,
     prompt: warpgatePromptStatics.prompt.template,
+  },
+
+  'write-ingredient': {
+    model: 'opus',
+    prompt: writeIngredientStatics.prompt.template,
   },
 } as const satisfies Record<PromptName, unknown>;
 

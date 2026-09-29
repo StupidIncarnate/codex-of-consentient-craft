@@ -9,6 +9,9 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 export const processIsAliveAdapterProxy = (): {
   setupAlive: (params: { pgid: ProcessGroupId }) => void;
   setupGone: (params: { pgid: ProcessGroupId }) => void;
+  // Alive for the next `aliveProbes` probes, gone for every probe after — how a test stages a group
+  // that exits partway through a stop sequence.
+  setupAliveForProbesThenGone: (params: { pgid: ProcessGroupId; aliveProbes: number }) => void;
   // `error` stays `unknown` rather than `Error` — a test proving realm-safety stages a value built
   // by `vm.runInNewContext`, which this repo's own Error is not the constructor of.
   setupUnknownError: (params: { pgid: ProcessGroupId; error: unknown }) => void;
@@ -24,6 +27,23 @@ export const processIsAliveAdapterProxy = (): {
     },
 
     setupGone: ({ pgid }: { pgid: ProcessGroupId }): void => {
+      handle.calledWith([-Number(pgid), 0]).implement(() => {
+        const error = new Error('kill ESRCH') as NodeJS.ErrnoException;
+        error.code = 'ESRCH';
+        throw error;
+      });
+    },
+
+    setupAliveForProbesThenGone: ({
+      pgid,
+      aliveProbes,
+    }: {
+      pgid: ProcessGroupId;
+      aliveProbes: number;
+    }): void => {
+      Array.from({ length: aliveProbes }).forEach(() => {
+        handle.onceFor([-Number(pgid), 0]).implement(() => true);
+      });
       handle.calledWith([-Number(pgid), 0]).implement(() => {
         const error = new Error('kill ESRCH') as NodeJS.ErrnoException;
         error.code = 'ESRCH';

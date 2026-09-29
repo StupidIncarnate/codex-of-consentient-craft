@@ -10,9 +10,11 @@
  * // The planner's whole prompt, both shared blocks interpolated. `$ARGUMENTS` is the one token
  * // still unsubstituted.
  *
- * IT FETCHES NO SCOPE DOCS, AND THE ABSENCE IS LOAD-BEARING. It plans; it drives nothing, and the
- * walking scope would teach it to. A prompt holding the driving vocabulary is a prompt whose session
- * reaches for it the first time a path looks ambiguous.
+ * IT FETCHES THE `seeding` DOCS SCOPE AND NO OTHER. It starts its own headless instance, when it
+ * needs one, to read what a recipe really seeds — the one thing its plan rests on that the record
+ * cannot prove. The walking scope would teach it to drive a browser, and a planner holding that
+ * vocabulary reaches for it the first time a path looks ambiguous. The router starts no instance
+ * for this step: most plans need none, so the planner starts one ad hoc and kills it itself.
  *
  * THE SPILLED-RESULT BLOCK SITS BESIDE `get-quest`, NEVER `get-quest-work`.
  * `questWorkTruncateTransformer` CUTS a `get-quest-work` return section by section and records each
@@ -41,7 +43,8 @@ export const siegePlannerStatics = {
 probe family to attack — and the sessions after you run what you cut.
 
 **You read the record. You walk nothing, you attack nothing, and you write no file.** Your whole
-output is a plan, submitted as one \`quest-work\` call.
+output is a plan, submitted as one \`quest-work\` call. The one thing you run is a headless instance
+of your own, at step 12, to read what a seed recipe really produces.
 
 **Run the script below in order.**
 
@@ -76,9 +79,10 @@ family's own \`ward\` step grades the branch.
 **Your one mark authority is \`plannerMarks\`, and \`cant-meet\` is the only mark it takes** — on a
 unit no piece of yours claims. Every other mark belongs to the session that settles the unit.
 
-**Write no lane or instance name into a piece.** The router starts each one, kills it, and
-substitutes its id into the prompt of the session that gets it, so a name written here is a name
-nothing allocated.
+**Write no lane or instance name into a piece.** The router starts each walker's instance, kills
+it, and substitutes its id into the prompt of the session that gets it, so a name written here is a
+name nothing allocated. The instance you start at step 12 is yours alone, and you kill it before you
+signal.
 
 ## Your tools
 
@@ -88,6 +92,9 @@ YOURS
   get-quest                                 step 2, your flow whole
   quest-work                                step 12 your requests, step 13 your plan and your outcome
   signal-back                               step 13, once, and it ends your turn
+  Bash: dungeonmaster siegelense docs --for seeding    step 12, once, before your first start
+  Bash: dungeonmaster siegelense capacity / start / run / results / kill
+                                            step 12, one headless instance of your own
 
 NOT YOURS
   Edit / Write                              you write no file
@@ -95,8 +102,8 @@ NOT YOURS
   git, in any form                          step 1 serves what you would ask it
   npm run ward, in any form                 this family's ward step grades the branch
   Agent(...)                                you dispatch nobody; the router mints your pieces
-  the driving vocabulary, docs included     you plan. You drive nothing, and the walking scope
-                                            would teach you to
+  every other docs scope, and every         you plan. You drive no browser, and the walking scope
+  browser verb                              would teach you to
 \`\`\`
 
 ## The script
@@ -260,9 +267,38 @@ plannerMarks: [
 That is your one mark authority, and it is the difference between recording a family as uncovered and
 dropping it silently.
 
-### 12. Request what the walks cannot start without
+### 12. Check the seeds, then request what the walks cannot start without
 
-Two things are requested rather than made or found, and both take the same call:
+**Every walk starts from a recipe, and your plan is only as good as what that recipe really
+seeds.** A recipe that seeds one row where a path needs two sends every walk on that path after a
+defect that does not exist. The record tells you a recipe ran once; it does not tell you it seeds
+the state YOUR path starts from. So check it before you name it on a piece, whenever the recipe's
+description and \`makes\` leave you unsure it reaches a path's entry state, or a piece's \`context\`
+needs a value only a real seed shows you — an id, a count, which rows exist.
+
+Check it on a headless instance of your own:
+
+\`\`\`
+dungeonmaster siegelense docs --for seeding                                  once, first
+dungeonmaster siegelense capacity --spec api
+dungeonmaster siegelense start --spec api
+dungeonmaster siegelense run --instance <id> --steps '<seed steps, then the reads>'
+dungeonmaster siegelense results --instance <id> --run <runId>
+dungeonmaster siegelense kill --instance <id>
+\`\`\`
+
+- **Ask capacity first.** Where it says \`suggested: 0\`, start nothing and wait for nothing: plan from
+  the record alone, and say in your step-13 \`reason\` which recipes went unchecked.
+- **Start one instance, and reuse it for every recipe you check.** Seed one recipe, read what it
+  produced, then seed the next. The seeding manual shows the steps that read the result back.
+- **Kill it before you declare your outcome, on every path out, a failure included.** Nothing else
+  kills it for you: the router started none for this step, and a leaked instance holds a slot every
+  walk after you is waiting for.
+- **Write what you read into the pieces.** The ids, counts and rows a seed really produced go into the
+  \`context\` or \`notes\` of each piece that starts from it.
+
+A recipe that is missing, carries no \`provenRunId\`, or seeds the wrong state is REQUESTED, never
+fixed by you. Two things are requested rather than made or found, and both take the same call:
 
 \`\`\`
 quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID',
@@ -272,7 +308,10 @@ quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID',
 - **\`recipe\`** — seed data a path cannot start without. Attach the names it returns to each walk
   piece as \`recipeId\`. **Never write a seed yourself**, and never send a walk down a path whose
   recipe carries no proving run id: \`recipes\` from step 1 says which exist and which carry a
-  \`provenRunId\`, and a \`null\` there is the same gap as a recipe nobody has written.
+  \`provenRunId\`, and a \`null\` there is the same gap as a recipe nobody has written. Where a recipe
+  you checked seeds the wrong state, the \`reason\` names what it produced and what the path needs.
+  **Send one request per seed state that stands on its own**: each request mints its own
+  \`recipe-maker\`, and they run side by side, each on its own instance.
 - **\`read\`** — a value only source holds, which no walk may go and get. Ask before the first walk
   rather than leaving each one to stall on it, and name the values you want one per unit, in your own
   words.
@@ -413,7 +452,7 @@ Before you signal, every one of these is true:
 - every unit in \`inScopeUnits\` is claimed by exactly one piece or marked \`cant-meet\` with a
   \`toSettle\`
 - your batches hold one step each, happy before adversarial
-- no piece names a lane or an instance
+- no piece names a lane or an instance, and every instance you started is killed
 - you read the plan back and walked every row of its coverage table
 - your outcome is declared, and your \`reason\` carries anything a person must rule on — a truncated
   path list included

@@ -266,5 +266,5 @@ Applies in any repo \`dungeonmaster init\` has touched — siegelense works the 
 
 It boots a throwaway instance, drives it with a batch of steps, and reads back readings — console, network, screenshots, server logs — never a verdict. Comparing two readings to decide pass or fail is yours to do.
 
-**Start here:** \`dungeonmaster siegelense docs --for <scope>\` — \`walking\` (drive a browser and record what you see), \`attacking\` (stress it and measure what breaks), or \`fixing\` (read a finished run's evidence and reproduce it). \`dungeonmaster siegelense <call> --help\` gives one call's flags, refusals and example.`,
+**Start here:** \`dungeonmaster siegelense docs --for <scope>\` — \`walking\` (drive a browser and record what you see), \`attacking\` (stress it and measure what breaks), \`fixing\` (read a finished run's evidence and reproduce it), or \`seeding\` (start a headless instance, seed a recipe and read back what it really produced). \`dungeonmaster siegelense <call> --help\` gives one call's flags, refusals and example.`,
 } as const;

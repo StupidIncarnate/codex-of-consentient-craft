@@ -165,7 +165,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +
           "  siegelense compare — diff two runs of one instance's timeline.\n" +
-          '  siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.\n' +
+          '  siegelense snapshots — list the points a `reset` step can name in `to` (level state or instance) for one instance. Starts nothing.\n' +
           '  siegelense recipes — list what states can be created. No instance needed.\n' +
           "  siegelense docs — this tool's own instructions, scoped to one role. Starts nothing.\n" +
           '\n' +

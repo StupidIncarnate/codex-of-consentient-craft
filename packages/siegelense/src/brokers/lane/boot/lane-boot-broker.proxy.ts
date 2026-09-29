@@ -1,10 +1,11 @@
 // PURPOSE: Proxy for lane-boot-broker — stages every boundary it composes (cwd resolution, mkdir,
-// path joining, process spawn, log fds, process kill, home removal, the browser launch, and
-// readiness) behind semantic setup methods, so a test never chains through a child proxy directly.
+// path joining, process spawn, log fds, process kill, home removal, the browser launch, readiness,
+// and a restart's stop, respawn and registry stamp) behind semantic setup methods, so a test never chains through a child proxy directly.
 // USAGE: const proxy = laneBootBrokerProxy(); const repoRoot = proxy.resolveRepoRoot();
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
 import { chromium } from '@playwright/test';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   cwdResolveBrokerProxy,
   fsMkdirAdapterProxy,
@@ -15,14 +16,15 @@ import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
 import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
 import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
-import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
+import { processesRestartLayerBrokerProxy } from './processes-restart-layer-broker.proxy';
+import { processesSpawnLayerBrokerProxy } from './processes-spawn-layer-broker.proxy';
+import { processesStopLayerBrokerProxy } from './processes-stop-layer-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { FileDescriptor } from '../../../contracts/file-descriptor/file-descriptor-contract';
@@ -31,13 +33,11 @@ import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 type ReadingCount = ReturnType<typeof ReadingCountStub>;
 
-// A deadline-exceeded case is staged with two clock readings: the FIRST call answers
-// `lane-boot-broker`'s own `Date.now() + spec.bootTimeoutMs` deadline computation, and every call
-// after answers `lane-ready-wait-broker`'s post-probe deadline check — comfortably past any
-// `bootTimeoutMs` this package's stubs use, so the very first failed probe reports "expired" with
-// no real setTimeout wait.
+// The clock every scenario reads by default. The registry proxies behind the restart layer spy on
+// `Date.now` with no answer of their own, so an unstaged read would throw; a boot that probes a
+// reachable server reads it once, for its deadline, and needs no particular value.
+// `setupBootDeadlineAlreadyPast` stages its own sequence on top, and the later staging wins.
 const CLOCK_BASE_MS = 1_700_000_000_000;
-const CLOCK_PAST_DEADLINE_MS = 1_710_000_000_000;
 
 export const laneBootBrokerProxy = (): {
   resolveRepoRoot: () => AbsoluteFilePath;
@@ -56,6 +56,19 @@ export const laneBootBrokerProxy = (): {
   // and/or `{webWorkspace}` resolves to a real name instead of throwing "no mock configured" — see
   // that broker's own proxy for why this stages the packages/ listing ONCE with every dir name a
   // test needs, rather than once per workspace kind.
+  // A boot followed by a `startProcesses` respawn of the same command: the boot gets `bootPid`, the
+  // respawn `restartPid`.
+  setupProcessBootThenRestart: (params: {
+    logPath: AbsoluteFilePath;
+    fd: FileDescriptor;
+    command: string;
+    args: readonly string[];
+    bootPid: number;
+    restartPid: number;
+  }) => void;
+  setupGroupExitsOnSigterm: (params: { pgid: ProcessGroupId }) => void;
+  setupRegistry: (params: { json: string }) => void;
+  getWrittenRegistry: () => unknown;
   setupWorkspacesResolved: (params: {
     repoRoot: AbsoluteFilePath;
     apiPackageName?: string;
@@ -77,15 +90,17 @@ export const laneBootBrokerProxy = (): {
   fsMkdirAdapterProxy();
   pathJoinAdapterProxy();
   processCwdAdapterProxy();
-  const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const openFdProxy = fsOpenFdAdapterProxy();
   const closeFdProxy = fsCloseFdAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
   playwrightSessionAdapterProxy();
-  const readyWaitProxy = laneReadyWaitBrokerProxy();
   const workspaceProxy = laneWorkspaceResolveBrokerProxy();
   serverLogReaderLayerBrokerProxy();
+  const spawnProxy = processesSpawnLayerBrokerProxy();
+  const stopProxy = processesStopLayerBrokerProxy();
+  const restartProxy = processesRestartLayerBrokerProxy();
+  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(CLOCK_BASE_MS);
 
   return {
     resolveRepoRoot: (): AbsoluteFilePath => {
@@ -111,7 +126,7 @@ export const laneBootBrokerProxy = (): {
       pid: number;
     }): void => {
       openFdProxy.returns({ filePath: logPath, fd });
-      spawnProxy.succeeds({ command, args: [...args], pid });
+      spawnProxy.setupSpawn({ command, args, pid });
       // A boot-failure path SIGKILLs and closes every group it spawned, regardless of which
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,
       // not just the ones a given test expects to fail.
@@ -119,19 +134,46 @@ export const laneBootBrokerProxy = (): {
       closeFdProxy.succeeds({ fd });
     },
 
+    setupProcessBootThenRestart: ({
+      logPath,
+      fd,
+      command,
+      args,
+      bootPid,
+      restartPid,
+    }: {
+      logPath: AbsoluteFilePath;
+      fd: FileDescriptor;
+      command: string;
+      args: readonly string[];
+      bootPid: number;
+      restartPid: number;
+    }): void => {
+      openFdProxy.returns({ filePath: logPath, fd });
+      spawnProxy.setupSpawnOnce({ command, args, pid: bootPid });
+      spawnProxy.setupSpawnOnce({ command, args, pid: restartPid });
+    },
+
+    setupGroupExitsOnSigterm: ({ pgid }: { pgid: ProcessGroupId }): void => {
+      stopProxy.setupExitsOnSigterm({ pgid });
+    },
+
+    setupRegistry: ({ json }: { json: string }): void => {
+      restartProxy.setupRegistry({ json });
+    },
+
+    getWrittenRegistry: (): unknown => restartProxy.getWrittenRegistry(),
+
     setupServerReachable: ({ url }: { url: string }): void => {
-      readyWaitProxy.setupReachable({ url });
+      spawnProxy.setupReachable({ url });
     },
 
     setupServerNeverReachable: ({ url }: { url: string }): void => {
-      readyWaitProxy.setupUnreachable({ url });
+      spawnProxy.setupUnreachable({ url });
     },
 
     setupBootDeadlineAlreadyPast: (): void => {
-      readyWaitProxy.stageDeadlineExceeded({
-        firstCallMs: CLOCK_BASE_MS,
-        thenMs: CLOCK_PAST_DEADLINE_MS,
-      });
+      spawnProxy.setupDeadlineAlreadyPast();
     },
 
     // The failure path removes ONLY this home — never evidencePath, which fsRmAdapterProxy is never
@@ -180,7 +222,7 @@ export const laneBootBrokerProxy = (): {
     }: {
       command: string;
       args: readonly string[];
-    }): unknown => spawnProxy.getOptionsFor({ command, args: [...args] }),
+    }): unknown => spawnProxy.getSpawnOptionsFor({ command, args }),
 
     getKillSignalsFor: ({ pgid }: { pgid: ProcessGroupId }): readonly unknown[] =>
       killProxy.getCallsFor({ pgid }),

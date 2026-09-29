@@ -394,7 +394,7 @@ export const siegelenseHelpStatics = {
     },
     snapshots: {
       summary:
-        'siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.',
+        'siegelense snapshots — list the points a `reset` step can name in `to` (level state or instance) for one instance. Starts nothing.',
       synopsis: 'dungeonmaster siegelense snapshots --instance <id> [--json]',
       flags: [
         {
