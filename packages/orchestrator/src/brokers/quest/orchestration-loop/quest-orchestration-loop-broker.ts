@@ -7,7 +7,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { configResolveBroker } from '@dungeonmaster/config';
+import { ConfigNotFoundError, configResolveBroker } from '@dungeonmaster/config';
 import type {
   FilePath,
   GuildId,
@@ -78,10 +78,10 @@ export const questOrchestrationLoopBroker = async ({
         const config = await configResolveBroker({ filePath: startPath });
         return config.orchestration?.slotCount ?? fallbackSlotCount;
       } catch (error: unknown) {
-        // Only an absent config (ConfigNotFoundError, matched by name: config's barrel does not
-        // export the class) takes the default. A malformed or unreadable config is the user's own
-        // file and must surface, not silently become the default slot count.
-        if (error instanceof Error && error.name === 'ConfigNotFoundError') {
+        // Only an absent config (ConfigNotFoundError) takes the default. A malformed or
+        // unreadable config is the user's own file and must surface, not silently become the
+        // default slot count.
+        if (error instanceof ConfigNotFoundError) {
           return fallbackSlotCount;
         }
         throw error;

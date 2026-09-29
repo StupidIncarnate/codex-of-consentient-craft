@@ -11,12 +11,13 @@ import { configResolveBroker } from './src/brokers/config/resolve/config-resolve
 import { computeAllowedImportsTransformer } from './src/transformers/compute-allowed-imports/compute-allowed-imports-transformer';
 import { dungeonmasterConfigContract } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { ConfigNotFoundError } from './src/errors/config-not-found/config-not-found-error';
 import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
-export { configResolveBroker };
+export { configResolveBroker, ConfigNotFoundError };
 export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
 export { e2eProcessPlaceholderStatics } from './src/statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 

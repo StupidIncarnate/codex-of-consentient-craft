@@ -9,7 +9,7 @@
  * // Returns OrchestrationMode ('claude' | 'node')
  */
 
-import { configResolveBroker } from '@dungeonmaster/config';
+import { ConfigNotFoundError, configResolveBroker } from '@dungeonmaster/config';
 import { filePathContract, orchestrationModeContract } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
@@ -31,7 +31,7 @@ export const orchestrationModeGetBroker = async (): Promise<OrchestrationMode> =
     const config = await configResolveBroker({ filePath: startPath });
     return config.orchestrationMode;
   } catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ConfigNotFoundError') {
+    if (error instanceof ConfigNotFoundError) {
       return orchestrationModeContract.parse('claude');
     }
     throw error;
