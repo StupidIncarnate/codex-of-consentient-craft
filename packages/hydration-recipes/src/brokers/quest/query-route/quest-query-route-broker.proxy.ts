@@ -1,4 +1,4 @@
-import { questListBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { questListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/list/quest-list-broker.proxy';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';

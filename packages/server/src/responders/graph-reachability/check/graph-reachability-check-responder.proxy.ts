@@ -1,4 +1,4 @@
-import { graphReachabilityCheckBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { graphReachabilityCheckBrokerProxy } from '@dungeonmaster/orchestrator/brokers/graph-reachability/check/graph-reachability-check-broker.proxy';
 
 export const GraphReachabilityCheckResponderProxy = (): {
   setupClean: () => void;

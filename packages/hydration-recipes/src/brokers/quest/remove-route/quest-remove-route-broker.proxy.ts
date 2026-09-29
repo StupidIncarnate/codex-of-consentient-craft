@@ -1,4 +1,4 @@
-import { questDeleteBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { questDeleteBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/delete/quest-delete-broker.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { questOwningGuildFindBrokerProxy } from '../owning-guild-find/quest-owning-guild-find-broker.proxy';

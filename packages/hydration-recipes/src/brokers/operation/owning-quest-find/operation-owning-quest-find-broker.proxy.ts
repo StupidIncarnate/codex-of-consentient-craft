@@ -1,8 +1,6 @@
-import {
-  guildListBrokerProxy,
-  questGetBrokerProxy,
-  questListBrokerProxy,
-} from '@dungeonmaster/orchestrator/testing';
+import { guildListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guild/list/guild-list-broker.proxy';
+import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/get/quest-get-broker.proxy';
+import { questListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/list/quest-list-broker.proxy';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';

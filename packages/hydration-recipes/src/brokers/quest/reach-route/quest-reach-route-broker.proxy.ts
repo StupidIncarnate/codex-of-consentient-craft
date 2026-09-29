@@ -1,4 +1,5 @@
-import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/get/quest-get-broker.proxy';
+import { questModifyBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/modify/quest-modify-broker.proxy';
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';

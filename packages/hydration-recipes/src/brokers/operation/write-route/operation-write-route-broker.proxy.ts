@@ -1,4 +1,4 @@
-import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/get/quest-get-broker.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 

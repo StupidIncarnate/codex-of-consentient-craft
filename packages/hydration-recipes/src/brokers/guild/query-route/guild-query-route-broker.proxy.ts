@@ -1,4 +1,4 @@
-import { guildListBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { guildListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guild/list/guild-list-broker.proxy';
 
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 

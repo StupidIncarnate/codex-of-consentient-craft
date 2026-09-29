@@ -1,4 +1,4 @@
-import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/brokers/guild/add/guild-add-broker.proxy';
 import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
 
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';

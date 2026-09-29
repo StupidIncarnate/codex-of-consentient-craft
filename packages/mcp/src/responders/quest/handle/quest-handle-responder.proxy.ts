@@ -26,7 +26,7 @@ import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/or
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
-import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
+import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;

@@ -1,4 +1,4 @@
-import { questHumanVerdictRecordBrokerProxy } from '@dungeonmaster/orchestrator/testing';
+import { questHumanVerdictRecordBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/human-verdict-record/quest-human-verdict-record-broker.proxy';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { QuestHumanVerdictResponder } from './quest-human-verdict-responder';
