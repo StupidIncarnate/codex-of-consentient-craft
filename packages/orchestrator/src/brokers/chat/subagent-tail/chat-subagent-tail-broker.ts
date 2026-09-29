@@ -25,6 +25,7 @@
 
 import { tailFile } from '#gateway/node/fs';
 import { appendFile, ensureDir } from '#gateway/node/fs__promises';
+import { getEnv, stderr } from '#gateway/node/process';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
@@ -85,9 +86,9 @@ export const chatSubagentTailBroker = async ({
 
   const subagentSource = chatLineSourceContract.parse('subagent');
 
-  const subagentDebug = process.env.SUBAGENT_DEBUG === '1';
+  const subagentDebug = getEnv('SUBAGENT_DEBUG') === '1';
   if (subagentDebug) {
-    process.stderr.write(
+    stderr.write(
       `[SUBAGENT-TRACE][SUBAGENT-TAIL-OPEN] agentId=${String(agentId)} path=${String(subagentJsonlPath)}\n`,
     );
   }
@@ -95,7 +96,7 @@ export const chatSubagentTailBroker = async ({
     path: subagentJsonlPath,
     onLine: ({ line }) => {
       if (subagentDebug) {
-        process.stderr.write(`[SUBAGENT-TRACE][SUBAGENT-RAW] agentId=${String(agentId)} ${line}\n`);
+        stderr.write(`[SUBAGENT-TRACE][SUBAGENT-RAW] agentId=${String(agentId)} ${line}\n`);
       }
       const parsed = claudeLineNormalizeBroker({ rawLine: line });
       const outputs = processor.processLine({
@@ -113,7 +114,7 @@ export const chatSubagentTailBroker = async ({
               const entryToolName = 'toolName' in entry ? entry.toolName : 'n/a';
               const entryAgentIdVal = 'agentId' in entry ? entry.agentId : 'n/a';
               const entrySource = 'source' in entry ? entry.source : 'n/a';
-              process.stderr.write(
+              stderr.write(
                 `[SUBAGENT-TRACE][SUBAGENT-ENTRY] agentId=${agentId} role=${entryRole} type=${entryType} toolName=${entryToolName} entryAgentId=${entryAgentIdVal} source=${entrySource}\n`,
               );
             }

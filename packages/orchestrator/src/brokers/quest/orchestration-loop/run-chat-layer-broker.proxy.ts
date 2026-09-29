@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   questContract,
   RepoRootCwdStub,
@@ -40,6 +41,7 @@ export const runChatLayerBrokerProxy = (): {
     workItemId: QuestWorkItemId;
   }) => ErrorMessage | undefined;
 } => {
+  stderrProxy();
   const modifyProxy = questModifyBrokerProxy();
   const launchProxy = agentLaunchBrokerProxy();
   // run-chat-layer-broker reads the resolved quest's cwd via questCwdResolveBroker; loading

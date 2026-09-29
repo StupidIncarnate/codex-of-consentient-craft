@@ -16,6 +16,7 @@
 
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import {
   ErrorMessageStub,
   ExitCodeStub,
@@ -49,6 +50,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
   repoRootMock.calledWith([]).resolves(RepoRootCwdStub({ value: '/repo' }));
 
   RunNotFoundErrorProxy();
+  getEnvProxy();
   const cleanupSpawn = streamLinesProxy();
   const runResult: { exitCode: ExitCode; output: ErrorMessage } = {
     exitCode: ExitCodeStub({ value: 0 }),

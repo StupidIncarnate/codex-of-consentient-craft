@@ -8,6 +8,7 @@ import type {
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
@@ -98,6 +99,7 @@ export const ChatStartResponderProxy = ({
   // for its internal lookups; instantiating here satisfies enforce-proxy-child-creation,
   // and re-instantiation is safe because each proxy() call re-registers idempotent mocks.
   questGetBrokerProxy();
+  stderrProxy();
 
   // questGetBroker is module-mocked at the top so tests can drive the lookup that resolves
   // chatWorkItemId (chaoswhisperer work-item lookup after onQuestCreated). Default impl

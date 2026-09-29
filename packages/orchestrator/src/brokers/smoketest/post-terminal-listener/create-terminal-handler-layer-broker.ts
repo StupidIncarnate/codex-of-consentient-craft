@@ -7,6 +7,7 @@
  * // On every matching event delegates to processTerminalEventLayerBroker.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
@@ -35,7 +36,7 @@ export const createTerminalHandlerLayerBroker =
       scenarioMeta,
       unregisterListener,
     }).catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[smoketestPostTerminalListenerBroker] handler failed for quest ${questId}: ${String(error)}\n`,
       );
       // Defensive unregister: if the assertion/persist path threw for any reason

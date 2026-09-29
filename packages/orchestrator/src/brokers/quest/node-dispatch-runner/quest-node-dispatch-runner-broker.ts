@@ -10,6 +10,7 @@
  * await runner.kick();
  */
 
+import { stderr } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -43,7 +44,7 @@ export const questNodeDispatchRunnerBroker = ({
       }
       internal.wakeHandler = (): void => {
         controller.kick().catch((error: unknown) => {
-          process.stderr.write(`[node-dispatch-runner] kick failed: ${String(error)}\n`);
+          stderr.write(`[node-dispatch-runner] kick failed: ${String(error)}\n`);
         });
       };
       onWake({ handler: internal.wakeHandler });

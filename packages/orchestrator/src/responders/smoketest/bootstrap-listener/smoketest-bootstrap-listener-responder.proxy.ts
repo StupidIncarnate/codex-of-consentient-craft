@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
@@ -43,6 +44,7 @@ export const SmoketestBootstrapListenerResponderProxy = (): {
   const listenerProxy = smoketestListenerStateProxy();
   const metaProxy = smoketestScenarioMetaStateProxy();
   DrainListenerLayerResponderProxy();
+  stderrProxy();
 
   outboxProxy.setupOutboxPath({
     homeDir: '/tmp/smoketest-bootstrap-listener-test',

@@ -14,6 +14,7 @@
  * // `handle` exposes stop() + initialDrains() for chat lifecycle composition.
  */
 
+import { stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   sessionIdContract,
@@ -192,7 +193,7 @@ export const chatSpawnBroker = async ({
           workItems: [{ id: chatWorkItemId, sessionId: sessionIdContract.parse(extractedSid) }],
         } as ModifyQuestInput,
       }).catch((error: unknown) => {
-        process.stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);
+        stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);
       });
       // `repoRootCwd` is the cwd this child was launched with, so the row records where the
       // conversation's transcript really is. An intake chat runs BEFORE the carve, so its row is
@@ -204,7 +205,7 @@ export const chatSpawnBroker = async ({
         role: workItemRoleContract.parse(role),
         workItemId: chatWorkItemId,
       }).catch((error: unknown) => {
-        process.stderr.write(`[chat-spawn] session cwd record failed: ${String(error)}\n`);
+        stderr.write(`[chat-spawn] session cwd record failed: ${String(error)}\n`);
       });
     },
     onComplete: ({ chatProcessId: cpid, exitCode, sessionId: extractedSessionId }) => {
@@ -216,7 +217,7 @@ export const chatSpawnBroker = async ({
       Promise.resolve(
         onComplete({ chatProcessId: cpid, exitCode: exitCode ?? null, sessionId: finalSessionId }),
       ).catch((error: unknown) => {
-        process.stderr.write(
+        stderr.write(
           `chat-spawn-broker onComplete handler rejected: ${error instanceof Error ? error.message : String(error)}\n`,
         );
       });

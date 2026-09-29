@@ -1,5 +1,4 @@
-import { stderr } from '#gateway/node/process';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { processTerminalEventLayerBrokerProxy } from './process-terminal-event-layer-broker.proxy';
@@ -12,6 +11,7 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
   silenceStderrAndCaptureLogs: () => { wroteRejectionLog: () => boolean };
 } => {
   const processProxy = processTerminalEventLayerBrokerProxy();
+  const stderrChild = stderrProxy();
 
   return {
     reset: (): void => {
@@ -24,18 +24,13 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
       processProxy.setupRejects({ error });
     },
     getProcessCallArgs: (): RecordedCalls => processProxy.getCallArgs(),
-    silenceStderrAndCaptureLogs: (): { wroteRejectionLog: () => boolean } => {
-      const handle = registerSpyOn({ object: stderr, method: 'write' });
-      // Every write must succeed regardless of content — this silences stderr wholesale
-      // and records every call for the content-addressed lookup below.
-      handle.calledWith([]).returns(true);
-      return {
-        wroteRejectionLog: (): boolean =>
-          handle.callsMatching([
-            (written: unknown): boolean =>
-              typeof written === 'string' && written.includes('handler failed for quest'),
-          ]).length > 0,
-      };
-    },
+    silenceStderrAndCaptureLogs: (): { wroteRejectionLog: () => boolean } => ({
+      wroteRejectionLog: (): boolean =>
+        stderrChild
+          .getWrites()
+          .filter(
+            (chunk) => typeof chunk === 'string' && chunk.includes('handler failed for quest'),
+          ).length > 0,
+    }),
   };
 };

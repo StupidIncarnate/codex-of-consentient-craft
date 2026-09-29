@@ -35,6 +35,7 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
+import { getEnv } from '#gateway/node/process';
 
 import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -60,7 +61,7 @@ export const stepHandlerCleanupBroker = async ({
   const cwd = absoluteFilePathContract.parse(repoRoot);
 
   const { exitCode, output } = await streamLines({
-    command: process.env.DUNGEONMASTER_CLI_PATH ?? cleanupCliCallStatics.call.bin,
+    command: getEnv('DUNGEONMASTER_CLI_PATH') ?? cleanupCliCallStatics.call.bin,
     args: [...cleanupCliCallStatics.call.args],
     cwd,
     onLine,

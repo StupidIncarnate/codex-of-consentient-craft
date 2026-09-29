@@ -16,7 +16,7 @@
  * const packagesAffected = proxy.setupRealWorkspaceManifests();
  */
 
-import { existsSync, readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from '#gateway/node/fs';
 import { join, resolve } from '#gateway/node/path';
 
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
@@ -43,7 +43,7 @@ export const PrepareQuestPackageGraphLayerResponderProxy = (): {
           const location = `./packages/${entry}`;
           readFileHandle.returns({
             path: `${location}/package.json`,
-            contents: readFileSync(join(WORKSPACE_ROOT, entry, 'package.json'), 'utf-8'),
+            contents: readFileSync(join(WORKSPACE_ROOT, entry, 'package.json')),
           });
           // `packageType` is not derivable without the on-disk detector and does not enter the
           // depth computation, so every entry declares the same neutral kind.

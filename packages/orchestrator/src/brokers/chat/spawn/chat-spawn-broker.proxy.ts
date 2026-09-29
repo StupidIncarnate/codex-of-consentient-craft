@@ -1,7 +1,7 @@
-import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type {
   AbsoluteFilePath,
   QuestId,
@@ -19,8 +19,7 @@ import {
   locationsQuestFolderPathFindBrokerProxy,
   locationsQuestImagesPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
@@ -33,6 +32,7 @@ type ExitCode = ReturnType<typeof ExitCodeStub>;
 type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
+type StderrRecorder = ReturnType<typeof stderrProxy>;
 
 // randomUUID is mocked sticky to this value below (and questUserAddBroker mints the
 // new quest's id from the same call), so this is the questId chatSpawnBroker's cwd
@@ -94,7 +94,7 @@ export const chatSpawnBrokerProxy = (): {
   setupQuestCreationFailure: () => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
-  setupStderrCapture: () => SpyOnHandle;
+  setupStderrCapture: () => StderrRecorder;
   setupResumeWithWorktree: (params: {
     questId: QuestId;
     sessionId: SessionId;
@@ -129,6 +129,7 @@ export const chatSpawnBrokerProxy = (): {
   // wires up the transitive agent-spawn-unified + chat-stream-process-handle + main-tail
   // mocks the launcher composes around.
   const launchProxy = agentLaunchBrokerProxy();
+  const stderrRecorder = stderrProxy();
   // chatSpawnBroker resolves the quest + chat work item via resolveChatQuestLayerBroker;
   // loading its proxy wires up questGetBroker + questUserAddBroker mocks the layer uses.
   const resolveProxy = resolveChatQuestLayerBrokerProxy();
@@ -245,13 +246,7 @@ export const chatSpawnBrokerProxy = (): {
       modifyProxy.setupReject({ error });
     },
 
-    setupStderrCapture: (): SpyOnHandle => {
-      const handle = registerSpyOn({ object: stderr, method: 'write' });
-      // Every write must succeed regardless of content — this proxy silences + records
-      // stderr wholesale, it never discriminates by what was written.
-      handle.calledWith([]).returns(true);
-      return handle;
-    },
+    setupStderrCapture: (): StderrRecorder => stderrRecorder,
 
     setupResumeWithWorktree: ({
       questId,

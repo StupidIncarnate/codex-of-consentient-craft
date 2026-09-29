@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
 
@@ -26,6 +27,7 @@ export const ExecutionQueueSyncListenerBootstrapResponderProxy = (): {
   const getProxy = questGetBrokerProxy();
   const outboxProxy = questOutboxWatchBrokerProxy();
   const queueProxy = questExecutionQueueStateProxy();
+  stderrProxy();
 
   return {
     reset: (): void => {

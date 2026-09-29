@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
@@ -10,6 +11,7 @@ export const createDriverHandlerLayerBrokerProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
 } => {
   const sweepProxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
+  stderrProxy();
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

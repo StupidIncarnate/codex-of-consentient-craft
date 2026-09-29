@@ -6,6 +6,7 @@
  * // Creates chaos work item, kicks orchestration loop with userMessage
  */
 
+import { stderr } from '#gateway/node/process';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntry,
@@ -56,9 +57,9 @@ export const ChatStartResponder = async ({
   sessionId?: SessionId;
 }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> => {
   if (sessionId) {
-    process.stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
+    stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
     const pending = pendingClarificationState.getForSession({ sessionId });
-    process.stderr.write(
+    stderr.write(
       `[CLARIFICATION-DEBUG] pending=${pending ? `questId=${pending.questId}, questions=${pending.questions.length}` : 'NONE'}\n`,
     );
     if (pending) {
@@ -87,7 +88,7 @@ export const ChatStartResponder = async ({
         if (matchedWorkItem) {
           chatWorkItemId = matchedWorkItem.id;
         }
-        process.stderr.write(
+        stderr.write(
           `[CLARIFICATION-DEBUG] resumed session: found linked questId=${chatQuestId}\n`,
         );
 
@@ -232,9 +233,7 @@ export const ChatStartResponder = async ({
           });
         })
         .catch((error: unknown) => {
-          process.stderr.write(
-            `[chat-start] chaoswhisperer work item lookup failed: ${String(error)}\n`,
-          );
+          stderr.write(`[chat-start] chaoswhisperer work item lookup failed: ${String(error)}\n`);
         });
       orchestrationEventsState.emit({
         type: 'quest-session-linked',
@@ -279,7 +278,7 @@ export const ChatStartResponder = async ({
         if (entry.role !== 'assistant' || entry.type !== 'tool_use') continue;
         const clarification = streamJsonToClarificationTransformer({ entry });
         if (clarification) {
-          process.stderr.write(
+          stderr.write(
             `[CLARIFICATION-DEBUG] onEntries: clarification DETECTED with ${clarification.questions.length} questions, chatQuestId=${chatQuestId ?? 'NULL'}\n`,
           );
           if (chatQuestId === null || chatWorkItemId === null) {
@@ -324,11 +323,11 @@ export const ChatStartResponder = async ({
               questId: chatQuestId,
               questions: clarification.questions,
             });
-            process.stderr.write(
+            stderr.write(
               `[CLARIFICATION-DEBUG] onEntries: stored in pendingClarificationState for processId=${chatProcessId}\n`,
             );
           } else {
-            process.stderr.write(
+            stderr.write(
               `[CLARIFICATION-DEBUG] onEntries: SKIPPED storage - chatQuestId is NULL\n`,
             );
           }
@@ -366,11 +365,11 @@ export const ChatStartResponder = async ({
           processId: chatProcessId,
           sessionId: sid,
         });
-        process.stderr.write(
+        stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: promoteToSession processId=${chatProcessId} → sessionId=${sid}, promoted=${promoted}\n`,
         );
       } else {
-        process.stderr.write(
+        stderr.write(
           `[CLARIFICATION-DEBUG] onComplete: NO sessionId available, skipping promoteToSession\n`,
         );
       }

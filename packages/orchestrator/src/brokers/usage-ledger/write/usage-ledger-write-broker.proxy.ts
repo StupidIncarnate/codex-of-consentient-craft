@@ -7,6 +7,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { pid } from '#gateway/node/process';
+import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
 
 export const usageLedgerWriteBrokerProxy = (): {
   setupWriteSuccess: (params: { nowMs: number }) => void;
@@ -18,6 +19,8 @@ export const usageLedgerWriteBrokerProxy = (): {
   const tmpPathProxy = locationsUsageLedgerTmpPathFindBrokerProxy();
   const writeHandle = writeFileProxy();
   const renameHandle = renameProxy();
+  // Unstaged: creating it restores the real pid, which is the `pid` the token below reads.
+  getPidProxy();
 
   const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
   const ledgerPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' });
@@ -27,8 +30,8 @@ export const usageLedgerWriteBrokerProxy = (): {
   };
 
   // Queued in the broker's own order: ensure-home, then the ledger path, then the tmp path. The
-  // broker's tmp-file token is `${process.pid}-${nowMs}` (usage-ledger-write-broker.ts) — reading
-  // process.pid here is not a stage, it is the SAME process the broker runs in, so this proxy and
+  // broker's tmp-file token is `${getPid()}-${nowMs}` (usage-ledger-write-broker.ts) — reading
+  // the real pid here is not a stage, it is the SAME process the broker runs in, so this proxy and
   // the broker always compute the identical token, which is what lets the write be staged against
   // the exact token-suffixed path instead of a prefix/suffix predicate.
   const queuePaths = ({ nowMs }: { nowMs: number }): ReturnType<typeof FilePathStub> => {

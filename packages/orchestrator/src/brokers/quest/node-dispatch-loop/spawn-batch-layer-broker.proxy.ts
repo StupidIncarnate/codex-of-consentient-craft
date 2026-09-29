@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { AbsoluteFilePathStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 import {
@@ -30,6 +31,7 @@ export const spawnBatchLayerBrokerProxy = (): {
   getSpawnedCwd: () => unknown;
   getSpawnedArgs: () => unknown;
 } => {
+  stderrProxy();
   // The batch layer's own pre-stamp goes through questModifyBroker, so its proxy is wired here
   // too. Constructed BEFORE the per-agent proxy: quest-modify's proxy stages randomUUID as a
   // sticky passthrough, and the per-agent proxy's deterministic processId staging has to be the

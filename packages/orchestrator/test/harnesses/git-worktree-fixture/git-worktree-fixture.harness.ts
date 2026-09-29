@@ -16,19 +16,20 @@
  * });
  * await git.createBranchAt({ repoPath, branchName: FileNameStub({ value: 'master' }) });
  */
+import { gitRun, gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import {
   accessSync,
   chmodSync,
   constants,
+  ensureDirSync,
   existsSync,
   lstatSync,
-  mkdirSync,
   readFileSync,
   readlinkSync,
   realpathSync,
   writeFileSync,
-} from 'fs';
+} from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
@@ -41,7 +42,7 @@ import {
   type FileName,
   type RepoRelativePath,
 } from '@dungeonmaster/shared/contracts';
-import { getEnv } from '#gateway/node/process';
+import { deleteEnv, envSnapshot, getEnv, setEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
 const SHIM_MODE = 0o755;
@@ -127,19 +128,30 @@ export const gitWorktreeFixtureHarness = (): {
   }) => Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }>;
 } => {
   // A real fixture repo: git is expected on the machine running these integration tests, so a
-  // missing binary (RunNotFoundError) is left to throw rather than folded into a fake result —
+  // missing binary (GitNotInstalledError) is left to throw rather than folded into a fake result —
   // the same choice ward's own git-worktree-fixture harness makes for the identical wrapper.
   const runGit = async (params: {
     repoPath: AbsoluteFilePath;
     args: readonly string[];
-    env?: Record<string, string>;
-  }): Promise<Awaited<ReturnType<typeof run>>> => {
-    const { repoPath, args, env } = params;
-    return run({
-      command: 'git',
-      args: [...args],
+  }): Promise<Awaited<ReturnType<typeof gitRun>>> => {
+    const { repoPath, args } = params;
+    return gitRun({ args: [...args], cwd: repoPath });
+  };
+
+  // A commit needs the fixture identity in the child's environment, which gitRun does not take.
+  // gitRunSync's env REPLACES the whole environment, so the current one is spread in first; it
+  // throws on a non-zero exit, which stops a fixture step that failed right there.
+  const commitGit = ({
+    repoPath,
+    message,
+  }: {
+    repoPath: AbsoluteFilePath;
+    message: ErrorMessage;
+  }): void => {
+    gitRunSync({
+      args: ['commit', '-m', message],
       cwd: repoPath,
-      ...(env === undefined ? {} : { env }),
+      env: { ...envSnapshot(), ...GIT_COMMIT_ENV },
     });
   };
 
@@ -152,7 +164,7 @@ export const gitWorktreeFixtureHarness = (): {
     initialBranchName: FileName;
     packageNames: readonly FileName[];
   }): Promise<{ baseRef: ErrorMessage }> => {
-    mkdirSync(repoPath, { recursive: true });
+    ensureDirSync(repoPath);
     await runGit({ repoPath, args: ['init', '-b', initialBranchName] });
     writeFileSync(join(repoPath, 'README.md'), '# fixture repo\n');
     // Mirrors this repo's own .gitignore (worktrees/, node_modules, dist): without it, `git
@@ -164,7 +176,7 @@ export const gitWorktreeFixtureHarness = (): {
     writeFileSync(join(repoPath, '.gitignore'), 'worktrees/\nnode_modules\ndist\n');
     for (const packageName of packageNames) {
       const packageDir = join(repoPath, 'packages', packageName);
-      mkdirSync(packageDir, { recursive: true });
+      ensureDirSync(packageDir);
       writeFileSync(
         join(packageDir, 'package.json'),
         JSON.stringify({ name: `@dungeonmaster/${packageName}`, version: '1.0.0' }, null, 2),
@@ -174,11 +186,11 @@ export const gitWorktreeFixtureHarness = (): {
       // which is exactly the gap `worktreeSeedDistBroker` copies over, and exactly why it refuses a
       // main checkout that has none. A fixture without it models a repo nobody has ever built.
       const distDir = join(packageDir, 'dist');
-      mkdirSync(distDir, { recursive: true });
+      ensureDirSync(distDir);
       writeFileSync(join(distDir, 'index.js'), `module.exports = { name: '${packageName}' };\n`);
     }
     await runGit({ repoPath, args: ['add', '-A'] });
-    await runGit({ repoPath, args: ['commit', '-m', 'base'], env: GIT_COMMIT_ENV });
+    commitGit({ repoPath, message: errorMessageContract.parse('base') });
     const { output } = await runGit({ repoPath, args: ['rev-parse', 'HEAD'] });
     return { baseRef: errorMessageContract.parse(output.trim()) };
   };
@@ -222,7 +234,7 @@ export const gitWorktreeFixtureHarness = (): {
   }): Promise<{ sha: ErrorMessage }> => {
     writeFileSync(join(repoPath, relativePath), content);
     await runGit({ repoPath, args: ['add', '-A'] });
-    await runGit({ repoPath, args: ['commit', '-m', message], env: GIT_COMMIT_ENV });
+    commitGit({ repoPath, message });
     const { output } = await runGit({ repoPath, args: ['rev-parse', 'HEAD'] });
     return { sha: errorMessageContract.parse(output.trim()) };
   };
@@ -267,9 +279,7 @@ export const gitWorktreeFixtureHarness = (): {
       writeFileSync(join(repoPath, relativePath), content);
     },
     readTextFile: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): ErrorMessage | null =>
-      existsSync(absolutePath)
-        ? errorMessageContract.parse(readFileSync(absolutePath, 'utf-8'))
-        : null,
+      existsSync(absolutePath) ? errorMessageContract.parse(readFileSync(absolutePath)) : null,
     pathExists: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): boolean =>
       existsSync(absolutePath),
     readSymlinkTarget: ({
@@ -386,7 +396,7 @@ export const gitWorktreeFixtureHarness = (): {
     }: {
       captureDir: AbsoluteFilePath;
     }): Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }> => {
-      mkdirSync(captureDir, { recursive: true });
+      ensureDirSync(captureDir);
       const { output: realGitPath } = await run({
         command: 'command',
         args: ['-v', 'git'],
@@ -407,15 +417,19 @@ export const gitWorktreeFixtureHarness = (): {
       chmodSync(shimPath, SHIM_MODE);
 
       const savedPath = getEnv('PATH');
-      process.env.PATH = `${captureDir}:${savedPath ?? ''}`;
+      setEnv('PATH', `${captureDir}:${savedPath ?? ''}`);
 
       return {
         restore: (): void => {
-          process.env.PATH = savedPath;
+          if (savedPath === undefined) {
+            deleteEnv('PATH');
+            return;
+          }
+          setEnv('PATH', savedPath);
         },
         readArgvLog: (): readonly ErrorMessage[] =>
           existsSync(logPath)
-            ? readFileSync(logPath, 'utf-8')
+            ? readFileSync(logPath)
                 .split('\n')
                 .map((line) => line.trim())
                 .filter((line) => line.length > 0)

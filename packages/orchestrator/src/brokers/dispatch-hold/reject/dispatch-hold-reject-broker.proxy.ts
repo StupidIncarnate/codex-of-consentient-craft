@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
 import { DispatchStateStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
 
@@ -23,6 +24,7 @@ export const dispatchHoldRejectBrokerProxy = (): {
   getCalibrateCalls: () => unknown[];
   getWrittenContent: () => unknown;
 } => {
+  stderrProxy();
   const readProxy = dispatchStateReadBrokerProxy();
   const writeProxy = dispatchStateWriteBrokerProxy();
   usageLedgerCalibrateBrokerProxy();

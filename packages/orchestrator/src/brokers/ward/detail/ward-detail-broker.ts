@@ -13,6 +13,7 @@ import {
   type FileName,
 } from '@dungeonmaster/shared/contracts';
 import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { getEnv } from '#gateway/node/process';
 
 const WARD_COMMAND = 'dungeonmaster-ward';
 const JSON_FLAG = '--json';
@@ -25,7 +26,7 @@ export const wardDetailBroker = async ({
   runId: FileName;
 }): Promise<ErrorMessage | null> => {
   const { exitCode, output } = await run({
-    command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
+    command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,
     args: ['detail', runId, JSON_FLAG],
     cwd: startPath,
   }).catch((error: unknown) => {

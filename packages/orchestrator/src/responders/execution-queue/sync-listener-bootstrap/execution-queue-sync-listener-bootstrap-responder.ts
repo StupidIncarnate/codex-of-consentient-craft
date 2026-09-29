@@ -16,6 +16,7 @@
  * the outbox to see natural terminal transitions the orchestration loop persists in-process.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
@@ -41,7 +42,7 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
       questOutboxWatchBroker({
         onQuestChanged,
         onError: ({ error }: { error: unknown }): void => {
-          process.stderr.write(
+          stderr.write(
             `[ExecutionQueueSyncListenerBootstrapResponder] outbox watch error: ${String(error)}\n`,
           );
         },
@@ -77,7 +78,7 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
     })
     .catch((error: unknown): void => {
       state.installing = false;
-      process.stderr.write(
+      stderr.write(
         `[ExecutionQueueSyncListenerBootstrapResponder] install failed: ${String(error)}\n`,
       );
     });

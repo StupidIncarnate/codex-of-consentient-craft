@@ -20,6 +20,8 @@
  * // lifting the dispatch hold.
  */
 
+import { getEnv, stderr } from '#gateway/node/process';
+
 import { rateLimitsWatchBroker } from '../../../brokers/rate-limits/watch/rate-limits-watch-broker';
 import { rateLimitsBootstrapState } from '../../../state/rate-limits-bootstrap/rate-limits-bootstrap-state';
 
@@ -32,7 +34,7 @@ export const RateLimitsBootstrapResponder = (): void => {
     return;
   }
 
-  const overrideMs = Number(process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS);
+  const overrideMs = Number(getEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS'));
   const intervalMs =
     Number.isFinite(overrideMs) && overrideMs > 0 ? overrideMs : DEFAULT_POLL_INTERVAL_MS;
 
@@ -52,7 +54,7 @@ export const RateLimitsBootstrapResponder = (): void => {
       EvaluateHoldLayerResponder();
     },
     onError: ({ message }): void => {
-      process.stderr.write(`${message}\n`);
+      stderr.write(`${message}\n`);
     },
   });
 

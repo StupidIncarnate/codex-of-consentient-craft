@@ -39,6 +39,7 @@
  *   re-runs a session that already signalled.
  */
 
+import { stderr } from '#gateway/node/process';
 import {
   workItemContract,
   type QuestWorkItemId,
@@ -142,7 +143,7 @@ export const questOrphanResetBroker = async ({
         // One quest's reset must not abort the sweep across every other guild and quest —
         // but a reset that keeps failing is why a crashed agent never comes back, so it is
         // logged rather than swallowed.
-        process.stderr.write(
+        stderr.write(
           `[quest-orphan-reset] reset failed for quest ${candidate.id}: ${String(error)}\n`,
         );
         return 0;

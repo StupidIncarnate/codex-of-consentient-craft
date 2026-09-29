@@ -26,6 +26,7 @@
  * mirrors that import list, which is what `enforce-proxy-child-creation` grades.
  */
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { join } from '#gateway/node/path';
 
 import {
@@ -65,6 +66,7 @@ export const questPauseBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
   getCallArgs: () => RecordedCalls;
 } => {
+  stderrProxy();
   const mocked = registerMock({ fn: questPauseBroker });
   // questId/guildId/previousStatus vary per call but neither the stub result nor the passthrough
   // depends on which quest was paused — `[]` is the honest address for both.

@@ -13,6 +13,7 @@
  * // Returns: the live DispatchHold — the one it just wrote, or the one already standing
  */
 
+import { stderr } from '#gateway/node/process';
 import type { DispatchHold } from '@dungeonmaster/shared/contracts';
 
 import { isDispatchHoldExpiredGuard } from '../../../guards/is-dispatch-hold-expired/is-dispatch-hold-expired-guard';
@@ -42,7 +43,7 @@ export const dispatchHoldRejectBroker = async ({
   // the number would read low. It is its own catch: failing to learn a ceiling must not stop the
   // hold that keeps the queue off the wall right now.
   await usageLedgerCalibrateBroker({ window: hold.window, nowMs }).catch((error: unknown) => {
-    process.stderr.write(
+    stderr.write(
       `[rate-limits] failed to calibrate the ${hold.window} ceiling: ${String(error)}\n`,
     );
   });

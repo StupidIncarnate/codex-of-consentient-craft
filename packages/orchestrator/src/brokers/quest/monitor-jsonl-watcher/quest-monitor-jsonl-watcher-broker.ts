@@ -18,6 +18,7 @@
  * and the broadcaster derives questId from each entry's workItemId at delivery time.
  */
 
+import { stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   sessionIdContract,
@@ -149,7 +150,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // Fire-and-forget: the scan pairs and tails sub-agents asynchronously; the watcher does
   // not await it.
   scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
-    process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
+    stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
   });
 
   // Periodic re-scan so sub-agent JSONL files created AFTER startup get a tail before the
@@ -162,7 +163,7 @@ export const questMonitorJsonlWatcherBroker = ({
   const pollHandle = timerIntervalStartBroker({
     callback: (): void => {
       scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
-        process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
+        stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
       });
     },
     intervalMs: SUBAGENT_DIR_POLL_INTERVAL_MS,

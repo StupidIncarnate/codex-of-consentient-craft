@@ -3,6 +3,8 @@ import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-f
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 import { homedir } from '#gateway/node/os';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -14,6 +16,8 @@ export const chatSubagentTailBrokerProxy = (): {
   getWatchCallsFor: (params: { path: string }) => readonly unknown[][];
 } => {
   claudeLineNormalizeBrokerProxy();
+  getEnvProxy();
+  stderrProxy();
   const homedirHandle = registerMock({ fn: homedir });
   const tailProxy = tailFileProxy();
   // Wired to satisfy enforce-proxy-child-creation; ensureDirProxy mocks the underlying `mkdir`

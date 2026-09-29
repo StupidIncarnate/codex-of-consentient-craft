@@ -18,6 +18,7 @@ import {
 } from '@dungeonmaster/shared/brokers';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
 import { rename, writeFile } from '#gateway/node/fs__promises';
+import { getPid } from '#gateway/node/process';
 
 export const usageLedgerWriteBroker = async ({
   ledger,
@@ -59,7 +60,7 @@ export const usageLedgerWriteBroker = async ({
   // process that renames second finds its own file already moved and throws
   // `ENOENT ... rename`, which reaches the browser as a 500 from GET /api/rate-limits.
   const tmpPath = locationsUsageLedgerTmpPathFindBroker({
-    token: `${String(process.pid)}-${String(nowMs)}`,
+    token: `${String(getPid())}-${String(nowMs)}`,
   });
 
   await writeFile(tmpPath, `${JSON.stringify(persisted)}\n`);

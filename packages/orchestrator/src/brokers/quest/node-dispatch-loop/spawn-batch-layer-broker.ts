@@ -13,6 +13,7 @@
  * // Resolves once every spawned child has exited for good (including any overload retries)
  */
 
+import { stderr } from '#gateway/node/process';
 import type {
   AbsoluteFilePath,
   AdapterResult,
@@ -106,7 +107,7 @@ export const spawnBatchLayerBroker = async ({
       } catch (error: unknown) {
         // One failed spawn must not abort the rest of the batch; the un-dispatched item is
         // reclaimed by orphan recovery on a later scan.
-        process.stderr.write(
+        stderr.write(
           `[node-dispatch] spawn failed for work item ${instruction.workItemId}: ${String(error)}\n`,
         );
       }

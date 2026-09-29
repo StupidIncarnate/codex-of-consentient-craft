@@ -537,9 +537,13 @@ describe('chatSpawnBroker', () => {
 
       const linkFailurePattern =
         /^\[chat-spawn\] session-id quest link failed:.*modify exploded\n$/u;
-      const linkFailureWrites = stderrSpy.callsMatching([linkFailurePattern]);
+      const linkFailureWrites = stderrSpy
+        .getWrites()
+        .filter((chunk) => linkFailurePattern.test(String(chunk)));
 
-      expect(linkFailureWrites.at(-1)?.[0]).toMatch(linkFailurePattern);
+      expect(linkFailureWrites).toStrictEqual([
+        '[chat-spawn] session-id quest link failed: Error: modify exploded\n',
+      ]);
     });
   });
 
@@ -607,7 +611,9 @@ describe('chatSpawnBroker', () => {
         setImmediate(resolve);
       });
 
-      const traceCalls = stderrSpy.callsMatching([/\[SUBAGENT-TRACE\]/u]);
+      const traceCalls = stderrSpy
+        .getWrites()
+        .filter((chunk) => String(chunk).includes('[SUBAGENT-TRACE]'));
 
       expect(traceCalls).toStrictEqual([]);
     });

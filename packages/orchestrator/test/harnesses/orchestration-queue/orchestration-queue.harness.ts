@@ -6,7 +6,7 @@
  * const dirs = queue.createDirs({ baseDir: testbed.guildPath });
  * queue.enqueue({ queueDir: dirs.claudeQueueDir, response: agentSuccessResponse() });
  */
-import * as fs from 'fs';
+import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
@@ -41,8 +41,8 @@ export const orchestrationQueueHarness = (): {
     } => {
       const claudeQueueDir = path.join(baseDir, 'claude-queue');
       const wardQueueDir = path.join(baseDir, 'ward-queue');
-      fs.mkdirSync(claudeQueueDir, { recursive: true });
-      fs.mkdirSync(wardQueueDir, { recursive: true });
+      ensureDirSync(claudeQueueDir);
+      ensureDirSync(wardQueueDir);
       return {
         claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
         wardQueueDir: FilePathStub({ value: wardQueueDir }),
@@ -53,7 +53,7 @@ export const orchestrationQueueHarness = (): {
       const key = FilePathStub({ value: queueDir });
       const counter = counters.get(key) ?? ArrayIndexStub({ value: 0 });
       const filePath = path.join(queueDir, `${String(counter).padStart(4, '0')}.json`);
-      fs.writeFileSync(filePath, JSON.stringify(response));
+      writeFileSync(filePath, JSON.stringify(response));
       counters.set(key, ArrayIndexStub({ value: Number(counter) + 1 }));
     },
 

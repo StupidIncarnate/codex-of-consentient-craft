@@ -1,3 +1,5 @@
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { rateLimitsWatchBrokerProxy } from '../../../brokers/rate-limits/watch/rate-limits-watch-broker.proxy';
@@ -21,6 +23,8 @@ export const RateLimitsBootstrapResponderProxy = (): {
 } => {
   const bootstrapState = rateLimitsBootstrapStateProxy();
   EvaluateHoldLayerResponderProxy();
+  getEnvProxy();
+  stderrProxy();
   // RateLimitsBootstrapResponder calls rateLimitsWatchBroker with its own default
   // DEFAULT_POLL_INTERVAL_MS (5000ms) when DUNGEONMASTER_RATE_LIMITS_POLL_MS is unset — not
   // exported, so this address is duplicated here rather than imported.

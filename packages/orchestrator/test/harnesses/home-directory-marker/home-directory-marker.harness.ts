@@ -14,7 +14,7 @@
  * // ...call the code under test...
  * marker.cleanup({ path });
  */
-import { mkdirSync, rmSync } from 'fs';
+import { ensureDirSync, rmSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import {
@@ -33,13 +33,13 @@ export const homeDirectoryMarkerHarness = (): {
   cleanup: (params: { path: AbsoluteFilePath }) => void;
 } => ({
   // Async only to satisfy `ban-sync-seeding-methods`, which requires every harness seeding method
-  // to return a Promise — the write itself (mkdirSync) stays synchronous, same as
+  // to return a Promise — the write itself (ensureDirSync) stays synchronous, same as
   // `orchestrationEnvironmentHarness.seedHome`.
   create: async (): Promise<{ name: FileName; path: AbsoluteFilePath }> => {
     await Promise.resolve();
     const name = fileNameContract.parse(`${MARKER_PREFIX}${String(pid)}`);
     const markerPath = absoluteFilePathContract.parse(join(homedir(), name));
-    mkdirSync(markerPath, { recursive: true });
+    ensureDirSync(markerPath);
     return { name, path: markerPath };
   },
   cleanup: ({ path }: { path: AbsoluteFilePath }): void => {

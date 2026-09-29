@@ -17,6 +17,7 @@
  * the outbox to see natural terminal transitions the orchestration loop persists in-process.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questOutboxWatchBroker } from '../../../brokers/quest/outbox-watch/quest-outbox-watch-broker';
@@ -42,7 +43,7 @@ export const SmoketestBootstrapListenerResponder = (): void => {
       questOutboxWatchBroker({
         onQuestChanged,
         onError: ({ error }: { error: unknown }): void => {
-          process.stderr.write(
+          stderr.write(
             `[SmoketestBootstrapListenerResponder] outbox watch error: ${String(error)}\n`,
           );
         },
@@ -63,8 +64,6 @@ export const SmoketestBootstrapListenerResponder = (): void => {
     })
     .catch((error: unknown): void => {
       state.installing = false;
-      process.stderr.write(
-        `[SmoketestBootstrapListenerResponder] install failed: ${String(error)}\n`,
-      );
+      stderr.write(`[SmoketestBootstrapListenerResponder] install failed: ${String(error)}\n`);
     });
 };

@@ -7,6 +7,7 @@
  * // Returns early when the abortSignal is aborted.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
@@ -34,7 +35,7 @@ export const createDriverHandlerLayerBroker =
           return;
         }
         const message = error instanceof Error ? error.message : 'unknown error';
-        process.stderr.write(
+        stderr.write(
           `[smoketestScenarioDriverBroker] stamp cycle failed for quest "${questId}": ${message}\n`,
         );
       },

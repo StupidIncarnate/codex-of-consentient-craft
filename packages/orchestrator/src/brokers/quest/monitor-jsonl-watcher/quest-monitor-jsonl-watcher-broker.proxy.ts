@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { FileNameStub, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
@@ -45,6 +46,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   triggerPollTick: () => void;
   setPort: (params: { value: string }) => void;
 } => {
+  stderrProxy();
   claudeLineNormalizeBrokerProxy();
   // The broker now resolves the server's port via questGetServerConfigBroker to build the
   // serverBaseUrl it hands to chatLineProcessTransformer. Stage a port BEFORE any test runs —

@@ -40,6 +40,7 @@
  * than propagated, preserving the contract every caller of this broker already depends on.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { GuildId, ProcessId, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
 import {
   fileContentsContract,
@@ -145,7 +146,7 @@ export const questPauseBroker = async ({
       },
     });
   } catch (error) {
-    process.stderr.write(
+    stderr.write(
       `[quest-pause] pause failed for quest ${questId}: ${error instanceof Error ? error.message : String(error)}\n`,
     );
     return { paused: false };

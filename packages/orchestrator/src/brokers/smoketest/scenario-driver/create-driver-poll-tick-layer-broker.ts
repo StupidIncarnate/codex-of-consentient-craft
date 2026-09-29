@@ -9,6 +9,7 @@
  * // and onQuestGone is fired so the caller can release per-quest state.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
@@ -52,7 +53,7 @@ export const createDriverPollTickLayerBroker =
         return;
       }
       const message = error instanceof Error ? error.message : 'unknown error';
-      process.stderr.write(
+      stderr.write(
         `[smoketestScenarioDriverBroker] poll sweep failed for quest "${questId}": ${message}\n`,
       );
     });

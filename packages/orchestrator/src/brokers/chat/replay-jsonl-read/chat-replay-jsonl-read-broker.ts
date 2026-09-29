@@ -12,6 +12,7 @@
  */
 
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
+import { setTimeout } from '#gateway/node/setTimeout';
 import type { AbsoluteFilePath, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';

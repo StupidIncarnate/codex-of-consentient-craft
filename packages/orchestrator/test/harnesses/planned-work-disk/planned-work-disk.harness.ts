@@ -8,7 +8,7 @@
  * disk.dirExists({ questFolderPath });
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
@@ -74,5 +74,5 @@ export const plannedWorkDiskHarness = (): {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
   }): unknown =>
-    JSON.parse(readFileSync(finalPathFor({ questFolderPath, operationItemId }), 'utf8')) as unknown,
+    JSON.parse(readFileSync(finalPathFor({ questFolderPath, operationItemId }))) as unknown,
 });

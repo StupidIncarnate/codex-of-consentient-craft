@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -20,6 +21,7 @@ export const questOrphanResetBrokerProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => Quest;
 } => {
+  stderrProxy();
   const guildListProxy = guildListBrokerProxy();
   const questListProxy = questListBrokerProxy();
   const updateProxy = questOperationsUpdateBrokerProxy();

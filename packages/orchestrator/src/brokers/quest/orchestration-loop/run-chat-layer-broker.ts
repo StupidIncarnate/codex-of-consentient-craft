@@ -5,6 +5,7 @@
  * await runChatLayerBroker({ questId, workItem, userMessage, onAgentEntry });
  */
 
+import { stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   adapterResultContract,
@@ -137,7 +138,7 @@ export const runChatLayerBroker = async ({
         role: workItemRoleContract.parse(workItem.role),
         workItemId: workItem.id,
       }).catch((error: unknown) => {
-        process.stderr.write(`[run-chat] session cwd record failed: ${String(error)}\n`);
+        stderr.write(`[run-chat] session cwd record failed: ${String(error)}\n`);
       });
     }
 
