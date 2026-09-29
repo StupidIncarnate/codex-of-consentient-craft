@@ -4,19 +4,11 @@
  * `require`-based bypass of the flows/→state/ import hierarchy.
  *
  * USAGE:
- * const facade = orchestrationEventsStateFacadeContract.parse(eventsModule.orchestrationEventsState);
+ * const facade: OrchestrationEventsStateFacade = orchestrationEventsStateExtractTransformer({ rawModule });
  * facade.on({ type: 'chat-output', handler });
  */
-import { z } from '#gateway/npm/zod';
 
-// `on` and `off` are functions — a Zod object schema cannot check callability, so both stay out
-// of the parse and are attached only through the type intersection below. `.loose()`
-// carries them through `.parse()` unvalidated when a real caller supplies one.
-export const orchestrationEventsStateFacadeContract = z.object({}).loose();
-
-export type OrchestrationEventsStateFacade = z.infer<
-  typeof orchestrationEventsStateFacadeContract
-> & {
+export interface OrchestrationEventsStateFacade {
   on: (...args: unknown[]) => unknown;
   off: (...args: unknown[]) => unknown;
-};
+}

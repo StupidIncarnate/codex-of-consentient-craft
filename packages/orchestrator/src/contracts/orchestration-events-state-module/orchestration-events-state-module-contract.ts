@@ -9,8 +9,14 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { orchestrationEventsStateFacadeContract } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';
 import type { OrchestrationEventsStateFacade } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';
+
+// `z.custom` hands the facade back by reference, so `on`/`off` survive the parse; the check is
+// only that the value is an object.
+const orchestrationEventsStateFacadeContract = z.custom<OrchestrationEventsStateFacade>(
+  (value) => typeof value === 'object' && value !== null,
+  { message: 'Expected an orchestrationEventsState object' },
+);
 
 export const orchestrationEventsStateModuleContract = z
   .object({
@@ -18,12 +24,4 @@ export const orchestrationEventsStateModuleContract = z
   })
   .loose();
 
-// `orchestrationEventsState`'s `on`/`off` live outside the FACADE's own schema (see that contract's
-// own header), so the module's exported type widens the field to the facade's real type rather than
-// the schema-only `{[x: string]: unknown}` `z.infer` would otherwise give it.
-export type OrchestrationEventsStateModule = Omit<
-  z.infer<typeof orchestrationEventsStateModuleContract>,
-  'orchestrationEventsState'
-> & {
-  orchestrationEventsState: OrchestrationEventsStateFacade;
-};
+export type OrchestrationEventsStateModule = z.infer<typeof orchestrationEventsStateModuleContract>;

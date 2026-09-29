@@ -6,52 +6,16 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import { z } from '#gateway/npm/zod';
-import {
-  chatEntryContract,
-  questWorkItemIdContract,
-  sessionIdContract,
-  streamSignalKindContract,
-} from '@dungeonmaster/shared/contracts';
 import type {
   ChatEntry,
   QuestWorkItemId,
   SessionId,
+  SlotIndex,
   StreamSignalKind,
 } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
-import { agentRoleContract } from '../agent-role/agent-role-contract';
-import { slotIndexContract } from '@dungeonmaster/shared/contracts';
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
-import { workItemIdContract } from '../work-item-id/work-item-id-contract';
 import type { WorkItemId } from '../work-item-id/work-item-id-contract';
-
-export const orchestrationCallbacksContract = z.object({
-  onAgentEntryParams: z.object({
-    slotIndex: slotIndexContract,
-    entries: z.array(chatEntryContract),
-    questWorkItemId: questWorkItemIdContract,
-    sessionId: sessionIdContract.optional(),
-  }),
-  onWorkItemSessionIdParams: z.object({
-    workItemId: workItemIdContract,
-    sessionId: sessionIdContract,
-  }),
-  onFollowupCreatedParams: z.object({
-    followupWorkItemId: workItemIdContract,
-    role: agentRoleContract,
-    failedWorkItemId: workItemIdContract,
-  }),
-  onWorkItemSummaryParams: z.object({
-    workItemId: workItemIdContract,
-    summary: z.string().brand<'SignalSummary'>(),
-  }),
-  onWorkItemSignalParams: z.object({
-    workItemId: workItemIdContract,
-    signal: streamSignalKindContract,
-  }),
-});
 
 export type OnAgentEntryCallback = (params: {
   slotIndex: SlotIndex;

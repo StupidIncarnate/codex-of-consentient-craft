@@ -5,7 +5,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { ChatLineAgentDetectedStub } from '../../../contracts/chat-line-output/chat-line-output.stub';
-import { ChatLineProcessorStub } from '../../../contracts/chat-line-processor/chat-line-processor.stub';
 import { ToolUseIdStub } from '../../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
@@ -77,13 +76,8 @@ describe('chatSubagentTailBroker', () => {
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-args/subagents/agent-agent-delta.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-args-1' });
-      const calls: Parameters<ReturnType<typeof ChatLineProcessorStub>['processLine']>[0][] = [];
-      const processor = ChatLineProcessorStub({
-        processLine: (params) => {
-          calls.push(params);
-          return [];
-        },
-      });
+      const calls: Parameters<ReturnType<typeof chatLineProcessTransformer>['processLine']>[0][] =
+        [];
 
       const rawLine =
         '{"type":"assistant","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"from agent"}]}}';
@@ -96,7 +90,13 @@ describe('chatSubagentTailBroker', () => {
         sessionId,
         cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         agentId,
-        processor,
+        processor: {
+          ...chatLineProcessTransformer(),
+          processLine: (params: (typeof calls)[number]): [] => {
+            calls.push(params);
+            return [];
+          },
+        },
         onEntries: () => {},
         chatProcessId,
       });
@@ -152,14 +152,6 @@ describe('chatSubagentTailBroker', () => {
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-agent-detected/subagents/agent-agent-epsilon.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-agent-detected' });
-      const processor = ChatLineProcessorStub({
-        processLine: () => [
-          ChatLineAgentDetectedStub({
-            toolUseId: ToolUseIdStub({ value: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ' }),
-            agentId: AgentIdStub({ value: 'agent-real-internal' }),
-          }),
-        ],
-      });
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
@@ -173,7 +165,15 @@ describe('chatSubagentTailBroker', () => {
         sessionId,
         cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
         agentId,
-        processor,
+        processor: {
+          ...chatLineProcessTransformer(),
+          processLine: () => [
+            ChatLineAgentDetectedStub({
+              toolUseId: ToolUseIdStub({ value: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ' }),
+              agentId: AgentIdStub({ value: 'agent-real-internal' }),
+            }),
+          ],
+        },
         onEntries: ({ chatProcessId: cpId, entries }) => {
           batches.push({ chatProcessId: cpId, entries });
         },

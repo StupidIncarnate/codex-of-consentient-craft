@@ -13,7 +13,7 @@ describe('orchestrationEventsStateExtractTransformer', (): void => {
 
   it('ERROR: {missing inner export} => throws', (): void => {
     expect((): unknown => orchestrationEventsStateExtractTransformer({ rawModule: {} })).toThrow(
-      /received undefined/u,
+      /Expected an orchestrationEventsState object/u,
     );
   });
 

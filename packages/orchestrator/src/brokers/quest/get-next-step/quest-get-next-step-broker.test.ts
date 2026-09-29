@@ -7,7 +7,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { ActiveQuestFacadeStub } from '../../../contracts/active-quest-facade/active-quest-facade.stub';
 import { questGetNextStepBroker } from './quest-get-next-step-broker';
 import { questGetNextStepBrokerProxy } from './quest-get-next-step-broker.proxy';
 
@@ -18,10 +17,9 @@ describe('questGetNextStepBroker', () => {
       proxy.setupNoGuilds();
       const setActive = jest.fn();
       const clear = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive, clear });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear },
         longPollTotalMs: 0,
       });
 
@@ -45,10 +43,9 @@ describe('questGetNextStepBroker', () => {
       });
       const setActive = jest.fn();
       const clear = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive, clear });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear },
         longPollTotalMs: 0,
       });
 
@@ -71,10 +68,9 @@ describe('questGetNextStepBroker', () => {
       });
       const setActive = jest.fn();
       const clear = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive, clear });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear },
         longPollTotalMs: 0,
       });
 
@@ -102,10 +98,9 @@ describe('questGetNextStepBroker', () => {
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -145,9 +140,11 @@ describe('questGetNextStepBroker', () => {
         guildItems: [guildItem],
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
-      const activeQuest = ActiveQuestFacadeStub();
 
-      const result = await questGetNextStepBroker({ activeQuest, longPollTotalMs: 0 });
+      const result = await questGetNextStepBroker({
+        activeQuest: { setActive: jest.fn(), clear: jest.fn() },
+        longPollTotalMs: 0,
+      });
 
       expect(result).toStrictEqual({
         type: 'spawn-agents',
@@ -178,10 +175,9 @@ describe('questGetNextStepBroker', () => {
         guildItems: [guildItem],
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
-      const activeQuest = ActiveQuestFacadeStub();
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive: jest.fn(), clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -230,10 +226,9 @@ describe('questGetNextStepBroker', () => {
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -290,10 +285,9 @@ describe('questGetNextStepBroker', () => {
         questsByGuildId: [{ guildId, quests: [newerQuest, olderQuest] }],
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -344,10 +338,9 @@ describe('questGetNextStepBroker', () => {
         questsByGuildId: [{ guildId, quests: [olderQuest, newerQuest] }],
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -398,10 +391,9 @@ describe('questGetNextStepBroker', () => {
       });
       proxy.setupModifyForQuest({ quest });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -448,10 +440,9 @@ describe('questGetNextStepBroker', () => {
         guildItems: [guildItem],
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
-      const activeQuest = ActiveQuestFacadeStub();
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive: jest.fn(), clear: jest.fn() },
         longPollTotalMs: 0,
       });
 
@@ -492,10 +483,9 @@ describe('questGetNextStepBroker', () => {
         guildItems: [guildItem],
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
-      const activeQuest = ActiveQuestFacadeStub();
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive: jest.fn(), clear: jest.fn() },
         longPollTotalMs: 5_000,
         longPollIntervalMs: 10,
       });
@@ -537,10 +527,9 @@ describe('questGetNextStepBroker', () => {
         questsByGuildId: [{ guildId, quests: [quest] }],
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
       const result = await questGetNextStepBroker({
-        activeQuest,
+        activeQuest: { setActive, clear: jest.fn() },
         longPollTotalMs: 5_000,
         longPollIntervalMs: 10,
         shouldKeepPolling: (): boolean => false,

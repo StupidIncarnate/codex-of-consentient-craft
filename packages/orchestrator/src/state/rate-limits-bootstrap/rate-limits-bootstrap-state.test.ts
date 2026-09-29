@@ -1,4 +1,3 @@
-import { RateLimitsWatchHandleStub } from '../../contracts/rate-limits-watch-handle/rate-limits-watch-handle.stub';
 import { rateLimitsBootstrapState } from './rate-limits-bootstrap-state';
 import { rateLimitsBootstrapStateProxy } from './rate-limits-bootstrap-state.proxy';
 
@@ -13,19 +12,18 @@ describe('rateLimitsBootstrapState', () => {
   it('VALID: {set then get} => returns the handle', () => {
     const proxy = rateLimitsBootstrapStateProxy();
     proxy.reset();
-    const handle = RateLimitsWatchHandleStub();
+    const stop = jest.fn();
 
-    rateLimitsBootstrapState.setHandle({ handle });
+    rateLimitsBootstrapState.setHandle({ handle: { stop } });
 
-    expect(rateLimitsBootstrapState.getHandle()).toBe(handle);
+    expect(rateLimitsBootstrapState.getHandle()?.stop).toBe(stop);
   });
 
   it('VALID: {clear} => stops handle and returns null', () => {
     const proxy = rateLimitsBootstrapStateProxy();
     proxy.reset();
     const stop = jest.fn();
-    const handle = RateLimitsWatchHandleStub({ stop });
-    rateLimitsBootstrapState.setHandle({ handle });
+    rateLimitsBootstrapState.setHandle({ handle: { stop } });
 
     rateLimitsBootstrapState.clear();
 

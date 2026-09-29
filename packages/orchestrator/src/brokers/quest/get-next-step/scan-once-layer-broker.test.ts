@@ -11,7 +11,6 @@ import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/r
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { ActiveQuestFacadeStub } from '../../../contracts/active-quest-facade/active-quest-facade.stub';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { scanOnceLayerBroker } from './scan-once-layer-broker';
 import { scanOnceLayerBrokerProxy } from './scan-once-layer-broker.proxy';
@@ -21,9 +20,8 @@ describe('scanOnceLayerBroker', () => {
     const proxy = scanOnceLayerBrokerProxy();
     proxy.setupNoGuilds();
     const clear = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive: jest.fn(), clear } });
 
     expect(result).toBe(null);
     expect(clear).toHaveBeenCalledWith();
@@ -43,9 +41,8 @@ describe('scanOnceLayerBroker', () => {
       questsByGuildId: [{ guildId, quests: [quest] }],
     });
     const clear = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive: jest.fn(), clear } });
 
     expect(result).toBe(null);
     expect(clear).toHaveBeenCalledWith();
@@ -69,9 +66,8 @@ describe('scanOnceLayerBroker', () => {
       questsByGuildId: [{ guildId, quests: [quest] }],
     });
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
     expect(result).toStrictEqual({
       type: 'spawn-agents',
@@ -119,9 +115,8 @@ describe('scanOnceLayerBroker', () => {
     });
     proxy.setupModifyForQuest({ quest });
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
     expect(result).toStrictEqual({
       type: 'spawn-agents',
@@ -173,9 +168,8 @@ describe('scanOnceLayerBroker', () => {
     proxy.setupModifyForQuest({ quest });
     const clear = jest.fn();
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
     expect(result).toBe(null);
     expect(proxy.getBlockCalls()).toStrictEqual([{ questId, failedWorkItemId: orphanId }]);
@@ -206,9 +200,8 @@ describe('scanOnceLayerBroker', () => {
     });
     proxy.setupModifyForQuest({ quest });
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
     expect(result).toStrictEqual({
       type: 'spawn-agents',
@@ -241,9 +234,8 @@ describe('scanOnceLayerBroker', () => {
       questsByGuildId: [{ guildId, quests: [quest] }],
     });
     const clear = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive: jest.fn(), clear } });
 
     expect(result).toBe(null);
     expect(clear).toHaveBeenCalledWith();
@@ -273,9 +265,8 @@ describe('scanOnceLayerBroker', () => {
     proxy.setupRouterBlocked({ questId });
     const clear = jest.fn();
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
     // Nothing below the router runs: no advance self-heal, so the halted quest gains no work item
     // for the next scope and nothing is dispatched against it.
@@ -328,9 +319,8 @@ describe('scanOnceLayerBroker', () => {
     });
     proxy.setupSelfHeal({ staleQuest, refreshedQuest });
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
     const persisted = proxy.getLastPersistedQuest();
 
@@ -389,9 +379,8 @@ describe('scanOnceLayerBroker', () => {
     proxy.setupWorktreeMissing({ quest, worktreePath });
     const clear = jest.fn();
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
     expect({
       result,
@@ -453,9 +442,8 @@ describe('scanOnceLayerBroker', () => {
       proxy.setupWorktreeMissing({ quest, worktreePath });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -512,9 +500,8 @@ describe('scanOnceLayerBroker', () => {
       proxy.setupWorktreeMissing({ quest, worktreePath });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -591,9 +578,8 @@ describe('scanOnceLayerBroker', () => {
       proxy.setupWorktreeMissing({ quest: staleQuest, worktreePath });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -660,9 +646,8 @@ describe('scanOnceLayerBroker', () => {
       proxy.setupWorktreeMissing({ quest, worktreePath });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -704,9 +689,8 @@ describe('scanOnceLayerBroker', () => {
       questsByGuildId: [{ guildId, quests: [quest] }],
     });
     const setActive = jest.fn();
-    const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-    const result = await scanOnceLayerBroker({ activeQuest });
+    const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
     expect({ result, setActiveCalls: setActive.mock.calls }).toStrictEqual({
       result: {
@@ -772,9 +756,8 @@ describe('scanOnceLayerBroker', () => {
       });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -814,9 +797,8 @@ describe('scanOnceLayerBroker', () => {
       });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -887,9 +869,8 @@ describe('scanOnceLayerBroker', () => {
       const setActive = jest.fn(() => {
         spawnsWhenStepHandedBack.push(...proxy.getRestoreSpawnedArgs());
       });
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -953,9 +934,8 @@ describe('scanOnceLayerBroker', () => {
       });
       const clear = jest.fn();
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { clear, setActive } });
 
       expect({
         result,
@@ -1015,9 +995,8 @@ describe('scanOnceLayerBroker', () => {
         currentBranchName: 'main',
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
       expect({
         stepType: result?.type,
@@ -1064,9 +1043,8 @@ describe('scanOnceLayerBroker', () => {
         output,
       });
       const setActive = jest.fn();
-      const activeQuest = ActiveQuestFacadeStub({ setActive });
 
-      const result = await scanOnceLayerBroker({ activeQuest });
+      const result = await scanOnceLayerBroker({ activeQuest: { setActive, clear: jest.fn() } });
 
       expect({
         stepType: result?.type,

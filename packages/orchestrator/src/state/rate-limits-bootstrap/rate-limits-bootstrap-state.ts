@@ -7,12 +7,14 @@
  * rateLimitsBootstrapState.clear();
  */
 
-const state: { handle: { stop: () => void } | null } = { handle: null };
+import type { RateLimitsWatchHandle } from '../../contracts/rate-limits-watch-handle/rate-limits-watch-handle-contract';
+
+const state: { handle: RateLimitsWatchHandle | null } = { handle: null };
 
 export const rateLimitsBootstrapState = {
-  getHandle: (): { stop: () => void } | null => state.handle,
+  getHandle: (): RateLimitsWatchHandle | null => state.handle,
 
-  setHandle: ({ handle }: { handle: { stop: () => void } }): void => {
+  setHandle: ({ handle }: { handle: RateLimitsWatchHandle }): void => {
     state.handle = handle;
   },
 

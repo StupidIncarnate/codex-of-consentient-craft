@@ -10,7 +10,7 @@ describe('orchestrationEventsStateModuleContract', (): void => {
 
   it('ERROR: {missing orchestrationEventsState} => throws', (): void => {
     expect((): unknown => orchestrationEventsStateModuleContract.parse({})).toThrow(
-      /received undefined/u,
+      /Expected an orchestrationEventsState object/u,
     );
   });
 

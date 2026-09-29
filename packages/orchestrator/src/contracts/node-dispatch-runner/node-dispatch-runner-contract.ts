@@ -8,8 +8,6 @@
  * // deps satisfies NodeDispatchRunnerDeps
  */
 
-import { z } from '#gateway/npm/zod';
-
 export type NodeDispatchWakeHandler = () => void;
 
 export interface NodeDispatchRunnerDeps {
@@ -23,8 +21,3 @@ export interface NodeDispatchRunnerController {
   stop: () => void;
   kick: () => Promise<void>;
 }
-
-// Runtime marker contract — a Zod object schema cannot check callability, so `start`/`stop`/`kick`
-// stay out of the parse and are attached only through `NodeDispatchRunnerController` above.
-// `.loose()` carries them through `.parse()` unvalidated when a real caller supplies one.
-export const nodeDispatchRunnerContract = z.object({}).loose();
