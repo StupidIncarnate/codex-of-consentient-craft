@@ -243,8 +243,14 @@ export const compareReadBroker = async ({
           currentPath: shotB.path,
         });
 
+  // Both shot paths ride the reading: a whole-page share alone reads two entirely different pages
+  // on a mostly dark background as a 3% change, and the two paths are what lets a reader look.
   const pixels =
-    pixelChange === null ? null : contentTextContract.parse(`last capture differs ${pixelChange}`);
+    pixelChange === null || shotA === null || shotB === null
+      ? null
+      : contentTextContract.parse(
+          `last capture differs ${pixelChange} (${runA}: ${shotA.path}, ${runB}: ${shotB.path})`,
+        );
 
   // Network has no query-level lever for status (see the header comment), so both runs' FULL row
   // sets are narrowed here, after the read, to what `network.errors` counts and `network.new` lists:

@@ -332,7 +332,7 @@ describe('siegelenseHelpStatics', () => {
         'There is no cross-instance form: name one --instance and two runs (--run-a, --run-b) inside its own timeline — two different instances share nothing but a spec.',
       ],
       output:
-        "By default, instance id, the runs compared, console/server/network error deltas, the pixel diff summary, and each run's own element churn (ELEMENTS WITHIN RUN A/B — appeared/disappeared/changed inside that run's own steps, never a diff between run A and run B: compare reads stored evidence only and never re-drives a page to compute one). `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.",
+        "By default, instance id, the runs compared, console/server/network error deltas each followed by the lines new to run B (the first 5, the rest in --json), and the pixel diff summary naming both runs' last shot paths. Elements are not compared between the two runs: compare reads stored evidence only and never re-drives a page, so each run's own last element delta is in --json only. `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.",
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
     });
   });

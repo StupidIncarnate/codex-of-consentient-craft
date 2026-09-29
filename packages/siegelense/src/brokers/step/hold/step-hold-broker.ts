@@ -1,8 +1,10 @@
 /**
  * PURPOSE: Drives the `hold` step verb — captures N live frames at an interval using session.captureLive
- * (without disabling CSS/GIF animations), compares consecutive frames using shotChangeReadBroker to detect
- * non-settlement or no-feedback states, optionally copies the final frame to shotPath, and returns
- * the rendered HoldReading JSON.
+ * (without disabling CSS/GIF animations), compares each frame against the one before it by raw
+ * differing-pixel COUNT through shotDiffCountBroker, never by shotChangeReadBroker's whole percent:
+ * a text node changing on a 1280x720 frame moves about 0.1% of its pixels, which rounds to '0%' and
+ * read as NOTHING CHANGED on a page visibly updating. Records which frames changed, optionally
+ * copies the final frame to shotPath, and returns the rendered HoldReading JSON.
  *
  * USAGE:
  * await stepHoldBroker({
@@ -24,11 +26,12 @@ import { asyncDelayAdapter } from '../../../adapters/async/delay/async-delay-ada
 import { fsCopyFileAdapter } from '../../../adapters/fs/copy-file/fs-copy-file-adapter';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { holdReadingContract } from '../../../contracts/hold-reading/hold-reading-contract';
+import type { HoldReading } from '../../../contracts/hold-reading/hold-reading-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { holdStatics } from '../../../statics/hold/hold-statics';
 import { holdReadingRenderTransformer } from '../../../transformers/hold-reading-render/hold-reading-render-transformer';
-import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
+import { shotDiffCountBroker } from '../../shot/diff-count/shot-diff-count-broker';
 
 const MS_PER_SECOND = 1000;
 
@@ -61,7 +64,7 @@ export const stepHoldBroker = async ({
     framePaths.push(framePath);
   }
 
-  const changeState = { differing: 0 };
+  const changedFrames: HoldReading['changed'] = [];
 
   await framePaths.reduce(async (previous, currentFramePath, i) => {
     await previous;
@@ -75,13 +78,13 @@ export const stepHoldBroker = async ({
     if (i > 0) {
       const previousFramePath = framePaths[i - 1];
       if (previousFramePath !== undefined) {
-        const pixelChange = await shotChangeReadBroker({
+        const differingPixels = await shotDiffCountBroker({
           previousPath: previousFramePath,
           currentPath: currentFramePath,
         });
 
-        if (pixelChange !== null && pixelChange !== '0%') {
-          changeState.differing += 1;
+        if (differingPixels > 0) {
+          changedFrames.push(holdReadingContract.shape.changed.element.parse(i + 1));
         }
       }
     }
@@ -96,14 +99,17 @@ export const stepHoldBroker = async ({
 
   const durationSeconds = ((frames - 1) * everyMs) / MS_PER_SECOND;
   const verdictTemplate =
-    changeState.differing === 0
+    changedFrames.length === 0
       ? holdStatics.verdicts.nothingChanged
       : holdStatics.verdicts.stillChanging;
-  const verdict = verdictTemplate.replace('{duration}', String(durationSeconds));
+  const verdict = verdictTemplate
+    .replace('{duration}', String(durationSeconds))
+    .replace('{changed}', changedFrames.join(holdStatics.format.frameSeparator));
 
   const reading = holdReadingContract.parse({
     frames,
-    differing: changeState.differing,
+    differing: changedFrames.length,
+    changed: changedFrames,
     verdict,
     shots: framePaths,
   });

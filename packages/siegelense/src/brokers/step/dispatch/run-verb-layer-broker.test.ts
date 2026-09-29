@@ -552,7 +552,7 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe(
-        '{"frames":2,"differing":0,"reading":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
+        '{"frames":2,"differing":0,"changed":[],"reading":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
       );
     });
   });

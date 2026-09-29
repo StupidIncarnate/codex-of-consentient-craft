@@ -8,6 +8,7 @@ export const HoldReadingStub = ({ ...props }: StubArgument<HoldReading> = {}): H
   const data: Record<PropertyKey, unknown> = {
     frames: holdStatics.defaults.frames,
     differing: 0,
+    changed: [],
     verdict: 'NOTHING CHANGED across 4.5s',
     shots: [
       '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame1.png',

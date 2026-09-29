@@ -12,6 +12,9 @@
  *
  * holdStatics.verdicts.nothingChanged;
  * // Returns 'NOTHING CHANGED across {duration}s'
+ *
+ * holdStatics.format.frameSeparator;
+ * // Returns ', ' — joins the changed frame numbers into the stillChanging verdict
  */
 
 export const holdStatics = {
@@ -20,8 +23,12 @@ export const holdStatics = {
     everyMs: 1500,
     minFrames: 2,
   },
+  format: {
+    frameSeparator: ', ',
+  },
   verdicts: {
     nothingChanged: 'NOTHING CHANGED across {duration}s',
-    stillChanging: 'still changing at {duration}s',
+    stillChanging:
+      'still changing at {duration}s — these frames differ from the one before: {changed}',
   },
 } as const;
