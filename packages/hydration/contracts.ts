@@ -78,9 +78,6 @@ export * from './src/contracts/op-attach/op-attach.stub';
 export * from './src/contracts/op-create/op-create-contract';
 export * from './src/contracts/op-create/op-create.stub';
 
-export * from './src/contracts/op-description/op-description-contract';
-export * from './src/contracts/op-description/op-description.stub';
-
 export * from './src/contracts/op-extra/op-extra-contract';
 export * from './src/contracts/op-extra/op-extra.stub';
 
@@ -128,9 +125,6 @@ export * from './src/contracts/saved-record-name/saved-record-name.stub';
 
 export * from './src/contracts/saved-ref/saved-ref-contract';
 export * from './src/contracts/saved-ref/saved-ref.stub';
-
-export * from './src/contracts/seed-step/seed-step-contract';
-export * from './src/contracts/seed-step/seed-step.stub';
 
 export * from './src/contracts/transition-spec/transition-spec-contract';
 export * from './src/contracts/transition-spec/transition-spec.stub';

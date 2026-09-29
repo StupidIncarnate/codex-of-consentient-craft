@@ -1,7 +1,7 @@
 // B02: delete dead contracts, ONLY from a list a human has reviewed.
 //
 //   node tmp/phase34/b02-contract-index/delete.cjs <reviewed-list.txt>          dry run
-//   node tmp/phase34/b02-contract-index/delete.cjs <reviewed-list.txt> apply    delete
+//   node tmp/phase34/b02-contract-index/delete.cjs <reviewed-list.txt> apply    MOVE to tmp/deletions/3.1/<path> (never rm)
 //
 // The list is one repo-relative `*-contract.ts` path per line (`#` comments allowed); start from
 // out/delete-candidates.txt, strike what the review keeps, and save it elsewhere. Every run
@@ -89,11 +89,11 @@ if (toDelete.size) {
 }
 
 let diff = '';
-for (const f of toDelete) diff += `--- a/${rel(f)}\n+++ /dev/null (deleted)\n`;
+for (const f of toDelete) diff += `--- a/${rel(f)}\n+++ /dev/null (moved to tmp/deletions/3.1)\n`;
 for (const [f, t] of writes) diff += lib.unifiedDiff(rel(f), fs.readFileSync(f, 'utf8'), t);
 fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'out', 'delete-last-run.diff'), diff);
-console.log(`\n${APPLY ? 'APPLIED' : 'DRY RUN'}: ${accepted.length} of ${wanted.length} listed contracts accepted; ${toDelete.size} files deleted; ${writes.size} barrels edited`);
+console.log(`\n${APPLY ? 'APPLIED' : 'DRY RUN'}: ${accepted.length} of ${wanted.length} listed contracts accepted; ${toDelete.size} files ${APPLY ? 'moved to tmp/deletions/3.1' : 'to move'}; ${writes.size} barrels edited`);
 if (leftInFolder.length) console.log('other files left in those folders (read them):', leftInFolder);
 console.log('diff: tmp/phase34/b02-contract-index/out/delete-last-run.diff');
 // --verify: typecheck every edited barrel with the deleted files hidden and the edits overlaid.
@@ -109,7 +109,12 @@ if (process.argv.includes('--verify')) {
   }
 }
 if (APPLY) {
-  for (const f of toDelete) fs.rmSync(f);
+  // EPIC rule 20: never remove a source file. Move it under tmp/deletions/3.1/<original path>.
+  for (const f of toDelete) {
+    const dest = path.join(ROOT, 'tmp', 'deletions', '3.1', rel(f));
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.renameSync(f, dest);
+  }
   for (const [f, t] of writes) fs.writeFileSync(f, t);
   for (const cf of accepted) if (fs.existsSync(path.dirname(cf)) && !fs.readdirSync(path.dirname(cf)).length) fs.rmdirSync(path.dirname(cf));
 }
