@@ -16,17 +16,17 @@
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.js"
     },
-    "./brokers": {
-      "source": "./brokers.ts",
-      "types": "./dist/brokers.d.ts",
-      "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js"
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
     },
-    "./testing": {
-      "source": "./testing.ts",
-      "types": "./dist/testing.d.ts",
-      "import": "./dist/testing.js",
-      "require": "./dist/testing.js"
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
+    },
+    "./brokers": {
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
     }
   },
   "files": [

@@ -8,8 +8,8 @@
 // Subpath export entry for @dungeonmaster/mcp/brokers
 
 // Architecture
-export * from './src/brokers/architecture/folder-detail/architecture-folder-detail-broker';
-export * from './src/brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
+export * from './architecture/folder-detail/architecture-folder-detail-broker';
+export * from './architecture/testing-patterns/architecture-testing-patterns-broker';
 
 // Discover
-export * from './src/brokers/mcp/discover/mcp-discover-broker';
+export * from './mcp/discover/mcp-discover-broker';
