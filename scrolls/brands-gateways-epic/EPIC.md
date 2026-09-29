@@ -122,12 +122,12 @@ eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonma
 Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
 operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
 agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
-web (B25; B22 to B24 green, uncommitted, waiting on the e2e run in `tmp/op-web-e2e7.log`); orchestrator (B02);
+web (B25; B22 to B24 green, uncommitted, waiting on the e2e run in `tmp/op-web-e2e7.log`); orchestrator (B03, a fresh agent);
 server (B03); siegelense (S02 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
 sweep 77318459e); a fresh agent for cli-B04.
 
 A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli B01 to B03; web B01 to B21;
-orchestrator B01 (8b28b66e4); server B01, B02 (2597b4807); siegelense zod sweep and S01. Phase 2 is complete (A13
+orchestrator B01 (8b28b66e4), B02; server B01, B02 (2597b4807); siegelense zod sweep and S01. Phase 2 is complete (A13
 7cb5ff272). Gateway units added this session, all built: GN5 to GN10 (stream/http/zlib; stdout/stderr recording
 proxies and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow` and `setupNowOnce`, fetch `getCallsFor`; unix
 socket fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple; `spawnPiped`; `runSyncWithInput`),

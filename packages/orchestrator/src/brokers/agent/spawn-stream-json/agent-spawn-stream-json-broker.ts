@@ -21,7 +21,7 @@
 import { spawnStreamJson } from '#gateway/bin/claude';
 import { readFileSyncIfExists } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { stderr } from '#gateway/node/process';
+import { envSnapshot, stderr } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
 import type { AbsoluteFilePath, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -70,7 +70,7 @@ export const agentSpawnStreamJsonBroker = ({
     model,
     settingsJson,
     disableToolSearch,
-    baseEnv: process.env,
+    baseEnv: envSnapshot(),
     ...(resumeSessionId !== undefined && { resumeSessionId }),
     ...(addDir !== undefined && { addDir }),
   });

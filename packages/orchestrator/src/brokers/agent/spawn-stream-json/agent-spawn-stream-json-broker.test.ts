@@ -1,4 +1,5 @@
 import { readFile } from '#gateway/node/fs__promises';
+import { setImmediate } from '#gateway/node/setImmediate';
 import {
   AbsoluteFilePathStub,
   ExitCodeStub,

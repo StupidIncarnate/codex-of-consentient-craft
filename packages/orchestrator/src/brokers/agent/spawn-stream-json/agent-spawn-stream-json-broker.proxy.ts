@@ -4,12 +4,15 @@ import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-ex
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ChildProcessStub } from '#gateway/node/child_process/child-process/child-process.stub';
 import { join } from '#gateway/node/path';
+import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { queueMicrotask } from '#gateway/node/queueMicrotask';
+import { setImmediate } from '#gateway/node/setImmediate';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
 import type { ExitCode, RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { SpawnOptionsEnvNameStub } from '../../../contracts/spawn-options-env-name/spawn-options-env-name.stub';
@@ -52,11 +55,11 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
 } => {
   lineReaderProxy();
   spawnStreamJsonProxy();
-  stderrProxy();
   // Record-and-swallow: the tagging path narrates a failing callback to stderr, and the line text
   // is what a test asserts, read back through getStderrWrites.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderrRecorder = stderrProxy();
+  // The broker reads the real environment; composed because it imports envSnapshot.
+  envSnapshotProxy();
   const settingsProxy = readFileSyncIfExistsProxy();
   settingsProxy.returnsMatchingPath({ path: isSettingsFilePath, contents: SETTINGS_JSON_DEFAULT });
 
@@ -266,6 +269,6 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
       ...settingsProxy.getCallsFor({ path: isSettingsFilePath }),
     ],
 
-    getStderrWrites: (): readonly unknown[] => stderrSpy.callsMatching([]).map(([chunk]) => chunk),
+    getStderrWrites: (): readonly unknown[] => stderrRecorder.getWrites(),
   };
 };
