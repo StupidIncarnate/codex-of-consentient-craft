@@ -778,7 +778,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | W9 | Dead re-parses, `as never`, stub unwraps | W6 | script | todo | 427 production dead re-parses |
 | W10 | Brand rules on; full ward, `build:clean`, `check:consumer` | W9 | operator | todo | |
 | B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | W10 | agents | todo | |
-| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | filler lane | active | B17-2 to B17-9 done. Re-plan B17-10 onward first (B17-30/31 name deleted web adapters). 24 sites by script, 83 by hand. |
+| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | filler lane | active | B17-2 to B17-9 done. Re-planned (the B17 re-plan commit): 47 batches in the item's `## Plan` (10 script runs, 31 hand batches, 5 rule batches, 1 teaching text); B17-24/30/31 obsolete; server `c.req.json()` into responders gets a narrow rule exemption, testing's endpoint-mock and `safe-json-parse-transformer.ts` too. Every batch runs after wave 3.3 for its package. Rule C4's extension lands last. |
 | B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | filler lane | active | Split (a) done. Split (b): 38 of 156 functions by script, 118 by hand, then delete `adapterResultContract`. |
 
 ##### Script-development lane
