@@ -114,6 +114,290 @@ reading `stub-map.json`; the json itself is not edited. All exist under `package
 `LinterConfigStub` key maps also list `plugins` (22 calls) and `languageOptions` (2 calls): those calls are HAND until
 L3 decides how to express them.
 
+## Plan — L4 rest and L3 leftovers
+
+> Written 2026-09-29 by a planning agent (EPIC rule 14). Every path was opened or censused against the tree at
+> commit `570835e3e`. Scope: everything L4 still lists as left, and the L3 leftovers. **Nothing under
+> `packages/eslint-plugin` or `packages/local-eslint` is planned for now** (L2 runs in `worktrees/gp-l2-tsestree`)
+> except the `node-builtin` row and the `@types` delete, both marked "after L2 merges". Moves out use rule 8
+> (`tmp/deletions/L4/<original repo-relative path>`), so "move" below means `mkdir -p` then plain `mv`, after
+> `discover` shows nothing imports the file.
+
+### Where the EPIC rows are stale (code wins)
+
+- **Hooks, server and mcp have no L3 leftovers.** The L3 row's "Leftovers for L4" (hooks `LinterConfig` in
+  `eslint-config-filter-transformer.ts` plus six calls, `eslint-load-config-broker.test.ts`, server
+  `ws-event-relay-broadcast-broker` proxy signature and 3 retypes) landed in `51ccf2b5f` (hooks), `682f9d359` (server)
+  and `d483bb39b` (mcp). Today `packages/hooks/src/transformers/eslint-config-filter/eslint-config-filter-transformer.ts`
+  types off `Linter` from `#gateway/npm/eslint`, `packages/server/src/brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy.ts`
+  builds `WsContextStub`, and `packages/mcp/test/harnesses/mcp-server/mcp-server.harness.ts` plus
+  `packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts` already import `JsonRpcRequestStub` from the
+  gateway. **Never re-run `run.cjs` on hooks, mcp or server**: its census reads `stub-map.json`, matches the gateway
+  stub of the same name as a copy, and reports 40 phantom mcp swaps and dead copies that were moved out days ago.
+- **`process-signal` is not a type copy.** `packages/ward/src/contracts/raw-output/raw-output-contract.ts:24` uses
+  `processSignalContract.nullable().default(null)` as a runtime schema for a field that is also read back from saved
+  `.ward/` JSON. `NodeJS.Signals` is a type; the field still needs a schema. Plan: `z.custom<NodeJS.Signals>(...)`
+  inside that contract (checks a non-empty string, so a saved value from an older run still parses). Ward is the only
+  user outside `shared` itself.
+- **The "24 casts" are two different things.** The casts tied to a copy (`nodeFactory as unknown as ts.NodeFactory`,
+  `as unknown as TypescriptStatement`, `as unknown as ts.Node` in tests) go with the retype. The
+  `cloneMap.get(x) as ts.Expression` downcasts (`mock-calls-to-statements-transformer.ts:276-333`) are `ts.Node` to
+  subtype casts unrelated to any copy; leave them for B15 and say so in the report.
+- **`packages/testing/src/adapters/` no longer exists**; the item's "Why" row on
+  `typescript-ast-to-mock-calls-adapter.ts:25` is gone.
+- **The `@types` delete touches ten importers of the parser gateway, not six**: 6 integration tests in eslint-plugin
+  (4 `typed-*-transformer.integration.test.ts` plus `void-sink-spy-layer-broker.integration.test.ts` and
+  `typed-spy-method-takes-no-args-layer-broker.integration.test.ts`), 2 harnesses, and 2 gateway stubs.
+- **`TypescriptProgramStub` was in no script and no earlier row.** `typescriptProgramContract` is
+  `z.unknown().brand<'TypescriptProgram'>()` and is parsed at runtime by the ts-jest transformer
+  `packages/testing/ts-jest/proxy-mock-transformer.js:90`. Retyping it to `ts.Program` therefore edits a JS file that
+  EVERY package's Jest run loads (see "Testing quiet wave").
+- **`TimerHandle` retype, decision:** `NodeJS.Timeout | NodeJS.Immediate` (the L3 row), and the guard also accepts
+  `number` (what jsdom returns, the case its `typeof handle.hasRef !== 'function'` branch exists for), so the
+  "handle without hasRef" test passes a plain number instead of a hand-built object.
+
+### Batches
+
+Sizes are edits per agent; "move" lines are `mv` only. "Composes" names the packages whose proxies the batch's proxies
+compose, so the operator gates those too. Each agent runs `npm run ward -- --only lint,typecheck,unit -- <its files>`;
+`typecheck` grades a package whole, so in a shared package an agent reports (and does not fix) errors in files that
+are not on its list.
+
+#### Wave 1: four agents, disjoint packages, run side by side
+
+**S-A — siegelense, `zod-issue-error` onto `z.ZodError`, part 1 (4 files).**
+- edit `packages/siegelense/src/transformers/flag-contract-parse/flag-contract-parse-transformer.ts` (drop the
+  `zodIssueErrorContract` import at line 19; `catch (error)` becomes `if (!(error instanceof z.ZodError)) throw error;`
+  with `import { z } from '#gateway/npm/zod'`; `.issues` map stays; the header paragraph about "only `contracts/` may
+  import `zod`" is rewritten in the present tense)
+- edit `packages/siegelense/src/transformers/flag-contract-parse/flag-contract-parse-transformer.test.ts` (lines 17-67 build
+  `Object.assign(new Error('ignored'), { issues })`; each becomes `new z.ZodError([{ code: 'custom', message, path }])`;
+  the plain-`Error` rethrow test stays)
+- edit `packages/siegelense/src/transformers/numeric-flag-parse/numeric-flag-parse-transformer.ts` (import at line 23,
+  use at line 39)
+- edit `packages/siegelense/src/transformers/numeric-flag-parse/numeric-flag-parse-transformer.test.ts` (lines 21, 40, 59)
+- Callers of the three transformers keep their signatures and need no edit: `run-args-parse`, `prune-args-parse`,
+  `status-args-parse`, `capacity-args-parse`, `results-args-parse`, `kill-args-parse`, `snapshots-args-parse`,
+  `compare-args-parse`, `start-args-parse` transformers and `packages/siegelense/src/flows/siegelense/siegelense-flow.ts`.
+- Composes: none (transformers). Risk to check first: lint may refuse a value import of `z` in a `transformers/` file
+  (the old header says only `contracts/` may import zod; `packages/server/src/transformers/zod-first-field-error-message/zod-first-field-error-message-transformer.ts`
+  imports it as a type only). If it refuses, report and stop; do not invent a workaround.
+
+**S-B — siegelense part 2 (3 files).**
+- edit `packages/siegelense/src/transformers/enum-flag-parse/enum-flag-parse-transformer.ts` (import line 24, use line 40)
+- edit `packages/siegelense/src/transformers/enum-flag-parse/enum-flag-parse-transformer.test.ts` (line 21)
+- edit `packages/siegelense/src/brokers/recipe/seed-run/recipe-seed-run-broker.ts` (import line 23, use line 65; header
+  lines 6-8 reworded)
+- `packages/siegelense/src/brokers/recipe/seed-run/recipe-seed-run-broker.test.ts` needs no edit: its malformed-answer
+  case makes the real `seedResultContract.parse` throw a real `ZodError` (assertion at line 70-72 stays).
+- Composes: `recipeSeedRunBrokerProxy` is composed by `packages/siegelense/src/brokers/step/reset/step-reset-broker.proxy.ts`
+  and `packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts`; the operator gates
+  `step-reset-broker.test.ts` and `instance-start-broker.test.ts` (same package). `@dungeonmaster/shared`, `config`,
+  `cli` proxies are reached through `recipesLocateBroker`; no source change there.
+- S-A and S-B are the same package with disjoint lists.
+
+**P1 — ward, `process-signal` off the shared contract (4 files).**
+- edit `packages/ward/src/contracts/raw-output/raw-output-contract.ts` (line 10 import and line 24:
+  `signal: z.custom<NodeJS.Signals>(...).nullable().default(null)`; keep the comment block above it)
+- edit `packages/ward/src/contracts/raw-output/raw-output-contract.test.ts` (add: a saved `'SIGKILL'` parses to itself,
+  `null` stays `null`, an absent key defaults to `null`, an empty string is refused)
+- edit `packages/ward/src/transformers/out-of-memory-report/out-of-memory-report-transformer.test.ts` (lines 4, 51, 67:
+  `ProcessSignalStub({ value: 'SIGABRT' })` becomes the literal `'SIGABRT'`, typed `NodeJS.Signals`)
+- edit `packages/ward/src/guards/is-out-of-memory-failure/is-out-of-memory-failure-guard.test.ts` (lines 3, 38, 47, 77)
+- Other writers of `signal` (`check-run-*-broker.ts`, `scan-package-broker.ts`, `scan-package-broker.proxy.ts:58`,
+  `multi-package-layer-broker.ts:153`) already hold `NodeJS.Signals | null` and are not edited; the ward typecheck
+  proves it.
+- Composes: none changed; the operator gates `packages/ward/src/brokers/check-run` and `brokers/command/run` tests
+  (they parse `rawOutputContract`).
+- BUILD NEEDED after P2: `ward` (ward's own source changed) and `shared`.
+
+**N1 — node-builtin, the two callers that can move now (3 files).**
+- edit `packages/shared/src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer.ts`
+  (line 23 import becomes `import { builtinModules } from '#gateway/node/module';`, lines 48-50 read it; header line 5
+  reworded)
+- edit `packages/shared/src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer.test.ts`
+  (add: `async_hooks` maps to `#gateway/node/async_hooks` (a name the old list lacked), `node:test` keeps mapping to
+  `#gateway/npm/test`, `node:fs/promises` stays `#gateway/node/fs__promises`)
+- edit `packages/@gateway/node/src/gateway-node-builtin-globals.integration.test.ts` (delete the hand list at lines
+  35-93, `import { builtinModules } from './module/module';`, `folderNamesABuiltinModule` reads it; PURPOSE lines 8-12
+  and the comment at 33-34 rewritten to say it reads Node's own list). The file is a gateway file: it may import
+  `./module/module`, and still may not import `@dungeonmaster/shared`.
+- Composes: none. The operator gates `packages/@gateway/node/src/gateway-node-exports-shape.integration.test.ts` and
+  the other `@gateway/node` integration tests, and shared's `gateway-path-from-import-source` consumers
+  (`packages/eslint-plugin` rules; run only after L2 merges).
+- Shared's own `nodeBuiltinStatics` stays until E2, because `packages/eslint-plugin/src/brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.ts:27`
+  still imports it from `@dungeonmaster/shared/statics`.
+
+#### Wave 2: after Wave 1, two tiny batches (side by side, different packages)
+
+**S-C — siegelense contract move (0 edits, 3 moves).** Only after S-A and S-B are green and `discover` shows nothing
+imports it:
+- move `packages/siegelense/src/contracts/zod-issue-error/zod-issue-error-contract.ts`
+- move `packages/siegelense/src/contracts/zod-issue-error/zod-issue-error-contract.test.ts`
+- move `packages/siegelense/src/contracts/zod-issue-error/zod-issue-error.stub.ts`
+- then `npm run ward -- --only lint,typecheck,unit -- packages/siegelense` narrowed to the S-A and S-B files.
+
+**P2 — shared `process-signal` move (1 edit, 3 moves).** After P1 is green:
+- edit `packages/shared/src/contracts/contracts.ts` (remove line 164, `export * from './process-signal/process-signal-contract';`)
+- move `packages/shared/src/contracts/process-signal/process-signal-contract.ts`
+- move `packages/shared/src/contracts/process-signal/process-signal-contract.test.ts`
+- move `packages/shared/src/contracts/process-signal/process-signal.stub.ts`
+- Composes: none. Users of the barrel line outside ward: none (census of `process-signal`/`ProcessSignal` across
+  `packages` shows only ward and shared itself). BUILD NEEDED: `shared`, `ward`.
+
+#### Wave 3: testing, on a quiet tree (the operator applies the script, then four agents side by side)
+
+**Quiet-tree rule.** `packages/testing/ts-jest/proxy-mock-transformer.js` loads `packages/testing/src/middleware/**`
+and `packages/testing/src/transformers/**` on every Jest run in every package. A half-edited file there fails unrelated
+agents' unit runs, and any edit to those folders changes the transformer's cache `version` (it hashes them), so every
+package's next Jest run cold-transforms. Run Waves 3 and 4 with no other agent running ward.
+
+**Wave 3 step 0 — the operator, not an agent.** In `tmp/phase34/l3-stub-swaps/run.cjs` (and the committed copy
+`scrolls/brands-gateways-epic/phase34-scripts/l3-stub-swaps/run.cjs`) change line 67's `realType` from `'NodeJS.Timeout'`
+to `'(NodeJS.Timeout | NodeJS.Immediate)'`: the parentheses are legal in each position the script writes (`Set<...>`,
+`...[]`, `handle?: ...`) and lint `--fix` drops the redundant ones. Then
+`node tmp/phase34/l3-stub-swaps/run.cjs testing --keep-blocked --no-dependents apply`. The dry run on 2026-09-29 lands
+these 17 files (all inside T1-T4's lists or verified by the operator's ward, next bullet) and leaves testing red at
+the hand sites:
+`packages/testing/src/brokers/timers/watch/timers-watch-broker.ts`,
+`packages/testing/src/guards/is-timer-holding-loop/is-timer-holding-loop-guard.ts`,
+`packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts`,
+`packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts`,
+`packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.ts`,
+`packages/testing/src/transformers/ast-local-export-names/ast-local-export-names-transformer.ts` and `.test.ts`,
+`packages/testing/src/transformers/ast-mock-calls/ast-mock-calls-transformer.ts` and `.test.ts`,
+`packages/testing/src/transformers/ast-module-mock-calls/ast-module-mock-calls-transformer.ts` and `.test.ts`,
+`packages/testing/src/transformers/ast-proxy-imports/ast-proxy-imports-transformer.ts` and `.test.ts`,
+`packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts` and `.test.ts`,
+`packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.ts` and `.test.ts`.
+The eight `ast-*` files need no agent: the script's swap is complete there, and the operator runs
+`npm run ward -- --only lint,typecheck,unit -- ` on those eight after Wave 3 (they typecheck only once T2-T4 land).
+
+**T1 — timers (3 files).**
+- edit `packages/testing/src/brokers/timers/watch/timers-watch-broker.ts` (finish the script's retype; the blockers are
+  lines 57, 87 (`as typeof globalThis.setTimeout` no longer overlaps), 124-131 (an `Immediate` in a `Timeout` slot),
+  142-152 (`pendingHandles.delete(handle ?? {})` becomes `if (handle !== undefined) { pendingHandles.delete(handle); }`)).
+  Keep the `realSetImmediate` `ReturnType` comment only if still true.
+- edit `packages/testing/src/guards/is-timer-holding-loop/is-timer-holding-loop-guard.ts` (param
+  `handle?: NodeJS.Timeout | NodeJS.Immediate | number`; the `typeof handle.hasRef !== 'function'` branch stays)
+- edit `packages/testing/src/guards/is-timer-holding-loop/is-timer-holding-loop-guard.test.ts` (lines 9-33: real
+  `TimeoutStub()` and `TimeoutStub({ unref: true })` from `#gateway/node/setTimeout/timeout/timeout.stub`, plus the
+  jsdom case as a plain number; the last test already uses a real interval)
+- Composes: `timersWatchBrokerProxy` is composed by `packages/testing/src/brokers/open-handle/tracking/open-handle-tracking-broker.proxy.ts`; the operator gates
+  `open-handle-tracking-broker.test.ts`. The `hasRef()`-on-a-real-value check of the Done-when list is this batch's
+  guard test.
+
+**T2 — program retype, source-file-get and collector (4 files).** `TypescriptProgram` becomes `ts.Program | undefined`
+(the middleware already casts `program as unknown as ts.Program | undefined` because ts-jest passes `undefined` in
+transpile-only mode; the test at line 53 exercises that), via `import type * as ts from '#gateway/npm/typescript'`.
+- edit `packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.ts` (drops
+  lines 29-37 casts)
+- edit `packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.test.ts`
+  (lines 5, 19, 37, 53, 67: `TypescriptProgramStub` becomes `ProgramStub` from
+  `#gateway/npm/typescript/program/program.stub` with `{ code, fileName }`; a program that holds nothing is
+  `ProgramStub()` asked for a different path; the transpile-only case passes `undefined`)
+- edit `packages/testing/src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.ts` (line 30, 39)
+- edit `packages/testing/src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.test.ts` (lines 5-8, 17, 78 and
+  the other `NoProgramSourceFileStub()` calls)
+- Composes: `typescriptSourceFileGetMiddlewareProxy` (composed by `proxy-mock-collector-middleware.proxy.ts` and
+  `proxy-reexport-names-resolve-middleware.proxy.ts`, both untouched); `@gateway/npm` `typescript` stubs.
+
+**T3 — program retype, resolve and top-level middleware (4 files).**
+- edit `packages/testing/src/middleware/proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.ts` (lines 24, 34)
+- edit `packages/testing/src/middleware/proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.test.ts` (lines 5-8 and the
+  `NoProgramSourceFileStub()` calls)
+- edit `packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts` (finish the script's
+  retype of `sourceFile`/`nodeFactory`; `program: ts.Program | undefined`; return type `ts.SourceFile`)
+- edit `packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts` (blockers at
+  lines 13-22: `TypescriptSourceFileStub({ value: { fileName: 'test.test.ts' } })` becomes
+  `SourceFileStub({ code: '', fileName: 'test.test.ts' })`; `TypescriptNodeFactoryStub({ value: {} })` becomes `ts.factory`;
+  lines 14, 69, 169 `ProgramStub`; the `printFile(transformed as unknown as ts.SourceFile)` casts at 81 and 181 go)
+- Composes: `typescriptProxyMockTransformerMiddlewareProxy` composes the collector and resolve proxies above; all in `testing`.
+
+**T4 — transformers with hand casts (4 files).**
+- edit `packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts` (drop line
+  27 `nodeFactory as unknown as ts.NodeFactory` and line 347 `as unknown as TypescriptStatement`; return `ts.Statement[]`)
+- edit `packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.test.ts` (the 16
+  `s as unknown as ts.Node` lines and the 14 `TypescriptNodeFactoryStub` leftovers become `ts.factory`)
+- edit `packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.ts` (drop the
+  three casts at lines 27-29 and the return cast at 38)
+- edit `packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.test.ts` (lines 12-15, 43-58,
+  88-90 `Typescript*Stub` leftovers and the three `printFile(... as unknown as ts.SourceFile)` casts)
+- Composes: none (transformers). Callers, all on other batches' lists or the script's: `typescript-proxy-mock-transformer-middleware.ts` (T3).
+
+#### Wave 4: after Wave 3, one agent plus the operator's ward
+
+**T5 — the JS transformer and the five contract folders (1 edit, 15 moves).**
+- edit `packages/testing/ts-jest/proxy-mock-transformer.js` (remove the `typescriptProgramContract` require at lines
+  22-24 and pass `program` straight through at line 90)
+- move `packages/testing/src/contracts/typescript-program/typescript-program-contract.ts`, `typescript-program-contract.test.ts`, `typescript-program.stub.ts`
+- move `packages/testing/src/contracts/typescript-source-file/typescript-source-file-contract.ts`, `typescript-source-file-contract.test.ts`, `typescript-source-file.stub.ts`
+- move `packages/testing/src/contracts/typescript-node-factory/typescript-node-factory-contract.ts`, `typescript-node-factory-contract.test.ts`, `typescript-node-factory.stub.ts`
+- move `packages/testing/src/contracts/typescript-statement/typescript-statement-contract.ts`, `typescript-statement-contract.test.ts`, `typescript-statement.stub.ts`
+- move `packages/testing/src/contracts/timer-handle/timer-handle-contract.ts`, `timer-handle-contract.test.ts`, `timer-handle.stub.ts`
+- Each move only after `discover` on the contract name and file name (tests, proxies, harnesses, `ts-jest/*.js`
+  included) returns nothing outside its own folder. The JS edit cannot be linted by the usual rules
+  (`jest.setup*.js`-style files are lint-ignored); prove it with a unit run in `packages/testing` AND one in another
+  package (for example `packages/shared/src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer.test.ts`),
+  since that package's Jest loads the edited transformer.
+- The operator then runs `npm run ward -- --only lint,typecheck,unit -- packages/testing` scoped to the Wave 3 and
+  Wave 4 files, and the integration tests of the packages that use ts-jest proxies. BUILD NEEDED: `testing`
+  (`ts-jest/*` ships from `packages/testing`).
+
+#### Wave 5: blocked, "after L2 merges" (eslint-plugin is being converted in `worktrees/gp-l2-tsestree`)
+
+**E1 — node-builtin, eslint-plugin side (3 edits, 2 moves).**
+- edit `packages/eslint-plugin/src/brokers/rule/enforce-import-dependencies/validate-external-import-layer-broker.ts`
+  (line 17 import, line 103 use: `builtinModules` from `#gateway/node/module`)
+- edit `packages/eslint-plugin/src/brokers/rule/enforce-import-dependencies/validate-external-import-layer-broker.test.ts`
+  (add the behavior change the L1 notes name: an `.integration.test.` file importing `fs/promises` or `async_hooks`
+  returns true with no report; `node:test` still falls through to a report)
+- edit `packages/eslint-plugin/src/brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.ts` (line 27 stops
+  importing `nodeBuiltinStatics` from `@dungeonmaster/shared/statics`; line 140 reads `builtinModules`)
+- move `packages/eslint-plugin/src/statics/node-builtin/node-builtin-statics.ts` and `node-builtin-statics.test.ts`
+  (redundant even today; no other file imports them)
+- Composes: `validateExternalImportLayerBrokerProxy` is an empty proxy composed by
+  `rule-enforce-import-dependencies-broker.proxy.ts`; `rulePlatformGlobalsBanBrokerProxy` is composed by
+  `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.proxy.ts`. Gate both with
+  their brokers' tests plus `rule-platform-globals-ban-broker.integration.test.ts`.
+
+**E2 — node-builtin, shared side (1 edit, 2 moves).** After E1:
+- edit `packages/shared/src/statics/statics.ts` (remove line 95, `export * from './node-builtin/node-builtin-statics';`)
+- move `packages/shared/src/statics/node-builtin/node-builtin-statics.ts`
+- move `packages/shared/src/statics/node-builtin/node-builtin-statics.test.ts`
+- BUILD NEEDED: `shared` (eslint-plugin resolves `@dungeonmaster/shared/statics` through `dist` at lint time).
+
+**E3 — delete the root `@types/@typescript-eslint__parser` (1 move, up to 10 fix sites).**
+- move `@types/@typescript-eslint__parser/index.d.ts`. `@types/eslint-plugin-eslint-comments` stays.
+- Then typecheck `packages/eslint-plugin` and `packages/@gateway/npm` (the ambient module shadows the package's own
+  types; `parse` becomes typescript-estree's, not `Linter.Parser['parse']`). The agent edits ONLY the importers whose
+  typecheck fails, from this closed list:
+  `packages/eslint-plugin/test/harnesses/rule-tester/rule-tester.harness.ts`,
+  `packages/eslint-plugin/test/harnesses/typed-rule-tester/typed-rule-tester.harness.ts`,
+  `packages/eslint-plugin/src/transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer.integration.test.ts`,
+  `packages/eslint-plugin/src/transformers/typed-parser-services/typed-parser-services-transformer.integration.test.ts`,
+  `packages/eslint-plugin/src/transformers/typed-return-is-void-like/typed-return-is-void-like-transformer.integration.test.ts`,
+  `packages/eslint-plugin/src/transformers/typed-type-parameter-name/typed-type-parameter-name-transformer.integration.test.ts`,
+  `packages/eslint-plugin/src/brokers/rule/ban-proxy-empty-called-with/void-sink-spy-layer-broker.integration.test.ts`,
+  `packages/eslint-plugin/src/brokers/rule/ban-proxy-empty-called-with/typed-spy-method-takes-no-args-layer-broker.integration.test.ts`,
+  `packages/@gateway/npm/src/typescript-eslint__utils/rule-context/rule-context.stub.ts`,
+  `packages/@gateway/npm/src/typescript-eslint__parser/parser-module/parser-module.stub.ts`.
+  A fix goes in the call site, never in a re-created shim. Untyped `require('@typescript-eslint/parser')` sites
+  (`packages/eslint-plugin/src/tmp-environment.integration.test.ts:240`,
+  `packages/eslint-plugin/src/responders/install/detect-config/install-detect-config-responder.ts:24`,
+  `packages/testing/src/statics/integration-environment/integration-environment-statics.ts:43`) are `any` and are not
+  affected. E3 runs in the eslint-plugin package alongside E1 only if their lists stay disjoint (they are).
+  Do not start it before L2 lands: the harnesses are the files L2 rewrites.
+
+### Totals
+
+14 batches: S-A, S-B, S-C, P1, P2, N1, T1, T2, T3, T4, T5, E1, E2, E3. Agents: 11 now (S-C and P2 are tiny move batches
+the operator may do itself), plus 3 blocked on L2. Waves: 1 (S-A, S-B, P1, N1 in parallel), 2 (S-C, P2), 3 (script
+apply by the operator, then T1-T4 in parallel, tree quiet), 4 (T5, then the operator's testing ward), 5 (E1, then E2 and
+E3 in parallel, after L2 merges). Waves 1-2 can overlap Wave 3 only if no agent is running Jest, which is why Wave 3 is
+listed last of the unblocked work. Nothing needs a build inside a wave; the operator builds `shared`, `ward` and
+`testing` once at the end of Wave 4.
+
 ## Why
 
 Five more library-type copies exist beside the two `eslint-plugin` handles B04 covers, plus one found but
