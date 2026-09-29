@@ -151,6 +151,82 @@ describe('validateExternalImportLayerBroker', () => {
     });
   });
 
+  describe('node builtins in integration tests', () => {
+    it.each(['fs', 'fs/promises', 'async_hooks', 'node:fs/promises', 'node:async_hooks'])(
+      'VALID: {integration test imports %s} => returns true, no report',
+      (importSource) => {
+        validateExternalImportLayerBrokerProxy();
+        const mockReport = jest.fn();
+        const context = RuleContextStub({
+          report: mockReport,
+          filename: 'app-flow.integration.test.ts',
+        });
+        const node = ImportDeclarationStub({ code: "import 'x';" });
+
+        const result = validateExternalImportLayerBroker({
+          node,
+          context,
+          folderType: 'brokers',
+          allowedImports: folderConfigStatics.brokers.allowedImports,
+          importSource,
+        });
+
+        expect(result).toBe(true);
+        expect(mockReport.mock.calls).toStrictEqual([]);
+      },
+    );
+
+    it('INVALID: {integration test imports node:test} => reports forbiddenExternalImport', () => {
+      validateExternalImportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({
+        report: mockReport,
+        filename: 'app-flow.integration.test.ts',
+      });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
+
+      const result = validateExternalImportLayerBroker({
+        node,
+        context,
+        folderType: 'brokers',
+        allowedImports: folderConfigStatics.brokers.allowedImports,
+        importSource: 'node:test',
+      });
+
+      expect(result).toBe(false);
+      expect(mockReport).toHaveBeenCalledWith({
+        node,
+        messageId: 'forbiddenExternalImport',
+        data: { folderType: 'brokers', packageName: 'node:test' },
+      });
+    });
+
+    it('INVALID: {unit test imports fs} => reports forbiddenExternalImport', () => {
+      validateExternalImportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({
+        report: mockReport,
+        filename: 'app-flow.test.ts',
+      });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
+
+      const result = validateExternalImportLayerBroker({
+        node,
+        context,
+        folderType: 'brokers',
+        allowedImports: folderConfigStatics.brokers.allowedImports,
+        importSource: 'fs',
+      });
+
+      expect(result).toBe(false);
+      expect(mockReport).toHaveBeenCalledWith({
+        node,
+        messageId: 'forbiddenExternalImport',
+        data: { folderType: 'brokers', packageName: 'fs' },
+      });
+    });
+  });
+
   describe('forbidden imports', () => {
     it('INVALID: {cross-package subpath of a disallowed folder type} => reports forbiddenImport', () => {
       validateExternalImportLayerBrokerProxy();

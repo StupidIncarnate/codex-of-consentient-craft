@@ -14,7 +14,7 @@ import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard
 import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
 import { importFolderTypeFromNameTransformer } from '../../../transformers/import-folder-type-from-name/import-folder-type-from-name-transformer';
 import { importFolderTypeFromSubpathTransformer } from '../../../transformers/import-folder-type-from-subpath/import-folder-type-from-subpath-transformer';
-import { nodeBuiltinStatics } from '../../../statics/node-builtin/node-builtin-statics';
+import { builtinModules } from '#gateway/node/module';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const validateExternalImportLayerBroker = ({
@@ -105,7 +105,7 @@ export const validateExternalImportLayerBroker = ({
     ? importSource.slice('node:'.length)
     : importSource;
 
-  if (isIntegrationTest && nodeBuiltinStatics.modules.some((mod) => mod === bareModule)) {
+  if (isIntegrationTest && builtinModules.some((mod) => mod === bareModule)) {
     return true;
   }
 

@@ -92,5 +92,4 @@ export * from './recipes-convention/recipes-convention-statics';
 // The four gateway packages' folder names and file globs, and the Node built-in module list
 // gatewayPathFromImportSourceTransformer reads to tell a Node module from a third-party package.
 export * from './gateway-locations/gateway-locations-statics';
-export * from './node-builtin/node-builtin-statics';
 export * from './owner-index/owner-index-statics';

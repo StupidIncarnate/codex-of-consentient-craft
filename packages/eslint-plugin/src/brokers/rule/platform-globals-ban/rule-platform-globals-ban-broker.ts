@@ -24,7 +24,8 @@
  * // Returns ESLint rule that flags `process.stdout.write(...)` outside the gateway,
  * // suggesting `import { stdout } from '#gateway/node/process'`
  */
-import { gatewayLocationsStatics, nodeBuiltinStatics } from '@dungeonmaster/shared/statics';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import { builtinModules } from '#gateway/node/module';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -134,7 +135,7 @@ export const rulePlatformGlobalsBanBroker = (): TSESLint.RuleModule<'platformGlo
         const lowercasedName = identifierName.toLowerCase();
         const subpath =
           platform === gatewayLocationsStatics.folders.node &&
-          nodeBuiltinStatics.modules.some((moduleName) => moduleName === lowercasedName)
+          builtinModules.some((moduleName) => moduleName === lowercasedName)
             ? lowercasedName
             : identifierName;
         const gatewayPath = `${gatewayLocationsStatics.importPrefix}/${platform}/${subpath}`;
