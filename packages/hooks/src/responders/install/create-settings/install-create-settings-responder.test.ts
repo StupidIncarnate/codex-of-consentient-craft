@@ -254,6 +254,48 @@ describe('InstallCreateSettingsResponder', () => {
     });
   });
 
+  describe('existing settings with values newer than the contract', () => {
+    it('VALID: {unknown promptCacheTtl and crossSessionInbound} => merged write keeps both values', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupExistingSettings({
+        content: FileContentsStub({
+          value: JSON.stringify({
+            promptCacheTtl: '24h',
+            subagentPromptCacheTtl: '6h',
+            crossSessionInbound: 'quarantine',
+          }),
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+
+      expect({
+        result,
+        promptCacheTtl: written.promptCacheTtl,
+        subagentPromptCacheTtl: written.subagentPromptCacheTtl,
+        crossSessionInbound: written.crossSessionInbound,
+      }).toStrictEqual({
+        result: {
+          packageName: '@dungeonmaster/hooks',
+          success: true,
+          action: 'merged',
+          message: 'Merged hooks into existing settings',
+        },
+        promptCacheTtl: '24h',
+        subagentPromptCacheTtl: '6h',
+        crossSessionInbound: 'quarantine',
+      });
+    });
+  });
+
   describe('existing settings without dungeonmaster', () => {
     it('VALID: {existing settings without dungeonmaster} => merges hooks into existing settings', async () => {
       const proxy = InstallCreateSettingsResponderProxy();

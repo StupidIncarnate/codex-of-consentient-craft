@@ -167,6 +167,22 @@ describe('claudeSettingsContract', () => {
     });
   });
 
+  describe('values newer than this contract', () => {
+    it('VALID: unknown promptCacheTtl, subagentPromptCacheTtl and crossSessionInbound => kept as given', () => {
+      const result = claudeSettingsContract.parse({
+        promptCacheTtl: '24h',
+        subagentPromptCacheTtl: '6h',
+        crossSessionInbound: 'quarantine',
+      });
+
+      expect(result).toStrictEqual({
+        promptCacheTtl: '24h',
+        subagentPromptCacheTtl: '6h',
+        crossSessionInbound: 'quarantine',
+      });
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: hook entry without type field => throws ZodError', () => {
       expect(() =>

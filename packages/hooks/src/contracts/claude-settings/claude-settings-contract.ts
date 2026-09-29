@@ -91,11 +91,12 @@ const envValueContract = z.string().brand<'EnvValue'>();
 
 const envConfigContract = z.record(z.string().brand<'EnvVarName'>(), envValueContract);
 
-const promptCacheTtlContract = z.enum(['5m', '1h']);
+// Plain strings, not enums: Claude Code owns these values and adds new ones. Init writes its own
+// default only when the consumer's file carries none, and reads neither, so a value newer than this
+// contract must round-trip rather than make `dungeonmaster init` throw.
+const promptCacheTtlContract = z.string().brand<'PromptCacheTtl'>();
 
-// 'accept' is a legal value of this key, but only in a user's own settings — Claude Code lets a
-// settings file TIGHTEN the key and never loosen it, so a repo writing 'accept' is ignored.
-const crossSessionInboundContract = z.enum(['accept', 'hold', 'refuse']);
+const crossSessionInboundContract = z.string().brand<'CrossSessionInbound'>();
 
 export const claudeSettingsContract = z
   .object({
