@@ -2,10 +2,10 @@ import { proxyMockCollectorMiddleware } from './proxy-mock-collector-middleware'
 import { proxyMockCollectorMiddlewareProxy } from './proxy-mock-collector-middleware.proxy';
 import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
-import { TypescriptProgramStub } from '../../contracts/typescript-program/typescript-program.stub';
+import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
-const NoProgramSourceFileStub = (): ReturnType<typeof TypescriptProgramStub> =>
-  TypescriptProgramStub({ value: { getSourceFile: (): undefined => undefined } });
+const NoProgramSourceFileStub = (): ReturnType<typeof ProgramStub> =>
+  ProgramStub({ code: '', fileName: '/repo/empty-program.ts' });
 
 describe('proxyMockCollectorMiddleware', () => {
   describe('invalid program', () => {
@@ -14,11 +14,7 @@ describe('proxyMockCollectorMiddleware', () => {
       const proxyFilePath = FilePathStub({ value: '/nonexistent.proxy.ts' });
       proxy.setupProxyFileMissing({ proxyFilePath });
 
-      const program = TypescriptProgramStub({
-        value: {
-          getSourceFile: (): undefined => undefined,
-        },
-      });
+      const program = NoProgramSourceFileStub();
 
       const result = proxyMockCollectorMiddleware({ proxyFilePath, program });
 

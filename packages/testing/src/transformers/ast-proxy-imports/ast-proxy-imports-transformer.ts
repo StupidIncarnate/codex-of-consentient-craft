@@ -18,12 +18,11 @@ import { importPathContract } from '../../contracts/import-path/import-path-cont
 import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
 import { proxyImportEdgeContract } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
 import type { ProxyImportEdge } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
 export const astProxyImportsTransformer = ({
   sourceFile,
 }: {
-  sourceFile: TypescriptSourceFile;
+  sourceFile: ts.SourceFile;
 }): ProxyImportEdge[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
   const edges: ProxyImportEdge[] = [];

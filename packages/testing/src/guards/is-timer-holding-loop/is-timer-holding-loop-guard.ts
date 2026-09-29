@@ -8,16 +8,18 @@
  * // Returns true; returns false once .unref() has been called on that handle
  */
 
-import type { TimerHandle } from '../../contracts/timer-handle/timer-handle-contract';
-
-export const isTimerHoldingLoopGuard = ({ handle }: { handle?: TimerHandle }): boolean => {
+export const isTimerHoldingLoopGuard = ({
+  handle,
+}: {
+  handle?: NodeJS.Immediate | NodeJS.Timeout | number;
+}): boolean => {
   if (!handle) {
     return false;
   }
 
   // jsdom hands back a plain number, which carries no methods. Treating that as holding is the safe
   // direction: a false report is visible and argued with, a missed leak is neither.
-  if (typeof handle.hasRef !== 'function') {
+  if (typeof handle === 'number') {
     return true;
   }
 

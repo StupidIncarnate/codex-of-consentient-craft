@@ -1,22 +1,17 @@
 import * as ts from '#gateway/npm/typescript';
 import { typescriptProxyMockTransformerMiddleware } from './typescript-proxy-mock-transformer-middleware';
 import { typescriptProxyMockTransformerMiddlewareProxy } from './typescript-proxy-mock-transformer-middleware.proxy';
-import { TypescriptSourceFileStub } from '../../contracts/typescript-source-file/typescript-source-file.stub';
-import { TypescriptProgramStub } from '../../contracts/typescript-program/typescript-program.stub';
-import { TypescriptNodeFactoryStub } from '../../contracts/typescript-node-factory/typescript-node-factory.stub';
+import { SourceFileStub } from '#gateway/npm/typescript/source-file/source-file.stub';
+import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
 describe('typescriptProxyMockTransformerMiddleware', () => {
   describe('no proxy imports', () => {
     it('VALID: {sourceFile without proxy imports} => returns unchanged sourceFile', () => {
       typescriptProxyMockTransformerMiddlewareProxy();
 
-      const sourceFile = TypescriptSourceFileStub({ value: { fileName: 'test.test.ts' } });
-      const program = TypescriptProgramStub({
-        value: {
-          getSourceFile: (): undefined => undefined,
-        },
-      });
-      const nodeFactory = TypescriptNodeFactoryStub({ value: {} });
+      const sourceFile = SourceFileStub({ code: '', fileName: 'test.test.ts' });
+      const program = ProgramStub({ code: '', fileName: 'unrelated.ts' });
+      const nodeFactory = ts.factory;
 
       const result = typescriptProxyMockTransformerMiddleware({
         sourceFile,
@@ -66,11 +61,9 @@ describe('typescriptProxyMockTransformerMiddleware', () => {
         ts.ScriptTarget.Latest,
         true,
       );
-      const program = TypescriptProgramStub({
-        value: { getSourceFile: (): undefined => undefined },
-      });
-      const sourceFile = TypescriptSourceFileStub({ value: entrySourceFile });
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const program = ProgramStub({ code: '', fileName: 'unrelated.ts' });
+      const sourceFile = entrySourceFile;
+      const nodeFactory = ts.factory;
 
       const transformed = typescriptProxyMockTransformerMiddleware({
         sourceFile,
@@ -78,7 +71,7 @@ describe('typescriptProxyMockTransformerMiddleware', () => {
         nodeFactory,
       });
 
-      const printed = ts.createPrinter().printFile(transformed as unknown as ts.SourceFile);
+      const printed = ts.createPrinter().printFile(transformed);
       // Matches only a factory-less call, so it stays empty on the selective behaviour and turns
       // non-empty on a regression to a whole-module auto-mock.
       const bareAutoMockCalls = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1\);/gu)].map(
@@ -166,11 +159,9 @@ describe('typescriptProxyMockTransformerMiddleware', () => {
         ts.ScriptTarget.Latest,
         true,
       );
-      const program = TypescriptProgramStub({
-        value: { getSourceFile: (): undefined => undefined },
-      });
-      const sourceFile = TypescriptSourceFileStub({ value: entrySourceFile });
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const program = ProgramStub({ code: '', fileName: 'unrelated.ts' });
+      const sourceFile = entrySourceFile;
+      const nodeFactory = ts.factory;
 
       const transformed = typescriptProxyMockTransformerMiddleware({
         sourceFile,
@@ -178,7 +169,7 @@ describe('typescriptProxyMockTransformerMiddleware', () => {
         nodeFactory,
       });
 
-      const printed = ts.createPrinter().printFile(transformed as unknown as ts.SourceFile);
+      const printed = ts.createPrinter().printFile(transformed);
       const mockedModules = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1/gu)].map(
         (match) => match[2],
       );

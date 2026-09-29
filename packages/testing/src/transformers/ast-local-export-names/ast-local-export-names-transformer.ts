@@ -12,12 +12,11 @@
 import * as ts from '#gateway/npm/typescript';
 import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
 export const astLocalExportNamesTransformer = ({
   sourceFile,
 }: {
-  sourceFile: TypescriptSourceFile;
+  sourceFile: ts.SourceFile;
 }): IdentifierName[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
   const names: IdentifierName[] = [];

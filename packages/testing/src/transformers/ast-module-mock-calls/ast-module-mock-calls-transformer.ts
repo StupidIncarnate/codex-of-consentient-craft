@@ -13,12 +13,11 @@ import { factoryFunctionTextContract } from '../../contracts/factory-function-te
 import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type { ModuleName } from '../../contracts/module-name/module-name-contract';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
 export const astModuleMockCallsTransformer = ({
   sourceFile,
 }: {
-  sourceFile: TypescriptSourceFile;
+  sourceFile: ts.SourceFile;
 }): MockCall[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
   const mockCalls: MockCall[] = [];

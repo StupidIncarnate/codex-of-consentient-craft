@@ -14,52 +14,49 @@
 
 import * as ts from '#gateway/npm/typescript';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
-import type { TypescriptStatement } from '../../contracts/typescript-statement/typescript-statement-contract';
 
 export const mockCallsToStatementsTransformer = ({
   mockCalls,
   nodeFactory,
 }: {
   mockCalls: MockCall[];
-  nodeFactory: TypescriptNodeFactory;
-}): TypescriptStatement[] => {
-  const tsNodeFactory = nodeFactory as unknown as ts.NodeFactory;
+  nodeFactory: ts.NodeFactory;
+}): ts.Statement[] => {
   const { factory } = ts;
 
   return mockCalls.map((mock) => {
-    const jestIdentifier = tsNodeFactory.createIdentifier('jest');
-    const mockIdentifier = tsNodeFactory.createIdentifier('mock');
-    const jestMock = tsNodeFactory.createPropertyAccessExpression(jestIdentifier, mockIdentifier);
+    const jestIdentifier = nodeFactory.createIdentifier('jest');
+    const mockIdentifier = nodeFactory.createIdentifier('mock');
+    const jestMock = nodeFactory.createPropertyAccessExpression(jestIdentifier, mockIdentifier);
 
-    const args: ts.Expression[] = [tsNodeFactory.createStringLiteral(mock.moduleName)];
+    const args: ts.Expression[] = [nodeFactory.createStringLiteral(mock.moduleName)];
 
     if (
       !mock.factory &&
       (mock.identifierNames.length > 0 || mock.objectIdentifierNames.length > 0)
     ) {
       // Generate selective factory: () => ({ ...jest.requireActual('module'), id1: jest.fn(), id2: jest.fn() })
-      const requireActualCall = tsNodeFactory.createCallExpression(
-        tsNodeFactory.createPropertyAccessExpression(
-          tsNodeFactory.createIdentifier('jest'),
-          tsNodeFactory.createIdentifier('requireActual'),
+      const requireActualCall = nodeFactory.createCallExpression(
+        nodeFactory.createPropertyAccessExpression(
+          nodeFactory.createIdentifier('jest'),
+          nodeFactory.createIdentifier('requireActual'),
         ),
         undefined,
-        [tsNodeFactory.createStringLiteral(mock.moduleName)],
+        [nodeFactory.createStringLiteral(mock.moduleName)],
       );
       const mockProperties: ts.ObjectLiteralElementLike[] = [];
       for (const identifierName of mock.identifierNames) {
-        const jestFnCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('jest'),
-            tsNodeFactory.createIdentifier('fn'),
+        const jestFnCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('jest'),
+            nodeFactory.createIdentifier('fn'),
           ),
           undefined,
           [],
         );
         mockProperties.push(
-          tsNodeFactory.createPropertyAssignment(
-            tsNodeFactory.createIdentifier(identifierName),
+          nodeFactory.createPropertyAssignment(
+            nodeFactory.createIdentifier(identifierName),
             jestFnCall,
           ),
         );
@@ -72,115 +69,115 @@ export const mockCallsToStatementsTransformer = ({
       // instead of the whole module: `X: Object.fromEntries(Object.entries(<real>.X).map(([key,
       // value]) => [key, typeof value === 'function' ? jest.fn() : value]))`.
       for (const objectIdentifierName of mock.objectIdentifierNames) {
-        const objectRequireActualCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('jest'),
-            tsNodeFactory.createIdentifier('requireActual'),
+        const objectRequireActualCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('jest'),
+            nodeFactory.createIdentifier('requireActual'),
           ),
           undefined,
-          [tsNodeFactory.createStringLiteral(mock.moduleName)],
+          [nodeFactory.createStringLiteral(mock.moduleName)],
         );
-        const realObjectAccess = tsNodeFactory.createPropertyAccessExpression(
-          tsNodeFactory.createParenthesizedExpression(objectRequireActualCall),
-          tsNodeFactory.createIdentifier(objectIdentifierName),
+        const realObjectAccess = nodeFactory.createPropertyAccessExpression(
+          nodeFactory.createParenthesizedExpression(objectRequireActualCall),
+          nodeFactory.createIdentifier(objectIdentifierName),
         );
-        const keyIdentifier = tsNodeFactory.createIdentifier('key');
-        const valueIdentifier = tsNodeFactory.createIdentifier('value');
-        const arrayParam = tsNodeFactory.createParameterDeclaration(
+        const keyIdentifier = nodeFactory.createIdentifier('key');
+        const valueIdentifier = nodeFactory.createIdentifier('value');
+        const arrayParam = nodeFactory.createParameterDeclaration(
           undefined,
           undefined,
-          tsNodeFactory.createArrayBindingPattern([
-            tsNodeFactory.createBindingElement(undefined, undefined, keyIdentifier, undefined),
-            tsNodeFactory.createBindingElement(undefined, undefined, valueIdentifier, undefined),
+          nodeFactory.createArrayBindingPattern([
+            nodeFactory.createBindingElement(undefined, undefined, keyIdentifier, undefined),
+            nodeFactory.createBindingElement(undefined, undefined, valueIdentifier, undefined),
           ]),
           undefined,
           undefined,
           undefined,
         );
-        const isFunctionCheck = tsNodeFactory.createBinaryExpression(
-          tsNodeFactory.createTypeOfExpression(valueIdentifier),
+        const isFunctionCheck = nodeFactory.createBinaryExpression(
+          nodeFactory.createTypeOfExpression(valueIdentifier),
           ts.SyntaxKind.EqualsEqualsEqualsToken,
-          tsNodeFactory.createStringLiteral('function'),
+          nodeFactory.createStringLiteral('function'),
         );
-        const nestedJestFnCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('jest'),
-            tsNodeFactory.createIdentifier('fn'),
+        const nestedJestFnCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('jest'),
+            nodeFactory.createIdentifier('fn'),
           ),
           undefined,
           [],
         );
-        const mapArrow = tsNodeFactory.createArrowFunction(
+        const mapArrow = nodeFactory.createArrowFunction(
           undefined,
           undefined,
           [arrayParam],
           undefined,
           undefined,
-          tsNodeFactory.createArrayLiteralExpression(
+          nodeFactory.createArrayLiteralExpression(
             [
               keyIdentifier,
-              tsNodeFactory.createConditionalExpression(
+              nodeFactory.createConditionalExpression(
                 isFunctionCheck,
-                tsNodeFactory.createToken(ts.SyntaxKind.QuestionToken),
+                nodeFactory.createToken(ts.SyntaxKind.QuestionToken),
                 nestedJestFnCall,
-                tsNodeFactory.createToken(ts.SyntaxKind.ColonToken),
+                nodeFactory.createToken(ts.SyntaxKind.ColonToken),
                 valueIdentifier,
               ),
             ],
             false,
           ),
         );
-        const objectEntriesCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('Object'),
-            tsNodeFactory.createIdentifier('entries'),
+        const objectEntriesCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('Object'),
+            nodeFactory.createIdentifier('entries'),
           ),
           undefined,
           [realObjectAccess],
         );
-        const mapCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
+        const mapCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
             objectEntriesCall,
-            tsNodeFactory.createIdentifier('map'),
+            nodeFactory.createIdentifier('map'),
           ),
           undefined,
           [mapArrow],
         );
-        const fromEntriesCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('Object'),
-            tsNodeFactory.createIdentifier('fromEntries'),
+        const fromEntriesCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('Object'),
+            nodeFactory.createIdentifier('fromEntries'),
           ),
           undefined,
           [mapCall],
         );
         mockProperties.push(
-          tsNodeFactory.createPropertyAssignment(
-            tsNodeFactory.createIdentifier(objectIdentifierName),
+          nodeFactory.createPropertyAssignment(
+            nodeFactory.createIdentifier(objectIdentifierName),
             fromEntriesCall,
           ),
         );
       }
 
       if (mock.moduleName === 'process' || mock.moduleName === 'node:process') {
-        const objectCreateCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('Object'),
-            tsNodeFactory.createIdentifier('create'),
+        const objectCreateCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('Object'),
+            nodeFactory.createIdentifier('create'),
           ),
           undefined,
           [requireActualCall],
         );
-        const objectLiteral = tsNodeFactory.createObjectLiteralExpression(mockProperties, false);
-        const objectAssignCall = tsNodeFactory.createCallExpression(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('Object'),
-            tsNodeFactory.createIdentifier('assign'),
+        const objectLiteral = nodeFactory.createObjectLiteralExpression(mockProperties, false);
+        const objectAssignCall = nodeFactory.createCallExpression(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('Object'),
+            nodeFactory.createIdentifier('assign'),
           ),
           undefined,
           [objectCreateCall, objectLiteral],
         );
-        const factoryArrow = tsNodeFactory.createArrowFunction(
+        const factoryArrow = nodeFactory.createArrowFunction(
           undefined,
           undefined,
           [],
@@ -194,34 +191,34 @@ export const mockCallsToStatementsTransformer = ({
         // for a module the unit-test I/O trap covers (jest.setup-io-trap.js), a real spread would
         // leave every function the proxies did not name doing real I/O. `__ioTrap` returns
         // undefined for any other module, and is absent in integration tests.
-        const ioTrapCall = tsNodeFactory.createCallChain(
-          tsNodeFactory.createPropertyAccessExpression(
-            tsNodeFactory.createIdentifier('globalThis'),
-            tsNodeFactory.createIdentifier('__ioTrap'),
+        const ioTrapCall = nodeFactory.createCallChain(
+          nodeFactory.createPropertyAccessExpression(
+            nodeFactory.createIdentifier('globalThis'),
+            nodeFactory.createIdentifier('__ioTrap'),
           ),
-          tsNodeFactory.createToken(ts.SyntaxKind.QuestionDotToken),
+          nodeFactory.createToken(ts.SyntaxKind.QuestionDotToken),
           undefined,
-          [tsNodeFactory.createStringLiteral(mock.moduleName)],
+          [nodeFactory.createStringLiteral(mock.moduleName)],
         );
-        const trappedOrActual = tsNodeFactory.createParenthesizedExpression(
-          tsNodeFactory.createBinaryExpression(
+        const trappedOrActual = nodeFactory.createParenthesizedExpression(
+          nodeFactory.createBinaryExpression(
             ioTrapCall,
             ts.SyntaxKind.QuestionQuestionToken,
             requireActualCall,
           ),
         );
-        const spreadActual = tsNodeFactory.createSpreadAssignment(trappedOrActual);
-        const objectLiteral = tsNodeFactory.createObjectLiteralExpression(
+        const spreadActual = nodeFactory.createSpreadAssignment(trappedOrActual);
+        const objectLiteral = nodeFactory.createObjectLiteralExpression(
           [spreadActual, ...mockProperties],
           false,
         );
-        const factoryArrow = tsNodeFactory.createArrowFunction(
+        const factoryArrow = nodeFactory.createArrowFunction(
           undefined,
           undefined,
           [],
           undefined,
           undefined,
-          tsNodeFactory.createParenthesizedExpression(objectLiteral),
+          nodeFactory.createParenthesizedExpression(objectLiteral),
         );
         args.push(factoryArrow);
       }
@@ -335,15 +332,15 @@ export const mockCallsToStatementsTransformer = ({
       }
     }
 
-    const callExpression = tsNodeFactory.createCallExpression(jestMock, undefined, args);
+    const callExpression = nodeFactory.createCallExpression(jestMock, undefined, args);
 
-    const statement = tsNodeFactory.createExpressionStatement(callExpression);
+    const statement = nodeFactory.createExpressionStatement(callExpression);
 
     return ts.addSyntheticLeadingComment(
       statement,
       ts.SyntaxKind.SingleLineCommentTrivia,
       ` Auto-hoisted from: ${mock.sourceFile}`,
       true,
-    ) as unknown as TypescriptStatement;
+    );
   });
 };

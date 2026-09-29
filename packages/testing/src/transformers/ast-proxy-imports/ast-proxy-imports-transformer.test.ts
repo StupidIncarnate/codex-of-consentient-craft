@@ -1,6 +1,5 @@
 import * as ts from '#gateway/npm/typescript';
 import { astProxyImportsTransformer } from './ast-proxy-imports-transformer';
-import { TypescriptSourceFileStub } from '../../contracts/typescript-source-file/typescript-source-file.stub';
 
 describe('astProxyImportsTransformer', () => {
   describe('valid proxy imports', () => {
@@ -15,7 +14,7 @@ describe('test', () => {
 });
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -31,7 +30,7 @@ import { proxy2 } from '../proxy2.proxy';
 import { something } from './regular';
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -44,7 +43,7 @@ import { something } from './regular';
     it('VALID: {renamed named import} => returns edge naming the ORIGINAL export, not the local alias', () => {
       const code = `import { adapterProxy as renamed } from './test.proxy';`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -56,7 +55,7 @@ import { something } from './regular';
     it('VALID: {namespace import} => returns import edge with names: null', () => {
       const code = `import * as testingBarrel from '@dungeonmaster/shared/testing';`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -68,7 +67,7 @@ import { something } from './regular';
     it('VALID: {proxy import with .ts extension} => returns import edge', () => {
       const code = `import { adapterProxy } from './test.proxy.ts';`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -86,7 +85,7 @@ export * from './adapters.proxy';
 export const foo = 'bar';
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -98,7 +97,7 @@ export const foo = 'bar';
     it('VALID: {sourceFile with named export from .proxy} => returns reexport edge with its names', () => {
       const code = `export { adapterProxy } from './test.proxy';`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -115,7 +114,7 @@ import { regular } from './regular';
 export { other } from './other.proxy';
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -136,7 +135,7 @@ import { another } from '../adapter';
 describe('test', () => {});
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 
@@ -146,7 +145,7 @@ describe('test', () => {});
     it('EMPTY: {sourceFile with no imports} => returns empty array', () => {
       const code = `describe('test', () => {});`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astProxyImportsTransformer({ sourceFile });
 

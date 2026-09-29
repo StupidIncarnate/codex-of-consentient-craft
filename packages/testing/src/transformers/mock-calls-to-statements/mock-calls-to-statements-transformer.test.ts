@@ -3,7 +3,6 @@ import { mockCallsToStatementsTransformer } from './mock-calls-to-statements-tra
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
 import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
 import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
-import { TypescriptNodeFactoryStub } from '../../contracts/typescript-node-factory/typescript-node-factory.stub';
 import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 
 describe('mockCallsToStatementsTransformer', () => {
@@ -15,7 +14,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -24,7 +23,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual(['// Auto-hoisted from: test.proxy.ts\njest.mock("fs");']);
@@ -37,7 +36,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'adapter.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -46,7 +45,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -61,7 +60,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -70,7 +69,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -85,7 +84,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -94,7 +93,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -109,7 +108,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -118,7 +117,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -133,7 +132,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -142,7 +141,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -157,7 +156,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -166,7 +165,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -181,7 +180,7 @@ describe('mockCallsToStatementsTransformer', () => {
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -190,7 +189,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -212,13 +211,13 @@ describe('mockCallsToStatementsTransformer', () => {
         }),
       ];
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({ mockCalls, nodeFactory });
 
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -237,7 +236,7 @@ describe('mockCallsToStatementsTransformer', () => {
         identifierNames: [IdentifierNameStub({ value: 'readFile' })],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -246,7 +245,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -262,7 +261,7 @@ describe('mockCallsToStatementsTransformer', () => {
         identifierNames: [IdentifierNameStub({ value: 'kill' })],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -271,7 +270,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -290,7 +289,7 @@ describe('mockCallsToStatementsTransformer', () => {
         ],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -299,7 +298,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -318,7 +317,7 @@ describe('mockCallsToStatementsTransformer', () => {
         objectIdentifierNames: [IdentifierNameStub({ value: 'orchestrationEventsState' })],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -327,7 +326,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -344,7 +343,7 @@ describe('mockCallsToStatementsTransformer', () => {
         objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -353,7 +352,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -370,7 +369,7 @@ describe('mockCallsToStatementsTransformer', () => {
         objectIdentifierNames: [],
       });
 
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
@@ -379,7 +378,7 @@ describe('mockCallsToStatementsTransformer', () => {
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
       const outputs = statements.map((s) =>
-        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+        printer.printNode(ts.EmitHint.Unspecified, s, sourceFile),
       );
 
       expect(outputs).toStrictEqual([
@@ -390,7 +389,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
   describe('empty mock calls', () => {
     it('EMPTY: {empty mockCalls array} => returns empty array', () => {
-      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const nodeFactory = ts.factory;
       const statements = mockCallsToStatementsTransformer({
         mockCalls: [],
         nodeFactory,

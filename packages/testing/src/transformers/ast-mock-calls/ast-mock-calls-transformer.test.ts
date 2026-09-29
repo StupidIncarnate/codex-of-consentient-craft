@@ -1,13 +1,12 @@
 import * as ts from '#gateway/npm/typescript';
 import { astMockCallsTransformer } from './ast-mock-calls-transformer';
-import { TypescriptSourceFileStub } from '../../contracts/typescript-source-file/typescript-source-file.stub';
 
 describe('astMockCallsTransformer', () => {
   describe('valid jest.mock calls', () => {
     it('VALID: {sourceFile with jest.mock} => returns mock call', () => {
       const code = `jest.mock('fs');`;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -30,7 +29,7 @@ describe('astMockCallsTransformer', () => {
         ts.ScriptTarget.Latest,
         true,
       );
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -52,7 +51,7 @@ jest.mock('path');
 jest.mock('axios', () => ({}));
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -90,7 +89,7 @@ export const adapterProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -100,7 +99,7 @@ export const adapterProxy = () => {
     it('EMPTY: {empty file} => returns empty array', () => {
       const code = '';
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -120,7 +119,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -148,7 +147,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -181,7 +180,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -207,7 +206,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -233,7 +232,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -251,7 +250,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -277,7 +276,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -304,7 +303,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -325,7 +324,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 
@@ -359,7 +358,7 @@ export const myProxy = () => {
 };
 `;
       const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
-      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+      const sourceFile = tsSourceFile;
 
       const result = astMockCallsTransformer({ sourceFile });
 

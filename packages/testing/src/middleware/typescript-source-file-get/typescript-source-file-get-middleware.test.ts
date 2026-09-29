@@ -1,8 +1,7 @@
-import * as ts from '#gateway/npm/typescript';
 import { typescriptSourceFileGetMiddleware } from './typescript-source-file-get-middleware';
 import { typescriptSourceFileGetMiddlewareProxy } from './typescript-source-file-get-middleware.proxy';
 import { FilePathStub } from '../../contracts/file-path/file-path.stub';
-import { TypescriptProgramStub } from '../../contracts/typescript-program/typescript-program.stub';
+import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
 describe('typescriptSourceFileGetMiddleware', () => {
   describe('file held by the program', () => {
@@ -10,15 +9,7 @@ describe('typescriptSourceFileGetMiddleware', () => {
       const proxy = typescriptSourceFileGetMiddlewareProxy();
       const filePath = FilePathStub({ value: '/repo/packages/app/src/held.ts' });
       proxy.fileContains({ filePath, content: 'export const fromDisk = 2;' });
-      const heldSourceFile = ts.createSourceFile(
-        filePath,
-        'export const fromProgram = 1;',
-        ts.ScriptTarget.Latest,
-        true,
-      );
-      const program = TypescriptProgramStub({
-        value: { getSourceFile: (): ts.SourceFile => heldSourceFile },
-      });
+      const program = ProgramStub({ code: 'export const fromProgram = 1;', fileName: filePath });
 
       const result = typescriptSourceFileGetMiddleware({ program, filePath });
 
@@ -34,8 +25,9 @@ describe('typescriptSourceFileGetMiddleware', () => {
       const proxy = typescriptSourceFileGetMiddlewareProxy();
       const filePath = FilePathStub({ value: '/repo/packages/other/src/cross-package.ts' });
       proxy.fileContains({ filePath, content: 'export const crossPackage = 1;' });
-      const program = TypescriptProgramStub({
-        value: { getSourceFile: (): undefined => undefined },
+      const program = ProgramStub({
+        code: 'export const other = 1;',
+        fileName: '/repo/held-elsewhere.ts',
       });
 
       const result = typescriptSourceFileGetMiddleware({ program, filePath });
@@ -50,7 +42,7 @@ describe('typescriptSourceFileGetMiddleware', () => {
       const proxy = typescriptSourceFileGetMiddlewareProxy();
       const filePath = FilePathStub({ value: '/repo/packages/other/src/transpile-only.ts' });
       proxy.fileContains({ filePath, content: 'export const transpileOnly = 1;' });
-      const program = TypescriptProgramStub({ value: undefined });
+      const program = undefined;
 
       const result = typescriptSourceFileGetMiddleware({ program, filePath });
 
@@ -64,8 +56,9 @@ describe('typescriptSourceFileGetMiddleware', () => {
       const proxy = typescriptSourceFileGetMiddlewareProxy();
       const filePath = FilePathStub({ value: '/nonexistent.ts' });
       proxy.fileMissing({ filePath });
-      const program = TypescriptProgramStub({
-        value: { getSourceFile: (): undefined => undefined },
+      const program = ProgramStub({
+        code: 'export const other = 1;',
+        fileName: '/repo/held-elsewhere.ts',
       });
 
       const result = typescriptSourceFileGetMiddleware({ program, filePath });

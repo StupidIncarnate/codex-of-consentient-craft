@@ -27,7 +27,7 @@ import { moduleNameContract } from '../../contracts/module-name/module-name-cont
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { TypescriptProgram } from '../../contracts/typescript-program/typescript-program-contract';
+import type * as ts from '#gateway/npm/typescript';
 import type { ProxyMockQueueEntry } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
 
 export const proxyMockCollectorMiddleware = ({
@@ -36,7 +36,7 @@ export const proxyMockCollectorMiddleware = ({
   requestedNames = null,
 }: {
   proxyFilePath: FilePath;
-  program: TypescriptProgram;
+  program: ts.Program | undefined;
   requestedNames?: IdentifierName[] | null;
 }): MockCall[] => {
   const visitedKeys = new Set();

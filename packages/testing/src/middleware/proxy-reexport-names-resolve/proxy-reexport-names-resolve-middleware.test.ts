@@ -2,10 +2,10 @@ import { proxyReexportNamesResolveMiddleware } from './proxy-reexport-names-reso
 import { proxyReexportNamesResolveMiddlewareProxy } from './proxy-reexport-names-resolve-middleware.proxy';
 import { FilePathStub } from '../../contracts/file-path/file-path.stub';
 import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
-import { TypescriptProgramStub } from '../../contracts/typescript-program/typescript-program.stub';
+import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
-const NoProgramSourceFileStub = (): ReturnType<typeof TypescriptProgramStub> =>
-  TypescriptProgramStub({ value: { getSourceFile: (): undefined => undefined } });
+const NoProgramSourceFileStub = (): ReturnType<typeof ProgramStub> =>
+  ProgramStub({ code: '', fileName: '/repo/unrelated-to-any-tested-path.ts' });
 
 describe('proxyReexportNamesResolveMiddleware', () => {
   describe('local declarations', () => {

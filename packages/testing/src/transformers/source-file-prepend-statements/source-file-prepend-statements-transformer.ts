@@ -11,29 +11,17 @@
  */
 
 import type * as ts from '#gateway/npm/typescript';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
-import type { TypescriptStatement } from '../../contracts/typescript-statement/typescript-statement-contract';
-import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
 
 export const sourceFilePrependStatementsTransformer = ({
   sourceFile,
   statements,
   nodeFactory,
 }: {
-  sourceFile: TypescriptSourceFile;
-  statements: TypescriptStatement[];
-  nodeFactory: TypescriptNodeFactory;
-}): TypescriptSourceFile => {
-  const tsSourceFile = sourceFile as unknown as ts.SourceFile;
-  const tsStatements = statements as unknown as ts.Statement[];
-  const tsNodeFactory = nodeFactory as unknown as ts.NodeFactory;
+  sourceFile: ts.SourceFile;
+  statements: ts.Statement[];
+  nodeFactory: ts.NodeFactory;
+}): ts.SourceFile => {
+  const allStatements = nodeFactory.createNodeArray([...statements, ...sourceFile.statements]);
 
-  const allStatements = tsNodeFactory.createNodeArray([
-    ...tsStatements,
-    ...tsSourceFile.statements,
-  ]);
-
-  const updatedSourceFile = tsNodeFactory.updateSourceFile(tsSourceFile, allStatements);
-
-  return updatedSourceFile as unknown as TypescriptSourceFile;
+  return nodeFactory.updateSourceFile(sourceFile, allStatements);
 };

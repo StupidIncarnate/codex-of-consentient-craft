@@ -16,12 +16,11 @@ import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mo
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type { ModuleName } from '../../contracts/module-name/module-name-contract';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
 export const astMockCallsTransformer = ({
   sourceFile,
 }: {
-  sourceFile: TypescriptSourceFile;
+  sourceFile: ts.SourceFile;
 }): MockCall[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
   const mockCalls: MockCall[] = [];

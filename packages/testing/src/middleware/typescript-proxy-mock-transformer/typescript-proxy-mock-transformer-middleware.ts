@@ -17,20 +17,18 @@ import { importPathResolverMiddleware } from '../import-path-resolver/import-pat
 import { proxyMockCollectorMiddleware } from '../proxy-mock-collector/proxy-mock-collector-middleware';
 import { mockCallsMergeByModuleTransformer } from '../../transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
-import type { TypescriptProgram } from '../../contracts/typescript-program/typescript-program-contract';
-import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
-import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import type * as ts from '#gateway/npm/typescript';
 
 export const typescriptProxyMockTransformerMiddleware = ({
   sourceFile,
   program,
   nodeFactory,
 }: {
-  sourceFile: TypescriptSourceFile;
-  program: TypescriptProgram;
-  nodeFactory: TypescriptNodeFactory;
-}): TypescriptSourceFile => {
+  sourceFile: ts.SourceFile;
+  program: ts.Program | undefined;
+  nodeFactory: ts.NodeFactory;
+}): ts.SourceFile => {
   const mockCalls: MockCall[] = [];
 
   const proxyEdges = astProxyImportsTransformer({ sourceFile });
