@@ -100,6 +100,12 @@ More rules for the operator:
 17. **No Antigravity (`agy`) agents** (user, 2026-09-28 evening). Use Claude sub-agents only.
 18. **Gate every commit yourself** with `lint,typecheck,unit,integration` on the touched packages plus every package
     that composes their proxies, and web's `e2e` whenever web runtime code changes.
+19. **Update this file in the same commit as the work, every time something finishes** (user, 2026-09-28 night).
+    Each commit that lands an item, a batch, a gateway unit or a fix also edits `EPIC.md`: the item's status row and
+    SHA, the "In flight" section (what landed, what is active, what is next), any new concession, follow-up or
+    gateway gap, and a Log line when a session ends. Not "at the next heartbeat", not "once a few batches are in".
+    A fresh session must be able to pick up from this file alone at any moment, and a report that sits unrecorded
+    until later is lost if the session dies.
 
 ## START HERE — where the epic stands and what to do next
 
@@ -116,18 +122,25 @@ eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonma
 Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
 operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
 agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
-hooks (a call-time `getStdin()` replacing the `stdin` export, which opened a pipe at import; then hooks-B10 and
-cli-B04); web (B18, B19); orchestrator (B01 with chat-spawn's proxy); server (B01); siegelense (A18 re-census, then
-its batches, T04 and T05).
+web (B25; B22 to B24 green, uncommitted, waiting on the e2e run in `tmp/op-web-e2e7.log`); orchestrator (B02);
+server (B03); siegelense (S02 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
+sweep 77318459e); a fresh agent for cli-B04.
 
-A18 done so far: ward (all); cli B01 to B03; hooks B01 to B09; web B01 to B17. Phase 2 is complete (A13 7cb5ff272).
-Gateway units added this session, all built: GN5 to GN9 (stream/http/zlib; stdout/stderr recording proxies and
-`stdinIsTty`; `#gateway/node/Date` `now` and fetch `getCallsFor`; unix socket fakes, `spawnDetached` by args,
-`rejectsOnce`, `kill` by tuple; `spawnPiped`), `getPlatform`, `setupCwd`, fetchWithStatus `statusText`, C2's
-`tsxCliPath`, and `@gateway/bin` npm and git not-installed error proxies, `setupNotFound` and `diffFiles`
-`excludeDeleted`. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser console and crypto proxies,
-a browser clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Lockfile
-refresh pending for hydration-recipes' `@dungeonmaster/npm` and `@gateway/npm`'s `tsx`.
+A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli B01 to B03; web B01 to B21;
+orchestrator B01 (8b28b66e4); server B01, B02 (2597b4807); siegelense zod sweep and S01. Phase 2 is complete (A13
+7cb5ff272). Gateway units added this session, all built: GN5 to GN10 (stream/http/zlib; stdout/stderr recording
+proxies and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow` and `setupNowOnce`, fetch `getCallsFor`; unix
+socket fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple; `spawnPiped`; `runSyncWithInput`),
+`getPlatform`, `setupCwd`, `getStdin` (call-time: a `stdin` const opened a pipe at import), fetchWithStatus
+`statusText`, C2's `tsxCliPath` and `tsxLoaderUrl`, and `@gateway/bin` npm and git not-installed error proxies,
+`setupNotFound` and `diffFiles` `excludeDeleted`. `bin-program-spawn-ban` watches `spawnPiped` and
+`runSyncWithInput`. Decision: `calledWith([])`/`onceFor([])` is allowed on a function that takes no arguments
+(`randomUUID`, `now`); the ban is for functions that take arguments.
+
+Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser console and crypto proxies, a browser clock),
+`dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Lockfile refresh pending for
+hydration-recipes' `@dungeonmaster/npm` and `@gateway/npm`'s `tsx`. Not started: A18 for shared, tooling,
+hydration-recipes, mcp, eslint-plugin, session-forensics, config, hydration, testing (re-census first).
 
 Earlier notes from this session, kept for the record:
 
@@ -418,7 +431,7 @@ Package items run side by side, one agent group per package. Each is split by th
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | done | 5f4dcd0af. Only `typescript/parse` was left (the rest went in 7751fb471); its AST walk is now `typescriptParseBroker`. `packages/tooling/src/adapters/` is gone. |
 | A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/ward/src/adapters/` is gone (7f79340c8). |
 | A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | done | `packages/web/src/adapters/` is gone (2d7f1d25f). Global stylesheets load from `src/main.ts` (concession 9). |
-| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | active | Plan written (`## Plan`). Done: R1, C1, GN1 to GN4, GB1 to GB3, `zod` sweep for cli, config, hooks, hydration, mcp, session-forensics, tooling (651dcb068). Next: GN5, the other packages' `zod` sweeps, the hand batches, dependency removals. See START HERE step 4. |
+| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | active | Plan written (`## Plan`). Done: wave 0, GN5 to GN10, C2, every package's `zod` sweep, ward and hooks hand batches, and the batches listed under START HERE "In flight". Next: the remaining hand batches per package, then dependency removals. |
 | A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | todo | runs alone |
 
 ### Phase 3 — brands foundation

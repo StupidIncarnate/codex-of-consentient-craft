@@ -1,14 +1,16 @@
 /**
- * PURPOSE: Provides a spawnSync wrapper for running hook startup scripts in integration tests
+ * PURPOSE: Provides a synchronous runner for hook startup scripts in integration tests: each call
+ * is a fresh process fed the hook payload on stdin
  *
  * USAGE:
  * const runner = hookRunnerHarness();
  * const result = runner.runHook({ hookName: 'start-pre-bash-hook', hookData: HookDataStub({ ... }) });
  * // result.exitCode, result.stdout, result.stderr
  */
-import * as path from 'path';
-import { pathToFileURL } from 'url';
-import { spawnSync } from 'child_process';
+import { runSyncWithInput } from '#gateway/node/child_process';
+import { execPath, envSnapshot } from '#gateway/node/process';
+import { join, resolve } from '#gateway/node/path';
+import { tsxLoaderUrl } from '#gateway/npm/tsx';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -22,7 +24,7 @@ import { ExecResultStub } from '@dungeonmaster/shared/contracts';
 // start-post-ask-question-hook child (median of five), and 2.8s against 2.3s of test-body time for
 // that file under ward. The child's `--conditions=source` resolution is unchanged: both forms load
 // the same 477 `packages/shared` TypeScript modules and no `dist/`.
-const TSX_LOADER = pathToFileURL(require.resolve('tsx')).href;
+const PACKAGE_DIR = resolve(__dirname, '../../..');
 
 type HookName =
   | 'start-pre-bash-hook'
@@ -45,11 +47,11 @@ export const hookRunnerHarness = (): {
     hookName: HookName;
     input: ReturnType<typeof ExecResultStub>['stdout'];
     args?: readonly string[];
-  }) => ReturnType<typeof spawnSync>;
+  }) => ReturnType<typeof runSyncWithInput>;
   resolveHookPath: (params: { hookName: HookName }) => FilePath;
 } => {
   const resolveHookPath = ({ hookName }: { hookName: HookName }): FilePath =>
-    FilePathStub({ value: path.join(process.cwd(), 'src', 'startup', `${hookName}.ts`) });
+    FilePathStub({ value: join(PACKAGE_DIR, 'src', 'startup', `${hookName}.ts`) });
 
   // `--conditions=source` matches jest's `customExportConditions: ['source', ...]` (see
   // jest.config.base.js) so this spawned child resolves `@dungeonmaster/*` imports to the same
@@ -62,25 +64,22 @@ export const hookRunnerHarness = (): {
     hookName: HookName;
     input: string;
     args: readonly string[];
-  }): ReturnType<typeof spawnSync> =>
-    spawnSync(
-      process.execPath,
-      [
+  }): ReturnType<typeof runSyncWithInput> =>
+    runSyncWithInput({
+      command: execPath,
+      args: [
         '--conditions=source',
         '--import',
-        TSX_LOADER,
+        tsxLoaderUrl(),
         String(resolveHookPath({ hookName })),
         ...args,
       ],
-      {
-        input,
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
-        // ESLint-ignored paths so violation detection is still exercised.
-        env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
-      },
-    );
+      cwd: PACKAGE_DIR,
+      input,
+      // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
+      // ESLint-ignored paths so violation detection is still exercised.
+      env: { ...envSnapshot(), DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
+    });
 
   const runHook = ({
     hookName,
@@ -95,8 +94,8 @@ export const hookRunnerHarness = (): {
 
     return ExecResultStub({
       exitCode: result.status === null ? 1 : result.status,
-      stdout: String(result.stdout),
-      stderr: String(result.stderr),
+      stdout: result.stdout,
+      stderr: result.stderr,
     });
   };
 
@@ -108,7 +107,7 @@ export const hookRunnerHarness = (): {
     hookName: HookName;
     input: ReturnType<typeof ExecResultStub>['stdout'];
     args?: readonly string[];
-  }): ReturnType<typeof spawnSync> =>
+  }): ReturnType<typeof runSyncWithInput> =>
     spawnHook({ hookName, input: String(input), args: args ?? [] });
 
   return {
