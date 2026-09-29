@@ -74,6 +74,9 @@ const nodeBuiltinModuleNamesForTest = [
 // (fs, path, process, …) already come from the list above; this list is only the extra surface
 // `globalThis` carries on top of that — add a name here when a new folder wraps one.
 const nodeGlobalNamesForTest = [
+  'AbortController',
+  'Request',
+  'Response',
   'atob',
   'btoa',
   'clearImmediate',
