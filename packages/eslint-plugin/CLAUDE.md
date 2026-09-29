@@ -64,53 +64,55 @@ operations.
 
 ## Type Handling for ESLint Rules
 
-When implementing custom ESLint rules, there's a type mismatch between ESLint's `NodeListener` return type and the
-TypeScript AST types from `@typescript-eslint/utils`. To avoid unsafe type assertions:
-
-### Pattern 1: Use Minimal Structural Interfaces
-
-Instead of asserting to specific TSESTree types, define minimal interfaces that describe only the properties you need:
+A rule types its nodes and its context with the library's own types. They come from the gateway, never from a local
+copy:
 
 ```typescript
-// ❌ Avoid: Unsafe type assertion
-ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
-    // This causes type errors because ESLint's node type doesn't match TSESTree exactly
-}
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-// ✅ Good: Minimal interface with type guard
-interface NodeWithExportKind {
-    exportKind?: 'type' | 'value';
-    declaration?: TSESTree.Node | null;
-}
-
-const hasExportKind = (nodeToCheck: unknown): nodeToCheck is NodeWithExportKind =>
-    typeof nodeToCheck === 'object' && nodeToCheck !== null && 'exportKind' in nodeToCheck;
-
-ExportNamedDeclaration: (node): void => {
-    if (!hasExportKind(node)) return;
-    // Now you can safely access node.exportKind and node.declaration
-}
+export const ruleBanJestMockInTestsBroker = (): TSESLint.RuleModule<
+  'noMockingInTests' | 'noCleanupFunctions'
+> => ({
+  meta: { type: 'problem', docs: { description: '...' }, messages: { /* ... */ }, schema: [] },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
+    CallExpression: (node: TSESTree.CallExpression): void => {
+      const { callee } = node;
+      if (callee.type === AST_NODE_TYPES.MemberExpression) {
+        // callee is narrowed to TSESTree.MemberExpression: callee.object and callee.property are always there
+      }
+    },
+  }),
+});
 ```
 
-### Pattern 2: Omit Type Annotations on Listener Parameters
+### Pattern 1: Type Listener Parameters With `TSESTree`
 
-Let TypeScript infer the type from ESLint's NodeListener, then use structural checks:
+- A listener's parameter is the `TSESTree` node its selector names: `(node: TSESTree.CallExpression)`.
+- A `node.type === AST_NODE_TYPES.X` check narrows the union, so the fields of that node are read directly. A
+  field the real type marks optional or nullable is guarded; a field it marks required is not.
+- Never write a local `interface` or `as { ... }` shape for a node, and never write a local copy of `TSESTree`,
+  `TSESLint.RuleContext` or `AST_NODE_TYPES`. When a type is missing from a rule, import the library's own type
+  through `#gateway/npm/typescript-eslint__utils`.
+- A rule broker returns `TSESLint.RuleModule<MessageIds>` (its message ids as a string-literal union) and carries
+  `defaultOptions`.
+
+### Pattern 2: Build Test Nodes And Contexts With The Gateway Stubs
+
+A guard, transformer or layer broker test builds its input from real parsed code, one stub per node type, each
+taking `{ code }`, imported from its own file:
 
 ```typescript
-// ❌ Avoid: Explicit TSESTree types
-ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
-}
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 
-// ✅ Good: Inferred type with structural interface
-interface FunctionLike {
-    params: { type: string }[];
-}
-
-ArrowFunctionExpression: (node): void => {
-    const funcNode = node as FunctionLike;
-    // Use funcNode.params
-}
+const node = CallExpressionStub({ code: "describe.each(table)('name', fn);" });
+const context = RuleContextStub({ filename: 'x.ts', report: jest.fn() });
 ```
+
+The stub folder is the node's kebab-case name (`program/program.stub`, `identifier/identifier.stub`,
+`member-expression/member-expression.stub`). A hand-built node object cast to `TSESTree.Node` is never the answer.
 
 ### Pattern 3: Handle Readonly Arrays from `as const`
 
@@ -131,81 +133,3 @@ const suffix: string = Array.isArray(fileSuffix)
     ? fileSuffix.join(' or ')
     : String(fileSuffix);
 ```
-
-### Why These Patterns Work
-
-ESLint's `NodeListener` uses its own node type system that has slight differences from `@typescript-eslint/utils`'s
-TSESTree types, even though they represent the same AST nodes at runtime. By using structural typing and minimal
-interfaces, we stay compatible with both type systems without unsafe assertions.
-
-## File Type Detection in Rules
-
-When implementing rules that need to check file types, folder types, or file patterns, use the existing guards in
-`src/guards/`:
-
-### `isFileInFolderTypeGuard`
-
-**Location:** `src/guards/is-file-in-folder-type/is-file-in-folder-type-guard.ts`
-
-**Purpose:** Check if a file is in a specific folder type with the expected suffix.
-
-**Pattern:**
-
-```typescript
-import {isFileInFolderTypeGuard} from '../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
-
-// Check if file is a broker
-if (isFileInFolderTypeGuard({filename, folderType: 'brokers', suffix: 'broker'})) {
-    // File is in brokers/ folder and ends with -broker.ts or -broker.tsx
-}
-
-// Check if file is a widget
-if (isFileInFolderTypeGuard({filename, folderType: 'widgets', suffix: 'widget'})) {
-    // File is in widgets/ folder and ends with -widget.ts or -widget.tsx
-}
-
-// Check if file is a contract
-if (isFileInFolderTypeGuard({filename, folderType: 'contracts', suffix: 'contract'})) {
-    // File is in contracts/ folder and ends with -contract.ts
-}
-```
-
-**Features:**
-
-- Automatically adds dash prefix to suffix (`suffix: 'broker'` checks for `-broker`)
-- Checks both `.ts` and `.tsx` extensions
-- Validates file is in the correct folder type (`/{folderType}/` in path)
-- Returns `false` if any parameter is missing
-
-### Layer File Detection
-
-**Pattern for layer files** (files with `-layer-` infix):
-
-```typescript
-// Check if filename contains -layer- before the suffix
-const isLayerFile = filename.includes('-layer-');
-
-// Validate layer file is in allowed folder type
-const folderType = projectFolderTypeFromFilePathTransformer({filename});
-const folderConfig = folderConfigStatics[folderType];
-
-if (isLayerFile && !folderConfig?.allowsLayerFiles) {
-    // Report error: layer files not allowed in this folder type
-}
-
-// Layer file naming: {descriptive-name}-layer-{folder-suffix}.ts
-// Examples:
-//   validate-folder-depth-layer-broker.ts
-//   avatar-layer-widget.tsx
-//   validate-request-layer-responder.ts
-```
-
-**Layer files are allowed in:**
-
-- `adapters/` - Complex I/O translation steps (request building, response parsing)
-- `brokers/` - Complex business logic decomposition
-- `widgets/` - Complex UI sub-components
-- `responders/` - Complex request handling layers
-- `flows/` - One layer flow per entry point (route, command, or subcommand), routed to by the domain's root flow
-
-See `src/statics/folder-config/folder-config-statics.ts` for `allowsLayerFiles` configuration per folder type.

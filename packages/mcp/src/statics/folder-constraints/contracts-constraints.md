@@ -82,49 +82,51 @@ export const FilePathStub = (
 ): FilePath => filePathContract.parse(value);
 ```
 
-**3. Mixed Data + Function Stubs (types with both data and functions):**
+**3. Mixed Data + Function Stubs (our own types with both data and functions):**
 
 ```typescript
 
-// src/contracts/eslint-context/eslint-context-contract.ts
+// src/contracts/notifier/notifier-contract.ts
 import type {StubArgument} from '@dungeonmaster/shared/@types';
 import {z} from 'zod';
 
 // Contract defines ONLY data properties (no z.function())
-export const eslintContextContract = z.object({
-    filename: z.string().brand<'Filename'>().optional(),
+export const notifierContract = z.object({
+    channel: z.string().brand<'Channel'>().optional(),
 });
 
 // Type adds functions via intersection
-export type EslintContext = z.infer<typeof eslintContextContract> & {
-    report: (...args: unknown[]) => unknown;
-    getFilename?: () => string & z.BRAND<'Filename'>;
+export type Notifier = z.infer<typeof notifierContract> & {
+    send: (...args: unknown[]) => unknown;
 };
 
-const filenameContract = z.string().brand<'Filename'>();
+const channelContract = z.string().brand<'Channel'>();
 
-// src/contracts/eslint-context/eslint-context.stub.ts
+// src/contracts/notifier/notifier.stub.ts
 
-export const EslintContextStub = ({
-                                      ...props
-                                  }: StubArgument<EslintContext> = {}): EslintContext => {
+export const NotifierStub = ({
+                                 ...props
+                             }: StubArgument<Notifier> = {}): Notifier => {
     // Separate function props from data props
-    const {report, getFilename, ...dataProps} = props;
+    const {send, ...dataProps} = props;
 
     // Return: validated data + functions (preserved references)
     return {
         // Data properties validated through contract
-        ...eslintContextContract.parse({
-            filename: filenameContract.parse('/test/file.ts'),
+        ...notifierContract.parse({
+            channel: channelContract.parse('alerts'),
             ...dataProps,
         }),
         // Function properties preserved (not parsed to maintain references)
-        report: report ?? ((..._args: unknown[]): unknown => true),
-        getFilename: getFilename ?? ((): string & z.BRAND<'Filename'> =>
-            filenameContract.parse('/test/file.ts')),
+        send: send ?? ((..._args: unknown[]): unknown => true),
     };
 };
 ```
+
+**An outside type is never copied into a contract.** A type a library owns (an AST node, a rule context, a
+`ChildProcess`) is reached through the gateway, and a test gets its value from the gateway's stub, imported from its
+own file (`#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub`). A contract-and-stub pair that
+re-declares a library type by hand is wrong.
 
 **4. All stubs MUST:**
 

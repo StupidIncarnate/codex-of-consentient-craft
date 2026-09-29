@@ -4,19 +4,14 @@
 
 ## TypeScript AST Type Handling
 
-**CRITICAL:** Do NOT create ad-hoc interfaces for AST node types. Use the shared `Tsestree` contract.
+**CRITICAL:** Do NOT create ad-hoc interfaces for AST node types, and do NOT write a local copy of a library type.
+Import `TSESTree` and `TSESLint` from `#gateway/npm/typescript-eslint__utils`.
 
 ### Why
 
-ESLint rules parse TypeScript AST nodes. All node types and their properties are defined in:
-
-```
-src/contracts/tsestree/tsestree-contract.ts
-```
-
-This contract provides a recursive Zod schema covering all AST node properties (type, callee, object, property, name,
-params, body, etc.). The `@dungeonmaster/ban-adhoc-types` rule enforces this - ad-hoc interfaces in rule brokers will
-fail lint.
+ESLint rules walk the AST that `@typescript-eslint/parser` produces. `TSESTree` is a discriminated union of every node
+type, so checking `node.type === AST_NODE_TYPES.CallExpression` narrows the node and its fields are read directly.
+The `@dungeonmaster/ban-adhoc-types` rule enforces this - ad-hoc interfaces in rule brokers fail lint.
 
 ### When Writing Rules
 
@@ -27,35 +22,28 @@ interface NodeWithCallee {
 }
 const calleeNode = node as NodeWithCallee;
 
-// ✅ CORRECT - Use Tsestree contract
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+// ✅ CORRECT - the library's own types, through the gateway
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-CallExpression: (node: Tsestree): void => {
-  const { callee } = node;  // All properties available via Tsestree
-  if (callee?.type === 'MemberExpression') {
-    // Access callee.object, callee.property, etc.
-  }
-}
+export const ruleMyBroker = (): TSESLint.RuleModule<'myMessageId'> => ({
+  meta: { type: 'problem', docs: { description: '...' }, messages: { myMessageId: '...' }, schema: [] },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
+    CallExpression: (node: TSESTree.CallExpression): void => {
+      const { callee } = node;  // never undefined on the real type
+      if (callee.type === AST_NODE_TYPES.MemberExpression) {
+        // callee.object and callee.property are available here
+      }
+    },
+  }),
+});
 ```
 
-### When to Extend Tsestree Contract
+### When A Type Is Missing
 
-If you need an AST property not in the contract:
-
-1. Open `src/contracts/tsestree/tsestree-contract.ts`
-2. Add property to `RecursiveNodeOutput` interface
-3. Add property to `RecursiveNodeInput` interface
-4. Add property to `recursiveBase` Zod schema
-5. Add property to root `tsestreeContract` Zod schema
-
-**Property type patterns:**
-
-- Single node: `property?: RecursiveNodeOutput | null | undefined`
-- Array of nodes: `properties?: RecursiveNodeOutput[] | undefined`
-- Union: `body?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined`
-- Primitive: `name?: string | undefined`, `value?: unknown`
-
-All AST nodes in rule brokers must use `Tsestree` type. Never cast to inline structural types.
+If you need a node type or field, it is already on `TSESTree`. Narrow to it with `AST_NODE_TYPES`, or import the
+type by name. Nothing is added to a contract, because no contract holds an AST node.
 
 ## Structure
 
@@ -115,16 +103,16 @@ must follow standard broker test conventions (proxies, describe/it blocks).
 ```typescript
 import {validateFolderLocationLayerBroker} from './validate-folder-location-layer-broker';
 import {validateFolderLocationLayerBrokerProxy} from './validate-folder-location-layer-broker.proxy';
-import {EslintContextStub} from '../../../contracts/eslint-context/eslint-context.stub';
-import {TsestreeStub, TsestreeNodeType} from '../../../contracts/tsestree/tsestree.stub';
+import {RuleContextStub} from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import {ProgramStub} from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 
 describe('validateFolderLocationLayerBroker', () => {
     describe('forbidden folder', () => {
         it('reports forbiddenFolder for utils/', () => {
             validateFolderLocationLayerBrokerProxy();
             const mockReport = jest.fn();
-            const context = EslintContextStub({report: mockReport});
-            const node = TsestreeStub({type: TsestreeNodeType.Program});
+            const context = RuleContextStub({report: mockReport});
+            const node = ProgramStub({code: ''});
 
             validateFolderLocationLayerBroker({node, context, firstFolder: 'utils', ...});
 
@@ -139,7 +127,8 @@ describe('validateFolderLocationLayerBroker', () => {
 **Key points:**
 
 - Call the layer proxy at the start of each test
-- Use `EslintContextStub` with `jest.fn()` report
-- Use `TsestreeStub` for AST nodes
+- Use `RuleContextStub` with a `jest.fn()` report
+- Build AST nodes with the gateway node stubs, one per node type, each taking `{ code }` (`ProgramStub`,
+  `CallExpressionStub`, `IdentifierStub`, ...), imported from `#gateway/npm/typescript-eslint__utils/<kebab-node>/<kebab-node>.stub`
 - Assert on `context.report()` calls
 - Only the **parent** rule broker test uses RuleTester

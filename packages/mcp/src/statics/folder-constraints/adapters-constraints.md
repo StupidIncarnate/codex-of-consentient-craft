@@ -168,26 +168,29 @@ export const fsEnsureWriteAdapter = async ({
 
 **COMPLEX TYPES (Functions + Data):**
 
-When types include both data and functions, split the contract and type:
+When one of OUR types includes both data and functions, split the contract and type:
 
 ```typescript
-// contracts/eslint-context/eslint-context-contract.ts
+// contracts/notifier/notifier-contract.ts
 import {z} from 'zod';
 
 // Contract defines ONLY data properties (no z.function())
-export const eslintContextContract = z.object({
-    filename: z.string().brand<'Filename'>().optional(),
+export const notifierContract = z.object({
+    channel: z.string().brand<'Channel'>().optional(),
 });
 
 // TypeScript type adds function methods via intersection
-export type EslintContext = z.infer<typeof eslintContextContract> & {
-    report: (...args: unknown[]) => unknown;
-    getFilename?: () => string & z.BRAND<'Filename'>;
+export type Notifier = z.infer<typeof notifierContract> & {
+    send: (...args: unknown[]) => unknown;
 };
 ```
 
 **Why split?** Zod's `z.function()` breaks type inference. Contract validates data, TypeScript enforces function
 signatures.
+
+**A library's own type is never re-declared.** An adapter returning or accepting a type the npm package owns
+imports that type through the gateway (`import type {TSESLint} from '#gateway/npm/typescript-eslint__utils'`), and a
+test builds a value of it with the gateway's stub, imported from its own file.
 
 **PROXY PATTERN:**
 
