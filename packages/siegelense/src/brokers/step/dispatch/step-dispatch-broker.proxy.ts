@@ -13,6 +13,7 @@ import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-nativ
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { scrollStatics } from '../../../statics/scroll/scroll-statics';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';
 import { shotBlankReadBrokerProxy } from '../../shot/blank-read/shot-blank-read-broker.proxy';
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
@@ -142,7 +143,15 @@ export const stepDispatchBrokerProxy = (): {
           fillMatch: jest.fn().mockResolvedValue(undefined),
           waitForMatch: jest.fn().mockResolvedValue(undefined),
           capture: captureMock,
-          evaluateSource: jest.fn().mockResolvedValue(contentTextContract.parse('"Guild Hall"')),
+          evaluateSource: jest
+            .fn()
+            .mockImplementation(async ({ source }: { source: string }) =>
+              Promise.resolve(
+                contentTextContract.parse(
+                  source === scrollStatics.readSource ? 'null' : '"Guild Hall"',
+                ),
+              ),
+            ),
           ...(keyListings === undefined
             ? {}
             : {
@@ -176,7 +185,15 @@ export const stepDispatchBrokerProxy = (): {
           fillMatch: jest.fn().mockResolvedValue(undefined),
           waitForMatch: jest.fn().mockResolvedValue(undefined),
           capture: jest.fn().mockResolvedValue(undefined),
-          evaluateSource: jest.fn().mockResolvedValue(contentTextContract.parse('"Guild Hall"')),
+          evaluateSource: jest
+            .fn()
+            .mockImplementation(async ({ source }: { source: string }) =>
+              Promise.resolve(
+                contentTextContract.parse(
+                  source === scrollStatics.readSource ? 'null' : '"Guild Hall"',
+                ),
+              ),
+            ),
         },
       }),
     }),

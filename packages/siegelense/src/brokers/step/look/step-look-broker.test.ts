@@ -1,5 +1,6 @@
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
+import { ScrollReadingStub } from '../../../contracts/scroll-reading/scroll-reading.stub';
 import { stepLookBroker } from './step-look-broker';
 import { stepLookBrokerProxy } from './step-look-broker.proxy';
 
@@ -108,6 +109,32 @@ describe('stepLookBroker', () => {
           'Nothing here is addressable — no element carries a data-testid, its own text, a control or an image. If the page should have painted by now, that IS the finding.',
         ].join('\n'),
       );
+    });
+  });
+
+  describe('cut-off signal', () => {
+    it('VALID: {page taller than the viewport} => the key ends with the cut-off line', async () => {
+      const proxy = stepLookBrokerProxy();
+      const { session } = proxy.sessionWithScroll({
+        listing: KeyListingStub({ rendered: 'key: 0 rows' }),
+        reading: ScrollReadingStub({ scrollHeight: 900, viewportHeight: 500 }),
+      });
+
+      const result = await stepLookBroker({ session, within: null });
+
+      expect(result).toBe('key: 0 rows\nCUT OFF — page 900px tall; 400px below the viewport');
+    });
+
+    it('VALID: {page fits the viewport} => the key is unchanged', async () => {
+      const proxy = stepLookBrokerProxy();
+      const { session } = proxy.sessionWithScroll({
+        listing: KeyListingStub({ rendered: 'key: 0 rows' }),
+        reading: ScrollReadingStub(),
+      });
+
+      const result = await stepLookBroker({ session, within: null });
+
+      expect(result).toBe('key: 0 rows');
     });
   });
 });

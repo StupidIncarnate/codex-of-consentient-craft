@@ -4,19 +4,19 @@ import { stepBatchPreflightTransformer } from './step-batch-preflight-transforme
 
 describe('stepBatchPreflightTransformer', () => {
   describe('an unknown step', () => {
-    it('INVALID: {step: scroll} => names the typed value and lists every verb the contract knows', () => {
-      const result = stepBatchPreflightTransformer({ steps: [{ step: 'scroll' }] });
+    it('INVALID: {step: teleport} => names the typed value and lists every verb the contract knows', () => {
+      const result = stepBatchPreflightTransformer({ steps: [{ step: 'teleport' }] });
 
       expect(result).toStrictEqual([
-        `steps.0: Unknown step "scroll". Known steps: ${stepStatics.verbs.all.join(', ')}`,
+        `steps.0: Unknown step "teleport". Known steps: ${stepStatics.verbs.all.join(', ')}`,
       ]);
     });
 
-    it('INVALID: {step: scroll, plus a stray key} => reports the step only, not its keys', () => {
-      const result = stepBatchPreflightTransformer({ steps: [{ step: 'scroll', bogus: 1 }] });
+    it('INVALID: {step: teleport, plus a stray key} => reports the step only, not its keys', () => {
+      const result = stepBatchPreflightTransformer({ steps: [{ step: 'teleport', bogus: 1 }] });
 
       expect(result).toStrictEqual([
-        `steps.0: Unknown step "scroll". Known steps: ${stepStatics.verbs.all.join(', ')}`,
+        `steps.0: Unknown step "teleport". Known steps: ${stepStatics.verbs.all.join(', ')}`,
       ]);
     });
   });
@@ -54,12 +54,12 @@ describe('stepBatchPreflightTransformer', () => {
 
     it('INVALID: {two steps, one bad each} => one line per step, indexed', () => {
       const result = stepBatchPreflightTransformer({
-        steps: [{ step: 'goto', path: '/', bogus: true }, { step: 'scroll' }],
+        steps: [{ step: 'goto', path: '/', bogus: true }, { step: 'teleport' }],
       });
 
       expect(result).toStrictEqual([
         'steps.0: goto has no key "bogus". It takes: path, node, expect',
-        `steps.1: Unknown step "scroll". Known steps: ${stepStatics.verbs.all.join(', ')}`,
+        `steps.1: Unknown step "teleport". Known steps: ${stepStatics.verbs.all.join(', ')}`,
       ]);
     });
   });

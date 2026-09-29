@@ -145,7 +145,7 @@ export const siegelenseHelpStatics = {
       ],
       refusals: [],
       output:
-        "By default, one summary line — run id, status, steps run and duration — plus the first failure (`STOPPED AT` when the batch halted there, `FIRST FAILURE … (continued: --stop-on never)` when it ran on) and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
+        'By default, one summary line — run id, status, steps run and duration — plus the first failure (`STOPPED AT` when the batch halted there, `FIRST FAILURE … (continued: --stop-on never)` when it ran on) and any screenshot paths captured. A screenshot or look captures the viewport only: when the page continues past it, that step\'s reading ends with a `CUT OFF — page 900px tall; 400px below the viewport` line, and a `scroll` step (`{"step":"scroll","by":400}`, `"to":"bottom"`, or a `target`/`ref`) moves the page and reads back the new position. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps\' own payloads; query those afterward with `dungeonmaster siegelense results`.',
       example:
         'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     },

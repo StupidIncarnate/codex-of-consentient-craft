@@ -51,6 +51,7 @@ import { stepLookBroker } from '../look/step-look-broker';
 import { stepResizeBroker } from '../resize/step-resize-broker';
 import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
+import { stepScrollBroker } from '../scroll/step-scroll-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepSnapshotBroker } from '../snapshot/step-snapshot-broker';
 import { stepResetBroker } from '../reset/step-reset-broker';
@@ -170,6 +171,27 @@ export const runVerbLayerBroker = async ({
       target: step.target,
       within: step.within,
       ref: step.ref,
+    });
+  }
+
+  // `scroll` resolves a handle only in its handle mode; the amount and edge modes name no element.
+  if (step.step === 'scroll') {
+    if (step.target !== null || step.ref !== null) {
+      await stepTargetResolveBroker({
+        session,
+        target: step.target,
+        within: step.within,
+        ref: step.ref,
+      });
+    }
+    return stepScrollBroker({
+      session,
+      target: step.target,
+      within: step.within,
+      ref: step.ref,
+      by: step.by,
+      byX: step.byX,
+      to: step.to,
     });
   }
 

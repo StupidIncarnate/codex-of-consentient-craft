@@ -53,6 +53,7 @@ import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
 import { stepFilePathContract } from '../step-file-path/step-file-path-contract';
+import { scrollStatics } from '../../statics/scroll/scroll-statics';
 import { stepStatics } from '../../statics/step/step-statics';
 import { holdStatics } from '../../statics/hold/hold-statics';
 import { storageStatics } from '../../statics/storage/storage-statics';
@@ -63,6 +64,9 @@ import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
 import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { urlPathContract } from '../url-path/url-path-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
+
+const SCROLL_MODE_MESSAGE =
+  'a scroll step takes exactly one of: a handle — a `target` selector or a `ref` from your latest `look`, brought into view, { "step": "scroll", "ref": 26 }; an amount — `by` pixels down and/or `byX` pixels right, negative for up or left, { "step": "scroll", "by": 400 }; or an edge — `to` "top" or "bottom", { "step": "scroll", "to": "bottom" }. A `target` and a `ref` together are refused, and `within` needs a `target`.';
 
 const UNTIL_CONDITION_MESSAGE =
   'an `until` step waits on exactly one condition, never zero and never two: `visible` — a selector that has not rendered yet, { "step": "until", "visible": "[data-testid=SUBAGENT_CHAIN]", "timeoutMs": 20000 }; `predicate` — a page expression that must become truthy, { "step": "until", "predicate": "document.querySelectorAll(\'[data-testid=QUEST_ROW]\').length === 3" }; `console` — a regex SOURCE string matched against a console line\'s text, { "step": "until", "console": "hydrated" }; `response` — a network exchange by method and a path substring, { "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }; or `file` — a path resolved against the lane\'s home, { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }';
@@ -324,6 +328,22 @@ export const stepContract = z
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
       .strict(),
+    z
+      .object({
+        step: z.literal('scroll'),
+        // Exactly one mode — a handle (`target` xor `ref`: bring that element into view), an amount
+        // (`by` down / `byX` right, negative for up / left), or an edge (`to`) — enforced on the
+        // union's `.superRefine` below for the reason `until`'s condition rule is.
+        target: selectorContract.nullable().default(null),
+        within: selectorContract.nullable().default(null),
+        ref: refContract.nullable().default(null),
+        by: z.number().int().brand<'ScrollDelta'>().nullable().default(null),
+        byX: z.number().int().brand<'ScrollDelta'>().nullable().default(null),
+        to: z.enum([scrollStatics.edges.top, scrollStatics.edges.bottom]).nullable().default(null),
+        node: nodeLabelContract.nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the
@@ -336,6 +356,20 @@ export const stepContract = z
         context.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'a reset step with level "state" requires an explicit "to" snapshot name',
+          path: ['to'],
+        });
+      }
+      return;
+    }
+
+    if (step.step === 'scroll') {
+      const handleCount = [step.target, step.ref].filter((value) => value !== null).length;
+      const amountSet = step.by !== null || step.byX !== null;
+      const modeCount = [handleCount > 0, amountSet, step.to !== null].filter(Boolean).length;
+      if (modeCount !== 1 || handleCount > 1 || (step.within !== null && step.target === null)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: SCROLL_MODE_MESSAGE,
           path: ['to'],
         });
       }

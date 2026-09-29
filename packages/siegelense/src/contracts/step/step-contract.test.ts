@@ -32,6 +32,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'video', action: 'start' }),
   StepStub({ step: 'snapshot' }),
   StepStub({ step: 'reset' }),
+  StepStub({ step: 'scroll' }),
 ];
 
 describe('stepContract', () => {
@@ -1610,6 +1611,108 @@ describe('stepContract', () => {
           target: '[data-testid="X"]',
         } as never),
       ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+    });
+  });
+
+  describe('scroll', () => {
+    const SCROLL_MODE_ERROR = /a scroll step takes exactly one of: a handle/u;
+
+    it('VALID: {by: 400} => parses the amount mode with every other field defaulted', () => {
+      expect(stepContract.parse({ step: 'scroll', by: 400 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: 400,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {by: -200, byX: 50} => both axes are one amount mode', () => {
+      expect(stepContract.parse({ step: 'scroll', by: -200, byX: 50 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: -200,
+        byX: 50,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {to: top} => parses the edge mode', () => {
+      expect(StepStub({ step: 'scroll', to: 'top' })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: null,
+        byX: null,
+        to: 'top',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {ref: 26} => parses the handle mode by ref', () => {
+      expect(StepStub({ step: 'scroll', ref: 26 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: 26,
+        by: null,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {target, within} => parses the handle mode by selector', () => {
+      expect(
+        stepContract.parse({
+          step: 'scroll',
+          target: '[data-testid="ROW"]',
+          within: '[data-testid="LIST"]',
+        }),
+      ).toStrictEqual({
+        step: 'scroll',
+        target: '[data-testid="ROW"]',
+        within: '[data-testid="LIST"]',
+        ref: null,
+        by: null,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it.each([
+      { label: 'no mode', input: { step: 'scroll' } },
+      { label: 'by and to', input: { step: 'scroll', by: 10, to: 'top' } },
+      { label: 'ref and by', input: { step: 'scroll', ref: 3, by: 10 } },
+      { label: 'target and ref', input: { step: 'scroll', target: '#a', ref: 3 } },
+      { label: 'within without target', input: { step: 'scroll', within: '#a', by: 10 } },
+    ])('INVALID: {$label} => throws the scroll mode message', ({ input }) => {
+      expect(() => stepContract.parse(input)).toThrow(SCROLL_MODE_ERROR);
+    });
+
+    it('INVALID: {to: middle} => throws the enum error', () => {
+      expect(() => stepContract.parse({ step: 'scroll', to: 'middle' })).toThrow(
+        /Invalid enum value\. Expected 'top' \| 'bottom', received 'middle'/u,
+      );
+    });
+
+    it('INVALID: {by: 1.5} => throws for a non-integer amount', () => {
+      expect(() => stepContract.parse({ step: 'scroll', by: 1.5 })).toThrow(
+        /Expected integer, received float/u,
+      );
     });
   });
 });

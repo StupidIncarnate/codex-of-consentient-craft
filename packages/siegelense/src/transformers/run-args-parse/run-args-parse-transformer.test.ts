@@ -147,14 +147,14 @@ describe('runArgsParseTransformer', () => {
       ).toThrow(/^--steps: steps\.0: goto has no key "bogus"\. It takes: path, node, expect$/u);
     });
 
-    it('INVALID: {step: scroll} => throws naming the typed step and every known step, without the word discriminator', () => {
+    it('INVALID: {step: teleport} => throws naming the typed step and every known step, without the word discriminator', () => {
       expect(() =>
         runArgsParseTransformer({
-          args: ['--instance', 'inst_7f3a9c21', '--steps', JSON.stringify([{ step: 'scroll' }])],
+          args: ['--instance', 'inst_7f3a9c21', '--steps', JSON.stringify([{ step: 'teleport' }])],
           stepsFileContent: null,
         }),
       ).toThrow(
-        /^--steps: steps\.0: Unknown step "scroll"\. Known steps: goto, waitFor, click, type, screenshot, eval, look, box, dom, seed, until, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, reset$/u,
+        /^--steps: steps\.0: Unknown step "teleport"\. Known steps: goto, waitFor, click, type, screenshot, eval, look, box, dom, seed, until, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, reset, scroll$/u,
       );
     });
   });
