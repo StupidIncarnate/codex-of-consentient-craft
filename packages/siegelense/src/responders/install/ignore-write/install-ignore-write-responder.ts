@@ -35,7 +35,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import {
   type InstallContext,
@@ -46,7 +46,6 @@ import {
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
@@ -134,10 +133,7 @@ export const InstallIgnoreWriteResponder = async ({
               index === staleEntryLineIndex ? SIEGELENSE_GITIGNORE_ENTRY : line,
             )
             .join('\n');
-    await fsWriteFileAdapter({
-      filePath: gitignorePath,
-      contents: fileContentsContract.parse(newGitignore),
-    });
+    await writeFile(gitignorePath, fileContentsContract.parse(newGitignore));
   }
 
   const gitignoreClause = gitignoreHasEntry
@@ -168,7 +164,7 @@ export const InstallIgnoreWriteResponder = async ({
     });
 
     if (eslintResult.inserted) {
-      await fsWriteFileAdapter({ filePath: eslintConfigPath, contents: eslintResult.content });
+      await writeFile(eslintConfigPath, eslintResult.content);
       clauses.push(`Added ${eslintResult.matchedEntryValue} to eslint ignores`);
       anySurfaceWritten = true;
     } else if (eslintResult.alreadyPresent) {
@@ -195,7 +191,7 @@ export const InstallIgnoreWriteResponder = async ({
     });
 
     if (tsconfigResult.inserted) {
-      await fsWriteFileAdapter({ filePath: tsconfigPath, contents: tsconfigResult.content });
+      await writeFile(tsconfigPath, tsconfigResult.content);
       clauses.push(`Added ${tsconfigResult.matchedEntryValue} to tsconfig exclude`);
       anySurfaceWritten = true;
     } else if (tsconfigResult.alreadyPresent) {
@@ -218,7 +214,7 @@ export const InstallIgnoreWriteResponder = async ({
     });
 
     if (jestResult.inserted) {
-      await fsWriteFileAdapter({ filePath: jestConfigPath, contents: jestResult.content });
+      await writeFile(jestConfigPath, jestResult.content);
       clauses.push(`Added ${jestResult.matchedEntryValue} to jest testPathIgnorePatterns`);
       anySurfaceWritten = true;
     } else if (jestResult.alreadyPresent) {

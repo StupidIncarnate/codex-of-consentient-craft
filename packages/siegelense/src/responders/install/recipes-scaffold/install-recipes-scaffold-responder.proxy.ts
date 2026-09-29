@@ -10,7 +10,7 @@ import {
 import type { PathSegment, PackageNameStub } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
 import { recipesScaffoldStateProxy } from '../../../state/recipes-scaffold/recipes-scaffold-state.proxy';
 import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-responder';
@@ -99,7 +99,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     mkdirProxy.succeeds({ path: dirPath });
   }
   const readProxy = readFileProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const recipesStateProxy = recipesScaffoldStateProxy();
 
   return {
@@ -138,7 +138,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       }
 
       for (const filePath of SCAFFOLD_FILE_ABSOLUTE_PATHS.values()) {
-        writeProxy.succeeds({ filePath });
+        writeProxy.succeeds({ path: filePath });
       }
     },
 
@@ -156,7 +156,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
 
     getWrittenContents: ({ relativePath }: { relativePath: PathSegment }): unknown => {
       const filePath = SCAFFOLD_FILE_ABSOLUTE_PATHS.get(relativePath);
-      return filePath === undefined ? undefined : writeProxy.getWrittenFor({ filePath });
+      return filePath === undefined ? undefined : writeProxy.writtenContentsFor({ path: filePath });
     },
 
     // Reads recipesScaffoldState directly rather than exposing a semantic "was it marked" boolean

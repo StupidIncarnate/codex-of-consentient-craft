@@ -15,7 +15,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { locationsProfileDirsFindBrokerProxy } from '../../locations/profile-dirs-find/locations-profile-dirs-find-broker.proxy';
@@ -42,7 +42,7 @@ export const profileBootRecordBrokerProxy = (): {
   // dirsProxy's own composition chain already registers on '#gateway/node/path's `join`.
   const dirsProxy = locationsProfileDirsFindBrokerProxy();
   const mkdirProxy = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -66,7 +66,7 @@ export const profileBootRecordBrokerProxy = (): {
       const bootsDirValue = `${String(profilesPath)}/${profileStatics.dirs.boots}`;
       mkdirProxy.succeeds({ path: bootsDirValue });
       writeProxy.succeeds({
-        filePath: AbsoluteFilePathStub({
+        path: AbsoluteFilePathStub({
           value: `${bootsDirValue}/${instanceId}${profileStatics.extensions.record}`,
         }),
       });
@@ -86,8 +86,8 @@ export const profileBootRecordBrokerProxy = (): {
       profilesPath: FilePath;
       instanceId: InstanceId;
     }): unknown =>
-      writeProxy.getWrittenFor({
-        filePath: AbsoluteFilePathStub({
+      writeProxy.writtenContentsFor({
+        path: AbsoluteFilePathStub({
           value: `${String(profilesPath)}/${profileStatics.dirs.boots}/${instanceId}${profileStatics.extensions.record}`,
         }),
       }),

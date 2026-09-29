@@ -1,11 +1,12 @@
 import { join } from '#gateway/node/path';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 
@@ -23,7 +24,7 @@ const tmpPathAbs = AbsoluteFilePathStub({ value: TMP_PATH_VALUE });
 
 export const registryWriteBrokerProxy = (): {
   setupWriteSuccess: () => void;
-  setupWriteFailure: (params: { error: Error }) => void;
+  setupWriteFailure: (params: { code: string }) => void;
   getWrittenPath: () => unknown;
   getWrittenContent: () => unknown;
   getRenamedFrom: () => unknown;
@@ -40,7 +41,7 @@ export const registryWriteBrokerProxy = (): {
   // tuple, never a bare `calledWith([])`.
   const joinHandle = registerMock({ fn: join });
   const ensureDirHandle = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const registryRename = renameProxy();
 
   const queuePaths = (): void => {
@@ -53,18 +54,21 @@ export const registryWriteBrokerProxy = (): {
   return {
     setupWriteSuccess: (): void => {
       queuePaths();
-      writeProxy.succeeds({ filePath: tmpPathAbs });
+      writeProxy.succeeds({ path: tmpPathAbs });
       registryRename.succeeds({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE });
     },
 
-    setupWriteFailure: ({ error }: { error: Error }): void => {
+    setupWriteFailure: ({ code }: { code: string }): void => {
       queuePaths();
-      writeProxy.throws({ filePath: tmpPathAbs, error });
+      writeProxy.rejects({
+        path: tmpPathAbs,
+        error: FsErrorStub({ code, path: TMP_PATH_VALUE, syscall: 'write' }),
+      });
     },
 
     getWrittenPath: (): unknown => TMP_PATH_VALUE,
 
-    getWrittenContent: (): unknown => writeProxy.getWrittenFor({ filePath: tmpPathAbs }),
+    getWrittenContent: (): unknown => writeProxy.writtenContentsFor({ path: tmpPathAbs }),
 
     getRenamedFrom: (): unknown =>
       registryRename.getCallsFor({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE }).at(-1)?.[0],

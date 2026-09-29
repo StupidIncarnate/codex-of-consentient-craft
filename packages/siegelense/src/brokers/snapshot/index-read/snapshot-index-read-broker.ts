@@ -16,10 +16,9 @@
  * // Returns every SnapshotRecord in capture order, or [] when no index exists yet
  */
 
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -40,10 +39,10 @@ export const snapshotIndexReadBroker = async ({
     ordinal: snapshotOrdinalContract.parse(snapshotStatics.numbering.firstPayload),
   });
 
-  // `fsStatAdapter` answers null for ENOENT rather than throwing, which is exactly the "no captures
+  // `statIfExists` answers null for ENOENT rather than throwing, which is exactly the "no captures
   // yet, or the home is gone" case — and it distinguishes that from a read that fails for a real
   // reason, which propagates from the read below.
-  const stat = await fsStatAdapter({ filePath: index });
+  const stat = await statIfExists(index);
   if (stat === null) {
     return [];
   }

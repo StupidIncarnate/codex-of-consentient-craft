@@ -19,7 +19,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 
 export const bootFailureMarkerWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: { evidencePath: AbsoluteFilePath; nowMs: number }) => void;
@@ -28,7 +28,7 @@ export const bootFailureMarkerWriteBrokerProxy = (): {
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -40,13 +40,13 @@ export const bootFailureMarkerWriteBrokerProxy = (): {
       nowMs: number;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
-      writeProxy.succeeds({ filePath: AbsoluteFilePathStub({ value: markerPathValue }) });
+      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: markerPathValue }) });
       dateHandle.calledWith([]).returns(nowMs);
     },
 
     getWrittenMarkerContent: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): unknown =>
-      writeProxy.getWrittenFor({
-        filePath: AbsoluteFilePathStub({
+      writeProxy.writtenContentsFor({
+        path: AbsoluteFilePathStub({
           value: `${evidencePath}/${locationsStatics.siegelense.bootFailure}`,
         }),
       }),

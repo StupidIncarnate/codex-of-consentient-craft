@@ -16,7 +16,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { statIfExists } from '#gateway/node/fs__promises';
 import type { UntilFilePath } from '../../../contracts/until-file-path/until-file-path-contract';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -35,7 +35,7 @@ export const untilFileWaitLayerBroker = async ({
   timeoutMs: number;
 }): Promise<ContentText> => {
   const filePath = absoluteFilePathContract.parse(join(homePath, file));
-  const stat = await fsStatAdapter({ filePath });
+  const stat = await statIfExists(filePath);
 
   if (stat !== null) {
     const waitedMs = Date.now() - startedAtMs;

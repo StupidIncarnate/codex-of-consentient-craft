@@ -9,7 +9,7 @@ const STATUS_CASES = [
 
 describe('fetchWithStatus', () => {
   describe.each(STATUS_CASES)('$label response', ({ status, ok }) => {
-    it(`VALID: {status: ${status}, body present} => resolves {status, ok, body} rather than throwing`, async () => {
+    it(`VALID: {status: ${status}, body present} => resolves {status, statusText, ok, body} rather than throwing`, async () => {
       const proxy = fetchWithStatusProxy();
       proxy.setupResponse({
         url: 'http://localhost/api/guilds',
@@ -21,6 +21,7 @@ describe('fetchWithStatus', () => {
 
       expect(result).toStrictEqual({
         status,
+        statusText: '',
         ok,
         body: '{"id":"g1"}',
       });
@@ -33,7 +34,26 @@ describe('fetchWithStatus', () => {
 
     const result = await fetchWithStatus({ url: 'http://localhost/api/guilds' });
 
-    expect(result).toStrictEqual({ status: 204, ok: true, body: '' });
+    expect(result).toStrictEqual({ status: 204, statusText: '', ok: true, body: '' });
+  });
+
+  it('VALID: {response staged with statusText Created} => resolves that statusText beside status and body', async () => {
+    const proxy = fetchWithStatusProxy();
+    proxy.setupResponse({
+      url: 'http://localhost/api/guilds',
+      status: 201,
+      statusText: 'Created',
+      bodyText: '{"id":"g2"}',
+    });
+
+    const result = await fetchWithStatus({ url: 'http://localhost/api/guilds' });
+
+    expect(result).toStrictEqual({
+      status: 201,
+      statusText: 'Created',
+      ok: true,
+      body: '{"id":"g2"}',
+    });
   });
 
   it('ERROR: {connection refused, cause nested under fetch failed} => throws naming the url and the root cause code', async () => {

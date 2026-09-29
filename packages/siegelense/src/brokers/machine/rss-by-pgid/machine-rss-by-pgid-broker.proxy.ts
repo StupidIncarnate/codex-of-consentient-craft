@@ -6,7 +6,7 @@ import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 
 const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
 
@@ -28,20 +28,17 @@ export const machineRssByPgidBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const readdirProxy = readdirIfExistsProxy();
   const readFileProxy = readFileIfExistsProxy();
 
   return {
     setupProcMissing: (): void => {
-      statProxy.rejects({
-        filePath: PROC_ROOT,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      statProxy.missing({ path: PROC_ROOT });
     },
 
     setupProcListing: ({ pids }: { pids: readonly string[] }): void => {
-      statProxy.resolves({ filePath: PROC_ROOT, sizeBytes: 0, modifiedAtMs: 0 });
+      statProxy.returnsFile({ path: PROC_ROOT, sizeBytes: 0, modifiedAtMs: 0 });
       readdirProxy.returns({
         path: PROC_ROOT,
         names: [...pids, 'vmstat', 'self', 'uptime'],

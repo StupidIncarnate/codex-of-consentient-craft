@@ -34,8 +34,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { readdirIfExists, readFile, statIfExists } from '#gateway/node/fs__promises';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -149,21 +148,15 @@ export const instanceEntryLayerBroker = async ({
   }
 
   const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        join(evidenceDir, locationsStatics.siegelense.apiLog),
-      ),
-    }),
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        join(evidenceDir, locationsStatics.siegelense.webLog),
-      ),
-    }),
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        join(evidenceDir, locationsStatics.siegelense.driverLog),
-      ),
-    }),
+    statIfExists(
+      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.apiLog)),
+    ),
+    statIfExists(
+      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.webLog)),
+    ),
+    statIfExists(
+      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.driverLog)),
+    ),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
   ]);
 

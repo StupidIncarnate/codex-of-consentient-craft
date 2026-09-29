@@ -1,7 +1,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 
 type DrivingOddity = ReturnType<typeof DrivingOddityStub>;
@@ -14,17 +14,12 @@ export const drivingOddityReadBrokerProxy = (): {
   setupFile: (params: { filePath: AbsoluteFilePath; entries: readonly DrivingOddity[] }) => void;
   setupRawFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
 } => {
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const readFileMock = readFileProxy();
 
   return {
-    // ENOENT is what fs.stat really raises for an absent file, and fsStatAdapter turns exactly that
-    // code into a null — staging a generic Error here would make the adapter rethrow instead.
     setupNoFile: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      statProxy.rejects({
-        filePath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      statProxy.missing({ path: filePath });
     },
 
     setupFile: ({
@@ -34,8 +29,8 @@ export const drivingOddityReadBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       entries: readonly DrivingOddity[];
     }): void => {
-      statProxy.resolves({
-        filePath,
+      statProxy.returnsFile({
+        path: filePath,
         sizeBytes: FILE_SIZE_BYTES,
         modifiedAtMs: FILE_MODIFIED_AT_MS,
       });
@@ -54,8 +49,8 @@ export const drivingOddityReadBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       contents: string;
     }): void => {
-      statProxy.resolves({
-        filePath,
+      statProxy.returnsFile({
+        path: filePath,
         sizeBytes: FILE_SIZE_BYTES,
         modifiedAtMs: FILE_MODIFIED_AT_MS,
       });

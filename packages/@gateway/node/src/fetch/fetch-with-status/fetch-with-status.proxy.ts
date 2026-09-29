@@ -1,26 +1,15 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { AbortErrorStub } from '../abort-error/abort-error.stub';
 
-const HTTP_OK_STATUS_MIN = 200;
-const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;
-
-const buildResponse = ({
-  ok,
-  status,
-  bodyText,
-}: {
-  ok: boolean;
-  status: number;
-  bodyText: string;
-}): Response =>
-  ({
-    ok,
-    status,
-    text: async () => Promise.resolve(bodyText),
-  }) as never;
+const NULL_BODY_TEXT = '';
 
 export const fetchWithStatusProxy = (): {
-  setupResponse: (params: { url: string; status: number; bodyText: string }) => void;
+  setupResponse: (params: {
+    url: string;
+    status: number;
+    bodyText: string;
+    statusText?: string;
+  }) => void;
   setupRefused: (params: { url: string; cause: Error }) => void;
   setupAbortImmediate: (params: { url: string }) => void;
   setupAbortsOnSignal: (params: { url: string }) => void;
@@ -30,22 +19,26 @@ export const fetchWithStatusProxy = (): {
 
   return {
     // Keyed on the URL — the first fetch() argument — so two endpoints staged in one test each
-    // answer only their own call. `ok` is derived from `status`, exactly as the real Response does.
+    // answer only their own call. Each call builds a fresh real Response (a body reads once), so
+    // `ok` derives from `status` exactly as in production; `statusText` is empty unless staged.
     setupResponse: ({
       url,
       status,
       bodyText,
+      statusText,
     }: {
       url: string;
       status: number;
       bodyText: string;
+      statusText?: string;
     }): void => {
-      handle.calledWith([url]).resolves(
-        buildResponse({
-          ok: status >= HTTP_OK_STATUS_MIN && status < HTTP_OK_STATUS_MAX_EXCLUSIVE,
-          status,
-          bodyText,
-        }),
+      handle.calledWith([url]).implement(async () =>
+        Promise.resolve(
+          new Response(bodyText === NULL_BODY_TEXT ? null : bodyText, {
+            status,
+            ...(statusText === undefined ? {} : { statusText }),
+          }),
+        ),
       );
     },
     // `cause` carries its own `.cause` chain (a duck-typed error with `.code`), so the rejection

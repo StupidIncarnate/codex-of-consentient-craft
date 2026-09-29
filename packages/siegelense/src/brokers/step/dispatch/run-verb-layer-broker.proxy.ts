@@ -253,20 +253,17 @@ export const runVerbLayerBrokerProxy = (): {
       url,
       status,
       statusText,
-      headers,
       body,
     }: {
       url: string;
       status?: number;
       statusText?: string;
-      headers?: Record<PropertyKey, unknown>;
       body?: unknown;
     }): void => {
       requestProxy.setupResponse({
         url,
         ...(status === undefined ? {} : { status }),
         ...(statusText === undefined ? {} : { statusText }),
-        ...(headers === undefined ? {} : { headers }),
         ...(body === undefined ? {} : { body }),
       });
     },

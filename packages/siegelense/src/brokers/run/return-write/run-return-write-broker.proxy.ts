@@ -1,30 +1,34 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 
 export const runReturnWriteBrokerProxy = (): {
   succeeds: (params: { storedReturnPath: AbsoluteFilePath }) => void;
-  throws: (params: { storedReturnPath: AbsoluteFilePath; error: Error }) => void;
+  throws: (params: { storedReturnPath: AbsoluteFilePath; code: string }) => void;
   writtenFor: (params: { storedReturnPath: AbsoluteFilePath }) => unknown;
 } => {
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   return {
     succeeds: ({ storedReturnPath }: { storedReturnPath: AbsoluteFilePath }): void => {
-      writeProxy.succeeds({ filePath: storedReturnPath });
+      writeProxy.succeeds({ path: storedReturnPath });
     },
 
     throws: ({
       storedReturnPath,
-      error,
+      code,
     }: {
       storedReturnPath: AbsoluteFilePath;
-      error: Error;
+      code: string;
     }): void => {
-      writeProxy.throws({ filePath: storedReturnPath, error });
+      writeProxy.rejects({
+        path: storedReturnPath,
+        error: FsErrorStub({ code, path: storedReturnPath, syscall: 'write' }),
+      });
     },
 
     writtenFor: ({ storedReturnPath }: { storedReturnPath: AbsoluteFilePath }): unknown =>
-      writeProxy.getWrittenFor({ filePath: storedReturnPath }),
+      writeProxy.writtenContentsFor({ path: storedReturnPath }),
   };
 };

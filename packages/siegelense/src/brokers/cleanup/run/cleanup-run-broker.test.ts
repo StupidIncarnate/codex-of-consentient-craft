@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -17,6 +17,10 @@ const LIVE_ID = InstanceIdStub({ value: 'inst_7f3a' });
 const STALE_ID = InstanceIdStub({ value: 'inst_9b2c' });
 const RESERVED_ID = InstanceIdStub({ value: 'inst_1d09' });
 const ABANDONED_RESERVATION_ID = InstanceIdStub({ value: 'inst_65f30f20' });
+
+const HOME_DIR = '/home/user';
+const HOME_PATH = `${HOME_DIR}/.dungeonmaster`;
+const ROOT_PATH = `${HOME_PATH}/siegelense`;
 
 const STALE_SOCKET_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-sockets/${STALE_ID}.sock` });
 const STALE_EVIDENCE_PATH = AbsoluteFilePathStub({
@@ -68,6 +72,12 @@ describe('cleanupRunBroker', () => {
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME_PATH }),
+        rootPath: FilePathStub({ value: ROOT_PATH }),
+        evidencePath: FilePathStub({ value: STALE_EVIDENCE_PATH }),
+      });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
         entries: [],
@@ -107,6 +117,12 @@ describe('cleanupRunBroker', () => {
       proxy.setupDriverUnreachableNoPgids({
         socketPath: ABANDONED_RESERVATION_SOCKET_PATH,
         homePath: ABANDONED_RESERVATION_HOME_PATH,
+      });
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME_PATH }),
+        rootPath: FilePathStub({ value: ROOT_PATH }),
+        evidencePath: FilePathStub({ value: ABANDONED_RESERVATION_EVIDENCE_PATH }),
       });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${ABANDONED_RESERVATION_EVIDENCE_PATH}/runs` }),
@@ -175,6 +191,12 @@ describe('cleanupRunBroker', () => {
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME_PATH }),
+        rootPath: FilePathStub({ value: ROOT_PATH }),
+        evidencePath: FilePathStub({ value: STALE_EVIDENCE_PATH }),
+      });
       proxy.setupDir({
         dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
         entries: [],

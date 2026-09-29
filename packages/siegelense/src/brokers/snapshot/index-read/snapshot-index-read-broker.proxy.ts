@@ -2,7 +2,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { locationsSnapshotPathsFindBrokerProxy } from '../../locations/snapshot-paths-find/locations-snapshot-paths-find-broker.proxy';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
 import type { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
@@ -28,20 +28,15 @@ export const snapshotIndexReadBrokerProxy = (): {
   // Runs REAL — it is pure — so its own proxy is constructed for enforce-proxy-child-creation only.
   locationsSnapshotPathsFindBrokerProxy();
 
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const readProxy = readFileProxy();
 
   return {
     indexPathFor: ({ homePath }: { homePath: AbsoluteFilePath }): AbsoluteFilePath =>
       AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` }),
 
-    // ENOENT is what fs.stat really raises for an absent index, and fsStatAdapter turns exactly that
-    // code into a null — staging a generic Error here would make the adapter rethrow instead.
     setupNoIndex: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
-      statProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      statProxy.missing({ path: `${String(homePath)}/${INDEX_SUFFIX}` });
     },
 
     setupIndex: ({
@@ -52,8 +47,8 @@ export const snapshotIndexReadBrokerProxy = (): {
       records: readonly SnapshotRecord[];
     }): void => {
       const index = AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` });
-      statProxy.resolves({
-        filePath: index,
+      statProxy.returnsFile({
+        path: index,
         sizeBytes: INDEX_SIZE_BYTES,
         modifiedAtMs: INDEX_MODIFIED_AT_MS,
       });
@@ -73,8 +68,8 @@ export const snapshotIndexReadBrokerProxy = (): {
       contents: string;
     }): void => {
       const index = AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` });
-      statProxy.resolves({
-        filePath: index,
+      statProxy.returnsFile({
+        path: index,
         sizeBytes: INDEX_SIZE_BYTES,
         modifiedAtMs: INDEX_MODIFIED_AT_MS,
       });

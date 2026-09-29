@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Drives the `request` step verb — resolves the target HTTP URL against the lane's API
- * base URL (or uses an absolute URL directly), executes the request via fetchHttpRequestAdapter,
+ * base URL (or uses an absolute URL directly), executes the request via `fetchWithStatus`,
  * throws an HttpRequestFailedError if the response status is 4xx/5xx (so expect: 'error' turns
  * it into a passing adversarial test), or renders the reading via httpRequestReadingRenderTransformer.
  * Reach for this over browser-based interaction when verifying backend APIs, curl surfaces, or
@@ -13,8 +13,10 @@
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fetchHttpRequestAdapter } from '../../../adapters/fetch/http-request/fetch-http-request-adapter';
+import { fetchWithStatus } from '#gateway/node/fetch';
+
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { HttpRequestFailedError } from '../../../errors/http-request-failed/http-request-failed-error';
@@ -40,25 +42,38 @@ export const stepRequestBroker = async ({
       ? step.path
       : `${cleanBase}${cleanPath}`;
 
-  const reading = await fetchHttpRequestAdapter({
+  const requestBody = step.body === null ? undefined : step.body;
+  const hasContentType = Object.keys(step.headers ?? {}).some(
+    (key) => key.toLowerCase() === 'content-type',
+  );
+  const needsContentType =
+    requestBody !== undefined && typeof requestBody !== 'string' && !hasContentType;
+  const headers = {
+    ...step.headers,
+    ...(needsContentType ? { 'content-type': requestStatics.defaults.contentType } : {}),
+  };
+
+  const response = await fetchWithStatus({
     url,
     method: step.method,
-    ...(step.headers === undefined ? {} : { headers: step.headers }),
-    ...(step.body === undefined ? {} : { body: step.body }),
+    headers,
+    ...(requestBody === undefined ? {} : { body: requestBody }),
   });
 
-  if (reading.status >= requestStatics.status.clientErrorThreshold) {
+  if (response.status >= requestStatics.status.clientErrorThreshold) {
     throw new HttpRequestFailedError({
-      status: reading.status,
-      statusText: reading.statusText,
-      body: typeof reading.body === 'string' ? reading.body : JSON.stringify(reading.body),
+      status: response.status,
+      statusText: response.statusText,
+      body: response.body,
       url,
     });
   }
 
+  const parsedBody = safeJsonParseTransformer({ value: response.body });
+
   return httpRequestReadingRenderTransformer({
-    status: reading.status,
-    statusText: reading.statusText,
-    body: reading.body,
+    status: response.status,
+    statusText: response.statusText,
+    body: parsedBody.ok ? parsedBody.value : response.body,
   });
 };

@@ -17,8 +17,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { readdirIfExists } from '#gateway/node/fs__promises';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
@@ -45,7 +44,7 @@ export const runShotsLayerBroker = async ({
       }
 
       const filePath = absoluteFilePathContract.parse(join(shotsDir, fileName));
-      const stat = await fsStatAdapter({ filePath });
+      const stat = await statIfExists(filePath);
 
       if (stat === null) {
         return [];

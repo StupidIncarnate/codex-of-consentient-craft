@@ -31,7 +31,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
 import {
   type InstallContext,
@@ -45,7 +45,6 @@ import {
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { readFile } from '#gateway/node/fs__promises';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
 
@@ -109,7 +108,7 @@ export const InstallRecipesScaffoldResponder = async ({
   // Unlike the original flat starter (package.json/tsconfig*/src/index.ts, all one level deep),
   // enforce-hydration-recipes-structure's five required files sit under nested folders
   // (src/startup/, src/flows/recipes/, src/responders/recipes/{listing,seed}/) that never exist
-  // yet — `fsWriteFileAdapter` is a bare `fs/promises.writeFile`, with no parent-directory creation
+  // yet — `writeFile` (gateway) creates no parent directory
   // of its own, so writing straight to those paths throws ENOENT. Every unique directory the
   // scaffold touches (including the package root itself) is created first, deduped through a Set
   // since `ensureDir` is recursive and idempotent but still one real syscall per call.
@@ -120,10 +119,10 @@ export const InstallRecipesScaffoldResponder = async ({
 
   await Promise.all(
     scaffoldFiles.map(async (file) =>
-      fsWriteFileAdapter({
-        filePath: absoluteFilePathContract.parse(resolve(recipesPackagePath, file.relativePath)),
-        contents: file.contents,
-      }),
+      writeFile(
+        absoluteFilePathContract.parse(resolve(recipesPackagePath, file.relativePath)),
+        file.contents,
+      ),
     ),
   );
 

@@ -92,7 +92,7 @@ export const InstallLinkCreateResponder = async ({
     // ENOENT (never there) and EINVAL (readlink's own answer for "this path exists and is not a
     // symlink") are the only two codes this classifies. EINVAL means a real directory or file
     // occupies the legacy path — reported, never touched, never unlinked. Anything else (EACCES,
-    // ESTALE) is a real failure and propagates unchanged, matching fsStatAdapter's own ENOENT-only
+    // ESTALE) is a real failure and propagates unchanged, matching `statIfExists`'s own ENOENT-only
     // absence contract.
     if (
       legacyReadError === null ||

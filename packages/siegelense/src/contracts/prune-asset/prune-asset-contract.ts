@@ -5,7 +5,7 @@
  * directory is what turns a reported reclaim into fiction. `modifiedAtMs` rather than a creation
  * time, because `fs.Stats` has no portable birth time and the last WRITE is what "this evidence has
  * not been touched in seven days" actually means. Reach for this over `FileStat`: that one is the
- * two fields `fsStatAdapter` answers with, while this pairs them with the path and the class the
+ * two fields a stat read keeps, while this pairs them with the path and the class the
  * selector filters on.
  *
  * USAGE:

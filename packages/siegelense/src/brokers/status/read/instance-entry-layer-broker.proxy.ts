@@ -34,7 +34,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
@@ -109,9 +109,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const runsDirProxy = readdirIfExistsProxy();
   const rssProxy = machineRssByPgidBrokerProxy();
   const orphanProxy = orphanReadBrokerProxy();
-  const apiLogStatProxy = fsStatAdapterProxy();
-  const webLogStatProxy = fsStatAdapterProxy();
-  const driverLogStatProxy = fsStatAdapterProxy();
+  const logStatProxy = statIfExistsProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const transcriptReadProxy = readFileProxy();
   const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
@@ -209,60 +207,39 @@ export const instanceEntryLayerBrokerProxy = (): {
     },
 
     setupApiLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      apiLogStatProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.apiLog}`,
-        }),
+      logStatProxy.returnsFile({
+        path: `${evidencePath}/${locationsStatics.siegelense.apiLog}`,
         sizeBytes: 1,
         modifiedAtMs: 0,
       });
     },
 
     setupApiLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      apiLogStatProxy.rejects({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.apiLog}`,
-        }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.apiLog}` });
     },
 
     setupWebLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      webLogStatProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
-        }),
+      logStatProxy.returnsFile({
+        path: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
         sizeBytes: 1,
         modifiedAtMs: 0,
       });
     },
 
     setupWebLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      webLogStatProxy.rejects({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
-        }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.webLog}` });
     },
 
     setupDriverLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      driverLogStatProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
-        }),
+      logStatProxy.returnsFile({
+        path: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
         sizeBytes: 1,
         modifiedAtMs: 0,
       });
     },
 
     setupDriverLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      driverLogStatProxy.rejects({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
-        }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.driverLog}` });
     },
 
     setupRepoLinkResolves: (params: {

@@ -20,7 +20,7 @@ import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/s
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { writeFile } from '#gateway/node/fs__promises';
 import { bootFailureMarkerContract } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
 import type { BootFailureMarker } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -43,7 +43,7 @@ export const bootFailureMarkerWriteBroker = async ({
 
   const contents = fileContentsContract.parse(`${JSON.stringify(marker)}\n`);
 
-  await fsWriteFileAdapter({ filePath: markerPath, contents });
+  await writeFile(markerPath, contents);
 
   return marker;
 };

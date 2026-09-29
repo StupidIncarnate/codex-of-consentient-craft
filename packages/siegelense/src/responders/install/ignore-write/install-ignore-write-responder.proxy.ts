@@ -3,14 +3,14 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { ArrayEntryAnchorInsertLayerResponderProxy } from './array-entry-anchor-insert-layer-responder.proxy';
 import { InstallIgnoreWriteResponder } from './install-ignore-write-responder';
 
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // resolve passthrough resolves it to these exact paths), so every test lands on these files.
-// Two brands per path: `existsSyncProxy` and `readFileProxy` (gateway) take a raw path, while
-// this package's own `fsWriteFileAdapterProxy` takes `AbsoluteFilePath`.
+// `existsSyncProxy`, `readFileProxy` and `writeFileProxy` (gateway) all take a raw path; the
+// `AbsoluteFilePath` constants are the same strings, branded.
 const GITIGNORE_PATH_STRING = '/project/.gitignore';
 const GITIGNORE_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: GITIGNORE_PATH_STRING });
 
@@ -57,7 +57,7 @@ export const InstallIgnoreWriteResponderProxy = (): {
   ArrayEntryAnchorInsertLayerResponderProxy();
   const existsProxy = existsSyncProxy();
   const readProxy = readFileProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   // The responder always probes every candidate for each surface; default every candidate to
   // absent so a test that only cares about one surface need not stage all of them itself.
@@ -77,35 +77,35 @@ export const InstallIgnoreWriteResponderProxy = (): {
       if (present) {
         readProxy.returns({ path: GITIGNORE_PATH_STRING, contents: content ?? '' });
       }
-      writeProxy.succeeds({ filePath: GITIGNORE_ABSOLUTE_PATH });
+      writeProxy.succeeds({ path: GITIGNORE_ABSOLUTE_PATH });
     },
 
     setupEslintConfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: ESLINT_CONFIG_JS_PATH_STRING, exists: true });
       readProxy.returns({ path: ESLINT_CONFIG_JS_PATH_STRING, contents: content });
-      writeProxy.succeeds({ filePath: ESLINT_CONFIG_JS_ABSOLUTE_PATH });
+      writeProxy.succeeds({ path: ESLINT_CONFIG_JS_ABSOLUTE_PATH });
     },
 
     setupTsconfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: TSCONFIG_PATH_STRING, exists: true });
       readProxy.returns({ path: TSCONFIG_PATH_STRING, contents: content });
-      writeProxy.succeeds({ filePath: TSCONFIG_ABSOLUTE_PATH });
+      writeProxy.succeeds({ path: TSCONFIG_ABSOLUTE_PATH });
     },
 
     setupTestRunnerConfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: TEST_RUNNER_CONFIG_JS_PATH_STRING, exists: true });
       readProxy.returns({ path: TEST_RUNNER_CONFIG_JS_PATH_STRING, contents: content });
-      writeProxy.succeeds({ filePath: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH });
+      writeProxy.succeeds({ path: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH });
     },
 
     getWrittenGitignore: (): unknown =>
-      writeProxy.getWrittenFor({ filePath: GITIGNORE_ABSOLUTE_PATH }),
+      writeProxy.writtenContentsFor({ path: GITIGNORE_ABSOLUTE_PATH }),
     getWrittenEslintConfig: (): unknown =>
-      writeProxy.getWrittenFor({ filePath: ESLINT_CONFIG_JS_ABSOLUTE_PATH }),
+      writeProxy.writtenContentsFor({ path: ESLINT_CONFIG_JS_ABSOLUTE_PATH }),
     getWrittenTsconfig: (): unknown =>
-      writeProxy.getWrittenFor({ filePath: TSCONFIG_ABSOLUTE_PATH }),
+      writeProxy.writtenContentsFor({ path: TSCONFIG_ABSOLUTE_PATH }),
     getWrittenTestRunnerConfig: (): unknown =>
-      writeProxy.getWrittenFor({ filePath: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH }),
+      writeProxy.writtenContentsFor({ path: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH }),
 
     wasGitignoreRead: (): boolean =>
       readProxy.getCallsFor({ path: GITIGNORE_PATH_STRING }).length > 0,

@@ -22,10 +22,10 @@ describe('registryWriteBroker', () => {
   describe('write failure', () => {
     it('ERROR: {tmp write fails} => rejects with the write error', async () => {
       const proxy = registryWriteBrokerProxy();
-      proxy.setupWriteFailure({ error: new Error('disk full') });
+      proxy.setupWriteFailure({ code: 'ENOSPC' });
 
       await expect(registryWriteBroker({ registry: RegistryStub() })).rejects.toThrow(
-        /^disk full$/u,
+        /^ENOSPC: write '\/home\/user\/\.dungeonmaster\/siegelense\/registry\.json\.tmp'$/u,
       );
     });
   });

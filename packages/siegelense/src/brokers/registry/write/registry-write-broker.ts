@@ -10,12 +10,11 @@
  * // Writes registry.json.tmp, renames it over registry.json, resolves once the rename lands
  */
 
-import { ensureDir, rename } from '#gateway/node/fs__promises';
+import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import { locationsRegistryPathFindBroker } from '../../locations/registry-path-find/locations-registry-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
@@ -30,7 +29,7 @@ export const registryWriteBroker = async ({ registry }: { registry: Registry }):
   await ensureDir(rootPath);
 
   const contents = fileContentsContract.parse(`${JSON.stringify(registry)}\n`);
-  await fsWriteFileAdapter({ filePath: tmpPath, contents });
+  await writeFile(tmpPath, contents);
 
   await rename(tmpPath, registryPath);
 };

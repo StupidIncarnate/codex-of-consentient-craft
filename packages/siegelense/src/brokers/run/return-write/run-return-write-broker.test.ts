@@ -7,7 +7,7 @@ import { runReturnWriteBrokerProxy } from './run-return-write-broker.proxy';
 
 describe('runReturnWriteBroker', () => {
   describe('a run result', () => {
-    it('VALID: {result} => writes the JSON return and reports success', async () => {
+    it('VALID: {result} => writes the JSON return and resolves with nothing', async () => {
       const proxy = runReturnWriteBrokerProxy();
       const storedReturnPath = AbsoluteFilePathStub({
         value:
@@ -16,9 +16,7 @@ describe('runReturnWriteBroker', () => {
       const result = RunResultStub();
       proxy.succeeds({ storedReturnPath });
 
-      const written = await runReturnWriteBroker({ storedReturnPath, result });
-
-      expect(written).toStrictEqual({ success: true });
+      await expect(runReturnWriteBroker({ storedReturnPath, result })).resolves.toBe(undefined);
     });
 
     it('VALID: {result} => the written content is the whole result as one JSON line', async () => {
@@ -36,23 +34,20 @@ describe('runReturnWriteBroker', () => {
     });
   });
 
-  describe('the adapter rejects', () => {
+  describe('the write rejects', () => {
     it('ERROR: {disk write fails} => the return-write broker rejects with the same error', async () => {
       const proxy = runReturnWriteBrokerProxy();
       const storedReturnPath = AbsoluteFilePathStub({
         value:
           '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json',
       });
-      proxy.throws({ storedReturnPath, error: new Error('ENOSPC') });
+      proxy.throws({ storedReturnPath, code: 'ENOSPC' });
 
-      const error = await runReturnWriteBroker({ storedReturnPath, result: RunResultStub() }).then(
-        (): never => {
-          throw new Error('Expected runReturnWriteBroker to reject');
-        },
-        (caught: unknown): Error => caught as Error,
+      await expect(
+        runReturnWriteBroker({ storedReturnPath, result: RunResultStub() }),
+      ).rejects.toThrow(
+        /^ENOSPC: write '\/repo\/\.dungeonmaster-assets\/siegelense-assets\/guilds\/g1\/instances\/inst_1\/runs\/run_2\.json'$/u,
       );
-
-      expect(error.message).toBe('ENOSPC');
     });
   });
 });

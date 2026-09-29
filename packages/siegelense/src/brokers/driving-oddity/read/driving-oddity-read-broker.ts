@@ -17,10 +17,9 @@
  * // Returns every DrivingOddity in append order, or [] when the file does not exist yet
  */
 
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { drivingOddityContract } from '../../../contracts/driving-oddity/driving-oddity-contract';
 import type { DrivingOddity } from '../../../contracts/driving-oddity/driving-oddity-contract';
 import { DrivingOddityFileMalformedError } from '../../../errors/driving-oddity-file-malformed/driving-oddity-file-malformed-error';
@@ -30,7 +29,7 @@ export const drivingOddityReadBroker = async ({
 }: {
   filePath: AbsoluteFilePath;
 }): Promise<readonly DrivingOddity[]> => {
-  const stat = await fsStatAdapter({ filePath });
+  const stat = await statIfExists(filePath);
   if (stat === null) {
     return [];
   }

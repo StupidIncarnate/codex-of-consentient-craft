@@ -5,7 +5,7 @@ import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 
@@ -41,7 +41,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   getRolledBackFor: (params: { path: AbsoluteFilePath }) => unknown;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const removeProxy = rmProxy();
   // Read-back addresses only the paths this test staged; an unstaged rm already throws.
   const stagedRmPaths: AbsoluteFilePath[] = [];
@@ -57,7 +57,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
 
     setupFileStats: ({ stats }): void => {
       stats.forEach(({ filePath, sizeBytes, modifiedAtMs }) => {
-        statProxy.resolves({ filePath, sizeBytes, modifiedAtMs });
+        statProxy.returnsFile({ path: filePath, sizeBytes, modifiedAtMs });
       });
     },
 

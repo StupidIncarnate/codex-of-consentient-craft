@@ -16,8 +16,7 @@
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 
-import { readdirIfExists } from '#gateway/node/fs__promises';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
 import { pruneAssetKindContract } from '../../../contracts/prune-asset-kind/prune-asset-kind-contract';
@@ -55,7 +54,7 @@ export const pruneAssetsListBroker = async ({
 
   const logRows = await Promise.all(
     logs.map(async (filePath) => {
-      const stat = await fsStatAdapter({ filePath });
+      const stat = await statIfExists(filePath);
       return stat === null
         ? []
         : [
@@ -74,7 +73,7 @@ export const pruneAssetsListBroker = async ({
   // These are the instance's own capture record, the same as the process logs above.
   const bufferRows = await Promise.all(
     transcripts.map(async (filePath) => {
-      const stat = await fsStatAdapter({ filePath });
+      const stat = await statIfExists(filePath);
       return stat === null
         ? []
         : [
@@ -108,7 +107,7 @@ export const pruneAssetsListBroker = async ({
       }
 
       const filePath = absoluteFilePathContract.parse(join(runsDir, fileName));
-      const stat = await fsStatAdapter({ filePath });
+      const stat = await statIfExists(filePath);
 
       return stat === null
         ? []
@@ -138,7 +137,7 @@ export const pruneAssetsListBroker = async ({
       }
 
       const filePath = absoluteFilePathContract.parse(join(videoDir, fileName));
-      const stat = await fsStatAdapter({ filePath });
+      const stat = await statIfExists(filePath);
 
       return stat === null
         ? []

@@ -1,12 +1,10 @@
-import { stat } from 'fs/promises';
-
 import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsPruneAssetPathsFindBrokerProxy } from '../../locations/prune-asset-paths-find/locations-prune-asset-paths-find-broker.proxy';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
@@ -29,7 +27,7 @@ export const pruneAssetsListBrokerProxy = (): {
   }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   locationsPruneAssetPathsFindBrokerProxy();
   runShotsLayerBrokerProxy();
@@ -41,15 +39,11 @@ export const pruneAssetsListBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
 
   // The broker stats nine instance-level paths on EVERY call — six process records and three
-  // capture buffers — and a fixture describes only the ones it wrote. This floor answers ENOENT for
-  // every path a test did not describe, which is what the real tree answers for them. It is
-  // deliberately a FUNCTION matcher: an exact-path `setupFile` staged afterwards outranks it, so
-  // describing a file still works and only the undescribed ones read as absent.
-  registerMock({ fn: stat })
-    .calledWith([(): boolean => true])
-    .rejects(
-      Object.assign(new Error('ENOENT: no such file or directory, stat'), { code: 'ENOENT' }),
-    );
+  // capture buffers — and a fixture describes only the ones it wrote. `setupEvidenceTree` stages
+  // the floor: ENOENT for every path under the instance's evidence directory that a test did not
+  // describe, which is what the real tree answers for them. An exact-path `setupFile` staged
+  // afterwards outranks it, so describing a file still works and only the undescribed ones read as
+  // absent.
 
   // The broker lists the instance's video directory on EVERY call, and only a lane that recorded a
   // screencast has one. This floor answers ENOENT for any video directory a test did not describe,
@@ -72,6 +66,10 @@ export const pruneAssetsListBrokerProxy = (): {
       evidencePath: FilePath;
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
+      statProxy.throwsMatchingPath({
+        path: (value: unknown): boolean => String(value).startsWith(evidencePath),
+        error: FsErrorStub({ code: 'ENOENT', path: evidencePath }),
+      });
     },
 
     setupDir: ({
@@ -93,7 +91,7 @@ export const pruneAssetsListBrokerProxy = (): {
       sizeBytes: number;
       modifiedAtMs: number;
     }): void => {
-      statProxy.resolves({ filePath, sizeBytes, modifiedAtMs });
+      statProxy.returnsFile({ path: filePath, sizeBytes, modifiedAtMs });
     },
   };
 };

@@ -16,11 +16,10 @@
  * // Writes profiles/<specHash>/boots/<instanceId>.json and returns the written ProfileBoot
  */
 
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -53,10 +52,7 @@ export const profileBootRecordBroker = async ({
   });
 
   await ensureDir(bootsDir);
-  await fsWriteFileAdapter({
-    filePath: recordPath,
-    contents: fileContentsContract.parse(`${JSON.stringify(record)}\n`),
-  });
+  await writeFile(recordPath, fileContentsContract.parse(`${JSON.stringify(record)}\n`));
 
   return record;
 };

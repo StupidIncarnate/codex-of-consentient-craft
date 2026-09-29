@@ -4,7 +4,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
@@ -58,7 +58,7 @@ export const heartbeatWriteBrokerProxy = (): {
   // — addressed below on this file's OWN exact tuple, never a bare `calledWith([])`.
   const joinHandle = registerMock({ fn: join });
   const rssProxy = machineRssByPgidBrokerProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const registryProxy = registryUpdateBrokerProxy();
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
 
@@ -84,7 +84,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      writeProxy.succeeds({ filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       // Honest default: no /proc means rssMB: null, matching InstanceHeartbeatStub's own default.
       rssProxy.setupProcMissing();
@@ -120,7 +120,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      writeProxy.succeeds({ filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       rssProxy.setupProcListing({ pids: [pid] });
       rssProxy.setupPidStat({ pid, pgrp });
@@ -161,7 +161,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      writeProxy.succeeds({ filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
 
       // machineRssByPgidBroker rejects on the pid's own /proc/<pid>/stat read — the shape of one
       // unrelated process on the box throwing EACCES, not this instance's own pgids being gone.
@@ -182,8 +182,8 @@ export const heartbeatWriteBrokerProxy = (): {
       `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,
 
     getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
-      writeProxy.getWrittenFor({
-        filePath: AbsoluteFilePathStub({
+      writeProxy.writtenContentsFor({
+        path: AbsoluteFilePathStub({
           value: `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,
         }),
       }),

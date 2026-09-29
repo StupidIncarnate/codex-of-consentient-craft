@@ -104,7 +104,7 @@ export const runVerbLayerBroker = async ({
   }
 
   // `request` routes here for the same reason `seed` does: it executes an HTTP request using
-  // `fetchHttpRequestAdapter` against `lane.apiBaseUrl` and touches no page at all, so it runs
+  // `fetchWithStatus` against `lane.apiBaseUrl` and touches no page at all, so it runs
   // identically against browserless instances.
   if (step.step === 'request') {
     return stepRequestBroker({ lane, step });

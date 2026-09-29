@@ -8,6 +8,7 @@ describe('requestStatics', () => {
         timeoutMs: 10000,
         status: 200,
         statusText: 'OK',
+        contentType: 'application/json',
       },
       reading: {
         delimiter: ' — ',

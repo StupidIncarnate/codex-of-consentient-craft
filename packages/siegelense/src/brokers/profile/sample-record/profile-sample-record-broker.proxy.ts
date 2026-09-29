@@ -25,7 +25,7 @@ import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
@@ -72,7 +72,7 @@ export const profileSampleRecordBrokerProxy = (): {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileProxy();
   const mkdirProxy = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
   // Record-and-swallow: what stderr does with the write is nobody's assertion, only what was
   // written — read back through getStderrMessages.
@@ -114,7 +114,7 @@ export const profileSampleRecordBrokerProxy = (): {
 
     mkdirProxy.succeeds({ path: samplesDirFor({ profilesPath }) });
     writeProxy.succeeds({
-      filePath: AbsoluteFilePathStub({
+      path: AbsoluteFilePathStub({
         value: String(recordPathFor({ profilesPath, instanceId })),
       }),
     });
@@ -142,8 +142,8 @@ export const profileSampleRecordBrokerProxy = (): {
     },
 
     getWrittenRecord: ({ profilesPath, instanceId }): unknown =>
-      writeProxy.getWrittenFor({
-        filePath: AbsoluteFilePathStub({
+      writeProxy.writtenContentsFor({
+        path: AbsoluteFilePathStub({
           value: String(recordPathFor({ profilesPath, instanceId })),
         }),
       }),

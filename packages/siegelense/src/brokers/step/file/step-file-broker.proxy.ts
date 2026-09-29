@@ -1,9 +1,9 @@
-// PURPOSE: Proxy for step-file-broker — composes fsStatAdapterProxy and fsReadFileAdapterProxy for
+// PURPOSE: Proxy for step-file-broker — composes statIfExistsProxy and readFileProxy for
 // testing file existence checks and file reading off a lane's throwaway home directory or evidence
 // directory. `join` (from '#gateway/node/path') is mocked directly, on a sticky real-passthrough
 // default: both segments of every join this broker makes (a lane's home/evidence path, plus the
 // step's own file path) are already known at test-setup time, so the real computed path always
-// matches what `setupFileExists`/`setupFileNotFound` stage on fsStatAdapter/fsReadFileAdapter.
+// matches what `setupFileExists`/`setupFileNotFound` stage on statIfExists/readFile.
 // USAGE: const proxy = stepFileBrokerProxy(); proxy.setupFileExists({ filePath, content });
 
 import { join } from '#gateway/node/path';
@@ -11,7 +11,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 
 export const stepFileBrokerProxy = (): {
   setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
@@ -27,7 +27,7 @@ export const stepFileBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const readFileMock = readFileProxy();
 
   return {
@@ -38,7 +38,11 @@ export const stepFileBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       content: string;
     }): void => {
-      statProxy.resolves({ filePath, sizeBytes: content.length, modifiedAtMs: 1_700_000_000_000 });
+      statProxy.returnsFile({
+        path: filePath,
+        sizeBytes: content.length,
+        modifiedAtMs: 1_700_000_000_000,
+      });
       readFileMock.returns({ path: filePath, contents: content });
     },
 
@@ -49,19 +53,9 @@ export const stepFileBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       evidenceFilePath?: AbsoluteFilePath;
     }): void => {
-      statProxy.rejects({
-        filePath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), {
-          code: 'ENOENT',
-        }),
-      });
+      statProxy.missing({ path: filePath });
       if (evidenceFilePath !== undefined) {
-        statProxy.rejects({
-          filePath: evidenceFilePath,
-          error: Object.assign(new Error('ENOENT: no such file or directory'), {
-            code: 'ENOENT',
-          }),
-        });
+        statProxy.missing({ path: evidenceFilePath });
       }
     },
   };

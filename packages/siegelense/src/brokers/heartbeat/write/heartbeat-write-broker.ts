@@ -39,7 +39,7 @@ import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/s
 import type { GuildId, ProcessId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { writeFile } from '#gateway/node/fs__promises';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
@@ -89,7 +89,7 @@ export const heartbeatWriteBroker = async ({
   // beat is one tick stale (a staleness sweep reaps it correctly) and a file that already names the
   // orphaned pgids. The other order leaves a row claiming a fresh beat with no file underneath it —
   // the one state that makes those pgids unreachable.
-  await fsWriteFileAdapter({ filePath: heartbeatPath, contents });
+  await writeFile(heartbeatPath, contents);
 
   await registryUpdateBroker({
     mutate: (current) => ({

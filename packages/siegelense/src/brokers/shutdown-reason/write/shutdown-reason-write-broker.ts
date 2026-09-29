@@ -21,7 +21,7 @@ import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/s
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { writeFile } from '#gateway/node/fs__promises';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { shutdownReasonContract } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 import type { ShutdownReason } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
@@ -44,7 +44,7 @@ export const shutdownReasonWriteBroker = async ({
 
   const contents = fileContentsContract.parse(`${JSON.stringify(marker)}\n`);
 
-  await fsWriteFileAdapter({ filePath: markerPath, contents });
+  await writeFile(markerPath, contents);
 
   return marker;
 };

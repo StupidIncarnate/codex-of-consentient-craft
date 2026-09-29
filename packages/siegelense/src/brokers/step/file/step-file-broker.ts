@@ -16,8 +16,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { readFile } from '#gateway/node/fs__promises';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { StepFilePath } from '../../../contracts/step-file-path/step-file-path-contract';
 import { StepFileNotFoundError } from '../../../errors/step-file-not-found/step-file-not-found-error';
@@ -30,7 +29,7 @@ export const stepFileBroker = async ({
   path: StepFilePath;
 }): Promise<ContentText> => {
   const homeFilePath = absoluteFilePathContract.parse(join(lane.homePath, path));
-  const homeStat = await fsStatAdapter({ filePath: homeFilePath });
+  const homeStat = await statIfExists(homeFilePath);
 
   if (homeStat !== null) {
     const content = await readFile(homeFilePath);
@@ -38,7 +37,7 @@ export const stepFileBroker = async ({
   }
 
   const evidenceFilePath = absoluteFilePathContract.parse(join(lane.evidencePath, path));
-  const evidenceStat = await fsStatAdapter({ filePath: evidenceFilePath });
+  const evidenceStat = await statIfExists(evidenceFilePath);
 
   if (evidenceStat !== null) {
     const content = await readFile(evidenceFilePath);

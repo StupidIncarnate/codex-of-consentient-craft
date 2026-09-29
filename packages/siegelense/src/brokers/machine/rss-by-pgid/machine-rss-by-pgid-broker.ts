@@ -21,12 +21,11 @@
  * // Returns the summed resident memory in whole megabytes, or null if /proc is unavailable
  */
 
-import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFileIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
@@ -39,7 +38,7 @@ export const machineRssByPgidBroker = async ({
 }): Promise<Megabytes | null> => {
   const procRoot = absoluteFilePathContract.parse(machineStatics.procfs.root);
 
-  const procRootStat = await fsStatAdapter({ filePath: procRoot });
+  const procRootStat = await statIfExists(procRoot);
   if (procRootStat === null) {
     return null;
   }

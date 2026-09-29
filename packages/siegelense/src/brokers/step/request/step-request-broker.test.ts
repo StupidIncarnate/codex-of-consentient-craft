@@ -116,6 +116,72 @@ describe('stepRequestBroker', () => {
     });
   });
 
+  describe('the request that goes out', () => {
+    it('VALID: {object body and a custom header} => sends the serialized body with a JSON content-type beside the custom header', async () => {
+      const proxy = stepRequestBrokerProxy();
+      const lane = LaneSessionStub({ apiBaseUrl: 'http://127.0.0.1:34172' });
+      const step = StepStub({
+        step: 'request',
+        method: 'POST',
+        path: '/api/guilds',
+        body: { name: 'guild-omega' },
+        headers: { 'x-correlation-id': 'corr-123' },
+      }) as Step & { step: 'request' };
+      proxy.setupResponse({ url: 'http://127.0.0.1:34172/api/guilds', status: 201, body: {} });
+
+      await stepRequestBroker({ lane, step });
+
+      expect(proxy.getRequestSentTo({ url: 'http://127.0.0.1:34172/api/guilds' })).toStrictEqual({
+        method: 'POST',
+        headers: { 'x-correlation-id': 'corr-123', 'content-type': 'application/json' },
+        body: '{"name":"guild-omega"}',
+      });
+    });
+
+    it('VALID: {object body and a caller content-type in another case} => keeps the caller header and adds no second one', async () => {
+      const proxy = stepRequestBrokerProxy();
+      const lane = LaneSessionStub({ apiBaseUrl: 'http://127.0.0.1:34172' });
+      const step = StepStub({
+        step: 'request',
+        method: 'PUT',
+        path: '/api/guilds/g1',
+        body: { name: 'guild-omega' },
+        headers: { 'Content-Type': 'application/vnd.api+json' },
+      }) as Step & { step: 'request' };
+      proxy.setupResponse({ url: 'http://127.0.0.1:34172/api/guilds/g1', body: {} });
+
+      await stepRequestBroker({ lane, step });
+
+      expect(proxy.getRequestSentTo({ url: 'http://127.0.0.1:34172/api/guilds/g1' })).toStrictEqual(
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/vnd.api+json' },
+          body: '{"name":"guild-omega"}',
+        },
+      );
+    });
+
+    it('VALID: {string body and no headers} => sends the string as is with no content-type default', async () => {
+      const proxy = stepRequestBrokerProxy();
+      const lane = LaneSessionStub({ apiBaseUrl: 'http://127.0.0.1:34172' });
+      const step = StepStub({
+        step: 'request',
+        method: 'POST',
+        path: '/api/echo',
+        body: 'raw text',
+      }) as Step & { step: 'request' };
+      proxy.setupResponse({ url: 'http://127.0.0.1:34172/api/echo', body: 'raw text' });
+
+      await stepRequestBroker({ lane, step });
+
+      expect(proxy.getRequestSentTo({ url: 'http://127.0.0.1:34172/api/echo' })).toStrictEqual({
+        method: 'POST',
+        headers: {},
+        body: 'raw text',
+      });
+    });
+  });
+
   describe('failing HTTP responses', () => {
     it('ERROR: {status 400} => throws HttpRequestFailedError with formatted details', async () => {
       const proxy = stepRequestBrokerProxy();

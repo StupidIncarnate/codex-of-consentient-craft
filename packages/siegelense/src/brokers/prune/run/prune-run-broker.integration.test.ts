@@ -13,7 +13,7 @@
  */
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
@@ -25,8 +25,6 @@ import {
   SiegeRunIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
@@ -74,13 +72,13 @@ describe('prune, against a real evidence tree', () => {
   let neighbourSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
   let fleetSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
   let dryRunSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
-  let neighbourLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let uncitedLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let citedLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let uncitedLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let citedLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let liveLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
-  let dryRunLogAfterSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
+  let neighbourLogAfterScopedSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let uncitedLogAfterScopedSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let citedLogAfterScopedSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let uncitedLogAfterFleetSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let citedLogAfterFleetSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let liveLogAfterFleetSweep: Awaited<ReturnType<typeof statIfExists>> = null;
+  let dryRunLogAfterSweep: Awaited<ReturnType<typeof statIfExists>> = null;
   let dryRunRegistryAfterDryRunSweep: Awaited<ReturnType<typeof registryReadBroker>> | null = null;
   let registryAfter: Awaited<ReturnType<typeof registryReadBroker>> | null = null;
 
@@ -209,18 +207,15 @@ describe('prune, against a real evidence tree', () => {
       [citedEvidence, uncitedEvidence, neighbourEvidence, liveEvidence, dryRunEvidence].map(
         async (evidenceDir) => {
           await ensureDir(`${evidenceDir}/runs/run_2`);
-          await fsWriteFileAdapter({
-            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/api-server.log` }),
-            contents: body,
-          });
-          await fsWriteFileAdapter({
-            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2.jsonl` }),
-            contents: FileContentsStub({ value: TRANSCRIPT_TEXT }),
-          });
-          await fsWriteFileAdapter({
-            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2/step1.png` }),
-            contents: FileContentsStub({ value: SHOT_TEXT }),
-          });
+          await writeFile(`${evidenceDir}/api-server.log`, body);
+          await writeFile(
+            `${evidenceDir}/runs/run_2.jsonl`,
+            FileContentsStub({ value: TRANSCRIPT_TEXT }),
+          );
+          await writeFile(
+            `${evidenceDir}/runs/run_2/step1.png`,
+            FileContentsStub({ value: SHOT_TEXT }),
+          );
         },
       ),
     );
@@ -229,9 +224,9 @@ describe('prune, against a real evidence tree', () => {
     // and a worktree holding a prelude whose VERIFIED line names run_2 too.
     await ensureDir(questFolder);
     await ensureDir(plansDir);
-    await fsWriteFileAdapter({
-      filePath: AbsoluteFilePathStub({ value: questFile }),
-      contents: FileContentsStub({
+    await writeFile(
+      questFile,
+      FileContentsStub({
         value: JSON.stringify(
           QuestStub({
             id: QUEST,
@@ -252,13 +247,13 @@ describe('prune, against a real evidence tree', () => {
           }),
         ),
       }),
-    });
-    await fsWriteFileAdapter({
-      filePath: AbsoluteFilePathStub({ value: preludeFile }),
-      contents: FileContentsStub({
+    );
+    await writeFile(
+      preludeFile,
+      FileContentsStub({
         value: '# PATH 3\n  VERIFIED  run_2 · 2026-09-14 · prelude reached the entry\n',
       }),
-    });
+    );
 
     // Sweep 1 — the default window over files the suite wrote seconds ago.
     freshWindowSweep = await pruneRunBroker({
@@ -269,15 +264,9 @@ describe('prune, against a real evidence tree', () => {
     neighbourSweep = await pruneRunBroker({
       query: PruneQueryStub({ instanceId: NEIGHBOUR_ID, kind: null, olderThan: '0s' as never }),
     });
-    neighbourLogAfterScopedSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${neighbourEvidence}/api-server.log` }),
-    });
-    uncitedLogAfterScopedSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${uncitedEvidence}/api-server.log` }),
-    });
-    citedLogAfterScopedSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${citedEvidence}/api-server.log` }),
-    });
+    neighbourLogAfterScopedSweep = await statIfExists(`${neighbourEvidence}/api-server.log`);
+    uncitedLogAfterScopedSweep = await statIfExists(`${uncitedEvidence}/api-server.log`);
+    citedLogAfterScopedSweep = await statIfExists(`${citedEvidence}/api-server.log`);
 
     // Sweep 2.5 — a dry run, scoped to its own instance so sweep 3's real fleet-wide sweep below
     // (which would otherwise genuinely take this same instance) cannot contaminate what this proves.
@@ -288,24 +277,16 @@ describe('prune, against a real evidence tree', () => {
       query: PruneQueryStub({ instanceId: DRY_RUN_ID, kind: null, olderThan: '0s' as never }),
       dryRun: true,
     });
-    dryRunLogAfterSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${dryRunEvidence}/api-server.log` }),
-    });
+    dryRunLogAfterSweep = await statIfExists(`${dryRunEvidence}/api-server.log`);
     dryRunRegistryAfterDryRunSweep = await registryReadBroker();
 
     // Sweep 3 — the whole fleet, everything up to this instant.
     fleetSweep = await pruneRunBroker({
       query: PruneQueryStub({ instanceId: null, kind: null, olderThan: '0s' as never }),
     });
-    uncitedLogAfterFleetSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${uncitedEvidence}/api-server.log` }),
-    });
-    citedLogAfterFleetSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${citedEvidence}/api-server.log` }),
-    });
-    liveLogAfterFleetSweep = await fsStatAdapter({
-      filePath: AbsoluteFilePathStub({ value: `${liveEvidence}/api-server.log` }),
-    });
+    uncitedLogAfterFleetSweep = await statIfExists(`${uncitedEvidence}/api-server.log`);
+    citedLogAfterFleetSweep = await statIfExists(`${citedEvidence}/api-server.log`);
+    liveLogAfterFleetSweep = await statIfExists(`${liveEvidence}/api-server.log`);
     registryAfter = await registryReadBroker();
   }, 60_000);
 

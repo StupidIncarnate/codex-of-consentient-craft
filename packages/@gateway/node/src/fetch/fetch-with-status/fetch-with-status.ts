@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Performs one HTTP request via `globalThis.fetch` and reports `{status, ok, body}` for
+ * PURPOSE: Performs one HTTP request via `globalThis.fetch` and reports `{status, statusText, ok, body}` for
  * ANY response — 2xx through 5xx — without throwing; `body` is the raw response text, left
  * unparsed so a JSON-wanting caller parses it itself and a raw-text-wanting caller (a route
  * helper diagnosing a failure) never has the verbatim copy thrown away. Reach for this over
@@ -15,7 +15,7 @@
  *
  * USAGE:
  * const result = await fetchWithStatus({ url: 'http://127.0.0.1:4173/api/guilds' });
- * // result = { status, ok, body } — body is the raw response text, never parsed
+ * // result = { status, statusText, ok, body } — body is the raw response text, never parsed
  */
 
 // Not read from a statics file — the gateway holds no dependency on any caller's own package,
@@ -34,7 +34,7 @@ export const fetchWithStatus = async ({
   headers?: Record<string, string>;
   body?: unknown;
   timeoutMs?: number;
-}): Promise<{ status: number; ok: boolean; body: string }> => {
+}): Promise<{ status: number; statusText: string; ok: boolean; body: string }> => {
   const requestBody: BodyInit | undefined =
     body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body);
 
@@ -92,5 +92,5 @@ export const fetchWithStatus = async ({
 
   const text = await response.text();
 
-  return { status: response.status, ok: response.ok, body: text };
+  return { status: response.status, statusText: response.statusText, ok: response.ok, body: text };
 };

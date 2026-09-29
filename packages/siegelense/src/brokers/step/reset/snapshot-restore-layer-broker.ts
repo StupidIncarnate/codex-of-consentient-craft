@@ -20,14 +20,14 @@
 
 import { createHash } from '#gateway/node/crypto';
 import { readdirEntriesSync } from '#gateway/node/fs';
-import { copyDirContents, readFile, rm } from '#gateway/node/fs__promises';
+import { copyDirContents, readFile, rm, statIfExists } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   relativeFilePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
+import { fileStatContract } from '../../../contracts/file-stat/file-stat-contract';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resetUndidContract } from '../../../contracts/reset-undid/reset-undid-contract';
@@ -66,7 +66,15 @@ export const snapshotRestoreLayerBroker = async ({
   }
 
   const homeStats = await Promise.all(
-    homeFilePaths.map(async (filePath) => fsStatAdapter({ filePath })),
+    homeFilePaths.map(async (filePath) => {
+      const stat = await statIfExists(filePath);
+      return stat === null
+        ? null
+        : fileStatContract.parse({
+            sizeBytes: stat.sizeBytes,
+            modifiedAtMs: stat.modifiedAtMs,
+          });
+    }),
   );
   homeFilePaths.forEach((filePath, index) => {
     const stat = homeStats[index];
@@ -99,7 +107,15 @@ export const snapshotRestoreLayerBroker = async ({
   }
 
   const payloadStats = await Promise.all(
-    payloadFilePaths.map(async (filePath) => fsStatAdapter({ filePath })),
+    payloadFilePaths.map(async (filePath) => {
+      const stat = await statIfExists(filePath);
+      return stat === null
+        ? null
+        : fileStatContract.parse({
+            sizeBytes: stat.sizeBytes,
+            modifiedAtMs: stat.modifiedAtMs,
+          });
+    }),
   );
   payloadFilePaths.forEach((filePath, index) => {
     const stat = payloadStats[index];
