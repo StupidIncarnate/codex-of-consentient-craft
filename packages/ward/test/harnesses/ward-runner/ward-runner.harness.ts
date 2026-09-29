@@ -15,17 +15,17 @@
  * const harness = wardRunnerHarness();
  * expect(harness.wardBinExists()).toBe(true);
  */
-import { existsSync } from 'fs';
-import * as path from 'path';
+import { existsSync } from '#gateway/node/fs';
+import { resolve } from '#gateway/node/path';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 const REPO_ROOT = FilePathStub({
-  value: path.resolve(__dirname, '../../../../..'),
+  value: resolve(__dirname, '../../../../..'),
 });
 const WARD_BIN = FilePathStub({
-  value: path.resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js'),
+  value: resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js'),
 });
 
 export const wardRunnerHarness = (): {

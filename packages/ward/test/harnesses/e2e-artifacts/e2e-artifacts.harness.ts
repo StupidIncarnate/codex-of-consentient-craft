@@ -13,9 +13,10 @@
  * harness.seedDir({ packageRoot, relativePath: 'node_modules/.vite-64001', daysOld: 5 });
  * harness.exists({ packageRoot, relativePath: 'node_modules/.vite-64001' });
  */
-import { existsSync, readdirSync } from 'fs';
-import fsPromises from 'fs/promises';
-import { join } from 'path';
+import { existsSync, readdirSync } from '#gateway/node/fs';
+import { ensureDir, utimes, writeFile } from '#gateway/node/fs__promises';
+import { now } from '#gateway/node/Date';
+import { join } from '#gateway/node/path';
 
 import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -45,26 +46,26 @@ export const e2eArtifactsHarness = (): {
   }): ReturnType<typeof FilePathStub> =>
     FilePathStub({ value: join(String(packageRoot), relativePath) });
 
-  // utimes takes SECONDS since the epoch, not milliseconds. Handing it Date.now() dates everything
+  // utimes takes SECONDS since the epoch, not milliseconds. Handing it now() dates everything
   // ~55,000 years into the future, which reads as newer than every TTL and turns every deletion
   // assertion in the test into a false pass.
   const backdate = async ({ path, daysOld }: { path: string; daysOld: number }): Promise<void> => {
-    const when = Date.now() / 1000 - daysOld * DAY_SECONDS;
-    await fsPromises.utimes(path, when, when);
+    const when = now() / 1000 - daysOld * DAY_SECONDS;
+    await utimes(path, when, when);
   };
 
   return {
     seedDir: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
       const path = String(absolute({ packageRoot, relativePath }));
-      await fsPromises.mkdir(path, { recursive: true });
-      await fsPromises.writeFile(join(path, 'seed'), 'x');
+      await ensureDir(path);
+      await writeFile(join(path, 'seed'), 'x');
       // Age the directory AFTER writing into it. A write bumps the parent's mtime, which would
       // undo the backdating and leave the fixture looking brand new.
       await backdate({ path, daysOld });
     },
     seedFile: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
       const path = String(absolute({ packageRoot, relativePath }));
-      await fsPromises.writeFile(path, '{}');
+      await writeFile(path, '{}');
       await backdate({ path, daysOld });
     },
     exists: ({ packageRoot, relativePath }): boolean =>

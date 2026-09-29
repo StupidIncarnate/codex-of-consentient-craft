@@ -19,27 +19,28 @@
  * await git.pushBranch({ cwd: repoPath, branchName: GitBranchNameStub({ value: 'main' }) });
  * await git.commitFile({ cwd: repoPath, relativePath: GitRelativePathStub({ value: 'a.txt' }), content: 'hi\n' });
  */
-import { mkdirSync, promises as fsPromises, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-
-import { run } from '#gateway/node/child_process';
+import { gitRun } from '#gateway/bin/git';
+import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { dirname, join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitBranchName } from '../../../src/contracts/git-branch-name/git-branch-name-contract';
 import type { GitRelativePath } from '../../../src/contracts/git-relative-path/git-relative-path-contract';
 
-// Real committer identity + disabled GPG signing, scoped to the child process env so these
-// throwaway fixture commits never depend on, or mutate, the developer's real global git config —
-// mirrors the orchestrator fixture's own GIT_COMMIT_ENV rather than importing it (see PURPOSE).
-const GIT_COMMIT_ENV = {
-  GIT_AUTHOR_NAME: 'Dungeonmaster Ward Fixture',
-  GIT_AUTHOR_EMAIL: 'ward-fixture@dungeonmaster.test',
-  GIT_COMMITTER_NAME: 'Dungeonmaster Ward Fixture',
-  GIT_COMMITTER_EMAIL: 'ward-fixture@dungeonmaster.test',
-  GIT_CONFIG_COUNT: '1',
-  GIT_CONFIG_KEY_0: 'commit.gpgsign',
-  GIT_CONFIG_VALUE_0: 'false',
+// Real committer identity + disabled GPG signing, passed as `-c` config so these throwaway fixture
+// commits never depend on, or mutate, the developer's real global git config. `user.*` sets both
+// the author and the committer.
+const GIT_COMMIT_CONFIG = {
+  'user.name': 'Dungeonmaster Ward Fixture',
+  'user.email': 'ward-fixture@dungeonmaster.test',
+  'commit.gpgsign': 'false',
 };
+
+const GIT_COMMIT_CONFIG_ARGS = Object.entries(GIT_COMMIT_CONFIG).flatMap(([key, value]) => [
+  '-c',
+  `${key}=${value}`,
+]);
 
 export const wardGitWorktreeFixtureHarness = (): {
   initRepo: (params: { repoPath: AbsoluteFilePath }) => Promise<void>;
@@ -74,19 +75,20 @@ export const wardGitWorktreeFixtureHarness = (): {
     args: readonly string[];
   }): Promise<void> => {
     // A real fixture repo: git is expected on the machine running these integration tests, so a
-    // missing binary (RunNotFoundError) is left to throw rather than folded into a fake result —
-    // there is no result shape here for a caller to inspect either way.
-    await run({
-      command: 'git',
-      args: [...args],
+    // missing binary (GitNotInstalledError) is left to throw. A non-zero exit throws too, so a
+    // fixture step that failed cannot pass silently into the assertions built on it.
+    const { exitCode, output } = await gitRun({
+      args: [...GIT_COMMIT_CONFIG_ARGS, ...args],
       cwd,
-      env: GIT_COMMIT_ENV,
     });
+    if (exitCode !== 0) {
+      throw new Error(`git ${args.join(' ')} failed with exit code ${String(exitCode)}: ${output}`);
+    }
   };
 
   return {
     initRepo: async ({ repoPath }: { repoPath: AbsoluteFilePath }): Promise<void> => {
-      mkdirSync(repoPath, { recursive: true });
+      ensureDirSync(repoPath);
       await runGit({ cwd: repoPath, args: ['init', '-b', 'main'] });
       writeFileSync(join(repoPath, 'base.txt'), 'base\n');
       await runGit({ cwd: repoPath, args: ['add', '-A'] });
@@ -94,7 +96,7 @@ export const wardGitWorktreeFixtureHarness = (): {
     },
 
     initBareRemote: async ({ remotePath }: { remotePath: AbsoluteFilePath }): Promise<void> => {
-      mkdirSync(remotePath, { recursive: true });
+      ensureDirSync(remotePath);
       await runGit({ cwd: remotePath, args: ['init', '--bare', '-b', 'main'] });
     },
 
@@ -152,7 +154,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       content: string;
     }): Promise<void> => {
       const targetPath = join(cwd, relativePath);
-      mkdirSync(dirname(targetPath), { recursive: true });
+      ensureDirSync(dirname(targetPath));
       writeFileSync(targetPath, content);
       await runGit({ cwd, args: ['add', '-A'] });
       await runGit({ cwd, args: ['commit', '-m', `commit ${relativePath}`] });
@@ -168,8 +170,8 @@ export const wardGitWorktreeFixtureHarness = (): {
       content: string;
     }): Promise<void> => {
       const targetPath = join(cwd, relativePath);
-      await fsPromises.mkdir(dirname(targetPath), { recursive: true });
-      await fsPromises.writeFile(targetPath, content);
+      await ensureDir(dirname(targetPath));
+      await writeFile(targetPath, content);
     },
   };
 };

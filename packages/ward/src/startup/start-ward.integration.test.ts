@@ -5,6 +5,7 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { chdir, cwd, stdout } from '#gateway/node/process';
 
 import { wardRunnerHarness } from '../../test/harnesses/ward-runner/ward-runner.harness';
 import { WardResultStub } from '../contracts/ward-result/ward-result.stub';
@@ -39,8 +40,8 @@ describe('StartWard', () => {
         content: FileContentStub({ value: JSON.stringify(WardResultStub()) }),
       });
 
-      const originalCwd = process.cwd();
-      process.chdir(testbed.guildPath);
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
 
       let error: unknown;
       try {
@@ -50,7 +51,7 @@ describe('StartWard', () => {
       } catch (e) {
         error = e;
       } finally {
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         testbed.cleanup();
       }
 
@@ -84,11 +85,11 @@ describe('StartWard', () => {
         content: FileContentStub({ value: JSON.stringify(storedResult) }),
       });
 
-      const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const originalCwd = process.cwd();
-      process.chdir(testbed.guildPath);
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
 
       let error: unknown;
       try {
@@ -98,7 +99,7 @@ describe('StartWard', () => {
       } catch (e) {
         error = e;
       } finally {
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         testbed.cleanup();
       }
 

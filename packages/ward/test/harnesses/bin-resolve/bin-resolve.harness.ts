@@ -10,9 +10,10 @@
  * harness.prependPathDecoy({ root, binName: 'jest' });
  * harness.firstPathDir(); // Returns '<root>/decoy-path'
  */
-import { mkdirSync, writeFileSync } from 'fs';
-import fsPromises from 'fs/promises';
-import { dirname, join } from 'path';
+import { chmodSync, ensureDirSync, writeFileSync } from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { dirname, join } from '#gateway/node/path';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -28,31 +29,32 @@ export const binResolveHarness = (): {
   prependPathDecoy: (params: { root: AbsoluteFilePath; binName: string }) => void;
   firstPathDir: () => ReturnType<typeof FilePathStub>;
 } => {
-  const originalPath = { value: process.env.PATH };
+  const originalPath = { value: getEnv('PATH') };
 
   return {
     beforeEach: (): void => {
-      originalPath.value = process.env.PATH;
+      originalPath.value = getEnv('PATH');
     },
     afterEach: (): void => {
       if (originalPath.value === undefined) {
-        Reflect.deleteProperty(process.env, 'PATH');
+        deleteEnv('PATH');
         return;
       }
-      process.env.PATH = originalPath.value;
+      setEnv('PATH', originalPath.value);
     },
     seedFile: async ({ root, relativePath, contents }): Promise<void> => {
       const path = join(String(root), relativePath);
-      await fsPromises.mkdir(dirname(path), { recursive: true });
-      await fsPromises.writeFile(path, contents);
+      await ensureDir(dirname(path));
+      await writeFile(path, contents);
     },
     prependPathDecoy: ({ root, binName }): void => {
       const decoyDir = join(String(root), 'decoy-path');
-      mkdirSync(decoyDir, { recursive: true });
-      writeFileSync(join(decoyDir, binName), '#!/bin/sh\n', { mode: 0o755 });
-      process.env.PATH = `${decoyDir}:${originalPath.value ?? ''}`;
+      ensureDirSync(decoyDir);
+      writeFileSync(join(decoyDir, binName), '#!/bin/sh\n');
+      chmodSync(join(decoyDir, binName), 0o755);
+      setEnv('PATH', `${decoyDir}:${originalPath.value ?? ''}`);
     },
     firstPathDir: (): ReturnType<typeof FilePathStub> =>
-      FilePathStub({ value: (process.env.PATH ?? '').split(':')[0] ?? '' }),
+      FilePathStub({ value: (getEnv('PATH') ?? '').split(':')[0] ?? '' }),
   };
 };
