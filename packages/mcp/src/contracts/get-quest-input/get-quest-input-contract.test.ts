@@ -142,7 +142,7 @@ describe('getQuestInputContract', () => {
         return getQuestInputContract.parse({
           questId: 'add-auth',
           path: '/some/path',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
   });

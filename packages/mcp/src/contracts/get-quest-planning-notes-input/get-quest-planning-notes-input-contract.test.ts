@@ -38,7 +38,7 @@ describe('getQuestPlanningNotesInputContract', () => {
         return getQuestPlanningNotesInputContract.parse({
           questId: 'add-auth',
           section: 'blight',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
 
@@ -47,7 +47,7 @@ describe('getQuestPlanningNotesInputContract', () => {
         return getQuestPlanningNotesInputContract.parse({
           questId: 'add-auth',
           stage: 'planning',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
   });

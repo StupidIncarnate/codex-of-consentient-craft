@@ -51,7 +51,7 @@ describe('questStripCommentsTransformer', () => {
 
   describe('results carrying no quest', () => {
     it('EMPTY: {result: success false with an error and no quest} => propagates success and error, omits quest', () => {
-      const result = GetQuestResultStub({ success: false, error: 'Quest not found' as never });
+      const result = GetQuestResultStub({ success: false, error: 'Quest not found' });
       // GetQuestResultStub always defaults a quest in; drop it so this models the real
       // adapter shape for a quest that could not be loaded at all.
       Reflect.deleteProperty(result, 'quest');

@@ -34,7 +34,7 @@ describe('getProjectMapInputContract', () => {
 
   it('INVALID: {packages, extra} => throws Unrecognized key error', () => {
     expect(() => {
-      getProjectMapInputContract.parse({ packages: ['mcp'], extra: 'no' } as never);
+      getProjectMapInputContract.parse({ packages: ['mcp'], extra: 'no' });
     }).toThrow(/Unrecognized key/u);
   });
 });

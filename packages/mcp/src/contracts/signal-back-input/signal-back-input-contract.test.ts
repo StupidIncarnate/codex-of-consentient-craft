@@ -169,7 +169,7 @@ describe('signalBackInputContract', () => {
             signal: 'complete',
             operationItemId,
             operationStatus: value,
-          } as never);
+          });
         }).toThrow(/Unrecognized key/u);
       },
     );
@@ -181,7 +181,7 @@ describe('signalBackInputContract', () => {
           workItemId,
           signal: 'complete',
           summary: 'Task done',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
 
@@ -192,7 +192,7 @@ describe('signalBackInputContract', () => {
           workItemId,
           signal: 'complete',
           status: 'done',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
   });

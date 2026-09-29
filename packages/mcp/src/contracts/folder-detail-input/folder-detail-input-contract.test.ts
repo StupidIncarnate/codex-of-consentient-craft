@@ -34,7 +34,7 @@ describe('folderDetailInputContract', () => {
 
   it('INVALID: {folderType, extra} => throws Unrecognized key error', () => {
     expect(() => {
-      folderDetailInputContract.parse({ folderType: 'brokers', path: '/some/path' } as never);
+      folderDetailInputContract.parse({ folderType: 'brokers', path: '/some/path' });
     }).toThrow(/Unrecognized key/u);
   });
 });

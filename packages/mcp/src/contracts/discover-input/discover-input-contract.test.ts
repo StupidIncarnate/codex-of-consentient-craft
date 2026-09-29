@@ -103,14 +103,12 @@ describe('discoverInputContract', () => {
   });
 
   it('INVALID: {path: "..."} => rejects unknown key with Unrecognized key message', () => {
-    expect(() =>
-      discoverInputContract.parse({ glob: 'src/**', path: '/some/path' } as never),
-    ).toThrow(/Unrecognized key/u);
+    expect(() => discoverInputContract.parse({ glob: 'src/**', path: '/some/path' })).toThrow(
+      /Unrecognized key/u,
+    );
   });
 
   it('INVALID: {query: "..."} => rejects unknown key', () => {
-    expect(() => discoverInputContract.parse({ query: 'foo' } as never)).toThrow(
-      /Unrecognized key/u,
-    );
+    expect(() => discoverInputContract.parse({ query: 'foo' })).toThrow(/Unrecognized key/u);
   });
 });

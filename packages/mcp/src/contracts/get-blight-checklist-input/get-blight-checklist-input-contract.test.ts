@@ -95,7 +95,7 @@ describe('getBlightChecklistInputContract', () => {
 
     it("INVALID: {scope: 'branch'} => throws, the only four diffs are the quest's, the last commit's, the unpushed round's, and the working tree's", () => {
       expect(() =>
-        getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'branch' } as never),
+        getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'branch' }),
       ).toThrow(/Invalid option/u);
     });
 
@@ -104,7 +104,7 @@ describe('getBlightChecklistInputContract', () => {
     // offer an agent a base no agent has any way to compute.
     it("INVALID: {scope: 'since-ref'} => throws, that scope is not part of the agent-facing surface", () => {
       expect(() =>
-        getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'since-ref' } as never),
+        getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'since-ref' }),
       ).toThrow(/Invalid option/u);
     });
 
@@ -114,7 +114,7 @@ describe('getBlightChecklistInputContract', () => {
           questId: 'add-auth',
           scope: 'unpushed',
           planId: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
 
@@ -123,7 +123,7 @@ describe('getBlightChecklistInputContract', () => {
         getBlightChecklistInputContract.parse({
           questId: 'add-auth',
           flowId: 'login-flow',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

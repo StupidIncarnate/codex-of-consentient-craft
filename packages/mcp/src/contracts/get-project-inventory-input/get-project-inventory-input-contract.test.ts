@@ -22,7 +22,7 @@ describe('getProjectInventoryInputContract', () => {
 
   it('INVALID: {packageName, extra} => throws Unrecognized key error', () => {
     expect(() => {
-      getProjectInventoryInputContract.parse({ packageName: 'web', extra: 'no' } as never);
+      getProjectInventoryInputContract.parse({ packageName: 'web', extra: 'no' });
     }).toThrow(/Unrecognized key/u);
   });
 });

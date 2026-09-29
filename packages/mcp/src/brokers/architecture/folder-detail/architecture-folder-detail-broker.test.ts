@@ -7,7 +7,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'brokers' as never,
+        folderType: 'brokers',
       });
 
       // Verify key sections are present
@@ -22,7 +22,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'brokers' as never,
+        folderType: 'brokers',
       });
 
       expect(result).toMatch(/^## Required Files$/mu);
@@ -36,7 +36,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'contracts' as never,
+        folderType: 'contracts',
       });
 
       expect(result).toMatch(/^# contracts\/ Folder Type$/mu);
@@ -49,7 +49,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'guards' as never,
+        folderType: 'guards',
       });
 
       expect(result).toMatch(/^# guards\/ Folder Type$/mu);
@@ -62,7 +62,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'statics' as never,
+        folderType: 'statics',
       });
 
       expect(result).toMatch(/^# statics\/ Folder Type$/mu);
@@ -78,7 +78,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'startup' as never,
+        folderType: 'startup',
       });
 
       expect(result).toMatch(/^# startup\/ Folder Type$/mu);
@@ -94,7 +94,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'brokers' as never,
+        folderType: 'brokers',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -110,7 +110,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'widgets' as never,
+        folderType: 'widgets',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -126,7 +126,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'flows' as never,
+        folderType: 'flows',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -142,7 +142,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'startup' as never,
+        folderType: 'startup',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -158,7 +158,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'contracts' as never,
+        folderType: 'contracts',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -174,7 +174,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'assets' as never,
+        folderType: 'assets',
       });
       const section = result.slice(
         result.indexOf('## Required Files'),
@@ -192,7 +192,7 @@ describe('architectureFolderDetailBroker', () => {
       architectureFolderDetailBrokerProxy();
 
       const result = architectureFolderDetailBroker({
-        folderType: 'unknown-type' as never,
+        folderType: 'unknown-type',
       });
 
       expect(result).toMatch(/^# Unknown Folder Type: unknown-type$/mu);

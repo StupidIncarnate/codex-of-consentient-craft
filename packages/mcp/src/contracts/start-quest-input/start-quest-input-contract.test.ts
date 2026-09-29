@@ -29,7 +29,7 @@ describe('startQuestInputContract', () => {
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {
       expect(() => {
-        startQuestInputContract.parse({ questId: 'add-auth', guild: 'test' } as never);
+        startQuestInputContract.parse({ questId: 'add-auth', guild: 'test' });
       }).toThrow(/Unrecognized key/u);
     });
   });

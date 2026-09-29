@@ -18,15 +18,15 @@ describe('mcpPermissionContract', () => {
 
   describe('invalid permissions', () => {
     it('INVALID: {value: 123} => throws Expected string', () => {
-      expect(() => mcpPermissionContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => mcpPermissionContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws Expected string', () => {
-      expect(() => mcpPermissionContract.parse(null as never)).toThrow(/expected string/u);
+      expect(() => mcpPermissionContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws Required', () => {
-      expect(() => mcpPermissionContract.parse(undefined as never)).toThrow(/received undefined/u);
+      expect(() => mcpPermissionContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 });

@@ -263,13 +263,13 @@ describe('QuestHandleResponder', () => {
       // QuestStub default) — an over-strip that drops or empties one of these sections entirely,
       // not just comments, produces a shorter/different payload than an empty-array fixture could
       // ever distinguish from the correct one.
-      const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
-      const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] as never });
+      const node = FlowNodeStub({ id: 'start', label: 'Start' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
+      const designDecision = DesignDecisionStub({ relatedNodeIds: ['start'] });
       const toolingRequirement = ToolingRequirementStub();
-      const contractEntry = QuestContractEntryStub({ nodeId: 'start' as never });
+      const contractEntry = QuestContractEntryStub({ nodeId: 'start' });
       const operation = OperationItemStub({
-        id: '00000000-0000-4000-8000-0000000000e2' as never,
+        id: '00000000-0000-4000-8000-0000000000e2',
         role: 'codeweaver',
         text: 'build core',
         status: 'pending',
@@ -587,14 +587,14 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({
         success: false,
-        error: 'Save invariants failed' as never,
+        error: 'Save invariants failed',
         failedChecks: [
           {
-            name: 'Flow ID Uniqueness' as never,
+            name: 'Flow ID Uniqueness',
             passed: false,
-            details: "Duplicate flow ids: 'user-login'" as never,
+            details: "Duplicate flow ids: 'user-login'",
           },
-        ] as never,
+        ],
       });
       proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
 
@@ -621,7 +621,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({
         success: false,
-        error: 'Some unrelated failure' as never,
+        error: 'Some unrelated failure',
       });
       proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
 
@@ -645,24 +645,24 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({
         success: false,
-        error: 'Completeness checks failed' as never,
+        error: 'Completeness checks failed',
         failedChecks: [
           {
-            name: 'No Orphan Flow Nodes' as never,
+            name: 'No Orphan Flow Nodes',
             passed: false,
-            details: "Orphan node 'extra' in flow 'login'" as never,
+            details: "Orphan node 'extra' in flow 'login'",
           },
           {
-            name: 'Decision Node Branching' as never,
+            name: 'Decision Node Branching',
             passed: false,
-            details: "Decision 'check-auth' has 1 outgoing edge (need >=2)" as never,
+            details: "Decision 'check-auth' has 1 outgoing edge (need >=2)",
           },
           {
-            name: 'Observable Descriptions' as never,
+            name: 'Observable Descriptions',
             passed: false,
-            details: "Observable 'obs-1' missing description" as never,
+            details: "Observable 'obs-1' missing description",
           },
-        ] as never,
+        ],
       });
       proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
 
@@ -698,11 +698,11 @@ describe('QuestHandleResponder', () => {
         success: true,
         failedChecks: [
           {
-            name: 'Plan Review Report' as never,
+            name: 'Plan Review Report',
             passed: true,
-            details: 'Plan review reported warnings (non-blocking): missing edge label' as never,
+            details: 'Plan review reported warnings (non-blocking): missing edge label',
           },
-        ] as never,
+        ],
       });
       proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
 
@@ -728,19 +728,19 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       const modifyResult = ModifyQuestResultStub({
         success: false,
-        error: 'Validation failed' as never,
+        error: 'Validation failed',
         failedChecks: [
           {
-            name: 'Plan Review Report' as never,
+            name: 'Plan Review Report',
             passed: true,
-            details: 'non-blocking warnings' as never,
+            details: 'non-blocking warnings',
           },
           {
-            name: 'Step Coverage' as never,
+            name: 'Step Coverage',
             passed: false,
-            details: 'Observable obs-1 unsatisfied' as never,
+            details: 'Observable obs-1 unsatisfied',
           },
-        ] as never,
+        ],
       });
       proxy.setupModifyQuestReturns({ questId: 'test-quest-id', result: modifyResult });
 

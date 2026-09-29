@@ -55,7 +55,7 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { questId, workItemId, signal: 'unknown' } as never,
+          input: { questId, workItemId, signal: 'unknown' },
         }),
       ).toThrow(/Invalid input: expected/u);
     });
@@ -64,7 +64,7 @@ describe('signalBackBroker', () => {
       signalBackBrokerProxy();
 
       const result = signalBackBroker({
-        input: { questId, workItemId, signal: 'complete' } as never,
+        input: { questId, workItemId, signal: 'complete' },
       });
 
       expect(result).toStrictEqual({
@@ -82,7 +82,7 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { questId, workItemId, signal: 'failed' } as never,
+          input: { questId, workItemId, signal: 'failed' },
         }),
       ).toThrow(/Invalid input: expected/u);
     });
@@ -92,7 +92,7 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { questId, workItemId, signal: 'failed-replan' } as never,
+          input: { questId, workItemId, signal: 'failed-replan' },
         }),
       ).toThrow(/Invalid input: expected/u);
     });
@@ -107,7 +107,7 @@ describe('signalBackBroker', () => {
             workItemId,
             signal: 'complete',
             summary: 'Task finished',
-          } as never,
+          },
         }),
       ).toThrow(/Unrecognized key/u);
     });
@@ -123,7 +123,7 @@ describe('signalBackBroker', () => {
             signal: 'complete',
             operationItemId,
             operationStatus: 'done',
-          } as never,
+          },
         }),
       ).toThrow(/Unrecognized key/u);
     });
@@ -133,7 +133,7 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { workItemId, signal: 'complete' } as never,
+          input: { workItemId, signal: 'complete' },
         }),
       ).toThrow(/received undefined/u);
     });
@@ -143,7 +143,7 @@ describe('signalBackBroker', () => {
 
       expect(() =>
         signalBackBroker({
-          input: { questId, signal: 'complete' } as never,
+          input: { questId, signal: 'complete' },
         }),
       ).toThrow(/received undefined/u);
     });

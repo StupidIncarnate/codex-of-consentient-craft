@@ -42,7 +42,7 @@ describe('listQuestsInputContract', () => {
         listQuestsInputContract.parse({
           guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           status: 'active',
-        } as never);
+        });
       }).toThrow(/Unrecognized key/u);
     });
   });

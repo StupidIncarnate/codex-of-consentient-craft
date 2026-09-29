@@ -50,7 +50,7 @@ describe('createQuestOutputContract', () => {
         questId: QuestIdStub({ value: 'q1' }),
         guildSlug: UrlSlugStub({ value: 'g' }),
         extra: 'stuff',
-      } as never),
+      }),
     ).toThrow(/Unrecognized key/u);
   });
 });

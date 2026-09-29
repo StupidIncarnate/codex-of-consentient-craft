@@ -27,14 +27,12 @@ describe('createWorktreeInputContract', () => {
 
     it('INVALID: {path} => throws Unrecognized key, a caller never chooses the location', () => {
       expect(() =>
-        createWorktreeInputContract.parse({ name: 'probe', path: '/tmp/elsewhere' } as never),
+        createWorktreeInputContract.parse({ name: 'probe', path: '/tmp/elsewhere' }),
       ).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {name: 7} => throws, the name is a string', () => {
-      expect(() => createWorktreeInputContract.parse({ name: 7 as never })).toThrow(
-        /expected string/u,
-      );
+      expect(() => createWorktreeInputContract.parse({ name: 7 })).toThrow(/expected string/u);
     });
   });
 });

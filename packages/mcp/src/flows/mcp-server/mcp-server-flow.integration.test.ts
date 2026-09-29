@@ -282,11 +282,11 @@ describe('McpServerFlow', () => {
       const questFolder = '001-storage-test-quest';
 
       const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        title: 'Storage Test Quest' as never,
-        status: 'created' as never,
-        userRequest: 'Testing storage consistency' as never,
+        id: questId,
+        folder: questFolder,
+        title: 'Storage Test Quest',
+        status: 'created',
+        userRequest: 'Testing storage consistency',
       });
 
       await mcp.seedQuest({
@@ -328,11 +328,11 @@ describe('McpServerFlow', () => {
       // Seed quest at 'explore_flows' — that's the earliest lifecycle status that
       // permits writing designDecisions per the per-status input allowlist.
       const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        title: 'Modify Flow Quest' as never,
-        status: 'explore_flows' as never,
-        userRequest: 'Testing modify flow' as never,
+        id: questId,
+        folder: questFolder,
+        title: 'Modify Flow Quest',
+        status: 'explore_flows',
+        userRequest: 'Testing modify flow',
       });
 
       await mcp.seedQuest({
@@ -458,11 +458,11 @@ describe('McpServerFlow', () => {
       const questFolder = '001-is-error-success-test';
 
       const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        title: 'IsError Success Test' as never,
-        status: 'created' as never,
-        userRequest: 'Testing isError not set on success' as never,
+        id: questId,
+        folder: questFolder,
+        title: 'IsError Success Test',
+        status: 'created',
+        userRequest: 'Testing isError not set on success',
       });
 
       await mcp.seedQuest({
@@ -506,48 +506,48 @@ describe('McpServerFlow', () => {
         const questFolder = '001-comment-strip-quest';
 
         const submitFormNode = FlowNodeStub({
-          id: 'submit-form' as never,
-          label: 'Submit Form' as never,
-          observables: [FlowObservableStub({ id: 'obs-one' as never })],
+          id: 'submit-form',
+          label: 'Submit Form',
+          observables: [FlowObservableStub({ id: 'obs-one' })],
         });
         const loginFlow = FlowStub({
-          id: 'login-flow' as never,
-          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never }), submitFormNode],
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'start', label: 'Start' }), submitFormNode],
           edges: [],
         });
         const dashboardFlow = FlowStub({
-          id: 'dashboard-flow' as never,
-          name: 'Dashboard Flow' as never,
-          entryPoint: '/dashboard' as never,
-          exitPoints: ['/dashboard/done' as never],
-          nodes: [FlowNodeStub({ id: 'widget-panel' as never, label: 'Widget Panel' as never })],
+          id: 'dashboard-flow',
+          name: 'Dashboard Flow',
+          entryPoint: '/dashboard',
+          exitPoints: ['/dashboard/done'],
+          nodes: [FlowNodeStub({ id: 'widget-panel', label: 'Widget Panel' })],
           edges: [],
         });
         const markupComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d101' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: '<b>bold claim</b> this box is wrong' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d101',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: '<b>bold claim</b> this box is wrong',
         });
         const newlineComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d102' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'submit-form' as never,
-          observableId: 'obs-one' as never,
-          text: 'First line of feedback\nSecond line of feedback' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d102',
+          flowId: 'login-flow',
+          nodeId: 'submit-form',
+          observableId: 'obs-one',
+          text: 'First line of feedback\nSecond line of feedback',
         });
         const otherFlowComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d103' as never,
-          flowId: 'dashboard-flow' as never,
-          nodeId: 'widget-panel' as never,
-          text: 'Third distinct reviewer note on the dashboard' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d103',
+          flowId: 'dashboard-flow',
+          nodeId: 'widget-panel',
+          text: 'Third distinct reviewer note on the dashboard',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          title: 'Comment Strip Fixture' as never,
-          status: 'flows_approved' as never,
-          userRequest: 'Testing comment strip on get-quest' as never,
+          id: questId,
+          folder: questFolder,
+          title: 'Comment Strip Fixture',
+          status: 'flows_approved',
+          userRequest: 'Testing comment strip on get-quest',
           flows: [loginFlow, dashboardFlow],
           comments: [markupComment, newlineComment, otherFlowComment],
         });
@@ -591,29 +591,29 @@ describe('McpServerFlow', () => {
         const questId = 'mcp-agent-comment-block';
         const questFolder = '001-mcp-agent-comment-block';
         const flow = FlowStub({
-          id: 'login-flow' as never,
-          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
           edges: [],
         });
         const existingComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d201' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Existing user comment' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d201',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Existing user comment',
         });
         // Hostile-shaped text (markup + embedded JSON + a newline): off-map hostile-input probe —
         // the strip is unconditional on the field, not a content-shaped filter, so it must block
         // this exactly as it blocks a benign string.
         const sneakyComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d202' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: '<script>{"inject":"me"}</script>\nAn agent should not be able to write this' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d202',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: '<script>{"inject":"me"}</script>\nAn agent should not be able to write this',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [existingComment],
         });
@@ -661,20 +661,20 @@ describe('McpServerFlow', () => {
         const questId = 'mcp-malformed-comments';
         const questFolder = '001-mcp-malformed-comments';
         const flow = FlowStub({
-          id: 'login-flow' as never,
-          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
           edges: [],
         });
         const existingComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Existing user comment' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Existing user comment',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [existingComment],
         });
@@ -723,24 +723,24 @@ describe('McpServerFlow', () => {
         const questId = 'mcp-title-only-orphan';
         const questFolder = '001-mcp-title-only-orphan';
         const flow = FlowStub({
-          id: 'login-flow' as never,
-          nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never })],
+          id: 'login-flow',
+          nodes: [FlowNodeStub({ id: 'start', label: 'Start' })],
           edges: [],
         });
         const orphanComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d301' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'ghost-node' as never,
-          text: 'Anchored to a node that never existed in this write' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d301',
+          flowId: 'login-flow',
+          nodeId: 'ghost-node',
+          text: 'Anchored to a node that never existed in this write',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
+          id: questId,
+          folder: questFolder,
           // explore_flows, not flows_approved: 'title' is only in the per-status allowlist at
           // explore_flows (and a few earlier statuses) — flows_approved's allowlist omits it, so
           // a title-only write there is rejected outright rather than skipping cleanup.
-          status: 'explore_flows' as never,
-          title: 'Old Title' as never,
+          status: 'explore_flows',
+          title: 'Old Title',
           flows: [flow],
           comments: [orphanComment],
         });
@@ -786,32 +786,32 @@ describe('McpServerFlow', () => {
       it('VALID: {modify-quest flows write deleting a node} => the comment anchored to that node is dropped while a sibling node comment in the same flow survives untouched', async () => {
         const questId = 'mcp-node-delete';
         const questFolder = '001-mcp-node-delete';
-        const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+        const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
         const submitNode = FlowNodeStub({
-          id: 'submit-form' as never,
-          label: 'Submit Form' as never,
+          id: 'submit-form',
+          label: 'Submit Form',
         });
         const flow = FlowStub({
-          id: 'login-flow' as never,
+          id: 'login-flow',
           nodes: [startNode, submitNode],
           edges: [],
         });
         const deletedComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d401' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Comment on the node about to be deleted' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d401',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Comment on the node about to be deleted',
         });
         const siblingComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d402' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'submit-form' as never,
-          text: 'Comment on the sibling node that survives' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d402',
+          flowId: 'login-flow',
+          nodeId: 'submit-form',
+          text: 'Comment on the sibling node that survives',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [deletedComment, siblingComment],
         });
@@ -852,28 +852,28 @@ describe('McpServerFlow', () => {
         const questId = 'mcp-observable-delete';
         const questFolder = '001-mcp-observable-delete';
         const node = FlowNodeStub({
-          id: 'submit-form' as never,
-          label: 'Submit Form' as never,
-          observables: [FlowObservableStub({ id: 'obs-one' as never })],
+          id: 'submit-form',
+          label: 'Submit Form',
+          observables: [FlowObservableStub({ id: 'obs-one' })],
         });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
         const observableComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d501' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'submit-form' as never,
-          observableId: 'obs-one' as never,
-          text: 'Comment on the observable about to be deleted' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d501',
+          flowId: 'login-flow',
+          nodeId: 'submit-form',
+          observableId: 'obs-one',
+          text: 'Comment on the observable about to be deleted',
         });
         const nodeComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d502' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'submit-form' as never,
-          text: 'Plain node comment on the same node' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d502',
+          flowId: 'login-flow',
+          nodeId: 'submit-form',
+          text: 'Plain node comment on the same node',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [observableComment, nodeComment],
         });
@@ -919,32 +919,32 @@ describe('McpServerFlow', () => {
         const questId = 'mcp-flow-delete';
         const questFolder = '001-mcp-flow-delete';
         const flowA = FlowStub({
-          id: 'flow-a' as never,
-          nodes: [FlowNodeStub({ id: 'node-a' as never, label: 'Node A' as never })],
+          id: 'flow-a',
+          nodes: [FlowNodeStub({ id: 'node-a', label: 'Node A' })],
           edges: [],
         });
         const flowB = FlowStub({
-          id: 'flow-b' as never,
-          name: 'Second Flow' as never,
-          nodes: [FlowNodeStub({ id: 'node-b' as never, label: 'Node B' as never })],
+          id: 'flow-b',
+          name: 'Second Flow',
+          nodes: [FlowNodeStub({ id: 'node-b', label: 'Node B' })],
           edges: [],
         });
         const commentA = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d601' as never,
-          flowId: 'flow-a' as never,
-          nodeId: 'node-a' as never,
-          text: 'Comment on the flow about to be deleted' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d601',
+          flowId: 'flow-a',
+          nodeId: 'node-a',
+          text: 'Comment on the flow about to be deleted',
         });
         const commentB = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d602' as never,
-          flowId: 'flow-b' as never,
-          nodeId: 'node-b' as never,
-          text: 'Comment on the surviving flow' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d602',
+          flowId: 'flow-b',
+          nodeId: 'node-b',
+          text: 'Comment on the surviving flow',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flowA, flowB],
           comments: [commentA, commentB],
         });
@@ -990,19 +990,19 @@ describe('McpServerFlow', () => {
       it('VALID: {modify-quest flows write renaming a node label} => the comment anchored to that node survives with byte-identical text and createdAt', async () => {
         const questId = 'mcp-label-rename';
         const questFolder = '001-mcp-label-rename';
-        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const node = FlowNodeStub({ id: 'start', label: 'Start' });
+        const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
         const comment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d701' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Comment anchored through a label rename' as never,
-          createdAt: '2024-02-01T09:30:00.000Z' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d701',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Comment anchored through a label rename',
+          createdAt: '2024-02-01T09:30:00.000Z',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [comment],
         });
@@ -1060,18 +1060,18 @@ describe('McpServerFlow', () => {
         async (stage) => {
           const questId = `comment-matrix-json-${stage}`;
           const questFolder = `001-comment-matrix-json-${stage}`;
-          const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-          const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+          const node = FlowNodeStub({ id: 'start', label: 'Start' });
+          const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
           const hostileComment = QuestCommentStub({
-            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d801' as never,
-            flowId: 'login-flow' as never,
-            nodeId: 'start' as never,
-            text: HOSTILE_COMMENT_TEXT as never,
+            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d801',
+            flowId: 'login-flow',
+            nodeId: 'start',
+            text: HOSTILE_COMMENT_TEXT,
           });
           const quest = QuestStub({
-            id: questId as never,
-            folder: questFolder as never,
-            status: 'flows_approved' as never,
+            id: questId,
+            folder: questFolder,
+            status: 'flows_approved',
             flows: [flow],
             comments: [hostileComment],
           });
@@ -1106,18 +1106,18 @@ describe('McpServerFlow', () => {
       it('VALID: {format: json, stage omitted, quest with a hostile comment} => raw response has no comments key and never contains the hostile text', async () => {
         const questId = 'comment-matrix-json-omitted';
         const questFolder = '001-comment-matrix-json-omitted';
-        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const node = FlowNodeStub({ id: 'start', label: 'Start' });
+        const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
         const hostileComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d803' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: HOSTILE_COMMENT_TEXT as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d803',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: HOSTILE_COMMENT_TEXT,
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [hostileComment],
         });
@@ -1153,18 +1153,18 @@ describe('McpServerFlow', () => {
         async (stage) => {
           const questId = `comment-matrix-text-${stage}`;
           const questFolder = `001-comment-matrix-text-${stage}`;
-          const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-          const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+          const node = FlowNodeStub({ id: 'start', label: 'Start' });
+          const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
           const hostileComment = QuestCommentStub({
-            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d804' as never,
-            flowId: 'login-flow' as never,
-            nodeId: 'start' as never,
-            text: HOSTILE_COMMENT_TEXT as never,
+            id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d804',
+            flowId: 'login-flow',
+            nodeId: 'start',
+            text: HOSTILE_COMMENT_TEXT,
           });
           const quest = QuestStub({
-            id: questId as never,
-            folder: questFolder as never,
-            status: 'flows_approved' as never,
+            id: questId,
+            folder: questFolder,
+            status: 'flows_approved',
             flows: [flow],
             comments: [hostileComment],
           });
@@ -1198,18 +1198,18 @@ describe('McpServerFlow', () => {
       it('VALID: {format: text, stage omitted, quest with a hostile comment} => rendered text never contains the hostile comment text', async () => {
         const questId = 'comment-matrix-text-omitted';
         const questFolder = '001-comment-matrix-text-omitted';
-        const node = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const node = FlowNodeStub({ id: 'start', label: 'Start' });
+        const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
         const hostileComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d805' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: HOSTILE_COMMENT_TEXT as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d805',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: HOSTILE_COMMENT_TEXT,
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [hostileComment],
         });
@@ -1251,38 +1251,38 @@ describe('McpServerFlow', () => {
         // catch it. A fixture where nothing but the actual comment carries that word cannot tell
         // a schema-shaped strip apart from a content-shaped one.
         const node = FlowNodeStub({
-          id: 'start' as never,
-          label: 'Where comments anchor' as never,
+          id: 'start',
+          label: 'Where comments anchor',
         });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+        const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
         const designDecision = DesignDecisionStub({
-          title: 'Track where comments anchor on the flow diagram' as never,
-          relatedNodeIds: ['start'] as never,
+          title: 'Track where comments anchor on the flow diagram',
+          relatedNodeIds: ['start'],
         });
         const toolingRequirement = ToolingRequirementStub({
-          reason: 'Renders inline comments in the flow diagram sidebar' as never,
+          reason: 'Renders inline comments in the flow diagram sidebar',
         });
         const contractEntry = QuestContractEntryStub({
-          name: 'FlowComments' as never,
-          nodeId: 'start' as never,
+          name: 'FlowComments',
+          nodeId: 'start',
         });
         const operation = OperationItemStub({
-          id: '00000000-0000-4000-8000-0000000000e1' as never,
+          id: '00000000-0000-4000-8000-0000000000e1',
           role: 'codeweaver',
           text: 'build core: render the comments sidebar',
           status: 'pending',
           locked: false,
         });
         const comment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'A comment among otherwise full sections' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d901',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'A comment among otherwise full sections',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           designDecisions: [designDecision],
           toolingRequirements: [toolingRequirement],
@@ -1329,24 +1329,24 @@ describe('McpServerFlow', () => {
       it('VALID: {two parallel modify-quest calls: node-delete and title-rename, same quest} => both changes land in the final persisted state', async () => {
         const questId = 'mcp-concurrent-writes';
         const questFolder = '001-mcp-concurrent-writes';
-        const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-        const keepNode = FlowNodeStub({ id: 'keep' as never, label: 'Keep' as never });
+        const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
+        const keepNode = FlowNodeStub({ id: 'keep', label: 'Keep' });
         const flow = FlowStub({
-          id: 'login-flow' as never,
+          id: 'login-flow',
           nodes: [startNode, keepNode],
           edges: [],
         });
         const doomedComment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Comment on the node the parallel delete removes' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da01',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Comment on the node the parallel delete removes',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'explore_flows' as never,
-          title: 'Original Title' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'explore_flows',
+          title: 'Original Title',
           flows: [flow],
           comments: [doomedComment],
         });
@@ -1412,18 +1412,18 @@ describe('McpServerFlow', () => {
       it('VALID: {same modify-quest node-delete request sent twice in sequence} => both calls succeed, comments stay clean, no corruption from the repeat', async () => {
         const questId = 'mcp-repeat-node-delete';
         const questFolder = '001-mcp-repeat-node-delete';
-        const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
-        const flow = FlowStub({ id: 'login-flow' as never, nodes: [startNode], edges: [] });
+        const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
+        const flow = FlowStub({ id: 'login-flow', nodes: [startNode], edges: [] });
         const comment = QuestCommentStub({
-          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02' as never,
-          flowId: 'login-flow' as never,
-          nodeId: 'start' as never,
-          text: 'Comment on the node repeatedly deleted' as never,
+          id: 'c0e3e17a-58cc-4372-a567-0e02b2c3da02',
+          flowId: 'login-flow',
+          nodeId: 'start',
+          text: 'Comment on the node repeatedly deleted',
         });
         const quest = QuestStub({
-          id: questId as never,
-          folder: questFolder as never,
-          status: 'flows_approved' as never,
+          id: questId,
+          folder: questFolder,
+          status: 'flows_approved',
           flows: [flow],
           comments: [comment],
         });
@@ -1570,24 +1570,24 @@ describe('McpServerFlow', () => {
       const questId = 'mcp-get-quest-summary';
       const questFolder = '001-mcp-get-quest-summary';
       const quest = QuestStub({
-        id: questId as never,
-        folder: questFolder as never,
-        status: 'in_progress' as never,
+        id: questId,
+        folder: questFolder,
+        status: 'in_progress',
         flows: [
           FlowStub({
-            id: 'login-flow' as never,
-            name: 'Login Flow' as never,
-            flowType: 'runtime' as never,
+            id: 'login-flow',
+            name: 'Login Flow',
+            flowType: 'runtime',
             nodes: [
               FlowNodeStub({
-                id: 'submit-credentials' as never,
-                label: 'Submit Credentials' as never,
+                id: 'submit-credentials',
+                label: 'Submit Credentials',
                 observables: [
                   FlowObservableStub({
-                    id: 'rejects-bleh-payload' as never,
-                    type: 'api-call' as never,
-                    description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
-                    addedBy: 'siegemaster' as never,
+                    id: 'rejects-bleh-payload',
+                    type: 'api-call',
+                    description: 'POST /api/auth/login returns 400 for a non-JSON body',
+                    addedBy: 'siegemaster',
                   }),
                 ],
               }),
@@ -1599,16 +1599,15 @@ describe('McpServerFlow', () => {
           blightLedger: [],
           questNotes: [
             QuestNoteStub({
-              id: 'open-question-body-parser-owner' as never,
-              kind: 'open-question' as never,
-              role: 'siegemaster' as never,
-              workItemId: SUMMARY_WORK_ITEM_ID as never,
-              flowId: 'login-flow' as never,
-              unitId: 'login-flow:observable:rejects-bleh-payload' as never,
-              summary: 'Who owns the body parser this route sits behind?' as never,
-              detail:
-                'The 400 comes from middleware, so the route never sees the request.' as never,
-              at: '2026-01-02T00:00:00.000Z' as never,
+              id: 'open-question-body-parser-owner',
+              kind: 'open-question',
+              role: 'siegemaster',
+              workItemId: SUMMARY_WORK_ITEM_ID,
+              flowId: 'login-flow',
+              unitId: 'login-flow:observable:rejects-bleh-payload',
+              summary: 'Who owns the body parser this route sits behind?',
+              detail: 'The 400 comes from middleware, so the route never sees the request.',
+              at: '2026-01-02T00:00:00.000Z',
             }),
           ],
           operationPlans: [],

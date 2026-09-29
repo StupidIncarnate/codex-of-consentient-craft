@@ -49,7 +49,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ glob: '**/*.ts' as never });
+      const input = DiscoverInputStub({ glob: '**/*.ts' });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -71,7 +71,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ grep: 'ENOENT' as never });
+      const input = DiscoverInputStub({ grep: 'ENOENT' });
       const result = await mcpDiscoverBroker({ input });
 
       // Tree output should contain the file and its grep hit on line 5
@@ -92,7 +92,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ glob: '**/*.ts' as never, grep: 'guard' as never });
+      const input = DiscoverInputStub({ glob: '**/*.ts', grep: 'guard' });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -112,7 +112,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ grep: 'guard' as never, context: 2 as never });
+      const input = DiscoverInputStub({ grep: 'guard', context: 2 });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -131,7 +131,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ grep: 'NOMATCH' as never });
+      const input = DiscoverInputStub({ grep: 'NOMATCH' });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -155,7 +155,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ verbose: true as never });
+      const input = DiscoverInputStub({ verbose: true });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -187,7 +187,7 @@ describe('mcpDiscoverBroker', () => {
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
-      const input = DiscoverInputStub({ grep: 'ENOENT' as never, verbose: true as never });
+      const input = DiscoverInputStub({ grep: 'ENOENT', verbose: true });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -216,7 +216,7 @@ describe('mcpDiscoverBroker', () => {
         pattern: GlobPatternStub({ value: '**/*' }),
       });
 
-      const input = DiscoverInputStub({ verbose: true as never });
+      const input = DiscoverInputStub({ verbose: true });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -246,7 +246,7 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub({
-        glob: 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*' as never,
+        glob: 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*',
       });
       const result = await mcpDiscoverBroker({ input });
 
@@ -276,7 +276,7 @@ describe('mcpDiscoverBroker', () => {
         pattern,
       });
 
-      const input = DiscoverInputStub({ glob: 'totally-fake-folder' as never });
+      const input = DiscoverInputStub({ glob: 'totally-fake-folder' });
       const result = await mcpDiscoverBroker({ input });
 
       expect(result).toStrictEqual({
@@ -303,8 +303,8 @@ describe('mcpDiscoverBroker', () => {
       });
 
       const input = DiscoverInputStub({
-        glob: 'packages/web/src/**' as never,
-        grep: 'nonexistent-token' as never,
+        glob: 'packages/web/src/**',
+        grep: 'nonexistent-token',
       });
       const result = await mcpDiscoverBroker({ input });
 
@@ -357,7 +357,7 @@ describe('mcpDiscoverBroker', () => {
         pattern,
       });
 
-      const input = DiscoverInputStub({ verbose: true as never });
+      const input = DiscoverInputStub({ verbose: true });
       const result = await mcpDiscoverBroker({ input });
 
       // All three files should appear (multi-dot files are regular results now)
@@ -410,7 +410,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
 
       const input = DiscoverInputStub({
-        glob: '**/*.ts' as never,
+        glob: '**/*.ts',
         grep: 'OrchestrationEventType',
       });
       const result = await mcpDiscoverBroker({ input });
@@ -438,7 +438,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupGrepFilteredEmpty({ filePaths: [filepath], pattern });
 
       const input = DiscoverInputStub({
-        glob: '**/*.ts' as never,
+        glob: '**/*.ts',
         grep: 'OrchestrationEventType',
         strict: true,
       });
@@ -470,7 +470,7 @@ describe('mcpDiscoverBroker', () => {
       brokerProxy.setupFileDiscoveryAtRoot({ rootPath, filepath, contents, pattern });
 
       const result = await mcpDiscoverBroker({
-        input: DiscoverInputStub({ glob: 'packages/siegelense/src/brokers/step/**' as never }),
+        input: DiscoverInputStub({ glob: 'packages/siegelense/src/brokers/step/**' }),
         rootPath,
       });
 

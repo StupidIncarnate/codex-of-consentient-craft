@@ -63,7 +63,7 @@ describe('getServerConfigOutputContract', () => {
         baseUrl: 'http://localhost:3737',
         port: NetworkPortStub({ value: 3737 }),
         extra: 'no',
-      } as never),
+      }),
     ).toThrow(/Unrecognized key/u);
   });
 });

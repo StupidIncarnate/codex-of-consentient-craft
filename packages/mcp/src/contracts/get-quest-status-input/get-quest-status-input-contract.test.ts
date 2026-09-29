@@ -29,7 +29,7 @@ describe('getQuestStatusInputContract', () => {
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {
       expect(() => {
-        getQuestStatusInputContract.parse({ processId: 'proc-123', pid: 9999 } as never);
+        getQuestStatusInputContract.parse({ processId: 'proc-123', pid: 9999 });
       }).toThrow(/Unrecognized key/u);
     });
   });

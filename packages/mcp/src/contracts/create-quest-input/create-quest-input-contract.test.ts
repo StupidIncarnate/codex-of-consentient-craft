@@ -4,7 +4,7 @@ import { CreateQuestInputStub } from './create-quest-input.stub';
 describe('createQuestInputContract', () => {
   it('VALID: {userRequest} => parses successfully', () => {
     const result = createQuestInputContract.parse(
-      CreateQuestInputStub({ userRequest: 'Add auth to the app' as never }),
+      CreateQuestInputStub({ userRequest: 'Add auth to the app' }),
     );
 
     expect(result).toStrictEqual({ userRequest: 'Add auth to the app' });
@@ -37,7 +37,7 @@ describe('createQuestInputContract', () => {
       createQuestInputContract.parse({
         userRequest: 'valid',
         questType: 'bogus',
-      } as never),
+      }),
     ).toThrow(/Invalid option/u);
   });
 
@@ -46,7 +46,7 @@ describe('createQuestInputContract', () => {
       createQuestInputContract.parse({
         userRequest: 'valid',
         questId: 'anything',
-      } as never),
+      }),
     ).toThrow(/Unrecognized key/u);
   });
 });

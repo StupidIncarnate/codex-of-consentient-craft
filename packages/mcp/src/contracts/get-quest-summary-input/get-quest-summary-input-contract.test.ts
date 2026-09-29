@@ -24,7 +24,7 @@ describe('getQuestSummaryInputContract', () => {
         getQuestSummaryInputContract.parse({
           questId: 'add-auth',
           flowId: 'login-flow',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
 
@@ -33,7 +33,7 @@ describe('getQuestSummaryInputContract', () => {
         getQuestSummaryInputContract.parse({
           questId: 'add-auth',
           track: 'flowrider',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });
