@@ -1,6 +1,5 @@
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
-import { SessionStartHookStub } from '../contracts/session-start-hook-data/session-start-hook-data.stub';
-import { SubagentStartHookDataStub } from '../contracts/subagent-start-hook-data/subagent-start-hook-data.stub';
+import { BaseHookDataStub } from '../contracts/base-hook-data/base-hook-data.stub';
 
 import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
@@ -17,7 +16,7 @@ describe('start-session-snippet-hook', () => {
 
   describe('SessionStart', () => {
     it('VALID: {hookData: SessionStart, args: ["discover"]} => exits with code 0 and raw discover snippet in stdout', async () => {
-      const hookData = SessionStartHookStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SessionStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['discover'] });
 
@@ -29,7 +28,7 @@ describe('start-session-snippet-hook', () => {
     });
 
     it('VALID: {hookData: SessionStart, args: ["ward"]} => exits with code 0 and raw ward snippet in stdout', async () => {
-      const hookData = SessionStartHookStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SessionStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['ward'] });
 
@@ -41,7 +40,7 @@ describe('start-session-snippet-hook', () => {
     });
 
     it('ERROR: {hookData: SessionStart, args: ["nonexistent"]} => exits with code 1 and error in stderr', async () => {
-      const hookData = SessionStartHookStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SessionStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['nonexistent'] });
 
@@ -53,7 +52,7 @@ describe('start-session-snippet-hook', () => {
     });
 
     it('ERROR: {hookData: SessionStart, no args} => exits with code 1 and error in stderr', async () => {
-      const hookData = SessionStartHookStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SessionStart' });
 
       const result = await persistentRunner.runHook({ hookData });
 
@@ -67,7 +66,7 @@ describe('start-session-snippet-hook', () => {
 
   describe('SubagentStart', () => {
     it('VALID: {hookData: SubagentStart, args: ["discover"]} => exits with code 0 and JSON with additionalContext containing discover snippet', async () => {
-      const hookData = SubagentStartHookDataStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SubagentStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['discover'] });
 
@@ -84,7 +83,7 @@ describe('start-session-snippet-hook', () => {
     });
 
     it('VALID: {hookData: SubagentStart, args: ["ward"]} => exits with code 0 and JSON with additionalContext containing ward snippet', async () => {
-      const hookData = SubagentStartHookDataStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SubagentStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['ward'] });
 
@@ -101,7 +100,7 @@ describe('start-session-snippet-hook', () => {
     });
 
     it('ERROR: {hookData: SubagentStart, args: ["nonexistent"]} => exits with code 1 and raw error in stderr', async () => {
-      const hookData = SubagentStartHookDataStub();
+      const hookData = BaseHookDataStub({ hook_event_name: 'SubagentStart' });
 
       const result = await persistentRunner.runHook({ hookData, args: ['nonexistent'] });
 

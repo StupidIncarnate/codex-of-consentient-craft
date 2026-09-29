@@ -39,8 +39,7 @@ enum change either file misses fails a test instead of silently narrowing or wid
 pre-flight (`HydrationTransitionUnreachableError`) still refuses an unreachable status at run time
 too, unchanged, since the pinned list holds the identical runtime set the guard always computed.
 
-**Every multi-field ingredient hands `ingredient({fields: ...})` an UPCAST schema, never the raw
-`ZodObject` a `.pick()`/`.omit()`/`.extend()`/`z.object()` chain infers to.**
+**`session` and `subagent` hand `ingredient({fields: ...})` an UPCAST schema.**
 `ingredient-config-contract.ts`'s own header documents why: `IngredientConfig['fields']` and
 `IngredientConfigInferenceAnchor['fields']` both type `fields` as the phantom `{ readonly _output:
 TFields }`, and `ingredient()`'s generic signature checks a real value against BOTH sites —
@@ -49,12 +48,9 @@ routes the comparison through `ZodObject`'s own generic methods (`deepPartial()`
 fails, even though the schema is perfectly valid. This is not specific to a `transitions`-declaring
 ingredient — `session` and `subagent` declare no `transitions` and still need it, so their own
 `session-fields-contract.ts`/`subagent-fields-contract.ts` bake the upcast directly into the field
-contract's own export. `guild`, `quest` and `operation` instead keep their field contract a plain
-`ZodObject` (their ingredient's own `defaults` reads `.shape.<field>` off it, which an upcast export
-would lose) and pair it with a sibling `*-fields-schema-contract.ts` — `questFieldsSchemaContract`,
-`guildFieldsSchemaContract`, `operationFieldsSchemaContract` — that upcasts to
-`z.ZodType<Fields, …, z.input<typeof fieldsContract>>` and is used ONLY in the `fields:` property of
-`ingredient({...})`.
+contract's own export. `guild`, `quest` and `operation` hand it their plain `ZodObject` field contract
+(`guildFieldsContract`, `questFieldsContract`, `operationFieldsContract`), which their `defaults` also
+reads `.shape.<field>` off.
 
 `reach` walks every ordinary hop through `questModifyBroker`, over a shortest path computed by
 `questStatusWalkPathTransformer` off the same `questStatusTransitionsStatics` edge list

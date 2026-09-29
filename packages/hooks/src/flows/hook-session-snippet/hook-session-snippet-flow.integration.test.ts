@@ -1,14 +1,13 @@
 import { HookSessionSnippetFlow } from './hook-session-snippet-flow';
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
-import { SessionStartHookStub } from '../../contracts/session-start-hook-data/session-start-hook-data.stub';
-import { SubagentStartHookDataStub } from '../../contracts/subagent-start-hook-data/subagent-start-hook-data.stub';
+import { BaseHookDataStub } from '../../contracts/base-hook-data/base-hook-data.stub';
 
 describe('HookSessionSnippetFlow', () => {
   describe('SessionStart', () => {
     it('VALID: {snippetKey: "discover", hookInput: SessionStart} => returns exitCode 0 with raw XML', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'discover',
-        hookInput: SessionStartHookStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SessionStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -21,7 +20,7 @@ describe('HookSessionSnippetFlow', () => {
     it('VALID: {snippetKey: "ward", hookInput: SessionStart} => returns exitCode 0 with raw XML', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'ward',
-        hookInput: SessionStartHookStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SessionStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -34,7 +33,7 @@ describe('HookSessionSnippetFlow', () => {
     it('ERROR: {snippetKey: "nonexistent", hookInput: SessionStart} => returns exitCode 1 with error in stderr', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'nonexistent',
-        hookInput: SessionStartHookStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SessionStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -47,7 +46,7 @@ describe('HookSessionSnippetFlow', () => {
     it('ERROR: {snippetKey: undefined, hookInput: SessionStart} => returns exitCode 1 with error in stderr', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: undefined,
-        hookInput: SessionStartHookStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SessionStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -62,7 +61,7 @@ describe('HookSessionSnippetFlow', () => {
     it('VALID: {snippetKey: "discover", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'discover',
-        hookInput: SubagentStartHookDataStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SubagentStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -80,7 +79,7 @@ describe('HookSessionSnippetFlow', () => {
     it('VALID: {snippetKey: "ward", hookInput: SubagentStart} => returns exitCode 0 with JSON additionalContext', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'ward',
-        hookInput: SubagentStartHookDataStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SubagentStart' }),
       });
 
       expect(result).toStrictEqual({
@@ -98,7 +97,7 @@ describe('HookSessionSnippetFlow', () => {
     it('ERROR: {snippetKey: "nonexistent", hookInput: SubagentStart} => returns exitCode 1 with raw error in stderr', async () => {
       const result = await HookSessionSnippetFlow({
         snippetKey: 'nonexistent',
-        hookInput: SubagentStartHookDataStub(),
+        hookInput: BaseHookDataStub({ hook_event_name: 'SubagentStart' }),
       });
 
       expect(result).toStrictEqual({

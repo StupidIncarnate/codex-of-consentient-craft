@@ -69,11 +69,10 @@
  * dm.guilds.add(1, (g) => [g[0].quests.add(1, (q) => [q[0].set({ title: 'Add Auth', status: 'explore_flows' })])]);
  */
 import { questContract } from '@dungeonmaster/shared/contracts';
+import { z } from '#gateway/npm/zod';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
-import { corruptSchemaArgsContract } from '../../../contracts/corrupt-schema-args/corrupt-schema-args-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
-import { questFieldsSchemaContract } from '../../../contracts/quest-fields-schema/quest-fields-schema-contract';
 import { wardResultDetailArgsContract } from '../../../contracts/ward-result-detail-args/ward-result-detail-args-contract';
 import { questTransitionTargetStatusesStatics } from '../../../statics/quest-transition-target-statuses/quest-transition-target-statuses-statics';
 import { questApiRouteBroker } from '../api-route/quest-api-route-broker';
@@ -94,7 +93,7 @@ export const questIngredientBroker = ingredient({
   name: 'quest',
   description:
     'one quest under a guild, at whatever status you set it to, holding whatever work items and ledger you gave it',
-  fields: questFieldsSchemaContract,
+  fields: questFieldsContract,
   record: questContract,
   links: [{ of: 'guild', as: 'guildId' }],
   defaults: (index: number): Partial<QuestFields> => ({
@@ -117,7 +116,7 @@ export const questIngredientBroker = ingredient({
   copies: 'questPersistBroker',
   extras: {
     corruptToLegacySchema: {
-      args: corruptSchemaArgsContract,
+      args: z.object({}),
       apply: questCorruptToLegacySchemaBroker,
     },
     withWardResultDetail: {

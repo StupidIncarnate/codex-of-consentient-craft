@@ -6,8 +6,6 @@
  * import { ... } from '@dungeonmaster/hydration-recipes/contracts';
  */
 
-export * from './corrupt-schema-args/corrupt-schema-args-contract';
-
 export * from './dm-http-response/dm-http-response-contract';
 
 export * from './dm-quest-outbox-line/dm-quest-outbox-line-contract';
