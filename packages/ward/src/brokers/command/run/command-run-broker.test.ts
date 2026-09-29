@@ -462,6 +462,39 @@ describe('commandRunBroker', () => {
     });
   });
 
+  describe('the stale Jest cache sweep', () => {
+    it.each(['unit', 'integration'] as const)(
+      'VALID: {only: [%s]} => removes the stale Jest cache entry before the checks run',
+      async (checkType) => {
+        setExitCode(0);
+        const proxy = commandRunBrokerProxy();
+        proxy.setupSinglePackagePass();
+        proxy.setupStaleCacheEntry({ name: 'jest-transform-cache-stale' });
+
+        const rootPath = AbsoluteFilePathStub({ value: '/project' });
+
+        await commandRunBroker({ config: WardConfigStub({ only: [checkType] }), rootPath });
+
+        expect(proxy.getRemovedCachePaths()).toStrictEqual([
+          '/tmp/jest_rs/jest-transform-cache-stale',
+        ]);
+      },
+    );
+
+    it('VALID: {only: [lint]} => leaves the Jest cache alone, since lint never writes to it', async () => {
+      setExitCode(0);
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackagePass();
+      proxy.setupStaleCacheEntry({ name: 'jest-transform-cache-stale' });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+
+      await commandRunBroker({ config: WardConfigStub({ only: ['lint'] }), rootPath });
+
+      expect(proxy.getRemovedCachePaths()).toStrictEqual([]);
+    });
+  });
+
   describe('a platform-crossing violation folds into the lint result', () => {
     it('VALID: {an otherwise-clean run, one platform-crossing violation} => the summary reports it under lint and the run fails', async () => {
       setExitCode(0);

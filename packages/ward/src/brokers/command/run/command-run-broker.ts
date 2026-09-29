@@ -25,6 +25,7 @@ import { qualityGateStatics } from '../../../statics/quality-gate/quality-gate-s
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { isExplicitPathScopeGuard } from '../../../guards/is-explicit-path-scope/is-explicit-path-scope-guard';
 import { isFileScopeRequestedGuard } from '../../../guards/is-file-scope-requested/is-file-scope-requested-guard';
+import { jestCachePruneBroker } from '../../jest-cache/prune/jest-cache-prune-broker';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { folderResolveLayerBroker } from './folder-resolve-layer-broker';
 import { gitScopeLayerBroker } from './git-scope-layer-broker';
@@ -146,6 +147,13 @@ export const commandRunBroker = async ({
   // folds it into the `lint` CheckResult BEFORE saving — the only point at which `storageSaveBroker`
   // has not yet run, so `ward list`/`ward detail` see it exactly like any other lint finding.
   const checkTypes = scopedConfig.only ?? [...allCheckTypesStatics];
+
+  // Jest's cache is shared by every run of this user and never evicted, so a run that is about to
+  // write to it sweeps the stale part first. Only unit and integration touch it. It never fails the run.
+  if (checkTypes.some((checkType) => checkType === 'unit' || checkType === 'integration')) {
+    await jestCachePruneBroker();
+  }
+
   const platformDedupeProjectResult = await platformDedupeCheckLayerBroker({
     rootPath,
     checkTypes,

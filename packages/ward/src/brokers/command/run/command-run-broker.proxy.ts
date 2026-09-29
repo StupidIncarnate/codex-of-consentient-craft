@@ -11,6 +11,8 @@ import { CheckResultStub } from '../../../contracts/check-result/check-result.st
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
 import type { PlatformCrossingViolation } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
+import { jestCacheStatics } from '../../../statics/jest-cache/jest-cache-statics';
+import { jestCachePruneBrokerProxy } from '../../jest-cache/prune/jest-cache-prune-broker.proxy';
 import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';
 import { gitScopeLayerBrokerProxy } from './git-scope-layer-broker.proxy';
 import { pathCheckLayerBrokerProxy } from './path-check-layer-broker.proxy';
@@ -29,6 +31,8 @@ const LINT_ERROR_REPORT = JSON.stringify([
   },
 ]);
 
+const DAY_MS = 86_400_000;
+
 export const commandRunBrokerProxy = (): {
   setupSinglePackagePass: () => void;
   setupSinglePackageLintPassWithNoFiles: () => void;
@@ -46,6 +50,8 @@ export const commandRunBrokerProxy = (): {
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
   setupPlatformCrossingViolation: (params: { violation: PlatformCrossingViolation }) => void;
   getStdoutCalls: () => readonly unknown[];
+  setupStaleCacheEntry: (params: { name: string }) => void;
+  getRemovedCachePaths: () => readonly unknown[];
 } => {
   setExitCodeProxy();
   const stdout = stdoutProxy();
@@ -58,6 +64,8 @@ export const commandRunBrokerProxy = (): {
   const singleProxy = singlePackageLayerBrokerProxy();
   const multiProxy = multiPackageLayerBrokerProxy();
   const platformDedupeProxy = platformDedupeCheckLayerBrokerProxy();
+  // After singleProxy, whose Date.now pin the jest cache ages are read against.
+  const jestCacheProxy = jestCachePruneBrokerProxy();
 
   // Matches what folderResolveLayerBroker actually returns for rootPath '/project' when
   // folderProxy stages a package.json named 'test-pkg'.
@@ -239,5 +247,13 @@ export const commandRunBrokerProxy = (): {
     // transform over the WHOLE call history, not an unaddressed peek) so callers needing a
     // specific write's text by position (summary vs guidance) can still index the result.
     getStdoutCalls: (): readonly unknown[] => stdout.getWrites(),
+    // One stale entry in the default Jest cache directory the prune sweeps (/tmp/jest_rs).
+    setupStaleCacheEntry: ({ name }: { name: string }): void => {
+      const path = `/tmp/jest_rs/${name}`;
+      jestCacheProxy.setupEntries({ cacheDir: '/tmp/jest_rs', entries: [name] });
+      jestCacheProxy.setupAge({ path, ageMs: jestCacheStatics.prune.maxAgeMs + DAY_MS });
+      jestCacheProxy.setupRemovable({ path });
+    },
+    getRemovedCachePaths: (): readonly unknown[] => jestCacheProxy.getRemovedPaths(),
   };
 };
