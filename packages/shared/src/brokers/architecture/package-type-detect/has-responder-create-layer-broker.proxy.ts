@@ -1,6 +1,7 @@
 import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 export const hasResponderCreateLayerBrokerProxy = (): {
   setupWithCreate: ({ domainName }: { domainName: string }) => void;
@@ -9,29 +10,10 @@ export const hasResponderCreateLayerBrokerProxy = (): {
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
-  const makeFileDirent = ({ name }: { name: string }): Dirent =>
-    ({
-      name,
-      isDirectory: () => false,
-      isFile: () => true,
-      isBlockDevice: () => false,
-      isCharacterDevice: () => false,
-      isFIFO: () => false,
-      isSocket: () => false,
-      isSymbolicLink: () => false,
-    }) as Dirent;
+  const makeFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
   const makeDirDirent = ({ name }: { name: string }): Dirent =>
-    ({
-      name,
-      isDirectory: () => true,
-      isFile: () => false,
-      isBlockDevice: () => false,
-      isCharacterDevice: () => false,
-      isFIFO: () => false,
-      isSocket: () => false,
-      isSymbolicLink: () => false,
-    }) as Dirent;
+    DirentStub({ name, kind: 'directory' });
 
   return {
     setupWithCreate: ({ domainName }: { domainName: string }): void => {

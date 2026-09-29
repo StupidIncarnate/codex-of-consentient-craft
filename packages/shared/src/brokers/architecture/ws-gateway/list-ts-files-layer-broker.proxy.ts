@@ -3,39 +3,17 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 const buildFileDirEntrySync = ({ name }: { name: string }): DirEntrySync => ({
   name,
   kind: 'file',
 });
 
-const buildFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
 const buildDirDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+  DirentStub({ name, kind: 'directory' });
 
 const populateVirtualTree = (
   tree: Map<AbsoluteFilePath, Dirent[]>,

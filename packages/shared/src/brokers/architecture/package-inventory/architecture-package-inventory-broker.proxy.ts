@@ -7,22 +7,12 @@ import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/abs
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 const DEFAULT_LEAF_FILE_COUNT = 3;
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+  DirentStub({ name, kind: isDir ? 'directory' : 'file' });
 
 const fillLeafDirectories = (pathMap: Map<ContentText, Dirent[]>): void => {
   const registeredPaths = new Set(pathMap.keys());

@@ -2,6 +2,7 @@ import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { DirEntrySync } from '#gateway/node/fs';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
   setupFlat: ({
@@ -32,29 +33,10 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
   // Feeds `readdirProxy.setupImplementation`, which registers directly on the raw `readdirSync`
   // mock — the gateway's own real `.map()` into `{name, kind}` still runs underneath, so these
   // must keep building the shape the real fs.Dirent's `isDirectory()`/`isFile()` methods provide.
-  const makeFileDirent = ({ name }: { name: string }): Dirent =>
-    ({
-      name,
-      isDirectory: () => false,
-      isFile: () => true,
-      isBlockDevice: () => false,
-      isCharacterDevice: () => false,
-      isFIFO: () => false,
-      isSocket: () => false,
-      isSymbolicLink: () => false,
-    }) as Dirent;
+  const makeFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
   const makeDirDirent = ({ name }: { name: string }): Dirent =>
-    ({
-      name,
-      isDirectory: () => true,
-      isFile: () => false,
-      isBlockDevice: () => false,
-      isCharacterDevice: () => false,
-      isFIFO: () => false,
-      isSocket: () => false,
-      isSymbolicLink: () => false,
-    }) as Dirent;
+    DirentStub({ name, kind: 'directory' });
 
   return {
     setupFlat: ({

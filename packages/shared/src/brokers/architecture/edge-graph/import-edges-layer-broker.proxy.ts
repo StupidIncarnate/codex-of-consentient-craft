@@ -5,34 +5,12 @@ import type { ContentText } from '../../../contracts/content-text/content-text-c
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 const buildDirDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+  DirentStub({ name, kind: 'directory' });
 
-const buildFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
 const addToTree = (
   tree: Map<AbsoluteFilePath, Dirent[]>,

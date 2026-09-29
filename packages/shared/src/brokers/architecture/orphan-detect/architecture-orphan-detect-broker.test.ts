@@ -4,34 +4,11 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { Dirent } from '#gateway/node/fs';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
-const fileEntry = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const fileEntry = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
-const dirEntry = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const dirEntry = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'directory' });
 
 const throwEnoent = (): never => {
   throw FileMissingErrorStub();

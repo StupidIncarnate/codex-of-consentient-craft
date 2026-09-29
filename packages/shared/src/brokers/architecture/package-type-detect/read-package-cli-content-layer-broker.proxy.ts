@@ -4,18 +4,9 @@ import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-bro
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
-const makeFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
 export const readPackageCliContentLayerBrokerProxy = (): {
   setupPackage: ({
