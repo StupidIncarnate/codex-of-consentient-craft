@@ -19,9 +19,6 @@ const path = require('path');
 const {
   typescriptProxyMockTransformerMiddleware,
 } = require('../src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware');
-const {
-  typescriptProgramContract,
-} = require('../src/contracts/typescript-program/typescript-program-contract');
 
 // Compute version from shared's package.json (its `./*.proxy` and `./*.stub` export keys decide which files
 // a per-file test import reaches) AND all proxy files across the monorepo,
@@ -87,7 +84,7 @@ exports.factory =
 
     const transformedSourceFile = typescriptProxyMockTransformerMiddleware({
       sourceFile,
-      program: typescriptProgramContract.parse(program),
+      program,
       nodeFactory,
     });
 
