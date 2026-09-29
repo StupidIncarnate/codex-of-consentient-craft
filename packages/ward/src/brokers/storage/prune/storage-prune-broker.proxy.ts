@@ -8,12 +8,15 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 
+const TINY_FILE_BYTES = 1024;
+
 export const storagePruneBrokerProxy = (): {
   setupWithFiles: (params: {
     rootPath: AbsoluteFilePath;
     entries: string[];
     now: number;
     mtimes?: Record<string, number>;
+    sizes?: Record<string, number>;
     statNullFor?: string[];
   }) => void;
   setupEmpty: (params: { rootPath: AbsoluteFilePath }) => void;
@@ -41,26 +44,31 @@ export const storagePruneBrokerProxy = (): {
       entries,
       now,
       mtimes = {},
+      sizes = {},
       statNullFor = [],
     }: {
       rootPath: AbsoluteFilePath;
       entries: string[];
       now: number;
       mtimes?: Record<string, number>;
+      sizes?: Record<string, number>;
       statNullFor?: string[];
     }): void => {
       registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(now);
       readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: entries });
 
-      for (const [name, mtimeMs] of Object.entries(mtimes)) {
-        statProxy.returnsFile({
-          path: String(runFilePathFor({ rootPath, name })),
-          sizeBytes: 1024,
-          modifiedAtMs: mtimeMs,
-        });
-      }
-      for (const name of statNullFor) {
-        statProxy.missing({ path: String(runFilePathFor({ rootPath, name })) });
+      // Every run file is stat'd for its size once it survives the TTL, so each entry gets a stat:
+      // its staged mtime and size, else `now` and TINY_FILE_BYTES.
+      for (const name of entries) {
+        if (statNullFor.includes(name)) {
+          statProxy.missing({ path: String(runFilePathFor({ rootPath, name })) });
+        } else {
+          statProxy.returnsFile({
+            path: String(runFilePathFor({ rootPath, name })),
+            sizeBytes: sizes[name] ?? TINY_FILE_BYTES,
+            modifiedAtMs: mtimes[name] ?? now,
+          });
+        }
       }
       for (const name of entries) {
         unlink.succeeds({ path: String(runFilePathFor({ rootPath, name })) });

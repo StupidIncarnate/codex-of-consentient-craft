@@ -299,7 +299,12 @@ describe('checkRunLintBroker', () => {
               testCount: 0,
             }),
           ],
-          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
+          rawOutput: RawOutputStub({
+            stdout:
+              '[{"filePath":"src/index.ts","messages":[]},{"filePath":"src/utils.ts","messages":[]}]',
+            stderr: '',
+            exitCode: 0,
+          }),
         }),
       );
     });

@@ -1,9 +1,11 @@
 /**
- * PURPOSE: Deletes ward run-result files older than the configured TTL from the .ward directory
+ * PURPOSE: Deletes ward run-result files from the .ward directory that are older than the TTL, then
+ * the oldest survivors beyond the folder's byte budget. The newest file is never removed: it is the
+ * result of the run that just saved, and an oversized one is kept over deleting evidence in use.
  *
  * USAGE:
  * await storagePruneBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
- * // Removes run files older than ttlStatics.runResultTtl from the .ward directory
+ * // Removes run files older than ttlStatics.runResultTtl, then oldest files past the storageBudgetStatics cap
  */
 
 import { readdirIfExists, statIfExists, unlink } from '#gateway/node/fs__promises';
@@ -14,6 +16,7 @@ import {
   type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
 
+import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
 
 const RUN_PREFIX_LENGTH = 'run-'.length;
@@ -58,12 +61,49 @@ export const storagePruneBroker = async ({
       }),
     );
 
-    await Promise.all(
-      judged
-        .filter((candidate) => candidate.expired)
-        .map(async (candidate) => {
-          await unlink(candidate.filePath);
+    const survivors = judged.filter((candidate) => !candidate.expired);
+
+    // Newest first by mtime, the one clock every id shape has. A file that vanished between the
+    // readdir and this stat is somebody else's sweep and counts for nothing.
+    const measured = (
+      await Promise.all(
+        survivors.map(async ({ filePath }) => {
+          const stats = await statIfExists(String(filePath));
+          return stats === null
+            ? null
+            : { filePath, sizeBytes: stats.sizeBytes, modifiedAtMs: stats.modifiedAtMs };
         }),
+      )
+    )
+      .filter((file) => file !== null)
+      .sort(
+        (a, b) =>
+          b.modifiedAtMs - a.modifiedAtMs || String(b.filePath).localeCompare(String(a.filePath)),
+      );
+
+    // Once the running total passes the budget, every older file goes too, small ones included, so
+    // what is kept stays one unbroken stretch of recent runs.
+    const overBudget = measured.reduce(
+      (acc, file, index) => {
+        const keptBytes = acc.keptBytes + file.sizeBytes;
+        const exceeded =
+          acc.exceeded ||
+          (index > 0 && keptBytes > storageBudgetStatics.limits.runResultsPerFolderBytes);
+        return exceeded
+          ? {
+              keptBytes: acc.keptBytes,
+              exceeded,
+              paths: [...acc.paths, { filePath: file.filePath, expired: true }],
+            }
+          : { keptBytes, exceeded, paths: acc.paths };
+      },
+      { keptBytes: 0, exceeded: false, paths: survivors.slice(0, 0) },
+    ).paths;
+
+    await Promise.all(
+      [...judged.filter((candidate) => candidate.expired), ...overBudget].map(async (candidate) => {
+        await unlink(candidate.filePath);
+      }),
     );
   } catch {
     // .ward directory may not exist yet - safe to ignore

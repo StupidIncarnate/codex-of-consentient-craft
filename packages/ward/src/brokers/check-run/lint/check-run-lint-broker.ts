@@ -25,6 +25,7 @@ import { checkCommandsStatics } from '../../../statics/check-commands/check-comm
 import type { FileTiming } from '../../../contracts/file-timing/file-timing-contract';
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { eslintStatsParseTransformer } from '../../../transformers/eslint-stats-parse/eslint-stats-parse-transformer';
+import { eslintStatsStripTransformer } from '../../../transformers/eslint-stats-strip/eslint-stats-strip-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
 import { eslintIgnoredPatternExtractTransformer } from '../../../transformers/eslint-ignored-pattern-extract/eslint-ignored-pattern-extract-transformer';
 import { isEslintIgnoredResultGuard } from '../../../guards/is-eslint-ignored-result/is-eslint-ignored-result-guard';
@@ -127,7 +128,9 @@ export const checkRunLintBroker = async ({
     discoveredCount: filesCount,
     fileTimings,
     rawOutput: rawOutputContract.parse({
-      stdout: result.output,
+      // The timing tree is read into `fileTimings` above and dropped here: it was 88% of a saved
+      // whole-repo lint run, and `ward raw lint` needs only the messages.
+      stdout: eslintStatsStripTransformer({ output: errorMessageContract.parse(result.output) }),
       stderr: '',
       exitCode,
       signal: result.signal,
