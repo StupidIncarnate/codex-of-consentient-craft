@@ -4,7 +4,8 @@
  *
  * USAGE:
  * <GuildRowLayerWidget guild={guild} selectedGuildId={selectedGuildId} onSelect={onSelect} />
- * // Renders the guild's name, styled gold when selectedGuildId equals guild.id
+ * // Renders the guild's name, styled gold when selectedGuildId equals guild.id, and an
+ * // "(invalid path)" marker when the server reports the guild's path invalid
  */
 
 import { UnstyledButton } from '@mantine/core';
@@ -47,6 +48,15 @@ export const GuildRowLayerWidget = ({
       }}
     >
       {guild.name}
+      {guild.valid ? null : (
+        <span
+          title={`Path not found or not absolute: ${guild.path}`}
+          style={{ color: colors.danger, marginLeft: 6 }}
+          data-testid={`GUILD_ITEM_INVALID_${guild.id}`}
+        >
+          (invalid path)
+        </span>
+      )}
     </UnstyledButton>
   );
 };

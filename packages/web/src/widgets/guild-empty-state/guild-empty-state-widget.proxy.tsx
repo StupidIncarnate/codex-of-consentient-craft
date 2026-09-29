@@ -14,6 +14,7 @@ export const GuildEmptyStateWidgetProxy = (): {
   typeGuildName: ({ value }: { value: string }) => Promise<void>;
   typeGuildPath: ({ value }: { value: string }) => Promise<void>;
   getGuildPathValue: () => HTMLElement['textContent'];
+  getGuildPathError: () => HTMLElement['textContent'];
   clickBrowse: () => Promise<void>;
   clickCreate: () => Promise<void>;
   clickCancel: () => Promise<void>;
@@ -39,6 +40,8 @@ export const GuildEmptyStateWidgetProxy = (): {
 
       return input?.value ?? '';
     },
+    getGuildPathError: (): HTMLElement['textContent'] =>
+      screen.queryByTestId('GUILD_PATH_ERROR')?.textContent ?? null,
     clickBrowse: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('GUILD_BROWSE_BUTTON'), userEventStatics.options);
     },

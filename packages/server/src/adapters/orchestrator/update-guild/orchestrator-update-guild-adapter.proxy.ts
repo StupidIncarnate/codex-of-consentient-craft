@@ -1,5 +1,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { GuildId, GuildStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
@@ -7,6 +8,7 @@ type Guild = ReturnType<typeof GuildStub>;
 export const orchestratorUpdateGuildAdapterProxy = (): {
   returns: (params: { guildId: GuildId; guild: Guild }) => void;
   throws: (params: { guildId: GuildId; error: Error }) => void;
+  getCalls: () => RecordedCalls;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.updateGuild });
 
@@ -17,5 +19,6 @@ export const orchestratorUpdateGuildAdapterProxy = (): {
     throws: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
       mock.calledWith([{ guildId }]).rejects(error);
     },
+    getCalls: (): RecordedCalls => mock.callsMatching([]),
   };
 };

@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Inline guild creation form displayed when no guilds exist or user clicks new guild
+ * PURPOSE: Inline guild creation form displayed when no guilds exist or user clicks new guild.
+ * CREATE refuses a path that is not absolute with an error under the path input, and
+ * `onAddGuild` does not fire for it.
  *
  * USAGE:
  * <GuildEmptyStateWidget onAddGuild={fn} />
@@ -11,7 +13,11 @@ import { useState } from 'react';
 import { Group, Stack, Text, TextInput } from '@mantine/core';
 
 import type { GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
-import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  guildNameContract,
+  guildPathContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
@@ -43,6 +49,7 @@ export const GuildEmptyStateWidget = ({
 }: GuildEmptyStateWidgetProps): React.JSX.Element => {
   const [name, setName] = useState('');
   const [path, setPath] = useState('');
+  const [pathRejected, setPathRejected] = useState(false);
   const [browserOpened, setBrowserOpened] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
@@ -86,9 +93,11 @@ export const GuildEmptyStateWidget = ({
               value={path}
               onChange={(e) => {
                 setPath(e.target.value);
+                setPathRejected(false);
               }}
               w={INPUT_WIDTH}
               styles={inputStyles}
+              error={pathRejected}
               data-testid="GUILD_PATH_INPUT"
             />
             <PixelBtnWidget
@@ -100,12 +109,25 @@ export const GuildEmptyStateWidget = ({
               }}
             />
           </Group>
+          {pathRejected ? (
+            <Text
+              ff="monospace"
+              style={{ color: colors.danger, fontSize: LABEL_FONT_SIZE }}
+              data-testid="GUILD_PATH_ERROR"
+            >
+              Path must be absolute (start with / or C:\ on Windows)
+            </Text>
+          ) : null}
         </Stack>
         <Group gap="xs">
           <PixelBtnWidget
             label={createLabel}
             testId={createTestId}
             onClick={() => {
+              if (!absoluteFilePathContract.safeParse(path).success) {
+                setPathRejected(true);
+                return;
+              }
               onAddGuild({
                 name: guildNameContract.parse(name),
                 path: guildPathContract.parse(path),
