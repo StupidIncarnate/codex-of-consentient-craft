@@ -48,9 +48,9 @@ describe('commandDetailBroker', () => {
         filePath: 'src/index.ts' as ErrorFilePath,
       });
 
-      expect(process.stdout.write).toHaveBeenCalledWith(
+      expect(proxy.getStdoutCalls()).toStrictEqual([
         'src/index.ts\n  lint (line 10, col 5)\n    Unexpected any\n',
-      );
+      ]);
     });
   });
 
@@ -89,9 +89,9 @@ describe('commandDetailBroker', () => {
         runId,
       });
 
-      expect(process.stdout.write).toHaveBeenCalledWith(
+      expect(proxy.getStdoutCalls()).toStrictEqual([
         'src/index.ts\n  lint (line 10, col 5)\n    Unexpected any\n',
-      );
+      ]);
     });
   });
 
