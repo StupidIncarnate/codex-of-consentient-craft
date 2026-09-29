@@ -60,8 +60,7 @@
     "@dungeonmaster/config": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
-    "@dungeonmaster/shared": "*",
-    "zod": "^4.6.5"
+    "@dungeonmaster/shared": "*"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*"

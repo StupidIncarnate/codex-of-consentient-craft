@@ -82,9 +82,7 @@
   "dependencies": {
     "@dungeonmaster/bin": "*",
     "@dungeonmaster/node": "*",
-    "@dungeonmaster/npm": "*",
-    "fast-xml-parser": "^5.6.0",
-    "zod": "^4.6.5"
+    "@dungeonmaster/npm": "*"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

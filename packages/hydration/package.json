@@ -45,8 +45,7 @@
   ],
   "dependencies": {
     "@dungeonmaster/npm": "*",
-    "@dungeonmaster/shared": "*",
-    "zod": "^4.6.5"
+    "@dungeonmaster/shared": "*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -30,12 +30,7 @@
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
-    "@dungeonmaster/web": "*",
-    "glob": "^10.0.0",
-    "hono": "^4.0.0",
-    "@hono/node-server": "^1.0.0",
-    "@hono/node-ws": "^1.0.0",
-    "zod": "^4.6.5"
+    "@dungeonmaster/web": "*"
   },
   "devDependencies": {
     "@dungeonmaster/hydration-recipes": "*",

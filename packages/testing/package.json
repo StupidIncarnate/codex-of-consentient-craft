@@ -109,11 +109,8 @@
     "@dungeonmaster/bin": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
-    "@mantine/core": "^8.0.0",
-    "msw": "^2.12.10",
     "tsx": "^4.0.0",
-    "undici": "^7.21.0",
-    "zod": "^4.6.5"
+    "undici": "^7.21.0"
   },
   "publishConfig": {
     "access": "public"

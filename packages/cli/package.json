@@ -26,7 +26,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && npm run bundle",
-    "bundle": "npx esbuild dist/bin/cli-entry.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:@dungeonmaster/* --external:zod --define:__BUILD_TIMESTAMP__=\"\\\"$(date +'%b %d %I:%M %p')\\\"\"",
+    "bundle": "npx esbuild dist/bin/cli-entry.js --bundle --platform=node --format=cjs --outfile=dist/bin/dungeonmaster.js --external:@dungeonmaster/* --define:__BUILD_TIMESTAMP__=\"\\\"$(date +'%b %d %I:%M %p')\\\"\"",
     "postbuild": "chmod +x dist/bin/*.js dist/startup/*.js 2>/dev/null || true",
     "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
     "test": "dungeonmaster-ward --only test",
@@ -53,8 +53,7 @@
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",
-    "typescript": "^5.3.3",
-    "zod": "^4.6.5"
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

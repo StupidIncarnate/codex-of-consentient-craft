@@ -56,9 +56,7 @@
   "dependencies": {
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
-    "@dungeonmaster/shared": "*",
-    "debug": "^4.4.1",
-    "zod": "^4.6.5"
+    "@dungeonmaster/shared": "*"
   },
   "publishConfig": {
     "access": "public"

@@ -41,13 +41,10 @@
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
-    "glob": "^10.3.10",
-    "typescript": "^5.3.3",
-    "zod": "^4.6.5"
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",
-    "@types/node": "^20.11.0",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.11.0"
   }
 }

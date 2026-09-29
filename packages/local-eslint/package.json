@@ -29,11 +29,9 @@
   },
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",
-    "@dungeonmaster/shared": "*",
-    "zod": "^4.6.5"
+    "@dungeonmaster/shared": "*"
   },
   "devDependencies": {
-    "@dungeonmaster/testing": "*",
-    "@typescript-eslint/parser": "^8.45.0"
+    "@dungeonmaster/testing": "*"
   }
 }
