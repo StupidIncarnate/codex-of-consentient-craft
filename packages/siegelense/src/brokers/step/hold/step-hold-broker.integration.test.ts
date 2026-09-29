@@ -9,16 +9,16 @@ import { stepHoldBroker } from './step-hold-broker';
 const BASE_URL = 'http://localhost';
 const BROWSER_TIMEOUT_MS = 90_000;
 
-// Two frames per hold, not more: under jest one full-viewport pixel comparison costs about 5s
-// (measured 4.8s, against 0.3s for the same broker under plain node), so each extra frame pushes a
-// test past ward's integration bar without proving anything a single pair does not.
+// Two frames per hold on a small viewport: under jest one 1280x720 pixel comparison costs about 5s
+// (measured 4.8s, against 0.3s for the same broker under plain node), and the cost scales with the
+// pixel count. A 400x225 frame carries a ninth of them and still shows a text change.
+const VIEWPORT_WIDTH = 400;
+const VIEWPORT_HEIGHT = 225;
 
 const TICK_AREA_PAGE =
   '<!doctype html><html><body style="background:#111;color:#eee;font-size:32px"><div id="area"></div></body></html>';
 
-// The DEF-143 repro: an eval starts a timer rewriting one small text node every 400ms. On a
-// 1280x720 capture a text change like this moves about 0.1% of the pixels, which a whole-percent
-// reading rounds to 0%. Started AFTER `goto` rather than from an inline script, because `goto`
+// The DEF-143 repro: an eval starts a timer rewriting one small text node every 400ms. Started AFTER `goto` rather than from an inline script, because `goto`
 // waits for the page to settle and a page ticking from load never does.
 const START_TICKING_SOURCE =
   'window.ticks=0;setInterval(()=>{window.ticks+=1;document.getElementById("area").textContent="tick "+window.ticks},400);"started"';
@@ -38,6 +38,7 @@ describe('stepHoldBroker against a real Chromium', () => {
       });
       const evidencePath = AbsoluteFilePathStub({ value: testbed.guildPath });
       const session = await playwrightSessionAdapter({ baseUrl: BASE_URL, evidencePath });
+      await session.setViewport({ width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT });
       await session.goto({ url: TICK_AREA_URL });
       const started = await session.evaluateSource({ source: START_TICKING_SOURCE });
 
@@ -76,6 +77,7 @@ describe('stepHoldBroker against a real Chromium', () => {
       });
       const evidencePath = AbsoluteFilePathStub({ value: testbed.guildPath });
       const session = await playwrightSessionAdapter({ baseUrl: BASE_URL, evidencePath });
+      await session.setViewport({ width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT });
       await session.goto({ url: STILL_URL });
 
       const rendered = await stepHoldBroker({
