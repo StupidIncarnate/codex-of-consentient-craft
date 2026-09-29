@@ -18,6 +18,11 @@ import type { CompareAnswerStub } from '../../../contracts/compare-answer/compar
 
 type CompareAnswer = ReturnType<typeof CompareAnswerStub>;
 
+// The query is built by the responder from its argv, so the address is its shape: an object.
+const QUERY_ADDRESS = {
+  query: (value: unknown): boolean => typeof value === 'object' && value !== null,
+};
+
 export const SiegelenseCompareResponderProxy = (): {
   stageAnswer: (params: { answer: CompareAnswer }) => void;
   stageError: (params: { error: Error }) => void;
@@ -32,11 +37,11 @@ export const SiegelenseCompareResponderProxy = (): {
 
   return {
     stageAnswer: ({ answer }: { answer: CompareAnswer }): void => {
-      compareReadHandle.calledWith([]).resolves(answer);
+      compareReadHandle.calledWith([QUERY_ADDRESS]).resolves(answer);
     },
 
     stageError: ({ error }: { error: Error }): void => {
-      compareReadHandle.calledWith([]).rejects(error);
+      compareReadHandle.calledWith([QUERY_ADDRESS]).rejects(error);
     },
 
     getStdoutWrites: (): unknown[] => [...stdout.getWrites()],

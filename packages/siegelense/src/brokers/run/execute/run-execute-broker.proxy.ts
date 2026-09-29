@@ -185,10 +185,11 @@ export const runExecuteBrokerProxy = (): {
     passthrough: true,
   });
 
-  // The two automatic captures a run makes at its own boundaries. Answered for ANY arguments, since
-  // the interesting value is WHICH names were asked for, read back through the two methods below.
+  // The two automatic captures a run makes at its own boundaries — `manual: false` addresses exactly
+  // those, whatever home or name they carry; which names were asked for is read back through the
+  // two methods below.
   const snapshotCaptureHandle: MockHandle = registerMock({ fn: snapshotCaptureBroker });
-  snapshotCaptureHandle.calledWith([]).resolves(SnapshotRecordStub());
+  snapshotCaptureHandle.calledWith([{ manual: false }]).resolves(SnapshotRecordStub());
 
   // Captured (not composed bare) so its scenario methods can stage the repo-root walk, the link
   // check and the addressed home. The link is absent by default — every test below gets
@@ -596,10 +597,10 @@ export const runExecuteBrokerProxy = (): {
       return { lane, snapshotCountAtEachStep: (): readonly ReadingCount[] => counts };
     },
 
-    // Overrides the constructor's catch-all, since a later registration at the same specificity
+    // Overrides the constructor's answer, since a later registration at the same specificity
     // wins — the run must survive a capture that cannot be taken.
     failSnapshotCapture: ({ error }: { error: Error }): void => {
-      snapshotCaptureHandle.calledWith([]).rejects(error);
+      snapshotCaptureHandle.calledWith([{ manual: false }]).rejects(error);
     },
 
     getStderrText: (): ReturnType<typeof ContentTextStub> =>

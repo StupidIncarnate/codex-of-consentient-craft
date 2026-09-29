@@ -25,6 +25,11 @@ import type { PruneAnswerStub } from '../../../contracts/prune-answer/prune-answ
 
 type PruneAnswer = ReturnType<typeof PruneAnswerStub>;
 
+// The query is built by the responder from its argv, so the address is its shape: an object.
+const QUERY_ADDRESS = {
+  query: (value: unknown): boolean => typeof value === 'object' && value !== null,
+};
+
 export const SiegelensePruneResponderProxy = (): {
   stageAnswer: (params: { answer: PruneAnswer }) => void;
   getStdoutWrites: () => unknown[];
@@ -41,7 +46,7 @@ export const SiegelensePruneResponderProxy = (): {
 
   return {
     stageAnswer: ({ answer }: { answer: PruneAnswer }): void => {
-      pruneRunHandle.calledWith([]).resolves(answer);
+      pruneRunHandle.calledWith([QUERY_ADDRESS]).resolves(answer);
     },
 
     getStdoutWrites: (): unknown[] => [...stdout.getWrites()],

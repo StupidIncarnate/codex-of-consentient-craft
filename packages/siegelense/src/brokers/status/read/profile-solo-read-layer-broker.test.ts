@@ -81,6 +81,7 @@ describe('profileSoloReadLayerBroker', () => {
     it('ERROR: {profileReadBroker rejects} => returns null and logs the failure instead of throwing', async () => {
       const proxy = profileSoloReadLayerBrokerProxy();
       proxy.setupProfileReadFails({
+        specName: SpecNameStub({ value: 'ghost' }),
         error: new Error('Unknown lane spec "ghost". Known specs: stack, api'),
       });
 

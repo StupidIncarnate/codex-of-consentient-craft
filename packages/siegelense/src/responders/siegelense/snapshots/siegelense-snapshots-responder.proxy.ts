@@ -18,6 +18,7 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
 import { snapshotListBrokerProxy } from '../../../brokers/snapshot/list/snapshot-list-broker.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
+import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SnapshotsAnswerStub } from '../../../contracts/snapshots-answer/snapshots-answer.stub';
 
@@ -27,7 +28,7 @@ type Registry = ReturnType<typeof RegistryStub>;
 export const SiegelenseSnapshotsResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageAnswer: (params: { answer: SnapshotsAnswer }) => void;
-  stageError: (params: { error: Error }) => void;
+  stageError: (params: { error: Error; instanceId: InstanceId }) => void;
   stageNow: (params: { nowMs: EpochMs }) => void;
   getStdoutWrites: () => unknown[];
 } => {
@@ -49,11 +50,11 @@ export const SiegelenseSnapshotsResponderProxy = (): {
     },
 
     stageAnswer: ({ answer }: { answer: SnapshotsAnswer }): void => {
-      listHandle.calledWith([]).resolves(answer);
+      listHandle.calledWith([{ instanceId: answer.instanceId }]).resolves(answer);
     },
 
-    stageError: ({ error }: { error: Error }): void => {
-      listHandle.calledWith([]).rejects(error);
+    stageError: ({ error, instanceId }: { error: Error; instanceId: InstanceId }): void => {
+      listHandle.calledWith([{ instanceId }]).rejects(error);
     },
 
     stageNow: ({ nowMs }: { nowMs: EpochMs }): void => {

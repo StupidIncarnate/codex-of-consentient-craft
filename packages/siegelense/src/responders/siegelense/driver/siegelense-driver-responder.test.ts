@@ -23,7 +23,7 @@ describe('SiegelenseDriverResponder', () => {
       const entry = RegistryEntryStub({ id: instanceId, guildId, specName: SPEC_NAME });
       const lane = LaneSessionStub();
       proxy.stageRegistryRow({ entry });
-      proxy.stageBootSucceeds({ lane });
+      proxy.stageBootSucceeds({ lane, instanceId });
 
       await SiegelenseDriverResponder({ instanceId });
 
@@ -36,7 +36,7 @@ describe('SiegelenseDriverResponder', () => {
       const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME });
       const lane = LaneSessionStub();
       proxy.stageRegistryRow({ entry });
-      proxy.stageBootSucceeds({ lane });
+      proxy.stageBootSucceeds({ lane, instanceId });
       proxy.stagePid({ pid: 48213 });
 
       await SiegelenseDriverResponder({ instanceId });
@@ -69,7 +69,7 @@ describe('SiegelenseDriverResponder', () => {
         ],
       });
       proxy.stageRegistryRow({ entry });
-      proxy.stageBootFails({ error: bootError });
+      proxy.stageBootFails({ error: bootError, instanceId });
 
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
 
@@ -91,7 +91,7 @@ describe('SiegelenseDriverResponder', () => {
         ],
       });
       proxy.stageRegistryRow({ entry });
-      proxy.stageBootFails({ error: bootError });
+      proxy.stageBootFails({ error: bootError, instanceId });
 
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
 
@@ -116,6 +116,7 @@ describe('SiegelenseDriverResponder', () => {
       proxy.stageRegistryRow({ entry });
       proxy.stageBootFailsAndMarkerWriteFails({
         error: bootError,
+        instanceId,
         markerWriteError: Object.assign(new Error('ENOSPC: no space left on device'), {
           code: 'ENOSPC',
         }),
@@ -148,7 +149,7 @@ describe('SiegelenseDriverResponder', () => {
       const livePid = ProcessIdStub({ value: '108019' });
       const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME, pid: livePid });
       proxy.stageRegistryRow({ entry });
-      proxy.stageDriverAlreadyLive();
+      proxy.stageDriverAlreadyLive({ entry });
 
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
         `Instance ${instanceId} already has a running driver (pid ${livePid}); driver is started by start and is not typed by hand.`,

@@ -59,6 +59,8 @@ const SOCKET_PATH_VALUE = '/tmp/dm-siege-sockets/inst_7f3a9c21.sock';
 // `InstanceIdStub()`'s default — every broker this responder calls receives it, so each mock below
 // is addressed by it (a prefix match on the one key, whatever else the call carries).
 const INSTANCE_ADDRESS = { instanceId: 'inst_7f3a9c21' };
+// The kill signal is a promise the responder creates itself, so the address is its type.
+const KILL_SIGNAL_ADDRESS = { killSignal: (value: unknown): boolean => value instanceof Promise };
 const EVIDENCE_PATH_VALUE = '/tmp/dm-siege-evidence-test/unowned/instances/inst_7f3a9c21';
 
 export const DriverServeLayerResponderProxy = (): {
@@ -122,7 +124,7 @@ export const DriverServeLayerResponderProxy = (): {
   heartbeatTickHandle.calledWith([INSTANCE_ADDRESS]).resolves({ success: true });
 
   const idleWaitHandle = registerMock({ fn: DriverIdleWaitLayerResponder });
-  idleWaitHandle.calledWith([]).resolves(false);
+  idleWaitHandle.calledWith([KILL_SIGNAL_ADDRESS]).resolves(false);
 
   const laneTeardownHandle = registerMock({ fn: laneTeardownBroker });
   laneTeardownHandle.calledWith([INSTANCE_ADDRESS]).resolves(KillResultStub());
@@ -176,7 +178,7 @@ export const DriverServeLayerResponderProxy = (): {
       socketProxy.getMkdirCallsFor({ socketPath: SOCKET_PATH_VALUE }),
 
     stageIdleWaitResolves: ({ killed }: { killed: boolean }): void => {
-      idleWaitHandle.calledWith([]).resolves(killed);
+      idleWaitHandle.calledWith([KILL_SIGNAL_ADDRESS]).resolves(killed);
     },
 
     getLaneTeardownCallCount: (): ReturnType<typeof ReadingCountStub> =>

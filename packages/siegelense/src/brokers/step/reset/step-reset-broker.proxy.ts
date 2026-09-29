@@ -15,7 +15,7 @@ import type {
   Guild,
 } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -79,18 +79,6 @@ export const stepResetBrokerProxy = (): {
   // `snapshotResolveBroker`'s own internal call and stepResetBroker's direct one.
   snapshotIndexReadBrokerProxy();
   const indexReadHandle: MockHandle = registerMock({ fn: snapshotIndexReadBroker });
-  const { snapshotIndexReadBroker: realSnapshotIndexReadBroker } = requireActual<{
-    snapshotIndexReadBroker: typeof snapshotIndexReadBroker;
-  }>({ module: '../../snapshot/index-read/snapshot-index-read-broker' });
-  // Sticky default: a homePath THIS file never staged still reads the real index — composing this
-  // proxy inside a broader tree (run-verb-layer-broker.proxy.ts builds every verb's proxy together)
-  // must not break an unrelated verb's own real call into snapshotCaptureBroker, which reads the
-  // same index to number its next capture.
-  indexReadHandle
-    .calledWith([])
-    .implement(async (params: Parameters<typeof snapshotIndexReadBroker>[0]) =>
-      realSnapshotIndexReadBroker(params),
-    );
 
   return {
     setupSnapshots: ({ homePath, records }): void => {

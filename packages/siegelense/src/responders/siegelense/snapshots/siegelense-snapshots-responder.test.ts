@@ -101,7 +101,7 @@ describe('SiegelenseSnapshotsResponder', () => {
         indexPath: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
         cause: new Error('Unexpected end of JSON input'),
       });
-      proxy.stageError({ error });
+      proxy.stageError({ error, instanceId });
 
       await expect(SiegelenseSnapshotsResponder({ instanceId })).rejects.toStrictEqual(error);
       expect(proxy.getStdoutWrites()).toStrictEqual([]);

@@ -25,6 +25,11 @@ import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 type ResultsAnswer = ReturnType<typeof ResultsAnswerStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 
+// The query is built by the responder from its argv, so the address is its shape: an object.
+const QUERY_ADDRESS = {
+  query: (value: unknown): boolean => typeof value === 'object' && value !== null,
+};
+
 export const SiegelenseResultsResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageAnswer: (params: { answer: ResultsAnswer }) => void;
@@ -47,11 +52,11 @@ export const SiegelenseResultsResponderProxy = (): {
     },
 
     stageAnswer: ({ answer }: { answer: ResultsAnswer }): void => {
-      resultsReadHandle.calledWith([]).resolves(answer);
+      resultsReadHandle.calledWith([QUERY_ADDRESS]).resolves(answer);
     },
 
     stageError: ({ error }: { error: Error }): void => {
-      resultsReadHandle.calledWith([]).rejects(error);
+      resultsReadHandle.calledWith([QUERY_ADDRESS]).rejects(error);
     },
 
     getStdoutWrites: (): unknown[] => [...stdout.getWrites()],

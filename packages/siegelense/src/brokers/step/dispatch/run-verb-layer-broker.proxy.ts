@@ -107,7 +107,9 @@ export const runVerbLayerBrokerProxy = (): {
   stepVideoBrokerProxy();
   stepWaitForBrokerProxy();
   const snapshotProxy = stepSnapshotBrokerProxy();
-  stepResetBrokerProxy();
+  // Assigned for one reason: `snapshotIndexReadBroker` is mocked process-wide by this proxy, so a
+  // snapshot step's index read is staged through it.
+  const resetProxy = stepResetBrokerProxy();
   // Assigned, unlike the rest: `seed` is the one verb whose broker a caller stages through this
   // layer, so a batch test can prove a binding resolved against ids a REAL recipe returned.
   const seedProxy = stepSeedBrokerProxy();
@@ -285,6 +287,7 @@ export const runVerbLayerBrokerProxy = (): {
 
     setupSnapshotEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
       snapshotProxy.setupEmptyStore({ homePath });
+      resetProxy.setupNoSnapshots({ homePath });
     },
 
     setupHoldCopy: ({

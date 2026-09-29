@@ -331,7 +331,7 @@ describe('SiegelenseStartResponder', () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = SpecNameStub();
       const thrown = new Error('instanceStartBroker: boot failed');
-      proxy.stageError({ error: thrown });
+      proxy.stageError({ error: thrown, specName });
 
       await expect(
         SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null }),

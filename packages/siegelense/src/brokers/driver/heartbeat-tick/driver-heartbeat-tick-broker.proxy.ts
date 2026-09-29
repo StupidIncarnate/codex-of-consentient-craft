@@ -20,6 +20,7 @@ import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { heartbeatWriteBrokerProxy } from '../../heartbeat/write/heartbeat-write-broker.proxy';
 import { profileSampleRecordBroker } from '../../profile/sample-record/profile-sample-record-broker';
 import { profileSampleRecordBrokerProxy } from '../../profile/sample-record/profile-sample-record-broker.proxy';
@@ -30,11 +31,13 @@ const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }
 
 export const driverHeartbeatTickBrokerProxy = (): {
   stageBeatSucceeds: (params: {
+    instanceId: InstanceId;
     evidencePath: FilePath;
     registryJson: string;
     nowMs: number;
   }) => void;
   stageBeatSucceedsWithMeasuredRss: (params: {
+    instanceId: InstanceId;
     evidencePath: FilePath;
     registryJson: string;
     nowMs: number;
@@ -42,7 +45,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
     pgrp: number;
     residentPages: number;
   }) => void;
-  stageSampleRecordFails: (params: { error: Error }) => void;
+  stageSampleRecordFails: (params: { error: Error; instanceId: InstanceId }) => void;
   getWrittenHeartbeatContent: (params: { evidencePath: FilePath }) => unknown;
   getSampleRecordCalls: () => readonly unknown[];
   getStderrMessages: () => readonly ContentText[];
@@ -52,23 +55,24 @@ export const driverHeartbeatTickBrokerProxy = (): {
   profileSampleRecordBrokerProxy();
 
   const sampleHandle = registerMock({ fn: profileSampleRecordBroker });
-  // The sampler's own return value is nothing this broker reads; every test that cares asserts the
-  // ARGUMENTS it was handed, through getSampleRecordCalls.
-  sampleHandle.calledWith([]).resolves(null);
-
   pidProxy();
   const stderrRecorder = stderrProxy();
 
   return {
     stageBeatSucceeds: ({
+      instanceId,
       evidencePath,
       registryJson,
       nowMs,
     }: {
+      instanceId: InstanceId;
       evidencePath: FilePath;
       registryJson: string;
       nowMs: number;
     }): void => {
+      // The sampler's own return value is nothing this broker reads; every test that cares asserts
+      // the ARGUMENTS it was handed, through getSampleRecordCalls.
+      sampleHandle.calledWith([{ instanceId }]).resolves(null);
       heartbeatProxy.setupHeartbeatWrite({
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -80,6 +84,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
     },
 
     stageBeatSucceedsWithMeasuredRss: ({
+      instanceId,
       evidencePath,
       registryJson,
       nowMs,
@@ -87,6 +92,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
       pgrp,
       residentPages,
     }: {
+      instanceId: InstanceId;
       evidencePath: FilePath;
       registryJson: string;
       nowMs: number;
@@ -94,6 +100,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
       pgrp: number;
       residentPages: number;
     }): void => {
+      sampleHandle.calledWith([{ instanceId }]).resolves(null);
       heartbeatProxy.setupHeartbeatWriteWithMeasuredRss({
         homeDir: HOME_DIR,
         homePath: HOME_PATH,
@@ -107,8 +114,14 @@ export const driverHeartbeatTickBrokerProxy = (): {
       });
     },
 
-    stageSampleRecordFails: ({ error }: { error: Error }): void => {
-      sampleHandle.calledWith([]).rejects(error);
+    stageSampleRecordFails: ({
+      error,
+      instanceId,
+    }: {
+      error: Error;
+      instanceId: InstanceId;
+    }): void => {
+      sampleHandle.calledWith([{ instanceId }]).rejects(error);
     },
 
     getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: FilePath }): unknown =>

@@ -30,7 +30,12 @@ describe('driverHeartbeatTickBroker', () => {
       });
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
-      proxy.stageBeatSucceeds({ evidencePath, registryJson: JSON.stringify(registry), nowMs });
+      proxy.stageBeatSucceeds({
+        instanceId,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+      });
 
       const result = await driverHeartbeatTickBroker({ instanceId, guildId, lane });
 
@@ -53,6 +58,7 @@ describe('driverHeartbeatTickBroker', () => {
       });
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
       proxy.stageBeatSucceedsWithMeasuredRss({
+        instanceId,
         evidencePath,
         registryJson: JSON.stringify(registry),
         nowMs,
@@ -82,7 +88,12 @@ describe('driverHeartbeatTickBroker', () => {
         value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
       });
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
-      proxy.stageBeatSucceeds({ evidencePath, registryJson: JSON.stringify(registry), nowMs });
+      proxy.stageBeatSucceeds({
+        instanceId,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+      });
 
       await driverHeartbeatTickBroker({ instanceId, guildId: null, lane });
 
@@ -107,8 +118,16 @@ describe('driverHeartbeatTickBroker', () => {
         value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
       });
       const registry = RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] });
-      proxy.stageBeatSucceeds({ evidencePath, registryJson: JSON.stringify(registry), nowMs });
-      proxy.stageSampleRecordFails({ error: new Error('EACCES: profiles directory unwritable') });
+      proxy.stageBeatSucceeds({
+        instanceId,
+        evidencePath,
+        registryJson: JSON.stringify(registry),
+        nowMs,
+      });
+      proxy.stageSampleRecordFails({
+        instanceId,
+        error: new Error('EACCES: profiles directory unwritable'),
+      });
 
       const result = await driverHeartbeatTickBroker({ instanceId, guildId: null, lane });
 

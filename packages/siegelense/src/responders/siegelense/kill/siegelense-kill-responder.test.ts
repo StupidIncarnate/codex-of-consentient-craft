@@ -86,7 +86,7 @@ describe('SiegelenseKillResponder', () => {
       });
       const thrown = new Error('instanceKillBroker: driver connection refused');
       proxy.stageRegistry({ registry });
-      proxy.stageKillThrows({ error: thrown });
+      proxy.stageKillThrows({ error: thrown, instanceId });
 
       await expect(SiegelenseKillResponder({ instanceId })).rejects.toStrictEqual(thrown);
       expect(proxy.getStdoutWrites()).toStrictEqual([]);

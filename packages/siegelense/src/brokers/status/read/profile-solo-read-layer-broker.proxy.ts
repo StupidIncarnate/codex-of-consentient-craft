@@ -15,15 +15,17 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 import { profileReadBrokerProxy } from '../../profile/read/profile-read-broker.proxy';
 
 type SpecProfile = ReturnType<typeof SpecProfileStub>;
+type SpecName = ReturnType<typeof SpecNameStub>;
 
 export const profileSoloReadLayerBrokerProxy = (): {
   setupProfile: (params: { profile: SpecProfile }) => void;
-  setupProfileReadFails: (params: { error: Error }) => void;
+  setupProfileReadFails: (params: { error: Error; specName: SpecName }) => void;
   getStderrMessages: () => readonly ContentText[];
 } => {
   // Constructed for enforce-proxy-child-creation only — the broker below is staged directly.
@@ -33,11 +35,11 @@ export const profileSoloReadLayerBrokerProxy = (): {
 
   return {
     setupProfile: ({ profile }: { profile: SpecProfile }): void => {
-      profileHandle.calledWith([]).resolves(profile);
+      profileHandle.calledWith([{ specName: profile.specName }]).resolves(profile);
     },
 
-    setupProfileReadFails: ({ error }: { error: Error }): void => {
-      profileHandle.calledWith([]).rejects(error);
+    setupProfileReadFails: ({ error, specName }: { error: Error; specName: SpecName }): void => {
+      profileHandle.calledWith([{ specName }]).rejects(error);
     },
 
     getStderrMessages: (): readonly ContentText[] =>

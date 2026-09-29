@@ -71,10 +71,14 @@ const TMP_DIR_VALUE = '/tmp';
 export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
   stageEmptyRegistry: () => void;
-  stageDriverAlreadyLive: () => void;
-  stageBootSucceeds: (params: { lane: LaneSession }) => void;
-  stageBootFails: (params: { error: Error }) => void;
-  stageBootFailsAndMarkerWriteFails: (params: { error: Error; markerWriteError: Error }) => void;
+  stageDriverAlreadyLive: (params: { entry: RegistryEntry }) => void;
+  stageBootSucceeds: (params: { lane: LaneSession; instanceId: InstanceId }) => void;
+  stageBootFails: (params: { error: Error; instanceId: InstanceId }) => void;
+  stageBootFailsAndMarkerWriteFails: (params: {
+    error: Error;
+    markerWriteError: Error;
+    instanceId: InstanceId;
+  }) => void;
   applyRegistryMutate: (params: { current: Registry }) => Registry;
   getServeCallArgs: () => unknown;
   getExpectedSocketPath: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
@@ -125,60 +129,67 @@ export const SiegelenseDriverResponderProxy = (): {
   const laneBootHandle = registerMock({ fn: laneBootBroker });
   const registryUpdateHandle = registerMock({ fn: registryUpdateBroker });
   const bootLockReleaseHandle = registerMock({ fn: bootLockReleaseBroker });
-  bootLockReleaseHandle.calledWith([]).resolves({ success: true });
-
   const bootFailureMarkerWriteHandle = registerMock({ fn: bootFailureMarkerWriteBroker });
-  // Sticky success default — every `stageBootFails` scenario reaches this call, and only a test
-  // asserting the write itself throws needs a different answer.
-  bootFailureMarkerWriteHandle.calledWith([]).resolves({
-    message: ContentTextStub({ value: 'stub boot failure message' }),
-    atMs: EpochMsStub(),
-  });
-
   const serveHandle = registerMock({ fn: DriverServeLayerResponder });
-  serveHandle.calledWith([]).resolves({ success: true });
-
-  // Sticky default: no live driver, so every boot-sequence test above keeps proceeding to
-  // laneBootBroker exactly as it did before this broker existed.
   const driverLiveCheckHandle = registerMock({ fn: driverLiveCheckBroker });
-  driverLiveCheckHandle.calledWith([]).resolves(false);
 
   return {
     stageRegistryRow: ({ entry }: { entry: RegistryEntry }): void => {
       registryReadHandle.calledWith([]).resolves({ instances: [entry] });
+      // Not-live is the answer every boot-sequence test needs; `stageDriverAlreadyLive` restages
+      // this same address.
+      driverLiveCheckHandle.calledWith([{ entry }]).resolves(false);
     },
 
     stageEmptyRegistry: (): void => {
       registryReadHandle.calledWith([]).resolves({ instances: [] });
     },
 
-    stageDriverAlreadyLive: (): void => {
-      driverLiveCheckHandle.calledWith([]).resolves(true);
+    stageDriverAlreadyLive: ({ entry }: { entry: RegistryEntry }): void => {
+      driverLiveCheckHandle.calledWith([{ entry }]).resolves(true);
     },
 
-    stageBootSucceeds: ({ lane }: { lane: LaneSession }): void => {
-      laneBootHandle.calledWith([]).resolves(lane);
+    stageBootSucceeds: ({
+      lane,
+      instanceId,
+    }: {
+      lane: LaneSession;
+      instanceId: InstanceId;
+    }): void => {
+      laneBootHandle.calledWith([{ instanceId }]).resolves(lane);
       registryUpdateHandle
-        .calledWith([])
+        .calledWith([{ mutate: (value: unknown): boolean => typeof value === 'function' }])
         .implement(
           async ({ mutate }: { mutate: (current: Registry) => Registry }): Promise<Registry> =>
             Promise.resolve(mutate({ instances: [] })),
         );
+      bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
+      serveHandle.calledWith([{ instanceId }]).resolves({ success: true });
     },
 
-    stageBootFails: ({ error }: { error: Error }): void => {
-      laneBootHandle.calledWith([]).rejects(error);
+    stageBootFails: ({ error, instanceId }: { error: Error; instanceId: InstanceId }): void => {
+      laneBootHandle.calledWith([{ instanceId }]).rejects(error);
+      bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
+      bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
+        message: ContentTextStub({ value: error.message }),
+        atMs: EpochMsStub(),
+      });
     },
 
     stageBootFailsAndMarkerWriteFails: ({
       error,
       markerWriteError,
+      instanceId,
     }: {
       error: Error;
       markerWriteError: Error;
+      instanceId: InstanceId;
     }): void => {
-      laneBootHandle.calledWith([]).rejects(error);
-      bootFailureMarkerWriteHandle.calledWith([]).rejects(markerWriteError);
+      laneBootHandle.calledWith([{ instanceId }]).rejects(error);
+      bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
+      bootFailureMarkerWriteHandle
+        .calledWith([{ message: error.message }])
+        .rejects(markerWriteError);
     },
 
     applyRegistryMutate: ({ current }: { current: Registry }): Registry => {

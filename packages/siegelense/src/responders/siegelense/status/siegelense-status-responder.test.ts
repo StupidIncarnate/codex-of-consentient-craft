@@ -14,7 +14,7 @@ describe('SiegelenseStatusResponder', () => {
     it('EMPTY: {instanceId: null, isJson: true, no instances} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId: null });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: true });
 
@@ -26,7 +26,7 @@ describe('SiegelenseStatusResponder', () => {
     it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the reworded empty-fleet sentence naming the default --since window', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId: null });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
@@ -40,7 +40,7 @@ describe('SiegelenseStatusResponder', () => {
     it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the reworded empty-fleet sentence by default', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId: null });
 
       await SiegelenseStatusResponder({ instanceId: null });
 
@@ -109,7 +109,7 @@ describe('SiegelenseStatusResponder', () => {
           }),
         ],
       });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId: null });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: true });
 
@@ -161,7 +161,7 @@ describe('SiegelenseStatusResponder', () => {
           }),
         ],
       });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId: null });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
@@ -215,7 +215,7 @@ describe('SiegelenseStatusResponder', () => {
           }),
         ],
       });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId });
 
       await SiegelenseStatusResponder({ instanceId, isJson: true });
 
@@ -260,7 +260,7 @@ describe('SiegelenseStatusResponder', () => {
           }),
         ],
       });
-      proxy.stageAnswer({ answer });
+      proxy.stageAnswer({ answer, instanceId });
 
       await SiegelenseStatusResponder({ instanceId, isJson: false });
 

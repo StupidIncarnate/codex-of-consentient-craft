@@ -36,7 +36,7 @@ type RecipeListingEntry = ReturnType<typeof RecipeListingEntryStub>;
 
 export const SiegelenseStartResponderProxy = (): {
   stageManifest: (params: { manifest: InstanceManifest }) => void;
-  stageError: (params: { error: Error }) => void;
+  stageError: (params: { error: Error; specName: SpecName }) => void;
   stageQuestResolvesToGuild: (params: { questId: QuestId; guildId: GuildId }) => void;
   stageQuestUnresolvable: (params: { questId: QuestId; error: Error }) => void;
   stageRecipeListing: (params: { entries: readonly RecipeListingEntry[] }) => void;
@@ -64,11 +64,11 @@ export const SiegelenseStartResponderProxy = (): {
 
   return {
     stageManifest: ({ manifest }: { manifest: InstanceManifest }): void => {
-      instanceStartHandle.calledWith([]).resolves(manifest);
+      instanceStartHandle.calledWith([{ specName: manifest.specName }]).resolves(manifest);
     },
 
-    stageError: ({ error }: { error: Error }): void => {
-      instanceStartHandle.calledWith([]).rejects(error);
+    stageError: ({ error, specName }: { error: Error; specName: SpecName }): void => {
+      instanceStartHandle.calledWith([{ specName }]).rejects(error);
     },
 
     stageQuestResolvesToGuild: ({
