@@ -6,6 +6,7 @@ describe('GuildRemoveResponder', () => {
     it('VALID: {valid guildId} => returns 200 with success', async () => {
       const proxy = GuildRemoveResponderProxy();
       const guildId = GuildIdStub();
+      proxy.setupRemoveGuildSuccess({ guildId });
 
       const result = await proxy.callResponder({ params: { guildId } });
 

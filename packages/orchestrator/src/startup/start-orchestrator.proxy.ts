@@ -114,6 +114,7 @@ export const StartOrchestratorProxy = (): {
   addGuildThrows: (params: { name: GuildName; path: GuildPath; error: Error }) => void;
   updateGuildReturns: (params: { guildId: GuildId; guild: Guild }) => void;
   updateGuildThrows: (params: { guildId: GuildId; error: Error }) => void;
+  removeGuildResolves: (params: { guildId: GuildId }) => void;
   removeGuildThrows: (params: { guildId: GuildId; error: Error }) => void;
   browseDirectoriesReturns: (params: { path?: GuildPath; entries: DirectoryEntry[] }) => void;
   browseDirectoriesThrows: (params: { path?: GuildPath; error: Error }) => void;
@@ -395,9 +396,7 @@ export const StartOrchestratorProxy = (): {
   getRateLimitsHandle.calledWith([]).resolves(null);
   getDispatchStateHandle.calledWith([]).resolves(DispatchStateStub());
   normalizeDispatchBootHandle.calledWith([]).resolves(DispatchStateStub());
-  removeGuildHandle.calledWith([]).resolves(undefined);
   stopAllChatsHandle.calledWith([]).returns(undefined);
-  findQuestByWorkItemIdHandle.calledWith([]).resolves(null);
 
   const isObjectArgument = (argument: unknown): boolean =>
     typeof argument === 'object' && argument !== null;
@@ -454,6 +453,9 @@ export const StartOrchestratorProxy = (): {
       updateGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
     // removeGuild discards its resolved value — only the throw path is observable.
+    removeGuildResolves: ({ guildId }: { guildId: GuildId }): void => {
+      removeGuildHandle.calledWith([{ guildId }]).resolves(undefined);
+    },
     removeGuildThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
       removeGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
