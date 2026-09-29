@@ -29,8 +29,6 @@ import { registerMock } from '../../../register-mock';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { integrationEnvironmentTrackingBrokerProxy } from '../tracking/integration-environment-tracking-broker.proxy';
 
-const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
-
 export const integrationEnvironmentCreateBrokerProxy = (): {
   setupRandomBytes: ({ bytes }: { bytes: Buffer }) => void;
   setupCommandSucceeds: ({ command, stdout }: { command: string; stdout: string }) => void;
@@ -69,10 +67,6 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
   const commandProxy = runSyncProxy();
   const npmScriptProxy = runScriptProxy();
   integrationEnvironmentTrackingBrokerProxy();
-
-  // Staged before any exact path: a predicate and an exact path score the same and the later
-  // staging wins, so every path a test names outranks this "not there" default.
-  existsProxy.returnsMatchingPath({ path: isPath, exists: false });
 
   return {
     setupRandomBytes: ({ bytes }: { bytes: Buffer }): void => {
@@ -114,6 +108,14 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
     setupWritableUnder: ({ root }: { root: string }): void => {
       ensureDirProxy.succeedsUnder({ root });
       writeFileProxy.succeedsUnder({ root });
+      // Bounded to the same root: a path beneath it answers "not there" until a test names it. Staged
+      // here, before any exact path a test names afterwards, because a predicate and an exact path
+      // score the same and the later staging wins.
+      existsProxy.returnsMatchingPath({
+        path: (candidate: unknown): boolean =>
+          typeof candidate === 'string' && (candidate === root || candidate.startsWith(`${root}/`)),
+        exists: false,
+      });
     },
     setupPathExists: ({ path }: { path: string }): void => {
       existsProxy.returns({ path, exists: true });

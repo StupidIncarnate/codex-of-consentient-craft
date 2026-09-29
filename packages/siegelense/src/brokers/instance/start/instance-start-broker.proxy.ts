@@ -22,15 +22,13 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
-import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
 import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
+import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
 import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
-import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
-import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
@@ -134,7 +132,7 @@ export const instanceStartBrokerProxy = (): {
   stageBootLockAcquireFailsWithReadError: (params: { registry: Registry }) => void;
   stageInstanceReleaseWriteFails: (params: { code: string }) => void;
   setupBootLockPid: (params: { pid: number }) => void;
-  stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
+  stageSeedFails: () => void;
   getWrittenBootLock: () => unknown;
   getRegistryAndBootLockWriteOrder: () => readonly unknown[];
   getBootLockReleasedPaths: () => unknown[];
@@ -196,12 +194,9 @@ export const instanceStartBrokerProxy = (): {
   // proxy — registerMock dedups the underlying writeFile mock by function reference regardless of
   // which composition constructed it.
   shutdownReasonWriteBrokerProxy();
-  // Constructed for enforce-proxy-child-creation. `recipeSeedRunBroker` itself is staged DIRECTLY
-  // below (stageSeedFails) rather than through this proxy's own book/lane setup — same reasoning as
-  // capacityReadBroker above: recipesLocateBrokerProxy's own book-present staging is fixed to a
-  // `/repo` cwd, which would collide with this file's own `/default/cwd` staging the moment both
-  // run in the same test.
-  recipeSeedRunBrokerProxy();
+  // recipeSeedRunBroker runs for real; its cwd is the sticky one this file already stages, so only
+  // the package's presence under that repo root is staged (stageSeedFails).
+  const recipeSeedProxy = recipeSeedRunBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
   // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoPgids
@@ -224,20 +219,12 @@ export const instanceStartBrokerProxy = (): {
   envSnapshotProxy();
 
   // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
-  // reserves one. It is staged DIRECTLY rather than composed: capacityReadBroker's own reads
-  // (registry, host, profile tree) would each queue onto the shared pathJoin and fs mocks this file
-  // already hand-counts, and what every test here needs from it is a single number. The
-  // constructor-level catch-all is the permissive answer — every scenario in this file is a machine
-  // with room — so only the refusal cases below describe a call of their own, at a strictly more
-  // specific address.
+  // reserves one. It is staged DIRECTLY rather than composed: the pre-reserve registry it counts is
+  // the one every scenario stages whole, own reservation row included, and the policy ceiling of
+  // three then refuses scenarios that queue two reservations ahead. The constructor-level catch-all
+  // is the permissive answer, so only the refusal cases below describe a call of their own.
   const capacityHandle: MockHandle = registerMock({ fn: capacityReadBroker });
   capacityHandle.calledWith([]).resolves(CapacityAnswerStub());
-
-  // Staged directly for the same reason capacityReadBroker is above — see the constructor comment
-  // on recipeSeedRunBrokerProxy() for why composing its own child staging is unsafe here. No
-  // constructor-level default: every test in this file either never seeds (seed: null, never
-  // reaches this call) or stages stageSeedFails() at the specific recipe address it names.
-  const recipeSeedHandle: MockHandle = registerMock({ fn: recipeSeedRunBroker });
 
   registerMock({ fn: randomUUID }).calledWith([]).returns(MINTED_UUID_VALUE);
   const clockProxy = nowProxy();
@@ -568,10 +555,10 @@ export const instanceStartBrokerProxy = (): {
       bootLockAcquireProxy.setupPid({ pid });
     },
 
-    // Addressed on the `recipe` field alone — a prefix match, so the real apiBaseUrl/homePath/
-    // parameters the broker builds need never be named here.
-    stageSeedFails: ({ seed, error }: { seed: RecipeName; error: Error }): void => {
-      recipeSeedHandle.calledWith([{ recipe: seed }]).rejects(error);
+    // The recipes package is absent under the staged repo root, so the real recipesLocateBroker
+    // throws its own RecipesPackageMissingError.
+    stageSeedFails: (): void => {
+      recipeSeedProxy.bookMissingUnder({ repoRoot: CWD_PATH_VALUE });
     },
 
     getKillConnectionCountFor: ({

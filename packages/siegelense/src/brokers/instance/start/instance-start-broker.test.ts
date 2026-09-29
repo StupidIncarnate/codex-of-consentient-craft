@@ -665,18 +665,19 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const specName = SpecNameStub({ value: 'api' });
       const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
-      const seedError = new Error("recipesSeedRunBroker: unknown recipe 'guild-with-three-quests'");
+      const missingMessage =
+        'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
-      proxy.stageSeedFails({ seed, error: seedError });
+      proxy.stageSeedFails();
       proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
 
       const startPromise = instanceStartBroker({ specName, questId: null, guildId: null, seed });
 
-      await expect(startPromise).rejects.toThrow(seedError.message);
+      await expect(startPromise).rejects.toThrow(missingMessage);
       expect(proxy.getKillConnectionCountFor({ instanceId })).toBe(2);
     });
 
@@ -685,13 +686,14 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const specName = SpecNameStub({ value: 'api' });
       const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
-      const seedError = new Error("recipesSeedRunBroker: unknown recipe 'guild-with-three-quests'");
+      const missingMessage =
+        'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
-      proxy.stageSeedFails({ seed, error: seedError });
+      proxy.stageSeedFails();
       proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
 
       await instanceStartBroker({ specName, questId: null, guildId: null, seed }).catch(
@@ -700,7 +702,7 @@ describe('instanceStartBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: UNOWNED_EVIDENCE_PATH })).toStrictEqual(
         {
-          reason: `--seed ${seed} failed: Error: ${seedError.message}`,
+          reason: `--seed ${seed} failed: RecipesPackageMissingError: ${missingMessage}`,
           atMs: EpochMsStub().valueOf(),
         },
       );

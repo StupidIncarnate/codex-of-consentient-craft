@@ -36,6 +36,7 @@ export const recipeSeedRunBrokerProxy = (): {
     questComplete: Quest;
   }) => void;
   malformedAnswer: () => void;
+  bookMissingUnder: (params: { repoRoot: string }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
   // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
@@ -95,6 +96,18 @@ export const recipeSeedRunBrokerProxy = (): {
         questComplete,
       });
       moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockResolvedValue(result);
+    },
+
+    // `repoRoot` is the cwd the caller already answers to every reader, so the one-shot cwd this
+    // queues is the same value whichever broker spends it. The real `recipesLocateBroker` throws its
+    // own `RecipesPackageMissingError`.
+    bookMissingUnder: ({ repoRoot }: { repoRoot: string }): void => {
+      locateProxy.setupPackageMissing({
+        cwdPath: repoRoot,
+        packagePath: FilePathStub({
+          value: `${repoRoot}/${recipesConventionStatics.package.workspaceDirName}/${recipesConventionStatics.package.dirName}`,
+        }),
+      });
     },
 
     // Neither a ContentText nor a saved-row record — fails BOTH branches of `seedResultContract`'s
