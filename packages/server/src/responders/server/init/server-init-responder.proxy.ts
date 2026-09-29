@@ -16,6 +16,7 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { createNodeWebSocketProxy } from '#gateway/npm/hono__node-ws/node-web-socket/node-web-socket.proxy';
 import { serveProxy } from '#gateway/npm/hono__node-server/server/server.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -138,6 +139,7 @@ export const ServerInitResponderProxy = (): {
   const webBundleProxy = webBundleResponseBrokerProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
+  const listen: { port: Parameters<typeof portProxy.setEnvPort>[0]['value'] } = { port: '3737' };
 
   return {
     callResponder: ({ serveWebBundle = false }: { serveWebBundle?: boolean } = {}): void => {
@@ -149,7 +151,10 @@ export const ServerInitResponderProxy = (): {
       // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
       process.removeAllListeners('SIGTERM');
       process.removeAllListeners('SIGINT');
-      ServerInitResponder({ app: new Hono(), serveWebBundle });
+      const app = new Hono();
+      nodeWebSocket.setupUpgrade({ app });
+      server.setupListen({ port: Number(listen.port), hostname: environmentStatics.hostname });
+      ServerInitResponder({ app, serveWebBundle });
     },
     setupWebBundleFile: ({
       contents,
@@ -174,6 +179,7 @@ export const ServerInitResponderProxy = (): {
       return capturedOptions.fetch(new Request(url, { method }));
     },
     setServerPort: ({ value }: { value: string }): void => {
+      listen.port = value;
       portProxy.setEnvPort({ value });
     },
     simulateConnection: ({ client }: { client: WsClient }): void => {
@@ -264,9 +270,8 @@ export const ServerInitResponderProxy = (): {
       joinHandle.calledWith([wardResultsPath, `${wardResultId}.json`]).returns(detailFilePath);
       readProxy.returns({ path: detailFilePath, contents });
     },
-    // Proves a real Hono app reached createNodeWebSocket — the gateway proxy's own stage is
-    // address-less (a fresh `new Hono()` per test, nothing to key on in advance), so this
-    // call-readback is the only way to catch a call that passed the wrong (or no) app through.
+    // Proves a real Hono app reached createNodeWebSocket; the stage is keyed on the exact app
+    // callResponder built, and this read-back confirms the responder captured it.
     getCapturedWebSocketAppIsHono: (): boolean => nodeWebSocket.getCapturedApp() instanceof Hono,
   };
 };

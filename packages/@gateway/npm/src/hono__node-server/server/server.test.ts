@@ -4,6 +4,7 @@ import { serveProxy } from './server.proxy';
 describe('serve', () => {
   it('VALID: {fetch, port, hostname} => the proxy captures every field back', () => {
     const proxy = serveProxy();
+    proxy.setupListen({ port: 3737, hostname: '127.0.0.1' });
     const fetchHandler = (): Response => new Response('ok');
 
     serve({ fetch: fetchHandler, port: 3737, hostname: '127.0.0.1' });
@@ -17,6 +18,7 @@ describe('serve', () => {
 
   it('EMPTY: {hostname omitted} => the captured options carry no hostname key', () => {
     const proxy = serveProxy();
+    proxy.setupListen({ port: 3737 });
     const fetchHandler = (): Response => new Response('ok');
 
     serve({ fetch: fetchHandler, port: 3737 });
@@ -28,7 +30,7 @@ describe('serve', () => {
   });
 
   it('VALID: {} => the mocked call still returns a real, never-listening ServerType', () => {
-    serveProxy();
+    serveProxy().setupListen({ port: 0 });
 
     const server = serve({ fetch: (): Response => new Response('ok'), port: 0 });
 

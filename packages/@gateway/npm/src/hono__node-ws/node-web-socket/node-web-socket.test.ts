@@ -6,6 +6,7 @@ describe('createNodeWebSocket', () => {
   it('VALID: {app} => the proxy captures the real app it was given', () => {
     const proxy = createNodeWebSocketProxy();
     const app = new Hono();
+    proxy.setupUpgrade({ app });
 
     createNodeWebSocket({ app });
 
@@ -15,6 +16,7 @@ describe('createNodeWebSocket', () => {
   it('VALID: {a route registered through upgradeWebSocket} => Hono accepts the returned handler and the proxy captures the same factory', () => {
     const proxy = createNodeWebSocketProxy();
     const app = new Hono();
+    proxy.setupUpgrade({ app });
     const { upgradeWebSocket } = createNodeWebSocket({ app });
     const factory = (): Record<PropertyKey, never> => ({});
 
