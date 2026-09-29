@@ -38,6 +38,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-startup-branching',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
+        'ban-test-support-in-production',
         'ban-type-aliases',
         'ban-typeof-assertions',
         'ban-unanchored-to-match',

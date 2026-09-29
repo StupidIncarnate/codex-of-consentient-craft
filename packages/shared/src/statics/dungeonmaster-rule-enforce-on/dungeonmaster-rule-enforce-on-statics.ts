@@ -95,6 +95,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/require-object-contract-brands': 'pre-edit',
   '@dungeonmaster/ban-type-aliases': 'pre-edit',
   '@dungeonmaster/ban-join-id-beside-child': 'pre-edit',
+  '@dungeonmaster/ban-test-support-in-production': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

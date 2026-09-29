@@ -1,4 +1,6 @@
-// config's own black-box proxy for configResolveBroker (F18, scrolls/brands-gateways-epic/EPIC.md).
+// config's caller-facing proxy for configResolveBroker (F18, scrolls/brands-gateways-epic/EPIC.md), at
+// `src/startup/start-config.proxy.ts` beside `start-config.ts`, the one home a package's caller-facing
+// proxy has (b03 "Decisions (3.3-D)" (b)); orchestrator's is `startup/start-orchestrator.proxy.ts`.
 // brokers/config/resolve/config-resolve-broker.proxy.ts (this broker's OWN colocated proxy)
 // composes configFileFindBrokerProxy, which composes @dungeonmaster/shared's
 // configRootFindBrokerProxy — registerMock's hoisted jest.mock() replaces that shared module for
@@ -7,27 +9,19 @@
 // 6bc846ad5). Every OTHER workspace package composes THIS proxy instead: it mocks
 // configResolveBroker itself and nothing beneath it, so no shared internals are ever touched.
 //
-// Colocated with config-resolve-caller.ts (a bare re-export, never imported by anything else)
-// rather than with config-resolve-broker.ts — enforce-project-structure's Level 3 domain-prefix
-// check has no slot for an extra descriptive word between a broker's own filename and ".proxy.ts"
-// outside the "-layer-" convention, and a layer file needs a real layer implementation behind it,
-// which this is not. Colocating with index.ts (config's main barrel) does not work either:
-// index.ts's own `import { configResolveBroker } from './src/brokers/...'` line unconditionally
-// trips enforce-proxy-child-creation's demand to compose that broker's own existing colocated
-// proxy — the exact internals-composing proxy this file exists to bypass. Both files sit directly
-// under src/ (no subfolder) rather than at the package root so enforce-test-proxy-imports' same-
-// directory pairing with the colocated test can be satisfied — jest's `roots: ['<rootDir>/src']`
-// would never discover a root-level test. See config-resolve-caller.ts's own header for the
-// anchor file's job.
+// `start-config.ts` exists to give enforce-proxy-child-creation the same-named sibling it pairs a
+// `.proxy.ts` with. Pairing the proxy with index.ts (where configResolveBroker is imported by
+// name) would demand composing `brokers/config/resolve/config-resolve-broker.proxy.ts`, the
+// internals-composing proxy this file exists to keep other packages out of. A bare re-export
+// (`export {x} from 'y'`) introduces no `import` line, so the sibling gives the pairing rule
+// nothing to demand.
 //
-// Named configResolveBrokerProxy, NOT configResolveBrokerCallerProxy (matching this file's own
-// name) — enforce-proxy-child-creation derives the implementation name a caller composing this
-// as a child proxy is expected to import by stripping the trailing "Proxy" off the CALLED name,
-// which must land on "configResolveBroker" (what every real caller genuinely imports) for the
-// check to resolve at all; a caller-specific suffix here would make every one of C1's three
-// callers report a phantom child-proxy creation.
+// Named configResolveBrokerProxy, NOT StartConfigProxy — enforce-proxy-child-creation derives the
+// implementation name a caller composing this as a child proxy is expected to import by stripping
+// the trailing "Proxy" off the CALLED name, which must land on "configResolveBroker" (what every
+// real caller genuinely imports) for the check to resolve at all.
 //
-// Import it per file: '@dungeonmaster/config/config-resolve-caller.proxy'.
+// Import it per file: '@dungeonmaster/config/startup/start-config.proxy'.
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 // Self-referencing package import, deliberately NOT relative and NOT via config-resolve-caller.ts:
 // every real caller (orchestrator, siegelense) imports configResolveBroker from
@@ -37,9 +31,9 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 // packages/orchestrator/src/startup/start-orchestrator.proxy.ts).
 import { configResolveBroker } from '@dungeonmaster/config';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { ConfigNotFoundError } from './errors/config-not-found/config-not-found-error';
-import { InvalidConfigError } from './errors/invalid-config/invalid-config-error';
-import type { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { ConfigNotFoundError } from '../errors/config-not-found/config-not-found-error';
+import { InvalidConfigError } from '../errors/invalid-config/invalid-config-error';
+import type { DungeonmasterConfigStub } from '../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 type DungeonmasterConfig = ReturnType<typeof DungeonmasterConfigStub>;
 

@@ -81,13 +81,19 @@ export const validateExportLayerBroker = ({
 
   const hasSuffixError = exportSuffix !== '' && !exportName.endsWith(exportSuffix);
 
-  const isCorrectCase =
-    exportCase === 'PascalCase'
+  // A startup proxy is named for the implementation a caller imports (`configResolveBrokerProxy`,
+  // `StartOrchestratorProxy`), the name enforce-proxy-child-creation derives from that import, so it
+  // may be camelCase or PascalCase and need not match the file name.
+  const isStartupProxy = isProxy && firstFolder === 'startup';
+
+  const isCorrectCase = isStartupProxy
+    ? isPascalCaseGuard({ str: exportName }) || isCamelCaseGuard({ str: exportName })
+    : exportCase === 'PascalCase'
       ? isPascalCaseGuard({ str: exportName })
       : isCamelCaseGuard({ str: exportName });
   const hasCaseError = !isCorrectCase;
 
-  const hasNameMismatch = exportName !== expectedExportName;
+  const hasNameMismatch = !isStartupProxy && exportName !== expectedExportName;
 
   if (hasSuffixError) {
     context.report({

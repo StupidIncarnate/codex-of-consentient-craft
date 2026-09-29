@@ -2,7 +2,7 @@ import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orch
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
-import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
+import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';

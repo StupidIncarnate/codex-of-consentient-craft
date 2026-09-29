@@ -317,6 +317,14 @@ module.exports = [
       '@dungeonmaster/raw-import-ban': 'off',
     },
   },
+  // `@dungeonmaster/testing` is the one workspace package whose whole job is shipping test support:
+  // its `.` export carries the stubs a consumer's tests import (b03 "Decisions (3.3-D)" (c)).
+  {
+    files: ['packages/testing/src/index.ts'],
+    rules: {
+      '@dungeonmaster/ban-test-support-in-production': 'off',
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

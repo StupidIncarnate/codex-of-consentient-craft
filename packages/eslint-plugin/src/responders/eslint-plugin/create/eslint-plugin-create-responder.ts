@@ -92,6 +92,7 @@ import { ruleBanInventedFailuresBroker } from '../../../brokers/rule/ban-invente
 import { ruleBanContractTypePredicatesBroker } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker';
 import { ruleRequireObjectContractBrandsBroker } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker';
 import { ruleBanTypeAliasesBroker } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker';
+import { ruleBanTestSupportInProductionBroker } from '../../../brokers/rule/ban-test-support-in-production/rule-ban-test-support-in-production-broker';
 import { ruleBanJoinIdBesideChildBroker } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -185,6 +186,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-contract-type-predicates': EslintRule;
     readonly 'require-object-contract-brands': EslintRule;
     readonly 'ban-type-aliases': EslintRule;
+    readonly 'ban-test-support-in-production': EslintRule;
     readonly 'ban-join-id-beside-child': EslintRule;
   };
   readonly configs: {
@@ -283,6 +285,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-contract-type-predicates': ruleBanContractTypePredicatesBroker(),
       'require-object-contract-brands': ruleRequireObjectContractBrandsBroker(),
       'ban-type-aliases': ruleBanTypeAliasesBroker(),
+      'ban-test-support-in-production': ruleBanTestSupportInProductionBroker(),
       'ban-join-id-beside-child': ruleBanJoinIdBesideChildBroker(),
     },
     configs: {

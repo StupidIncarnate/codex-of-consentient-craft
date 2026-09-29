@@ -247,6 +247,26 @@ describe('configDungeonmasterBroker', () => {
       ).toBe('error');
     });
 
+    it('VALID: {} => typescript config registers ban-test-support-in-production at error', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(
+        typescript.rules?.[
+          EslintRuleNameStub({ value: '@dungeonmaster/ban-test-support-in-production' })
+        ],
+      ).toBe('error');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains ban-test-support-in-production as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
+      expect(ruleEnforceOn['@dungeonmaster/ban-test-support-in-production']).toBe('pre-edit');
+    });
+
     it('VALID: {} => ruleEnforceOn contains ban-join-id-beside-child as pre-edit', () => {
       configDungeonmasterBrokerProxy();
 

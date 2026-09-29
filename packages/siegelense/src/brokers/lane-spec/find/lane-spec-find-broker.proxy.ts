@@ -5,7 +5,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
-import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
+import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 
 // The broker builds startPath as a template string, `${cwd()}/${projectConfigFile}` — never
 // `join`. `cwdProxy()` is an empty gateway proxy (`cwd()` takes no argument to fake), so the fixed

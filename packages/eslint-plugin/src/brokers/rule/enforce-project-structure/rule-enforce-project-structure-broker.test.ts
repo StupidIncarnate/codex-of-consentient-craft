@@ -39,6 +39,20 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       filename: '/project/src/contracts/contracts.ts',
     },
 
+    // ========== CALLER-PROXY ANCHOR: src/startup/start-<pkg>.ts re-exporting only ==========
+    {
+      code: "export { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';",
+      filename: '/project/src/startup/start-config.ts',
+    },
+    {
+      code: 'export const configResolveBrokerProxy = () => {};',
+      filename: '/project/src/startup/start-config.proxy.ts',
+    },
+    {
+      code: 'export const StartOrchestratorProxy = () => {};',
+      filename: '/project/src/startup/start-orchestrator.proxy.ts',
+    },
+
     // ========== END-TO-END VALID: Representative cases across folder types ==========
     {
       code: 'export const userFetchBroker = () => {};',
@@ -103,6 +117,28 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
   ],
 
   invalid: [
+    // ========== CALLER-PROXY ANCHOR IMPOSTERS ==========
+    {
+      code: "export { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';\nexport const StartConfig = () => {};",
+      filename: '/project/src/startup/start-config.ts',
+      errors: [{ messageId: 'noReExport' }],
+    },
+    {
+      code: "export { configResolveBroker } from '../brokers/config/resolve/config-resolve-broker';",
+      filename: '/project/src/brokers/config/resolve/config-resolve-broker.ts',
+      errors: [{ messageId: 'noReExport' }],
+    },
+    {
+      code: 'export const configResolveBroker = () => {};',
+      filename: '/project/src/startup/start-config.proxy.ts',
+      errors: [{ messageId: 'invalidExportSuffix' }],
+    },
+    {
+      code: 'export const otherBrokerProxy = () => {};',
+      filename: '/project/src/brokers/config/resolve/config-resolve-broker.proxy.ts',
+      errors: [{ messageId: 'filenameMismatch' }],
+    },
+
     // ========== PACKAGE BARREL IMPOSTERS ==========
     {
       code: 'export const userContract = z.object({});',

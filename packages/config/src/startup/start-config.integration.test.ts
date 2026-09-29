@@ -1,9 +1,10 @@
-// configResolveBroker is imported through the SAME specifier ('@dungeonmaster/config') the proxy
+// startup/ may not import an external package, so the package's own entry is reached by its
+// relative path; it resolves to the same module '@dungeonmaster/config' does, the one the proxy
 // mocks, so this test observes the exact call real external callers make.
-import { configResolveBroker } from '@dungeonmaster/config';
+import { configResolveBroker } from '../../index';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import { configResolveBrokerProxy } from './config-resolve-caller.proxy';
-import { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { configResolveBrokerProxy } from './start-config.proxy';
+import { DungeonmasterConfigStub } from '../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configResolveBrokerProxy', () => {
   describe('setupResolves()', () => {

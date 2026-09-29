@@ -211,6 +211,11 @@ export const configDungeonmasterBroker = ({
     // alias refusals. Off until the aliases it flags are migrated. `ban-adhoc-types` above takes the
     // B9 half as its `checkModuleLevelShapes` option, also off, so it keeps its bare 'error'.
     '@dungeonmaster/ban-type-aliases': 'off',
+    // 3.3-R (items/b03-package-exports-and-per-file-test-imports.md): a stub or proxy imported or
+    // re-exported by a file that is not test support, a production barrel included. The whole-repo
+    // scan reads 0 in every package but `testing`, whose `src/index.ts` ships stubs on purpose and
+    // carries a file-scoped `off` in eslint.config.js. Reads only the linted file: 'pre-edit'.
+    '@dungeonmaster/ban-test-support-in-production': 'error',
     // R4 (items/b13-owner-field-reuse.md): an object contract holding a child whole beside the child's
     // id. Off until B15 removes the join ids it flags.
     '@dungeonmaster/ban-join-id-beside-child': 'off',

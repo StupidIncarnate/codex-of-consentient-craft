@@ -80,6 +80,7 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/require-object-contract-brands': 'pre-edit',
       '@dungeonmaster/ban-type-aliases': 'pre-edit',
       '@dungeonmaster/ban-join-id-beside-child': 'pre-edit',
+      '@dungeonmaster/ban-test-support-in-production': 'pre-edit',
       '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',

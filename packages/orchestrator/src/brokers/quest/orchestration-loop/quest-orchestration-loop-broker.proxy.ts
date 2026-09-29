@@ -10,7 +10,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-pat
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
-import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
+import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
