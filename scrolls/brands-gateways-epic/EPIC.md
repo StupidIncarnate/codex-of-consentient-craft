@@ -102,7 +102,8 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | — | Landed this session | — | See `git log`. **Phase 2 is down to 20 adapters in two packages**: siegelense 13, testing 7 (at f98cae4c1). Every other package has no `adapters/` (A10 orchestrator and A17 web done this session). Latest: siegelense a7b84bfbe, testing f98cae4c1 (F68 done there). |
 | a14-last (opus) | A14 testing's last chunk: `jest/*`, `child-process/mocker`, `mantine/render` (+ web import paths), stale `eslint.config.js` entry, F67 `setupHeld` simplification | `testing`, web import lines, `@gateway/browser` fetch-with-status proxy | running |
 | agy SL-LAST | A13 siegelense's last 13 adapters and `adapters.ts` (`tmp/agy/sl-last.md`) | `siegelense` | running |
-| t04-orch2 (sonnet) | T04: orchestrator's own 5; census | `orchestrator` tests | running |
+| t04-orch2 (sonnet) | T04: orchestrator's own 5 | `orchestrator` tests | finished, uncommitted (typecheck waits on the testing agent). Repo census: 0 everywhere except ward 1, siegelense 2 |
+| t04w-t05e (sonnet) | T04 ward's last one; T05 eslint-plugin and local-eslint | `ward`, `eslint-plugin`, `local-eslint` tests and proxies | running |
 | t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | done a477ddd82; T05 now at 0 in ward, cli, config, hooks, server, mcp, tooling |
 | t05-shf (sonnet) | T05: shared, hydration, session-forensics | tests and proxies | running |
 | s1-slow (sonnet) | Fix: S1's adapter-census integration test takes 12 to 30s (slow-test gate) | `tooling` tests | running |
