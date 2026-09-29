@@ -21,6 +21,7 @@ const WARD_ONLY_TYPE_CHECKED_RULES = [
   '@dungeonmaster/require-contract-parse',
   '@dungeonmaster/enforce-unique-contract-names',
   '@dungeonmaster/enforce-owner-field-reuse',
+  '@dungeonmaster/ban-proxy-empty-called-with',
 ];
 
 interface Violation {

@@ -196,11 +196,11 @@ export const configDungeonmasterBroker = ({
     // text. Off until the brand migration has branded every contract: it flags every object contract
     // that has no brand yet. Reads only the linted file, so it is tagged 'pre-edit'.
     '@dungeonmaster/require-object-contract-brands': 'off',
-    // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): built
-    // and scanned over the whole repo; off until the proxy fixes it flags are split per package and
-    // applied — turning it on now would fail every proxy the scan already found.
-    '@dungeonmaster/ban-proxy-catch-all-defaults': 'off',
-    '@dungeonmaster/ban-invented-failures': 'off',
+    // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): a proxy
+    // constructor stages no catch-all default, and a test or proxy never authors an outside failure
+    // inline. The one file-scoped `off` is in eslint.config.js (EPIC.md concession 13).
+    '@dungeonmaster/ban-proxy-catch-all-defaults': 'error',
+    '@dungeonmaster/ban-invented-failures': 'error',
     // R3 (scrolls/brands-gateways-epic/items/b14-type-alias-and-adhoc-type-rules.md): B5 and C2's
     // alias refusals. Off until the aliases it flags are migrated. `ban-adhoc-types` above takes the
     // B9 half as its `checkModuleLevelShapes` option, also off, so it keeps its bare 'error'.
@@ -215,9 +215,8 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-join-id-beside-child': 'off',
     // Same T05 item. Needs the type checker (fn's real signature), the same ward-only gate as
     // raw-import-ban and platform-globals-ban above — so it carries no entry in
-    // dungeonmasterRuleEnforceOnStatics and stays out of this list (a key here, even 'off', would
-    // force one). Off for the same reason as the two rules above.
-    // '@dungeonmaster/ban-proxy-empty-called-with': 'error',
+    // dungeonmasterRuleEnforceOnStatics and is listed in WARD_ONLY_TYPE_CHECKED_RULES instead.
+    '@dungeonmaster/ban-proxy-empty-called-with': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**

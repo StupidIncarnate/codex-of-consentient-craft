@@ -325,6 +325,14 @@ module.exports = [
       '@dungeonmaster/ban-test-support-in-production': 'off',
     },
   },
+  // That test checks an opaque value passes through the mock-staging API; its `new Error(...)` is
+  // not a faked outside failure, and the rule reads no message or `code` (EPIC.md concession 13).
+  {
+    files: ['packages/testing/src/transformers/mock-staging-create/mock-staging-create-transformer.test.ts'],
+    rules: {
+      '@dungeonmaster/ban-invented-failures': 'off',
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {
