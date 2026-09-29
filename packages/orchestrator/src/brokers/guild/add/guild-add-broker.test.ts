@@ -85,6 +85,44 @@ describe('guildAddBroker', () => {
     });
   });
 
+  describe('duplicate name', () => {
+    it('VALID: {name already registered under slug my-app} => returns the new guild on slug my-app-2', async () => {
+      const proxy = guildAddBrokerProxy();
+      const existingGuild = GuildStub({
+        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        name: 'My App',
+        path: '/home/user/my-app',
+        urlSlug: 'my-app',
+      });
+
+      proxy.setupAddGuild({
+        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        guildsPath: FilePathStub({ value: '/home/user/.dungeonmaster/guilds' }),
+        guildDirPath: FilePathStub({
+          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        }),
+        questsDirPath: FilePathStub({
+          value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        }),
+      });
+
+      const result = await guildAddBroker({
+        name: GuildNameStub({ value: 'My App' }),
+        path: GuildPathStub({ value: '/home/user/my-app-copy' }),
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My App',
+        path: '/home/user/my-app-copy',
+        urlSlug: 'my-app-2',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+  });
+
   describe('duplicate path', () => {
     it('ERROR: {path already exists in config} => throws duplicate path error', async () => {
       const proxy = guildAddBrokerProxy();

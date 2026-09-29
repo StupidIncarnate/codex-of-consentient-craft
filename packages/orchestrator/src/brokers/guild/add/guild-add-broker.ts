@@ -23,6 +23,10 @@
  * data directory while its quests directory sat in the target: a seed reporting success against a
  * target whose config.json names no guild at all.
  *
+ * THE SLUG IS UNIQUE, THE NAME IS NOT. Two guilds may share a name, but the web routes every page
+ * by `/<urlSlug>/…`, so a guild minted onto a slug already registered is unreachable. The slug
+ * takes the first free `-<n>` suffix instead (`guild-1`, then `guild-1-2`).
+ *
  * `absoluteFilePathContract.parse`, because a relative home resolves against `process.cwd()` —
  * the caller's own checkout — and the first thing to land there is a `config.json` no `cleanup()`
  * reaches.
@@ -37,9 +41,9 @@ import {
   guildIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
-import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
+import { guildUniqueUrlSlugTransformer } from '../../../transformers/guild-unique-url-slug/guild-unique-url-slug-transformer';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -80,7 +84,7 @@ export const guildAddBroker = async ({
   });
   await fsMkdirAdapter({ filepath: questsDir });
 
-  const urlSlug = nameToUrlSlugTransformer({ name });
+  const urlSlug = guildUniqueUrlSlugTransformer({ name, guilds: config.guilds });
 
   const guild = guildContract.parse({
     id: guildId,
