@@ -1,9 +1,7 @@
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { getPlatformProxy } from '#gateway/node/process/get-platform/get-platform.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import { runFireAndForgetProxy } from '#gateway/node/child_process/run-fire-and-forget/run-fire-and-forget.proxy';
 import { httpBackendPackageResolveBrokerProxy } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker.proxy';
@@ -37,12 +35,8 @@ export const CliServeResponderProxy = ({
   backendResolveProxy.setupCandidateHono({ candidateName: SERVER_PACKAGE_NAME });
 
   const serverPath = require.resolve(SERVER_PACKAGE_NAME);
-  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
-  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
-  // below addresses dynamicImport itself directly, keyed on the module specifier.
-  dynamicImportProxy();
-  const importHandle = registerMock({ fn: dynamicImport });
-  importHandle.calledWith([{ path: serverPath }]).resolves({ StartServer });
+  const importProxy = dynamicImportProxy();
+  importProxy.returns({ path: serverPath, module: { StartServer } });
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: PORT });
 

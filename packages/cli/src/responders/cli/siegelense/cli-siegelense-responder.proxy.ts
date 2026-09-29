@@ -1,6 +1,4 @@
-import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { CliSiegelenseResponder } from './cli-siegelense-responder';
 
@@ -9,11 +7,7 @@ export const CliSiegelenseResponderProxy = (): {
   setupModule: (params: { StartSiegelense: jest.Mock }) => void;
   setupImportFailure: (params: { error: Error }) => void;
 } => {
-  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
-  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
-  // below addresses dynamicImport itself directly, keyed on the module specifier.
-  dynamicImportProxy();
-  const importHandle = registerMock({ fn: dynamicImport });
+  const importProxy = dynamicImportProxy();
   // The responder resolves its module specifier via require.resolve('@dungeonmaster/siegelense/startup')
   // — not a literal we can write ahead of time (it depends on the host's node_modules layout). Calling
   // the identical require.resolve() here, in the same process and directory, reproduces the exact
@@ -24,11 +18,11 @@ export const CliSiegelenseResponderProxy = (): {
     callResponder: CliSiegelenseResponder,
 
     setupModule: ({ StartSiegelense }: { StartSiegelense: jest.Mock }): void => {
-      importHandle.calledWith([{ path: siegelensePath }]).resolves({ StartSiegelense });
+      importProxy.returns({ path: siegelensePath, module: { StartSiegelense } });
     },
 
     setupImportFailure: ({ error }: { error: Error }): void => {
-      importHandle.calledWith([{ path: siegelensePath }]).rejects(error);
+      importProxy.rejects({ path: siegelensePath, error });
     },
   };
 };
