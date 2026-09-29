@@ -40,9 +40,7 @@ describe('gitDetectDefaultBranchBroker', () => {
       expect(result).toBe(null);
     });
 
-    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
-    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
-    // RunNotFoundError, which this broker catches and folds back into that same failed-run shape.
+    // The gateway throws GitNotInstalledError for a missing `git`; the broker folds it into null.
     it('ERROR: {git is not on this machine} => returns null, same as neither branch existing', async () => {
       const proxy = gitDetectDefaultBranchBrokerProxy();
       proxy.setupGitNotFound();

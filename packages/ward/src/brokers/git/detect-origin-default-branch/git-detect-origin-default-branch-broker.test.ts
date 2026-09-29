@@ -26,7 +26,9 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([['rev-parse', '--verify', 'origin/main']]);
+      expect(proxy.getSpawnedCalls()).toStrictEqual([
+        [{ command: 'git', args: ['rev-parse', '--verify', 'origin/main'], cwd: '/project' }],
+      ]);
     });
   });
 
@@ -54,9 +56,9 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
-        ['rev-parse', '--verify', 'origin/main'],
-        ['rev-parse', '--verify', 'origin/master'],
+      expect(proxy.getSpawnedCalls()).toStrictEqual([
+        [{ command: 'git', args: ['rev-parse', '--verify', 'origin/main'], cwd: '/project' }],
+        [{ command: 'git', args: ['rev-parse', '--verify', 'origin/master'], cwd: '/project' }],
       ]);
     });
   });
@@ -75,9 +77,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
   });
 
   describe('git is not on this machine', () => {
-    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
-    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
-    // RunNotFoundError, which this broker catches and folds back into that same failed-run shape.
+    // The gateway throws GitNotInstalledError for a missing `git`; the broker folds it into null.
     it('ERROR: {git is not on this machine} => returns null, same as no origin refs existing', async () => {
       const proxy = gitDetectOriginDefaultBranchBrokerProxy();
       proxy.setupGitNotFound();

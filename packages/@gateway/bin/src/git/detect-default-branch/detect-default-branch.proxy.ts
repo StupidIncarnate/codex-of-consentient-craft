@@ -4,6 +4,7 @@ export const detectDefaultBranchProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;
+  setupNotFound: () => void;
   getCallsFor: () => readonly unknown[][];
 } => {
   const runProxy = gitRunProxy();
@@ -23,6 +24,11 @@ export const detectDefaultBranchProxy = (): {
         exitCode: 128,
         output: '',
       });
+    },
+
+    // `git` never starting fails the FIRST call, so staging that one is all a not-found needs.
+    setupNotFound: (): void => {
+      runProxy.setupNotFound({ args: ['rev-parse', '--verify', 'main'] });
     },
 
     // Neither call takes a caller-supplied value — `main`/`master` are this function's own

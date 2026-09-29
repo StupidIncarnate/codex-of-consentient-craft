@@ -1,3 +1,4 @@
+import { GitNotInstalledError } from '../git-run/git-not-installed.error';
 import { detectOriginDefaultBranch } from './detect-origin-default-branch';
 import { detectOriginDefaultBranchProxy } from './detect-origin-default-branch.proxy';
 
@@ -27,6 +28,17 @@ describe('detectOriginDefaultBranch()', () => {
     const result = await detectOriginDefaultBranch({ cwd: '/repo' });
 
     expect(result).toBe(null);
+  });
+
+  it('ERROR: {setupNotFound} => rejects with GitNotInstalledError naming the first rev-parse', async () => {
+    const proxy = detectOriginDefaultBranchProxy();
+    proxy.setupNotFound();
+
+    await expect(detectOriginDefaultBranch({ cwd: '/repo' })).rejects.toStrictEqual(
+      new GitNotInstalledError(
+        'git rev-parse --verify origin/main could not start in /repo: "git" never started: ENOENT: open \'git\'',
+      ),
+    );
   });
 
   describe('call inspection', () => {

@@ -15,50 +15,27 @@
  * // Returns GitBranchName('origin/master'), or null when the repo has no origin refs at all
  */
 
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { detectOriginDefaultBranch, GitNotInstalledError } from '#gateway/bin/git';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitBranchName } from '../../../contracts/git-branch-name/git-branch-name-contract';
 import { gitBranchNameContract } from '../../../contracts/git-branch-name/git-branch-name-contract';
-import { gitRemoteRefsStatics } from '../../../statics/git-remote-refs/git-remote-refs-statics';
 
 export const gitDetectOriginDefaultBranchBroker = async ({
   cwd,
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitBranchName | null> => {
-  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
-  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
-  // for an ENOENT, so "git is not on this machine" reads as "neither origin ref verified" below.
-  const mainResult = await run({
-    command: 'git',
-    args: ['rev-parse', '--verify', gitRemoteRefsStatics.originMain],
-    cwd,
-  }).catch((error: unknown) => {
-    if (!(error instanceof RunNotFoundError)) {
+  // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
+  // result — folded into null here so "git is not on this machine" reads as "neither origin ref
+  // verified".
+  try {
+    const ref = await detectOriginDefaultBranch({ cwd });
+    return ref === null ? null : gitBranchNameContract.parse(ref);
+  } catch (error: unknown) {
+    if (!(error instanceof GitNotInstalledError)) {
       throw error;
     }
-    return { exitCode: 1, output: '', signal: null, timedOut: false };
-  });
-
-  if (mainResult.exitCode === 0) {
-    return gitBranchNameContract.parse(gitRemoteRefsStatics.originMain);
+    return null;
   }
-
-  const masterResult = await run({
-    command: 'git',
-    args: ['rev-parse', '--verify', gitRemoteRefsStatics.originMaster],
-    cwd,
-  }).catch((error: unknown) => {
-    if (!(error instanceof RunNotFoundError)) {
-      throw error;
-    }
-    return { exitCode: 1, output: '', signal: null, timedOut: false };
-  });
-
-  if (masterResult.exitCode === 0) {
-    return gitBranchNameContract.parse(gitRemoteRefsStatics.originMaster);
-  }
-
-  return null;
 };

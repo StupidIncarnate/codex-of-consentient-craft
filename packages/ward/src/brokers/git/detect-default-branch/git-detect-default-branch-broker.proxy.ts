@@ -1,78 +1,33 @@
-import { runProxy } from '#gateway/node/child_process/run/run.proxy';
-import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { detectDefaultBranchProxy } from '#gateway/bin/git/detect-default-branch/detect-default-branch.proxy';
+import { GitNotInstalledErrorProxy } from '#gateway/bin/git/git-run/git-not-installed.error.proxy';
 
-// git-detect-default-branch spawns bare `git` for every rev-parse check, so runProxy's own staging
-// (addressed by `{command, args}` since F25) tells the two sequential calls this broker issues
-// apart, with no FIFO ordering needed at all.
+// The gateway's own detectDefaultBranchProxy stages the rev-parse results; a missing `git` is
+// staged through the same proxy's setupNotFound.
 export const gitDetectDefaultBranchBrokerProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;
   setupGitNotFound: () => void;
 } => {
-  const run = runProxy();
-  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
-  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
-  RunNotFoundErrorProxy();
+  const detect = detectDefaultBranchProxy();
+  // Created but unstaged: GitNotInstalledError is a plain class with nothing to mock.
+  GitNotInstalledErrorProxy();
 
   return {
     setupMainExists: (): void => {
-      run.setupSuccess({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'main'],
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
+      detect.setupMainExists();
     },
 
     setupMasterExists: (): void => {
-      run.setupSuccess({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'main'],
-        exitCode: 1,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
-      });
-      run.setupSuccess({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'master'],
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      });
+      detect.setupMasterExists();
     },
 
     setupNeitherExists: (): void => {
-      run.setupSuccess({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'main'],
-        exitCode: 1,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
-      });
-      run.setupSuccess({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'master'],
-        exitCode: 1,
-        stdout: '',
-        stderr: 'fatal: not a valid ref',
-      });
+      detect.setupNeitherExists();
     },
 
-    // git itself is missing: every `git` invocation rejects with RunNotFoundError, which the
-    // broker's own catch folds into a failed rev-parse for each call in turn.
     setupGitNotFound: (): void => {
-      run.setupError({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'main'],
-        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
-      });
-      run.setupError({
-        command: 'git',
-        args: ['rev-parse', '--verify', 'master'],
-        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
-      });
+      detect.setupNotFound();
     },
   };
 };
