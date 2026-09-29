@@ -961,3 +961,130 @@ Migrate 6 adapters to their `#gateway/*` counterparts and delete them, staying w
   `npm run ward -- --only lint,typecheck,unit,integration -- <all 13 touched files>`
   Result: run `1790639949773-7d95`, lint PASS 13/13, typecheck PASS 1432/1432, unit PASS 17/17 (516 discovered), integration PASS 9/9 (23 discovered).
 
+## Plan — SL-LAST
+
+Group SL-LAST: The final chunk for `packages/siegelense`. Complete retirement of all 13 remaining adapters, migration of domain logic into brokers, callers moved to `#gateway/*` wrappers, deletion of `src/adapters/` directory, deletion of `adapters.ts`, and removal of `./adapters` export from `packages/siegelense/package.json`.
+
+### 13 Adapters to Retire & Delete (42 files)
+1. `child-process/spawn-detached` (3 files) -> `spawnDetached` from `#gateway/node/child_process`
+2. `cli-package/bin-resolve` (6 files including layer adapter) -> domain logic moves to `brokers/cli-package/bin-resolve/`
+3. `fetch/http-request` (3 files) -> `fetchWithStatus` from `#gateway/node/fetch`
+4. `fs/close-fd` (3 files) -> `closeSync` from `#gateway/node/fs`
+5. `fs/rm` (3 files) -> `rm` from `#gateway/node/fs__promises`
+6. `fs/stat` (3 files) -> `statIfExists` from `#gateway/node/fs__promises`
+7. `fs/unlink` (3 files) -> `unlink` from `#gateway/node/fs__promises`
+8. `fs/write-file` (3 files) -> `writeFile` / `writeFileExclusive` from `#gateway/node/fs__promises`
+9. `net/unix-request` (3 files) -> domain logic moves to `brokers/driver/socket-request/driver-socket-request-broker.ts`
+10. `net/unix-serve` (3 files) -> `unixSocketServe` from `#gateway/node/net` in `driver-serve-layer-responder.ts`
+11. `os/tmpdir` (3 files) -> `tmpdir` from `#gateway/node/os`
+12. `process/is-alive` (3 files) -> domain logic moves to `brokers/process/is-alive/process-is-alive-broker.ts`
+13. `process/kill-group` (3 files) -> domain logic moves to `brokers/process/kill-group/process-kill-group-broker.ts`
+
+### Full File Scope
+
+#### 1. Adapter files to delete (42 files)
+- `packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.ts`
+- `packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.test.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.test.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/package-root-find-layer-adapter.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/package-root-find-layer-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/package-root-find-layer-adapter.test.ts`
+- `packages/siegelense/src/adapters/fetch/http-request/fetch-http-request-adapter.ts`
+- `packages/siegelense/src/adapters/fetch/http-request/fetch-http-request-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fetch/http-request/fetch-http-request-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/rm/fs-rm-adapter.ts`
+- `packages/siegelense/src/adapters/fs/rm/fs-rm-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/rm/fs-rm-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/stat/fs-stat-adapter.ts`
+- `packages/siegelense/src/adapters/fs/stat/fs-stat-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/stat/fs-stat-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/unlink/fs-unlink-adapter.ts`
+- `packages/siegelense/src/adapters/fs/unlink/fs-unlink-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/unlink/fs-unlink-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+- `packages/siegelense/src/adapters/fs/write-file/fs-write-file-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+- `packages/siegelense/src/adapters/net/unix-request/net-unix-request-adapter.ts`
+- `packages/siegelense/src/adapters/net/unix-request/net-unix-request-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/net/unix-request/net-unix-request-adapter.test.ts`
+- `packages/siegelense/src/adapters/net/unix-serve/net-unix-serve-adapter.ts`
+- `packages/siegelense/src/adapters/net/unix-serve/net-unix-serve-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/net/unix-serve/net-unix-serve-adapter.test.ts`
+- `packages/siegelense/src/adapters/os/tmpdir/os-tmpdir-adapter.ts`
+- `packages/siegelense/src/adapters/os/tmpdir/os-tmpdir-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/os/tmpdir/os-tmpdir-adapter.test.ts`
+- `packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter.ts`
+- `packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter.test.ts`
+- `packages/siegelense/src/adapters/process/kill-group/process-kill-group-adapter.ts`
+- `packages/siegelense/src/adapters/process/kill-group/process-kill-group-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/process/kill-group/process-kill-group-adapter.test.ts`
+
+#### 2. Package exports & entry points to delete / edit (2 files)
+- `packages/siegelense/adapters.ts` (delete file)
+- `packages/siegelense/package.json` (remove `"./adapters"` export entry)
+
+#### 3. New brokers created from adapters holding domain logic (15 files)
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/cli-package-bin-resolve-broker.ts`
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy.ts`
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/cli-package-bin-resolve-broker.test.ts`
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/package-root-find-layer-broker.ts`
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/package-root-find-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/cli-package/bin-resolve/package-root-find-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/driver/socket-request/driver-socket-request-broker.ts`
+- `packages/siegelense/src/brokers/driver/socket-request/driver-socket-request-broker.proxy.ts`
+- `packages/siegelense/src/brokers/driver/socket-request/driver-socket-request-broker.test.ts`
+- `packages/siegelense/src/brokers/process/is-alive/process-is-alive-broker.ts`
+- `packages/siegelense/src/brokers/process/is-alive/process-is-alive-broker.proxy.ts`
+- `packages/siegelense/src/brokers/process/is-alive/process-is-alive-broker.test.ts`
+- `packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker.ts`
+- `packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker.proxy.ts`
+- `packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker.test.ts`
+
+#### 4. Direct callers to migrate / update (implementations, proxies, tests)
+- `packages/siegelense/src/brokers/boot-failure-marker/read/boot-failure-marker-read-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/boot-failure-marker/write/boot-failure-marker-write-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/heartbeat/write/heartbeat-write-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/instance/kill/instance-kill-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/instance/run/instance-run-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/instance/start/instance-start-boot-poll-layer-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/instance/start/instance-start-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/instance/state-resolve/instance-state-resolve-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/lane/teardown/lane-teardown-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/locations/socket-path-find/locations-socket-path-find-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/prune-assets-list-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/prune/instance-reclaim/prune-instance-reclaim-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/registry/write/registry-write-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/results/read/run-missing-check-layer-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/read/shutdown-reason-read-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/write/shutdown-reason-write-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/snapshot/index-write/snapshot-index-write-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/snapshot/list/snapshot-list-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/snapshot/restore-layer/snapshot-restore-layer-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/brokers/step/request/step-request-broker.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/responders/install/ignore-write/install-ignore-write-responder.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/src/responders/siegelense/driver/driver-serve-layer-responder.ts` & `.proxy.ts` & `.test.ts`
+- `packages/siegelense/test/harnesses/driver/driver-fleet.harness.ts`
+- `packages/siegelense/test/harnesses/snapshot/snapshot-store.harness.ts`
+- `packages/siegelense/src/brokers/prune/run/prune-run-broker.integration.test.ts`
+- `packages/siegelense/src/flows/siegelense/siegelense-status-layer-flow.integration.test.ts`
+
+

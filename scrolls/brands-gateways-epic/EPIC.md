@@ -93,185 +93,86 @@ More rules for the operator:
     `## Plan` section into the item file, and changes nothing else. Only then is the item implemented.
     A file an implementing agent finds it must touch that is not on the list is reported back to the
     operator, who adds it to the plan before the agent proceeds. The agent never widens its own scope.
-## Handoff (operator, 2026-09-28 evening) — START HERE
+15. **No mutation checks** (user, 2026-09-28). Agents do not break code on purpose to prove a test goes red; the
+    step is gone from `agent-brief.md`. Tests still assert real values.
+16. **Scripts are allowed where they cut real work, and each one is recorded** in "Scripts used" below (user,
+    2026-09-28). Their output is gated by ward like any other change.
+17. **No Antigravity (`agy`) agents** (user, 2026-09-28 evening). Use Claude sub-agents only.
+18. **Gate every commit yourself** with `lint,typecheck,unit,integration` on the touched packages plus every package
+    that composes their proxies, and web's `e2e` whenever web runtime code changes.
 
-The operator stopped here because the user moved sessions. Read this section first. The "Operator session 2026-09-28 day" section below it is the detailed history of this session; the "morning" handoff below that is older.
+## START HERE — where the epic stands and what to do next
 
-### State at handoff
+Last updated 2026-09-28 evening, at the end of an operator session. Read this section, then the status tables
+further down. Git history holds every earlier handoff; this file keeps only what is current.
 
-- **Phase 2 (delete every adapter) is one chunk from done.** No package has `src/adapters/` except siegelense, where the last Antigravity chunk (SL-LAST, `tmp/agy/sl-last.md`) was running at handoff. A10 orchestrator, A14 testing, A16 ward, A17 web, A06 eslint-plugin, A12 shared and A08 hydration-recipes all finished this session. Check `ls -d packages/*/src/adapters` first.
-- **Agents running at handoff** (all told never to commit; the operator commits each one's own files after a scoped ward exits 0). See "Agents at handoff" below for what landed before the session ended.
-- **Build:** the last whole-repo build was a plain `npm run build` mid-session; since then `@gateway/node` was rebuilt once. `ward`, `shared`, `testing`, `@gateway/npm`, `@gateway/browser`, `tooling` and `eslint-plugin` have source changes newer than their `dist`. **Before anything runs compiled output, run `npm run build:clean`**, then `npm run check:consumer` and `npm run check:published` (concession 8, the source-only `./rule-tester.harness` export, is unverified against `check:published`).
-- **A full `npm run ward` has not run since the morning handoff.** Every commit this session was gated by ward on its own package plus the packages that compose its proxies, and web's e2e (131 files) passed at every web commit. Run the full ward at the first quiet point, and fix what it finds (user rule 4).
-- **Slow-test flags:** web's app-widget and home-content tests were fixed before handoff (guild form proxy pastes). A heavily loaded full run can still push a first-in-file web test toward 1s.
+### Where things stand
 
-### User decisions this session
+- **Phase 2 (delete every adapter) has one package left: siegelense.** Every other package has no `src/adapters/`.
+  Siegelense still has 13 adapters: `child-process/spawn-detached`, `cli-package/bin-resolve`, `fetch/http-request`,
+  `fs/{close-fd,rm,stat,unlink,write-file}`, `net/{unix-request,unix-serve}`, `os/tmpdir`,
+  `process/{is-alive,kill-group}`, plus `packages/siegelense/adapters.ts`. Check with
+  `ls -d packages/*/src/adapters/*/*`.
+  - A chunk (SL-LAST) was stopped part-way at the end of the session. Its partial, red work is saved as
+    `tmp/agy/sl-last-partial.patch` (gitignored, in this worktree; `git apply` it to resume, or start fresh). The
+    tree itself was restored to the last commit. Its plan is `## Plan — SL-LAST` in the A13 item file.
+  - `lane-teardown-broker`'s test asserts kill-before-close order, which is why `fs/close-fd` stayed this long; keep
+    the order assertion when it moves.
+- **A18 (raw outside calls, duplicate deps) is under way.** Plan: `## Plan` in
+  `items/a18-raw-calls-and-dependency-cleanup.md` (about 2,000 files; mostly the `zod` import). Done: wave 0's R1,
+  C1, GN1 to GN4, GB1 to GB3; the scripted `zod` sweep for cli, config, hooks, hydration, mcp, session-forensics,
+  tooling. Not done: GN5 (`stream`, `http`, `zlib`), the `zod` sweep for the other packages, and the hand batches.
+- **Phase 5:** T04 (`ban-workspace-export-mocks`) is at 0 everywhere except 2 in siegelense. T05 (the three
+  catch-all rules) is at 0 in ward, cli, config, hooks, server, mcp, tooling, shared, hydration, session-forensics,
+  eslint-plugin and local-eslint; not yet swept in orchestrator, web, siegelense, testing, hydration-recipes and
+  `@gateway/*`. Both rules are still off in the shared config.
+- **Build and checks:** the last whole-repo build ran mid-session; several packages have newer source than `dist`.
+  A full `npm run ward`, `check:consumer` and `check:published` have not run since the morning of 2026-09-28.
+  Every commit since was gated by ward on its own package plus the packages that compose its proxies, and web's e2e
+  (131 files) passed at every web commit.
 
-1. **No mutation checks.** Removed from `agent-brief.md` and `tmp/agy/impl-common.md`.
-2. **Scripts are allowed where they cut work, and each is notated** in the "Scripts used" table. A18's `zod` sweep is the first (concession 11).
-3. At most five Claude sub-agents plus two Antigravity (`agy`) slots; the user's `agy` quota was 7% of the 5-hour window and 31% of the 7-day window mid-afternoon.
+### First steps for the next operator
 
-### Next dispatch, in order
+1. Read "How to operate" above. Set the heartbeat cron (rule 2).
+2. `git status` should be clean apart from `tmp/`. Run `npm run build:clean`, then a full `npm run ward` with
+   `timeout: 600000` (it will background; wait on it), then `npm run check:consumer` and `npm run check:published`.
+   Fix every red (rule 4). Concession 8 (a source-only `./rule-tester.harness` export) has never been checked
+   against `check:published`.
+3. Finish Phase 2: siegelense's 13 adapters, in two or three Claude agents with disjoint lists (or apply the patch
+   first and have one agent finish it). Then A13 is done.
+4. Continue A18 in this order: GN5 in `@gateway/node`; the `zod` sweep for orchestrator, server, shared, ward, web,
+   eslint-plugin, hydration-recipes, siegelense and testing (script `tmp/a18-zod/rewrite.py <pkg> [apply]`, one
+   scripted agent per package or one over several small ones; concession 11); then the hand batches from the A18
+   plan, one agent per package, packages side by side; dependency removals last. Re-run the census for siegelense
+   and testing first, since the plan predates their last adapter chunks. With R1 in, `bin-program-spawn-ban` flags
+   18 spawns (ward 10, orchestrator 5, web 2, testing 1); its integration test relies on ward's
+   `bundle-statics.ts` keeping `buildCommand: 'npm'`, so move that fixture when A18 replaces the spawn.
+5. A19 after A18 (runs alone): `adapters` stops being a folder type and the caller-facing rules go on. F71
+   (concession 9) and F76 land there, and it decides how callers name the `Request`/`Response`/`AbortController`
+   types the gateway exports only as values.
+6. T04 and T05: finish the sweeps (scan one package at a time: `node tmp/t05-scan-pkgs.js <pkg>`; T04 with
+   `tmp/t04-scan.config.js`), then switch the rules on once a whole-repo scan reads 0. F72: T05's rules ignore
+   `registerSpyOn`.
+7. Then the open follow-ups (F10, F30, F63, F72, F75, F76; see the table) and Phases 3, 4 and 6.
 
-1. Commit whatever the handoff agents left finished (see below), then `build:clean`, full `npm run ward`, `check:consumer`, `check:published`. Fix every red.
-2. Finish Phase 2: if SL-LAST did not finish, re-run the census (`ls -d packages/siegelense/src/adapters/*/*`) and dispatch the rest. Then **F76**: `enforce-folder-return-types`' integration test anchors on a real adapter file, which breaks once the last adapter goes (fix with A19).
-3. **A18** (plan: `items/a18-raw-calls-and-dependency-cleanup.md` `## Plan`). Done: GB1 to GB3, GN1 to GN4, the `-Z` sweep for cli, config, hooks, hydration, mcp, session-forensics, tooling (script `tmp/a18-zod/rewrite.py <pkg> [apply]`, see "Scripts used"). Next: GN5; the `-Z` sweep for orchestrator, server, shared, ward, web, eslint-plugin, hydration-recipes (same script, one agent per package or one agent over several small ones); then the hand batches, one agent per package, packages side by side. siegelense and testing: re-run their census first. Dependency removals last.
-4. **A19** after A18 (runs alone): `adapters` stops being a folder type; caller-facing lint rules on; F71/concession 9 and F76 land there.
-5. Phase 5 leftovers: T04 has 2 violations left (siegelense); T05 is 0 in ward, cli, config, hooks, server, mcp, tooling, shared, hydration, session-forensics, eslint-plugin, local-eslint (not yet swept: orchestrator, web, siegelense, testing, hydration-recipes, `@gateway/*`). Scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`. Then switch T04's and T05's rules on (whole-repo scan at 0 first). F72: T05 rules ignore `registerSpyOn`.
-6. Open follow-ups: F10, F30, F63 (repo jest 30.2.0 is behind consumers' 30.5.2), F72, F75 (the recreated `fileBusEdgesLayerBroker` is not wired into `architectureEdgeGraphBroker`), F76. Then Phase 3/4 (B02, B03, B10 onward) and Phase 6 docs.
+### Lessons worth keeping
 
-### Lessons this session (also in the history section)
-
-- **Gate composers.** A change to one package's proxies is gated with a unit run of every package that composes them. f5975a007 (T05 shared) broke 22 config and 25 siegelense tests because only shared was gated; fixed in 29fff4a94.
-- **Integration tests catch what unit tests cannot.** An `agy` run read PNG screenshots through the UTF-8 `readFile`; only siegelense's flow integration tests caught it. Always gate `integration` too.
-- **Agents in one package with disjoint file lists work**, but commit them together when their files interleave; a package-wide typecheck sees the other agent's half-edited files.
-- **Tests that read the real tree** (shared's project-map test, the census test) break when the tree changes; re-anchor them in the same chunk that deletes their anchor, and keep them fast.
-- **A chunk feeding the proxy-mock hoister is slow** (testing's typescript adapters took 18 to 28 minutes each); keep those chunks to one or two adapters.
-- Run the sonnet status check when an agent passes an hour; the testing agent at 110 minutes was stopped cleanly at a green point after two checks.
-
-### Agents at handoff
-
-| Agent | Chunk | Scope | Status |
-|---|---|---|---|
-| agy SL-LAST | A13: siegelense's last 13 adapters, delete `adapters.ts` (`tmp/agy/sl-last.md`, output `tmp/agy/sl-last.out`) | `siegelense` | running |
-| a18-r1c1 (sonnet) | A18 wave 0: R1, C1 | `eslint-plugin` rules | running |
-| a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | GN1 to GN4 done 39df7b1d2; **GN5 (`stream`, `http`, `zlib`) not started** (file list under `### Wave 0 — GN1 to GN5` in the A18 item; batches cli-B04, hydration-B01, hydration-recipes-B04, orchestrator-B03, web-B116 wait on it). Open question for A19: callers needing the `Request`/`Response`/`AbortController` type cannot import it from the gateway |
-| a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | done b4c32dca0. For B18: `localStorage/clear` returns `{ success: true }`. Web batches must move timer callers and their proxies together (proxies only see calls made through the wrapper) |
-| a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | done 651dcb068: 271 files; `@dungeonmaster/npm` added to config's and session-forensics' dependencies and moved in hydration; concession 12 |
-| web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | done 8c1a06b87: the shared guild form proxy pastes instead of typing |
-
-If an agent's result never arrived before the session ended, its files are uncommitted in the tree: run `git status`, send a sonnet sub-agent to review them against the chunk's item section, and commit what is green.
-
-## Operator session 2026-09-28 day — history (superseded by the evening handoff above)
-
-A new operator took over from the morning handoff below. Heartbeat cron `13,43 * * * *` is set. Each agent was told never to commit; commit only its own files when it reports.
-
-| Agent | Chunk | Scope (package) | Status |
-|---|---|---|---|
-| — | Landed this session | — | See `git log`. **Phase 2 is down to 20 adapters in two packages**: siegelense 13, testing 7 (at f98cae4c1). Every other package has no `adapters/` (A10 orchestrator and A17 web done this session). Latest: siegelense a7b84bfbe, testing f98cae4c1 (F68 done there). |
-| a14-last (opus) | A14 testing's last chunk: `jest/*`, `child-process/mocker`, `mantine/render` (+ web import paths), stale `eslint.config.js` entry, F67 `setupHeld` simplification | `testing`, web import lines, `@gateway/browser` fetch-with-status proxy | running |
-| agy SL-LAST | A13 siegelense's last 13 adapters and `adapters.ts` (`tmp/agy/sl-last.md`) | `siegelense` | running |
-| t04-orch2 (sonnet) | T04: orchestrator's own 5 | `orchestrator` tests | finished, uncommitted (typecheck waits on the testing agent). Repo census: 0 everywhere except ward 1, siegelense 2 |
-| t04w-t05e (sonnet) | T04 ward; T05 eslint-plugin, local-eslint | tests and proxies | done (the T04 ward commit); T04 left: siegelense 2; T05 now 0 in eslint-plugin and local-eslint too |
-| t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | done a477ddd82; T05 now at 0 in ward, cli, config, hooks, server, mcp, tooling |
-| s1-slow (sonnet) | S1 slow test | `tooling` tests | done 2db4b0cee |
-| t05-shf (sonnet) | T05 shared, hydration, session-forensics | tests and proxies | done (the T05 shared commit); T05 is now 0 in every package except orchestrator, web, siegelense, testing, hydration-recipes, @gateway/* (not yet swept) |
-| a18-plan (opus) | A18 planning | none | done: `## Plan` in the A18 item. About 2,000 files across 16 packages; most are the `'zod'` import (scripted sweep, one agent per package); 295 hand batches; eight gateway gaps (GN1 to GN5, GB1 to GB3) and a `bin-program-spawn-ban` blind spot (R1) first |
-| fix-t05-reg (sonnet) | Fix: f5975a007 broke 22 config and 25 siegelense tests (removed shared's dirname fallback) | `config`, siegelense instance-start proxy | done (the regression-fix commit). Lesson: a change to shared's proxies is gated with a unit run of every package that composes them |
-| a18-r1c1 (sonnet) | A18 wave 0: R1, C1 | `eslint-plugin` rules | done (the R1/C1 commit): with the rule on, 18 spawns flagged (ward 10, orchestrator 5, web 2, testing 1). Its integration test relies on ward's `bundle-statics.ts` keeping `buildCommand: 'npm'`; move the fixture when A18 replaces that spawn |
-| a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | running |
-| a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | running |
-| a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | running |
-| web-slow (sonnet) | Fix: app-widget and home-content tests over the slow-test threshold | `web` tests | running |
-
-After these land: A18 (raw calls and dependency cleanup), then A19 (`adapters` stops being a folder type; runs alone). A whole-repo `build:clean`, `check:consumer`, `check:published` and a full `npm run ward` are due at the first quiet point.
-
-Open follow-ups found this session and not yet dispatched: F68 (testing `holdsOpen` raw body), F71 (web stylesheet home, with A19), F72 (T05 rules ignore `registerSpyOn`), F63 (repo jest bump), F10, F30, F47-style checks; T04 remainder (hydration-recipes 5, server 11) needs new orchestrator proxy methods (table in the T04 item); T05 sweeps per package (ward 46c51491c, cli/config/hooks 8e56d3290 all at 0; a combined scan of many packages ran out of memory, so scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`).
-
-Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
-
-**User decision, 2026-09-28 late afternoon: scripts are allowed where they cut work, and each is notated.** This supersedes the earlier "script-making tabled". Every script an agent or the operator uses for bulk edits is recorded in the "Scripts used" table below (what it does, where it lives, which commit used it), and its output is still gated by ward like any other change. First use: A18's `zod` import sweep (one scripted agent per package, `'zod'` becomes `'#gateway/npm/zod'`).
-
-**User decision, 2026-09-28 afternoon: no mutation checks.** Agents no longer break code on purpose to prove a test goes red; the step and the MUTATIONS report section are gone from `agent-brief.md` and `tmp/agy/impl-common.md`. Tests must still assert real values. Script-making (the scripting-opportunities scroll) is tabled.
-
-## Handoff (operator, 2026-09-28 morning) — history
-
-The previous operator stopped here so a fresh session can take over with a small context. Read this section, then "Operator session 2026-09-27 night" below it, then the status tables. Older handoff sections further down are history.
-
-### State at handoff
-
-- No agent is running, and everything is committed. Nothing was branched: every agent worked in this checkout on `gateway-pivot`; no worktree or `gp-*` branch exists.
-- **Full `npm run ward` is green**: run 1790620960022-58d3 (lint, typecheck, unit, integration, e2e across 21 packages) on the tree committed last.
-- `npm run build:clean` passes. `npm run check:consumer` passes 87 of 89; the two failures are intermittent, show on a cold first run after a fresh install, and are recorded as F59 and F60. Fix those first.
-- G24 and T03 are committed with the consumer fix that made T03's probe pass (the published jest base now loads the MSW setup from `dist`, so a consumer runs one MSW server, not two).
-
-### What landed this session (2026-09-27 night to 2026-09-28 morning)
-
-- Adapter items done: A03, A04 (cli), A05 (config), A07 (hooks), A08 (hydration), A09 (mcp), A11 (server), A15 (tooling). `packages/*/src/adapters/` is gone in those packages.
-- A12 phase 2 is nearly done: only orchestrator's seven remaining git adapters (A10's GIT-3 and GIT-4) still call shared's `childProcessSpawnCaptureAdapter`. Then re-run the census and start phase 3 (delete `packages/shared/src/adapters/`).
-- B06, B17 (B17-1 to B17-9), B18 split (a), G22, F-series fixes (F34 to F57, see the Follow-up table).
-- Gateway test support grew a lot: `@gateway/node` proxies read back calls (F29, F43, F44, F46, F51, F55, F57), `streamLinesProxy` and `runProxy` stage by args and cwd, `@gateway/bin` proxies stage through `runProxy`, the browser fetch proxies stage through MSW (F56), and hono has gateway proxies (F49).
-
-### Next dispatch, in order
-
-1. F59 and F60 (intermittent `check:consumer` failures), then `build:clean` + `check:consumer` twice to prove them gone.
-2. A10: orchestrator git adapters GIT-3 and GIT-4 (seven left; `## Plan — G-T` in the A10 item lists them), then A10's FS, MISC, TIMER and SPAWN batches (G-CC).
-3. A12 phase 3: census, then delete shared's adapters, `adapters.ts`, the "Adapter Proxies" block of `testing.ts` and the `./adapters` export.
-4. A16 ward: five `fs/read-file` callers (listed under `### G-BB-1e`), `crypto/hash-files` (F50 landed, so it is unblocked), MISC (`fs/write-file`, `os/tmpdir`) and TS-SHAPE.
-5. A06 eslint-plugin: G-I-d part 2 (two callers with raw `existsSync` catch-alls), G-I-c (`eslint/rule-tester`, 76 rule tests plus local-eslint; a mechanical path sweep), G-J (the `eslint/typed-*` adapters, including `typed-return-is-void-like`, into `transformers/`).
-6. A13 siegelense: SL-FS1 is unblocked by F57 (re-run `tmp/agy/sl-fs1.md`); then its other fs adapters, misc singles and the playwright/session facade. `closeSyncProxy` still lacks cross-function call ordering for `lane-teardown-broker.proxy.ts:143` (noted in F57's plan).
-7. A17 web: F56 landed, so the fetch batch continues (`fetch/get`, `patch`, `post`, `post-with-status`), then canvas/DOM/file, IndexedDB, misc, rxjs, testing-library, xyflow; e2e after xyflow.
-8. A14 testing (G22 done), after G24 and T03 commit.
-9. F53: two violations left (siegelense `instance-start-broker.ts:355`, web `subagent-chain-widget.tsx:201`), then switch `ban-contract-type-predicates` to `error`.
-10. B18 split (b), B02, B14, B04/B05 as `triage-other.md` orders them; T04/T05 fix sweeps per package.
-11. Open gateway follow-ups: F45 (eslint proxy), F47, F52, F35, F10, F30, F38-style checks; the F57 census of read-shaped and non-fs proxies.
-
-### Rules this session added (also in the sections below)
-
-- A dispatched agent never forks: a fork carries the parent's whole task and redoes it (F54 measured it; repo `CLAUDE.md` "Dispatching Sub-Agents" has the rule and numbers).
-- Never mock a gateway wrapper that has a real body with `registerMock({ fn })`; stage through its proxy (A12 item, `### G-V` Trap sections).
-- An eslint-plugin rule mutation is live for every agent's lint while it is on disk: revert it after one test run.
-- `agy` gives about a dozen runs per quota window; a run that dies on quota leaves half-edited files for a Claude agent to finish.
-- `create-worktree` carves from master, which lacks this branch's zod v4, so verification builds run in this checkout at a quiet point.
-
-## Operator session 2026-09-27 night
-
-- Two read-only triages replace the status table's order of work: `triage-phase2.md` (A rows, dispatch groups G-A to G-DD in waves) and `triage-other.md` (every other open row, with real dependencies). Dispatch from them; re-run a triage when they and the code disagree.
-- Rule 14 in practice: planners write `## Plan` for B, G and T items. For a Phase 2 group, the implementer's first step writes the named-file plan for its own group into the item file, and that list is its scope. The shared implementer prompt is `tmp/agy/impl-common.md`; the planner prompt is `tmp/agy/plan-common.md` (launcher `tmp/agy/run-plan.sh`).
-- A batch-size exception: when a plan's batches form one chain of return types (B18-1 to B18-10), one agent takes the chain, because split landings leave typecheck red in between.
-- **A verification worktree does not work while master has moved past this branch.** `create-worktree` carves from master's HEAD and mirrors master's `node_modules` (no zod v4), and `git merge --ff-only gateway-pivot` fails. Build and `check:consumer` run in this checkout at a quiet point instead: no agent with half-edited files in a package the build compiles.
-- `agy` launchers: `tmp/agy/run-plan.sh` (planner), `tmp/agy/run-impl.sh` (implementer, joins `impl-common.md`). `tmp/agy/run.sh` is the old A12-only prompt; do not use it for other items.
-
-## Handoff (operator, 2026-09-27 late)
-
-The operator stopped dispatching here because its context grew large. A fresh operator picks up from this section. Read it first, then the status table below.
-
-### Agents still running at handoff
-
-Each was told never to commit. Commit each one's files, and only its files, when it reports.
-
-| Agent | Scope (files it may edit) | Commit notes |
-|---|---|---|
-| G22 | `packages/@gateway/npm` (new `jest__globals` subpath), `packages/testing` | Touches `registerMock`'s foundation: run the wide unit regression before committing, then build `@gateway/npm` and `testing`. | todo | Dispatched once and stopped by the user before it changed anything. Its needs, G02 and G03, are done. |
-
-If an agent's notification never arrives (the operator lost track), look for uncommitted files in its scope with `git status`, send a sonnet sub-agent to review them, and commit what is green.
-
-O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. No agent is running. B01 is merged, `npm install` has run, and the four steps below are done.
-
-
-### A12 (shared adapters) remaining after the running agents
-
-- siegelense (group SL10, todo: dispatched once and stopped by the user before it changed anything): `src/brokers/{recipe/seed-run,recipes/read,step/seed}` (dynamicImport), `src/adapters/process/is-alive/*.test.ts`, `src/brokers/prune/run/*.integration.test.ts`, `test/harnesses/{driver-fleet,seed-home}`.
-- orchestrator: `adapters/git/*` (15 folders; the orchestrator's own git adapters on `childProcessSpawnCaptureAdapter`, which move to `run` or to `@gateway/bin`'s git) and `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts` (streamLines; do it with or after O12).
-- F34 (open): `@gateway/node`'s `streamLinesProxy` cannot read back a call's cwd or command, so O12's two step-handler proxies mock `streamLines` directly by command. Add a `getOptionsFor`-style read-back like F29 gave `run`, then move those proxies onto it.
-- shared: three type-only imports in `brokers/architecture/orphan-detect/*.test.ts`.
-- Then phase 3: delete `packages/shared/src/adapters/`, `packages/shared/adapters.ts`, the "Adapter Proxies" block of `packages/shared/testing.ts`, and the `./adapters` export. Re-run the census first (the A12 item's "Phase 2 census" gives the method).
-
-### Ready items nobody has started
-
-These rows are `todo` or `ready` with every dependency met; the operator never dispatched them while A12 filled the slots. G22 was one; the user caught it.
-
-- T03 (`ready`, needs T01).
-- A03 to A08, A13, A15 (each needs only gateway items that are done). A09 (mcp's own adapters), A11 (server's own) and A10 (orchestrator's own, needs A03) overlap A12's phase 2: A12 moved callers of `shared`'s adapters; these items delete each package's OWN adapters. Check each package's `src/adapters/` before dispatching.
-- G22 (todo; its needs are done). A14 needs G22. A16 needs A03, A17 needs G13.
-- Items in `review` to close: B01 (above), G24, T04, T05.
-
-### Before the next operator dispatches anything
-
-- **Do not trust the status table's order as the order of work.** The rows and their "Needs" columns are not granular enough to rely on, and things changed during this session that the table does not show (A12's phase 2 ran across every package and overlapped A09 to A13; G22 sat at `todo` with its needs met; new follow-ups F21 to F35 appeared). Send one or two planner agents first, read-only, to check each open row against the code: what is really done, what is really blocked, what the next small chunks are, and which rows overlap. Rebuild the dispatch order from their findings.
-- **Watch every sub-agent's run time. Anything past one hour needs attention.** This work is meant to come in small chunks, so an hour-long run means the chunk was too big or the agent is off track. Check its status through a sonnet sub-agent (never by reading the transcript yourself), and split, redirect or stop it. O10 ran 82 minutes and B01's first agent about 6.5 hours; both should have been caught sooner.
-
-### Operator lessons from this stretch
-
-- Stage an agent's own file list only; never `git add` a whole folder that another agent is editing (SH11's commit swept SH12's files).
-- Gate every commit on ward's exit code, not its printed summary.
-- Run the whole unit suite of every package that composes a changed proxy, not only the changed package; most cross-package reds this session came from that.
-- Scan every diff for `as never`, `as unknown as`, `as boolean`, `calledWith([])`, `onceFor([])`, accept-all predicates (`path: () => true` when staging), raw `'fs'`, `'path'`, `'os'` and `'process'` imports, and real `process.cwd()` or `homedir()` in tests.
-- A far-off passthrough `join` hides wrong paths (the A12 item's "Trap" section has the fix).
-- Agents must not dispatch their own sub-agents (brief rule 6).
-- A migration that removes a shared adapter's catch-all breaks every composing proxy that leaned on it, including ones in other agents' uncommitted folders. O10 spent 34 of its 82 minutes (41%) redesigning `step-handler-riftcarver-broker.proxy.ts` for that reason. Before dispatching, list the proxies that compose the brokers in scope, and give those to the same agent or finish the other agent first.
-- **A mutation in an eslint-plugin rule file is live for every agent's lint at once.** `eslint.config.js` loads the rules from source, so while a rule is mutated, any package's lint run reports false violations (G-I-b's mutation pass made a sibling agent see 66 missing-stub reports). Mutate an eslint-plugin rule only for the length of one test run, and re-read a lint red that another package reports while an eslint-plugin agent is mutating before acting on it.
-- Antigravity (`agy`) is resumed (user, 2026-09-27 night): at most 2 `agy` runs at once, on top of the Claude sub-agents (see "Using Antigravity" below).
+- **Gate composers.** A change to one package's proxies is gated with a unit run of every package that composes
+  them, not just its own. A shared proxy change once broke 22 config and 25 siegelense tests this way.
+- **Always gate `integration` too.** Only siegelense's flow integration tests caught PNG screenshots being read
+  through the UTF-8 `readFile`; unit tests with staged strings passed.
+- **Gate every agent's work yourself on all four checks.** Agents sometimes skip typecheck; one R1 chunk left 7
+  type errors that its own report did not mention.
+- **Two agents in one package need disjoint file lists**, and their work commits together when their files
+  interleave, because a package-wide typecheck sees the other agent's half-edited files.
+- **Tests that read the real tree** (shared's project-map test) break when the tree changes; re-anchor them in the
+  chunk that deletes their anchor, and keep them fast (a real-repo census test took 6 to 30 seconds).
+- **Chunks feeding the proxy-mock hoister are slow** (18 to 28 minutes per adapter); keep them to one or two items.
+- **At one hour, send a sonnet status check** (it reads the tail of the transcript); stop an agent at a green point
+  rather than let it run on.
+- **Scan every diff** for `as never`, `as unknown as`, `calledWith([])`, `onceFor([])`, accept-all staging
+  predicates, raw `'fs'`/`'path'`/`'os'`/`'process'` imports, and real `process.cwd()` or `homedir()` in tests.
+- **An eslint-plugin rule edit is live for every agent's lint at once**; keep rule edits correct before saving.
 
 ## Converting the next repo
 
@@ -315,7 +216,7 @@ This epic's items that build tooling (the G items that write rules and scaffoldi
 - Stage only an agent's own files; commit only on ward's exit code; the operator owns builds and commits.
 - A migration that removes a catch-all breaks every proxy that leaned on it: give composing proxies to the same agent.
 - Agents never dispatch sub-agents of their own, and never fork. A fork carries its parent's whole task and redoes it beside the parent (F54 measured it; this repo's `CLAUDE.md` "Dispatching Sub-Agents" has the numbers). A consumer's `CLAUDE.md` does not carry that section, so every dispatch prompt says it.
-- `agy` gives about a dozen runs per quota window; a run that dies on quota leaves half-edited files for a Claude agent to finish from the diff.
+- Use Claude sub-agents only; Antigravity (`agy`) is not used (user, 2026-09-28).
 - A verification worktree carved by `create-worktree` comes from the main checkout's HEAD; if the consumer's working branch has moved past it (new dependencies), build and `check`-type runs happen in the working checkout at a quiet point instead.
 
 ## Scripts used
@@ -332,43 +233,16 @@ Each row is a script used for bulk edits or census. Output is always gated by wa
 
 ## Machine-wide side effects
 
-**`npm link --workspaces` in this worktree moves every global `@dungeonmaster/*` link onto it.** G24's regeneration step (build, `npm link --workspaces`, `npm run init`, per `CLAUDE.md`'s "Regenerating `.claude/settings.json` Here") was run from `worktrees/gateway-pivot` on 2026-09-27 at 02:33 local. After it, the global npm folder resolved `@dungeonmaster/cli`, `ward`, `mcp`, `shared` and every other workspace package to this mid-migration branch, for every repo on the machine. The user pointed the links back to the main checkout. Before running that step again from a worktree, say so to the user, or run `npm link --workspaces` from the main checkout afterwards. Ward and tests here never need the global links; they resolve through the workspace.
+**`npm link --workspaces` in this worktree moves every global `@dungeonmaster/*` link onto it**, for every repo on
+the machine. Before running `CLAUDE.md`'s "Regenerating `.claude/settings.json` Here" steps from this worktree, tell
+the user, or run `npm link --workspaces` from the main checkout afterwards. Regenerate settings with this checkout's
+own `node packages/cli/dist/bin/dungeonmaster.js init` instead. Ward and tests never need the global links.
 
-**Master's scan pile-up fix is merged here (e8d789075) and built.** The user fixed the rate-limits poller on master (3e59959e7: one usage-ledger scan per process, stamped at start). The operator merged it, ran ward on its files, and built this checkout's `shared`, `@gateway/*`, `orchestrator` and `mcp`. The whole-repo build stopped at `ward` on W3's half-edited `check-run-lint-broker.ts`, so `server`, `siegelense` and `cli` output is older; the MCP server needs only `mcp` and `orchestrator`. The follow-up in `scrolls/usage-ledger-scan-pileup.md` (one scanner per home, merging writes) touches the ledger write broker this branch changed, so do it on this branch or after it lands.
+## Antigravity (`agy`) agents
 
-**Master's MCP caller hook is merged here (7d5b32b90) and built.** Two resolutions: `resolve-caller-session-layer` keeps the hook check first, then `cwd()`; `resolve-subagent-identity-layer`'s hook branch calls `cwd()`. `.claude/settings.json` was regenerated with this checkout's own `node packages/cli/dist/bin/dungeonmaster.js init`, never `npm link`. Built here: `shared`, `config`, `hooks`, `orchestrator`, `mcp`, `cli`. Open: master's c8d7631ed removed siegelense's "THE VERBS YOU CAN SUBMIT TODAY" docs section, but two `docs-statics.test.ts` tests (the ladder, DEF-29) still expect it; red on master too, waiting on the user.
-
-**Build freeze lifted (2026-09-27 evening): the user said a build does not affect the profiling. Whole-repo `npm run build` green at d1c34c095 plus the agents' in-flight source.** Earlier note: The user restarted the MCP servers to profile memory. Building `mcp`, `orchestrator`, `shared` or `hooks` in this checkout rewrites the running server's `dist` and kills it. Queue every build (F29's `@gateway/node`, the stale `ward`, `server`, `siegelense`, `cli`) until the user says profiling is over. Tell every dispatched agent not to build (they never do anyway).
-
-**Master merged again (dac9d876f):** siegelense DEF-43 to DEF-63, the docs-statics test fixes (the verbs-section question is closed), and hydration-recipes' recipe retirement. The status-read conflicts kept master's MEMORY rename and driver-log rows on top of this branch's gateway `join`.
-
-## Using Antigravity (`agy`) agents
-
-The user can lend Antigravity slots on top of the Claude sub-agents. This section records what the operator learns about driving them, and grows as the epic uses them more.
-
-| What | What we learned |
-|---|---|
-| Slot count | 2026-09-28 afternoon: the user's `agy` status line read 7% of the 5-hour window and 31% of the 7-day window, so both slots are in use. Resumed on 2026-09-27 night: at most 2 at once, because `agy`'s five-hour usage limit is smaller than Claude's. (History: 5 slots at first, then 3 while the user ran `agy` elsewhere.) |
-| The CLI | `agy` is at `~/.local/bin/agy`. `agy -p "<prompt>"` runs one prompt non-interactively and prints the final answer. `agy models` lists the models. |
-| The model | The user asked for Gemini 3.8 Flash. Pass `--model gemini-3.8-flash-high`. |
-| Permissions | Pass `--dangerously-skip-permissions`, or the run stalls on the first tool prompt, because nobody is there to answer it. |
-| Launching | Run it through the Bash tool with `run_in_background: true`. The harness notifies the operator when the command exits. The launcher is `tmp/agy/run.sh <group>`. It joins `tmp/agy/common.md` with `tmp/agy/<group>.md`, and writes the answer to `tmp/agy/<group>.out`. |
-| MCP tools | The dungeonmaster MCP tools are available inside `agy` (`discover` confirmed). |
-| Repo rules | A quiz with no file reads showed it already knows the core rules: `npm run ward -- -- <files>`, `registerMock` rather than `jest.mock`, the banned matchers, no builds, and `discover` rather than grep. It could not name most snippet tags. So the shared prompt restates the hard bans (no git staging or commits, no builds or installs, only scoped ward) and points at `session-snippet-statics.ts`. |
-| The prompt | It gets no agent brief automatically. `common.md` carries the brief, the recipe, the ban list and the report format, and each group file adds only the file list and who else is in the package. |
-| Watching progress | Print mode writes nothing until the turn ends, apart from a stray fragment or two. Watch progress through `git status` on the group's files, and `ps -eo pid,etime,args | grep 'agy -p'` for elapsed time. After 5 minutes, all five had read files but edited none. |
-| The trust dialog, once per directory | Antigravity asks the user to trust `agy` in each new directory, in the app, and `--dangerously-skip-permissions` does not skip it. A worktree is a new directory, so an `agy` agent launched in a fresh worktree waits on that dialog until the user answers it. Ask the user to trust the directory before launching there, or launch `agy` agents only in directories already trusted. Early runs here hit the dialog in this checkout. Before it was cleared, a quiz showed only the core rules. After, a second quiz answered from `<dungeonmaster-buildDiscipline>`, `<dungeonmaster-generatedConfig>` and the ward flags (`--uncommitted`), and listed every dungeonmaster MCP tool. It still names only two snippet tags when asked for all of them, so ask about rule CONTENT, not tag names. It knows grep, find and sed are blocked by a hook, but not that `git reset` is. Keep passing `--dangerously-skip-permissions` either way. |
-| Reports and status | The operator reads each `agy` final report (`tmp/agy/<group>.out`) directly, like a Claude sub-agent's report. The operator never reads a worker's raw transcript to learn its status. When status is needed and the agent cannot be messaged through its shell, a sonnet sub-agent looks and answers in a few lines. Reviewing a finished group's diff in depth also goes to a sonnet sub-agent, in a sixth slot kept for review and status checks. |
-| The first finished run (H1) | About 30 minutes for four small caller files. The final answer held the report in the requested sections, preceded by a few lines of its own progress chatter ("I will wait for the ward task…"), so read the tail of the `.out` file. It ran scoped ward and a whole-package run, and reported a sibling group's red as not its own, as told. Its mutations only broke return values, never the line it migrated, so the migration itself went unproven; the sonnet reviewer checks that. Ask for a mutation on the migrated line in the prompt. |
-| Rule slips seen | HR1 broke a stated ban: it added `registerMock({ fn: mkdir })` on raw `fs/promises` to read calls back, although the prompt forbids a raw mock on the `fs` module. Scan every `agy` diff for `from 'fs`, `'path'`, `'os'`, `onceFor([])`, `calledWith([])` and `as unknown as` before committing. Commit the clean files and send the rest to a fix run. A fix run is a fresh `agy -p` with the defect named and the file list; `agy` print mode cannot be messaged after it exits. |
-| Stopping when told | HR1-FIX met the prompt's "if the gateway offers no way, stop and report" clause and stopped cleanly, with no workaround. Write that escape hatch into every fix prompt. |
-| Real process state in tests | M1 made two tests build expected paths from the real `process.cwd()` rather than staging `cwd`. The ban list named raw module mocks but not reading real process state, so say it: "never read the real cwd, home or env in a test or proxy; stage it". |
-| Good runs | H2 and HR2 followed every rule, proved their tests bite on the migrated line, and needed no fixes. H2 staged `cwd` on its gateway import exactly as the recipe says. |
-| Hit rate so far | Of 13 `agy` runs, 9 were clean on the first pass (H2, HR2, C1, C2, C3, C4, M2, GW-ENSURE, M1-FIX). Two needed a fix run (HR1: raw fs mock; M1: real cwd in tests). One stopped correctly when its prompt's escape hatch applied (HR1-FIX). Typical run: 10 to 30 minutes for 2 to 5 caller files. Reports were accurate every time the operator checked them against the diff. |
-| Concurrent-edit noise | `agy` agents correctly report reds in files another agent is mid-editing as not theirs. The operator must still re-run those packages once the other agent lands, and must gate each commit on ward's exit code, not on reading its summary: one commit here went in while a transient typecheck red (another agent's half-written file) showed. |
-| Agents spawning their own forks | SL7 dispatched two read-only forks that instead redid its whole migration in the same checkout, so its files changed under it mid-run. The three copies converged, but the brief now bans an agent from dispatching sub-agents of its own (50b189a09). |
-| Quota exhaustion | SV3 died mid-run when `agy` hit its usage limit: the `.out` ends with `AGY_ERROR ... RESOURCE_EXHAUSTED (code 429): Individual quota reached ... Resets in 3h20m` and the launcher's `AGY-DONE <group> exit=3`. It wrote no report and left its files half-edited. A non-zero exit means: read the tail for `AGY_ERROR`, treat the diff as unreviewed work in progress, and hand the group to a Claude agent to finish from where it stopped. |
-| Quota, second time | On 2026-09-28 about 02:55, `agy` hit its individual quota again after about 12 runs this session (reset in 1h14m). The web-fetch run died before changing a file; G-L was mid-ward. Plan for roughly a dozen runs per quota window. |
+Not used from 2026-09-28 evening, by the user's decision. Their launchers and prompts are still under `tmp/agy/`,
+and git history holds what was learned about driving them. The main lesson carries over to any agent: review and
+gate the diff yourself, because a report can be accurate about what it changed and still miss a real defect.
 
 ## Concessions
 
@@ -484,19 +358,19 @@ Package items run side by side, one agent group per package. Each is split by th
 | A03 | [One broker lists what is on a port and kills it](items/a03-port-kill-broker.md) | G21 | any outside `orchestrator`, `ward` | done | The A03 commit: `portKillListenersBroker` in shared over `#gateway/bin` lsof and kill; ward's net adapters gone; every `@gateway/bin` wrapper proxy stages through `runProxy`. Ward's e2e teardown now throws if `lsof` or `kill` is missing. A10 and A16 are unblocked. |
 | A04 | [Adapters: `cli`](items/a04-adapters-cli.md) | G05, G15, G19, G21 | other A items | done | G-E 970811fea, G-F cebe0acb2. `packages/cli/src/adapters/` is gone. cli now depends on `@dungeonmaster/npm`. |
 | A05 | [Adapters: `config`](items/a05-adapters-config.md) | G05, G15, G19, G21 | other A items | done | ef06670a6. `packages/config/src/adapters/` is gone. `dirname` and `join` run for real (no mock), because `configRootFindBrokerProxy` already stages that singleton. Only orchestrator and siegelense compose `config-resolve-caller.proxy.ts`. |
-| A06 | [Adapters: `eslint-plugin`](items/a06-adapters-eslint-plugin.md) | G05, G15, G19, G21 | other A items | active | G-I-a done (7da827a23, eslint-plugin rebuilt). F48 done; G-I-b done for exists-sync and write-file-sync (the G-I-b commit, eslint-plugin rebuilt); G-I-d part 1 done (e1ac7a47f): ten `read-file-sync` callers moved; part 2 is two callers whose proxies also carry a raw `existsSync` catch-all (`find-nearest-package-json-layer-broker`, `resolve-gateway-scope-layer-broker`); G-I-c (`eslint/rule-tester`, 76 rule tests plus local-eslint) a mechanical sweep; G-J (with `typed-return-is-void-like`) after. G-I-a keeps one raw `registerMock({ fn: readFileSync })` in enforce-proxy-child-creation's proxy, under the per-path exception the A12 item's Trap documents. |
+| A06 | [Adapters: `eslint-plugin`](items/a06-adapters-eslint-plugin.md) | G05, G15, G19, G21 | other A items | done | `packages/eslint-plugin/src/adapters/` is gone (last: f296f59cb, G-J). The rule-tester and typed rule-tester are harnesses under `test/harnesses/` (concession 8). |
 | A07 | [Adapters: `hooks`](items/a07-adapters-hooks.md) | G05, G15, G19, G21 | other A items | done | G-K1 e5947b88a, G-K2 66b93f775, G-L f13f77134 (shared and hooks rebuilt). `packages/hooks/src/adapters/` is gone. The pre-edit rule names come from shared's `preEditRuleNamesExtractTransformer`; `preEditLintConfigContract` stays in hooks, which uses it widely (the item's own escape hatch). F45 (a gateway eslint proxy) remains. |
 | A08 | [Adapters: `hydration` and `hydration-recipes`](items/a08-adapters-hydration.md) | G05, G15, G19, G21 | other A items | done | G-M 38b5eb777, G-N 39ecde862, G-O 852830806. Neither `hydration` nor `hydration-recipes` has an `adapters/` folder. hydration-recipes' three shared-adapter callers are A12's group G-P (on agy). |
 | A09 | [Adapters: `mcp`](items/a09-adapters-mcp.md) | A02, G05, G15, G19, G21 | other A items | done | G-A f641316fe, G-B (the A09 G-B commit). `packages/mcp/src/adapters/` is gone. Two real-file checks moved to F39. |
-| A10 | [Adapters: `orchestrator`](items/a10-adapters-orchestrator.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/orchestrator/src/adapters/` is gone (2026-09-28 afternoon). Earlier: | G-T done (596bbd1e3): `adapters/git/` is gone. FS, MISC, TIMER and SPAWN batches (G-CC) next. |
+| A10 | [Adapters: `orchestrator`](items/a10-adapters-orchestrator.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/orchestrator/src/adapters/` is gone (last: 299278ad5, watch-tail). |
 | A11 | [Adapters: `server`](items/a11-adapters-server.md) | A02, G05, G15, G19, G21 | other A items | done | G-C fc74b4ea9, G-D 39daffdbf, F44 callers (the A11-done commit). `packages/server/src/adapters/` is gone. F49 (hono proxies) and F51 (quest-new's direct `rm` mock) remain. |
-| A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | active | Phase 2 (callers outside shared) is down to orchestrator: G-T (its git adapters onto `#gateway/bin/git`, agy) and G-U (six quest brokers, agy). Done this session: G-P 17f50bd7e, G-Q in dfab97eed, G-S 5ff40971b, G-V 9dfbba5ca. Then phase 3 deletes `packages/shared/src/adapters/` after a fresh census. Earlier history: see the A12 item file. |
-| A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | active | A12's G-S done (5ff40971b), so A13 is unblocked. SL-FS1 (fs append-file, close-fd, copy-file, cp) planned and stopped, no files changed: all four gateway proxies lack call read-back (F57, active). It re-runs after F57. The other 12 fs adapters, 18 misc singles and the 13-file playwright/session facade follow. |
-| A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | ready | G22 is done. Group G-Y in `triage-phase2.md` (A14's batches plus `msw/ws` and `typescript/ast-to-local-export-names`). |
+| A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | done | `packages/shared/src/adapters/`, `adapters.ts` and the `./adapters` export are gone (d743fa187). |
+| A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | active | 13 adapters left (list in START HERE). Partial SL-LAST work saved as `tmp/agy/sl-last-partial.patch`; plans SL-FS1 to SL-LAST in the item. |
+| A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | done | `packages/testing/src/adapters/` is gone (last: f7eabaf73). `registerMock` and friends are middleware; the Mantine render is `@dungeonmaster/testing/middleware/mantine-render`. |
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | done | 5f4dcd0af. Only `typescript/parse` was left (the rest went in 7751fb471); its AST walk is now `typescriptParseBroker`. `packages/tooling/src/adapters/` is gone. |
-| A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | e43c1c424, 7f79340c8: `packages/ward/src/adapters/` is gone. Earlier: | `## Plan — G-BB-1` written (11 adapters, 24 callers, 48 files with proxies) and split by adapter: G-BB-1a done (c833d4923, ward rebuilt); G-BB-1b done for mkdir, read-json-sync, readdir-dirs, readdir (the G-BB-1b commit, ward rebuilt); `fs/read-file` (18 callers) and `fs/unlink`'s check-run callers are G-BB-1e; G-BB-1c done for rename, rm, stat (the G-BB-1c commit, ward rebuilt); `fs/unlink` waits for F55; G-BB-1d (`crypto/hash-files` into `bundle-hash-files-broker`) waits for F50. MISC and TS-SHAPE after. |
-| A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | done | `packages/web/src/adapters/` is gone (the W-LAST commit). Earlier: | F56 and F61 cleared the block. fetch/post and fetch/get mostly done (b30627b03, e1076c324, ace08af85); F65 has the last five. Earlier: | Fetch batch blocked, nothing changed: `@gateway/browser`'s fetch proxies spy on `globalThis.fetch` and throw on any unmatched call, so one migrated broker breaks every MSW-staged caller in the same test file (write-up in the item). F56 (active) moves those proxies onto MSW endpoint handlers and proves it on quest-delete and comment-batch. The other batches wait for F56. |
-| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | todo | operator splits per package |
+| A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/ward/src/adapters/` is gone (7f79340c8). |
+| A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | done | `packages/web/src/adapters/` is gone (2d7f1d25f). Global stylesheets load from `src/main.ts` (concession 9). |
+| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | active | Plan written (`## Plan`). Done: R1, C1, GN1 to GN4, GB1 to GB3, `zod` sweep for cli, config, hooks, hydration, mcp, session-forensics, tooling (651dcb068). Next: GN5, the other packages' `zod` sweeps, the hand batches, dependency removals. See START HERE step 4. |
 | A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | todo | runs alone |
 
 ### Phase 3 — brands foundation
@@ -522,8 +396,8 @@ Package items run side by side, one agent group per package. Each is split by th
 | B14 | [No field-type aliases; object types that leave a function are contracts](items/b14-type-alias-and-adhoc-type-rules.md) | A19 | any | todo | operator splits the shape fixes per package |
 | B15 | [Brand the repo](items/b15-brand-migration.md) | B06, B07, B11, B12, B13, B14 | — | todo | operator splits per package; the largest item in the epic |
 | B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | B15 | T-items | todo | |
-| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | any | active | Plan written (32 batches). Done: B17-2 to B17-9 (96d32bdf3, d27b3cb19, 621f587a4, and B17-6 in the A11-done commit). B17-1 (the rule) active, agent b17-rule; then B17-10 onward. |
-| B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | any | active | Split (a) done: B18-11 to B18-13 52686cc4a (the rule is ward-only and allows `void` unless an informative result is discarded), B18-1 to B18-10 7af5d71a7 (every bootstrap returns `void`, orchestrator rebuilt). Split (b), the broad census of `{ success: true }` returns and `adapterResultContract`, is next; its plan defers packages that still have `src/adapters/`. |
+| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | any | active | Rule `ban-contract-type-predicates` written and off (B17-1, 668d77666); F53 lists its remaining violations. B17-2 to B17-9 done. B17-10 onward next. |
+| B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | any | active | Split (a) done (52686cc4a, 7af5d71a7). Split (b), the census of `{ success: true }` returns, runs after A19. Note: `@gateway/browser`'s `localStorage/clear` returns `{ success: true }`. |
 
 ### Phase 5 — tests and mocking
 
@@ -532,8 +406,8 @@ Package items run side by side, one agent group per package. Each is split by th
 | T01 | [MSW loads in every package and fails on anything unhandled](items/t01-msw-everywhere.md) | G08 | any | done | 02176f3c5. MSW loads through the base configs; 11 redundant per-package `setupFilesAfterEnv` overrides that hid it are gone. `testing`'s own `jest.config.js` does not spread the base, so it keeps its own entry. The WebSocket catch-all `ws.link('*')` would also close a connection that a future test mocks itself; see T02/T03. |
 | T02 | [The I/O trap covers every way out of the process](items/t02-io-trap-every-way-out.md) | T01 | any | done | 7134a7159. Network modules are trapped by mutating them in place, because a `jest.mock` factory loses to msw's static `node:net` import. Still open, as the item says: `fs` and `child_process` classes pass through, and a late call can drain against the wrong test. |
 | T03 | [MSW handlers are checked against the server's contracts](items/t03-contract-checked-handlers.md) | T01 | any | done | The wrap-up commit. `StartEndpointMock.listen` takes an optional `contract`; quest-comment-batch's proxy has `httpEndpoint()`. `check:consumer` proves it in a real install. Open: `.responds()` and `.respondRaw()` are not contract-checked; T05 judges the contract re-export through `comment-batch-response.stub.ts`. |
-| T04 | [No test mocks another workspace package's exports](items/t04-workspace-export-mocks-ban.md) | A02 | any | review | Committed in f00173ccf, together with T05. The rule `ban-workspace-export-mocks` is written and off, and it is committed together with T05, because they share registration files. The scan found 57 violations: hydration-recipes 17 (orchestrator brokers), orchestrator 29 (shared adapters and brokers, many of which go away with A12), server 11 (StartOrchestrator and orchestrator brokers, many of which F19 removes), mcp 0. web, ward, siegelense and the gateways were unscanned (T05's WIP crashed lint). The fixes are split after F19 and A12. |
-| T05 | [No catch-all proxy defaults; no invented failures](items/t05-proxy-catch-all-and-invented-failures.md) | G19 | any | review | Committed in f00173ccf. `ban-proxy-catch-all-defaults` and `ban-invented-failures` are off and tagged `pre-edit`. `ban-proxy-empty-called-with` is registered but commented out of the config. The scan found 476 violations: invented-error 223, empty-calledWith 251, catch-all 2. The fix sweeps are split per package after A12. |
+| T04 | [No test mocks another workspace package's exports](items/t04-workspace-export-mocks-ban.md) | A02 | any | active | Rule `ban-workspace-export-mocks` off. At 0 in every package except siegelense (2). Scan: `tmp/t04-scan.config.js`. Switch on at 0. |
+| T05 | [No catch-all proxy defaults; no invented failures](items/t05-proxy-catch-all-and-invented-failures.md) | G19 | any | active | Three rules off. At 0 in ward, cli, config, hooks, server, mcp, tooling, shared, hydration, session-forensics, eslint-plugin, local-eslint. Not yet swept: orchestrator, web, siegelense, testing, hydration-recipes, `@gateway/*`. Scan: `node tmp/t05-scan-pkgs.js <pkg>`. F72 open. |
 | T06 | [A proxy composes the proxy beside each wrapper it calls](items/t06-proxy-child-creation.md) | B03 | any | todo | |
 | T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | done | 9844987fa. The published `jest-config-base` wires `jest.setup-global.js` and its teardown, and `ban-bare-os-home-tmp` is deleted. A comment at `web/test/harnesses/claude-mock/bin/claude:232` still names the deleted rule; Z06 fixes it. |
 | T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | todo | operator splits |
@@ -655,4 +529,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-28 | 02:59: every Claude sub-agent died on the weekly limit and `agy` on its quota, leaving G-I-b, B17-1, G-S, G-L and web fetch half done. 09:03: the user reported the limit reset; all five were resumed with their context, and `agy` took G-BB-1c and G-T. |
 | 2026-09-28 | Wrap-up for the operator handoff: every agent committed (last: orchestrator 49dfcd262). `build:clean` passed. `check:consumer` 86 of 89 (three failures, fix agent dispatched). Full ward 1790618403822-2d41: lint, typecheck, unit and e2e green; integration red in shared's project-map test (it reads the real tree, whose adapters this session deleted) and `@gateway/npm`'s dependency test (`jest-mock` has no wrapper folder); fix agent dispatched. |
 | 2026-09-28 | Handoff: all agents committed; F56 fix-ups; consumer fix (jest base loads MSW from `dist`); shared project-map and `@gateway/npm` jest-mock integration reds fixed. `build:clean` green, full ward 1790620960022-58d3 green, `check:consumer` 87 of 89 (F59, F60 intermittent). Next: this file's top Handoff section. |
-| 2026-09-28 | Evening (new operator): Phase 2 finished in every package but siegelense's last chunk (A10, A14, A16, A17, A06, A12, A08 done); F35, F39, F40, F45, F47, F52, F58 to F62, F64 to F75 done; T04 and T05 swept most packages; S1 census command; A18 planned and started. User decisions: no mutation checks; scripts allowed and notated. Next: the evening handoff at the top. |
+| 2026-09-28 | Evening (new operator): Phase 2 finished in every package but siegelense's last chunk (A10, A14, A16, A17, A06, A12, A08 done); F35, F39, F40, F45, F47, F52, F58 to F62, F64 to F75 done; T04 and T05 swept most packages; S1 census command; A18 planned and started. User decisions: no mutation checks; scripts allowed and notated. Next: START HERE at the top. |
