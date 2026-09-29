@@ -45,7 +45,7 @@ describe('SiegelenseKillLayerFlow', () => {
   });
 
   describe('a known but already-dead id', () => {
-    it('VALID: {callArgs: [--instance, <killed>, --json]} => accepts the dead id and writes the complete KillResult as JSON', async () => {
+    it('VALID: {callArgs: [--instance, <killed>, --json]} => accepts the dead id as a repeat kill and writes the complete KillResult as JSON with alreadyKilledAtMs null', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -68,6 +68,7 @@ describe('SiegelenseKillLayerFlow', () => {
           linkPresent: false,
         }),
         reapedPgids: [],
+        alreadyKilledAtMs: null,
       });
 
       expect(writes).toStrictEqual([
@@ -76,7 +77,7 @@ describe('SiegelenseKillLayerFlow', () => {
       expect(flowResult).toStrictEqual({ success: true });
     });
 
-    it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered human summary by default', async () => {
+    it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered already-killed summary by default', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -97,6 +98,7 @@ describe('SiegelenseKillLayerFlow', () => {
           linkPresent: false,
         }),
         reapedPgids: [],
+        alreadyKilledAtMs: null,
       });
 
       expect(writes).toStrictEqual([killAnswerRenderTransformer({ result: expectedResult })]);
