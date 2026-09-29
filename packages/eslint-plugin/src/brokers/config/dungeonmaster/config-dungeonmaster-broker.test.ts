@@ -438,7 +438,7 @@ describe('configDungeonmasterBroker', () => {
         typescript.rules?.[
           EslintRuleNameStub({ value: '@dungeonmaster/enforce-proxy-child-creation' })
         ],
-      ).toBe('error');
+      ).toStrictEqual(['error', { banWrapperMocks: false }]);
     });
   });
 

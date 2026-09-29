@@ -281,6 +281,20 @@ beforeEach(() => {
         });
       }
 
+      // Folder-type barrels of the packages the scoped fixtures import from: each maps a name to the
+      // file it re-exports, and that file's own proxy is what a caller's proxy imports.
+      if (filePath.includes('packages/shared/src/brokers/brokers.ts')) {
+        return FileContentsStub({
+          value: `export { projectRootFindBroker } from './project-root/find/project-root-find-broker';`,
+        });
+      }
+      if (filePath.includes('packages/core/src/brokers/brokers.ts')) {
+        return FileContentsStub({ value: `export { userBroker } from './user/user-broker';` });
+      }
+      if (filePath.includes('packages/utils/src/brokers/brokers.ts')) {
+        return FileContentsStub({ value: `export { logBroker } from './log/log-broker';` });
+      }
+
       // Broker that imports from scoped package with folder type subpath
       if (filePath.includes('brokers/scoped-import/scoped-broker.ts')) {
         return FileContentsStub({
@@ -607,6 +621,56 @@ beforeEach(() => {
 
 ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBroker(), {
   valid: [
+    // ✅ CORRECT - banWrapperMocks on: mocking a gateway PASS-THROUGH (mkdir is re-exported by
+    // `export * from 'fs/promises'`, no wrapper folder) stays legal
+    {
+      code: `
+        import { mkdir } from '#gateway/node/fs__promises';
+
+        export const wrapperMockPassThroughBrokerProxy = () => {
+          registerMock({ fn: mkdir });
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/brokers/wrapper-mock/pass-through/wrapper-mock-pass-through-broker.proxy.ts',
+      options: [{ banWrapperMocks: true }],
+    },
+    // ✅ CORRECT - banWrapperMocks on: the wrapper's OWN proxy, inside the gateway, mocks the
+    // outside call it wraps
+    {
+      code: `
+        import { writeFile } from '#gateway/node/fs__promises';
+
+        export const writeFileProxy = () => {
+          registerMock({ fn: writeFile });
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/repo/packages/@gateway/node/src/fs__promises/write-file/write-file.proxy.ts',
+      options: [{ banWrapperMocks: true }],
+    },
+    // ✅ CORRECT - option absent: the ban is off
+    {
+      code: `
+        import { writeFile } from '#gateway/node/fs__promises';
+
+        export const wrapperMockOffBrokerProxy = () => {
+          registerMock({ fn: writeFile });
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/repo/packages/mcp/src/brokers/wrapper-mock/off/wrapper-mock-off-broker.proxy.ts',
+    },
     // ✅ CORRECT - Proxy imports and creates child proxy
     {
       code: `
@@ -849,7 +913,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports from scoped package and creates proxy
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy';
         import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedBrokerProxy = () => {
@@ -861,12 +925,12 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/scoped-import/scoped-broker.proxy.ts',
     },
     // ✅ CORRECT - Proxy imports only from scoped package
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy';
 
         export const scopedOnlyBrokerProxy = () => {
           const projectRootProxy = projectRootFindBrokerProxy();
@@ -876,7 +940,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
     },
     // ✅ CORRECT - Implementation imports from scoped package with non-proxy folder type (contracts)
     {
@@ -897,7 +961,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports from different scoped package (@acme/core) and creates proxy
     {
       code: `
-        import { userBrokerProxy } from '@acme/core/testing';
+        import { userBrokerProxy } from '@acme/core/brokers/user/user-broker.proxy';
         import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const acmeBrokerProxy = () => {
@@ -909,12 +973,12 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/acme-import/acme-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/acme-import/acme-broker.proxy.ts',
     },
     // ✅ CORRECT - Proxy imports only from different scoped package (@myorg/utils)
     {
       code: `
-        import { logBrokerProxy } from '@myorg/utils/testing';
+        import { logBrokerProxy } from '@myorg/utils/brokers/log/log-broker.proxy';
 
         export const myorgBrokerProxy = () => {
           const logProxy = logBrokerProxy();
@@ -924,7 +988,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/myorg-import/myorg-broker.proxy.ts',
     },
     // ✅ CORRECT - Implementation imports from different scoped package with non-proxy folder type
     {
@@ -1096,6 +1160,23 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     },
   ],
   invalid: [
+    // ❌ WRONG - banWrapperMocks on: a proxy outside the gateway mocks a gateway wrapper
+    {
+      code: `
+        import { writeFile } from '#gateway/node/fs__promises';
+
+        export const wrapperMockBrokerProxy = () => {
+          registerMock({ fn: writeFile });
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/repo/packages/mcp/src/brokers/wrapper-mock/on/wrapper-mock-on-broker.proxy.ts',
+      options: [{ banWrapperMocks: true }],
+      errors: [{ messageId: 'composeWrapperProxy', data: { name: 'writeFile' } }],
+    },
     // ❌ WRONG - Missing proxy import
     {
       code: `
@@ -1289,13 +1370,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/scoped-import/scoped-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'projectRootFindBroker',
-            proxyPath: '@dungeonmaster/shared/testing',
+            proxyPath:
+              '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy',
           },
         },
       ],
@@ -1303,7 +1385,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Scoped package proxy imported but not created
     {
       code: `
-        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+        import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy';
         import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedBrokerProxy = () => {
@@ -1314,7 +1396,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/scoped-import/scoped-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/scoped-import/scoped-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyCreation',
@@ -1334,13 +1416,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/scoped-only/scoped-only-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'projectRootFindBroker',
-            proxyPath: '@dungeonmaster/shared/testing',
+            proxyPath:
+              '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy',
           },
         },
       ],
@@ -1358,13 +1441,13 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/acme-import/acme-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/acme-import/acme-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'userBroker',
-            proxyPath: '@acme/core/testing',
+            proxyPath: '@acme/core/brokers/user/user-broker.proxy',
           },
         },
       ],
@@ -1372,7 +1455,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Scoped package proxy from @myorg/utils imported but not created
     {
       code: `
-        import { logBrokerProxy } from '@myorg/utils/testing';
+        import { logBrokerProxy } from '@myorg/utils/brokers/log/log-broker.proxy';
 
         export const myorgBrokerProxy = () => {
           return {
@@ -1380,7 +1463,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/myorg-import/myorg-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyCreation',
@@ -1400,13 +1483,13 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/brokers/myorg-import/myorg-broker.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/myorg-import/myorg-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'logBroker',
-            proxyPath: '@myorg/utils/testing',
+            proxyPath: '@myorg/utils/brokers/log/log-broker.proxy',
           },
         },
       ],

@@ -106,7 +106,8 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-object-destructuring-params': 'error',
     '@dungeonmaster/enforce-optional-guard-params': 'error',
     '@dungeonmaster/enforce-project-structure': 'error',
-    '@dungeonmaster/enforce-proxy-child-creation': 'error',
+    // The wrapper-mock ban stays off until its scan reads 0; then it drops the option.
+    '@dungeonmaster/enforce-proxy-child-creation': ['error', { banWrapperMocks: false }],
     '@dungeonmaster/enforce-proxy-patterns': 'error',
     '@dungeonmaster/enforce-regex-usage': 'error',
     '@dungeonmaster/enforce-stub-patterns': 'error',

@@ -1,5 +1,6 @@
 import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-exists/read-file-sync-if-exists.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { barrelWrapperPathsReadBrokerProxy } from '../../barrel-wrapper-paths/read/barrel-wrapper-paths-read-broker.proxy';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
@@ -18,6 +19,9 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
   // (it composes no scenario of its own); every test's own `getContents` callback still governs
   // every fs probe, including the ones this broker's walk makes.
   workspaceRootFindBrokerProxy();
+  // The barrel reads go through the same gateway readFileSyncIfExists staged by setupFileSystem, so
+  // composing this proxy only satisfies enforce-proxy-child-creation.
+  barrelWrapperPathsReadBrokerProxy();
 
   return {
     setupFileSystem: ({

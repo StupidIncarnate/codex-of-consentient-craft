@@ -24,6 +24,15 @@
  * `dependencies`/`devDependencies`, whose `@dungeonmaster/*` tooling entries a fresh consumer's own
  * scope would otherwise lose to (F13).
  *
+ * A `@scope/pkg/<folderType>` import (`@dungeonmaster/shared/brokers`) resolves the same way against
+ * that package's own folder barrel (`packages/<pkg>/src/<folderType>/<folderType>.ts`): the name's
+ * wrapper path becomes the per-file proxy specifier the caller's proxy should import.
+ *
+ * With the `banWrapperMocks` option on, a proxy OUTSIDE the gateway packages may not
+ * `registerMock({ fn })` a gateway wrapper (a name the subpath barrel re-exports from a wrapper
+ * folder that ships its own proxy) — it composes that wrapper's proxy instead. A pass-through name
+ * (`join`, `randomUUID`) stays mockable. The option is off until every package reads clean.
+ *
  * USAGE:
  * const rule = ruleEnforceProxyChildCreationBroker();
  * // Returns ESLint rule that ensures proxy creates child proxy for each dependency imported by implementation
@@ -45,14 +54,15 @@ import { proxyNameToImplementationNameTransformer } from '../../../transformers/
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { gatewayBarrelPathTransformer } from '../../../transformers/gateway-barrel-path/gateway-barrel-path-transformer';
-import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
+import { barrelWrapperPathsReadBroker } from '../../barrel-wrapper-paths/read/barrel-wrapper-paths-read-broker';
 import { packageRootSourcePathTransformer } from '../../../transformers/package-root-source-path/package-root-source-path-transformer';
+import { workspaceFolderBarrelProxyPathTransformer } from '../../../transformers/workspace-folder-barrel-proxy-path/workspace-folder-barrel-proxy-path-transformer';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
-  'missingProxyImport' | 'missingProxyCreation' | 'phantomProxyCreation'
+  'missingProxyImport' | 'missingProxyCreation' | 'phantomProxyCreation' | 'composeWrapperProxy'
 > => ({
   meta: {
     type: 'problem',
@@ -67,13 +77,24 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
         'Implementation imports {{implementationName}} but proxy does not create {{proxyName}} in constructor.',
       phantomProxyCreation:
         'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
+      composeWrapperProxy:
+        '"{{name}}" is a gateway wrapper with its own proxy. Compose {{name}}Proxy from its own file instead of mocking it directly with registerMock.',
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: { banWrapperMocks: { type: 'boolean' } },
+        additionalProperties: false,
+      },
+    ],
   },
   defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
-    const ctx = context;
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
+      options?: { banWrapperMocks?: boolean }[];
+    };
     const { filename } = ctx;
+    const banWrapperMocks = ctx.options[0]?.banWrapperMocks === true;
 
     // Only check .proxy.ts files
     if (!hasFileSuffixGuard({ ...(filename ? { filename } : {}), suffix: 'proxy' })) {
@@ -84,6 +105,72 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     const implementationPath = filename
       ? proxyPathToImplementationPathTransformer({ proxyPath: filename })
       : '';
+
+    // Ban: a proxy outside the gateway packages that `registerMock({ fn })`s a gateway wrapper.
+    // Only the wrapper's own proxy, inside the gateway, stages the outside call it wraps.
+    const gatewayImportPaths = new Map<string, ModulePath>(); // local name -> gateway import path
+    const isWrapperMockCheckActive =
+      banWrapperMocks && filename !== '' && !filename.includes('/packages/@gateway/');
+
+    const wrapperMockListeners = {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        if (!isWrapperMockCheckActive) return;
+        for (const [name, importPath] of astGetImportsTransformer({ node })) {
+          gatewayImportPaths.set(name, importPath);
+        }
+      },
+
+      CallExpression: (node: TSESTree.CallExpression): void => {
+        if (!isWrapperMockCheckActive) return;
+        const { callee } = node;
+        if (callee.type !== AST_NODE_TYPES.Identifier || callee.name !== 'registerMock') return;
+        const [firstArg] = node.arguments;
+        if (firstArg?.type !== AST_NODE_TYPES.ObjectExpression) return;
+
+        for (const prop of firstArg.properties) {
+          if (
+            prop.type !== AST_NODE_TYPES.Property ||
+            prop.key.type !== AST_NODE_TYPES.Identifier ||
+            prop.key.name !== 'fn' ||
+            prop.value.type !== AST_NODE_TYPES.Identifier
+          ) {
+            continue;
+          }
+          const mockedName = prop.value.name;
+          const importPath = gatewayImportPaths.get(mockedName);
+          if (importPath === undefined) continue;
+
+          // `#gateway/<folder>/<subpath>` (or the `@scope/<folder>/<subpath>` form): the subpath's
+          // own barrel says whether the name is a wrapper or a pass-through.
+          const [, folder, subpath] = importPath.split('/');
+          const isGatewayPath =
+            importPath.startsWith(`${gatewayLocationsStatics.importPrefix}/`) ||
+            importPath.startsWith('@');
+          if (
+            !isGatewayPath ||
+            folder === undefined ||
+            subpath === undefined ||
+            !Object.values(gatewayLocationsStatics.folders).some((known) => known === folder)
+          ) {
+            continue;
+          }
+          const wrapperPaths = barrelWrapperPathsReadBroker({
+            barrelPath: gatewayBarrelPathTransformer({
+              callerFilePath: filePathContract.parse(filename),
+              gatewayFolder: folder,
+              subpath,
+            }),
+          });
+          if (wrapperPaths.has(identifierContract.parse(mockedName))) {
+            ctx.report({
+              node: prop,
+              messageId: 'composeWrapperProxy',
+              data: { name: mockedName },
+            });
+          }
+        }
+      },
+    };
 
     // Read implementation file, treating a missing or unreadable file the same way (skip)
     const implementationFileResult = ((): FileContents | null => {
@@ -96,8 +183,9 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     })();
 
     if (implementationFileResult === null) {
-      // Implementation file doesn't exist or cannot be read, skip validation
-      return {};
+      // Implementation file doesn't exist or cannot be read, skip the child-proxy validation; the
+      // wrapper-mock ban reads only the proxy file itself.
+      return wrapperMockListeners;
     }
 
     // THIS workspace's own npm scope, read off the real workspace root's own package.json `name` —
@@ -128,6 +216,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     return {
       // Track proxy file imports
       ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        wrapperMockListeners.ImportDeclaration(node);
         const source = node.source.value;
         if (typeof source !== 'string') return;
 
@@ -158,6 +247,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
       // `() => ({ ...childProxy() })`) — but NOT nested inside a further function the returned
       // object exposes as a method, which is deferred rather than eager.
       CallExpression: (node: TSESTree.CallExpression): void => {
+        wrapperMockListeners.CallExpression(node);
         if (currentProxyFunctionNode === null) return;
 
         const { callee } = node;
@@ -205,8 +295,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
           const expectedProxyNameString = `${importedName}Proxy`;
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
 
-          // For scoped package imports (@scope/pkg/folderType), proxy is exported from
-          // @scope/pkg/testing; a gateway import's proxy sits beside its own wrapper (below).
+          // A scoped or gateway import's proxy sits beside the file its name comes from (below).
           // For relative imports, proxy is at path.proxy
           const isScopedPackageImport =
             importPath.startsWith('@') ||
@@ -255,22 +344,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
                       subpath: gatewaySubpathSegment,
                     });
 
-              const wrapperPaths = ((): Map<string, ModulePath> => {
-                if (barrelPath === null) {
-                  return new Map<string, ModulePath>();
-                }
-                const barrelContent = ((): FileContents | null => {
-                  try {
-                    const rawContents = readFileSyncIfExists(barrelPath);
-                    return rawContents === null ? null : fileContentsContract.parse(rawContents);
-                  } catch {
-                    return null;
-                  }
-                })();
-                return barrelContent === null
-                  ? new Map<string, ModulePath>()
-                  : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
-              })();
+              const wrapperPaths = barrelWrapperPathsReadBroker({ barrelPath });
 
               const relativeWrapperPath = wrapperPaths.get(importedName);
               if (relativeWrapperPath === undefined) {
@@ -298,22 +372,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
                 relativePath: 'index.ts',
               });
 
-              const wrapperPaths = ((): Map<string, ModulePath> => {
-                if (barrelPath === null) {
-                  return new Map<string, ModulePath>();
-                }
-                const barrelContent = ((): FileContents | null => {
-                  try {
-                    const rawContents = readFileSyncIfExists(barrelPath);
-                    return rawContents === null ? null : fileContentsContract.parse(rawContents);
-                  } catch {
-                    return null;
-                  }
-                })();
-                return barrelContent === null
-                  ? new Map<string, ModulePath>()
-                  : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
-              })();
+              const wrapperPaths = barrelWrapperPathsReadBroker({ barrelPath });
 
               const relativeWrapperPath = wrapperPaths.get(importedName);
               if (relativeWrapperPath === undefined) {
@@ -339,13 +398,26 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
                 return null;
               }
 
-              return `${importPath}/${relativeWrapperPath}.proxy` as ModulePath;
+              return workspaceFolderBarrelProxyPathTransformer({ importPath, relativeWrapperPath });
             }
             if (isScopedPackageImport) {
-              const lastSlashIndex = importPath.lastIndexOf('/');
-              const basePath =
-                lastSlashIndex > 0 ? importPath.substring(0, lastSlashIndex) : importPath;
-              return `${basePath}/testing` as ModulePath;
+              // `@scope/pkg/<folderType>`: the package's own folder barrel maps the name to the
+              // file it re-exports, and the caller imports that file's proxy directly. A barrel
+              // that cannot be read leaves the by-name check in force against the barrel's path.
+              const [, packageName, folderType] = importPathSegments;
+              const relativeWrapperPath =
+                packageName === undefined || folderType === undefined
+                  ? undefined
+                  : barrelWrapperPathsReadBroker({
+                      barrelPath: packageRootSourcePathTransformer({
+                        callerFilePath: filePathContract.parse(filename),
+                        packageName,
+                        relativePath: `${folderType}/${folderType}.ts`,
+                      }),
+                    }).get(importedName);
+              return relativeWrapperPath === undefined
+                ? importPath
+                : workspaceFolderBarrelProxyPathTransformer({ importPath, relativeWrapperPath });
             }
             // Check for any TypeScript extension (.ts, .tsx) and replace with .proxy
             const tsExtension = fileExtensionsStatics.source.typescript.find((ext) =>
