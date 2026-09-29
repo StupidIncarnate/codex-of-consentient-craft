@@ -18,11 +18,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
-import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
-import { RpcIdStub } from '../../contracts/rpc-id/rpc-id.stub';
-import { RpcMethodStub } from '../../contracts/rpc-method/rpc-method.stub';
-import { ToolListResultStub } from '../../contracts/tool-list-result/tool-list-result.stub';
-import { ToolCallResultStub } from '../../contracts/tool-call-result/tool-call-result.stub';
+import { JsonRpcRequestStub } from '#gateway/npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub';
 import { DiscoverTreeResultStub } from '../../contracts/discover-tree-result/discover-tree-result.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
@@ -65,7 +61,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolListResultStub(response.result as never);
+      const result = mcp.readToolListResult({ response });
 
       expect(result.tools.length).toBeGreaterThanOrEqual(5);
 
@@ -78,8 +74,8 @@ describe('McpServerFlow', () => {
 
     it('VALID: All tool inputSchemas have type: "object" at root (required by Claude Code)', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 100 }),
-        method: RpcMethodStub({ value: 'tools/list' }),
+        id: 100,
+        method: 'tools/list',
         params: {},
       });
 
@@ -87,11 +83,11 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolListResultStub(response.result as never);
+      const result = mcp.readToolListResult({ response });
 
-      const toolsWithBadSchema = result.tools.filter((tool) => tool.inputSchema.type !== 'object');
+      const schemaTypes = new Set(result.tools.map((tool) => tool.inputSchema.type));
 
-      expect(toolsWithBadSchema).toStrictEqual([]);
+      expect(schemaTypes).toStrictEqual(new Set(['object']));
     });
 
     it('VALID: {tools/list} => no tool name starts with "siegelense-"', async () => {
@@ -101,7 +97,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolListResultStub(response.result as never);
+      const result = mcp.readToolListResult({ response });
 
       const siegelenseToolNames = result.tools
         .map((tool) => tool.name)
@@ -114,8 +110,8 @@ describe('McpServerFlow', () => {
   describe('tools/call with get-architecture', () => {
     it('VALID: Returns architecture overview markdown', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 3 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 3,
+        method: 'tools/call',
         params: {
           name: 'get-architecture',
           arguments: {},
@@ -126,7 +122,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^# Architecture Overview$/mu);
@@ -136,8 +132,8 @@ describe('McpServerFlow', () => {
   describe('tools/call with get-testing-patterns', () => {
     it('VALID: Returns testing patterns markdown', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 13 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 13,
+        method: 'tools/call',
         params: {
           name: 'get-testing-patterns',
           arguments: {},
@@ -148,7 +144,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^# Testing Patterns & Philosophy$/mu);
@@ -158,8 +154,8 @@ describe('McpServerFlow', () => {
   describe('tools/call with discover', () => {
     it('VALID: {glob: src/brokers/**} => returns tree format with zero count (temp dir has no source)', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 4 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 4,
+        method: 'tools/call',
         params: {
           name: 'discover',
           arguments: {
@@ -172,10 +168,10 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
       const [firstContent] = result.content;
 
-      const parsedData: unknown = JSON.parse(String(firstContent!.text));
+      const parsedData: unknown = JSON.parse(firstContent!.text);
       const data = DiscoverTreeResultStub(parsedData as never);
 
       const { results, count } = data;
@@ -186,8 +182,8 @@ describe('McpServerFlow', () => {
 
     it('VALID: {glob: **/cwd-resolve-broker.*} => groups brokers from @dungeonmaster/shared', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 5 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 5,
+        method: 'tools/call',
         params: {
           name: 'discover',
           arguments: {
@@ -200,10 +196,10 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
       const [firstContent] = result.content;
 
-      const parsedData: unknown = JSON.parse(String(firstContent!.text));
+      const parsedData: unknown = JSON.parse(firstContent!.text);
       const data = DiscoverTreeResultStub(parsedData as never);
 
       expect(data.results).toMatch(/^@dungeonmaster\/\n {2}shared\/\n {4}brokers\/\n[\s\S]+$/u);
@@ -211,8 +207,8 @@ describe('McpServerFlow', () => {
 
     it('VALID: {glob: **/cwd-resolve-broker.*} => shared package includes cwd-resolve-broker', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 6 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 6,
+        method: 'tools/call',
         params: {
           name: 'discover',
           arguments: {
@@ -225,10 +221,10 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
       const [firstContent] = result.content;
 
-      const parsedData: unknown = JSON.parse(String(firstContent!.text));
+      const parsedData: unknown = JSON.parse(firstContent!.text);
       const data = DiscoverTreeResultStub(parsedData as never);
 
       expect(data.results).toMatch(/^ {10}cwd-resolve-broker \(broker\) - .+$/mu);
@@ -238,8 +234,8 @@ describe('McpServerFlow', () => {
   describe('tools/call with params._meta present', () => {
     it('VALID: {name: get-architecture, params._meta: {claudecode/toolUseId}} => forwards meta to the handler without error', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 8001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 8001,
+        method: 'tools/call',
         params: {
           name: 'get-architecture',
           arguments: {},
@@ -251,7 +247,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^# Architecture Overview$/mu);
@@ -261,8 +257,8 @@ describe('McpServerFlow', () => {
   describe('invalid tool calls', () => {
     it('ERROR: {name: unknown-tool} => returns error', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 999 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 999,
+        method: 'tools/call',
         params: {
           name: 'unknown-tool',
           arguments: {},
@@ -297,8 +293,8 @@ describe('McpServerFlow', () => {
       });
 
       const getQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 1004 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 1004,
+        method: 'tools/call',
         params: {
           name: 'get-quest',
           arguments: {
@@ -310,9 +306,9 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      const getResult = ToolCallResultStub(getResponse.result as never);
+      const getResult = mcp.readToolCallResult({ response: getResponse });
       const [getContent] = getResult.content;
-      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getParsedData: unknown = JSON.parse(getContent!.text);
       const getResultData = GetQuestResultStub(getParsedData as never);
 
       expect(getResponse.error).toBe(undefined);
@@ -343,8 +339,8 @@ describe('McpServerFlow', () => {
       });
 
       const modifyQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 2002 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 2002,
+        method: 'tools/call',
         params: {
           name: 'modify-quest',
           arguments: {
@@ -362,14 +358,14 @@ describe('McpServerFlow', () => {
       });
 
       const modifyResponse = await client.sendRequest(modifyQuestRequest);
-      const modifyResult = ToolCallResultStub(modifyResponse.result as never);
+      const modifyResult = mcp.readToolCallResult({ response: modifyResponse });
       const [modifyContent] = modifyResult.content;
-      const modifyParsedData: unknown = JSON.parse(String(modifyContent!.text));
+      const modifyParsedData: unknown = JSON.parse(modifyContent!.text);
       const modifyResultData = ModifyQuestResultStub(modifyParsedData as never);
 
       const getQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 2003 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 2003,
+        method: 'tools/call',
         params: {
           name: 'get-quest',
           arguments: {
@@ -381,9 +377,9 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      const getResult = ToolCallResultStub(getResponse.result as never);
+      const getResult = mcp.readToolCallResult({ response: getResponse });
       const [getContent] = getResult.content;
-      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getParsedData: unknown = JSON.parse(getContent!.text);
       const getResultData = GetQuestResultStub(getParsedData as never);
 
       expect(modifyResponse.error).toBe(undefined);
@@ -405,8 +401,8 @@ describe('McpServerFlow', () => {
 
     it('ERROR: get-quest with non-existent questId => returns error', async () => {
       const getQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 3001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 3001,
+        method: 'tools/call',
         params: {
           name: 'get-quest',
           arguments: {
@@ -417,9 +413,9 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      const getResult = ToolCallResultStub(getResponse.result as never);
+      const getResult = mcp.readToolCallResult({ response: getResponse });
       const [getContent] = getResult.content;
-      const getParsedData: unknown = JSON.parse(String(getContent!.text));
+      const getParsedData: unknown = JSON.parse(getContent!.text);
       const getResultData = GetQuestResultStub(getParsedData as never);
 
       expect(getResponse.error).toBe(undefined);
@@ -434,8 +430,8 @@ describe('McpServerFlow', () => {
 
     it('ERROR: get-quest with non-existent questId => sets isError true on tool result', async () => {
       const getQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 3002 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 3002,
+        method: 'tools/call',
         params: {
           name: 'get-quest',
           arguments: {
@@ -446,7 +442,7 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      const getResult = ToolCallResultStub(getResponse.result as never);
+      const getResult = mcp.readToolCallResult({ response: getResponse });
 
       expect(getResponse.error).toBe(undefined);
       expect(getResult.isError).toBe(true);
@@ -473,8 +469,8 @@ describe('McpServerFlow', () => {
       });
 
       const getQuestRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 3003 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 3003,
+        method: 'tools/call',
         params: {
           name: 'get-quest',
           arguments: {
@@ -485,7 +481,7 @@ describe('McpServerFlow', () => {
 
       const getResponse = await client.sendRequest(getQuestRequest);
 
-      const getResult = ToolCallResultStub(getResponse.result as never);
+      const getResult = mcp.readToolCallResult({ response: getResponse });
 
       expect(getResponse.error).toBe(undefined);
       expect(getResult.isError).toBe(undefined);
@@ -564,8 +560,8 @@ describe('McpServerFlow', () => {
         Reflect.deleteProperty(quest, 'comments');
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6001 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6001,
+          method: 'tools/call',
           params: {
             name: 'get-quest',
             arguments: { questId, format: 'json' },
@@ -573,13 +569,13 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
         // Bare JSON.parse, deliberately NOT re-parsed through getQuestResultContract: that
         // contract's `comments` field defaults to `[]` when absent, which would silently
         // re-inject a comments key into both sides of the comparison and hide the very
         // omission this test exists to prove.
-        const actual: unknown = JSON.parse(String(content!.text));
+        const actual: unknown = JSON.parse(content!.text);
 
         expect(response.error).toBe(undefined);
         expect(actual).toStrictEqual({ success: true, quest });
@@ -626,8 +622,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6002 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6002,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: { questId, comments: [sneakyComment] },
@@ -635,9 +631,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const actual: unknown = JSON.parse(String(content!.text));
+        const actual: unknown = JSON.parse(content!.text);
         const persisted = QuestStub(
           mcp.readQuestFile({
             dungeonmasterHome: client.dungeonmasterHome,
@@ -687,8 +683,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6008 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6008,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: { questId, comments: 'not-an-array' },
@@ -696,9 +692,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const actual: unknown = JSON.parse(String(content!.text));
+        const actual: unknown = JSON.parse(content!.text);
         const persisted = QuestStub(
           mcp.readQuestFile({
             dungeonmasterHome: client.dungeonmasterHome,
@@ -753,8 +749,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6003 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6003,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: { questId, title: 'New Title' },
@@ -762,9 +758,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const actual: unknown = JSON.parse(String(content!.text));
+        const actual: unknown = JSON.parse(content!.text);
         const persisted = QuestStub(
           mcp.readQuestFile({
             dungeonmasterHome: client.dungeonmasterHome,
@@ -824,8 +820,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6004 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6004,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -886,8 +882,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6005 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6005,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -957,8 +953,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6006 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6006,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -1015,8 +1011,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 6007 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 6007,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -1084,8 +1080,8 @@ describe('McpServerFlow', () => {
           });
 
           const request = JsonRpcRequestStub({
-            id: RpcIdStub({ value: 7001 }),
-            method: RpcMethodStub({ value: 'tools/call' }),
+            id: 7001,
+            method: 'tools/call',
             params: {
               name: 'get-quest',
               arguments: { questId, format: 'json', stage },
@@ -1093,9 +1089,9 @@ describe('McpServerFlow', () => {
           });
 
           const response = await client.sendRequest(request);
-          const result = ToolCallResultStub(response.result as never);
+          const result = mcp.readToolCallResult({ response });
           const [content] = result.content;
-          const rawText = String(content!.text);
+          const rawText = content!.text;
 
           expect(response.error).toBe(undefined);
           expect(rawText.indexOf('"comments"')).toBe(-1);
@@ -1130,8 +1126,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7002 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7002,
+          method: 'tools/call',
           params: {
             name: 'get-quest',
             arguments: { questId, format: 'json' },
@@ -1139,9 +1135,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const rawText = String(content!.text);
+        const rawText = content!.text;
 
         expect(response.error).toBe(undefined);
         expect(rawText.indexOf('"comments"')).toBe(-1);
@@ -1177,8 +1173,8 @@ describe('McpServerFlow', () => {
           });
 
           const request = JsonRpcRequestStub({
-            id: RpcIdStub({ value: 7101 }),
-            method: RpcMethodStub({ value: 'tools/call' }),
+            id: 7101,
+            method: 'tools/call',
             params: {
               name: 'get-quest',
               arguments: { questId, format: 'text', stage },
@@ -1186,9 +1182,9 @@ describe('McpServerFlow', () => {
           });
 
           const response = await client.sendRequest(request);
-          const result = ToolCallResultStub(response.result as never);
+          const result = mcp.readToolCallResult({ response });
           const [content] = result.content;
-          const rawText = String(content!.text);
+          const rawText = content!.text;
 
           expect(response.error).toBe(undefined);
           expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
@@ -1222,8 +1218,8 @@ describe('McpServerFlow', () => {
         });
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7102 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7102,
+          method: 'tools/call',
           params: {
             name: 'get-quest',
             arguments: { questId, format: 'text' },
@@ -1231,9 +1227,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const rawText = String(content!.text);
+        const rawText = content!.text;
 
         expect(response.error).toBe(undefined);
         expect(rawText.indexOf(HOSTILE_COMMENT_TEXT)).toBe(-1);
@@ -1300,8 +1296,8 @@ describe('McpServerFlow', () => {
         Reflect.deleteProperty(quest, 'comments');
 
         const request = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7201 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7201,
+          method: 'tools/call',
           params: {
             name: 'get-quest',
             arguments: { questId, format: 'json' },
@@ -1309,9 +1305,9 @@ describe('McpServerFlow', () => {
         });
 
         const response = await client.sendRequest(request);
-        const result = ToolCallResultStub(response.result as never);
+        const result = mcp.readToolCallResult({ response });
         const [content] = result.content;
-        const actual: unknown = JSON.parse(String(content!.text));
+        const actual: unknown = JSON.parse(content!.text);
 
         expect(response.error).toBe(undefined);
         // Exact match against a quest carrying REAL content in every other section (not the
@@ -1359,8 +1355,8 @@ describe('McpServerFlow', () => {
         });
 
         const deleteRequest = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7301 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7301,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -1370,8 +1366,8 @@ describe('McpServerFlow', () => {
           },
         });
         const titleRequest = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7302 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7302,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: { questId, title: 'Retitled Under Race' },
@@ -1436,8 +1432,8 @@ describe('McpServerFlow', () => {
         });
 
         const firstRequest = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7401 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7401,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -1449,8 +1445,8 @@ describe('McpServerFlow', () => {
         const firstResponse = await client.sendRequest(firstRequest);
 
         const secondRequest = JsonRpcRequestStub({
-          id: RpcIdStub({ value: 7402 }),
-          method: RpcMethodStub({ value: 'tools/call' }),
+          id: 7402,
+          method: 'tools/call',
           params: {
             name: 'modify-quest',
             arguments: {
@@ -1482,8 +1478,8 @@ describe('McpServerFlow', () => {
   describe('tools/call with get-folder-detail', () => {
     it('VALID: {folderType: brokers} => returns brokers folder documentation', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 4001 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 4001,
+        method: 'tools/call',
         params: {
           name: 'get-folder-detail',
           arguments: {
@@ -1496,7 +1492,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.content[0]?.type).toBe('text');
       expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type$/mu);
@@ -1511,8 +1507,8 @@ describe('McpServerFlow', () => {
 
     it('VALID: {strict-input tool, arguments carry dungeonmasterCaller} => the key is lifted off before the input contract parses', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 4101 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 4101,
+        method: 'tools/call',
         params: {
           name: 'get-folder-detail',
           arguments: {
@@ -1526,7 +1522,7 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type$/mu);
     });
@@ -1534,8 +1530,8 @@ describe('McpServerFlow', () => {
     it('VALID: {get-project-inventory, caller cwd inside the repo} => resolves the project root from the caller, not the server', async () => {
       const repoRoot = cwd().replace(/\/packages\/mcp$/u, '');
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 4102 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 4102,
+        method: 'tools/call',
         params: {
           name: 'get-project-inventory',
           arguments: {
@@ -1549,8 +1545,8 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
-      const [bannerLine] = String(result.content[0]?.text).split('\n');
+      const result = mcp.readToolCallResult({ response });
+      const [bannerLine] = result.content[0]!.text.split('\n');
 
       expect(bannerLine).toBe(
         `[project-root: ${repoRoot} — resolved from the caller's own working directory]`,
@@ -1622,8 +1618,8 @@ describe('McpServerFlow', () => {
       });
 
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 7601 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 7601,
+        method: 'tools/call',
         params: {
           name: 'get-quest-summary',
           arguments: { questId },
@@ -1631,8 +1627,8 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-      const result = ToolCallResultStub(response.result as never);
-      const lines = String(result.content[0]?.text).split('\n');
+      const result = mcp.readToolCallResult({ response });
+      const lines = result.content[0]!.text.split('\n');
 
       expect({
         error: response.error,
@@ -1656,8 +1652,8 @@ describe('McpServerFlow', () => {
 
     it('INVALID: {unknown questId} => returns the JSON error shape with isError', async () => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 7602 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 7602,
+        method: 'tools/call',
         params: {
           name: 'get-quest-summary',
           arguments: { questId: 'mcp-get-quest-summary-does-not-exist' },
@@ -1665,10 +1661,10 @@ describe('McpServerFlow', () => {
       });
 
       const response = await client.sendRequest(request);
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
 
       expect(result.isError).toBe(true);
-      expect(String(result.content[0]?.text)).toMatch(
+      expect(result.content[0]?.text).toMatch(
         /^\{\n {2}"success": false,\n {2}"error": ".+"\n\}$/u,
       );
     });
@@ -1711,8 +1707,8 @@ describe('McpServerFlow', () => {
 
     it.each(sizeCappedTools)('VALID: tool %s => response content under 50KB', async (toolName) => {
       const request = JsonRpcRequestStub({
-        id: RpcIdStub({ value: 99999 }),
-        method: RpcMethodStub({ value: 'tools/call' }),
+        id: 99999,
+        method: 'tools/call',
         params: {
           name: toolName,
           arguments: {},
@@ -1723,9 +1719,9 @@ describe('McpServerFlow', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolCallResultStub(response.result as never);
+      const result = mcp.readToolCallResult({ response });
       const [firstContent] = result.content;
-      const text = String(firstContent!.text);
+      const { text } = firstContent!;
 
       expect(Buffer.byteLength(text, 'utf8')).toBeLessThanOrEqual(50_000);
     });

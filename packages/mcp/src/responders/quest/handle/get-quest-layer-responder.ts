@@ -9,7 +9,7 @@
  *
  * USAGE:
  * await GetQuestLayerResponder({ args: { questId: 'add-auth', flowId: 'login', packageName: 'web' } });
- * // Returns ToolResponse carrying that flow rendered whole for `web`
+ * // Returns CallToolResult carrying that flow rendered whole for `web`
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -17,7 +17,7 @@ import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformer
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
 
 const JSON_INDENT_SPACES = 2;
@@ -26,7 +26,7 @@ export const GetQuestLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { questId, stage, flowId, packageName, format } = getQuestInputContract.parse(args);
 
   try {

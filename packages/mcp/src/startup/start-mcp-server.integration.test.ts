@@ -1,5 +1,3 @@
-import { ToolListResultStub } from '../contracts/tool-list-result/tool-list-result.stub';
-
 import { mcpServerHarness } from '../../test/harnesses/mcp-server/mcp-server.harness';
 
 describe('StartMcpServer', () => {
@@ -30,7 +28,7 @@ describe('StartMcpServer', () => {
 
       expect(response.error).toBe(undefined);
 
-      const result = ToolListResultStub(response.result as never);
+      const result = mcp.readToolListResult({ response });
 
       expect(result.tools.length).toBeGreaterThanOrEqual(14);
     });

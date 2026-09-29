@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await InteractionHandleResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
- * // Returns ToolResponse with interaction result
+ * // Returns CallToolResult with interaction result
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -11,7 +11,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-user-question-broker';
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
@@ -23,7 +23,7 @@ export const InteractionHandleResponder = async ({
 }: {
   tool: ToolName;
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   if (tool === 'signal-back') {
     const result = signalBackBroker({
       input: args,

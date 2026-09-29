@@ -1,3 +1,4 @@
+import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
@@ -1284,7 +1285,7 @@ describe('QuestHandleResponder', () => {
         tool: ToolNameStub({ value: 'get-quest-summary' }),
         args: { questId: 'test-quest-id' },
       });
-      const lines = String(result.content[0]?.text).split('\n');
+      const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
 
       expect({
         isError: result.isError,

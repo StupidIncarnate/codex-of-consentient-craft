@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const response = await QuestSummaryLayerResponder({ args });
- * // Returns ToolResponse carrying the rendered summary, or the JSON error shape
+ * // Returns CallToolResult carrying the rendered summary, or the JSON error shape
  *
  * THE ORCHESTRATOR HANDS BACK A STRUCTURE AND THIS RENDERS IT. `QuestGetSummaryResponder` returns
  * `QuestSummary` rather than prose because the web renders the same fields for a person; an agent
@@ -22,7 +22,7 @@ import { questSummaryToTextTransformer } from '@dungeonmaster/shared/transformer
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestSummaryInputContract } from '../../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -30,7 +30,7 @@ export const QuestSummaryLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { questId } = getQuestSummaryInputContract.parse(args);
 
   try {

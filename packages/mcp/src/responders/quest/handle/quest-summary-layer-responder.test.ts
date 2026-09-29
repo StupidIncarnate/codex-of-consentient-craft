@@ -1,3 +1,4 @@
+import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
 import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
 import { QuestSummaryNoteGroupStub } from '@dungeonmaster/shared/contracts/quest-summary-note-group/quest-summary-note-group.stub';
@@ -41,7 +42,7 @@ describe('QuestSummaryLayerResponder', () => {
       });
 
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
-      const lines = String(result.content[0]?.text).split('\n');
+      const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
 
       expect({
         isError: result.isError,
@@ -91,7 +92,7 @@ describe('QuestSummaryLayerResponder', () => {
       });
 
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
-      const lines = String(result.content[0]?.text).split('\n');
+      const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
 
       expect({
         addedBy: lines.find((line) => line.startsWith('- added by')),

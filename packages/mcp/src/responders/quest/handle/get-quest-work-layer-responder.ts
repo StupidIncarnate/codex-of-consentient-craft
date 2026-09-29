@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const response = await GetQuestWorkLayerResponder({ args });
- * // Returns ToolResponse carrying the view as JSON, or the plan as RAW markdown
+ * // Returns CallToolResult carrying the view as JSON, or the plan as RAW markdown
  *
  * THE PLAN SHAPE IS RETURNED AS RAW TEXT, never JSON-wrapped. JSON-stringifying already-rendered
  * text escapes every newline and roughly doubles a payload whose whole value is being cheap enough
@@ -20,7 +20,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestWorkInputContract } from '../../../contracts/get-quest-work-input/get-quest-work-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -28,7 +28,7 @@ export const GetQuestWorkLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { questId, workItemId, operationItemId } = getQuestWorkInputContract.parse(args);
 
   try {

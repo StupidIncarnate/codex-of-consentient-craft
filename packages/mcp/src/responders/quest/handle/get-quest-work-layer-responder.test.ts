@@ -1,3 +1,4 @@
+import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
@@ -36,8 +37,8 @@ describe('GetQuestWorkLayerResponder', () => {
         args: { questId: QUEST_ID, workItemId: WORK_ITEM_ID },
       });
 
-      const line = String(response.content[0]?.text)
-        .split('\n')
+      const line = TextContentSchema.parse(response.content[0])
+        .text.split('\n')
         .find((entry) => entry.trim().startsWith('"piece"'));
 
       expect(line).toBe('  "piece": null,');

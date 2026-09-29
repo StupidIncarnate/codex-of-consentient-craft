@@ -13,7 +13,7 @@ import { toJSONSchema } from '#gateway/npm/zod';
 import { getAgentPromptInputContract } from '../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import { signalBackInputContract } from '../../contracts/signal-back-input/signal-back-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
-import type { ToolResponse } from '../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { InteractionHandleResponder } from '../../responders/interaction/handle/interaction-handle-responder';
 
 // `reused: 'inline'` is zod v4's native replacement for the deprecated `zod-to-json-schema`
@@ -30,7 +30,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
     description:
       'Signals the CLI with step completion status, progress, or blocking conditions' as never,
     inputSchema: signalBackSchema as never,
-    handler: async ({ args, meta }): Promise<ToolResponse> =>
+    handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
         tool: 'signal-back' as never,
         args,
@@ -42,7 +42,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
     description:
       "Ask the user clarifying questions with structured options. Fire-and-forget: returns immediately. The questions are surfaced to the user's browser and their answers arrive as the next user message in the session. Use when running headless (no interactive terminal)." as never,
     inputSchema: askUserQuestionSchema as never,
-    handler: async ({ args, meta }): Promise<ToolResponse> =>
+    handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
         tool: 'ask-user-question' as never,
         args,
@@ -54,7 +54,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
     description:
       'Returns the prompt and configuration for a named agent. Call this first when spawned as an agent to receive your instructions.' as never,
     inputSchema: getAgentPromptSchema as never,
-    handler: async ({ args, meta }): Promise<ToolResponse> =>
+    handler: async ({ args, meta }): Promise<CallToolResult> =>
       InteractionHandleResponder({
         tool: 'get-agent-prompt' as never,
         args,

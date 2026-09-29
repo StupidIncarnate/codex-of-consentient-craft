@@ -18,30 +18,49 @@ import { setTimeout } from '#gateway/node/setTimeout';
 import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
-import { JsonRpcRequestStub } from '../../../src/contracts/json-rpc-request/json-rpc-request.stub';
-import { JsonRpcResponseStub } from '../../../src/contracts/json-rpc-response/json-rpc-response.stub';
-import { RpcIdStub } from '../../../src/contracts/rpc-id/rpc-id.stub';
-import { RpcMethodStub } from '../../../src/contracts/rpc-method/rpc-method.stub';
+import {
+  CallToolResultSchema,
+  JSONRPCMessageSchema,
+  ListToolsResultSchema,
+} from '#gateway/npm/modelcontextprotocol__sdk__types';
+import type {
+  JSONRPCErrorResponse,
+  JSONRPCRequest,
+  JSONRPCResultResponse,
+  TextContent,
+} from '#gateway/npm/modelcontextprotocol__sdk__types';
+import { JsonRpcRequestStub } from '#gateway/npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub';
 import { BufferStateStub } from '../../../src/contracts/buffer-state/buffer-state.stub';
 import { mcpServerStatics } from '../../../src/statics/mcp-server/mcp-server-statics';
 
-type JsonRpcResponse = ReturnType<typeof JsonRpcResponseStub>;
-type JsonRpcRequest = ReturnType<typeof JsonRpcRequestStub>;
-type RpcId = ReturnType<typeof RpcIdStub>;
+// A reply is a JSONRPCResultResponse (`result`) or a JSONRPCErrorResponse (`error`); the SDK types
+// the two apart, while a test reads `response.result` and `response.error` off whichever arrived.
+type JsonRpcReply = Pick<JSONRPCResultResponse, 'id'> &
+  Partial<Pick<JSONRPCResultResponse, 'result'>> &
+  Partial<Pick<JSONRPCErrorResponse, 'error'>>;
+type JsonRpcRequest = JSONRPCRequest;
+type RpcId = JSONRPCRequest['id'];
 
 const JSON_INDENT_SPACES = 2;
 
 interface McpClient {
   process: ReturnType<typeof spawn>;
   dungeonmasterHome: GuildPath;
-  sendRequest: (request: JsonRpcRequest) => Promise<JsonRpcResponse>;
+  sendRequest: (request: JsonRpcRequest) => Promise<JsonRpcReply>;
   close: () => Promise<void>;
 }
 
 export const mcpServerHarness = (): {
   createClient: (params?: { baseName?: ReturnType<typeof BaseNameStub> }) => Promise<McpClient>;
-  buildInitRequest: (params?: { id?: ReturnType<typeof RpcIdStub> }) => JsonRpcRequest;
-  buildToolListRequest: (params?: { id?: ReturnType<typeof RpcIdStub> }) => JsonRpcRequest;
+  buildInitRequest: (params?: { id?: RpcId }) => JsonRpcRequest;
+  buildToolListRequest: (params?: { id?: RpcId }) => JsonRpcRequest;
+  readToolCallResult: (params: { response: JsonRpcReply }) => {
+    content: TextContent[];
+    isError?: boolean;
+  };
+  readToolListResult: (params: {
+    response: JsonRpcReply;
+  }) => ReturnType<typeof ListToolsResultSchema.parse>;
   seedQuest: (params: {
     dungeonmasterHome: GuildPath;
     guildId: string;
@@ -54,12 +73,10 @@ export const mcpServerHarness = (): {
     questFolder: string;
   }) => unknown;
 } => {
-  const buildInitRequest = ({
-    id = RpcIdStub({ value: 1 }),
-  }: { id?: ReturnType<typeof RpcIdStub> } = {}): JsonRpcRequest =>
+  const buildInitRequest = ({ id = 1 }: { id?: RpcId } = {}): JsonRpcRequest =>
     JsonRpcRequestStub({
       id,
-      method: RpcMethodStub({ value: 'initialize' }),
+      method: 'initialize',
       params: {
         protocolVersion: '2024-11-05',
         capabilities: {},
@@ -67,12 +84,10 @@ export const mcpServerHarness = (): {
       },
     });
 
-  const buildToolListRequest = ({
-    id = RpcIdStub({ value: 2 }),
-  }: { id?: ReturnType<typeof RpcIdStub> } = {}): JsonRpcRequest =>
+  const buildToolListRequest = ({ id = 2 }: { id?: RpcId } = {}): JsonRpcRequest =>
     JsonRpcRequestStub({
       id,
-      method: RpcMethodStub({ value: 'tools/list' }),
+      method: 'tools/list',
       params: {},
     });
 
@@ -94,7 +109,7 @@ export const mcpServerHarness = (): {
       env: { ...envSnapshot(), DUNGEONMASTER_HOME: testbed.guildPath },
     });
 
-    const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
+    const pendingResponses = new Map<RpcId, (response: JsonRpcReply) => void>();
     const pendingTimeouts = new Map<RpcId, NodeJS.Timeout>();
     const bufferState = BufferStateStub();
 
@@ -113,7 +128,14 @@ export const mcpServerHarness = (): {
 
         try {
           const parsed: unknown = JSON.parse(trimmedLine);
-          const response = JsonRpcResponseStub(parsed as never);
+          const message = JSONRPCMessageSchema.parse(parsed);
+          if (!('result' in message) && !('error' in message)) {
+            continue;
+          }
+          if (message.id === undefined) {
+            continue;
+          }
+          const response: JsonRpcReply = { ...message, id: message.id };
           const resolver = pendingResponses.get(response.id);
           if (resolver) {
             const timeoutId = pendingTimeouts.get(response.id);
@@ -138,7 +160,7 @@ export const mcpServerHarness = (): {
     const sendRequestWithTimeout = async (
       request: JsonRpcRequest,
       timeoutMs: number,
-    ): Promise<JsonRpcResponse> =>
+    ): Promise<JsonRpcReply> =>
       new Promise((resolve, reject) => {
         pendingResponses.set(request.id, resolve);
 
@@ -168,8 +190,8 @@ export const mcpServerHarness = (): {
         throw new Error('MCP server did not become ready within readiness deadline');
       }
       const probeRequest = JsonRpcRequestStub({
-        id: RpcIdStub({ value: params.attemptId }),
-        method: RpcMethodStub({ value: 'initialize' }),
+        id: params.attemptId,
+        method: 'initialize',
         params: {
           protocolVersion: '2024-11-05',
           capabilities: {},
@@ -200,7 +222,7 @@ export const mcpServerHarness = (): {
     return {
       process: serverProcess,
       dungeonmasterHome: testbed.guildPath,
-      sendRequest: async (request: JsonRpcRequest): Promise<JsonRpcResponse> =>
+      sendRequest: async (request: JsonRpcRequest): Promise<JsonRpcReply> =>
         sendRequestWithTimeout(request, mcpServerStatics.timeouts.requestMs),
       close: async (): Promise<void> =>
         new Promise((resolve) => {
@@ -262,10 +284,33 @@ export const mcpServerHarness = (): {
     return JSON.parse(raw);
   };
 
+  // Parses the reply's `result` through the SDK's own schema, so a test reads `content` and `tools`
+  // off a value the SDK vouches for rather than off an unchecked cast. Tool results here are text.
+  const readToolCallResult = ({
+    response,
+  }: {
+    response: JsonRpcReply;
+  }): { content: TextContent[]; isError?: boolean } => {
+    const { content, isError } = CallToolResultSchema.parse(response.result);
+    return {
+      content: content.filter((item): item is TextContent => item.type === 'text'),
+      ...(isError === undefined ? {} : { isError }),
+    };
+  };
+
+  const readToolListResult = ({
+    response,
+  }: {
+    response: JsonRpcReply;
+  }): ReturnType<typeof ListToolsResultSchema.parse> =>
+    ListToolsResultSchema.parse(response.result);
+
   return {
     createClient,
     buildInitRequest,
     buildToolListRequest,
+    readToolCallResult,
+    readToolListResult,
     seedQuest,
     readQuestFile,
   };

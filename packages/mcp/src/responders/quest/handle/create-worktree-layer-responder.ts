@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const response = await CreateWorktreeLayerResponder({ args });
- * // Returns ToolResponse carrying { path }, or the JSON error shape
+ * // Returns CallToolResult carrying { path }, or the JSON error shape
  *
  * Split out of QuestHandleResponder as a layer, mirroring quest-summary-layer-responder: that
  * responder is one long tool switch sitting AT its complexity ceiling, and adding this branch
@@ -15,7 +15,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createWorktreeInputContract } from '../../../contracts/create-worktree-input/create-worktree-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -23,7 +23,7 @@ export const CreateWorktreeLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { name } = createWorktreeInputContract.parse(args);
 
   try {

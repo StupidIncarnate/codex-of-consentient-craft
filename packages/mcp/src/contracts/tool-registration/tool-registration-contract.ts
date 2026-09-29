@@ -8,11 +8,11 @@
  * // `claudecode/toolUseId` here on every tool call, enabling per-call caller identification
  * // even when N sub-agents share one MCP child. Most handlers can ignore it.
  */
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { z } from '#gateway/npm/zod';
 
 import { toolDescriptionContract } from '../tool-description/tool-description-contract';
 import { toolNameContract } from '../tool-name/tool-name-contract';
-import type { ToolResponse } from '../tool-response/tool-response-contract';
 
 export type ToolHandler = ({
   args,
@@ -20,7 +20,7 @@ export type ToolHandler = ({
 }: {
   args: Record<string, unknown>;
   meta?: Record<string, unknown>;
-}) => Promise<ToolResponse>;
+}) => Promise<CallToolResult>;
 
 export const toolRegistrationContract = z.object({
   name: toolNameContract,

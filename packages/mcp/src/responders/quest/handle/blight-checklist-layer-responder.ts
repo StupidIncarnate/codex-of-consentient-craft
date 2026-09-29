@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const response = await BlightChecklistLayerResponder({ args });
- * // Returns ToolResponse carrying the rendered checklist, or the JSON error shape
+ * // Returns CallToolResult carrying the rendered checklist, or the JSON error shape
  *
  * Split out of QuestHandleResponder as a layer, mirroring its other colocated layer responders:
  * that responder is one long tool switch and adding this branch inline pushed it past the
@@ -15,7 +15,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getBlightChecklistInputContract } from '../../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -23,7 +23,7 @@ export const BlightChecklistLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { questId, scope } = getBlightChecklistInputContract.parse(args);
 
   try {

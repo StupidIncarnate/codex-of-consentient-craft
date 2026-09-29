@@ -1,3 +1,4 @@
+import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { AgentPromptResultStub } from '@dungeonmaster/shared/contracts/agent-prompt-result/agent-prompt-result.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -22,7 +23,7 @@ describe('InteractionHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -40,7 +41,7 @@ describe('InteractionHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
   });

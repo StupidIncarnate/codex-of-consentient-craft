@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
- * // Returns ToolResponse with quest data
+ * // Returns CallToolResult with quest data
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -16,7 +16,7 @@ import { GetQuestLayerResponder } from './get-quest-layer-responder';
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -36,7 +36,7 @@ const JSON_INDENT_SPACES = 2;
 // call.
 const layerResponders = new Map<
   ToolName,
-  (params: { args: Record<string, unknown> }) => Promise<ToolResponse>
+  (params: { args: Record<string, unknown> }) => Promise<CallToolResult>
 >([
   [toolNameContract.parse('get-quest'), GetQuestLayerResponder],
   [toolNameContract.parse('get-blight-checklist'), BlightChecklistLayerResponder],
@@ -57,7 +57,7 @@ export const QuestHandleResponder = async ({
   // `create-quest` reads it, via ResolveCallerSessionLayerResponder, to stamp its intake session
   // id; every other tool ignores it.
   meta?: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   if (tool === 'modify-quest') {
     const questId = questIdContract.parse(args.questId);
 

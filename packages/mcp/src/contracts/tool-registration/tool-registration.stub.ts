@@ -1,7 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import type { ToolResponse } from '../tool-response/tool-response-contract';
-import { ToolResponseStub } from '../tool-response/tool-response.stub';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
+import { CallToolResultStub } from '#gateway/npm/modelcontextprotocol__sdk__types/call-tool-result/call-tool-result.stub';
 
 import { toolRegistrationContract } from './tool-registration-contract';
 import type { ToolRegistration } from './tool-registration-contract';
@@ -10,7 +10,7 @@ export const ToolRegistrationStub = ({
   ...props
 }: StubArgument<ToolRegistration> = {}): ToolRegistration => {
   const { handler, ...dataProps } = props;
-  const validatedResponse = ToolResponseStub();
+  const validatedResponse = CallToolResultStub({ text: 'Stub response' });
 
   return {
     ...toolRegistrationContract.parse({
@@ -19,6 +19,6 @@ export const ToolRegistrationStub = ({
       inputSchema: { type: 'object', properties: {} },
       ...dataProps,
     }),
-    handler: handler ?? (async (): Promise<ToolResponse> => Promise.resolve(validatedResponse)),
+    handler: handler ?? (async (): Promise<CallToolResult> => Promise.resolve(validatedResponse)),
   };
 };

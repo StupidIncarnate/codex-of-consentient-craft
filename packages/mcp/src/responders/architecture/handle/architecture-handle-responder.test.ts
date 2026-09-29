@@ -1,3 +1,4 @@
+import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
@@ -26,7 +27,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -53,7 +54,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -80,7 +81,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -106,7 +107,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
   });
@@ -121,7 +122,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
   });
@@ -136,7 +137,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -153,7 +154,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -180,7 +181,7 @@ describe('ArchitectureHandleResponder', () => {
       });
 
       expect(result).toStrictEqual({
-        content: [{ type: 'text', text: result.content[0]!.text }],
+        content: [{ type: 'text', text: TextContentSchema.parse(result.content[0]).text }],
       });
     });
 
@@ -231,7 +232,7 @@ describe('ArchitectureHandleResponder', () => {
         args: { packageName: 'shared' },
       });
 
-      const text = String(result.content[0]!.text);
+      const { text } = TextContentSchema.parse(result.content[0]);
 
       expect(text.split('\n')[0]).toBe(
         "[project-root: /default/cwd — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
@@ -247,7 +248,7 @@ describe('ArchitectureHandleResponder', () => {
         args: { packageName: 'npm' },
       });
 
-      const lines = String(result.content[0]!.text).split('\n');
+      const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
 
       expect(lines.slice(2)).toStrictEqual([
         '## npm (0 files)',
@@ -273,7 +274,7 @@ describe('ArchitectureHandleResponder', () => {
         args: { packageName: '#gateway' },
       });
 
-      const lines = String(result.content[0]!.text).split('\n');
+      const lines = TextContentSchema.parse(result.content[0]).text.split('\n');
 
       expect(lines[2]).toBe(
         '## #gateway — outside packages, Node, the browser and installed programs, reached only through here',
@@ -293,7 +294,7 @@ describe('ArchitectureHandleResponder', () => {
         args: { packageName: 'shared' },
       });
 
-      const text = String(result.content[0]!.text);
+      const { text } = TextContentSchema.parse(result.content[0]);
 
       expect(text.split('\n')[0]).toBe(
         "[project-root: /default/cwd — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
@@ -317,7 +318,7 @@ describe('ArchitectureHandleResponder', () => {
         },
       });
 
-      const text = String(result.content[0]!.text);
+      const { text } = TextContentSchema.parse(result.content[0]);
 
       expect(text.split('\n')[0]).toBe(
         "[project-root: /repo/worktrees/siegelense — resolved from the caller's own working directory]",

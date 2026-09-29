@@ -1,10 +1,10 @@
-import { ToolResponseStub } from '../tool-response/tool-response.stub';
+import { CallToolResultStub } from '#gateway/npm/modelcontextprotocol__sdk__types/call-tool-result/call-tool-result.stub';
 
 import { toolRegistrationContract as _toolRegistrationContract } from './tool-registration-contract';
 import { ToolRegistrationStub } from './tool-registration.stub';
 
 type ToolRegistration = ReturnType<typeof ToolRegistrationStub>;
-type ToolResponse = ReturnType<typeof ToolResponseStub>;
+type CallToolResult = ReturnType<typeof CallToolResultStub>;
 
 describe('toolRegistrationContract', () => {
   describe('valid registrations', () => {
@@ -22,24 +22,21 @@ describe('toolRegistrationContract', () => {
       });
     });
 
-    it('VALID: handler returns ToolResponse => resolves with valid response', async () => {
+    it('VALID: handler returns CallToolResult => resolves with valid response', async () => {
       const registration = ToolRegistrationStub();
 
-      const response: ToolResponse = await registration.handler({
+      const response: CallToolResult = await registration.handler({
         args: {},
       });
 
       expect(response).toStrictEqual({
         content: [{ type: 'text', text: 'Stub response' }],
+        isError: false,
       });
     });
 
     it('VALID: custom handler => preserves handler reference', async () => {
-      const customHandler = jest.fn().mockResolvedValue(
-        ToolResponseStub({
-          content: [{ type: 'text', text: 'Custom' }],
-        }),
-      );
+      const customHandler = jest.fn().mockResolvedValue(CallToolResultStub({ text: 'Custom' }));
 
       const registration = ToolRegistrationStub({ handler: customHandler });
 

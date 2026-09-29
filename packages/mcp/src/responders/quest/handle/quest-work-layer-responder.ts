@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const response = await QuestWorkLayerResponder({ args });
- * // Returns ToolResponse carrying the applied result as JSON, or the JSON error shape
+ * // Returns CallToolResult carrying the applied result as JSON, or the JSON error shape
  *
  * Unlike its siblings, a refusal here is NOT caught into a `{ success: false }` JSON body upstream
  * of this layer — `QuestWorkResponder` (orchestrator) throws on every refusal, never returning one.
@@ -17,7 +17,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -25,7 +25,7 @@ export const QuestWorkLayerResponder = async ({
   args,
 }: {
   args: Record<string, unknown>;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   const { questId, workItemId, payload } = questWorkInputContract.parse(args);
 
   try {

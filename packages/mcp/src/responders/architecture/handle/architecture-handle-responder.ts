@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = await ArchitectureHandleResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {}, meta: undefined });
- * // Returns ToolResponse with architecture content
+ * // Returns CallToolResult with architecture content
  *
  * discover, get-project-map and get-project-inventory resolve their project root via
  * ResolveCallerRepoRootLayerResponder — the caller's cwd the dungeonmaster-pre-mcp-caller hook
@@ -44,7 +44,7 @@ import { mcpDiscoverBroker } from '../../../brokers/mcp/discover/mcp-discover-br
 import { callerRepoRootBannerTransformer } from '../../../transformers/caller-repo-root-banner/caller-repo-root-banner-transformer';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
-import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
+import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
@@ -70,7 +70,7 @@ export const ArchitectureHandleResponder = async ({
   // the caller can then forward its own possibly-absent `meta` as `{ meta }` directly, instead of
   // guarding the property into existence with a conditional spread at the call site.
   meta: Record<string, unknown> | undefined;
-}): Promise<ToolResponse> => {
+}): Promise<CallToolResult> => {
   if (tool === 'discover') {
     const { repoRoot, source, configFound } = await ResolveCallerRepoRootLayerResponder({ meta });
     const result = await mcpDiscoverBroker({
