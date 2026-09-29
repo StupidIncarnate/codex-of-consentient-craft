@@ -27,7 +27,7 @@ describe('moduleDependencyContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {kind: "unknown"} => throws validation error', () => {
       expect(() =>
-        moduleDependencyContract.parse(ModuleDependencyStub({ kind: 'unknown' as never })),
+        moduleDependencyContract.parse(ModuleDependencyStub({ kind: 'unknown' })),
       ).toThrow(/Invalid option/u);
     });
 

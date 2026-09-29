@@ -35,7 +35,7 @@ describe('testFailureContract', () => {
     it('INVALID: {suitePath: number} => throws validation error', () => {
       expect(() =>
         testFailureContract.parse({
-          suitePath: 123 as never,
+          suitePath: 123,
           testName: 'test',
           message: 'msg',
         }),

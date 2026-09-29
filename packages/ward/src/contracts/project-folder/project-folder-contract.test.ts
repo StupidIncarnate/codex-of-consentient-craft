@@ -29,7 +29,7 @@ describe('projectFolderContract', () => {
     it('INVALID: {name: number} => throws validation error', () => {
       expect(() =>
         projectFolderContract.parse({
-          name: 123 as never,
+          name: 123,
           path: '/some/path',
         }),
       ).toThrow(/expected string/u);

@@ -34,7 +34,7 @@ describe('rawOutputContract', () => {
         rawOutputContract.parse({
           stdout: '',
           stderr: '',
-          exitCode: 'zero' as never,
+          exitCode: 'zero',
         }),
       ).toThrow(/expected number/u);
     });

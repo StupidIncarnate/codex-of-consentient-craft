@@ -47,7 +47,7 @@ describe('platformCrossingViolationContract', () => {
     it('INVALID: {platform: "server"} => throws validation error', () => {
       expect(() =>
         platformCrossingViolationContract.parse(
-          PlatformCrossingViolationStub({ platform: 'server' as never }),
+          PlatformCrossingViolationStub({ platform: 'server' }),
         ),
       ).toThrow(/Invalid option/u);
     });

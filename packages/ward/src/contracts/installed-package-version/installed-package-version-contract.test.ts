@@ -20,7 +20,7 @@ describe('installedPackageVersionContract', () => {
     });
 
     it('INVALID: {value: 123} => throws', () => {
-      expect(() => installedPackageVersionContract.parse(123 as never)).toThrow(
+      expect(() => installedPackageVersionContract.parse(123)).toThrow(
         /Invalid input: expected string, received number/u,
       );
     });

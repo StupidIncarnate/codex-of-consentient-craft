@@ -64,7 +64,7 @@ describe('errorEntryContract', () => {
       expect(() =>
         errorEntryContract.parse({
           filePath: 'src/index.ts',
-          line: 'ten' as never,
+          line: 'ten',
           column: 5,
           message: 'test',
           severity: 'error',

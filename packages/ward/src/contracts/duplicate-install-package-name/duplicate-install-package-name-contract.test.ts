@@ -26,7 +26,7 @@ describe('duplicateInstallPackageNameContract', () => {
     });
 
     it('INVALID: {value: 123} => throws', () => {
-      expect(() => duplicateInstallPackageNameContract.parse(123 as never)).toThrow(
+      expect(() => duplicateInstallPackageNameContract.parse(123)).toThrow(
         /expected string, received number/u,
       );
     });
