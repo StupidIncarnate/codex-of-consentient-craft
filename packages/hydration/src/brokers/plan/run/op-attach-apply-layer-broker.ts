@@ -20,16 +20,14 @@
  * await opAttachApplyLayerBroker({ op, target, config, state });
  * // Returns the mutated state, with state.records.get(op.ref) now holding the matched, parsed record
  */
+import type { z } from '#gateway/npm/zod';
 import { fieldValuesResolveTransformer } from '../../../transformers/field-values-resolve/field-values-resolve-transformer';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
 import { HydrationRecordShapeError } from '../../../errors/hydration-record-shape/hydration-record-shape-error';
 import type { OpAttach } from '../../../contracts/op-attach/op-attach-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
-import type {
-  IngredientConfigData,
-  AnyZodSchema,
-} from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 const UNKNOWN_FIELD = '(root)';
@@ -74,7 +72,7 @@ export const opAttachApplyLayerBroker = async ({
   }
 
   const [matchedRecord] = matchedRecords;
-  const recordSchema = config.record as AnyZodSchema;
+  const recordSchema = config.record as z.ZodType;
   const parsedRecord = recordSchema.safeParse(matchedRecord);
   if (!parsedRecord.success) {
     const [firstIssue] = parsedRecord.error.issues;

@@ -4,15 +4,10 @@ import type { HydrationRunState } from './hydration-run-state-contract';
 
 export const HydrationRunStateStub = ({
   ...props
-}: StubArgument<HydrationRunState> = {}): HydrationRunState => {
-  const { records, saved, ...dataProps } = props;
-
-  return {
-    ...hydrationRunStateContract.parse({
-      recipeName: 'guild-mid-execution',
-      ...dataProps,
-    }),
-    records: (records ?? new Map()) as HydrationRunState['records'],
-    saved: (saved ?? new Map()) as HydrationRunState['saved'],
-  };
-};
+}: StubArgument<HydrationRunState> = {}): HydrationRunState =>
+  hydrationRunStateContract.parse({
+    recipeName: 'guild-mid-execution',
+    records: new Map(),
+    saved: new Map(),
+    ...props,
+  });

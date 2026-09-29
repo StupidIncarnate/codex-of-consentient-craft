@@ -30,7 +30,7 @@ import { opExtraApplyLayerBroker } from './op-extra-apply-layer-broker';
 import { HydrationQueryFailedError } from '../../../errors/hydration-query-failed/hydration-query-failed-error';
 import { HydrationFilterExpectationError } from '../../../errors/hydration-filter-expectation/hydration-filter-expectation-error';
 import { HydrationNestedIngredientUnregisteredError } from '../../../errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
-import type { OpFilter, OpFilterNestedOp } from '../../../contracts/op-filter/op-filter-contract';
+import type { OpFilter } from '../../../contracts/op-filter/op-filter-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
@@ -96,7 +96,7 @@ export const opFilterApplyLayerBroker = async ({
     });
 
     return op.ops.reduce<Promise<HydrationRunState>>(
-      async (previousOp, nestedOp: OpFilterNestedOp) => {
+      async (previousOp, nestedOp: OpFilter['ops'][number]) => {
         const currentState = await previousOp;
 
         if (nestedOp.op === 'saveRecord') {
@@ -122,7 +122,7 @@ export const opFilterApplyLayerBroker = async ({
 
         if (nestedOp.op === 'create') {
           // `Matched<I>` exposes no `add`, so the real chain never produces this branch — kept
-          // because `OpFilterNestedOp` shares all six branches with `HydrationOp` for parsing
+          // because a nested op shares all six branches with `HydrationOp` for parsing
           // symmetry (see `op-filter-contract.ts`), and a hand-built plan may still carry one.
           const route = routeSelectTransformer({
             routes: nestedConfig.routes,

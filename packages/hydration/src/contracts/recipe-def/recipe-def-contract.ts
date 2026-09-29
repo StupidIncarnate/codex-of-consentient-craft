@@ -51,20 +51,9 @@ export type RecipeDef<TName extends string, TInput, TOut = Record<string, unknow
     inputs?: z.ZodType<TInput>;
   };
 
-/**
- * `recipeDeclareBroker`'s own inference anchor for `inputs`, so `brokers/` never imports `zod`
- * directly — `enforce-import-dependencies` allows `zod` only inside `contracts/`. `z.ZodTypeAny`
- * (zod's own broadest schema type) is what a caller's REAL schema value infers against with no
- * `_input`/`_output` variance mismatch; pinning the constraint to `z.ZodType<TInput>` instead —
- * one type argument, so `_input` defaults to `TInput` itself — measured to reject a branded schema
- * (`z.object({ guildId: guildIdContract })`) the moment `build`'s own parameter carries an explicit
- * annotation, which every real recipe's builder does.
- */
-export type AnyRecipeInputSchema = z.ZodTypeAny;
-
-/** The paramless sentinel's OWN schema type, so a broker's default type argument needs no bare
- * `undefined` in a position `ban-primitives`-adjacent generic rules would flag. */
-export type NoRecipeInputSchema = z.ZodType<undefined>;
-
-/** `z.infer`, reachable from `brokers/` without importing `zod` — see `AnyRecipeInputSchema`. */
-export type RecipeInputOf<TInputSchema extends AnyRecipeInputSchema> = z.infer<TInputSchema>;
+/** `z.infer` over a recipe's input schema. The constraint is bare `z.ZodType` (zod's broadest schema
+ * type), the one a caller's REAL schema value infers against with no `_input`/`_output` variance
+ * mismatch; `z.ZodType<TInput>` instead — one type argument, so `_input` defaults to `TInput` itself
+ * — rejects a branded schema (`z.object({ guildId: guildIdContract })`) the moment `build`'s own
+ * parameter carries an explicit annotation, which every real recipe's builder does. */
+export type RecipeInputOf<TInputSchema extends z.ZodType> = z.infer<TInputSchema>;

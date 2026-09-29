@@ -19,13 +19,13 @@
  * property value never matches that rule's exported-arrow-function selector, so the adapter lives
  * there rather than here.
  *
- * `TInputSchema extends AnyRecipeInputSchema` is the real inference anchor, not `TInput` directly —
+ * `TInputSchema extends z.ZodType` is the real inference anchor, not `TInput` directly —
  * measured: a single-argument `z.ZodType<TInput>` parameter type defaults its own `_input` to
  * `TInput`, which rejects a branded schema (`z.object({ guildId: guildIdContract })`) the moment
  * `build`'s parameter carries an explicit annotation, exactly what every real recipe writes.
  * Anchoring on the SCHEMA and deriving `RecipeInputOf<TInputSchema>` downstream has no such
  * variance to violate. Omitting `inputs` leaves no inference candidate, so `TInputSchema` falls back
- * to `NoRecipeInputSchema`, and `RecipeInputOf<NoRecipeInputSchema>` is the paramless sentinel
+ * to `z.ZodType<undefined>`, and `RecipeInputOf<z.ZodType<undefined>>` is the paramless sentinel
  * `undefined` (never `void` — the lint rule refuses that in a bare `extends` position).
  *
  * USAGE:
@@ -36,13 +36,9 @@
  * );
  * guildMidExecution(); // => Plan<Record<string, unknown>>
  */
+import type { z } from '#gateway/npm/zod';
 import { recipeDefContract } from '../../../contracts/recipe-def/recipe-def-contract';
-import type {
-  RecipeDef,
-  AnyRecipeInputSchema,
-  NoRecipeInputSchema,
-  RecipeInputOf,
-} from '../../../contracts/recipe-def/recipe-def-contract';
+import type { RecipeDef, RecipeInputOf } from '../../../contracts/recipe-def/recipe-def-contract';
 import { hydrationPlanContract } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { Plan } from '../../../contracts/hydration-plan/hydration-plan-contract';
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
@@ -51,7 +47,7 @@ import { buildSequenceMarkTransformer } from '../../../transformers/build-sequen
 
 export const recipeDeclareBroker = <
   TName extends string,
-  TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+  TInputSchema extends z.ZodType = z.ZodType<undefined>,
   const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
 >({
   name,

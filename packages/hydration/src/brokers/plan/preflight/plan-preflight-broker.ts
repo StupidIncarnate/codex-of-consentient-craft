@@ -17,6 +17,7 @@ import { linkValuesTransformer } from '../../../transformers/link-values/link-va
 import { planSavedNamesTransformer } from '../../../transformers/plan-saved-names/plan-saved-names-transformer';
 import { planFoldWritesTransformer } from '../../../transformers/plan-fold-writes/plan-fold-writes-transformer';
 import { verbCheckLayerBroker } from './verb-check-layer-broker';
+import type { z } from '#gateway/npm/zod';
 import { isSavedRefGuard } from '../../../guards/is-saved-ref/is-saved-ref-guard';
 import { isReachableTransitionGuard } from '../../../guards/is-reachable-transition/is-reachable-transition-guard';
 import { savedRefContract } from '../../../contracts/saved-ref/saved-ref-contract';
@@ -27,10 +28,7 @@ import type { HydrationPlan } from '../../../contracts/hydration-plan/hydration-
 import type { HydrationOp } from '../../../contracts/hydration-op/hydration-op-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { RowRef } from '../../../contracts/row-ref/row-ref-contract';
-import type {
-  IngredientConfigData,
-  AnyZodObjectSchema,
-} from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
 import type { SavedRecordName } from '../../../contracts/saved-record-name/saved-record-name-contract';
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
@@ -128,7 +126,7 @@ export const planPreflightBroker = ({
           if (savedRef.field !== undefined) {
             const producingConfig = savedRecordConfigs.get(savedRecordName);
             if (producingConfig !== undefined) {
-              const recordSchema = producingConfig.record as AnyZodObjectSchema;
+              const recordSchema = producingConfig.record as z.ZodObject<z.ZodRawShape>;
               const declaredFieldNames = Object.keys(recordSchema.shape);
               if (!declaredFieldNames.includes(savedRef.field)) {
                 throw new HydrationSavedFieldMissingError({

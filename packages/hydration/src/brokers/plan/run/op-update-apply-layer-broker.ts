@@ -11,6 +11,7 @@
  * // Returns the mutated state, with state.records.get(op.ref) now holding what `update` (and, if
  * // present, the transition's `reach`) produced
  */
+import type { z } from '#gateway/npm/zod';
 import { fieldValuesResolveTransformer } from '../../../transformers/field-values-resolve/field-values-resolve-transformer';
 import { rowRefIngredientTransformer } from '../../../transformers/row-ref-ingredient/row-ref-ingredient-transformer';
 import { routeFailureTransformer } from '../../../transformers/route-failure/route-failure-transformer';
@@ -19,10 +20,7 @@ import { HydrationRecordShapeError } from '../../../errors/hydration-record-shap
 import { HydrationRouteFailedError } from '../../../errors/hydration-route-failed/hydration-route-failed-error';
 import type { OpSet } from '../../../contracts/op-set/op-set-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
-import type {
-  IngredientConfigData,
-  AnyZodSchema,
-} from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 const UNKNOWN_FIELD = '(root)';
@@ -66,7 +64,7 @@ export const opUpdateApplyLayerBroker = async ({
     }
   })();
 
-  const recordSchema = config.record as AnyZodSchema;
+  const recordSchema = config.record as z.ZodType;
   const parsedRecord = recordSchema.safeParse(rawRecord);
   if (!parsedRecord.success) {
     const [firstIssue] = parsedRecord.error.issues;

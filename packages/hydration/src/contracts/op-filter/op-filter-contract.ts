@@ -88,8 +88,3 @@ export const opFilterContract = z.object({
 });
 
 export type OpFilter = z.infer<typeof opFilterContract>;
-
-// Derived from the getter above, not a second hand-written union — a caller that narrows one
-// nested op at a time (`op-filter-transformer.ts`, `op-filter-apply-layer-broker.ts`) names this
-// rather than repeating the six branches.
-export type OpFilterNestedOp = OpFilter['ops'][number];

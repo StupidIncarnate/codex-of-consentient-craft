@@ -25,12 +25,7 @@ import type {
 } from '../ingredient-config/ingredient-config-contract';
 import type { CopiesFor } from '../hydration-routes/hydration-routes-contract';
 import type { Entry } from '../hydration-collection/hydration-collection-contract';
-import type {
-  RecipeDef,
-  AnyRecipeInputSchema,
-  NoRecipeInputSchema,
-  RecipeInputOf,
-} from '../recipe-def/recipe-def-contract';
+import type { RecipeDef, RecipeInputOf } from '../recipe-def/recipe-def-contract';
 import type { Op, SavedOf } from '../ingredient-handle/ingredient-handle-contract';
 import type { HydrationPlan, Plan } from '../hydration-plan/hydration-plan-contract';
 import type { HydrationRunResult } from '../hydration-run-result/hydration-run-result-contract';
@@ -75,7 +70,7 @@ export interface HydrationFor<TTarget extends HydrationTarget> {
   ) => Entry<R>;
   recipe: <
     TName extends string,
-    TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+    TInputSchema extends z.ZodType = z.ZodType<undefined>,
     const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
   >(
     meta: { name: TName; description: string; inputs?: TInputSchema },

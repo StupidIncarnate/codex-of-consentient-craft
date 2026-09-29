@@ -18,7 +18,7 @@
  * // Returns { op: 'filter', ingredient: 'operation', scope: 'guild[0:0]/quest[0:0]', where: {...}, expect: 'one', matchedRef: 'guild[0:0]/quest[0:0]/operation[match]', ops: [] }
  */
 import { opFilterContract } from '../../contracts/op-filter/op-filter-contract';
-import type { OpFilter, OpFilterNestedOp } from '../../contracts/op-filter/op-filter-contract';
+import type { OpFilter } from '../../contracts/op-filter/op-filter-contract';
 import type { IngredientName } from '../../contracts/ingredient-name/ingredient-name-contract';
 import type { RowRef } from '../../contracts/row-ref/row-ref-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
@@ -36,7 +36,7 @@ export const opFilterTransformer = ({
   scope?: RowRef;
   where: FieldValues;
   expect?: FilterExpect;
-  ops: readonly OpFilterNestedOp[];
+  ops: OpFilter['ops'];
 }): OpFilter => {
   const matchedRef = matchedRefTransformer({
     ancestors: scope === undefined ? [] : [scope],

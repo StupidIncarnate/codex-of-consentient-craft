@@ -62,11 +62,11 @@ export const planRunBroker = async <TOut = HydrationRunResult>({
     ingredients.map((config) => [config.name, config] as const),
   );
 
-  const state: HydrationRunState = {
-    ...hydrationRunStateContract.parse({ recipeName: plan.recipeName }),
+  const state: HydrationRunState = hydrationRunStateContract.parse({
+    recipeName: plan.recipeName,
     records: new Map(),
     saved: new Map(),
-  };
+  });
 
   await foldedPlan.ops.reduce(async (previous, op) => {
     await previous;

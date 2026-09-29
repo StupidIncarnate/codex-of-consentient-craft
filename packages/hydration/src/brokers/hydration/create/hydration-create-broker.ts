@@ -38,6 +38,7 @@
  * await run(guildMidExecution(), { home });
  * const { runs, makes } = listing(guildMidExecution());
  */
+import type { z } from '#gateway/npm/zod';
 import { ingredientDeclareBroker } from '../../ingredient/declare/ingredient-declare-broker';
 import { registryCreateBroker } from '../../registry/create/registry-create-broker';
 import { recipeDeclareBroker } from '../../recipe/declare/recipe-declare-broker';
@@ -57,12 +58,7 @@ import type {
   IngredientConfigData,
 } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { CopiesFor } from '../../../contracts/hydration-routes/hydration-routes-contract';
-import type {
-  RecipeDef,
-  AnyRecipeInputSchema,
-  NoRecipeInputSchema,
-  RecipeInputOf,
-} from '../../../contracts/recipe-def/recipe-def-contract';
+import type { RecipeDef, RecipeInputOf } from '../../../contracts/recipe-def/recipe-def-contract';
 import type { Op, SavedOf } from '../../../contracts/ingredient-handle/ingredient-handle-contract';
 import type {
   HydrationPlan,
@@ -91,7 +87,7 @@ export const hydrationCreateBroker = <TTarget extends HydrationTarget>(): Hydrat
     },
     recipe: <
       TName extends string,
-      TInputSchema extends AnyRecipeInputSchema = NoRecipeInputSchema,
+      TInputSchema extends z.ZodType = z.ZodType<undefined>,
       const Ops extends readonly Op<unknown>[] = readonly Op<unknown>[],
     >(
       meta: { name: TName; description: string; inputs?: TInputSchema },

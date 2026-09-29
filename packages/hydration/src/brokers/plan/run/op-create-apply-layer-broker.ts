@@ -15,6 +15,7 @@
  * await opCreateApplyLayerBroker({ op, target, config, route: 'write', state });
  * // Returns the mutated state, with state.records.get(op.ref) now holding the parsed record
  */
+import type { z } from '#gateway/npm/zod';
 import { fieldValuesResolveTransformer } from '../../../transformers/field-values-resolve/field-values-resolve-transformer';
 import { linkValuesTransformer } from '../../../transformers/link-values/link-values-transformer';
 import { routeFailureTransformer } from '../../../transformers/route-failure/route-failure-transformer';
@@ -24,10 +25,7 @@ import { HydrationRouteFailedError } from '../../../errors/hydration-route-faile
 import { HydrationWriteFailedError } from '../../../errors/hydration-write-failed/hydration-write-failed-error';
 import type { OpCreate } from '../../../contracts/op-create/op-create-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
-import type {
-  IngredientConfigData,
-  AnyZodSchema,
-} from '../../../contracts/ingredient-config/ingredient-config-contract';
+import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { HydrationRoute } from '../../../contracts/hydration-route/hydration-route-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
@@ -95,7 +93,7 @@ export const opCreateApplyLayerBroker = async ({
 
   // `record` is stored as `unknown` on `IngredientConfigData` (only `contracts/` may import `zod`
   // itself), but is genuinely a `z.ZodType` once `ingredientConfigContract.parse` accepted it.
-  const recordSchema = config.record as AnyZodSchema;
+  const recordSchema = config.record as z.ZodType;
   const parsedRecord = recordSchema.safeParse(rawRecord);
   if (!parsedRecord.success) {
     const [firstIssue] = parsedRecord.error.issues;
