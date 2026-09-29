@@ -25,7 +25,13 @@
       "source": "./test/harnesses/rule-tester/rule-tester.harness.ts"
     },
     "./tsconfig": "./configs/tsconfig.json",
-    "./config": "./configs/eslint.dungeonmaster.js"
+    "./config": "./configs/eslint.dungeonmaster.js",
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
