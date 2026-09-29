@@ -64,7 +64,7 @@ const IMP = {
 // One row per copy. `dir` is the copy's own folder: files inside it (contract, stub, test) die with it and
 // are neither swapped nor counted as users.
 const FAMILIES = [
-  { stub: 'TimerHandleStub', type: 'TimerHandle', contract: 'timerHandleContract', dir: 'packages/testing/src/contracts/timer-handle', realType: 'NodeJS.Timeout', typeNeed: null },
+  { stub: 'TimerHandleStub', type: 'TimerHandle', contract: 'timerHandleContract', dir: 'packages/testing/src/contracts/timer-handle', realType: '(NodeJS.Timeout | NodeJS.Immediate)', typeNeed: null },
   { stub: 'TypescriptSourceFileStub', type: 'TypescriptSourceFile', contract: 'typescriptSourceFileContract', dir: 'packages/testing/src/contracts/typescript-source-file', realType: 'ts.SourceFile', typeNeed: IMP.tsNs },
   { stub: 'TypescriptNodeFactoryStub', type: 'TypescriptNodeFactory', contract: 'typescriptNodeFactoryContract', dir: 'packages/testing/src/contracts/typescript-node-factory', realType: 'ts.NodeFactory', typeNeed: IMP.tsNs },
   { stub: 'TypescriptStatementStub', type: 'TypescriptStatement', contract: 'typescriptStatementContract', dir: 'packages/testing/src/contracts/typescript-statement', realType: 'ts.Statement', typeNeed: IMP.tsNs },
