@@ -10,7 +10,7 @@
 
 import { errorMessageContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { eslintJsonReportEntryContract } from '../../contracts/eslint-json-report-entry/eslint-json-report-entry-contract';
+import { eslintJsonReportContract } from '../../contracts/eslint-json-report/eslint-json-report-contract';
 import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
 import {
   scanViolationContract,
@@ -31,9 +31,9 @@ export const eslintJsonToScanViolationsTransformer = ({
 }): ScanViolation[] => {
   const slice = extractJsonArrayTransformer({ output: errorMessageContract.parse(jsonOutput) });
 
-  const raw = ((): unknown => {
+  const report = ((): ReturnType<typeof eslintJsonReportContract.parse> => {
     try {
-      return JSON.parse(slice);
+      return eslintJsonReportContract.parse(JSON.parse(slice));
     } catch (error: unknown) {
       throw new Error(
         `ESLint output was not a JSON report: ${jsonOutput.slice(0, PREVIEW_LENGTH)}`,
@@ -44,9 +44,7 @@ export const eslintJsonToScanViolationsTransformer = ({
 
   const rootPrefix = `${String(rootPath)}/`;
 
-  return eslintJsonReportEntryContract
-    .array()
-    .parse(raw)
+  return report
     .flatMap((entry) =>
       (entry.messages ?? [])
         .filter((message) => String(message.ruleId) === String(rule))

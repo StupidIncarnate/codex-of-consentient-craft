@@ -14,6 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
+import { eslintJsonReportContract } from '../../../contracts/eslint-json-report/eslint-json-report-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -106,15 +107,13 @@ export const checkRunLintBroker = async ({
     const jsonSlice = extractJsonArrayTransformer({
       output: errorMessageContract.parse(result.output),
     });
-    const parsed: unknown = JSON.parse(jsonSlice);
-    if (Array.isArray(parsed)) {
-      // AN IGNORED PATH IS NOT A LINTED FILE. ESLint replies with a full result entry for an
-      // explicitly-passed path its config ignores, so the raw array length counted files it never
-      // opened — and a scope made entirely of them reported `1 files passed` at exit 0.
-      const linted = parsed.filter((entry) => !isEslintIgnoredResultGuard({ entry }));
-      filesCount = linted.length;
-      fileTimings = eslintStatsParseTransformer({ eslintResults: linted });
-    }
+    const parsed = eslintJsonReportContract.parse(JSON.parse(jsonSlice));
+    // AN IGNORED PATH IS NOT A LINTED FILE. ESLint replies with a full result entry for an
+    // explicitly-passed path its config ignores, so the raw array length counted files it never
+    // opened — and a scope made entirely of them reported `1 files passed` at exit 0.
+    const linted = parsed.filter((entry) => !isEslintIgnoredResultGuard({ entry }));
+    filesCount = linted.length;
+    fileTimings = eslintStatsParseTransformer({ eslintResults: linted });
   } catch {
     // non-JSON output, filesCount stays 0
   }

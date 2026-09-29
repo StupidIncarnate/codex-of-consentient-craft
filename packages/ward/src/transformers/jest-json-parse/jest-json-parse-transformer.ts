@@ -23,20 +23,13 @@ export const jestJsonParseTransformer = ({
   jsonOutput: ErrorMessage;
 }): TestFailure[] => {
   const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
-  const rawJson: unknown = JSON.parse(jsonString);
-  const parsed = ((): ReturnType<typeof jestJsonReportContract.parse> | null => {
-    try {
-      return jestJsonReportContract.parse(rawJson);
-    } catch {
-      return null;
-    }
-  })();
+  const report = jestJsonReportContract.safeParse(JSON.parse(jsonString));
 
-  if (parsed === null) {
+  if (!report.success) {
     return [];
   }
 
-  const { testResults } = parsed;
+  const { testResults } = report.data;
 
   if (testResults === undefined) {
     return [];

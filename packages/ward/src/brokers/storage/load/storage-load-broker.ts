@@ -31,8 +31,7 @@ export const storageLoadBroker = async ({
     const filePath = filePathContract.parse(`${wardDir}/run-${runId}.json`);
     try {
       const contents = await readFile(filePath);
-      const parsed: unknown = JSON.parse(contents);
-      return wardResultContract.parse(parsed);
+      return wardResultContract.parse(JSON.parse(contents));
     } catch {
       return null;
     }
@@ -62,8 +61,7 @@ export const storageLoadBroker = async ({
     const latestFile = runFiles[runFiles.length - 1];
     const filePath = filePathContract.parse(`${wardDir}/${latestFile}`);
     const contents = await readFile(filePath);
-    const parsed: unknown = JSON.parse(contents);
-    return wardResultContract.parse(parsed);
+    return wardResultContract.parse(JSON.parse(contents));
   } catch {
     return null;
   }

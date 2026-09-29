@@ -24,20 +24,13 @@ export const eslintJsonParseTransformer = ({
   const cleanedOutput = extractJsonArrayTransformer({
     output: errorMessageContract.parse(jsonOutput),
   });
-  const rawJson: unknown = JSON.parse(cleanedOutput);
-  const parsedReport = ((): ReturnType<typeof eslintJsonReportContract.parse> | null => {
-    try {
-      return eslintJsonReportContract.parse(rawJson);
-    } catch {
-      return null;
-    }
-  })();
+  const report = eslintJsonReportContract.safeParse(JSON.parse(cleanedOutput));
 
-  if (parsedReport === null) {
+  if (!report.success) {
     return [];
   }
 
-  return parsedReport.flatMap((entryParsed) => {
+  return report.data.flatMap((entryParsed) => {
     const { filePath } = entryParsed;
     const { messages } = entryParsed;
 

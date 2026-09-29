@@ -12,6 +12,7 @@
 
 import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
+import { eslintRawReportContract } from '../../contracts/eslint-raw-report/eslint-raw-report-contract';
 import { eslintStripKeysStatics } from '../../statics/eslint-strip-keys/eslint-strip-keys-statics';
 import { extractJsonArrayTransformer } from '../extract-json-array/extract-json-array-transformer';
 
@@ -22,21 +23,21 @@ export const eslintStatsStripTransformer = ({ output }: { output: ErrorMessage }
   }
 
   const slice = extractJsonArrayTransformer({ output });
-  const parsed = ((): unknown => {
+  const parsed = ((): ReturnType<typeof eslintRawReportContract.parse> | null => {
     try {
-      return JSON.parse(slice);
+      return eslintRawReportContract.parse(JSON.parse(slice));
     } catch {
       return null;
     }
   })();
 
-  if (!Array.isArray(parsed)) {
+  if (parsed === null) {
     return output;
   }
 
   const stripKeys: readonly PropertyKey[] = eslintStripKeysStatics.keys;
   const hasStrippable = parsed.some(
-    (entry: unknown) =>
+    (entry) =>
       typeof entry === 'object' &&
       entry !== null &&
       !Array.isArray(entry) &&
@@ -46,7 +47,7 @@ export const eslintStatsStripTransformer = ({ output }: { output: ErrorMessage }
     return output;
   }
 
-  const stripped = parsed.map((entry: unknown) =>
+  const stripped = parsed.map((entry) =>
     typeof entry === 'object' && entry !== null && !Array.isArray(entry)
       ? Object.fromEntries(Object.entries(entry).filter(([key]) => !stripKeys.includes(key)))
       : entry,
