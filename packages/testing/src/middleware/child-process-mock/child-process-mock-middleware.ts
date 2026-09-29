@@ -15,6 +15,8 @@
  */
 
 import { EventEmitter } from '#gateway/node/events';
+import { nextTick } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 import {
   doMock as gatewayDoMock,
   fn as gatewayFn,
@@ -102,7 +104,11 @@ export const childProcessMockMiddleware = (): {
       };
 
       // Start the simulation asynchronously
-      process.nextTick(async () => mockProcess.simulateProcess());
+      nextTick(() => {
+        mockProcess.simulateProcess().catch((error: unknown) => {
+          throw error;
+        });
+      });
 
       return mockProcess;
     });

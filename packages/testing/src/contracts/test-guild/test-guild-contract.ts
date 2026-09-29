@@ -24,7 +24,7 @@ export const testGuildContract = z.object({
 export type TestGuildData = z.infer<typeof testGuildContract>;
 
 export type TestGuild = TestGuildData & {
-  installDungeonmaster: () => ProcessOutput;
+  installDungeonmaster: () => Promise<ProcessOutput>;
   hasCommand: ({ command }: { command: CommandName }) => boolean;
   fileExists: ({ fileName }: { fileName: FileName }) => boolean;
   readFile: ({ fileName }: { fileName: FileName }) => FileContent;

@@ -1,6 +1,7 @@
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { deleteEnv, setEnv } from '#gateway/node/process';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
@@ -10,6 +11,7 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
   setHomeEnv: (params: { value: string }) => void;
   clearHomeEnv: () => void;
 } => {
+  getEnvProxy();
   // #gateway/node/os and #gateway/node/path are raw passthroughs of the Node 'os'/'path'
   // modules (no per-function wrapper, so no gateway proxy to compose) — mocked directly here.
   // `homedir`/`join` MUST be imported (above) from the same '#gateway/node/os'/'#gateway/node/path'

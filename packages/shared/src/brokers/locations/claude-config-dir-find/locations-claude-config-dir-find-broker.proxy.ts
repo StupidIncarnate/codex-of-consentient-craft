@@ -1,5 +1,6 @@
 import { homedir } from '#gateway/node/os';
 import { deleteEnv, setEnv } from '#gateway/node/process';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -7,6 +8,7 @@ export const locationsClaudeConfigDirFindBrokerProxy = (): {
   returns: (params: { path: string }) => void;
   setupUnset: (params: { homeDir: FilePath }) => void;
 } => {
+  getEnvProxy();
   const homedirHandle = registerMock({ fn: homedir });
 
   // homedir() takes no arguments — [] is the honest address, not a shortcut. This is the SAME

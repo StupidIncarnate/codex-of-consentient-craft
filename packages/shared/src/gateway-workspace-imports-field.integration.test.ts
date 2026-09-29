@@ -23,8 +23,8 @@
  * USAGE:
  * npm run ward -- --only integration -- packages/shared/src/gateway-workspace-imports-field.integration.test.ts
  */
-import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { gatewayLocationsStatics } from './statics/gateway-locations/gateway-locations-statics';
 
 const PACKAGES_DIR = join(__dirname, '..', '..');
@@ -35,14 +35,14 @@ const readOwnPackageJson = ({
 }: {
   packageDir: unknown;
 }): Record<PropertyKey, unknown> =>
-  JSON.parse(readFileSync(join(String(packageDir), 'package.json'), 'utf8')) as Record<
+  JSON.parse(readFileSync(join(String(packageDir), 'package.json'))) as Record<
     PropertyKey,
     unknown
   >;
 
 const listWorkspacePackageDirs = (): unknown[] => {
-  const topLevelEntries = readdirSync(PACKAGES_DIR, { withFileTypes: true }).filter((entry) =>
-    entry.isDirectory(),
+  const topLevelEntries = readdirEntriesSync(PACKAGES_DIR).filter(
+    (entry) => entry.kind === 'directory',
   );
 
   return topLevelEntries.flatMap((entry): unknown[] => {
@@ -51,8 +51,8 @@ const listWorkspacePackageDirs = (): unknown[] => {
     }
 
     const gatewayScopeDir = join(PACKAGES_DIR, entry.name);
-    return readdirSync(gatewayScopeDir, { withFileTypes: true })
-      .filter((gatewayEntry) => gatewayEntry.isDirectory())
+    return readdirEntriesSync(gatewayScopeDir)
+      .filter((gatewayEntry) => gatewayEntry.kind === 'directory')
       .map((gatewayEntry): unknown => join(gatewayScopeDir, gatewayEntry.name));
   });
 };

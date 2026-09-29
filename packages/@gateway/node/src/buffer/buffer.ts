@@ -6,7 +6,8 @@
  * Node module is reached through that module's own pass-through instead.
  *
  * USAGE:
- * import { Buffer } from '#gateway/node/buffer';
+ * import { Buffer, bufferSchema } from '#gateway/node/buffer';
  */
 
 export * from 'buffer';
+export { bufferSchema } from './buffer-schema';

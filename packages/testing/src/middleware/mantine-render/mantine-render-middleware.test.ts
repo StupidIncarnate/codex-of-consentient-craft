@@ -6,6 +6,7 @@ import { createElement } from '#gateway/npm/react';
 import type { ReactElement } from '#gateway/npm/react';
 import '#gateway/npm/testing-library__jest-dom';
 import { screen } from '#gateway/npm/testing-library__react';
+import { document } from '#gateway/browser/document';
 import { mantineRenderMiddleware } from './mantine-render-middleware';
 import { mantineRenderMiddlewareProxy } from './mantine-render-middleware.proxy';
 

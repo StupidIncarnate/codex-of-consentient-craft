@@ -249,28 +249,42 @@ describe('integrationEnvironmentCreateBroker', () => {
   });
 
   describe('installDungeonmaster', () => {
-    it('VALID: {npm run install-dungeonmaster exits 0} => returns its output', () => {
+    it('VALID: {npm run install-dungeonmaster exits 0} => returns its output', async () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
-      proxy.setupCommandSucceeds({ command: 'npm', stdout: 'installed' });
+      proxy.setupInstallScriptResult({ exitCode: 0, output: 'installed' });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
 
-      expect(guild.installDungeonmaster()).toBe('installed');
+      await expect(guild.installDungeonmaster()).resolves.toBe('installed');
     });
 
-    it('ERROR: {npm not found} => returns the spawn failure message', () => {
+    it('VALID: {npm run install-dungeonmaster exits 1} => returns its output', async () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
-      proxy.setupCommandNotFound({ command: 'npm', code: 'ENOENT' });
+      proxy.setupInstallScriptResult({ exitCode: 1, output: 'npm error missing script' });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
 
-      expect(guild.installDungeonmaster()).toBe('"npm" never started: spawn npm ENOENT');
+      await expect(guild.installDungeonmaster()).resolves.toBe('npm error missing script');
+    });
+
+    it('ERROR: {npm not installed} => returns the not-installed message', async () => {
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
+      proxy.setupNpmNotInstalled();
+      const guild = integrationEnvironmentCreateBroker({
+        baseName: BaseNameStub({ value: 'test-project' }),
+      });
+
+      await expect(guild.installDungeonmaster()).resolves.toBe(
+        'npm run install-dungeonmaster could not start in /tmp/test-project-74657374: "npm" never started: ENOENT: open \'npm\'',
+      );
     });
   });
 });

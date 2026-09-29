@@ -17,7 +17,7 @@
  * // transformer wires it automatically because it is a named property on the returned object, so
  * // no test calls it directly
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { ensureDirSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
@@ -50,7 +50,7 @@ export const claudeTranscriptHarness = (): {
   const projectDirs: AbsoluteFilePath[] = [];
 
   return {
-    // Every write below is synchronous (mkdirSync/writeFileSync) — `async` here exists only to
+    // Every write below is synchronous (ensureDirSync/writeFileSync) — `async` here exists only to
     // satisfy `ban-sync-seeding-methods`'s Promise-returning rule for harness seeding methods, not
     // because anything inside awaits.
     writeSession: async ({
@@ -68,12 +68,12 @@ export const claudeTranscriptHarness = (): {
           `${PROJECT_DIR_PREFIX}${String(pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
         ),
       );
-      mkdirSync(projectDir, { recursive: true });
+      ensureDirSync(projectDir);
       writeFileSync(join(projectDir, `${sessionId}${JSONL_SUFFIX}`), content);
 
       if (subagentIds.length > 0) {
         const subagentsDir = join(projectDir, sessionId, SUBAGENTS_DIR_NAME);
-        mkdirSync(subagentsDir, { recursive: true });
+        ensureDirSync(subagentsDir);
         for (const agentId of subagentIds) {
           writeFileSync(
             join(subagentsDir, `${agentId}${META_SUFFIX}`),

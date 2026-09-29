@@ -8,6 +8,7 @@
  * });
  * testProject.writeFile({ fileName: 'src/index.ts', content: 'export const foo = 42;' });
  * const result = testProject.executeCommand({ command: 'npm test' });
+ * const installOutput = await testProject.installDungeonmaster();
  * testProject.cleanup();
  * // Creates isolated test environment in /tmp with automatic cleanup tracking
  *
@@ -29,6 +30,7 @@ import {
 } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { runSync } from '#gateway/node/child_process';
+import { runScript } from '#gateway/bin/npm';
 import { randomBytes } from '#gateway/node/crypto';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
@@ -110,13 +112,9 @@ export const integrationEnvironmentCreateBroker = ({
     guildName: testGuildContract.shape.guildName.parse(projectName),
     rootDir: testGuildContract.shape.rootDir.parse(projectPath),
 
-    installDungeonmaster: (): ProcessOutput => {
+    installDungeonmaster: async (): Promise<ProcessOutput> => {
       try {
-        const { output } = runSync({
-          command: 'npm',
-          args: ['run', 'install-dungeonmaster'],
-          cwd: projectPath,
-        });
+        const { output } = await runScript({ cwd: projectPath, script: 'install-dungeonmaster' });
         return processOutputContract.parse(output);
       } catch (error) {
         const output = error instanceof Error ? error.message : 'Installation failed';

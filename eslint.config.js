@@ -301,6 +301,14 @@ module.exports = [
       '@typescript-eslint/no-unnecessary-type-parameters': 'off',
     },
   },
+  // The open-handle timer watcher's job is to replace the global timers so it sees every handle a
+  // test opens; no gateway export can patch a global for every caller (EPIC.md concession 14).
+  {
+    files: ['packages/testing/src/brokers/timers/watch/timers-watch-broker.ts'],
+    rules: {
+      '@dungeonmaster/platform-globals-ban': 'off',
+    },
+  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {

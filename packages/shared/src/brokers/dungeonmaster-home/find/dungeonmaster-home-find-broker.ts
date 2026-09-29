@@ -8,11 +8,12 @@
 
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { getEnv } from '#gateway/node/process';
 import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 export const dungeonmasterHomeFindBroker = (): { homePath: FilePath } => {
-  const envHome = process.env.DUNGEONMASTER_HOME;
+  const envHome = getEnv('DUNGEONMASTER_HOME');
 
   if (envHome !== undefined && envHome !== '') {
     return { homePath: filePathContract.parse(envHome) };

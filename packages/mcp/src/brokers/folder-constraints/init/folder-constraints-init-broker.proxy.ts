@@ -13,6 +13,7 @@
  */
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import type { FolderTypeWithConstraints } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
@@ -34,6 +35,7 @@ const SECTION_HEADING_BY_FOLDER_TYPE: Partial<Record<FolderTypeWithConstraints, 
 
 export const folderConstraintsInitBrokerProxy = (): Record<PropertyKey, never> => {
   const fileGateway = readFileProxy();
+  stderrProxy();
 
   const constraintsDir = pathSegmentContract.parse(
     resolve(__dirname, '../../../statics/folder-constraints'),

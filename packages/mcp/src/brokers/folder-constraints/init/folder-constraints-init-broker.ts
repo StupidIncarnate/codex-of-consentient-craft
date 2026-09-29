@@ -8,6 +8,7 @@
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { resolve } from '#gateway/node/path';
 import { readFile } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
@@ -42,7 +43,7 @@ export const folderConstraintsInitBroker = async (): Promise<{
     if (result.content) {
       constraintsMap.set(result.folderType, result.content);
     } else {
-      process.stderr.write(
+      stderr.write(
         `Warning: Could not load constraint file for ${result.folderType}: ${result.error}\n`,
       );
     }

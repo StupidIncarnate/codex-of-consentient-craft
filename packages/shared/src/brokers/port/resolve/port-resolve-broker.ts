@@ -9,7 +9,7 @@
  * // Same ladder, walks up from startDir instead of process.cwd()
  */
 
-import { cwd } from '#gateway/node/process';
+import { cwd, getEnv } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
@@ -26,7 +26,7 @@ export const portResolveBroker = ({
 }: {
   startDir?: AbsoluteFilePath;
 } = {}): NetworkPort => {
-  const envPort = process.env.DUNGEONMASTER_PORT;
+  const envPort = getEnv('DUNGEONMASTER_PORT');
   if (envPort !== undefined && envPort !== '') {
     const parsed = Number(envPort);
     if (Number.isFinite(parsed) && parsed > 0) {

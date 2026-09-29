@@ -79,6 +79,7 @@
     "ward": "dungeonmaster-ward"
   },
   "devDependencies": {
+    "@dungeonmaster/browser": "*",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   },
@@ -105,6 +106,7 @@
     }
   },
   "dependencies": {
+    "@dungeonmaster/bin": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@mantine/core": "^8.0.0",

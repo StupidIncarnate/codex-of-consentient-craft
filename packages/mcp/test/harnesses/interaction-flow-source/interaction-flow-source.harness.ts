@@ -8,7 +8,7 @@
  * const source = readInteractionFlowSource();
  * // Returns the FileContents-branded source of interaction-flow.ts
  */
-import { readFileSync } from 'fs';
+import { readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
@@ -17,5 +17,5 @@ const INTERACTION_FLOW_RELATIVE_PATH = '../../../src/flows/interaction/interacti
 
 export const readInteractionFlowSource = (): FileContents => {
   const absolutePath = join(__dirname, INTERACTION_FLOW_RELATIVE_PATH);
-  return fileContentsContract.parse(readFileSync(absolutePath, 'utf8'));
+  return fileContentsContract.parse(readFileSync(absolutePath));
 };

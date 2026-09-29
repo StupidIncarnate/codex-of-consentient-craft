@@ -13,7 +13,14 @@
  * harness.removeDirectory({ relativePath: 'locked' });          // deletes it out from under a denied path
  * harness.exists({ relativePath: '' });                         // false once the home itself is gone
  */
-import { chmodSync, existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  ensureDirSync,
+  existsSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
@@ -102,7 +109,7 @@ export const fileTargetHarness = (): FileTargetHarness => {
         throw new Error('fileTargetHarness.denyWrites: called before beforeEach ran');
       }
       const deniedDir = join(testbed.guildPath, relativePath);
-      mkdirSync(deniedDir, { recursive: true });
+      ensureDirSync(deniedDir);
       chmodSync(deniedDir, 0o500);
       deniedPaths.push(AbsoluteFilePathStub({ value: deniedDir }));
 

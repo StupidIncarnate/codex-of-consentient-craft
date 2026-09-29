@@ -6,8 +6,10 @@ import * as ourModule from './buffer';
 import pkgModule = require('buffer');
 
 describe('#gateway/node/buffer', () => {
-  it('VALID: {module} => re-exports the same runtime bindings as buffer, including the Buffer global', () => {
-    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  it('VALID: {module} => re-exports the same runtime bindings as buffer, including the Buffer global, plus bufferSchema', () => {
+    expect(Object.keys(ourModule).sort()).toStrictEqual(
+      [...Object.keys(pkgModule), 'bufferSchema'].sort(),
+    );
   });
 
   it('VALID: {Buffer export} => is the same constructor Node provides on globalThis', () => {

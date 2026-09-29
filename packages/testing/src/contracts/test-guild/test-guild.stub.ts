@@ -32,8 +32,8 @@ export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestG
     }),
     installDungeonmaster:
       installDungeonmaster ??
-      ((): ReturnType<TestGuild['installDungeonmaster']> =>
-        processOutputContract.parse('Dungeonmaster installed')),
+      (async (): ReturnType<TestGuild['installDungeonmaster']> =>
+        Promise.resolve(processOutputContract.parse('Dungeonmaster installed'))),
     hasCommand: hasCommand ?? ((): boolean => false),
     fileExists: fileExists ?? ((): boolean => false),
     readFile: readFile ?? ((): ReturnType<TestGuild['readFile']> => fileContentContract.parse('')),

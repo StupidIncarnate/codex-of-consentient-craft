@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import {
   dungeonmasterRuleEnforceOnStatics,
@@ -40,8 +40,8 @@ const NON_IMPLEMENTATION_SUFFIXES = ['.test.ts', '.proxy.ts', '.stub.ts'];
 // path this test just walked off disk".
 const ruleImplementationFilePaths = ({ ruleSlug }: { ruleSlug: string }): unknown[] => {
   const ruleDir = join(RULE_FOLDER_ROOT, ruleSlug);
-  return readdirSync(ruleDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.ts'))
+  return readdirEntriesSync(ruleDir)
+    .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.ts'))
     .filter((entry) => !NON_IMPLEMENTATION_SUFFIXES.some((suffix) => entry.name.endsWith(suffix)))
     .map((entry) => join(ruleDir, entry.name));
 };
@@ -67,7 +67,7 @@ const importSpecifiersInFile = ({
 }: {
   filePath: string;
 }): { specifier: unknown; location: unknown }[] => {
-  const contents = readFileSync(filePath, 'utf8');
+  const contents = readFileSync(filePath);
   const scannable = withCommentsBlanked(contents);
   return Array.from(scannable.matchAll(IMPORT_SPECIFIER_REGEX)).map((match) => {
     const specifier = match[1] ?? '';

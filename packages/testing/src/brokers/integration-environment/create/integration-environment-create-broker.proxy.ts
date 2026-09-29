@@ -24,6 +24,7 @@ import { unlinkSyncProxy } from '#gateway/node/fs/unlink-sync/unlink-sync.proxy'
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
 import { randomBytes } from '#gateway/node/crypto';
 import { runSyncProxy } from '#gateway/node/child_process/run-sync/run-sync.proxy';
+import { runScriptProxy } from '#gateway/bin/npm/run-script/run-script.proxy';
 import { registerMock } from '../../../register-mock';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { integrationEnvironmentTrackingBrokerProxy } from '../tracking/integration-environment-tracking-broker.proxy';
@@ -45,6 +46,8 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
     stderr: string;
   }) => void;
   setupCommandNotFound: ({ command, code }: { command: string; code: string }) => void;
+  setupInstallScriptResult: ({ exitCode, output }: { exitCode: number; output: string }) => void;
+  setupNpmNotInstalled: () => void;
   setupWritableUnder: ({ root }: { root: string }) => void;
   setupPathExists: ({ path }: { path: string }) => void;
   setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
@@ -64,6 +67,7 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
   const existsProxy = existsSyncProxy();
   const randomBytesHandle = registerMock({ fn: randomBytes });
   const commandProxy = runSyncProxy();
+  const npmScriptProxy = runScriptProxy();
   integrationEnvironmentTrackingBrokerProxy();
 
   // Staged before any exact path: a predicate and an exact path score the same and the later
@@ -94,6 +98,18 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
     },
     setupCommandNotFound: ({ command, code }: { command: string; code: string }): void => {
       commandProxy.setupNotFound({ command, code, message: `spawn ${command} ${code}` });
+    },
+    setupInstallScriptResult: ({
+      exitCode,
+      output,
+    }: {
+      exitCode: number;
+      output: string;
+    }): void => {
+      npmScriptProxy.setupResult({ script: 'install-dungeonmaster', exitCode, output });
+    },
+    setupNpmNotInstalled: (): void => {
+      npmScriptProxy.setupNotFound({ script: 'install-dungeonmaster' });
     },
     setupWritableUnder: ({ root }: { root: string }): void => {
       ensureDirProxy.succeedsUnder({ root });

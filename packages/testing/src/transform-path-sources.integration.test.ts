@@ -13,7 +13,7 @@
  * source path keeps passing and moving one back to `dist` fails.
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 
 const PACKAGE_ROOT = resolve(__dirname, '..');
@@ -32,7 +32,7 @@ const RESOLVE_FROM_DIRNAME_ARGUMENT = /path\.resolve\(\s*__dirname,\s*'([^']+)'/
 describe('jest transform path', () => {
   describe('relative requires in the files jest loads before transforming anything', () => {
     it.each(TRANSFORM_PATH_FILES)('VALID: {%s} => requires no compiled output', (relativePath) => {
-      const contents = readFileSync(resolve(PACKAGE_ROOT, relativePath), 'utf-8');
+      const contents = readFileSync(resolve(PACKAGE_ROOT, relativePath));
 
       const distRequires = [...contents.matchAll(REQUIRE_ARGUMENT)]
         .map((match) => String(match[1]))
@@ -48,7 +48,7 @@ describe('jest transform path', () => {
   describe('files proxy-mock-transformer.js hashes into its cache key by name', () => {
     it('VALID: {every path.resolve(__dirname, ...) in computeVersion} => names a path that exists', () => {
       const transformerDir = resolve(PACKAGE_ROOT, 'ts-jest');
-      const contents = readFileSync(resolve(transformerDir, 'proxy-mock-transformer.js'), 'utf-8');
+      const contents = readFileSync(resolve(transformerDir, 'proxy-mock-transformer.js'));
 
       const resolvedPaths = [...contents.matchAll(RESOLVE_FROM_DIRNAME_ARGUMENT)].map((match) => {
         const relativePath = String(match[1]);
