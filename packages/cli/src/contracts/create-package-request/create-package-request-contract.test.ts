@@ -74,7 +74,7 @@ describe('createPackageRequestContract', () => {
 
     it('INVALID: {packageType: "not-a-real-type"} => throws', () => {
       expect(() => {
-        return CreatePackageRequestStub({ packageType: 'not-a-real-type' as never });
+        return CreatePackageRequestStub({ packageType: 'not-a-real-type' });
       }).toThrow(/Invalid option/u);
     });
   });

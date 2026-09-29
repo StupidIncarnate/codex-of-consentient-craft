@@ -43,9 +43,9 @@ describe('createPackageArgsContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {packageType: "not-a-real-type"} => throws validation error', () => {
-      expect(() =>
-        createPackageArgsContract.parse({ packageType: 'not-a-real-type' as never }),
-      ).toThrow(/Invalid option/u);
+      expect(() => createPackageArgsContract.parse({ packageType: 'not-a-real-type' })).toThrow(
+        /Invalid option/u,
+      );
     });
   });
 

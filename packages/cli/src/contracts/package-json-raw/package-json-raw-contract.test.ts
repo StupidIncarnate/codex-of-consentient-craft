@@ -28,7 +28,7 @@ describe('packageJsonRawContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {non-object string} => throws', () => {
-      expect(() => packageJsonRawContract.parse('nope' as never)).toThrow(
+      expect(() => packageJsonRawContract.parse('nope')).toThrow(
         /Invalid input: expected record, received string/u,
       );
     });

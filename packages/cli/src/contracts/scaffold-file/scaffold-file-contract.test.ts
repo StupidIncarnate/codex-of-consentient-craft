@@ -31,13 +31,13 @@ describe('scaffoldFileContract', () => {
 
     it('INVALID: {relativePath: 123} => throws validation error', () => {
       expect(() => {
-        return scaffoldFileContract.parse({ relativePath: 123 as never, contents: '{}\n' });
+        return scaffoldFileContract.parse({ relativePath: 123, contents: '{}\n' });
       }).toThrow(/expected string/u);
     });
 
     it('INVALID: {contents: 123} => throws validation error', () => {
       expect(() => {
-        return scaffoldFileContract.parse({ relativePath: 'package.json', contents: 123 as never });
+        return scaffoldFileContract.parse({ relativePath: 'package.json', contents: 123 });
       }).toThrow(/expected string/u);
     });
   });

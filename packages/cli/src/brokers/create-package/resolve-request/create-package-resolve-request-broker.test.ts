@@ -90,7 +90,7 @@ describe('createPackageResolveRequestBroker', () => {
 
     it('INVALID: {name: absent, interactive: false} => throws naming --name', async () => {
       createPackageResolveRequestBrokerProxy();
-      const args = CreatePackageArgsStub({ name: undefined as never });
+      const args = CreatePackageArgsStub({ name: undefined });
       const scope = PathSegmentStub({ value: '@acme' });
 
       await expect(
@@ -102,7 +102,7 @@ describe('createPackageResolveRequestBroker', () => {
 
     it('INVALID: {packageType: absent, interactive: false} => throws naming --type', async () => {
       createPackageResolveRequestBrokerProxy();
-      const args = CreatePackageArgsStub({ packageType: undefined as never });
+      const args = CreatePackageArgsStub({ packageType: undefined });
       const scope = PathSegmentStub({ value: '' });
 
       await expect(
@@ -122,9 +122,9 @@ describe('createPackageResolveRequestBroker', () => {
         description: 'Custom description',
       });
       const args = CreatePackageArgsStub({
-        name: undefined as never,
-        packageType: undefined as never,
-        description: undefined as never,
+        name: undefined,
+        packageType: undefined,
+        description: undefined,
       });
       const scope = PathSegmentStub({ value: '@acme' });
 
@@ -149,7 +149,7 @@ describe('createPackageResolveRequestBroker', () => {
       proxy.setupAnswers({ packageType: '' });
       const args = CreatePackageArgsStub({
         name: 'widgets',
-        packageType: undefined as never,
+        packageType: undefined,
         description: 'A widget package',
       });
       const scope = PathSegmentStub({ value: '@acme' });
@@ -169,7 +169,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('INVALID: {name answer: "@gateway/foo"} => refuses the @gateway scope and points at the session snippet', async () => {
       const proxy = createPackageResolveRequestBrokerProxy();
       proxy.setupAnswers({ name: '@gateway/foo' });
-      const args = CreatePackageArgsStub({ name: undefined as never, packageType: 'library' });
+      const args = CreatePackageArgsStub({ name: undefined, packageType: 'library' });
       const scope = PathSegmentStub({ value: '@acme' });
 
       await expect(
@@ -183,7 +183,7 @@ describe('createPackageResolveRequestBroker', () => {
     it('EMPTY: {name answer: ""} => throws because the name is still empty', async () => {
       const proxy = createPackageResolveRequestBrokerProxy();
       proxy.setupAnswers({ name: '' });
-      const args = CreatePackageArgsStub({ name: undefined as never, packageType: 'library' });
+      const args = CreatePackageArgsStub({ name: undefined, packageType: 'library' });
       const scope = PathSegmentStub({ value: '@acme' });
 
       await expect(
@@ -197,7 +197,7 @@ describe('createPackageResolveRequestBroker', () => {
       proxy.setupAnswers({ packageType: 'not-a-real-type' });
       const args = CreatePackageArgsStub({
         name: 'widgets',
-        packageType: undefined as never,
+        packageType: undefined,
         description: 'A widget package',
       });
       const scope = PathSegmentStub({ value: '@acme' });

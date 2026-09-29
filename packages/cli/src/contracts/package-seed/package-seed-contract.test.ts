@@ -130,7 +130,7 @@ describe('packageSeedContract', () => {
           exportsDot: false,
           needsMswTransform: false,
           files: [],
-        } as never);
+        });
       }).toThrow(/Invalid option/u);
     });
 
@@ -148,7 +148,7 @@ describe('packageSeedContract', () => {
           exportsDot: false,
           needsMswTransform: false,
           files: [],
-        } as never);
+        });
       }).toThrow(/received undefined/u);
     });
   });
