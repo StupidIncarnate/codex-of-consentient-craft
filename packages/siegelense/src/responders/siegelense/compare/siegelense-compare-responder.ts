@@ -14,8 +14,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { compareReadBroker } from '../../../brokers/compare/read/compare-read-broker';
 import type { CompareQuery } from '../../../contracts/compare-query/compare-query-contract';
@@ -28,12 +26,11 @@ export const SiegelenseCompareResponder = async ({
 }: {
   query: CompareQuery;
   isJson?: boolean | undefined;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const answer = await compareReadBroker({ query });
   stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : compareAnswerRenderTransformer({ answer }),
   );
-  return adapterResultContract.parse({ success: true });
 };

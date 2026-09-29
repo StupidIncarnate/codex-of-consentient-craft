@@ -23,8 +23,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
 import { recipesAnswerContract } from '../../../contracts/recipes-answer/recipes-answer-contract';
@@ -35,7 +33,7 @@ export const SiegelenseRecipesResponder = async ({
   isJson = false,
 }: {
   isJson?: boolean;
-} = {}): Promise<AdapterResult> => {
+} = {}): Promise<void> => {
   const recipes = await recipesReadBroker();
   const answer = recipesAnswerContract.parse({ recipes });
   stdout.write(
@@ -43,5 +41,4 @@ export const SiegelenseRecipesResponder = async ({
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : recipesAnswerRenderTransformer({ answer }),
   );
-  return adapterResultContract.parse({ success: true });
 };

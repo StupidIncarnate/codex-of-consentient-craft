@@ -24,12 +24,13 @@ describe('SiegelenseCapacityResponder', () => {
       });
       proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
-      const result = await SiegelenseCapacityResponder({
-        specName: SpecNameStub(),
-        poolSize: null,
-      });
+      await expect(
+        SiegelenseCapacityResponder({
+          specName: SpecNameStub(),
+          poolSize: null,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
     });
   });
@@ -48,13 +49,14 @@ describe('SiegelenseCapacityResponder', () => {
       });
       proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
 
-      const result = await SiegelenseCapacityResponder({
-        specName: SpecNameStub(),
-        poolSize: null,
-        isJson: true,
-      });
+      await expect(
+        SiegelenseCapacityResponder({
+          specName: SpecNameStub(),
+          poolSize: null,
+          isJson: true,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
@@ -82,9 +84,8 @@ describe('SiegelenseCapacityResponder', () => {
       });
       proxy.stageAnswer({ specName, poolSize, answer });
 
-      const result = await SiegelenseCapacityResponder({ specName, poolSize });
+      await expect(SiegelenseCapacityResponder({ specName, poolSize })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
     });
   });

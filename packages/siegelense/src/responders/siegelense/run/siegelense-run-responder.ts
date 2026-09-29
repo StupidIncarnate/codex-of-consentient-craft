@@ -24,8 +24,7 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -41,7 +40,7 @@ export const SiegelenseRunResponder = async ({
   args,
 }: {
   args: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const stepsFilePath = flagValueReadTransformer({ args, flag: STEPS_FILE_FLAG });
 
   const stepsFileContent =
@@ -75,5 +74,4 @@ export const SiegelenseRunResponder = async ({
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : runAnswerRenderTransformer({ result }),
   );
-  return adapterResultContract.parse({ success: true });
 };

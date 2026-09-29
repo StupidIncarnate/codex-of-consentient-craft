@@ -37,9 +37,10 @@ describe('driverHeartbeatTickBroker', () => {
         nowMs,
       });
 
-      const result = await driverHeartbeatTickBroker({ instanceId, guildId, lane });
+      await expect(driverHeartbeatTickBroker({ instanceId, guildId, lane })).resolves.toBe(
+        undefined,
+      );
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
         `{"instanceId":"inst_7f3a9c21","pid":"${String(pid)}","pgids":[4821,4822],"beatAtMs":${String(nowMs)},"rssMB":null}\n`,
       );
@@ -129,9 +130,10 @@ describe('driverHeartbeatTickBroker', () => {
         error: new Error('EACCES: profiles directory unwritable'),
       });
 
-      const result = await driverHeartbeatTickBroker({ instanceId, guildId: null, lane });
+      await expect(driverHeartbeatTickBroker({ instanceId, guildId: null, lane })).resolves.toBe(
+        undefined,
+      );
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStderrMessages()).toStrictEqual([
         '[heartbeat-tick] recording the profile sample for inst_7f3a9c21 failed, the beat itself ' +
           'stands: Error: EACCES: profiles directory unwritable\n',

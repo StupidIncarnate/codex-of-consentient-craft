@@ -6,11 +6,9 @@
  *
  * USAGE:
  * await SiegelenseDocsLayerFlow({ callArgs: ['--for', 'walking'] });
- * // Parses the argv into DocsArgs and returns the AdapterResult SiegelenseDocsResponder
- * // resolves to
+ * // Parses the argv into DocsArgs and hands them to SiegelenseDocsResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseDocsResponder } from '../../responders/siegelense/docs/siegelense-docs-responder';
 import { docsArgsParseTransformer } from '../../transformers/docs-args-parse/docs-args-parse-transformer';
@@ -19,4 +17,4 @@ export const SiegelenseDocsLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => SiegelenseDocsResponder(docsArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseDocsResponder(docsArgsParseTransformer({ args: callArgs }));

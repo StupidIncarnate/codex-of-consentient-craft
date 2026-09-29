@@ -121,7 +121,7 @@ export const DriverServeLayerResponderProxy = (): {
     .resolves(DriverResponseStub({ ok: true, payload: '', error: null }));
 
   const heartbeatTickHandle = registerMock({ fn: driverHeartbeatTickBroker });
-  heartbeatTickHandle.calledWith([INSTANCE_ADDRESS]).resolves({ success: true });
+  heartbeatTickHandle.calledWith([INSTANCE_ADDRESS]).resolves(undefined);
 
   const idleWaitHandle = registerMock({ fn: DriverIdleWaitLayerResponder });
   idleWaitHandle.calledWith([KILL_SIGNAL_ADDRESS]).resolves(false);

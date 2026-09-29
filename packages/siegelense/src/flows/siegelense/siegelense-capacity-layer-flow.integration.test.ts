@@ -109,9 +109,11 @@ describe('SiegelenseCapacityLayerFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelenseCapacityLayerFlow({
-        callArgs: ['--spec', 'api'],
-      });
+      await expect(
+        SiegelenseCapacityLayerFlow({
+          callArgs: ['--spec', 'api'],
+        }),
+      ).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -124,7 +126,6 @@ describe('SiegelenseCapacityLayerFlow', () => {
         .replace(SUGGESTED_LINE_PATTERN, SUGGESTED_LINE_PLACEHOLDER)
         .replace(CPU_CLAUSE_PATTERN, '');
 
-      expect(result).toStrictEqual({ success: true });
       expect(normalized).toBe(
         'SUGGESTED: <suggested> instances (ceiling: 3)\n' +
           'SPEC: api\n' +
@@ -141,9 +142,11 @@ describe('SiegelenseCapacityLayerFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelenseCapacityLayerFlow({
-        callArgs: ['--spec', 'stack', '--pool', '2', '--json'],
-      });
+      await expect(
+        SiegelenseCapacityLayerFlow({
+          callArgs: ['--spec', 'stack', '--pool', '2', '--json'],
+        }),
+      ).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -156,7 +159,6 @@ describe('SiegelenseCapacityLayerFlow', () => {
         .replace(SUGGESTED_JSON_PATTERN, SUGGESTED_JSON_PLACEHOLDER)
         .replace(CPU_CLAUSE_PATTERN, '');
 
-      expect(result).toStrictEqual({ success: true });
       expect(normalized).toBe(
         '{\n' +
           '  "suggested": <suggested>,\n' +

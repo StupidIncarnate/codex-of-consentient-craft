@@ -11,11 +11,9 @@
  * await SiegelenseResultsLayerFlow({
  *   callArgs: ['--instance', 'inst_7f3a9c21', '--run', 'run_2', '--kind', 'console'],
  * });
- * // Parses the argv into a ResultsQuery and returns the AdapterResult SiegelenseResultsResponder
- * // resolves to
+ * // Parses the argv into a ResultsQuery and hands it to SiegelenseResultsResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
@@ -24,7 +22,7 @@ export const SiegelenseResultsLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const { isJson, ...query } = resultsArgsParseTransformer({ args: callArgs });
   return SiegelenseResultsResponder({ query, isJson });
 };

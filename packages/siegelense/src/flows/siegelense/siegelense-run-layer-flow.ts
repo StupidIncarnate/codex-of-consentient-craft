@@ -14,10 +14,8 @@
  *   callArgs: ['--instance', 'inst_7f3a9c21', '--steps', '[{"step":"goto","path":"/"}]'],
  * });
  * // Delegates straight to SiegelenseRunResponder, which parses argv (reading --steps-file itself
- * // first when named) and returns the AdapterResult, or throws
+ * // first when named) and resolves with nothing, or throws
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseRunResponder } from '../../responders/siegelense/run/siegelense-run-responder';
 
@@ -25,4 +23,4 @@ export const SiegelenseRunLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => SiegelenseRunResponder({ args: callArgs });
+}): Promise<void> => SiegelenseRunResponder({ args: callArgs });

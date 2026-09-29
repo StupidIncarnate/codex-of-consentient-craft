@@ -9,9 +9,7 @@ describe('registryLockReleaseBroker', () => {
       const proxy = registryLockReleaseBrokerProxy();
       proxy.setupReleaseSucceeds();
 
-      const result = await registryLockReleaseBroker();
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(registryLockReleaseBroker()).resolves.toBe(undefined);
     });
 
     it('VALID: {registry.lock present} => unlinks the lock path', async () => {

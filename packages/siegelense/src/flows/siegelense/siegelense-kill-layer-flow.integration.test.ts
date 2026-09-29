@@ -51,9 +51,11 @@ describe('SiegelenseKillLayerFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const flowResult = await SiegelenseKillLayerFlow({
-        callArgs: ['--instance', tree.killedInstanceId(), '--json'],
-      });
+      await expect(
+        SiegelenseKillLayerFlow({
+          callArgs: ['--instance', tree.killedInstanceId(), '--json'],
+        }),
+      ).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -73,7 +75,6 @@ describe('SiegelenseKillLayerFlow', () => {
       expect(writes).toStrictEqual([
         `${JSON.stringify(expectedResult, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
-      expect(flowResult).toStrictEqual({ success: true });
     });
 
     it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered human summary by default', async () => {

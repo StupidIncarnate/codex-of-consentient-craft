@@ -56,8 +56,8 @@ import { clearInterval } from '#gateway/node/clearInterval';
 import { unixSocketServe } from '#gateway/node/net';
 import { on, stderr } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
-import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHeartbeatTickBroker } from '../../../brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker';
@@ -90,7 +90,7 @@ export const DriverServeLayerResponder = async ({
   guildId: GuildId | null;
   lane: LaneSession;
   idleTimeoutMs?: TimeoutMs;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   driverSessionState.set(idleTimeoutMs === undefined ? { lane } : { lane, idleTimeoutMs });
 
   let resolveKillSignal: ((killed: true) => void) | null = null;
@@ -244,6 +244,4 @@ export const DriverServeLayerResponder = async ({
 
   // Last step on every path out — see this file's own header for why closing here.
   await serveResult.close();
-
-  return adapterResultContract.parse({ success: true });
 };

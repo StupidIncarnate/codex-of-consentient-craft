@@ -16,8 +16,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
@@ -33,7 +31,7 @@ export const SiegelenseSnapshotsResponder = async ({
 }: {
   instanceId: InstanceId;
   isJson?: boolean | undefined;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
   if (!isKnownInstance) {
@@ -49,5 +47,4 @@ export const SiegelenseSnapshotsResponder = async ({
           nowMs: epochMsContract.parse(Date.now()),
         }),
   );
-  return adapterResultContract.parse({ success: true });
 };

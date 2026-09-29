@@ -7,10 +7,8 @@
  * USAGE:
  * await SiegelenseCleanupLayerFlow({ callArgs: ['--json'] });
  * // Reaps every stale registry row, releases its ports/lock, ages assets out on cleanup's own
- * // per-kind windows, and returns the AdapterResult SiegelenseCleanupResponder resolves to
+ * // per-kind windows, and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseCleanupResponder } from '../../responders/siegelense/cleanup/siegelense-cleanup-responder';
 import { cleanupArgsParseTransformer } from '../../transformers/cleanup-args-parse/cleanup-args-parse-transformer';
@@ -19,5 +17,4 @@ export const SiegelenseCleanupLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
-  SiegelenseCleanupResponder(cleanupArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseCleanupResponder(cleanupArgsParseTransformer({ args: callArgs }));

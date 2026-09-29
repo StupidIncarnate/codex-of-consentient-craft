@@ -6,11 +6,9 @@
  *
  * USAGE:
  * await SiegelenseCapacityLayerFlow({ callArgs: ['--spec', 'dungeonmaster-stack'] });
- * // Parses the argv into CapacityArgs and returns the AdapterResult SiegelenseCapacityResponder
- * // resolves to
+ * // Parses the argv into CapacityArgs and hands them to SiegelenseCapacityResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseCapacityResponder } from '../../responders/siegelense/capacity/siegelense-capacity-responder';
 import { capacityArgsParseTransformer } from '../../transformers/capacity-args-parse/capacity-args-parse-transformer';
@@ -19,5 +17,4 @@ export const SiegelenseCapacityLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
-  SiegelenseCapacityResponder(capacityArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseCapacityResponder(capacityArgsParseTransformer({ args: callArgs }));

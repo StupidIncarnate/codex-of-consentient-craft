@@ -71,12 +71,12 @@ describe('SiegelenseDocsResponder', () => {
     it('VALID: {scope: fixing, isJson: false} => answers success without starting anything', async () => {
       SiegelenseDocsResponderProxy();
 
-      const result = await SiegelenseDocsResponder({
-        scope: 'fixing',
-        isJson: false,
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        SiegelenseDocsResponder({
+          scope: 'fixing',
+          isJson: false,
+        }),
+      ).resolves.toBe(undefined);
     });
   });
 });

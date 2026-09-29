@@ -14,14 +14,14 @@ describe('stepTargetResolveBroker', () => {
       const proxy = stepTargetResolveBrokerProxy();
       const session = proxy.sessionWithOneMatch();
 
-      const result = await stepTargetResolveBroker({
-        session,
-        target: '[data-testid="subagent-chain-duration"]',
-        within: null,
-        ref: null,
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        stepTargetResolveBroker({
+          session,
+          target: '[data-testid="subagent-chain-duration"]',
+          within: null,
+          ref: null,
+        }),
+      ).resolves.toBe(undefined);
     });
   });
 
@@ -240,14 +240,14 @@ describe('stepTargetResolveBroker', () => {
 
       expect({ name: unscopedError.name }).toStrictEqual({ name: 'StepAmbiguousError' });
 
-      const result = await stepTargetResolveBroker({
-        session,
-        target: '[data-testid="PIXEL_BTN"]',
-        within: 'GUILD_LIST',
-        ref: null,
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        stepTargetResolveBroker({
+          session,
+          target: '[data-testid="PIXEL_BTN"]',
+          within: 'GUILD_LIST',
+          ref: null,
+        }),
+      ).resolves.toBe(undefined);
     });
   });
 
@@ -256,14 +256,14 @@ describe('stepTargetResolveBroker', () => {
       const proxy = stepTargetResolveBrokerProxy();
       const session = proxy.sessionWithLiveRef();
 
-      const result = await stepTargetResolveBroker({
-        session,
-        target: null,
-        within: null,
-        ref: 23,
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        stepTargetResolveBroker({
+          session,
+          target: null,
+          within: null,
+          ref: 23,
+        }),
+      ).resolves.toBe(undefined);
     });
 
     it('ERROR: {a ref whose element detached} => throws RefStaleError naming the detached boundary', async () => {

@@ -17,7 +17,7 @@
  *
  * USAGE:
  * await registryLockAcquireBroker({});
- * // Absent or stale lock: creates registry.lock stamped with now, returns { success: true }.
+ * // Absent or stale lock: creates registry.lock stamped with now and resolves.
  * // Fresh lock held by another process: polls until it frees or throws once the wait ceiling
  * // (instanceLifecycleStatics.registryLock.waitCeilingMs) is reached.
  */
@@ -35,13 +35,12 @@ import {
   unlinkIfExists,
   writeFileExclusive,
 } from '#gateway/node/fs__promises';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const registryLockAcquireBroker = async ({
   waitStartedAtMs,
 }: {
   waitStartedAtMs?: EpochMs;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const startedAtMs = waitStartedAtMs ?? epochMsContract.parse(Date.now());
   const rootPath = locationsRootPathFindBroker();
   const lockPath = locationsRegistryLockPathFindBroker();
@@ -52,7 +51,7 @@ export const registryLockAcquireBroker = async ({
   try {
     await writeFileExclusive(lockPath, String(nowMs));
 
-    return { success: true as const };
+    return;
   } catch (createError) {
     // Anything but "the file is already there" is a real failure (permissions, disk) — propagate
     // it rather than reading a file whose absence has nothing to do with this error. `isFsError`

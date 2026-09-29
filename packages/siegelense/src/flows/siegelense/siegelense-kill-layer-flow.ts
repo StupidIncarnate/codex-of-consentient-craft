@@ -12,8 +12,6 @@
  * // Parses argv, then routes to SiegelenseKillResponder
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import { SiegelenseKillResponder } from '../../responders/siegelense/kill/siegelense-kill-responder';
 import { killArgsParseTransformer } from '../../transformers/kill-args-parse/kill-args-parse-transformer';
 
@@ -21,4 +19,4 @@ export const SiegelenseKillLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => SiegelenseKillResponder(killArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseKillResponder(killArgsParseTransformer({ args: callArgs }));

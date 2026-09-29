@@ -14,8 +14,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read-broker';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
@@ -31,7 +29,7 @@ export const SiegelenseCapacityResponder = async ({
   specName: SpecName;
   poolSize: ProfilePoolSize | null;
   isJson?: boolean;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const answer = await capacityReadBroker({ specName, poolSize });
 
   stdout.write(
@@ -39,6 +37,4 @@ export const SiegelenseCapacityResponder = async ({
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : capacityAnswerRenderTransformer({ answer }),
   );
-
-  return adapterResultContract.parse({ success: true });
 };

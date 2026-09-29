@@ -52,8 +52,7 @@
  * // Routes to SiegelenseStatusLayerFlow with no flags — the same table `status` prints
  */
 
-import { adapterResultContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
@@ -90,10 +89,7 @@ const EPIPE_ERROR_CODE = 'EPIPE';
 
 let isEpipeGuardInstalled = false;
 
-const CALL_ROUTES = new Map<
-  SiegelenseCall,
-  (callArgs: readonly string[]) => Promise<AdapterResult>
->([
+const CALL_ROUTES = new Map<SiegelenseCall, (callArgs: readonly string[]) => Promise<void>>([
   ['start', async (callArgs) => SiegelenseStartLayerFlow({ callArgs })],
   ['run', async (callArgs) => SiegelenseRunLayerFlow({ callArgs })],
   ['results', async (callArgs) => SiegelenseResultsLayerFlow({ callArgs })],
@@ -108,11 +104,7 @@ const CALL_ROUTES = new Map<
   ['docs', async (callArgs) => SiegelenseDocsLayerFlow({ callArgs })],
 ]);
 
-export const SiegelenseFlow = async ({
-  args,
-}: {
-  args: readonly string[];
-}): Promise<AdapterResult> => {
+export const SiegelenseFlow = async ({ args }: { args: readonly string[] }): Promise<void> => {
   if (!isEpipeGuardInstalled) {
     isEpipeGuardInstalled = true;
     stdout.on(STDOUT_ERROR_EVENT, (error: NodeJS.ErrnoException) => {
@@ -126,7 +118,7 @@ export const SiegelenseFlow = async ({
 
   if (callName === HELP_FLAG || callName === HELP_SHORT_FLAG) {
     stdout.write(siegelenseHelpRenderTransformer({ call: null }));
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   if (callName === DRIVER_CALL_NAME) {
@@ -181,7 +173,7 @@ export const SiegelenseFlow = async ({
   if (call !== undefined && routeHandler !== undefined) {
     if (callArgs.includes(HELP_FLAG) || callArgs.includes(HELP_SHORT_FLAG)) {
       stdout.write(siegelenseHelpRenderTransformer({ call }));
-      return adapterResultContract.parse({ success: true });
+      return;
     }
 
     return routeHandler(callArgs);

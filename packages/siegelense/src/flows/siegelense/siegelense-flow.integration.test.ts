@@ -290,7 +290,7 @@ describe('SiegelenseFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelenseFlow({ args: ['recipes', '--help'] });
+      await expect(SiegelenseFlow({ args: ['recipes', '--help'] })).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -300,7 +300,6 @@ describe('SiegelenseFlow', () => {
       const [firstLine] = wholeOutput!.split('\n');
 
       expect(firstLine).toBe(siegelenseHelpStatics.calls.recipes.summary);
-      expect(result).toStrictEqual({ success: true });
     });
   });
 
@@ -317,14 +316,13 @@ describe('SiegelenseFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelenseFlow({ args: ['--help'] });
+      await expect(SiegelenseFlow({ args: ['--help'] })).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
         .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([siegelenseHelpRenderTransformer({ call: null })]);
-      expect(result).toStrictEqual({ success: true });
     });
 
     it.each(BUILT_CALLS)(
@@ -333,7 +331,7 @@ describe('SiegelenseFlow', () => {
         const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
         stdoutSpy.calledWith([]).returns(true);
 
-        const result = await SiegelenseFlow({ args: [call, '--help'] });
+        await expect(SiegelenseFlow({ args: [call, '--help'] })).resolves.toBe(undefined);
 
         const writes = stdoutSpy
           .callsMatching([])
@@ -343,7 +341,6 @@ describe('SiegelenseFlow', () => {
         const [firstLine] = wholeOutput!.split('\n');
 
         expect(firstLine).toBe(siegelenseHelpStatics.calls[call].summary);
-        expect(result).toStrictEqual({ success: true });
       },
     );
   });

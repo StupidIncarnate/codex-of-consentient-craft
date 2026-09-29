@@ -6,11 +6,9 @@
  *
  * USAGE:
  * await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', 'inst_7f3a9c21'] });
- * // Parses the argv into SnapshotsArgs and returns the AdapterResult SiegelenseSnapshotsResponder
- * // resolves to
+ * // Parses the argv into SnapshotsArgs and hands them to SiegelenseSnapshotsResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseSnapshotsResponder } from '../../responders/siegelense/snapshots/siegelense-snapshots-responder';
 import { snapshotsArgsParseTransformer } from '../../transformers/snapshots-args-parse/snapshots-args-parse-transformer';
@@ -19,5 +17,5 @@ export const SiegelenseSnapshotsLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
+}): Promise<void> =>
   SiegelenseSnapshotsResponder(snapshotsArgsParseTransformer({ args: callArgs }));

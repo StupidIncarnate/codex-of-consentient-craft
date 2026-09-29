@@ -6,11 +6,9 @@
  *
  * USAGE:
  * await SiegelenseStatusLayerFlow({ callArgs: ['--instance', 'inst_7f3a9c21'] });
- * // Parses the argv into StatusArgs and returns the AdapterResult SiegelenseStatusResponder
- * // resolves to
+ * // Parses the argv into StatusArgs and hands them to SiegelenseStatusResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseStatusResponder } from '../../responders/siegelense/status/siegelense-status-responder';
 import { statusArgsParseTransformer } from '../../transformers/status-args-parse/status-args-parse-transformer';
@@ -19,5 +17,4 @@ export const SiegelenseStatusLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
-  SiegelenseStatusResponder(statusArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseStatusResponder(statusArgsParseTransformer({ args: callArgs }));

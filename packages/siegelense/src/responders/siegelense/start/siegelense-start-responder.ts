@@ -40,8 +40,7 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -72,7 +71,7 @@ export const SiegelenseStartResponder = async ({
   // target for that wider source type.
   idleTimeoutMs?: TimeoutMs | undefined;
   isJson?: boolean | undefined;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const resolvedGuildId: GuildId | null =
     guildId !== null || questId === null ? guildId : await questOwningGuildFindBroker({ questId });
 
@@ -103,5 +102,4 @@ export const SiegelenseStartResponder = async ({
       ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : startAnswerRenderTransformer({ manifest }),
   );
-  return adapterResultContract.parse({ success: true });
 };

@@ -27,8 +27,6 @@
  */
 
 import { stderr, stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { pruneRunBroker } from '../../../brokers/prune/run/prune-run-broker';
 import type { PruneQuery } from '../../../contracts/prune-query/prune-query-contract';
@@ -44,7 +42,7 @@ export const SiegelensePruneResponder = async ({
   query: PruneQuery;
   isJson?: boolean;
   confirm?: boolean;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const answer = await pruneRunBroker({ query, dryRun: !confirm });
 
   if (!confirm) {
@@ -61,5 +59,4 @@ export const SiegelensePruneResponder = async ({
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : pruneAnswerRenderTransformer({ answer }),
   );
-  return adapterResultContract.parse({ success: true });
 };

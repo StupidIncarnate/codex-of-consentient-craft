@@ -9,9 +9,7 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupNow({ nowMs: EpochMsStub() });
       proxy.setupAvailable();
 
-      const result = await registryLockAcquireBroker({});
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(registryLockAcquireBroker({})).resolves.toBe(undefined);
     });
 
     it('VALID: {no registry.lock} => the write used the exclusive flag', async () => {
@@ -33,9 +31,7 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupNow({ nowMs });
       proxy.setupAvailable();
 
-      const result = await registryLockAcquireBroker({});
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(registryLockAcquireBroker({})).resolves.toBe(undefined);
     });
 
     it('VALID: {lock older than ttlMs} => unlinks the stale file before retrying', async () => {
@@ -62,9 +58,7 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupNow({ nowMs });
       proxy.setupAvailable();
 
-      const result = await registryLockAcquireBroker({});
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(registryLockAcquireBroker({})).resolves.toBe(undefined);
     });
 
     it('ERROR: {the stale-lock unlink fails for a reason other than absence} => throws', async () => {
@@ -109,9 +103,7 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupLockVanishesBeforeRetryRead();
       proxy.setupAvailable();
 
-      const result = await registryLockAcquireBroker({});
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(registryLockAcquireBroker({})).resolves.toBe(undefined);
     });
   });
 

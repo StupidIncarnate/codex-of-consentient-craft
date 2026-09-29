@@ -44,12 +44,7 @@
  * // Diffs two runs of the same instance's timeline
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import { SiegelenseFlow } from '../flows/siegelense/siegelense-flow';
 
-export const StartSiegelense = async ({
-  args,
-}: {
-  args: readonly string[];
-}): Promise<AdapterResult> => SiegelenseFlow({ args });
+export const StartSiegelense = async ({ args }: { args: readonly string[] }): Promise<void> =>
+  SiegelenseFlow({ args });

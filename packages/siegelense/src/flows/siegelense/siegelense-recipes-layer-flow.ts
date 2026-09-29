@@ -8,11 +8,9 @@
  *
  * USAGE:
  * await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
- * // Parses the argv into RecipesArgs and returns the AdapterResult SiegelenseRecipesResponder
- * // resolves to
+ * // Parses the argv into RecipesArgs and hands them to SiegelenseRecipesResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseRecipesResponder } from '../../responders/siegelense/recipes/siegelense-recipes-responder';
 import { recipesArgsParseTransformer } from '../../transformers/recipes-args-parse/recipes-args-parse-transformer';
@@ -21,5 +19,4 @@ export const SiegelenseRecipesLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
-  SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseRecipesResponder(recipesArgsParseTransformer({ args: callArgs }));

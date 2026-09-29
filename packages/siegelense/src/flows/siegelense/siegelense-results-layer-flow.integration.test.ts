@@ -54,9 +54,11 @@ describe('SiegelenseResultsLayerFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelenseResultsLayerFlow({
-        callArgs: ['--instance', tree.killedInstanceId(), '--run', tree.runOne()],
-      });
+      await expect(
+        SiegelenseResultsLayerFlow({
+          callArgs: ['--instance', tree.killedInstanceId(), '--run', tree.runOne()],
+        }),
+      ).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -64,7 +66,6 @@ describe('SiegelenseResultsLayerFlow', () => {
 
       const [wholeOutput] = writes;
 
-      expect(result).toStrictEqual({ success: true });
       expect(wholeOutput).toBe(resultsAnswerRenderTransformer({ answer: expectedAnswer }));
     });
 

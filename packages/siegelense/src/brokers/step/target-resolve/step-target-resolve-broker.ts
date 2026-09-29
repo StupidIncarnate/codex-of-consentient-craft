@@ -16,14 +16,11 @@
  *
  * USAGE:
  * await stepTargetResolveBroker({ session, target: '[data-testid="PIXEL_BTN"]', within: 'GUILD_LIST', ref: null });
- * // Returns { success: true } once the scoped target resolves to exactly one element
+ * // Resolves once the scoped target resolves to exactly one element
  *
  * await stepTargetResolveBroker({ session, target: null, within: null, ref: 23 });
- * // Returns { success: true } once ref 23 still reaches a connected element
+ * // Resolves once ref 23 still reaches a connected element
  */
-
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { RefStaleError } from '../../../errors/ref-stale/ref-stale-error';
@@ -42,12 +39,12 @@ export const stepTargetResolveBroker = async ({
   target: string | null;
   within: string | null;
   ref: number | null;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   if (ref !== null) {
     const resolution = await session.refState({ ref });
 
     if (resolution.state === 'live') {
-      return adapterResultContract.parse({ success: true });
+      return;
     }
     if (resolution.state === 'stale') {
       // The adapter always names a boundary on a stale answer; the fallback keeps the message
@@ -70,7 +67,7 @@ export const stepTargetResolveBroker = async ({
   const count = await session.countMatches(matchParams);
 
   if (count === 1) {
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   if (count > 1) {

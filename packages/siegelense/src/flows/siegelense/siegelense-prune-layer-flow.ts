@@ -13,11 +13,8 @@
  * await SiegelensePruneLayerFlow({
  *   callArgs: ['--kind', 'shot', '--older-than', '0s', '--confirm'],
  * });
- * // Deletes every shot past the window and returns the AdapterResult SiegelensePruneResponder
- * // resolves to
+ * // Deletes every shot past the window and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelensePruneResponder } from '../../responders/siegelense/prune/siegelense-prune-responder';
 import { pruneStatics } from '../../statics/prune/prune-statics';
@@ -27,7 +24,7 @@ export const SiegelensePruneLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const args = pruneArgsParseTransformer({ args: callArgs });
   const confirm = callArgs.includes(pruneStatics.flags.confirm);
   return SiegelensePruneResponder({ ...args, confirm });

@@ -9,11 +9,9 @@
  * await SiegelenseCompareLayerFlow({
  *   callArgs: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'run_5'],
  * });
- * // Parses the argv into CompareArgs and returns the AdapterResult SiegelenseCompareResponder
- * // resolves to
+ * // Parses the argv into CompareArgs and hands them to SiegelenseCompareResponder
+ * // and resolves with nothing
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseCompareResponder } from '../../responders/siegelense/compare/siegelense-compare-responder';
 import { compareArgsParseTransformer } from '../../transformers/compare-args-parse/compare-args-parse-transformer';
@@ -22,7 +20,7 @@ export const SiegelenseCompareLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const parsed = compareArgsParseTransformer({ args: callArgs });
   return SiegelenseCompareResponder({ query: parsed, isJson: parsed.isJson });
 };

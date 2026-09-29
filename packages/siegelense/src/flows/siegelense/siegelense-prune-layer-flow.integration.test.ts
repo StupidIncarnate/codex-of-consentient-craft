@@ -21,7 +21,7 @@
  *
  * USAGE:
  * await SiegelensePruneLayerFlow({ callArgs: ['--kind', 'shot', '--older-than', '0s'] });
- * // Deletes every shot past the window and returns { success: true }
+ * // Deletes every shot past the window and resolves with nothing
  */
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
@@ -512,7 +512,7 @@ describe('SiegelensePruneLayerFlow', () => {
         relativePath: RelativePathStub({ value: LOG_KIND_VIDEO_PATH }),
       });
 
-      expect(logKindResult).toStrictEqual({ success: true });
+      expect(logKindResult).toBe(undefined);
       expect(logAfter).toBe(null);
       // console.jsonl is a per-instance capture buffer, not a Claude-style session transcript — it
       // classifies as `log`, the same as api-server.log, and goes with it.
@@ -535,7 +535,7 @@ describe('SiegelensePruneLayerFlow', () => {
         relativePath: RelativePathStub({ value: SHOT_KIND_VIDEO_PATH }),
       });
 
-      expect(shotKindResult).toStrictEqual({ success: true });
+      expect(shotKindResult).toBe(undefined);
       expect(logAfter).toBe(KIND_LOG_BODY);
       expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(null);
@@ -556,7 +556,7 @@ describe('SiegelensePruneLayerFlow', () => {
         relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_VIDEO_PATH }),
       });
 
-      expect(transcriptKindResult).toStrictEqual({ success: true });
+      expect(transcriptKindResult).toBe(undefined);
       expect(logAfter).toBe(KIND_LOG_BODY);
       expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
@@ -577,7 +577,7 @@ describe('SiegelensePruneLayerFlow', () => {
         relativePath: RelativePathStub({ value: VIDEO_KIND_VIDEO_PATH }),
       });
 
-      expect(videoKindResult).toStrictEqual({ success: true });
+      expect(videoKindResult).toBe(undefined);
       expect(logAfter).toBe(KIND_LOG_BODY);
       expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
@@ -600,7 +600,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
 
     it('VALID: {--instance the video-default instance, --kind video, no --older-than} => the sweep itself succeeds', () => {
-      expect(videoDefaultWindowResult).toStrictEqual({ success: true });
+      expect(videoDefaultWindowResult).toBe(undefined);
     });
 
     it('VALID: {the same sweep} => the 3-day-old video survives on disk, byte for byte — proof the default is 7d, since a 2d window would have taken it', () => {
@@ -726,9 +726,11 @@ describe('SiegelensePruneLayerFlow', () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
-      const result = await SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(NO_CONFIRM_ID), '--older-than', '0s'],
-      });
+      await expect(
+        SiegelensePruneLayerFlow({
+          callArgs: ['--instance', String(NO_CONFIRM_ID), '--older-than', '0s'],
+        }),
+      ).resolves.toBe(undefined);
 
       const writes = stdoutSpy
         .callsMatching([])
@@ -746,7 +748,6 @@ describe('SiegelensePruneLayerFlow', () => {
         (entry) => String(entry.id) === String(NO_CONFIRM_ID),
       );
 
-      expect(result).toStrictEqual({ success: true });
       expect(after).toBe(NO_CONFIRM_LOG_BODY);
       expect(rowAfter?.state).toBe('killed');
       expect(String(writes[0])).toBe(
@@ -757,15 +758,16 @@ describe('SiegelensePruneLayerFlow', () => {
 
   describe('prune with --confirm', () => {
     it('VALID: {--instance a killed instance, --older-than 0s, --confirm} => the file is genuinely removed from disk', async () => {
-      const result = await SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(CONFIRM_ID), '--older-than', '0s', '--confirm'],
-      });
+      await expect(
+        SiegelensePruneLayerFlow({
+          callArgs: ['--instance', String(CONFIRM_ID), '--older-than', '0s', '--confirm'],
+        }),
+      ).resolves.toBe(undefined);
 
       const after = testbed.readFile({
         relativePath: RelativePathStub({ value: CONFIRM_LOG_PATH }),
       });
 
-      expect(result).toStrictEqual({ success: true });
       expect(after).toBe(null);
     });
   });

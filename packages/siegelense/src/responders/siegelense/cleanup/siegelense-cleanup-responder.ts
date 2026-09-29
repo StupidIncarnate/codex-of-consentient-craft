@@ -15,8 +15,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { cleanupRunBroker } from '../../../brokers/cleanup/run/cleanup-run-broker';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -28,12 +26,11 @@ export const SiegelenseCleanupResponder = async (
   }: {
     isJson?: boolean;
   } = { isJson: false },
-): Promise<AdapterResult> => {
+): Promise<void> => {
   const answer = await cleanupRunBroker();
   stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : cleanupAnswerRenderTransformer({ answer }),
   );
-  return adapterResultContract.parse({ success: true });
 };

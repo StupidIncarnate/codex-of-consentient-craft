@@ -13,13 +13,14 @@ describe('SiegelensePruneResponder', () => {
       const answer = PruneAnswerStub();
       proxy.stageAnswer({ answer });
 
-      const result = await SiegelensePruneResponder({
-        query: PruneQueryStub(),
-        isJson: true,
-        confirm: true,
-      });
+      await expect(
+        SiegelensePruneResponder({
+          query: PruneQueryStub(),
+          isJson: true,
+          confirm: true,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
@@ -49,9 +50,10 @@ describe('SiegelensePruneResponder', () => {
       const proxy = SiegelensePruneResponderProxy();
       proxy.stageAnswer({ answer: PruneAnswerStub() });
 
-      const result = await SiegelensePruneResponder({ query: PruneQueryStub(), confirm: true });
+      await expect(
+        SiegelensePruneResponder({ query: PruneQueryStub(), confirm: true }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'FREED: 4100MB (4299161600 bytes)\n' +
           'REMOVED: inst_9b2c (everything, 4100MB, 4299161600 bytes, tombstoned)\n' +
@@ -64,13 +66,14 @@ describe('SiegelensePruneResponder', () => {
       const proxy = SiegelensePruneResponderProxy();
       proxy.stageAnswer({ answer: PruneAnswerStub() });
 
-      const result = await SiegelensePruneResponder({
-        query: PruneQueryStub(),
-        isJson: false,
-        confirm: true,
-      });
+      await expect(
+        SiegelensePruneResponder({
+          query: PruneQueryStub(),
+          isJson: false,
+          confirm: true,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'FREED: 4100MB (4299161600 bytes)\n' +
           'REMOVED: inst_9b2c (everything, 4100MB, 4299161600 bytes, tombstoned)\n' +

@@ -13,8 +13,6 @@
  * // Boots an instance for that spec and writes its InstanceManifest to stdout
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import { SiegelenseStartResponder } from '../../responders/siegelense/start/siegelense-start-responder';
 import { startArgsParseTransformer } from '../../transformers/start-args-parse/start-args-parse-transformer';
 
@@ -22,5 +20,4 @@ export const SiegelenseStartLayerFlow = async ({
   callArgs,
 }: {
   callArgs: readonly string[];
-}): Promise<AdapterResult> =>
-  SiegelenseStartResponder(startArgsParseTransformer({ args: callArgs }));
+}): Promise<void> => SiegelenseStartResponder(startArgsParseTransformer({ args: callArgs }));

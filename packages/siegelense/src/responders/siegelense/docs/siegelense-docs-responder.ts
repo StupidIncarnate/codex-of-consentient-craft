@@ -25,8 +25,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { DocsScope } from '../../../contracts/docs-scope/docs-scope-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -39,7 +37,7 @@ export const SiegelenseDocsResponder = async ({
 }: {
   scope: DocsScope | null;
   isJson: boolean;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const answer = docsAnswerComposeTransformer({ scope });
 
   stdout.write(
@@ -48,5 +46,5 @@ export const SiegelenseDocsResponder = async ({
       : docsAnswerRenderTransformer({ answer }),
   );
 
-  return Promise.resolve(adapterResultContract.parse({ success: true }));
+  return Promise.resolve();
 };

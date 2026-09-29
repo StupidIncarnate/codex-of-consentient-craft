@@ -32,8 +32,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { statusReadBroker } from '../../../brokers/status/read/status-read-broker';
@@ -52,7 +50,7 @@ export const SiegelenseStatusResponder = async ({
   branch?: string | null | undefined;
   since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
   isJson?: boolean | undefined;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   if (instanceId !== null) {
     const registry = await registryReadBroker();
     const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
@@ -67,5 +65,4 @@ export const SiegelenseStatusResponder = async ({
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : statusAnswerRenderTransformer({ answer, instanceId, branch, since }),
   );
-  return adapterResultContract.parse({ success: true });
 };

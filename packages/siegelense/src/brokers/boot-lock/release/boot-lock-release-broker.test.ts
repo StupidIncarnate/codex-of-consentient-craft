@@ -12,9 +12,7 @@ describe('bootLockReleaseBroker', () => {
 
       proxy.setupNoLock();
 
-      const result = await bootLockReleaseBroker({ instanceId });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(bootLockReleaseBroker({ instanceId })).resolves.toBe(undefined);
     });
 
     it('EMPTY: {no boot.lock} => records no deletion', async () => {
@@ -69,9 +67,7 @@ describe('bootLockReleaseBroker', () => {
         acquiredAtMs: EpochMsStub(),
       });
 
-      const result = await bootLockReleaseBroker({ instanceId });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(bootLockReleaseBroker({ instanceId })).resolves.toBe(undefined);
     });
   });
 
@@ -103,9 +99,7 @@ describe('bootLockReleaseBroker', () => {
         acquiredAtMs: EpochMsStub(),
       });
 
-      const result = await bootLockReleaseBroker({ instanceId });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(bootLockReleaseBroker({ instanceId })).resolves.toBe(undefined);
     });
   });
 });

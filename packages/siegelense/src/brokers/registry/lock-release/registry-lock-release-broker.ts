@@ -11,17 +11,14 @@
  *
  * USAGE:
  * await registryLockReleaseBroker();
- * // Removes registry.lock, returns { success: true }
+ * // Removes registry.lock
  */
 
 import { unlink } from '#gateway/node/fs__promises';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export const registryLockReleaseBroker = async (): Promise<AdapterResult> => {
+export const registryLockReleaseBroker = async (): Promise<void> => {
   const lockPath = locationsRegistryLockPathFindBroker();
 
   await unlink(lockPath);
-
-  return { success: true };
 };

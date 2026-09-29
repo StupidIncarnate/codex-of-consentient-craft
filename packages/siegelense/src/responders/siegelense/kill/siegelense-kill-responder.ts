@@ -17,8 +17,6 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { instanceKillBroker } from '../../../brokers/instance/kill/instance-kill-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -33,7 +31,7 @@ export const SiegelenseKillResponder = async ({
 }: {
   instanceId: InstanceId;
   isJson?: boolean | undefined;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const registry = await registryReadBroker();
   const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
   if (!isKnownInstance) {
@@ -46,5 +44,4 @@ export const SiegelenseKillResponder = async ({
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : killAnswerRenderTransformer({ result }),
   );
-  return adapterResultContract.parse({ success: true });
 };

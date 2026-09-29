@@ -24,8 +24,8 @@
  */
 
 import { pid, stderr } from '#gateway/node/process';
-import { processIdContract, adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildId } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId } from '@dungeonmaster/shared/contracts';
 
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -40,7 +40,7 @@ export const driverHeartbeatTickBroker = async ({
   instanceId: InstanceId;
   guildId: GuildId | null;
   lane: LaneSession;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const heartbeat = await heartbeatWriteBroker({
     instanceId,
     pid: processIdContract.parse(String(pid)),
@@ -58,6 +58,4 @@ export const driverHeartbeatTickBroker = async ({
       `[heartbeat-tick] recording the profile sample for ${instanceId} failed, the beat itself stands: ${String(error)}\n`,
     );
   });
-
-  return adapterResultContract.parse({ success: true });
 };
