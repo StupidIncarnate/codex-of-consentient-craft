@@ -138,28 +138,32 @@ describe('eslintConfigFilterTransformer', () => {
   describe('pre-edit rules registered off by the host', () => {
     it("VALID: {pre-edit rule 'off'} => runs at 'error'", () => {
       const eslintConfig = LinterConfigStub({
-        rules: { '@dungeonmaster/ban-primitives': 'off' },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': 'off' },
       });
-      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/ban-jsx-outside-widgets-and-flows'],
+      });
 
       const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
 
       expect(result).toStrictEqual({
-        rules: { '@dungeonmaster/ban-primitives': 'error' },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': 'error' },
         files: ['**/*.ts', '**/*.tsx'],
       });
     });
 
     it('VALID: {pre-edit rule severity 0} => runs at error', () => {
       const eslintConfig = LinterConfigStub({
-        rules: { '@dungeonmaster/ban-primitives': 0 },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': 0 },
       });
-      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/ban-jsx-outside-widgets-and-flows'],
+      });
 
       const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
 
       expect(result).toStrictEqual({
-        rules: { '@dungeonmaster/ban-primitives': 'error' },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': 'error' },
         files: ['**/*.ts', '**/*.tsx'],
       });
     });
@@ -167,16 +171,21 @@ describe('eslintConfigFilterTransformer', () => {
     it("VALID: {pre-edit rule ['off', options]} => runs at 'error' with the options kept", () => {
       const eslintConfig = LinterConfigStub({
         rules: {
-          '@dungeonmaster/ban-primitives': ['off', { workspacePackageNames: ['shared', 'hooks'] }],
+          '@dungeonmaster/ban-jsx-outside-widgets-and-flows': [
+            'off',
+            { workspacePackageNames: ['shared', 'hooks'] },
+          ],
         },
       });
-      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/ban-jsx-outside-widgets-and-flows'],
+      });
 
       const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
 
       expect(result).toStrictEqual({
         rules: {
-          '@dungeonmaster/ban-primitives': [
+          '@dungeonmaster/ban-jsx-outside-widgets-and-flows': [
             'error',
             { workspacePackageNames: ['shared', 'hooks'] },
           ],
@@ -187,14 +196,16 @@ describe('eslintConfigFilterTransformer', () => {
 
     it("VALID: {pre-edit rule ['warn', options]} => host severity and options pass through", () => {
       const eslintConfig = LinterConfigStub({
-        rules: { '@dungeonmaster/ban-primitives': ['warn', { a: 1 }] },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': ['warn', { a: 1 }] },
       });
-      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/ban-jsx-outside-widgets-and-flows'],
+      });
 
       const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
 
       expect(result).toStrictEqual({
-        rules: { '@dungeonmaster/ban-primitives': ['warn', { a: 1 }] },
+        rules: { '@dungeonmaster/ban-jsx-outside-widgets-and-flows': ['warn', { a: 1 }] },
         files: ['**/*.ts', '**/*.tsx'],
       });
     });
@@ -213,7 +224,9 @@ describe('eslintConfigFilterTransformer', () => {
 
     it('EMPTY: {pre-edit rule the host does not register} => omitted', () => {
       const eslintConfig = LinterConfigStub({ rules: { 'no-console': 'error' } });
-      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+      const hookConfig = PreEditLintConfigStub({
+        rules: ['@dungeonmaster/ban-jsx-outside-widgets-and-flows'],
+      });
 
       const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
 
