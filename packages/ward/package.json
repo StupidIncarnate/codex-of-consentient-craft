@@ -53,5 +53,13 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "exports": {
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
+    }
   }
 }
