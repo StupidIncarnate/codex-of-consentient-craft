@@ -7,8 +7,7 @@
  */
 
 import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
-import type { AskUserQuestion } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestion, ChatEntry } from '@dungeonmaster/shared/contracts';
 
 const ASK_USER_QUESTION_TOOL = 'mcp__dungeonmaster__ask-user-question';
 
@@ -27,9 +26,7 @@ export const extractAskUserQuestionTransformer = ({
       entry.type === 'tool_use' &&
       entry.toolName === ASK_USER_QUESTION_TOOL
     ) {
-      const parsed: unknown = JSON.parse(entry.toolInput);
-
-      const result = askUserQuestionContract.safeParse(parsed);
+      const result = askUserQuestionContract.safeParse(JSON.parse(entry.toolInput));
 
       return result.success ? result.data : null;
     }

@@ -21,7 +21,7 @@ import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
-import { commentQueueEntryContract } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
+import { commentQueueStoredContract } from '../../contracts/comment-queue-stored/comment-queue-stored-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import { isSameCommentAnchorGuard } from '../../guards/is-same-comment-anchor/is-same-comment-anchor-guard';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
@@ -38,17 +38,14 @@ const state = {
     const raw = readItem({ key });
     if (raw === null) return [];
     try {
-      const parsed: unknown = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
-      // Array.from breaks the direct JSON.parse alias so the untyped-property-access lint rule
-      // sees a plain array copy here, not a member access straight off the parsed JSON — each
-      // element is still individually validated below via commentQueueEntryContract.safeParse.
-      const candidates = Array.from(parsed);
-      return candidates.reduce<CommentQueueEntry[]>((survivors, candidate) => {
-        const result = commentQueueEntryContract.safeParse(candidate);
-        if (result.success) survivors.push(result.data);
-        return survivors;
-      }, []);
+      // The stored contract validates each element on its own and nulls the ones that fail, so one
+      // bad entry never drops the rest of the queue.
+      return commentQueueStoredContract
+        .parse(JSON.parse(raw))
+        .reduce<CommentQueueEntry[]>((survivors, candidate) => {
+          if (candidate !== null) survivors.push(candidate);
+          return survivors;
+        }, []);
     } catch {
       return [];
     }

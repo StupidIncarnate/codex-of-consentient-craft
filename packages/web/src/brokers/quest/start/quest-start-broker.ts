@@ -32,15 +32,13 @@ export const questStartBroker = async ({
 
   // `fetchWithStatus` hands back the raw response text; a body that is not JSON parses as itself,
   // which the contract then rejects.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  const parsed = ((): ReturnType<typeof questStartResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return questStartResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return questStartResponseContract.safeParse(result.body);
     }
-  }
-  const parsed = questStartResponseContract.safeParse(parsedBody);
+  })();
 
   if (result.ok) {
     if (parsed.success && parsed.data.processId !== undefined) {

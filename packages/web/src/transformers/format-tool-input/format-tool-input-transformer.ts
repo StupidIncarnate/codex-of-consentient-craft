@@ -39,20 +39,15 @@ export const formatToolInputTransformer = ({
     return null;
   }
 
-  const rawParsed = ((): unknown => {
+  const parsedResult = ((): ReturnType<typeof parsedToolInputContract.safeParse> | null => {
     try {
-      return JSON.parse(toolInput) as unknown;
+      return parsedToolInputContract.safeParse(JSON.parse(toolInput));
     } catch {
-      return undefined;
+      return null;
     }
   })();
 
-  if (typeof rawParsed !== 'object' || rawParsed === null || Array.isArray(rawParsed)) {
-    return null;
-  }
-
-  const parsedResult = parsedToolInputContract.safeParse(rawParsed);
-  if (!parsedResult.success) {
+  if (!parsedResult?.success) {
     return null;
   }
   const parsed = parsedResult.data;

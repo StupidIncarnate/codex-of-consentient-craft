@@ -45,15 +45,13 @@ export const questCommentBatchBroker = async ({
   // `fetchWithStatus`'s own body is always the raw response text, never parsed — the old
   // `fetchPostWithStatusAdapter` did this same JSON-parse-with-raw-text-fallback centrally; it is
   // now this caller's own job.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  const parsed = ((): ReturnType<typeof commentBatchResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return commentBatchResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return commentBatchResponseContract.safeParse(result.body);
     }
-  }
-  const parsed = commentBatchResponseContract.safeParse(parsedBody);
+  })();
 
   if (result.ok) {
     if (parsed.success && parsed.data.chatProcessId !== undefined) {

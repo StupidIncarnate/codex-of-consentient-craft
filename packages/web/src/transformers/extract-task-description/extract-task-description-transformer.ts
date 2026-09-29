@@ -24,8 +24,7 @@ export const extractTaskDescriptionTransformer = ({
   }
 
   try {
-    const parsed: unknown = JSON.parse(String(entry.toolInput));
-    const result = taskToolInputContract.safeParse(parsed);
+    const result = taskToolInputContract.safeParse(JSON.parse(String(entry.toolInput)));
 
     if (!result.success || result.data.description.length === 0) {
       return FALLBACK_DESCRIPTION;

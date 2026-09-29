@@ -58,17 +58,15 @@ export const questNewBroker = async ({
     },
   });
 
-  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
-  // itself, which the contract then rejects.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON is parsed as
+  // its raw text, which the contract then rejects.
+  const parsed = ((): ReturnType<typeof questNewResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return questNewResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return questNewResponseContract.safeParse(result.body);
     }
-  }
-  const parsed = questNewResponseContract.safeParse(parsedBody);
+  })();
 
   if (result.ok) {
     if (

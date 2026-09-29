@@ -10,7 +10,6 @@
  * // Returns { chatProcessId } on success; throws the server's exact rejection text otherwise
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type {
   PastedImageUpload,
   ProcessId,
@@ -21,7 +20,7 @@ import type {
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
 import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
-import { errorBodyContract } from '../../../contracts/error-body/error-body-contract';
+import { questChatResponseContract } from '../../../contracts/quest-chat-response/quest-chat-response-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -51,31 +50,24 @@ export const questChatBroker = async ({
 
   // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
   // itself, which the contracts below then reject.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  const parsed = ((): ReturnType<typeof questChatResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return questChatResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return questChatResponseContract.safeParse(result.body);
     }
-  }
+  })();
 
   if (result.ok) {
-    const chatProcessIdValue =
-      typeof parsedBody === 'object' && parsedBody !== null && 'chatProcessId' in parsedBody
-        ? parsedBody.chatProcessId
-        : undefined;
-    const parsed = processIdContract.safeParse(chatProcessIdValue);
-    if (parsed.success) {
-      return { chatProcessId: parsed.data };
+    if (parsed.success && parsed.data.chatProcessId !== undefined) {
+      return { chatProcessId: parsed.data.chatProcessId };
     }
     // A 200 carrying no usable chatProcessId is a broken server contract, not a success.
     throw new Error(`POST ${url} returned 200 with no chatProcessId`);
   }
 
-  const errorParsed = errorBodyContract.safeParse(parsedBody);
-  if (errorParsed.success) {
-    throw new Error(errorParsed.data.error);
+  if (parsed.success && parsed.data.error !== undefined) {
+    throw new Error(parsed.data.error);
   }
   throw new Error(`POST ${url} failed with status ${result.status}`);
 };

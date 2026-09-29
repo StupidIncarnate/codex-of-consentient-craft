@@ -22,15 +22,15 @@ export const parseToolResultDisplayTransformer = ({
 }: {
   content: string;
 }): ToolResultPart[] | null => {
-  const rawParsed = ((): unknown => {
+  const parsedResult = ((): ReturnType<typeof parsedToolResultContract.safeParse> | null => {
     try {
-      return JSON.parse(content) as unknown;
+      return parsedToolResultContract.safeParse(JSON.parse(content));
     } catch {
-      return undefined;
+      return null;
     }
   })();
 
-  if (typeof rawParsed !== 'object' || rawParsed === null || Array.isArray(rawParsed)) {
+  if (!parsedResult?.success) {
     if (!isMarkdownContentGuard({ content })) {
       return null;
     }
@@ -38,10 +38,6 @@ export const parseToolResultDisplayTransformer = ({
     return [toolResultPartContract.parse({ kind: 'markdown', source: content })];
   }
 
-  const parsedResult = parsedToolResultContract.safeParse(rawParsed);
-  if (!parsedResult.success) {
-    return null;
-  }
   const parsed = parsedResult.data;
 
   const fields = Object.keys(parsed).map((key) => {

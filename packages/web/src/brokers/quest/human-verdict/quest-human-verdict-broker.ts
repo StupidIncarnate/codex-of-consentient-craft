@@ -36,15 +36,13 @@ export const questHumanVerdictBroker = async ({
 
   // `fetchWithStatus` hands back the raw response text; a body that is not JSON parses as itself,
   // which the contract then rejects.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  const parsed = ((): ReturnType<typeof humanVerdictResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return humanVerdictResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return humanVerdictResponseContract.safeParse(result.body);
     }
-  }
-  const parsed = humanVerdictResponseContract.safeParse(parsedBody);
+  })();
 
   if (result.ok && parsed.success && parsed.data.ok === true) {
     return { ok: true };

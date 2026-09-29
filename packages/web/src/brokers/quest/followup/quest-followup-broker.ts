@@ -48,17 +48,15 @@ export const questFollowupBroker = async ({
     },
   });
 
-  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
-  // itself, which the contract then rejects.
-  let parsedBody: unknown = null;
-  if (result.body.length > 0) {
+  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON is parsed as
+  // its raw text, which the contract then rejects.
+  const parsed = ((): ReturnType<typeof questFollowupResponseContract.safeParse> => {
     try {
-      parsedBody = JSON.parse(result.body) as unknown;
+      return questFollowupResponseContract.safeParse(JSON.parse(result.body));
     } catch {
-      parsedBody = result.body;
+      return questFollowupResponseContract.safeParse(result.body);
     }
-  }
-  const parsed = questFollowupResponseContract.safeParse(parsedBody);
+  })();
 
   if (result.ok) {
     if (parsed.success && parsed.data.chatProcessId !== undefined) {
