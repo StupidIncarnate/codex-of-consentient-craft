@@ -1,0 +1,44 @@
+{
+ "brand": "QuestWorkItemId",
+ "owner": "packages/shared/src/contracts/work-item/work-item-contract.ts",
+ "key": "id",
+ "newText": "WorkItemId",
+ "group": [
+  "packages/orchestrator/src/contracts/work-item-id/work-item-id-contract.ts",
+  "packages/shared/src/contracts/quest-work-item-id/quest-work-item-id-contract.ts"
+ ],
+ "stats": {
+  "userFiles": 217,
+  "valueRefs": 55,
+  "typeRefs": 106,
+  "inlineCopies": 2,
+  "getters": 0,
+  "localConst": 1
+ },
+ "retypeOnly": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "withRewriter": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "leftovers": {
+  "localOwnerName": [],
+  "cyclePlain": [],
+  "gettersSkipped": [],
+  "noImportPath": [],
+  "ownerSelf": [],
+  "remainingRefs": [
+   "packages/shared/src/contracts/quest-work-item-id/quest-work-item-id.stub.ts:3 QuestWorkItemId type QuestWorkItemId = ReturnType<typeof workItemContract.shape.id.parse>;",
+   "packages/shared/src/contracts/quest-work-item-id/quest-work-item-id.stub.ts:7 QuestWorkItemId QuestWorkItemId"
+  ],
+  "rewriter": [],
+  "notes": [
+   "schema differs: WorkItemId (z.string().min(1)) versus QuestWorkItemId (z.uuid()); every use now takes the owner's check"
+  ]
+ },
+ "standing": []
+}

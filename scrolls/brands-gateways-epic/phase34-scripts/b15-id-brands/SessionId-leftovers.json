@@ -1,0 +1,40 @@
+{
+ "brand": "SessionId",
+ "owner": "packages/shared/src/contracts/session/session-contract.ts",
+ "key": "id",
+ "newText": "SessionId",
+ "group": [
+  "packages/shared/src/contracts/session-id/session-id-contract.ts"
+ ],
+ "stats": {
+  "userFiles": 226,
+  "valueRefs": 49,
+  "typeRefs": 159,
+  "inlineCopies": 12,
+  "getters": 0,
+  "localConst": 0
+ },
+ "retypeOnly": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "withRewriter": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "leftovers": {
+  "localOwnerName": [],
+  "cyclePlain": [],
+  "gettersSkipped": [],
+  "noImportPath": [],
+  "ownerSelf": [],
+  "remainingRefs": [],
+  "rewriter": [],
+  "notes": [
+   "new owner packages/shared/src/contracts/session/session-contract.ts holds only `id`: table 2.4 names further fields for it, added by hand"
+  ]
+ },
+ "standing": []
+}

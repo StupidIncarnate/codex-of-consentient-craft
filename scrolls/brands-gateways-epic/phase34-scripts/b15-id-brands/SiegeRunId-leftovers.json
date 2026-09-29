@@ -1,0 +1,42 @@
+{
+ "brand": "SiegeRunId",
+ "owner": "packages/shared/src/contracts/siege-run/siege-run-contract.ts",
+ "key": "id",
+ "newText": "SiegeRunId",
+ "group": [
+  "packages/siegelense/src/contracts/run-id/run-id-contract.ts",
+  "packages/shared/src/contracts/siege-run-id/siege-run-id-contract.ts"
+ ],
+ "stats": {
+  "userFiles": 99,
+  "valueRefs": 29,
+  "typeRefs": 32,
+  "inlineCopies": 0,
+  "getters": 0,
+  "localConst": 0
+ },
+ "retypeOnly": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "withRewriter": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "leftovers": {
+  "localOwnerName": [],
+  "cyclePlain": [],
+  "gettersSkipped": [],
+  "noImportPath": [],
+  "ownerSelf": [],
+  "remainingRefs": [],
+  "rewriter": [],
+  "notes": [
+   "schema differs: RunId (z.string().regex(new RegExp(`^${instanceLifecycleStatics.ids.runPrefix}[1-9][0-9]*$`, 'u'))) versus SiegeRunId (z.string().regex(/^run_[1-9][0-9]*$/u, 'Siege run id must look like \"run_\" followed by a positive integer with no leading zero, e.g. \"run_2\"',)); every use now takes the owner's check",
+   "new owner packages/shared/src/contracts/siege-run/siege-run-contract.ts holds only `id`: table 2.4 names further fields for it, added by hand"
+  ]
+ },
+ "standing": []
+}

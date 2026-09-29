@@ -1,0 +1,66 @@
+{
+ "brand": "QuestId",
+ "owner": "packages/shared/src/contracts/quest/quest-contract.ts",
+ "key": "id",
+ "newText": "QuestId",
+ "group": [
+  "packages/shared/src/contracts/quest-id/quest-id-contract.ts"
+ ],
+ "stats": {
+  "userFiles": 588,
+  "valueRefs": 79,
+  "typeRefs": 629,
+  "inlineCopies": 11,
+  "getters": 0,
+  "localConst": 0
+ },
+ "retypeOnly": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "withRewriter": {
+  "total": 0,
+  "per": {},
+  "kinds": []
+ },
+ "leftovers": {
+  "localOwnerName": [
+   "packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/src/brokers/smoketest/post-terminal-listener/process-terminal-event-layer-broker.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/src/brokers/smoketest/teardown-quest/smoketest-teardown-quest-broker.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/src/responders/orchestration/startup-recovery/recover-guild-layer-responder.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/src/startup/start-orchestrator.proxy.ts: Quest is declared locally",
+   "packages/orchestrator/test/harnesses/orchestration-quest/orchestration-quest.harness.ts: Quest is declared locally",
+   "packages/server/src/brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy.ts: Quest is declared locally",
+   "packages/server/src/brokers/session/list/session-list-broker.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/abandon/quest-abandon-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/chat/quest-chat-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/clarify/quest-clarify-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/comment-batch/quest-comment-batch-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/delete/quest-delete-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/followup/quest-followup-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/get/quest-get-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/merge/quest-merge-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/pause/quest-pause-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/resume/quest-resume-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/quest/start/quest-start-responder.proxy.ts: Quest is declared locally",
+   "packages/server/src/responders/server/init/server-init-responder.proxy.ts: Quest is declared locally"
+  ],
+  "cyclePlain": [],
+  "gettersSkipped": [],
+  "noImportPath": [],
+  "ownerSelf": [],
+  "remainingRefs": [
+   "packages/orchestrator/src/brokers/quest/hydrate/quest-hydrate-broker.proxy.ts:30 QuestId type QuestId = ReturnType<typeof QuestIdStub>;",
+   "packages/orchestrator/src/brokers/quest/hydrate/quest-hydrate-broker.proxy.ts:35 QuestId QuestId",
+   "packages/orchestrator/src/brokers/quest/hydrate/quest-hydrate-broker.proxy.ts:51 QuestId QuestId",
+   "packages/shared/src/contracts/quest-id/quest-id.stub.ts:3 QuestId type QuestId = ReturnType<typeof questContract.shape.id.parse>;",
+   "packages/shared/src/contracts/quest-id/quest-id.stub.ts:5 QuestId QuestId"
+  ],
+  "rewriter": [],
+  "notes": []
+ },
+ "standing": []
+}
