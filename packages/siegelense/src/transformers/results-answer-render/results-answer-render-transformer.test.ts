@@ -61,6 +61,67 @@ describe('resultsAnswerRenderTransformer', () => {
     });
   });
 
+  describe('box and seed step readings', () => {
+    it('VALID: {box step row} => geometry line, not raw JSON', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({
+              step: 3,
+              verb: 'box',
+              reading: JSON.stringify({
+                ref: 24,
+                x: 472,
+                y: 351,
+                width: 260,
+                height: 36,
+                viewport: { width: 1280, height: 720 },
+                visible: true,
+                inViewport: true,
+              }),
+            }),
+          }),
+        ],
+      });
+
+      expect(resultsAnswerRenderTransformer({ answer })).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\n' +
+          '[step 3] box: ref 24: 260×36 at (472, 351) — visible, in viewport (viewport 1280×720)\n',
+      );
+    });
+
+    it('VALID: {seed step row} => one line per binding, not the whole record', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({
+              step: 2,
+              verb: 'seed',
+              reading: JSON.stringify({
+                quest: {
+                  id: 'd4581716',
+                  title: 'Advancing quest',
+                  status: 'in_progress',
+                  flows: [{ id: 'f1' }],
+                },
+              }),
+            }),
+          }),
+        ],
+      });
+
+      expect(resultsAnswerRenderTransformer({ answer })).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\n' +
+          '[step 2] seed: SEEDED:\n' +
+          '  quest: d4581716 (title: Advancing quest, status: in_progress)\n',
+      );
+    });
+  });
+
   describe('stored return present', () => {
     it('VALID: {storedReturn, rows: []} => delegates to runAnswerRenderTransformer under instance header, with no readings appended', () => {
       const runResult = RunResultStub({ shots: [] });

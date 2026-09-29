@@ -19,7 +19,7 @@ import type { ContentText, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { InstanceManifest } from '../../contracts/instance-manifest/instance-manifest-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
-import { seedRowSummaryStatics } from '../../statics/seed-row-summary/seed-row-summary-statics';
+import { seedBindingLineTransformer } from '../seed-binding-line/seed-binding-line-transformer';
 
 const MS_PER_MINUTE = 60_000;
 
@@ -52,48 +52,9 @@ export const startAnswerRenderTransformer = ({
         ? ['SEEDED: (empty)']
         : [
             'SEEDED:',
-            ...seededEntries.map(([binding, value]) => {
-              if (typeof value === 'string') {
-                return `  ${binding}: ${value}`;
-              }
-              if (value === undefined) {
-                return `  ${binding}: -`;
-              }
-
-              const rowEntries = Object.entries(value);
-              const idEntry = seedRowSummaryStatics.primaryId.fieldOrder.reduce<
-                (typeof rowEntries)[0] | undefined
-              >((found, fieldName) => {
-                if (found !== undefined) {
-                  return found;
-                }
-                return rowEntries.find(
-                  ([key, fieldValue]) => key === fieldName && typeof fieldValue === 'string',
-                );
-              }, undefined);
-              const id = idEntry !== undefined && typeof idEntry[1] === 'string' ? idEntry[1] : '-';
-
-              const identityEntries = seedRowSummaryStatics.identity.fieldOrder.reduce<
-                typeof rowEntries
-              >((accumulated, fieldName) => {
-                if (accumulated.length >= seedRowSummaryStatics.identity.maxFields) {
-                  return accumulated;
-                }
-                const match = rowEntries.find(
-                  ([key, fieldValue]) => key === fieldName && typeof fieldValue === 'string',
-                );
-                return match === undefined ? accumulated : [...accumulated, match];
-              }, []);
-
-              const identitySuffix =
-                identityEntries.length === 0
-                  ? ''
-                  : ` (${identityEntries
-                      .map(([key, fieldValue]) => `${key}: ${String(fieldValue)}`)
-                      .join(', ')})`;
-
-              return `  ${binding}: ${id}${identitySuffix}`;
-            }),
+            ...seededEntries.map(([binding, value]) =>
+              seedBindingLineTransformer({ binding: contentTextContract.parse(binding), value }),
+            ),
           ];
 
   return contentTextContract.parse(

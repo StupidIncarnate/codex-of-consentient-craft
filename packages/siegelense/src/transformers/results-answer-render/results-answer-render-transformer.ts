@@ -22,6 +22,7 @@ import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ResultsAnswer } from '../../contracts/results-answer/results-answer-contract';
 import { networkBodyTrimTransformer } from '../network-body-trim/network-body-trim-transformer';
+import { stepReadingTextRenderTransformer } from '../step-reading-text-render/step-reading-text-render-transformer';
 import { runAnswerRenderTransformer } from '../run-answer-render/run-answer-render-transformer';
 
 export const resultsAnswerRenderTransformer = ({
@@ -70,7 +71,10 @@ export const resultsAnswerRenderTransformer = ({
             : typeof record.message === 'string'
               ? record.message
               : null;
-    const content = rawContent === null ? JSON.stringify(record) : rawContent;
+    const content =
+      rawContent === null
+        ? JSON.stringify(record)
+        : stepReadingTextRenderTransformer({ verb, reading: rawContent });
 
     if (step !== null && verb !== null) {
       return `[step ${step}] ${verb}: ${content}`;
