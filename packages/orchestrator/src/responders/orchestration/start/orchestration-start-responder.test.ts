@@ -172,15 +172,17 @@ describe('OrchestrationStartResponder', () => {
   // and the two assertions below are what would have caught the defect: nothing is spawned, and the
   // work that used to be spawned is on the ledger instead.
   describe('Start is a pure ledger transition — it spawns nothing and touches no git', () => {
-    it('VALID: {approved feature quest} => spawns ZERO child processes: no git, no npm, nothing', async () => {
+    // Nothing stages `child_process` here, so the unit-test I/O trap fails this test on any child
+    // process Start starts — git, npm, anything — even one the responder catches and swallows.
+    it('VALID: {approved feature quest} => spawns ZERO child processes and resolves the registered processId', async () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
 
-      await proxy.callResponder({ questId });
+      const processId = await proxy.callResponder({ questId });
 
-      expect(proxy.getSpawnedCommands()).toStrictEqual([]);
+      expect(processId).toBe(PROCESS_ID);
     });
 
     it('VALID: {approved feature quest, empty ledger} => the seeded relay OPENS with the riftcarver operation item, already in_progress', async () => {

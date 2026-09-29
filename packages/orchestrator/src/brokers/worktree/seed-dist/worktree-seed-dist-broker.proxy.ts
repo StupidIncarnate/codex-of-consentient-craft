@@ -1,12 +1,23 @@
+import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
 import { AbsoluteFilePathStub, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { copyRecursiveProxy } from '#gateway/bin/cp/copy-recursive/copy-recursive.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join } from '#gateway/node/path';
 
-const COPY_COMMAND = 'cp';
+// Every copy this broker makes is one package's `dist` onto its worktree twin, so both sides of the
+// address are the one structural fact every such path shares.
+const isDistPath = (value: unknown): boolean =>
+  typeof value === 'string' && value.endsWith('/dist');
+
+// A recorded cp call is `[{ command, args, cwd }]`; the tests read back only its argv.
+const copyArgsOf = (call: readonly unknown[]): unknown => {
+  const [spawned] = call;
+  return typeof spawned === 'object' && spawned !== null && 'args' in spawned
+    ? spawned.args
+    : undefined;
+};
 
 export const worktreeSeedDistBrokerProxy = (): {
   setupPackagesDirAbsent: (params: { repoRoot: AbsoluteFilePath }) => void;
@@ -24,12 +35,10 @@ export const worktreeSeedDistBrokerProxy = (): {
   setupCopyFails: (params: { output: string }) => void;
   getCopyArgs: () => unknown;
 } => {
+  CpNotInstalledErrorProxy();
   const isAccessibleProxy = pathExistsProxy();
   const readdirProxy = readdirEntriesSyncProxy();
-  const run = runProxy();
-  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
-  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
-  RunNotFoundErrorProxy();
+  const copyChild = copyRecursiveProxy();
   // `join` computes every source/target dist path purely from string arithmetic, and the setups
   // below describe their result by the REAL joined path, so the default stays a real passthrough
   // rather than staging every tuple individually.
@@ -86,13 +95,27 @@ export const worktreeSeedDistBrokerProxy = (): {
     },
 
     setupCopySucceeds: (): void => {
-      run.setupSuccess({ command: COPY_COMMAND, exitCode: 0, stdout: '', stderr: '' });
+      copyChild.returnsMatchingDestination({
+        sources: [isDistPath],
+        destination: isDistPath,
+        exitCode: 0,
+        output: '',
+      });
     },
 
     setupCopyFails: ({ output }: { output: string }): void => {
-      run.setupSuccess({ command: COPY_COMMAND, exitCode: 1, stdout: '', stderr: output });
+      copyChild.returnsMatchingDestination({
+        sources: [isDistPath],
+        destination: isDistPath,
+        exitCode: 1,
+        output,
+      });
     },
 
-    getCopyArgs: (): unknown => run.getCallsFor({ command: COPY_COMMAND }).at(-1),
+    getCopyArgs: (): unknown => {
+      const calls = copyChild.getCallsFor({ sources: [isDistPath], destination: isDistPath });
+      const last = calls.at(-1);
+      return last === undefined ? undefined : copyArgsOf(last);
+    },
   };
 };

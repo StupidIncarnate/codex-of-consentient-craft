@@ -1,3 +1,4 @@
+import { stderr } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
@@ -24,7 +25,7 @@ export const createTerminalHandlerLayerBrokerProxy = (): {
     },
     getProcessCallArgs: (): RecordedCalls => processProxy.getCallArgs(),
     silenceStderrAndCaptureLogs: (): { wroteRejectionLog: () => boolean } => {
-      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      const handle = registerSpyOn({ object: stderr, method: 'write' });
       // Every write must succeed regardless of content — this silences stderr wholesale
       // and records every call for the content-addressed lookup below.
       handle.calledWith([]).returns(true);

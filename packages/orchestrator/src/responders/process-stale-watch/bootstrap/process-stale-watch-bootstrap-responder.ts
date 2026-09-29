@@ -6,6 +6,7 @@
  * // Registers the watchdog. Subsequent calls are no-ops.
  */
 
+import { stderr } from '#gateway/node/process';
 import { processStaleWatchBroker } from '../../../brokers/process/stale-watch/process-stale-watch-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { processStaleWatchBootstrapState } from '../../../state/process-stale-watch-bootstrap/process-stale-watch-bootstrap-state';
@@ -26,9 +27,7 @@ export const ProcessStaleWatchBootstrapResponder = (): void => {
         pid === undefined
           ? 'pid:?'
           : `pid:${pid} alive=${alive === undefined ? '?' : String(alive)}`;
-      process.stderr.write(
-        `[dev] WARN stale  proc:${processId}  silentFor:${silentSec}s  ${pidPart}\n`,
-      );
+      stderr.write(`[dev] WARN stale  proc:${processId}  silentFor:${silentSec}s  ${pidPart}\n`);
     },
   });
 

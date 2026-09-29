@@ -134,6 +134,55 @@ describe('readFile', () => {
     });
   });
 
+  describe('fallback one-shot staging', () => {
+    it('VALID: {returnsOnceFallback twice, a predicate} => answers each read in the order staged', async () => {
+      const proxy = readFileProxy();
+      proxy.returnsOnceFallback({
+        path: (value) => String(value).endsWith('.json'),
+        contents: 'first',
+      });
+      proxy.returnsOnceFallback({
+        path: (value) => String(value).endsWith('.json'),
+        contents: 'second',
+      });
+
+      const results = [await readFile('/repo/a.json'), await readFile('/repo/b.json')];
+
+      expect(results).toStrictEqual(['first', 'second']);
+    });
+
+    it('VALID: {returns for one path, then returnsOnceFallback} => the exact stage answers its path; the fallback answers the other', async () => {
+      const proxy = readFileProxy();
+      proxy.returns({ path: '/repo/plan.json', contents: 'exact' });
+      proxy.returnsOnceFallback({
+        path: (value) => String(value).endsWith('.json'),
+        contents: 'fallback',
+      });
+
+      const results = [await readFile('/repo/plan.json'), await readFile('/repo/quest.json')];
+
+      expect(results).toStrictEqual(['exact', 'fallback']);
+    });
+
+    it('VALID: {returnsOnce and returnsOnceFallback for one path} => the exact one-shot answers first, then the fallback', async () => {
+      const proxy = readFileProxy();
+      proxy.returnsOnceFallback({ path: '/repo/quest.json', contents: 'fallback' });
+      proxy.returnsOnce({ path: '/repo/quest.json', contents: 'exact' });
+
+      const results = [await readFile('/repo/quest.json'), await readFile('/repo/quest.json')];
+
+      expect(results).toStrictEqual(['exact', 'fallback']);
+    });
+
+    it('ERROR: {throwsOnceFallback} => rejects the read with the staged error', async () => {
+      const proxy = readFileProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/repo/missing.json' });
+      proxy.throwsOnceFallback({ path: '/repo/missing.json', error });
+
+      await expect(readFile('/repo/missing.json')).rejects.toStrictEqual(error);
+    });
+  });
+
   describe('call inspection', () => {
     it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
       const proxy = readFileProxy();

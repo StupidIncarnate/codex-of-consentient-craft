@@ -160,10 +160,7 @@ describe('matchCandidatesLayerBroker', () => {
       const proxy = matchCandidatesLayerBrokerProxy();
       const questFilePath = FilePathStub({ value: `/home/guilds/${GUILD_A}/quests/q/quest.json` });
 
-      proxy.setupUnreadableCandidateFile({
-        questFilePath,
-        error: new Error('EACCES: permission denied'),
-      });
+      proxy.setupUnreadableCandidateFile({ questFilePath });
 
       const result = await matchCandidatesLayerBroker({
         candidates: [

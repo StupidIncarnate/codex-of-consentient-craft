@@ -7,6 +7,7 @@
  * // On every invocation delegates to processSyncEventLayerBroker with the injected callbacks.
  */
 
+import { stderr } from '#gateway/node/process';
 import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { processSyncEventLayerBroker } from './process-sync-event-layer-broker';
@@ -37,7 +38,7 @@ export const createSyncHandlerLayerBroker =
       updateEntryStatus,
       updateEntryActiveSession,
     }).catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[questQueueSyncListenerBroker] handler failed for quest ${questId}: ${String(error)}\n`,
       );
     });

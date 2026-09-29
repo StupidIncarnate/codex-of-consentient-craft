@@ -6,6 +6,7 @@
  * // Loops until all items complete, quest blocked, or waiting for user
  */
 
+import { stderr } from '#gateway/node/process';
 import { configResolveBroker } from '@dungeonmaster/config';
 import type {
   AdapterResult,
@@ -105,7 +106,7 @@ export const questOrchestrationLoopBroker = async ({
     workItems: quest.workItems,
   });
 
-  process.stderr.write(
+  stderr.write(
     `${orchestrationLoopSummaryTransformer({
       questId,
       questStatus: quest.status,
@@ -131,7 +132,7 @@ export const questOrchestrationLoopBroker = async ({
       currentStatus: quest.status,
       questType: quest.questType,
     });
-    process.stderr.write(
+    stderr.write(
       `[orchestration-loop] quest=${questId} decision: all work items terminal -> quest status ${newStatus}\n`,
     );
     if (newStatus !== quest.status) {
@@ -140,12 +141,12 @@ export const questOrchestrationLoopBroker = async ({
           input: { questId, status: newStatus } as ModifyQuestInput,
         });
         if (!transitionResult.success) {
-          process.stderr.write(
+          stderr.write(
             `[orchestration-loop] terminal transition to ${newStatus} failed for questId=${questId}: ${transitionResult.error ?? 'unknown error'}\n`,
           );
         }
       } catch (error: unknown) {
-        process.stderr.write(
+        stderr.write(
           `[orchestration-loop] terminal transition to ${newStatus} threw for questId=${questId}: ${String(error)}\n`,
         );
       }
@@ -154,7 +155,7 @@ export const questOrchestrationLoopBroker = async ({
   }
 
   if (questBlocked) {
-    process.stderr.write(
+    stderr.write(
       `[orchestration-loop] quest=${questId} decision: no ready items and none in flight -> blocking quest\n`,
     );
     try {
@@ -162,12 +163,12 @@ export const questOrchestrationLoopBroker = async ({
         input: { questId, status: 'blocked' } as ModifyQuestInput,
       });
       if (!transitionResult.success) {
-        process.stderr.write(
+        stderr.write(
           `[orchestration-loop] blocked transition failed for questId=${questId}: ${transitionResult.error ?? 'unknown error'}\n`,
         );
       }
     } catch (error: unknown) {
-      process.stderr.write(
+      stderr.write(
         `[orchestration-loop] blocked transition threw for questId=${questId}: ${String(error)}\n`,
       );
     }
@@ -178,7 +179,7 @@ export const questOrchestrationLoopBroker = async ({
     const runningCount = quest.workItems.filter((wi) =>
       isActiveWorkItemStatusGuard({ status: wi.status }),
     ).length;
-    process.stderr.write(
+    stderr.write(
       `[orchestration-loop] quest=${questId} decision: 0 ready, ${String(runningCount)} in flight -> waiting for active agents\n`,
     );
     return result;
@@ -190,7 +191,7 @@ export const questOrchestrationLoopBroker = async ({
   // items are left `pending` here — the loop must not touch their status.
   const chatReady = ready.filter((item) => isChatWorkItemRoleGuard({ role: item.role }));
   if (chatReady.length === 0) {
-    process.stderr.write(
+    stderr.write(
       `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via the dispatch loop; chat loop idle\n`,
     );
     return result;
@@ -244,7 +245,7 @@ export const questOrchestrationLoopBroker = async ({
     return result;
   }
 
-  process.stderr.write(
+  stderr.write(
     `[orchestration-loop] quest=${questId} decision: dispatching ${roleName} (${firstItem.id})\n`,
   );
 
@@ -262,7 +263,7 @@ export const questOrchestrationLoopBroker = async ({
     } as ModifyQuestInput,
   });
   if (!inProgressMarkResult.success) {
-    process.stderr.write(
+    stderr.write(
       `[orchestration-loop] marking ${roleName} work item(s) in_progress failed for questId=${questId}: ${inProgressMarkResult.error ?? 'unknown error'}\n`,
     );
   }

@@ -1,17 +1,12 @@
-import { readFile } from 'fs/promises';
 import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const matchCandidatesLayerBrokerProxy = (): {
   setupCandidateFile: (params: { questFilePath: FilePath; contents: FileContents }) => void;
   setupCandidateFileOnce: (params: { questFilePath: FilePath; contents: FileContents }) => void;
-  setupUnreadableCandidateFile: (params: { questFilePath: FilePath; error: Error }) => void;
+  setupUnreadableCandidateFile: (params: { questFilePath: FilePath }) => void;
 } => {
-  // The gateway proxy is composed first, so the raw handle below shares its staging. It has no
-  // addressed one-shot, and the gateway's `readFile` wrapper calls this same raw function.
-  readFileProxy();
-  const readFileHandle = registerMock({ fn: readFile });
+  const readFileChild = readFileProxy();
 
   return {
     setupCandidateFile: ({
@@ -21,7 +16,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath: FilePath;
       contents: FileContents;
     }): void => {
-      readFileHandle.calledWith([questFilePath]).resolves(contents);
+      readFileChild.returns({ path: questFilePath, contents });
     },
 
     // Queues ONE addressed read of this path instead of answering every read of it. A parent
@@ -34,17 +29,11 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath: FilePath;
       contents: FileContents;
     }): void => {
-      readFileHandle.onceFor([questFilePath]).resolves(contents);
+      readFileChild.returnsOnce({ path: questFilePath, contents });
     },
 
-    setupUnreadableCandidateFile: ({
-      questFilePath,
-      error,
-    }: {
-      questFilePath: FilePath;
-      error: Error;
-    }): void => {
-      readFileHandle.calledWith([questFilePath]).rejects(error);
+    setupUnreadableCandidateFile: ({ questFilePath }: { questFilePath: FilePath }): void => {
+      readFileChild.denied({ path: questFilePath });
     },
   };
 };

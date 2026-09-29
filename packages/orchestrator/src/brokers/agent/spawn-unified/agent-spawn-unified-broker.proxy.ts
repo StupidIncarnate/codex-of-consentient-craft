@@ -1,10 +1,9 @@
+import { setImmediate } from '#gateway/node/setImmediate';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { createInterface } from 'readline';
 
 import { agentSpawnStreamJsonBrokerProxy } from '../spawn-stream-json/agent-spawn-stream-json-broker.proxy';
 
@@ -35,26 +34,16 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   claudeLineNormalizeBrokerProxy();
-  lineReaderProxy();
+  const lineReader = lineReaderProxy();
   stderrProxy();
   const spawnProxy = agentSpawnStreamJsonBrokerProxy();
 
-  // `createInterface` is one shared handle: the file tailer's proxy stages it for its own
-  // fabricated stream. This answers only for a stdout or stderr the spawn proxy handed out, and the reader
-  // behind it is the real one — the lines a test pushes onto stdout are what the broker reads.
-  // The raw `readline` import is deliberate: registerMock keys a mock by the module a function is
-  // imported from, and the file tailer's proxy stages the raw module's `createInterface`, which
-  // `#gateway/node/readline`'s re-export does not share.
-  const realReadline = requireActual<{ createInterface: typeof createInterface }>({
-    module: 'readline',
-  });
-  const interfaceMock = registerMock({ fn: createInterface });
-  interfaceMock
-    .calledWith([{ input: spawnProxy.isSpawnedStdout }])
-    .implement((options: never) => realReadline.createInterface(options));
-  interfaceMock
-    .calledWith([{ input: spawnProxy.isSpawnedStderr }])
-    .implement((options: never) => realReadline.createInterface(options));
+  // The reader behind a spawned stdout or stderr is the real one — the lines a test pushes onto
+  // stdout are what the broker reads. Staged by every method that arms a spawn.
+  const stageSpawnedReaders = (): void => {
+    lineReader.passesThroughFor({ input: spawnProxy.isSpawnedStdout });
+    lineReader.passesThroughFor({ input: spawnProxy.isSpawnedStderr });
+  };
 
   return {
     setupSpawnAndEmitLines: ({
@@ -64,6 +53,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       lines: readonly string[];
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
+      stageSpawnedReaders();
       const { mockProcess } = spawnProxy.setupSpawn();
 
       setImmediate(() => {
@@ -85,6 +75,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       error: Error;
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
+      stageSpawnedReaders();
       const { mockProcess } = spawnProxy.setupSpawn();
 
       setImmediate(() => {
@@ -105,6 +96,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       lines: readonly string[];
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
+      stageSpawnedReaders();
       spawnProxy.setupExitOnKill({
         exitCode: exitCode === null ? null : ExitCodeStub({ value: exitCode }),
       });
@@ -121,6 +113,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     },
 
     setupSpawnOnceLazy: (): void => {
+      stageSpawnedReaders();
       spawnProxy.setupSpawnLazy();
     },
 
@@ -133,10 +126,12 @@ export const agentSpawnUnifiedBrokerProxy = (): {
     },
 
     setupSuccessConfig: ({ exitCode }: Parameters<SpawnProxy['setupSuccess']>[0]): void => {
+      stageSpawnedReaders();
       spawnProxy.setupSuccess({ exitCode });
     },
 
     setAutoEmitLines: ({ lines }: { lines: readonly string[] }): void => {
+      stageSpawnedReaders();
       spawnProxy.setupAutoStdoutLines({ lines });
     },
 

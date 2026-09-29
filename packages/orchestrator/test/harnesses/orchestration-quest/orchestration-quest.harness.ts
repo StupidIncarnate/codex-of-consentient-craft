@@ -8,10 +8,11 @@
  * await quest.seedInProgressRelay({ questId, operations, workItems });
  * const step = await quest.scanNextStep();
  */
-import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { dirname as pathNodeDirname, resolve as pathResolve, join as pathNodeJoin } from 'path';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
+import { tmpdir } from '#gateway/node/os';
 
 import type {
   AbsoluteFilePath,
@@ -42,13 +43,12 @@ import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
 import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild-remove-responder';
 import { QuestUserAddResponder } from '../../../src/responders/quest/user-add/quest-user-add-responder';
-import { headSha } from '#gateway/bin/git';
+import { gitRun, headSha } from '#gateway/bin/git';
 import { questGetNextStepBroker } from '../../../src/brokers/quest/get-next-step/quest-get-next-step-broker';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
-import { run } from '#gateway/node/child_process';
-import { join } from '#gateway/node/path';
+import { dirname, join, resolve as pathResolve } from '#gateway/node/path';
 
 // The real fake-Claude-CLI binary lives in the web package's e2e harness (it records every
 // invocation's argv to prove --resume/-p mechanics for Playwright specs). Referencing its
@@ -237,36 +237,43 @@ export const orchestrationQuestHarness = (): {
     await questPersistBroker({ questFilePath, contents: questJson, questId });
   };
 
-  // Real committer identity + disabled GPG signing, scoped to the child process via env vars
-  // (not `-c` argv flags, not `git config` writes) so these throwaway test-fixture commits never
-  // depend on, or mutate, the developer's real global git config.
-  const gitCommitEnv = {
-    GIT_AUTHOR_NAME: 'Dungeonmaster Integration Test',
-    GIT_AUTHOR_EMAIL: 'integration-test@dungeonmaster.test',
-    GIT_COMMITTER_NAME: 'Dungeonmaster Integration Test',
-    GIT_COMMITTER_EMAIL: 'integration-test@dungeonmaster.test',
-    GIT_CONFIG_COUNT: '1',
-    GIT_CONFIG_KEY_0: 'commit.gpgsign',
-    GIT_CONFIG_VALUE_0: 'false',
-  };
-
   // Real git is expected on the machine running these integration tests, so a missing binary
-  // (RunNotFoundError) is left to throw rather than folded into a fake result — the same choice
+  // (GitNotInstalledError) is left to throw rather than folded into a fake result — the same choice
   // gitWorktreeFixtureHarness's own runGit makes for the identical wrapper.
   const runGit = async ({
     args,
     cwd,
-    env,
   }: {
     args: readonly string[];
     cwd: AbsoluteFilePath;
-    env?: Record<string, string>;
   }): Promise<void> => {
-    await run({
-      command: 'git',
-      args: [...args],
+    await gitRun({ args: [...args], cwd });
+  };
+
+  // Real committer identity + disabled GPG signing, as `-c` flags on the commit itself: they apply
+  // to that one git process only, so these throwaway test-fixture commits never depend on, or
+  // mutate, the developer's real global git config.
+  const commitAll = async ({
+    message,
+    cwd,
+  }: {
+    message: string;
+    cwd: AbsoluteFilePath;
+  }): Promise<void> => {
+    await runGit({ args: ['add', '-A'], cwd });
+    await runGit({
+      args: [
+        '-c',
+        'user.name=Dungeonmaster Integration Test',
+        '-c',
+        'user.email=integration-test@dungeonmaster.test',
+        '-c',
+        'commit.gpgsign=false',
+        'commit',
+        '-m',
+        message,
+      ],
       cwd,
-      ...(env === undefined ? {} : { env }),
     });
   };
 
@@ -277,9 +284,8 @@ export const orchestrationQuestHarness = (): {
   }): Promise<{ baseRef: GitBaseRef }> => {
     const cwd = absoluteFilePathContract.parse(String(repoPath));
     await runGit({ args: ['init'], cwd });
-    writeFileSync(pathNodeJoin(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
-    await runGit({ args: ['add', '-A'], cwd });
-    await runGit({ args: ['commit', '-m', 'base'], cwd, env: gitCommitEnv });
+    writeFileSync(join(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
+    await commitAll({ message: 'base', cwd });
     const rawSha = await headSha({ cwd });
     if (rawSha === null) {
       throw new Error(
@@ -299,18 +305,17 @@ export const orchestrationQuestHarness = (): {
   }): Promise<void> => {
     const cwd = absoluteFilePathContract.parse(String(repoPath));
     for (const file of files) {
-      const fullPath = pathNodeJoin(String(repoPath), String(file.relativePath));
-      mkdirSync(pathNodeDirname(fullPath), { recursive: true });
+      const fullPath = join(String(repoPath), String(file.relativePath));
+      mkdirSync(dirname(fullPath), { recursive: true });
       writeFileSync(fullPath, String(file.content));
     }
-    await runGit({ args: ['add', '-A'], cwd });
-    await runGit({ args: ['commit', '-m', 'changed files'], cwd, env: gitCommitEnv });
+    await commitAll({ message: 'changed files', cwd });
   };
 
   const readQuestFileRaw = async ({ questId }: { questId: QuestId }): Promise<FileContents> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
-    return fileContentsContract.parse(readFileSync(questFilePath, 'utf-8'));
+    return fileContentsContract.parse(readFileSync(questFilePath));
   };
 
   const loadByQuestId = async (params: { questId: QuestId }): Promise<Quest> => {
@@ -321,25 +326,25 @@ export const orchestrationQuestHarness = (): {
   };
 
   const configureFakeClaudeCli = (): { claudeQueueDir: FilePath; restore: () => void } => {
-    const claudeQueueDir = pathNodeJoin(tmpdir(), `claude-queue-${randomUUID()}`);
-    const savedCliPath = process.env.CLAUDE_CLI_PATH;
-    const savedQueueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
+    const claudeQueueDir = join(tmpdir(), `claude-queue-${randomUUID()}`);
+    const savedCliPath = getEnv('CLAUDE_CLI_PATH');
+    const savedQueueDir = getEnv('FAKE_CLAUDE_QUEUE_DIR');
 
-    process.env.CLAUDE_CLI_PATH = REAL_FAKE_CLAUDE_CLI_BIN;
-    process.env.FAKE_CLAUDE_QUEUE_DIR = claudeQueueDir;
+    setEnv('CLAUDE_CLI_PATH', REAL_FAKE_CLAUDE_CLI_BIN);
+    setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
       claudeQueueDir: filePathContract.parse(claudeQueueDir),
       restore: (): void => {
         if (savedCliPath === undefined) {
-          Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
+          deleteEnv('CLAUDE_CLI_PATH');
         } else {
-          process.env.CLAUDE_CLI_PATH = savedCliPath;
+          setEnv('CLAUDE_CLI_PATH', savedCliPath);
         }
         if (savedQueueDir === undefined) {
-          Reflect.deleteProperty(process.env, 'FAKE_CLAUDE_QUEUE_DIR');
+          deleteEnv('FAKE_CLAUDE_QUEUE_DIR');
         } else {
-          process.env.FAKE_CLAUDE_QUEUE_DIR = savedQueueDir;
+          setEnv('FAKE_CLAUDE_QUEUE_DIR', savedQueueDir);
         }
         rmSync(claudeQueueDir, { recursive: true, force: true });
       },
@@ -353,7 +358,7 @@ export const orchestrationQuestHarness = (): {
   const encodeCwdForFakeCli = (cwd: string) => cwd.replace(/[^A-Za-z0-9._-]/gu, '_');
 
   const readLastInvocation = (invocationsPath: string): unknown => {
-    const lines = readFileSync(invocationsPath, 'utf-8').trim().split('\n');
+    const lines = readFileSync(invocationsPath).trim().split('\n');
     return JSON.parse(lines[lines.length - 1] ?? '{}') as unknown;
   };
 
@@ -383,7 +388,7 @@ export const orchestrationQuestHarness = (): {
     cwd: string;
     timeoutMs: number;
   }): Promise<unknown> => {
-    const invocationsPath = pathNodeJoin(
+    const invocationsPath = join(
       String(claudeQueueDir),
       '__by_cwd__',
       encodeCwdForFakeCli(cwd),

@@ -25,6 +25,7 @@
  * // Returns immediately; the hold lands in orchestrationDispatchState once the scan resolves
  */
 
+import { stderr } from '#gateway/node/process';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { dispatchHoldEvaluateBroker } from '../../../brokers/dispatch-hold/evaluate/dispatch-hold-evaluate-broker';
@@ -80,7 +81,7 @@ export const EvaluateHoldLayerResponder = (): void => {
       orchestrationDispatchState.setHold({ hold });
     })
     .catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[rate-limits] dispatch hold evaluation failed: ${error instanceof Error ? error.message : String(error)}\n`,
       );
     });

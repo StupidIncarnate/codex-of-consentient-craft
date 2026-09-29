@@ -19,6 +19,7 @@ export const questDeleteBrokerProxy = (): {
   }) => void;
   setupRmFailure: (params: { error: FsError }) => void;
   getRmCallArgs: () => readonly unknown[][];
+  getAllRmCallArgs: () => readonly unknown[][];
   getAppendedContent: () => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
@@ -30,6 +31,10 @@ export const questDeleteBrokerProxy = (): {
     value: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
   });
   const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
+  // Every quest folder `setupQuestFolderPath` has staged on this instance, for a composer that
+  // deletes several quests in one call and reads every removal back together.
+  const stagedFolderPaths = new Set<unknown>();
+  const isStagedFolderPath = (value: unknown): boolean => stagedFolderPaths.has(value);
 
   return {
     setupQuestFolderPath: ({
@@ -44,6 +49,7 @@ export const questDeleteBrokerProxy = (): {
       questFolderPath: FilePath;
     }): void => {
       questFolderPathRef.value = questFolderPath;
+      stagedFolderPaths.add(questFolderPath);
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       // questDeleteBroker's own five-segment join, addressed by the exact tuple rather than an
       // address-less FIFO slot, so it can never answer a different broker's join call sharing
@@ -67,6 +73,10 @@ export const questDeleteBrokerProxy = (): {
 
     getRmCallArgs: (): readonly unknown[][] =>
       removeProxy.getCallsFor({ path: questFolderPathRef.value }),
+
+    // Every `rm` of any staged quest folder, in call order, as full `[path, options]` tuples.
+    getAllRmCallArgs: (): readonly unknown[][] =>
+      removeProxy.getCallsFor({ path: isStagedFolderPath }),
 
     getAppendedContent: (): unknown => outboxAppendProxy.getAppendedContent({ outboxFilePath }),
   };

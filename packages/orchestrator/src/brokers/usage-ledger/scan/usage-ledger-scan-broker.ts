@@ -17,6 +17,7 @@
  * // Returns the ledger as persisted after the scan
  */
 
+import { stderr } from '#gateway/node/process';
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
@@ -74,7 +75,7 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
     const cursor = ledger.cursors[rebuildTrigger.path];
     const condition =
       rebuildTrigger.size < (cursor?.size ?? 0) ? 'shrank' : 'mtime moved at an unchanged size';
-    process.stderr.write(
+    stderr.write(
       `[usage-ledger] full rebuild: ${rebuildTrigger.path} ${condition} (counted size=${String(cursor?.size)} mtimeMs=${String(cursor?.mtimeMs)}; on disk size=${String(rebuildTrigger.size)} mtimeMs=${String(rebuildTrigger.mtimeMs)})\n`,
     );
   }

@@ -65,6 +65,19 @@ describe('setInterval', () => {
     });
   });
 
+  describe('stageHandleFor', () => {
+    it('VALID: {stageHandleFor 5000} => the constructor stages that period; the call returns the staged handle', () => {
+      const stagedHandle = IntervalHandleStub();
+      const proxy = setIntervalProxy({ stageHandleFor: { ms: 5000, handle: stagedHandle } });
+      const callback = (): void => undefined;
+
+      const result = setInterval(callback, 5000);
+
+      expect(result).toBe(stagedHandle);
+      expect(proxy.getCallsFor({ ms: 5000 })).toStrictEqual([[callback, 5000]]);
+    });
+  });
+
   describe('getCallsFor', () => {
     it('VALID: {calls at 100, 900, 900} => reads back only the requested period, in call order', () => {
       const proxy = setIntervalProxy();

@@ -29,6 +29,9 @@
  * races the loop's first spawn; awaiting it blocks the caller until every initial override is in place.
  */
 
+import { AbortController } from '#gateway/node/AbortController';
+import { clearInterval } from '#gateway/node/clearInterval';
+import { setInterval } from '#gateway/node/setInterval';
 import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';

@@ -1,4 +1,4 @@
-import { stderr } from '#gateway/node/process';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   FilePathStub,
   questContract,
@@ -78,8 +78,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   // write() the SAME way (record + succeed) regardless of content, which is what `calledWith([])`
   // (the lowest-specificity, always-matching address) honestly describes. The loop never reads
   // write()'s return value, so the fixed `true` answer is inert.
-  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderrChild = stderrProxy();
 
   return {
     setupQuestTerminal: ({ quest }: { quest: QuestParam }): void => {
@@ -130,7 +129,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
 
     getAllPersistedQuests: (): readonly Quest[] => parsePersistedQuests({ modifyProxy }),
 
-    getStderrWrites: (): readonly unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStderrWrites: (): readonly unknown[] => stderrChild.getWrites(),
 
     findPersistedWorkItem: ({
       workItemId,

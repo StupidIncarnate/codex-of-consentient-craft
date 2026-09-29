@@ -1,4 +1,4 @@
-import { stderr } from '#gateway/node/process';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { DispatchHoldStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -43,8 +43,7 @@ export const EvaluateHoldLayerResponderProxy = (): {
 
   // The layer's failure path writes here and swallows the error; tests read these lines back
   // rather than letting a real stderr write escape into the run.
-  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderrChild = stderrProxy();
 
   registerSpyOn({ object: Date, method: 'now' })
     .calledWith([])
@@ -123,7 +122,7 @@ export const EvaluateHoldLayerResponderProxy = (): {
       evaluateProxy.setupWriteFailure();
     },
 
-    stderrLines: (): unknown => stderrSpy.callsMatching([]),
+    stderrLines: (): unknown => stderrChild.getWrites().map((chunk) => [chunk]),
 
     measureEvents: (): unknown[] => measured,
   };

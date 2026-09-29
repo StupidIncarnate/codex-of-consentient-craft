@@ -1,6 +1,5 @@
-import { stderr } from '#gateway/node/process';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { processSyncEventLayerBrokerProxy } from './process-sync-event-layer-broker.proxy';
 
@@ -14,6 +13,7 @@ export const createSyncHandlerLayerBrokerProxy = (): {
   };
 } => {
   const processProxy = processSyncEventLayerBrokerProxy();
+  const stderrChild = stderrProxy();
 
   return {
     reset: (): void => {
@@ -33,11 +33,10 @@ export const createSyncHandlerLayerBrokerProxy = (): {
       questId: QuestId;
       error: Error;
     }): { wroteRejectionLog: () => boolean } => {
-      const handle = registerSpyOn({ object: stderr, method: 'write' });
       const rejectionLog = `[questQueueSyncListenerBroker] handler failed for quest ${questId}: ${String(error)}\n`;
-      handle.calledWith([rejectionLog]).returns(true);
       return {
-        wroteRejectionLog: (): boolean => handle.callsMatching([rejectionLog]).length > 0,
+        wroteRejectionLog: (): boolean =>
+          stderrChild.getWrites().filter((chunk) => chunk === rejectionLog).length > 0,
       };
     },
   };

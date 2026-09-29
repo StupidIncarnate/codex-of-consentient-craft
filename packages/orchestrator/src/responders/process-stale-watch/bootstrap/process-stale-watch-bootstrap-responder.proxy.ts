@@ -1,5 +1,4 @@
-import { stderr } from '#gateway/node/process';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 import { processStaleWatchBrokerProxy } from '../../../brokers/process/stale-watch/process-stale-watch-broker.proxy';
 import type { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
@@ -34,8 +33,7 @@ export const ProcessStaleWatchBootstrapResponderProxy = (): {
   // composes the state's own proxy to seed a registered process for the tick to scan.
   const processesProxy = orchestrationProcessesStateProxy();
 
-  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderrChild = stderrProxy();
 
   return {
     triggerTick: watchProxy.triggerTick,
@@ -44,7 +42,7 @@ export const ProcessStaleWatchBootstrapResponderProxy = (): {
     reset: (): void => {
       bootstrapState.reset();
     },
-    stderrLines: (): unknown => stderrSpy.callsMatching([]),
+    stderrLines: (): unknown => stderrChild.getWrites().map((chunk) => [chunk]),
     registerProcess: ({
       orchestrationProcess,
     }: {

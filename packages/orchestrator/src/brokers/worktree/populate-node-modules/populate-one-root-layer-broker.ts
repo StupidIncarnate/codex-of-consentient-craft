@@ -49,22 +49,21 @@ import {
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { cpRun, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { ensureDir, pathExists, readlinkIfLink, symlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
 const NPM_SCOPE_PREFIX = '@';
 const VITE_CACHE_PREFIX = '.vite-';
-const COPY_COMMAND = 'cp';
 // `-a` archives — recursive, preserving mode, timestamps and symlinks VERBATIM. `-l` HARDLINKS
 // every regular file rather than copying its bytes, which keeps a worktree at ~20 MB and ~0.65s
 // instead of ~530 MB and ~6.6s.
 const COPY_HARDLINK_FLAGS = '-al';
 const COPY_GREEN_EXIT_CODE = 0;
-// A missing `cp` binary rejects `run` with RunNotFoundError rather than resolving a result — folded
-// into the same failed-run shape the old spawn-capture adapter resolved for an ENOENT, so the two
-// exit-code checks below still see a real (non-zero) result to report.
+// A missing `cp` binary rejects `cpRun` with CpNotInstalledError rather than resolving a result —
+// folded into a failed-run shape, so the two exit-code checks below still see a real (non-zero)
+// result to report.
 const RUN_NOT_FOUND_RESULT = { exitCode: 1, output: '', signal: null, timedOut: false } as const;
 
 export type WorktreeRootPair = Readonly<{
@@ -123,8 +122,7 @@ export const populateOneRootLayerBroker = async ({
     // ONE invocation for the whole set, because `cp` copies every source into a trailing
     // destination DIRECTORY. A root holds 500-odd of these, and spawning a process per entry would
     // cost several times what the hardlinking itself does.
-    const copied = await run({
-      command: COPY_COMMAND,
+    const copied = await cpRun({
       args: [
         COPY_HARDLINK_FLAGS,
         ...plainEntries.map((entry) => join(sourceNodeModules, entry.name)),
@@ -132,7 +130,7 @@ export const populateOneRootLayerBroker = async ({
       ],
       cwd: sourceRoot,
     }).catch((error: unknown) => {
-      if (!(error instanceof RunNotFoundError)) {
+      if (!(error instanceof CpNotInstalledError)) {
         throw error;
       }
       return RUN_NOT_FOUND_RESULT;
@@ -204,12 +202,11 @@ export const populateOneRootLayerBroker = async ({
           // Hardlinked like every other third-party package, NOT linked at the source copy: an
           // absolute link here is the shape `worktreeVerifyLinksBroker` refuses, because it points
           // the worktree's own dependency tree back at the main checkout.
-          const copiedChildren = await run({
-            command: COPY_COMMAND,
+          const copiedChildren = await cpRun({
             args: [COPY_HARDLINK_FLAGS, ...vendoredSources, entryTargetPath],
             cwd: sourceRoot,
           }).catch((error: unknown) => {
-            if (!(error instanceof RunNotFoundError)) {
+            if (!(error instanceof CpNotInstalledError)) {
               throw error;
             }
             return RUN_NOT_FOUND_RESULT;

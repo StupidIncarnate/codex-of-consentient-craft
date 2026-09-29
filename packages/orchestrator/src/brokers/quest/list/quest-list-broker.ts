@@ -45,6 +45,7 @@ import {
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readdirSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
 
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -82,7 +83,7 @@ export const questListBroker = async ({
         );
         if (lastReportedReason.get(reportKey) !== reason) {
           lastReportedReason.set(reportKey, reason);
-          process.stderr.write(
+          stderr.write(
             `[quest-list] skipping unloadable quest — ${reason} (repeats suppressed until this file changes)\n`,
           );
         }

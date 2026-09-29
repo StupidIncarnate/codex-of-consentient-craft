@@ -63,5 +63,39 @@ describe('questDeleteBroker', () => {
         `${JSON.stringify({ questId, timestamp: '2024-01-15T10:00:00.000Z' })}\n`,
       );
     });
+
+    it('VALID: {two quests deleted} => getAllRmCallArgs reads back both folder removals in call order', async () => {
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const firstId = QuestIdStub({ value: 'quest-a' });
+      const secondId = QuestIdStub({ value: 'quest-b' });
+      const firstFolder = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${firstId}`,
+      });
+      const secondFolder = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${secondId}`,
+      });
+      const proxy = questDeleteBrokerProxy();
+      proxy.setupQuestFolderPath({
+        homePath,
+        guildId,
+        questId: firstId,
+        questFolderPath: firstFolder,
+      });
+      proxy.setupQuestFolderPath({
+        homePath,
+        guildId,
+        questId: secondId,
+        questFolderPath: secondFolder,
+      });
+
+      await questDeleteBroker({ questId: secondId, guildId });
+      await questDeleteBroker({ questId: firstId, guildId });
+
+      expect(proxy.getAllRmCallArgs()).toStrictEqual([
+        [secondFolder, { recursive: true, force: true }],
+        [firstFolder, { recursive: true, force: true }],
+      ]);
+    });
   });
 });

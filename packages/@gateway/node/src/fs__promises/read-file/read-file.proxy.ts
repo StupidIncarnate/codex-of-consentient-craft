@@ -14,6 +14,8 @@ export const readFileProxy = (): {
   throwsMatchingPath: (params: { path: PathMatcher; error: FsError }) => void;
   returnsOnce: (params: { path: PathMatcher; contents: string }) => void;
   throwsOnce: (params: { path: PathMatcher; error: FsError }) => void;
+  returnsOnceFallback: (params: { path: PathMatcher; contents: string }) => void;
+  throwsOnceFallback: (params: { path: PathMatcher; error: FsError }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: readFile });
@@ -47,6 +49,16 @@ export const readFileProxy = (): {
     },
     throwsOnce: ({ path, error }: { path: PathMatcher; error: FsError }): void => {
       handle.onceFor([path, 'utf8']).rejects(error);
+    },
+    // One-shot stages addressed by the path alone, one argument short of the call's
+    // `[path, 'utf8']`: every exact and `...MatchingPath` stage (sticky or one-shot) outranks them,
+    // so a caller that queues reads for paths it cannot name never answers a read another proxy
+    // addressed exactly. Consumed in the order staged.
+    returnsOnceFallback: ({ path, contents }: { path: PathMatcher; contents: string }): void => {
+      handle.onceFor([path]).resolves(contents);
+    },
+    throwsOnceFallback: ({ path, error }: { path: PathMatcher; error: FsError }): void => {
+      handle.onceFor([path]).rejects(error);
     },
     getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
       handle.callsMatching([path]),

@@ -30,7 +30,7 @@ import {
   type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, projectMapStatics } from '@dungeonmaster/shared/statics';
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { copyRecursive, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
@@ -41,10 +41,6 @@ import { worktreeFailureDetailTransformer } from '../../../transformers/worktree
 
 const STEPS = worktreePrepareStepStatics.steps;
 
-const COPY_COMMAND = 'cp';
-// `-a` is archive: recursive, preserving mode, timestamps and symlinks. `-l` is deliberately NOT
-// here — see this file's header for why a hardlinked `dist` corrupts the main checkout.
-const COPY_ARCHIVE_FLAG = '-a';
 const COPY_GREEN_EXIT_CODE = 0;
 
 export const worktreeSeedDistBroker = async ({
@@ -114,18 +110,21 @@ export const worktreeSeedDistBroker = async ({
   // path inside the worktree, and `cp` has no form that maps N sources onto N distinct destinations.
   const copies = await Promise.all(
     missing.map(async (candidate) =>
-      run({
-        command: COPY_COMMAND,
-        args: [COPY_ARCHIVE_FLAG, candidate.sourceDist, candidate.targetDist],
+      // copyRecursive without `hardlink` is `cp -a` (archive: recursive, preserving mode,
+      // timestamps and symlinks). Hardlinking is deliberately NOT asked for — see this file's
+      // header for why a hardlinked `dist` corrupts the main checkout.
+      copyRecursive({
+        sources: [candidate.sourceDist],
+        destination: candidate.targetDist,
         cwd: repoRoot,
       }).catch((error: unknown) => {
-        if (!(error instanceof RunNotFoundError)) {
+        if (!(error instanceof CpNotInstalledError)) {
           throw error;
         }
-        // A missing `cp` binary rejects `run` with RunNotFoundError rather than resolving a
-        // result — folded into the same failed-run shape the old spawn-capture adapter resolved
-        // for an ENOENT, so the exit-code check right below still sees a real result to report.
-        return { exitCode: 1, output: '', signal: null, timedOut: false };
+        // A missing `cp` binary rejects with CpNotInstalledError rather than resolving a result —
+        // folded into a failed-run shape, so the exit-code check right below still sees a real
+        // result to report.
+        return { exitCode: 1, output: '' };
       }),
     ),
   );

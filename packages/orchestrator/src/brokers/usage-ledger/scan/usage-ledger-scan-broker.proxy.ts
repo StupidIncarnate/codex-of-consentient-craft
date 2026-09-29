@@ -1,4 +1,4 @@
-import { stderr } from '#gateway/node/process';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   AbsoluteFilePathStub,
   FilePathStub,
@@ -47,8 +47,7 @@ export const usageLedgerScanBrokerProxy = (): {
   usageLedgerReadBrokerProxy();
   usageLedgerWriteBrokerProxy();
 
-  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderrChild = stderrProxy();
 
   const readMock = usageLedgerReadBroker as jest.MockedFunction<typeof usageLedgerReadBroker>;
   const writeMock = usageLedgerWriteBroker as jest.MockedFunction<typeof usageLedgerWriteBroker>;
@@ -105,7 +104,7 @@ export const usageLedgerScanBrokerProxy = (): {
 
     getWrittenLedger: (): unknown => writeMock.mock.calls.at(-1)?.[0]?.ledger,
 
-    getStderrLines: (): readonly unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStderrLines: (): readonly unknown[] => stderrChild.getWrites(),
 
     setupScanEndsAt: ({ nowMs }: { nowMs: number }): void => {
       registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(nowMs);

@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
@@ -12,7 +13,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
-  registerSpyOn,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
@@ -40,9 +40,8 @@ export const questListBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const questLoadProxy = questLoadBrokerProxy();
   // The broker reports every skipped quest file on stderr. Capture it so test output stays
-  // clean and tests can assert on `process.stderr.write` that a skip is never silent.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).implement(() => true);
+  // clean and tests can assert on the recorded writes that a skip is never silent.
+  const stderrChild = stderrProxy();
 
   const mocked = registerMock({ fn: questListBroker });
   // Default: passthrough so existing consumers driving the fs chain keep working. `guildId`
@@ -133,9 +132,8 @@ export const questListBrokerProxy = (): {
     // Only the broker's own skip lines, in write order — so a test can assert HOW MANY times an
     // unchanged bad file was reported across repeated list calls, not just that it was reported.
     getSkipReports: (): readonly unknown[] =>
-      stderrSpy
-        .callsMatching([])
-        .map((call) => call[0])
+      stderrChild
+        .getWrites()
         .filter((line) => String(line).startsWith('[quest-list] skipping unloadable quest')),
   };
 };

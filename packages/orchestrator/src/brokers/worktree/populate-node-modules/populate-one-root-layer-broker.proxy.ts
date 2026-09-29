@@ -1,3 +1,4 @@
+import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import {
   AbsoluteFilePathStub,
@@ -5,8 +6,7 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { cpRunProxy } from '#gateway/bin/cp/cp-run/cp-run.proxy';
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
@@ -15,7 +15,17 @@ import { readlinkIfLinkProxy } from '#gateway/node/fs__promises/readlink-if-link
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
 import { join } from '#gateway/node/path';
 
-const COPY_COMMAND = 'cp';
+// Every copy this layer makes is a hardlink copy (`cp -al <sources...> <destination>`), with as many
+// sources as the root holds entries, so the address is that one flag rather than an exact argv.
+const isHardlinkCopy = (args: readonly unknown[]): boolean => args[0] === '-al';
+
+// A recorded cp call is `[{ command, args, cwd }]`; the tests read back only its argv.
+const copyArgsOf = (call: readonly unknown[]): unknown => {
+  const [spawned] = call;
+  return typeof spawned === 'object' && spawned !== null && 'args' in spawned
+    ? spawned.args
+    : undefined;
+};
 
 // The gateway's readdirEntriesSync collapses a Dirent down to {name, kind}; this proxy's own
 // callers still describe entries as {isDir, isSymlink} (matching the shape their sibling
@@ -57,6 +67,7 @@ export const populateOneRootLayerBrokerProxy = (): {
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
   getAllCopyArgs: () => readonly unknown[];
 } => {
+  CpNotInstalledErrorProxy();
   // The layer runs REAL from this proxy's point of view — it is not an I/O boundary — so the
   // I/O it eventually reaches (readdir/readlink/symlink/mkdir/access) is what actually gets staged
   // here.
@@ -68,10 +79,7 @@ export const populateOneRootLayerBrokerProxy = (): {
   // addresses, so an unstaged link the broker attempts rejects rather than going unseen.
   const stagedLinks: { target: FilePath; path: FilePath }[] = [];
   const isAccessibleProxy = pathExistsProxy();
-  const run = runProxy();
-  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
-  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
-  RunNotFoundErrorProxy();
+  const copyChild = cpRunProxy();
   // `join` computes many intermediate scope/child paths purely from string arithmetic, and the
   // tests below assert on the REAL result (via getAllSymlinks/getAllCopyArgs), so the default stays
   // a real passthrough rather than staging every tuple individually.
@@ -146,10 +154,10 @@ export const populateOneRootLayerBrokerProxy = (): {
       linkProxy.succeeds({ target, path });
     },
     setupCopySucceeds: (): void => {
-      run.setupSuccess({ command: COPY_COMMAND, exitCode: 0, stdout: '', stderr: '' });
+      copyChild.returnsMatchingArgs({ args: isHardlinkCopy, exitCode: 0, output: '' });
     },
     setupCopyFails: ({ output }: { output: string }): void => {
-      run.setupSuccess({ command: COPY_COMMAND, exitCode: 1, stdout: '', stderr: output });
+      copyChild.returnsMatchingArgs({ args: isHardlinkCopy, exitCode: 1, output });
     },
     getAllSymlinks: (): readonly { target: unknown; linkPath: unknown }[] =>
       stagedLinks.flatMap(({ target, path }) =>
@@ -157,6 +165,7 @@ export const populateOneRootLayerBrokerProxy = (): {
           .getCallsFor({ target, path })
           .map((call) => ({ target: call[0], linkPath: call[1] })),
       ),
-    getAllCopyArgs: (): readonly unknown[] => run.getCallsFor({ command: COPY_COMMAND }),
+    getAllCopyArgs: (): readonly unknown[] =>
+      copyChild.getCallsFor({ args: isHardlinkCopy }).map(copyArgsOf),
   };
 };

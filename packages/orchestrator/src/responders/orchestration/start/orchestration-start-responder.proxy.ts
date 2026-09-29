@@ -8,10 +8,10 @@
  * precedent of mocking a non-adapter broker/responder in a composing proxy). Its own coverage lives
  * in prepare-quest-package-graph-layer-responder.test.ts.
  *
- * `child_process.spawn` is registered as a mock with NOTHING staged on it, deliberately: Start is a
- * pure quest.json transition, so any spawn at all is a defect, and an unstaged registerMock throws
- * on the first call instead of quietly succeeding. `getSpawnedCommands()` is the positive half of
- * that assertion.
+ * Nothing stages `child_process`, deliberately: Start is a pure quest.json transition, so any
+ * child process at all is a defect, and the unit-test I/O trap (`@dungeonmaster/testing`'s
+ * `jest.setup-io-trap.js`) fails the test on any unstaged `child_process` call — `spawn`, `exec`,
+ * `execFile`, the sync forms — even one the code under test catches and swallows.
  *
  * crypto.randomUUID is queued with fixed ids so the processId, the relay operation-item ids, and the
  * first-work-item id are deterministic; Date.prototype.toISOString is pinned to
@@ -24,8 +24,6 @@
  * const processId = await proxy.callResponder({ questId: quest.id });
  * proxy.getPersistedQuestAt({ index: 0 }); // the relay seed's single atomic operations persist
  */
-
-import { spawn } from 'child_process';
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import {
@@ -83,14 +81,9 @@ export const OrchestrationStartResponderProxy = (): {
   setupStartSkipsOperationsPersist: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
   setupPackageGraphDerived: (params: { packageGraph: PackageGraph }) => void;
-  getSpawnedCommands: () => readonly unknown[];
   getPersistedStatuses: () => readonly Parsed['status'][];
   getPersistedQuestAt: (params: { index: number }) => Parsed;
 } => {
-  // Nothing is staged on this handle on purpose — see the header. Every `git` / `npm` child a Start
-  // could spawn goes through this one function, so an empty `callsMatching([])` is the whole
-  // "touched no git" assertion, and an unstaged call throws rather than passing silently.
-  const spawnHandle = registerMock({ fn: spawn });
   const getProxy = questGetBrokerProxy();
   // Runs REAL — its single atomic read-modify-write is fed by the ops fs round queued in
   // setupStart, and its captured quest.json writes back every getPersisted* inspector below
@@ -209,10 +202,6 @@ export const OrchestrationStartResponderProxy = (): {
     setupPackageGraphDerived: ({ packageGraph }: { packageGraph: PackageGraph }): void => {
       packageGraphMock.onceFor([]).resolves(packageGraph);
     },
-
-    // Every child process the Start route could have started, as `[command, args]` pairs.
-    getSpawnedCommands: (): readonly unknown[] =>
-      spawnHandle.callsMatching([]).map((call) => [call[0], call[1]]),
 
     getPersistedStatuses: (): readonly Parsed['status'][] =>
       opsProxy.getAllPersistedQuests().map((persisted) => persisted.status),

@@ -1,4 +1,3 @@
-import { rm } from 'fs/promises';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { filePathContract, GuildIdStub, questContract } from '@dungeonmaster/shared/contracts';
 import type {
@@ -14,7 +13,7 @@ import {
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle, RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { DeletedCountStub } from '../../../contracts/deleted-count/deleted-count.stub';
 import { questDeleteBrokerProxy } from '../../quest/delete/quest-delete-broker.proxy';
@@ -39,7 +38,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   setupQuestDirectoryListing: (params: { files: readonly never[] }) => void;
   setupQuestFolderListing: (params: { files: readonly FileName[] }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
-  getRmCallArgs: () => RecordedCalls;
+  getRmCallArgs: () => readonly unknown[][];
   setupSucceeds: (params: { questSource: QuestSource }) => void;
   setupPassthrough: () => void;
   getCallArgs: () => RecordedCalls;
@@ -50,11 +49,6 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
   // through this same instance — the test knows every quest it seeds, so there is no need to
   // guess which ones questSource will match at run time (see setupQuestFile).
   const deleteProxy = questDeleteBrokerProxy();
-
-  // Read-only: `.callsMatching([])` alone, never `.calledWith(...)` — every real rm call this test
-  // can produce already has its own exact-tuple answer staged via deleteProxy.setupQuestFolderPath,
-  // so this handle stages nothing of its own and cannot shadow another proxy's stage.
-  const rmMock: MockHandle = registerMock({ fn: rm });
 
   const homePathRef: { value: FilePath } = { value: filePathContract.parse('/unset') };
   const guildIdRef: { value: GuildId } = { value: GuildIdStub() };
@@ -145,6 +139,6 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       });
     },
 
-    getRmCallArgs: (): RecordedCalls => rmMock.callsMatching([]),
+    getRmCallArgs: (): readonly unknown[][] => deleteProxy.getAllRmCallArgs(),
   };
 };

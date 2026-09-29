@@ -1,29 +1,29 @@
-import { readFile } from 'fs/promises';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+
+type FsError = ReturnType<typeof FsErrorStub>;
+
+// No quest file path is known to `setupQuestFile`: every caller composes this proxy alongside a
+// separate path-producing mock (a directory scan, questFindQuestPathBrokerProxy, ...) and stages
+// the two in lockstep, one quest file at a time. Any path is accepted, and the fallback one-shot
+// ranks below every exact stage, so a read another proxy addressed by its own path is never
+// answered with quest JSON.
+const isAnyPath = (value: unknown): boolean => typeof value === 'string';
 
 export const questLoadBrokerProxy = (): {
   setupQuestFile: (params: { questJson: string }) => void;
-  setupQuestFileReadError: (params: { error: Error }) => void;
+  setupQuestFileReadError: (params: { error: FsError }) => void;
   setupQuestFileAt: (params: { questFilePath: FilePath; questJson: string }) => void;
 } => {
-  // The gateway proxy is composed first, so the raw handle below shares its staging. The queued
-  // (address-less) reads need a one-shot the gateway proxy does not offer, and the gateway's
-  // `readFile` wrapper calls this same raw function.
-  readFileProxy();
-  const readFileHandle = registerMock({ fn: readFile });
+  const readFileChild = readFileProxy();
 
   return {
-    // No questFilePath is known here: every caller of this proxy composes it alongside a
-    // separate path-producing mock (a directory scan, questFindQuestPathBrokerProxy, ...) and
-    // stages the two in lockstep, one quest file at a time — this proxy's own public interface
-    // never carries a path. `onceFor([])` queues the NEXT read (any path) with this content.
     setupQuestFile: ({ questJson }: { questJson: string }): void => {
-      readFileHandle.onceFor([]).resolves(questJson);
+      readFileChild.returnsOnceFallback({ path: isAnyPath, contents: questJson });
     },
-    setupQuestFileReadError: ({ error }: { error: Error }): void => {
-      readFileHandle.onceFor([]).rejects(error);
+    setupQuestFileReadError: ({ error }: { error: FsError }): void => {
+      readFileChild.throwsOnceFallback({ path: isAnyPath, error });
     },
     // Sticky and addressed: answers EVERY read of this one path, for a caller whose broker reads the
     // same quest file several times in one call (a scan, then again inside the modify lock).
@@ -34,7 +34,7 @@ export const questLoadBrokerProxy = (): {
       questFilePath: FilePath;
       questJson: string;
     }): void => {
-      readFileHandle.calledWith([questFilePath]).resolves(questJson);
+      readFileChild.returns({ path: questFilePath, contents: questJson });
     },
   };
 };

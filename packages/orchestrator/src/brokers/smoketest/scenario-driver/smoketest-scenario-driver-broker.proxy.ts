@@ -1,3 +1,5 @@
+import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
+import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -21,6 +23,9 @@ export const smoketestScenarioDriverBrokerProxy = (): {
   emitQuestModified: (payload: { questId?: unknown }) => void;
   isHandlerSubscribed: () => boolean;
 } => {
+  // Both pass through: the driver's poll runs on a real timer, which each test's stop call clears.
+  setIntervalProxy();
+  clearIntervalProxy();
   // The scenario driver directly imports BOTH the event-handler layer broker and the sweep layer
   // broker. Register both child proxies so enforce-proxy-child-creation is satisfied. The handler
   // layer delegates to the sweep layer internally, so both proxies share the same nested
