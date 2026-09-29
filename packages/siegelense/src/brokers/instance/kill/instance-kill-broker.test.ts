@@ -240,6 +240,48 @@ describe('instanceKillBroker', () => {
       },
     );
 
+    it('VALID: {kill, already killed at a recorded time} => reports that time and reaps nothing, never touching the throwaway home', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const killedAtMs = EpochMsStub({ value: 1_700_000_123_000 });
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: null,
+        state: 'killed',
+        killedAtMs,
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(result.alreadyKilledAtMs).toBe(1_700_000_123_000);
+      expect(proxy.getRemovedPaths()).toStrictEqual([]);
+    });
+
+    it('VALID: {kill, already killed, no time recorded} => reports null rather than inventing a time', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: null, state: 'killed' });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(result.alreadyKilledAtMs).toBe(null);
+    });
+
+    it("VALID: {kill, already killed, an earlier shutdown reason on disk} => writes no shutdown reason, so the first kill's reason stands", async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: null,
+        state: 'killed',
+        pgids: [],
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toBe(null);
+    });
+
     it('VALID: {kill, already killed} => still reports stopped true and accepts the id rather than refusing', async () => {
       const proxy = instanceKillBrokerProxy();
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: null, state: 'killed' });

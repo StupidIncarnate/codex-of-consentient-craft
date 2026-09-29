@@ -31,6 +31,7 @@ import {
   seedBindingNameContract,
   type SeedBindingName,
 } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
+import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
@@ -127,12 +128,22 @@ export const runVerbLayerBroker = async ({
   // and process state and touch no page, so `stepResetBroker` takes the whole lane and narrows
   // to a live browser itself only when `level === 'page'`.
   if (step.step === 'reset') {
-    return stepResetBroker({
+    const reading = await stepResetBroker({
       lane,
       level: step.level,
       to: step.to,
       reseed: step.reseed,
     });
+    if (step.as !== null) {
+      // `bindings` is absent unless the step reseeded, and an `as` on a reset that reseeded nothing
+      // binds an empty record rather than a name a later step could never fill.
+      const parsed = resetReadingContract.parse(JSON.parse(reading));
+      recordBinding({
+        name: seedBindingNameContract.parse(step.as),
+        result: parsed.bindings ?? {},
+      });
+    }
+    return reading;
   }
 
   const { browser: session } = lane;

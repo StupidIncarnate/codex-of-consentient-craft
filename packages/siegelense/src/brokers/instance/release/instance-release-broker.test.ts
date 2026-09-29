@@ -2,10 +2,13 @@ import { AbsoluteFilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contr
 
 import { instanceReleaseBroker } from './instance-release-broker';
 import { instanceReleaseBrokerProxy } from './instance-release-broker.proxy';
+import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
+
+const KILLED_AT_MS = 1_700_000_123_000;
 
 describe('instanceReleaseBroker', () => {
   describe('a live instance is released', () => {
@@ -21,11 +24,19 @@ describe('instanceReleaseBroker', () => {
       });
       const registry = RegistryStub({ instances: [entry] });
       proxy.setupCurrentRegistry({ json: JSON.stringify(registry) });
+      proxy.setupNow({ nowMs: KILLED_AT_MS });
 
       const result = await instanceReleaseBroker({ instanceId });
 
       expect(result).toStrictEqual(
-        RegistryEntryStub({ ...entry, state: 'killed', pid: null, pgids: [], socketPath: null }),
+        RegistryEntryStub({
+          ...entry,
+          state: 'killed',
+          pid: null,
+          pgids: [],
+          socketPath: null,
+          killedAtMs: EpochMsStub({ value: KILLED_AT_MS }),
+        }),
       );
     });
   });
@@ -44,6 +55,7 @@ describe('instanceReleaseBroker', () => {
       const bystander = RegistryEntryStub({ id: bystanderId });
       const registry = RegistryStub({ instances: [bystander, released] });
       proxy.setupCurrentRegistry({ json: JSON.stringify(registry) });
+      proxy.setupNow({ nowMs: KILLED_AT_MS });
 
       await instanceReleaseBroker({ instanceId });
 
@@ -56,6 +68,7 @@ describe('instanceReleaseBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: EpochMsStub({ value: KILLED_AT_MS }),
           }),
         ],
       });

@@ -1,3 +1,8 @@
+import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+
+import { CitationGapStub } from '../../../contracts/citation-gap/citation-gap.stub';
+import { CitationKindStub } from '../../../contracts/citation-kind/citation-kind.stub';
+import { citationStatics } from '../../../statics/citation/citation-statics';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
@@ -5,13 +10,17 @@ import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-en
 import { pruneRunBroker } from './prune-run-broker';
 import { pruneRunBrokerProxy } from './prune-run-broker.proxy';
 
+const OPEN_ISSUE_GAP = CitationGapStub({
+  kind: CitationKindStub({ value: 'open-issue' }),
+  why: ContentTextStub({ value: citationStatics.openIssue.uncheckedWhy }),
+});
 const NOW_MS = 1_700_000_000_000;
 const LIVE_ID = 'inst_9b2c0001';
 const SECOND_LIVE_ID = 'inst_1d090002';
 
 describe('pruneRunBroker', () => {
   describe('a live fleet', () => {
-    it('VALID: {one live instance, olderThan 7d} => nothing freed, the instance refused by name, and the unchecked-kind list empty because no tree was reached', async () => {
+    it('VALID: {one live instance, olderThan 7d} => nothing freed, the instance refused by name, and open-issue named unchecked even though no tree was reached', async () => {
       const proxy = pruneRunBrokerProxy();
       proxy.setupRegistry({
         json: JSON.stringify({
@@ -35,7 +44,7 @@ describe('pruneRunBroker', () => {
         freedBytes: 0,
         removed: [],
         refused: [{ id: LIVE_ID, why: 'live — last beat 2s ago' }],
-        unresolved: [],
+        unresolved: [OPEN_ISSUE_GAP],
       });
     });
 
@@ -86,7 +95,7 @@ describe('pruneRunBroker', () => {
         freedBytes: 0,
         removed: [],
         refused: [],
-        unresolved: [],
+        unresolved: [OPEN_ISSUE_GAP],
       });
     });
   });

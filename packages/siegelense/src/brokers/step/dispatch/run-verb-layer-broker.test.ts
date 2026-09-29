@@ -551,6 +551,25 @@ describe('runVerbLayerBroker', () => {
   });
 
   describe('a reset step', () => {
+    it('VALID: {reset, level: "page", as: "r", no reseed} => binds an empty record under r, so a later {r.x} reference fails by name instead of resolving to nothing', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'reset', level: 'page', to: null, as: 'r' });
+      const recordBinding = jest.fn();
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding,
+      });
+
+      expect(recordBinding).toHaveBeenCalledTimes(1);
+      expect(recordBinding).toHaveBeenCalledWith({ name: 'r', result: {} });
+    });
+
     it('VALID: {reset, level: "page"} => routes to stepResetBroker and returns reset reading', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();

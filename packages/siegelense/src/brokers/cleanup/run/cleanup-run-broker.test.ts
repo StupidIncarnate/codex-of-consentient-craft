@@ -176,6 +176,7 @@ describe('cleanupRunBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: EpochMsStub({ value: NOW_MS }),
           }),
         ],
       });
