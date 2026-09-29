@@ -19,18 +19,16 @@ describe('smoketestTeardownQuestBroker', () => {
       const proxy = smoketestTeardownQuestBrokerProxy();
       proxy.setupQuestFound({ questPath: QUEST_PATH, guildId: GUILD_ID, questId: QUEST_ID });
 
-      const result = await smoketestTeardownQuestBroker({ questId: QUEST_ID });
+      await expect(smoketestTeardownQuestBroker({ questId: QUEST_ID })).resolves.toBe(undefined);
 
       const calls = proxy.getRmCallArgs();
       const lastCall = calls[calls.length - 1];
 
       expect({
-        result,
         callCount: calls.length,
         pathArg: lastCall?.[0],
         optionsArg: lastCall?.[1],
       }).toStrictEqual({
-        result: { success: true },
         callCount: 1,
         pathArg: QUEST_PATH,
         optionsArg: { recursive: true, force: true },
@@ -43,13 +41,11 @@ describe('smoketestTeardownQuestBroker', () => {
       const proxy = smoketestTeardownQuestBrokerProxy();
       proxy.setupQuestNotFound();
 
-      const result = await smoketestTeardownQuestBroker({ questId: QUEST_ID });
+      await expect(smoketestTeardownQuestBroker({ questId: QUEST_ID })).resolves.toBe(undefined);
 
       expect({
-        result,
         callCount: proxy.getRmCallArgs().length,
       }).toStrictEqual({
-        result: { success: true },
         callCount: 0,
       });
     });
@@ -61,9 +57,7 @@ describe('smoketestTeardownQuestBroker', () => {
         error: FsErrorStub({ code: 'ENOENT', path: QUEST_PATH, syscall: 'rm' }),
       });
 
-      const result = await smoketestTeardownQuestBroker({ questId: QUEST_ID });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(smoketestTeardownQuestBroker({ questId: QUEST_ID })).resolves.toBe(undefined);
     });
   });
 });

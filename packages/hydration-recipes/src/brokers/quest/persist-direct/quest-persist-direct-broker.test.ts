@@ -16,14 +16,15 @@ describe('questPersistDirectBroker', () => {
       const outboxPath = '/tmp/dm-home/event-outbox.jsonl';
       proxy.succeeds({ questFilePath, outboxPath });
 
-      const result = await questPersistDirectBroker({
-        target,
-        questFilePath,
-        contents: FileContentsStub({ value: '{"id":"add-auth"}' }),
-        questId: QuestIdStub({ value: 'add-auth' }),
-      });
+      await expect(
+        questPersistDirectBroker({
+          target,
+          questFilePath,
+          contents: FileContentsStub({ value: '{"id":"add-auth"}' }),
+          questId: QuestIdStub({ value: 'add-auth' }),
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getWrittenContents({ questFilePath })).toBe('{"id":"add-auth"}');
     });
 

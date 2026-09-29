@@ -27,14 +27,7 @@
  * to the active agent's chat.
  */
 
-import type {
-  AdapterResult,
-  Quest,
-  QuestId,
-  QuestStatus,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { isSmoketestPollTerminalStatusGuard } from '../../../guards/is-smoketest-poll-terminal-status/is-smoketest-poll-terminal-status-guard';
 import { questActiveSessionTransformer } from '../../../transformers/quest-active-session/quest-active-session-transformer';
@@ -57,14 +50,13 @@ export const processSyncEventLayerBroker = async ({
     questId: QuestId;
     activeSessionId: SessionId | undefined;
   }) => void;
-}): Promise<AdapterResult> => {
-  const ok = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const quest = await loadQuest({ questId });
 
   if (quest === undefined) {
     // Quest file not found (deleted). Remove any stale queue entry for this quest.
     removeByQuestId({ questId });
-    return ok;
+    return;
   }
 
   const isTerminalForQueue = isSmoketestPollTerminalStatusGuard({
@@ -77,12 +69,11 @@ export const processSyncEventLayerBroker = async ({
     // can route clicks to the live agent's chat as work items spawn and progress.
     const { sessionId } = questActiveSessionTransformer({ workItems: quest.workItems });
     updateEntryActiveSession({ questId, activeSessionId: sessionId });
-    return ok;
+    return;
   }
 
   // Terminal for queue purposes: update the entry's status first (so observers see the
   // transition), then remove it so the runner can advance to the next head.
   updateEntryStatus({ questId, status: quest.status });
   removeByQuestId({ questId });
-  return ok;
 };

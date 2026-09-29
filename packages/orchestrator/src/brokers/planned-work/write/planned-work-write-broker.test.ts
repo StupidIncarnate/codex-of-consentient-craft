@@ -22,7 +22,7 @@ describe('plannedWorkWriteBroker', () => {
 
       await expect(
         plannedWorkWriteBroker({ questFolderPath, operationItemId, plan }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
 
       expect(proxy.getWrittenContent({ questFolderPath, operationItemId })).toBe(
         JSON.stringify(plan, null, JSON_INDENT_SPACES),

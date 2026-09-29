@@ -36,7 +36,7 @@ export const questRemoveRouteBroker = async ({
 }: {
   target: DmTarget;
   record: Record<string, unknown>;
-}): Promise<{ deleted: boolean }> => {
+}): Promise<void> => {
   const questId = questIdContract.parse(record.id);
   const status = questStatusContract.parse(record.status);
 
@@ -53,6 +53,5 @@ export const questRemoveRouteBroker = async ({
 
   const guildId = await questOwningGuildFindBroker({ questId });
 
-  const { success } = await questDeleteBroker({ questId, guildId });
-  return { deleted: success };
+  await questDeleteBroker({ questId, guildId });
 };

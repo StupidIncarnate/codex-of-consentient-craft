@@ -14,7 +14,6 @@
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questNodeDispatchLoopBroker } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker';
@@ -51,7 +50,7 @@ export const OrchestrationDispatchBootstrapResponder = (): void => {
       orchestrationDispatchState.offChange(handler);
       questExecutionQueueState.offChange(handler);
     },
-    runLoop: async (): Promise<AdapterResult> =>
+    runLoop: async (): Promise<void> =>
       questNodeDispatchLoopBroker({
         isPlaying: (): boolean => orchestrationDispatchState.getIsPlaying(),
         // A deterministic step's work item has no sessionId, so the JSONL watcher can never tail

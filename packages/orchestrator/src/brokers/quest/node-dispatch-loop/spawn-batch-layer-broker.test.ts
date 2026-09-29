@@ -1,4 +1,3 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -22,9 +21,8 @@ describe('spawnBatchLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getModifyCallInputs()).toStrictEqual([
         {
           questId: instruction.questId,
@@ -169,9 +167,8 @@ describe('spawnBatchLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
         resumePrompt,
@@ -253,9 +250,8 @@ describe('spawnBatchLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getModifyCallInputs()).toStrictEqual([
         {
           questId: instruction.questId,
@@ -280,9 +276,7 @@ describe('spawnBatchLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 1 });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
-
-      expect(result).toStrictEqual(AdapterResultStub());
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
     });
 
     it('ERROR: {pre-stamp modify rejects} => child is never spawned and batch resolves ok', async () => {
@@ -294,9 +288,8 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupModifyRejectsOnce({ error: new Error('quest.json locked') });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
   });
@@ -351,9 +344,8 @@ describe('spawnBatchLayerBroker', () => {
         worktreePath: '/repo/worktrees/add-auth-a1b2c3d4',
       });
 
-      const result = await spawnBatchLayerBroker({ agents: [instruction] });
+      await expect(spawnBatchLayerBroker({ agents: [instruction] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnedArgs()).toBe(undefined);
     });
   });

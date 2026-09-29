@@ -17,15 +17,16 @@ describe('processSyncEventLayerBroker', () => {
       const updateEntryStatus = jest.fn();
       const updateEntryActiveSession = jest.fn();
 
-      const result = await processSyncEventLayerBroker({
-        questId,
-        loadQuest,
-        removeByQuestId,
-        updateEntryStatus,
-        updateEntryActiveSession,
-      });
+      await expect(
+        processSyncEventLayerBroker({
+          questId,
+          loadQuest,
+          removeByQuestId,
+          updateEntryStatus,
+          updateEntryActiveSession,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(removeByQuestId.mock.calls).toStrictEqual([[{ questId }]]);
       expect(updateEntryStatus.mock.calls).toStrictEqual([]);
       expect(updateEntryActiveSession.mock.calls).toStrictEqual([]);

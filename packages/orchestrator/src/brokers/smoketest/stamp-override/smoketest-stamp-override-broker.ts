@@ -38,10 +38,10 @@ export const smoketestStampOverrideBroker = async ({
   questId: QuestId;
   workItemId: QuestWorkItemId;
   override: PromptText;
-}): Promise<{ success: true }> =>
+}): Promise<void> =>
   questWithModifyLockBroker({
     questId,
-    run: async (): Promise<{ success: true }> => {
+    run: async (): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
         join(questPath, locationsStatics.quest.questFile),
@@ -58,7 +58,7 @@ export const smoketestStampOverrideBroker = async ({
 
       if (target.smoketestPromptOverride !== undefined) {
         // Idempotent — already stamped, no-op
-        return { success: true as const };
+        return;
       }
 
       const updatedWorkItems = loadedQuest.workItems.map((wi) =>
@@ -76,7 +76,5 @@ export const smoketestStampOverrideBroker = async ({
       );
 
       await questPersistBroker({ questFilePath, contents: questJson, questId });
-
-      return { success: true as const };
     },
   });

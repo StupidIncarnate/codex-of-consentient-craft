@@ -8,9 +8,7 @@
  * WHEN-TO-USE: MCP/Signals suites only; orchestration scenarios do not call this path.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
-  adapterResultContract,
   fileContentsContract,
   filePathContract,
   questContract,
@@ -32,10 +30,10 @@ export const OverwriteWorkItemsLayerResponder = async ({
 }: {
   questId: QuestId;
   workItems: readonly WorkItem[];
-}): Promise<AdapterResult> =>
+}): Promise<void> =>
   questWithModifyLockBroker({
     questId,
-    run: async (): Promise<AdapterResult> => {
+    run: async (): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
         join(questPath, locationsStatics.quest.questFile),
@@ -50,6 +48,5 @@ export const OverwriteWorkItemsLayerResponder = async ({
         JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
       );
       await questPersistBroker({ questFilePath, contents: json, questId });
-      return adapterResultContract.parse({ success: true });
     },
   });

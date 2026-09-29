@@ -7,9 +7,7 @@
  */
 
 import {
-  adapterResultContract,
   filePathContract,
-  type AdapterResult,
   type ErrorMessage,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
@@ -27,7 +25,7 @@ export const wardPersistResultBroker = async ({
   questFolderPath: FilePath;
   wardResultId: string;
   detailJson: ErrorMessage;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const wardResultsDir = filePathContract.parse(
     join(questFolderPath, locationsStatics.quest.wardResultsDir),
   );
@@ -37,5 +35,4 @@ export const wardPersistResultBroker = async ({
   const filePath = filePathContract.parse(join(wardResultsDir, wardResultId + JSON_EXTENSION));
 
   await writeFile(filePath, detailJson);
-  return adapterResultContract.parse({ success: true });
 };

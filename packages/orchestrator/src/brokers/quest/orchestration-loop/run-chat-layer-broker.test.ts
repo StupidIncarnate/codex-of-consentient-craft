@@ -29,7 +29,7 @@ describe('runChatLayerBroker', () => {
           userMessage: UserInputStub({ value: 'Help me build auth' }),
           onAgentEntry: jest.fn(),
         }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
     });
 
     it('VALID: {bughunt work item} => spawns agent and completes work item', async () => {
@@ -50,7 +50,7 @@ describe('runChatLayerBroker', () => {
           userMessage: UserInputStub({ value: 'The save button does nothing' }),
           onAgentEntry: jest.fn(),
         }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
     });
 
     it('ERROR: {spawn throws} => marks work item as failed and rethrows', async () => {

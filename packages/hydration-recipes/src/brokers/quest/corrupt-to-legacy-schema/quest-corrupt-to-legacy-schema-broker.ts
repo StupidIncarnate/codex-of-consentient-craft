@@ -13,12 +13,7 @@
  */
 import { writeFile } from '#gateway/node/fs__promises';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import {
-  adapterResultContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -38,7 +33,7 @@ export const questCorruptToLegacySchemaBroker = async ({
 }: {
   target: DmTarget;
   record: Record<string, unknown>;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const questFolderPath = await questFolderPathResolveBroker({ target, record });
   const questFilePath = filePathContract.parse(
     `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
@@ -47,6 +42,4 @@ export const questCorruptToLegacySchemaBroker = async ({
   const corrupted = { ...record, workItems: [CORRUPT_WORK_ITEM] };
 
   await writeFile(questFilePath, fileContentsContract.parse(JSON.stringify(corrupted)));
-
-  return adapterResultContract.parse({ success: true });
 };

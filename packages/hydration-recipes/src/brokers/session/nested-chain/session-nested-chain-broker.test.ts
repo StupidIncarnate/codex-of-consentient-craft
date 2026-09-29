@@ -78,13 +78,14 @@ describe('sessionNestedChainBroker', () => {
         filePaths: [sessionFilePath, outerAgentFilePath, nestedAgentFilePath],
       });
 
-      const result = await sessionNestedChainBroker({
-        target,
-        record: { sessionId: 'seed-session-1', cwd: '/tmp/guild-1' },
-        args: { depth: 2 },
-      });
+      await expect(
+        sessionNestedChainBroker({
+          target,
+          record: { sessionId: 'seed-session-1', cwd: '/tmp/guild-1' },
+          args: { depth: 2 },
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect({
         session: proxy.getAllAppendedLines({ filePath: sessionFilePath }),
         outerAgent: proxy.getAllAppendedLines({ filePath: outerAgentFilePath }),

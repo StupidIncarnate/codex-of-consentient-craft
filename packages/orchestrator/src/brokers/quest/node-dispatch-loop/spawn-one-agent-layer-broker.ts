@@ -29,7 +29,6 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import type {
-  AdapterResult,
   ExitCode,
   ProcessId,
   QuestId,
@@ -39,7 +38,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   absoluteFilePathContract,
-  adapterResultContract,
   getQuestInputContract,
   modifyQuestInputContract,
   processIdContract,
@@ -88,9 +86,7 @@ export const spawnOneAgentLayerBroker = async ({
   // attempt captured (so this attempt resumes it rather than starting over).
   overloadAttempt?: number;
   carriedSessionId?: SessionId;
-}): Promise<AdapterResult> => {
-  const ok = adapterResultContract.parse({ success: true });
-
+}): Promise<void> => {
   const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
   const processId = processIdContract.parse(
     `${orchestrationDispatchStatics.processIdPrefix}-${randomUUID()}`,
@@ -211,7 +207,7 @@ export const spawnOneAgentLayerBroker = async ({
   }
 
   if (exitCode === null || exitCode === 0) {
-    return ok;
+    return;
   }
 
   // Checked BEFORE the overload branch, and it never retries. A quota refusal is the one upstream
@@ -231,14 +227,14 @@ export const spawnOneAgentLayerBroker = async ({
     stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} died on a rate-limit refusal — dispatch holds until ${hold === null ? 'the next poll re-reads the state' : hold.resumeAt}\n`,
     );
-    return ok;
+    return;
   }
 
   if (!overload.seen) {
     stderr.write(
       `[node-dispatch] ${instruction.role} child for work item ${instruction.workItemId} exited with code ${String(exitCode)} — terminal status is owned by signal-back / orphan recovery\n`,
     );
-    return ok;
+    return;
   }
 
   const nextAttempt = overloadAttempt + 1;
@@ -247,14 +243,14 @@ export const spawnOneAgentLayerBroker = async ({
     stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} still hitting API overload after ${String(overloadAttempt)} retries — schedule spent, handing off to orphan recovery\n`,
     );
-    return ok;
+    return;
   }
 
   if (isPlaying !== undefined && !isPlaying()) {
     stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} hit API overload but dispatch is paused — abandoning retry\n`,
     );
-    return ok;
+    return;
   }
 
   stderr.write(
@@ -268,7 +264,7 @@ export const spawnOneAgentLayerBroker = async ({
     stderr.write(
       `[node-dispatch] dispatch paused during API-overload backoff — abandoning retry for work item ${instruction.workItemId}\n`,
     );
-    return ok;
+    return;
   }
 
   const refreshed = await questGetBroker({
@@ -284,7 +280,7 @@ export const spawnOneAgentLayerBroker = async ({
     stderr.write(
       `[node-dispatch] work item ${instruction.workItemId} went terminal during API-overload backoff — no retry needed\n`,
     );
-    return ok;
+    return;
   }
 
   const nextCarriedSessionId = capturedSession.id ?? resumeSessionId;

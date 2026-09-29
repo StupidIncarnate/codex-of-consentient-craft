@@ -16,14 +16,12 @@
 import { stderr } from '#gateway/node/process';
 import type {
   AbsoluteFilePath,
-  AdapterResult,
   ModifyQuestInput,
   ProcessId,
   QuestId,
   QuestWorkItemId,
   RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -47,9 +45,7 @@ export const spawnBatchLayerBroker = async ({
   // Forwarded to the per-agent layer so an API-overload backoff — which can sleep for minutes —
   // abandons its retry when the user pauses dispatch instead of waking up and spawning anyway.
   isPlaying?: () => boolean;
-}): Promise<AdapterResult> => {
-  const ok = adapterResultContract.parse({ success: true });
-
+}): Promise<void> => {
   // Resolve each quest's cwd once, not once per instruction. A quest resolves to either a usable
   // cwd (its own worktree, or the legacy repo-root fallback) or a recorded-but-missing worktree
   // path — the latter carries no usable cwd, so the per-instruction guard below refuses to spawn.
@@ -113,6 +109,4 @@ export const spawnBatchLayerBroker = async ({
       }
     }),
   );
-
-  return ok;
 };

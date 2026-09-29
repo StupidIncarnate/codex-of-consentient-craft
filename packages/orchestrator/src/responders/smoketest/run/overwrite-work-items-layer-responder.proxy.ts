@@ -47,14 +47,14 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
   const mocked = OverwriteWorkItemsLayerResponder as jest.MockedFunction<
     typeof OverwriteWorkItemsLayerResponder
   >;
-  mocked.mockResolvedValue({ success: true });
+  mocked.mockResolvedValue(undefined);
 
   return {
     reset: (): void => {
       // Child proxies self-reset via jest.clearAllMocks between tests.
     },
     setupSucceeds: (): void => {
-      mocked.mockResolvedValueOnce({ success: true });
+      mocked.mockResolvedValueOnce(undefined);
     },
     setupRejects: ({ error }: { error: Error }): void => {
       mocked.mockRejectedValueOnce(error);

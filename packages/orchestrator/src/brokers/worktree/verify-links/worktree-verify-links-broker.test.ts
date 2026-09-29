@@ -20,9 +20,7 @@ describe('worktreeVerifyLinksBroker', () => {
         target: '../packages/ward',
       });
 
-      const result = await worktreeVerifyLinksBroker({ worktreePath });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(worktreeVerifyLinksBroker({ worktreePath })).resolves.toBe(undefined);
     });
 
     it('EMPTY: {node_modules not populated yet} => returns success without walking anything', async () => {
@@ -31,9 +29,7 @@ describe('worktreeVerifyLinksBroker', () => {
 
       proxy.setupNodeModulesAbsent({ worktreePath });
 
-      const result = await worktreeVerifyLinksBroker({ worktreePath });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(worktreeVerifyLinksBroker({ worktreePath })).resolves.toBe(undefined);
     });
 
     it('EMPTY: {node_modules present but holding no links} => returns success', async () => {
@@ -46,9 +42,7 @@ describe('worktreeVerifyLinksBroker', () => {
         entries: [{ name: '.package-lock.json', isDir: false, isSymlink: false }],
       });
 
-      const result = await worktreeVerifyLinksBroker({ worktreePath });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(worktreeVerifyLinksBroker({ worktreePath })).resolves.toBe(undefined);
     });
   });
 

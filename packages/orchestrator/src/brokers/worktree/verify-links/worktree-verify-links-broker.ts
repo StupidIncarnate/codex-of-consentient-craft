@@ -19,7 +19,7 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { pathExists } from '#gateway/node/fs__promises';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
@@ -34,7 +34,7 @@ export const worktreeVerifyLinksBroker = async ({
   worktreePath,
 }: {
   worktreePath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const nodeModules = locationsNodeModulesPathFindBroker({ rootPath: worktreePath });
 
   const nodeModulesPresent = await pathExists(nodeModules);
@@ -42,7 +42,7 @@ export const worktreeVerifyLinksBroker = async ({
   // A worktree carved but not yet mirrored holds no links at all. That is a stage, not a leak —
   // the caller's next step is the populate, and this same check runs again after it.
   if (!nodeModulesPresent) {
-    return { success: true as const };
+    return;
   }
 
   const audits = await walkSymlinksLayerBroker({ worktreePath, dirPath: nodeModules });
@@ -53,7 +53,7 @@ export const worktreeVerifyLinksBroker = async ({
   const escaping = audits.filter((audit) => !audit.relative || !audit.inside);
 
   if (escaping.length === 0) {
-    return { success: true as const };
+    return;
   }
 
   const reported = escaping

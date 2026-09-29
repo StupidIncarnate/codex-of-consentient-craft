@@ -1,6 +1,5 @@
 import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
@@ -44,7 +43,7 @@ export const questNodeDispatchLoopBrokerProxy = (): {
     queueStep: ({ step }: { step: NextStep }): void => {
       getNextStepMock.onceFor([nextStepAddress]).resolves(step);
       if (step.type === 'spawn-agents') {
-        spawnBatchMock.calledWith([{ agents: step.agents }]).resolves(AdapterResultStub());
+        spawnBatchMock.calledWith([{ agents: step.agents }]).resolves(undefined);
       }
     },
 

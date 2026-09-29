@@ -17,7 +17,7 @@ describe('riftcarverPersistResultBroker', () => {
 
       await expect(
         riftcarverPersistResultBroker({ questFolderPath, riftcarverResultId, logContents }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
     });
 
     it('VALID: {multi-line carve log} => writes the log verbatim', async () => {

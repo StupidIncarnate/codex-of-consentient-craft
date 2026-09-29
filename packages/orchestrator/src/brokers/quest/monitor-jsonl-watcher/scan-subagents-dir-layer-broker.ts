@@ -12,7 +12,7 @@
  *   emit,
  *   subagentHandles,
  * });
- * // Returns AdapterResult { success: true }
+ * // Resolves with void; each matched tail lands in `subagentHandles`
  */
 
 import { readdirSync } from '#gateway/node/fs';
@@ -20,9 +20,7 @@ import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
-  adapterResultContract,
   fileNameContract,
-  type AdapterResult,
   type ChatEntry,
   type FileName,
   type FilePath,
@@ -70,7 +68,7 @@ export const scanSubagentsDirLayerBroker = async ({
     workItemId?: QuestWorkItemId;
   }) => void;
   subagentHandles: Map<AgentId, TailFileHandle>;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const tailArgs = {
     sessionFilePath,
     parentSessionId,
@@ -97,7 +95,7 @@ export const scanSubagentsDirLayerBroker = async ({
     }
   } catch {
     // subagents/ may not exist yet — the poll caller retries on the next tick.
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   // Every candidate file is either a NESTED sub-agent (spawned by a sub-agent, so it never
@@ -135,6 +133,4 @@ export const scanSubagentsDirLayerBroker = async ({
       }
     }),
   );
-
-  return adapterResultContract.parse({ success: true });
 };

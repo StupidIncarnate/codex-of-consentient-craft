@@ -54,10 +54,10 @@ export const smoketestSignOutstandingUnitsBroker = async ({
 }: {
   questId: QuestId;
   workItemId: QuestWorkItemId;
-}): Promise<{ success: true }> =>
+}): Promise<void> =>
   questWithModifyLockBroker({
     questId,
-    run: async (): Promise<{ success: true }> => {
+    run: async (): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
         join(questPath, locationsStatics.quest.questFile),
@@ -70,7 +70,7 @@ export const smoketestSignOutstandingUnitsBroker = async ({
       // not a fault. Throwing would fail the whole sweep — and with it the scenario — on it.
       const workItem = loadedQuest.workItems.find((item) => item.id === workItemId);
       if (workItem === undefined) {
-        return { success: true as const };
+        return;
       }
 
       const linkedRef = workItem.relatedDataItems
@@ -80,12 +80,12 @@ export const smoketestSignOutstandingUnitsBroker = async ({
         (item) => String(item.id) === linkedRef?.split('/')[1],
       );
       if (operationItem === undefined) {
-        return { success: true as const };
+        return;
       }
 
       const { role } = operationItem;
       if (role !== 'codeweaver' && role !== 'flowrider' && role !== 'siegemaster') {
-        return { success: true as const };
+        return;
       }
 
       const roleScope = {
@@ -109,7 +109,7 @@ export const smoketestSignOutstandingUnitsBroker = async ({
         .filter((flow) => eligibleFlowTypes.has(flow.flowType))
         .filter((flow) => scopedFlowIds.has(String(flow.id)));
       if (targetFlows.length === 0) {
-        return { success: true as const };
+        return;
       }
 
       const eligibleKinds = new Set<QaVerificationUnit['kind']>(roleScope.unitKinds);
@@ -119,7 +119,7 @@ export const smoketestSignOutstandingUnitsBroker = async ({
           .map((unit) => unit.id),
       );
       if (outstanding.length === 0) {
-        return { success: true as const };
+        return;
       }
 
       const updatedQuest = questContract.parse({
@@ -138,7 +138,5 @@ export const smoketestSignOutstandingUnitsBroker = async ({
       );
 
       await questPersistBroker({ questFilePath, contents: questJson, questId });
-
-      return { success: true as const };
     },
   });

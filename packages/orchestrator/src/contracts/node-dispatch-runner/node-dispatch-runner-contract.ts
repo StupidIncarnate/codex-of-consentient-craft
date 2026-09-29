@@ -10,20 +10,18 @@
 
 import { z } from '#gateway/npm/zod';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 export type NodeDispatchWakeHandler = () => void;
 
 export interface NodeDispatchRunnerDeps {
   onWake: ({ handler }: { handler: NodeDispatchWakeHandler }) => void;
   offWake: ({ handler }: { handler: NodeDispatchWakeHandler }) => void;
-  runLoop: () => Promise<AdapterResult>;
+  runLoop: () => Promise<void>;
 }
 
 export interface NodeDispatchRunnerController {
-  start: () => AdapterResult;
-  stop: () => AdapterResult;
-  kick: () => Promise<AdapterResult>;
+  start: () => void;
+  stop: () => void;
+  kick: () => Promise<void>;
 }
 
 // Runtime marker contract — a Zod object schema cannot check callability, so `start`/`stop`/`kick`

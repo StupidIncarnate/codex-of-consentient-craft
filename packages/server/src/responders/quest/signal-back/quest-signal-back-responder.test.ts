@@ -1,4 +1,3 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -13,7 +12,7 @@ describe('QuestSignalBackResponder', () => {
   describe('successful signal', () => {
     it('VALID: {questId, workItemId, signal, operationItemId} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
-      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
+      proxy.setupSignalBack({ questId, workItemId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -28,7 +27,7 @@ describe('QuestSignalBackResponder', () => {
 
     it('VALID: {questId, workItemId, signal} => returns 200 { ok: true } for minimal input', async () => {
       const proxy = QuestSignalBackResponderProxy();
-      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
+      proxy.setupSignalBack({ questId, workItemId });
 
       const result = await proxy.callResponder({
         params: { questId },
@@ -43,7 +42,7 @@ describe('QuestSignalBackResponder', () => {
 
     it('VALID: {questId, workItemId, signal, blockedReason} => returns 200 { ok: true }', async () => {
       const proxy = QuestSignalBackResponderProxy();
-      proxy.setupSignalBack({ questId, workItemId, result: AdapterResultStub() });
+      proxy.setupSignalBack({ questId, workItemId });
 
       const result = await proxy.callResponder({
         params: { questId },

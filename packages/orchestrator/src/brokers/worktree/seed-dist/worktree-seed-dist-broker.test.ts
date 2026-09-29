@@ -20,9 +20,8 @@ describe('worktreeSeedDistBroker', () => {
       });
       proxy.setupCopySucceeds();
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toStrictEqual([
         '-a',
         '/repo/packages/ward/dist',
@@ -45,9 +44,8 @@ describe('worktreeSeedDistBroker', () => {
       });
       proxy.setupCopySucceeds();
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toStrictEqual([
         '-a',
         '/repo/packages/ward/dist',
@@ -68,9 +66,8 @@ describe('worktreeSeedDistBroker', () => {
         packages: [{ name: 'ward', hasSourceDist: true, hasTargetDist: true }],
       });
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toBe(undefined);
     });
 
@@ -89,9 +86,8 @@ describe('worktreeSeedDistBroker', () => {
       });
       proxy.setupCopySucceeds();
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toStrictEqual([
         '-a',
         '/repo/packages/ward/dist',
@@ -165,9 +161,8 @@ describe('worktreeSeedDistBroker', () => {
         ],
       });
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toBe(undefined);
     });
   });
@@ -180,9 +175,8 @@ describe('worktreeSeedDistBroker', () => {
 
       proxy.setupPackagesDirAbsent({ repoRoot });
 
-      const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
+      await expect(worktreeSeedDistBroker({ repoRoot, worktreePath })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getCopyArgs()).toBe(undefined);
     });
   });

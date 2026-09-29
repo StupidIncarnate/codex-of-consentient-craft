@@ -50,13 +50,16 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     });
 
     const streamed: StreamedLine[] = [];
-    const result = await worktreePopulateNodeModulesBroker({
-      repoRoot: repoPath,
-      worktreePath,
-      onLine: (line): void => {
-        streamed.push(ErrorMessageStub({ value: line }));
-      },
-    });
+
+    await expect(
+      worktreePopulateNodeModulesBroker({
+        repoRoot: repoPath,
+        worktreePath,
+        onLine: (line): void => {
+          streamed.push(ErrorMessageStub({ value: line }));
+        },
+      }),
+    ).resolves.toBe(undefined);
 
     const sharedLinkRealpath = git.realpathOf({
       absolutePath: AbsoluteFilePathStub({
@@ -85,7 +88,6 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     testbed.cleanup();
 
     expect({
-      result,
       sharedLinkRealpath,
       webLinkRealpath,
       zodPackageJsonExists,
@@ -93,7 +95,6 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       hoistedDepExists,
       streamed,
     }).toStrictEqual({
-      result: { success: true },
       sharedLinkRealpath: `${worktreePath}/packages/shared`,
       webLinkRealpath: `${worktreePath}/packages/web`,
       zodPackageJsonExists: true,
@@ -143,13 +144,15 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     });
 
     const streamed: StreamedLine[] = [];
-    const secondResult = await worktreePopulateNodeModulesBroker({
+    const secondRun = worktreePopulateNodeModulesBroker({
       repoRoot: repoPath,
       worktreePath,
       onLine: (line): void => {
         streamed.push(ErrorMessageStub({ value: line }));
       },
     });
+
+    await expect(secondRun).resolves.toBe(undefined);
 
     const sharedLinkRealpath = git.realpathOf({
       absolutePath: AbsoluteFilePathStub({
@@ -165,12 +168,10 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     testbed.cleanup();
 
     expect({
-      secondResult,
       sharedLinkRealpath,
       hoistedDepExists,
       streamed,
     }).toStrictEqual({
-      secondResult: { success: true },
       sharedLinkRealpath: `${worktreePath}/packages/shared`,
       hoistedDepExists: true,
       streamed: [

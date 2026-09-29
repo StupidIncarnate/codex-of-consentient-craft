@@ -121,17 +121,17 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
       const controller = new AbortController();
       controller.abort();
 
-      const result = await smoketestSweepPendingWorkItemsLayerBroker({
-        questId: QUEST_ID,
-        abortSignal: controller.signal,
-        dispense: dispenseSignalCompleteForBoth,
-      });
+      await expect(
+        smoketestSweepPendingWorkItemsLayerBroker({
+          questId: QUEST_ID,
+          abortSignal: controller.signal,
+          dispense: dispenseSignalCompleteForBoth,
+        }),
+      ).resolves.toBe(undefined);
 
       expect({
-        result,
         persistedContents: proxy.getAllPersistedContents(),
       }).toStrictEqual({
-        result: { success: true },
         persistedContents: [],
       });
     });
@@ -143,17 +143,17 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
       proxy.setupQuestFound({ quest: questWithTwoPendingRoles });
       const controller = new AbortController();
 
-      const result = await smoketestSweepPendingWorkItemsLayerBroker({
-        questId: QUEST_ID,
-        abortSignal: controller.signal,
-        dispense: dispenseAlwaysNull,
-      });
+      await expect(
+        smoketestSweepPendingWorkItemsLayerBroker({
+          questId: QUEST_ID,
+          abortSignal: controller.signal,
+          dispense: dispenseAlwaysNull,
+        }),
+      ).resolves.toBe(undefined);
 
       expect({
-        result,
         persistedContents: proxy.getAllPersistedContents(),
       }).toStrictEqual({
-        result: { success: true },
         persistedContents: [],
       });
     });
@@ -165,17 +165,17 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
       proxy.setupQuestFound({ quest: questWithStampedCodeweaver });
       const controller = new AbortController();
 
-      const result = await smoketestSweepPendingWorkItemsLayerBroker({
-        questId: QUEST_ID,
-        abortSignal: controller.signal,
-        dispense: dispenseSignalCompleteForCodeweaver,
-      });
+      await expect(
+        smoketestSweepPendingWorkItemsLayerBroker({
+          questId: QUEST_ID,
+          abortSignal: controller.signal,
+          dispense: dispenseSignalCompleteForCodeweaver,
+        }),
+      ).resolves.toBe(undefined);
 
       expect({
-        result,
         persistedContents: proxy.getAllPersistedContents(),
       }).toStrictEqual({
-        result: { success: true },
         persistedContents: [],
       });
     });
@@ -229,20 +229,20 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
       proxy.setupQuestFound({ quest: questWithTwoPendingRoles });
       const controller = new AbortController();
 
-      const result = await smoketestSweepPendingWorkItemsLayerBroker({
-        questId: QUEST_ID,
-        abortSignal: controller.signal,
-        dispense: dispenseSignalCompleteForCodeweaver,
-      });
+      await expect(
+        smoketestSweepPendingWorkItemsLayerBroker({
+          questId: QUEST_ID,
+          abortSignal: controller.signal,
+          dispense: dispenseSignalCompleteForCodeweaver,
+        }),
+      ).resolves.toBe(undefined);
 
       const persistedStrings = proxy.getAllPersistedContents().map((content) => String(content));
       const hits = persistedStrings.filter((raw) => raw.includes(SIGNAL_COMPLETE_SIGNATURE));
 
       expect({
-        result,
         atLeastOneHit: hits.length > 0,
       }).toStrictEqual({
-        result: { success: true },
         atLeastOneHit: true,
       });
     });

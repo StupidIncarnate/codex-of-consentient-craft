@@ -7,17 +7,13 @@
  *
  * USAGE:
  * GraphReachabilityCheckResponder();
- * // Throws when graphReachabilityCheckBroker() returns any violation; otherwise returns
- * // { success: true }
+ * // Throws when graphReachabilityCheckBroker() returns any violation; otherwise returns void
  */
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { graphReachabilityCheckBroker } from '@dungeonmaster/orchestrator/brokers';
 
-export const GraphReachabilityCheckResponder = (): AdapterResult => {
+export const GraphReachabilityCheckResponder = (): void => {
   const violations = graphReachabilityCheckBroker();
   if (violations.length > 0) {
     throw new Error(violations.join('\n'));
   }
-  return adapterResultContract.parse({ success: true });
 };

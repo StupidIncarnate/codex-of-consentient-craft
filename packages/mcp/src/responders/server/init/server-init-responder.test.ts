@@ -10,7 +10,7 @@ describe('ServerInitResponder', () => {
 
       proxy.setupNoGitignore();
 
-      await expect(proxy.callResponder()).resolves.toStrictEqual({ success: true });
+      await expect(proxy.callResponder()).resolves.toBe(undefined);
     });
   });
 

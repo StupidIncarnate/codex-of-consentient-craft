@@ -15,7 +15,7 @@ describe('GuildRemoveResponder', () => {
       });
       proxy.setupQuestList({ guildId, quests: [] });
 
-      await expect(proxy.callResponder({ guildId })).resolves.toStrictEqual({ success: true });
+      await expect(proxy.callResponder({ guildId })).resolves.toBe(undefined);
     });
   });
 });

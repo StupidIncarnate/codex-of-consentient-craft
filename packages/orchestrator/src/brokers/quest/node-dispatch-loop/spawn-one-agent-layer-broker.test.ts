@@ -1,4 +1,3 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -20,9 +19,8 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 1 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getModifyCallInputs()).toStrictEqual([
         {
           questId: instruction.questId,
@@ -62,9 +60,8 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 1 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 1 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
         [
           '-p',
@@ -93,9 +90,8 @@ describe('spawnOneAgentLayerBroker', () => {
         exitCode: 0,
       });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(undefined);
       expect(proxy.getStderrLines()).toStrictEqual([]);
     });
@@ -106,9 +102,8 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupModifySucceeds({ times: 1 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: null as never });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(undefined);
     });
   });
@@ -125,9 +120,8 @@ describe('spawnOneAgentLayerBroker', () => {
       });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(apiOverloadRetryStatics.fastDelayMs);
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
         [
@@ -165,9 +159,8 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
         [
           '-p',
@@ -202,9 +195,8 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([
         [
           '-p',
@@ -257,13 +249,14 @@ describe('spawnOneAgentLayerBroker', () => {
       const spentAttempts =
         apiOverloadRetryStatics.fastAttempts + apiOverloadRetryStatics.slowAttempts;
 
-      const result = await spawnOneAgentLayerBroker({
-        instruction,
-        cwd: CWD,
-        overloadAttempt: spentAttempts,
-      });
+      await expect(
+        spawnOneAgentLayerBroker({
+          instruction,
+          cwd: CWD,
+          overloadAttempt: spentAttempts,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(undefined);
       expect(proxy.getStderrLines()).toStrictEqual([
         `[node-dispatch] codeweaver work item ${instruction.workItemId} still hitting API overload after 30 retries — schedule spent, handing off to orphan recovery\n`,
@@ -278,9 +271,10 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       const isPlaying = jest.fn().mockReturnValue(false);
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying })).resolves.toBe(
+        undefined,
+      );
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(undefined);
       expect(proxy.getStderrLines()).toStrictEqual([
         `[node-dispatch] codeweaver work item ${instruction.workItemId} hit API overload but dispatch is paused — abandoning retry\n`,
@@ -293,9 +287,10 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying })).resolves.toBe(
+        undefined,
+      );
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getLastBackoffDelay()).toBe(apiOverloadRetryStatics.fastDelayMs);
       expect(proxy.getStderrLines()).toStrictEqual([
         `[node-dispatch] codeweaver work item ${instruction.workItemId} died on API overload — retry 1 in 60000ms\n`,
@@ -313,9 +308,8 @@ describe('spawnOneAgentLayerBroker', () => {
         status: 'complete',
       });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getStderrLines()).toStrictEqual([
         `[node-dispatch] codeweaver work item ${instruction.workItemId} died on API overload — retry 1 in 60000ms\n`,
         `[node-dispatch] work item ${instruction.workItemId} went terminal during API-overload backoff — no retry needed\n`,
@@ -449,9 +443,8 @@ describe('spawnOneAgentLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupSpawnEmitsRateLimitRefusalThenExits({ exitCode: 1 });
 
-      const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
+      await expect(spawnOneAgentLayerBroker({ instruction, cwd: CWD })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       // ONE spawn. The overload path would have respawned here; a refusal must not, because the
       // quota does not refill on its schedule and every respawn earns another 429.
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([

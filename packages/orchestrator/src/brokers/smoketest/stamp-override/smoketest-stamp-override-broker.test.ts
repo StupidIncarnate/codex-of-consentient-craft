@@ -45,11 +45,13 @@ describe('smoketestStampOverrideBroker', () => {
       const proxy = smoketestStampOverrideBrokerProxy();
       proxy.setupQuestFound({ quest: questWithTargetItem });
 
-      const result = await smoketestStampOverrideBroker({
-        questId: QUEST_ID,
-        workItemId: TARGET_WORK_ITEM_ID,
-        override: OVERRIDE_PROMPT,
-      });
+      await expect(
+        smoketestStampOverrideBroker({
+          questId: QUEST_ID,
+          workItemId: TARGET_WORK_ITEM_ID,
+          override: OVERRIDE_PROMPT,
+        }),
+      ).resolves.toBe(undefined);
 
       const persisted = proxy.getAllPersistedContents();
       const lastWritten = persisted[persisted.length - 1];
@@ -58,11 +60,9 @@ describe('smoketestStampOverrideBroker', () => {
       const otherAfter = parsed.workItems.find((wi) => wi.id === OTHER_WORK_ITEM_ID);
 
       expect({
-        result,
         targetOverride: targetAfter?.smoketestPromptOverride,
         otherOverride: otherAfter?.smoketestPromptOverride,
       }).toStrictEqual({
-        result: { success: true },
         targetOverride: OVERRIDE_PROMPT,
         otherOverride: undefined,
       });
@@ -74,17 +74,17 @@ describe('smoketestStampOverrideBroker', () => {
       const proxy = smoketestStampOverrideBrokerProxy();
       proxy.setupQuestFound({ quest: questWithAlreadyStampedItem });
 
-      const result = await smoketestStampOverrideBroker({
-        questId: QUEST_ID,
-        workItemId: TARGET_WORK_ITEM_ID,
-        override: OVERRIDE_PROMPT,
-      });
+      await expect(
+        smoketestStampOverrideBroker({
+          questId: QUEST_ID,
+          workItemId: TARGET_WORK_ITEM_ID,
+          override: OVERRIDE_PROMPT,
+        }),
+      ).resolves.toBe(undefined);
 
       expect({
-        result,
         persistedCount: proxy.getAllPersistedContents().length,
       }).toStrictEqual({
-        result: { success: true },
         persistedCount: 0,
       });
     });

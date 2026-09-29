@@ -1,5 +1,3 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
-
 import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
@@ -11,12 +9,13 @@ describe('questNodeDispatchLoopBroker', () => {
     it('VALID: {isPlaying: false} => returns ok without consulting the state machine', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
 
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => false,
-        onStepLine: () => undefined,
-      });
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying: (): boolean => false,
+          onStepLine: () => undefined,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getNextStepCalls()).toStrictEqual([]);
     });
 
@@ -34,12 +33,13 @@ describe('questNodeDispatchLoopBroker', () => {
         .mockReturnValueOnce(true)
         .mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying,
-        onStepLine: () => undefined,
-      });
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying,
+          onStepLine: () => undefined,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
       expect(proxy.getNextStepCalls()).toStrictEqual([
         {
@@ -60,12 +60,13 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: NextStepStub({ type: 'spawn-agents', agents }) });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying,
-        onStepLine: () => undefined,
-      });
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying,
+          onStepLine: () => undefined,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([]);
     });
   });
@@ -74,12 +75,13 @@ describe('questNodeDispatchLoopBroker', () => {
     it('VALID: {idle step} => returns ok after one scan', async () => {
       const proxy = questNodeDispatchLoopBrokerProxy();
 
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying: (): boolean => true,
-        onStepLine: () => undefined,
-      });
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying: (): boolean => true,
+          onStepLine: () => undefined,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getNextStepCalls()).toStrictEqual([
         {
           activeQuest: { setActive: expect.any(Function), clear: expect.any(Function) },
@@ -98,12 +100,13 @@ describe('questNodeDispatchLoopBroker', () => {
       proxy.queueStep({ step: spawnStep });
       const isPlaying = jest.fn().mockReturnValue(true);
 
-      const result = await questNodeDispatchLoopBroker({
-        isPlaying,
-        onStepLine: () => undefined,
-      });
+      await expect(
+        questNodeDispatchLoopBroker({
+          isPlaying,
+          onStepLine: () => undefined,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual(AdapterResultStub());
       expect(proxy.getSpawnBatchCalls()).toStrictEqual([{ agents, isPlaying }]);
     });
 

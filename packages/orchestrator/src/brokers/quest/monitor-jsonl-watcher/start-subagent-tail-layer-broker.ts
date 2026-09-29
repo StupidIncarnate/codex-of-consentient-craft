@@ -11,13 +11,11 @@
  *   emit,
  *   subagentHandles,
  * });
- * // Returns AdapterResult { success: true }
+ * // Returns void; the tail handle lands in `subagentHandles`
  */
 
 import {
   absoluteFilePathContract,
-  adapterResultContract,
-  type AdapterResult,
   type ChatEntry,
   type FilePath,
   type ProcessId,
@@ -70,9 +68,9 @@ export const startSubagentTailLayerBroker = ({
     workItemId?: QuestWorkItemId;
   }) => void;
   subagentHandles: Map<AgentId, TailFileHandle>;
-}): AdapterResult => {
+}): void => {
   if (subagentHandles.has(agentId)) {
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   const sessionFilePathAbsolute = absoluteFilePathContract.parse(String(sessionFilePath));
@@ -127,5 +125,4 @@ export const startSubagentTailLayerBroker = ({
     },
   });
   subagentHandles.set(agentId, handle);
-  return adapterResultContract.parse({ success: true });
 };

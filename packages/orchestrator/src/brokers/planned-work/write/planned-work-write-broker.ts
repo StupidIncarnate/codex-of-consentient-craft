@@ -14,12 +14,8 @@
  */
 
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  AdapterResult,
-  OperationItemId,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
 import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
@@ -37,7 +33,7 @@ export const plannedWorkWriteBroker = async ({
   questFolderPath: AbsoluteFilePath;
   operationItemId: OperationItemId;
   plan: WorkPlan;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const dirPath = locationsPlannedWorkPathFindBroker({ questFolderPath });
   await ensureDir(dirPath);
 
@@ -48,6 +44,4 @@ export const plannedWorkWriteBroker = async ({
 
   await writeFile(tmpPath, JSON.stringify(plan, null, JSON_INDENT_SPACES));
   await rename(tmpPath, filePath);
-
-  return adapterResultContract.parse({ success: true });
 };

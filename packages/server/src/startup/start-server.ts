@@ -6,7 +6,6 @@
  * // Starts HTTP server with guild, quest, process, session, directory, health endpoints and WebSocket event relay
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { GuildFlow } from '../flows/guild/guild-flow';
 import { QuestFlow } from '../flows/quest/quest-flow';
 import { ProcessFlow } from '../flows/process/process-flow';
@@ -26,7 +25,7 @@ export const StartServer = ({
   serveWebBundle = false,
 }: {
   serveWebBundle?: boolean;
-} = {}): AdapterResult => {
+} = {}): void => {
   // Validate reachability across the family graph and every step graph at server boot.
   // Throws directly if any violation exists, stopping boot before listeners start.
   GraphReachabilityBootFlow();
@@ -42,7 +41,7 @@ export const StartServer = ({
   // The normalization is server-process only — MCP children start the watchers but must not run it.
   OrchestrationBootFlow.bootstrap();
 
-  return ServerFlow({
+  ServerFlow({
     subApps: [
       GuildFlow(),
       QuestFlow(),

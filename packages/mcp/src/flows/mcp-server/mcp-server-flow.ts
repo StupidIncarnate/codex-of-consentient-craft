@@ -14,8 +14,6 @@ import {
   type CallToolRequest,
 } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
@@ -25,7 +23,7 @@ export const McpServerFlow = async ({
   registrations,
 }: {
   registrations: ToolRegistration[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   await ServerInitResponder();
 
   // The SDK's own docs on McpServer point custom-request-handler callers at this exact shape:
@@ -71,5 +69,4 @@ export const McpServerFlow = async ({
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  return adapterResultContract.parse({ success: true });
 };

@@ -25,13 +25,7 @@
  * Dropping it means minutes of a dead panel with nothing at the call site to show for it.
  */
 
-import type {
-  AdapterResult,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
@@ -59,11 +53,9 @@ export const questNodeDispatchLoopBroker = async ({
     kill: () => void;
   }) => void;
   unregisterProcess?: (params: { processId: ProcessId }) => void;
-}): Promise<AdapterResult> => {
-  const ok = adapterResultContract.parse({ success: true });
-
+}): Promise<void> => {
   if (!isPlaying()) {
-    return ok;
+    return;
   }
 
   // Short poll — the runner has its own event-driven wake, so an idle scan should return
@@ -83,11 +75,11 @@ export const questNodeDispatchLoopBroker = async ({
   // dispatchable AFTER the user pressed pause. Acting on it would spawn a child (or run a
   // deterministic step) against a dispatcher the user has already stopped.
   if (!isPlaying()) {
-    return ok;
+    return;
   }
 
   if (step.type === 'idle') {
-    return ok;
+    return;
   }
 
   if (step.type === 'run-step') {

@@ -198,18 +198,18 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questSiegemasterOperational });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
       const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
 
       expect({
-        result,
         offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
-        result: { success: true },
         offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
     });
@@ -229,18 +229,18 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questFlowriderRuntime });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
       const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
 
       expect({
-        result,
         offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
-        result: { success: true },
         offMapSignoffs: [],
       });
     });
@@ -259,13 +259,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questFlowriderOperational });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect({ result, persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
-        result: { success: true },
+      expect({ persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
         persistedCount: 0,
       });
     });
@@ -274,13 +275,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questSpiritmender });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect({ result, persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
-        result: { success: true },
+      expect({ persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
         persistedCount: 0,
       });
     });
@@ -289,18 +291,18 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questAlreadySigned });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
       const flows = proxy.getPersistedQuests().flatMap((quest) => quest.flows);
 
       expect({
-        result,
         offMapSignoffs: flows.flatMap((flow) => flow.offMapSignoffs),
       }).toStrictEqual({
-        result: { success: true },
         offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
     });
@@ -311,13 +313,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questWithoutTheWorkItem });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect({ result, persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
-        result: { success: true },
+      expect({ persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
         persistedCount: 0,
       });
     });
@@ -326,13 +329,14 @@ describe('smoketestSignOutstandingUnitsBroker', () => {
       const proxy = smoketestSignOutstandingUnitsBrokerProxy();
       proxy.setupQuestFound({ quest: questWithUnlinkedWorkItem });
 
-      const result = await smoketestSignOutstandingUnitsBroker({
-        questId: QUEST_ID,
-        workItemId: WORK_ITEM_ID,
-      });
+      await expect(
+        smoketestSignOutstandingUnitsBroker({
+          questId: QUEST_ID,
+          workItemId: WORK_ITEM_ID,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect({ result, persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
-        result: { success: true },
+      expect({ persistedCount: proxy.getAllPersistedContents().length }).toStrictEqual({
         persistedCount: 0,
       });
     });

@@ -8,10 +8,8 @@
 import { stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
-  adapterResultContract,
   sessionIdContract,
   workItemRoleContract,
-  type AdapterResult,
   type ExitCode,
   type QuestId,
   type SessionId,
@@ -41,7 +39,7 @@ export const runChatLayerBroker = async ({
   workItem: WorkItem;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const slotIndex = slotIndexContract.parse(0);
 
   // Refused before the prompt is built, so the caller gets this specific diagnosis rather than
@@ -154,7 +152,6 @@ export const runChatLayerBroker = async ({
         ],
       } as ModifyQuestInput,
     });
-    return adapterResultContract.parse({ success: true });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     await questModifyBroker({

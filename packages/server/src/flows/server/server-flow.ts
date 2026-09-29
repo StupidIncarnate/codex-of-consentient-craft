@@ -8,8 +8,6 @@
 
 import { Hono } from '#gateway/npm/hono';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 
 export const ServerFlow = ({
@@ -18,7 +16,7 @@ export const ServerFlow = ({
 }: {
   subApps: Hono[];
   serveWebBundle?: boolean;
-}): AdapterResult => {
+}): void => {
   const app = new Hono();
 
   for (const sub of subApps) {
@@ -26,5 +24,4 @@ export const ServerFlow = ({
   }
 
   ServerInitResponder({ app, serveWebBundle });
-  return adapterResultContract.parse({ success: true });
 };

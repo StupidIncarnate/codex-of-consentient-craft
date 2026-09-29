@@ -19,8 +19,7 @@
  */
 import { ensureDir } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -30,13 +29,11 @@ export const guildDirectoryEnsureBroker = async ({
 }: {
   target: DmTarget;
   path: GuildPath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const targetRoot = resolve(target.home);
   const guildDir = resolve(path);
 
   if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
     await ensureDir(guildDir);
   }
-
-  return adapterResultContract.parse({ success: true });
 };

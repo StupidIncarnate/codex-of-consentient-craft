@@ -16,13 +16,14 @@ describe('questWardResultDetailWriteBroker', () => {
       const wardResultFilePath = `/tmp/dm-home/guilds/${GUILD_ID}/quests/add-auth/ward-results/${WARD_RESULT_ID}.json`;
       proxy.succeeds({ guild: GuildListItemStub({ id: GUILD_ID }), quest, wardResultFilePath });
 
-      const result = await questWardResultDetailWriteBroker({
-        target,
-        record: quest,
-        args: { wardResultId: WARD_RESULT_ID, detail: { testFailures: [] } },
-      });
+      await expect(
+        questWardResultDetailWriteBroker({
+          target,
+          record: quest,
+          args: { wardResultId: WARD_RESULT_ID, detail: { testFailures: [] } },
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getWrittenContents({ wardResultFilePath })).toBe('{"testFailures":[]}');
     });
   });

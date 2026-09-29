@@ -9,9 +9,7 @@
  * WHEN-NOT-TO-USE: Anywhere outside the smoketest flow.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
-  adapterResultContract,
   fileContentsContract,
   filePathContract,
   questContract,
@@ -50,9 +48,7 @@ export const processTerminalEventLayerBroker = async ({
   entry: SmoketestListenerEntry;
   scenarioMeta: SmoketestScenarioMeta;
   unregisterListener: ({ questId }: { questId: QuestId }) => void;
-}): Promise<AdapterResult> => {
-  const notProcessed = adapterResultContract.parse({ success: true });
-
+}): Promise<void> => {
   // The quest may have been deleted between the outbox event being appended and this
   // handler running (e.g. the user abandoned + deleted a stuck smoketest quest, or the
   // next suite run cleared prior quests). In that case `questFindQuestPathBroker` throws
@@ -72,7 +68,7 @@ export const processTerminalEventLayerBroker = async ({
       entry.stopDriver();
     }
     unregisterListener({ questId });
-    return notProcessed;
+    return;
   }
 
   const questFilePath = filePathContract.parse(
@@ -82,7 +78,7 @@ export const processTerminalEventLayerBroker = async ({
   const quest: Quest = await questLoadBroker({ questFilePath });
 
   if (!isTerminalQuestStatusGuard({ status: quest.status })) {
-    return notProcessed;
+    return;
   }
 
   const assertionOutcome = smoketestAssertFinalStateBroker({
@@ -108,7 +104,7 @@ export const processTerminalEventLayerBroker = async ({
 
   await questWithModifyLockBroker({
     questId,
-    run: async (): Promise<{ success: true }> => {
+    run: async (): Promise<void> => {
       const loaded = await questLoadBroker({ questFilePath });
       const existingResults = loaded.smoketestResults ?? [];
       const updatedQuest = questContract.parse({
@@ -120,7 +116,6 @@ export const processTerminalEventLayerBroker = async ({
         JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
       );
       await questPersistBroker({ questFilePath, contents: json, questId });
-      return { success: true as const };
     },
   });
 
@@ -129,6 +124,4 @@ export const processTerminalEventLayerBroker = async ({
   }
 
   unregisterListener({ questId });
-
-  return adapterResultContract.parse({ success: true });
 };

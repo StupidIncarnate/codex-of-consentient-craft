@@ -39,22 +39,22 @@ describe('OverwriteWorkItemsLayerResponder', () => {
         dependsOn: [WI_1_ID],
       });
 
-      const result = await OverwriteWorkItemsLayerResponder({
-        questId: QUEST_ID,
-        workItems: [codeweaver1, codeweaver2],
-      });
+      await expect(
+        OverwriteWorkItemsLayerResponder({
+          questId: QUEST_ID,
+          workItems: [codeweaver1, codeweaver2],
+        }),
+      ).resolves.toBe(undefined);
 
       const persisted = proxy.getAllPersistedContents();
       const lastWritten = persisted[persisted.length - 1];
       const parsed = JSON.parse(String(lastWritten)) as Quest;
 
       expect({
-        result,
         workItemIds: parsed.workItems.map((wi) => wi.id),
         workItemRoles: parsed.workItems.map((wi) => wi.role),
         workItemStatuses: parsed.workItems.map((wi) => wi.status),
       }).toStrictEqual({
-        result: { success: true },
         workItemIds: [WI_1_ID, WI_2_ID],
         workItemRoles: ['codeweaver', 'codeweaver'],
         workItemStatuses: ['pending', 'pending'],
@@ -126,10 +126,12 @@ describe('OverwriteWorkItemsLayerResponder', () => {
 
       const codeweaver1 = WorkItemStub({ id: WI_1_ID, role: 'codeweaver', status: 'pending' });
 
-      const result = await OverwriteWorkItemsLayerResponder({
-        questId: QUEST_ID,
-        workItems: [codeweaver1],
-      });
+      await expect(
+        OverwriteWorkItemsLayerResponder({
+          questId: QUEST_ID,
+          workItems: [codeweaver1],
+        }),
+      ).resolves.toBe(undefined);
 
       // Lock correctness is proven by the persist side-effect occurring with the merged
       // workItems — if the lock short-circuited, persist would not run (no write content)
@@ -137,10 +139,8 @@ describe('OverwriteWorkItemsLayerResponder', () => {
       const persisted = proxy.getAllPersistedContents();
 
       expect({
-        result,
         persistedCount: persisted.length,
       }).toStrictEqual({
-        result: { success: true },
         persistedCount: 1,
       });
     });

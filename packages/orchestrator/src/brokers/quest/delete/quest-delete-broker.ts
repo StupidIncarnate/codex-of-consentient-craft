@@ -21,7 +21,7 @@ export const questDeleteBroker = async ({
 }: {
   questId: QuestId;
   guildId: GuildId;
-}): Promise<{ success: true }> => {
+}): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questFolderPath = filePathContract.parse(
@@ -37,6 +37,4 @@ export const questDeleteBroker = async ({
   await rm(questFolderPath, { recursive: true, force: true });
 
   await questOutboxAppendBroker({ questId });
-
-  return { success: true as const };
 };

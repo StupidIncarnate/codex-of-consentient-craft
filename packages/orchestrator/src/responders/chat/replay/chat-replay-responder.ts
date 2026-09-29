@@ -7,8 +7,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type { AdapterResult, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -23,7 +23,7 @@ export const ChatReplayResponder = async ({
   sessionId: SessionId;
   guildId: GuildId;
   chatProcessId?: ProcessId;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const chatProcessId = clientChatProcessId ?? processIdContract.parse(`replay-${randomUUID()}`);
 
   // Look up the linked quest BEFORE replay so chat-output frames can be stamped with
@@ -123,5 +123,4 @@ export const ChatReplayResponder = async ({
       ...workItemIdFragment,
     },
   });
-  return adapterResultContract.parse({ success: true });
 };

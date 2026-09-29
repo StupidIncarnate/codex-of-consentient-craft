@@ -35,14 +35,12 @@
  */
 
 import type {
-  AdapterResult,
   BlockedReason,
   OperationItemId,
   QuestId,
   QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import {
-  adapterResultContract,
   errorMessageContract,
   getQuestInputContract,
   operationItemContract,
@@ -67,7 +65,7 @@ export const QuestHandleSignalBackResponder = async ({
   signal: 'complete';
   operationItemId?: OperationItemId;
   blockedReason?: BlockedReason;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
   if (!result.success || !result.quest) {
@@ -98,7 +96,7 @@ export const QuestHandleSignalBackResponder = async ({
   // IDEMPOTENCY: a redelivered signal for an already-terminal work item is a no-op — the first
   // delivery already applied the outcome atomically.
   if (isTerminalWorkItemStatusGuard({ status: signaledItem.status })) {
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   // UNMARKED-UNIT GATE — runs BEFORE any mutation, so a refusal leaves the work item and its
@@ -175,6 +173,4 @@ export const QuestHandleSignalBackResponder = async ({
   if (!runsStepGraph) {
     await questAdvanceBroker({ questId });
   }
-
-  return adapterResultContract.parse({ success: true });
 };

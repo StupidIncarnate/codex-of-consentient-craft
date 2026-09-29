@@ -146,12 +146,14 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       ],
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const after = await questHelper.reload({ questId });
 
@@ -161,13 +163,11 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     // exactly the one operation item it was seeded with, and the work-item list exactly the one
     // session that signalled. A re-added auto-append would put a second role in either list.
     expect({
-      responderResult: result,
       operationRoles: after.operations.map(({ role }) => role),
       operationStatuses: after.operations.map(({ status }) => status),
       workItemRoles: after.workItems.map(({ role }) => role),
       workItemStatuses: after.workItems.map(({ status }) => status),
     }).toStrictEqual({
-      responderResult: { success: true },
       operationRoles: ['codeweaver'],
       operationStatuses: ['complete'],
       workItemRoles: ['codeweaver'],
@@ -265,23 +265,23 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
         ],
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: cwWorkItemId,
-        signal: 'complete',
-        operationItemId: cwOpId,
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: cwWorkItemId,
+          signal: 'complete',
+          operationItemId: cwOpId,
+        }),
+      ).resolves.toBe(undefined);
 
       const after = await questHelper.reload({ questId });
 
       testbed.cleanup();
 
       expect({
-        responderResult: result,
         operationStatuses: after.operations.map(({ status }) => status),
         workItemStatuses: after.workItems.map(({ status }) => status),
       }).toStrictEqual({
-        responderResult: { success: true },
         operationStatuses: ['complete'],
         workItemStatuses: ['complete'],
       });
@@ -326,24 +326,24 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       ],
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
     expect({
-      responderResult: result,
       blightLedger: after.planningNotes.blightLedger,
       operationStatuses: after.operations.map(({ status }) => status),
       workItemStatuses: after.workItems.map(({ status }) => status),
     }).toStrictEqual({
-      responderResult: { success: true },
       blightLedger: [],
       operationStatuses: ['complete'],
       workItemStatuses: ['complete'],
@@ -415,24 +415,24 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       ],
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
     expect({
-      responderResult: result,
       blightLedger: after.planningNotes.blightLedger,
       operationStatuses: after.operations.map(({ status }) => status),
       workItemStatuses: after.workItems.map(({ status }) => status),
     }).toStrictEqual({
-      responderResult: { success: true },
       blightLedger: [],
       operationStatuses: ['complete'],
       workItemStatuses: ['complete'],
@@ -526,23 +526,23 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       porcelain: `?? ${String(strayPath)}`,
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
     expect({
-      responderResult: result,
       operationStatus: after.operations.find((op) => op.id === cwOpId)?.status,
       workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
     }).toStrictEqual({
-      responderResult: { success: true },
       operationStatus: 'complete',
       workItemStatus: 'complete',
     });
@@ -614,23 +614,23 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       ],
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: cwWorkItemId,
-      signal: 'complete',
-      operationItemId: cwOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: cwWorkItemId,
+        signal: 'complete',
+        operationItemId: cwOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const after = await questHelper.reload({ questId });
 
     testbed.cleanup();
 
     expect({
-      responderResult: result,
       operationStatus: after.operations.find((op) => op.id === cwOpId)?.status,
       workItemStatus: after.workItems.find((wi) => wi.id === cwWorkItemId)?.status,
     }).toStrictEqual({
-      responderResult: { success: true },
       operationStatus: 'complete',
       workItemStatus: 'complete',
     });
@@ -709,12 +709,14 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         ],
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: flowWorkItemId,
-        signal: 'complete',
-        operationItemId: flowOpId,
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: flowWorkItemId,
+          signal: 'complete',
+          operationItemId: flowOpId,
+        }),
+      ).resolves.toBe(undefined);
 
       const afterQuest = await questHelper.reload({ questId });
       const workItem = afterQuest.workItems.find((wi) => wi.id === flowWorkItemId);
@@ -722,7 +724,6 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
 
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ success: true });
       expect({
         workItemStatus: workItem?.status,
         operationStatus: operation?.status,
@@ -787,19 +788,20 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         ],
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: flowWorkItemId,
-        signal: 'complete',
-        operationItemId: flowOpId,
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: flowWorkItemId,
+          signal: 'complete',
+          operationItemId: flowOpId,
+        }),
+      ).resolves.toBe(undefined);
 
       const afterQuest = await questHelper.reload({ questId });
       const operation = afterQuest.operations.find((op) => op.id === flowOpId);
 
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ success: true });
       expect(operation?.status).toBe('complete');
     }, 30_000);
   });
@@ -870,19 +872,20 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
         ],
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId,
-        workItemId: siegeWorkItemId,
-        signal: 'complete',
-        operationItemId: siegeOpId,
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId,
+          workItemId: siegeWorkItemId,
+          signal: 'complete',
+          operationItemId: siegeOpId,
+        }),
+      ).resolves.toBe(undefined);
 
       const afterQuest = await questHelper.reload({ questId });
       const operation = afterQuest.operations.find((op) => op.id === siegeOpId);
 
       testbed.cleanup();
 
-      expect(result).toStrictEqual({ success: true });
       expect(operation?.status).toBe('complete');
     }, 30_000);
   });
@@ -966,12 +969,14 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       ref: ErrorMessageStub({ value: String(branchName) }),
     });
 
-    const result = await QuestHandleSignalBackResponder({
-      questId,
-      workItemId: warpgateWorkItemId,
-      signal: 'complete',
-      operationItemId: warpgateOpId,
-    });
+    await expect(
+      QuestHandleSignalBackResponder({
+        questId,
+        workItemId: warpgateWorkItemId,
+        signal: 'complete',
+        operationItemId: warpgateOpId,
+      }),
+    ).resolves.toBe(undefined);
 
     const afterQuest = await questHelper.reload({ questId });
     const warpgateOperation = afterQuest.operations.find((op) => op.id === warpgateOpId);
@@ -991,7 +996,6 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     // `git worktree remove --force` + `git branch -D` spliced onto this same completion route
     // turned both fields red before being reverted.
     expect({
-      responderResult: result,
       questStatus: afterQuest.status,
       // warpgate-merge:observable:warpgate-signals-done — the {signal:'complete'} call a finished
       // warpgate session sends marks ITS OWN operation item complete and terminalizes its work
@@ -1007,7 +1011,6 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       branchResolvedAfter: branchShaAfter !== null,
       branchShaUnchanged: branchShaBefore === branchShaAfter,
     }).toStrictEqual({
-      responderResult: { success: true },
       questStatus: 'merged',
       warpgateOperationStatus: 'complete',
       warpgateWorkItemStatus: 'complete',

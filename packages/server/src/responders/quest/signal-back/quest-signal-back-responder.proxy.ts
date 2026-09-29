@@ -1,17 +1,10 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
-import type { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 
 import { QuestSignalBackResponder } from './quest-signal-back-responder';
 
-type AdapterResult = ReturnType<typeof AdapterResultStub>;
-
 export const QuestSignalBackResponderProxy = (): {
-  setupSignalBack: (params: {
-    questId: QuestId;
-    workItemId: QuestWorkItemId;
-    result: AdapterResult;
-  }) => void;
+  setupSignalBack: (params: { questId: QuestId; workItemId: QuestWorkItemId }) => void;
   setupSignalBackError: (params: {
     questId: QuestId;
     workItemId: QuestWorkItemId;
@@ -25,13 +18,11 @@ export const QuestSignalBackResponderProxy = (): {
     setupSignalBack: ({
       questId,
       workItemId,
-      result,
     }: {
       questId: QuestId;
       workItemId: QuestWorkItemId;
-      result: AdapterResult;
     }): void => {
-      orchestrator.handleSignalBackResolves({ questId, workItemId, result });
+      orchestrator.handleSignalBackResolves({ questId, workItemId });
     },
     setupSignalBackError: ({
       questId,

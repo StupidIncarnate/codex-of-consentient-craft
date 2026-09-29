@@ -127,20 +127,21 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
 
-    const result = await scanSubagentsDirLayerBroker({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
-      sessionFilePath,
-      parentSessionId,
-      processor: chatLineProcessTransformer(),
-      chatProcessId,
-      activeQuestIdGetter: () => activeQuestId,
-      emit: (call) => {
-        emitted.push(call);
-      },
-      subagentHandles: new Map(),
-    });
+    await expect(
+      scanSubagentsDirLayerBroker({
+        subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+        sessionFilePath,
+        parentSessionId,
+        processor: chatLineProcessTransformer(),
+        chatProcessId,
+        activeQuestIdGetter: () => activeQuestId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        subagentHandles: new Map(),
+      }),
+    ).resolves.toBe(undefined);
 
-    expect(result).toStrictEqual({ success: true });
     expect(emitted).toStrictEqual([]);
   });
 

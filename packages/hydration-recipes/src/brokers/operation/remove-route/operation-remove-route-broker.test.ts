@@ -56,9 +56,9 @@ describe('operationRemoveRouteBroker', () => {
         outboxPath: '/tmp/dm-home/event-outbox.jsonl',
       });
 
-      const result = await operationRemoveRouteBroker({ target, record: riftcarverItem });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(operationRemoveRouteBroker({ target, record: riftcarverItem })).resolves.toBe(
+        undefined,
+      );
 
       const written = proxy.getWrittenQuest({ questFilePath });
 

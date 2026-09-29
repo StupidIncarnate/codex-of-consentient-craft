@@ -31,14 +31,15 @@ describe('processTerminalEventLayerBroker', () => {
       const scenarioMeta = SmoketestScenarioMetaStub();
       const questId = QuestIdStub({ value: 'q-deleted' });
 
-      const result = await processTerminalEventLayerBroker({
-        questId,
-        entry,
-        scenarioMeta,
-        unregisterListener,
-      });
+      await expect(
+        processTerminalEventLayerBroker({
+          questId,
+          entry,
+          scenarioMeta,
+          unregisterListener,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(stopDriver.mock.calls).toStrictEqual([[]]);
       expect(unregisterListener.mock.calls).toStrictEqual([[{ questId }]]);
     });
@@ -57,14 +58,15 @@ describe('processTerminalEventLayerBroker', () => {
       const scenarioMeta = SmoketestScenarioMetaStub();
       const questId = QuestIdStub({ value: 'q-deleted-no-driver' });
 
-      const result = await processTerminalEventLayerBroker({
-        questId,
-        entry,
-        scenarioMeta,
-        unregisterListener,
-      });
+      await expect(
+        processTerminalEventLayerBroker({
+          questId,
+          entry,
+          scenarioMeta,
+          unregisterListener,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(unregisterListener.mock.calls).toStrictEqual([[{ questId }]]);
     });
   });
@@ -83,14 +85,15 @@ describe('processTerminalEventLayerBroker', () => {
       const entry = SmoketestListenerEntryStub();
       const scenarioMeta = SmoketestScenarioMetaStub();
 
-      const result = await processTerminalEventLayerBroker({
-        questId,
-        entry,
-        scenarioMeta,
-        unregisterListener: jest.fn(),
-      });
+      await expect(
+        processTerminalEventLayerBroker({
+          questId,
+          entry,
+          scenarioMeta,
+          unregisterListener: jest.fn(),
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getQuestFileJoinArgs({ questPath })).toStrictEqual([questPath, 'quest.json']);
     });
   });

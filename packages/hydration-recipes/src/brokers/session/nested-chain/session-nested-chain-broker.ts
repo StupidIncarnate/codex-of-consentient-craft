@@ -27,7 +27,6 @@ import {
   agentIdContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
   claudePathSlugEncoderTransformer,
   streamLineToJsonLineTransformer,
@@ -53,7 +52,7 @@ export const sessionNestedChainBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
   args: Record<string, unknown>;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const { depth } = nestedChainArgsContract.parse(args);
   const sessionId = sessionIdContract.parse(record.sessionId);
   const cwd = absoluteFilePathContract.parse(record.cwd);
@@ -123,6 +122,4 @@ export const sessionNestedChainBroker = async ({
       ],
     });
   }, Promise.resolve());
-
-  return { success: true };
 };

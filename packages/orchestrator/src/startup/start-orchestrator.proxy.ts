@@ -45,7 +45,6 @@ import type {
   SmoketestSuite,
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
-import type { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -71,7 +70,6 @@ import { QuestNotFoundError } from '../errors/quest-not-found/quest-not-found-er
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-type AdapterResult = ReturnType<typeof AdapterResultStub>;
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 type DispatchState = ReturnType<typeof DispatchStateStub>;
 type Guild = ReturnType<typeof GuildStub>;
@@ -295,11 +293,7 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
   // questType/sessionId reached the call) filters/reads this array itself.
   createQuestForMcpGetCalls: () => readonly unknown[];
-  handleSignalBackResolves: (params: {
-    questId?: QuestId;
-    workItemId?: QuestWorkItemId;
-    result: AdapterResult;
-  }) => void;
+  handleSignalBackResolves: (params: { questId?: QuestId; workItemId?: QuestWorkItemId }) => void;
   handleSignalBackThrows: (params: {
     questId?: QuestId;
     workItemId?: QuestWorkItemId;
@@ -931,15 +925,13 @@ export const StartOrchestratorProxy = (): {
     handleSignalBackResolves: ({
       questId,
       workItemId,
-      result,
     }: {
       questId?: QuestId;
       workItemId?: QuestWorkItemId;
-      result: AdapterResult;
     }): void => {
       const address =
         questId === undefined || workItemId === undefined ? [] : [{ questId, workItemId }];
-      handleSignalBackHandle.calledWith(address).resolves(result);
+      handleSignalBackHandle.calledWith(address).resolves(undefined);
     },
     handleSignalBackThrows: ({
       questId,

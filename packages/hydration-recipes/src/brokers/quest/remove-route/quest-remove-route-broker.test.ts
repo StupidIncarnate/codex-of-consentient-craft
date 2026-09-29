@@ -39,9 +39,7 @@ describe('questRemoveRouteBroker', () => {
         const record = QuestStub({ id: 'add-auth', status });
         proxy.succeeds({ guild: GuildListItemStub({ id: GUILD_ID }), quest: record });
 
-        const result = await questRemoveRouteBroker({ target, record });
-
-        expect(result).toStrictEqual({ deleted: true });
+        await expect(questRemoveRouteBroker({ target, record })).resolves.toBe(undefined);
       },
     );
   });

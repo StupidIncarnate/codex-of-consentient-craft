@@ -24,11 +24,7 @@
  * //   that state means the main checkout was never built, which only the operator can fix
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, projectMapStatics } from '@dungeonmaster/shared/statics';
 import { copyRecursive, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
@@ -49,7 +45,7 @@ export const worktreeSeedDistBroker = async ({
 }: {
   repoRoot: AbsoluteFilePath;
   worktreePath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const sourcePackagesDir = absoluteFilePathContract.parse(
     join(repoRoot, projectMapStatics.packagesDirName),
   );
@@ -60,7 +56,7 @@ export const worktreeSeedDistBroker = async ({
   const packagesDirPresent = await pathExists(sourcePackagesDir);
 
   if (!packagesDirPresent) {
-    return { success: true as const };
+    return;
   }
 
   const candidates = readdirEntriesSync(sourcePackagesDir).filter(
@@ -103,7 +99,7 @@ export const worktreeSeedDistBroker = async ({
   const missing = packages.filter((candidate) => !candidate.hasTargetDist);
 
   if (missing.length === 0) {
-    return { success: true as const };
+    return;
   }
 
   // One spawn per package rather than one for the whole set: each `dist` lands at its own package
@@ -140,6 +136,4 @@ export const worktreeSeedDistBroker = async ({
       }),
     });
   }
-
-  return { success: true as const };
 };

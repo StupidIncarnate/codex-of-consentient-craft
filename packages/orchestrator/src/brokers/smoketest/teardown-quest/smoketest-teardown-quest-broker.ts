@@ -22,14 +22,14 @@ export const smoketestTeardownQuestBroker = async ({
   questId,
 }: {
   questId: QuestId;
-}): Promise<{ success: true }> => {
+}): Promise<void> => {
   const resolvedQuestPath: FilePath | null = await questFindQuestPathBroker({ questId })
     .then((resolved) => filePathContract.parse(resolved.questPath))
     .catch(() => null);
 
   if (resolvedQuestPath === null) {
     // Quest not found — nothing to remove
-    return { success: true as const };
+    return;
   }
 
   try {
@@ -37,6 +37,4 @@ export const smoketestTeardownQuestBroker = async ({
   } catch {
     // Directory already removed or concurrent cleanup — idempotent no-op.
   }
-
-  return { success: true as const };
 };

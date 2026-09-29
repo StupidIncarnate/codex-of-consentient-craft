@@ -131,13 +131,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupQuest({ quest });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
@@ -178,13 +179,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
@@ -246,13 +248,14 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupSignalFlow({ quest, questAfterOutcome });
       proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([
         questAfterOutcome,
         QuestStub({
@@ -385,13 +388,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
 
@@ -440,13 +444,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
@@ -501,13 +506,14 @@ describe('QuestHandleSignalBackResponder', () => {
       proxy.setupSignalFlow({ quest, questAfterOutcome });
       proxy.setupAdvanceUuids({ ids: [ADVANCE_UUID] });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
@@ -607,13 +613,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
 
@@ -649,13 +656,14 @@ describe('QuestHandleSignalBackResponder', () => {
         }),
       });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
   });
@@ -714,14 +722,15 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        blockedReason,
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          blockedReason,
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
@@ -781,14 +790,15 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-        operationItemId: OperationItemIdStub({ value: OP2_ID }),
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+          operationItemId: OperationItemIdStub({ value: OP2_ID }),
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });
@@ -825,13 +835,14 @@ describe('QuestHandleSignalBackResponder', () => {
       });
       proxy.setupSignalFlow({ quest, questAfterOutcome });
 
-      const result = await QuestHandleSignalBackResponder({
-        questId: QuestIdStub({ value: 'add-auth' }),
-        workItemId: itemId,
-        signal: 'complete',
-      });
+      await expect(
+        QuestHandleSignalBackResponder({
+          questId: QuestIdStub({ value: 'add-auth' }),
+          workItemId: itemId,
+          signal: 'complete',
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getAllPersistedQuests()).toStrictEqual([questAfterOutcome]);
     });
   });

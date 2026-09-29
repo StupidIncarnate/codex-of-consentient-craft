@@ -9,9 +9,7 @@ describe('agentsPluginCreateBroker', () => {
 
     proxy.setupSuccess({ targetProjectRoot });
 
-    const result = await proxy.callBroker({ targetProjectRoot });
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(proxy.callBroker({ targetProjectRoot })).resolves.toBe(undefined);
 
     const writtenPluginContent = String(proxy.getWrittenPluginJson({ targetProjectRoot }));
     const writtenPlugin = JSON.parse(writtenPluginContent) as Record<PropertyKey, unknown>;

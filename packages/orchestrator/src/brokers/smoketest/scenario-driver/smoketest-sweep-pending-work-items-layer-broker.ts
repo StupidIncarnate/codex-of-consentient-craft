@@ -40,9 +40,9 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
   questId: QuestId;
   abortSignal: AbortSignal;
   dispense: Dispense;
-}): Promise<{ success: true }> => {
+}): Promise<void> => {
   if (abortSignal.aborted) {
-    return { success: true as const };
+    return;
   }
 
   const { questPath } = await questFindQuestPathBroker({ questId });
@@ -85,6 +85,4 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
       });
     }),
   );
-
-  return { success: true as const };
 };

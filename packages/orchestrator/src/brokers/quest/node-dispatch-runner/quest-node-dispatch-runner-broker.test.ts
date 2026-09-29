@@ -1,5 +1,3 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
-
 import { questNodeDispatchRunnerBroker } from './quest-node-dispatch-runner-broker';
 import { questNodeDispatchRunnerBrokerProxy } from './quest-node-dispatch-runner-broker.proxy';
 import { setImmediate } from '#gateway/node/setImmediate';
@@ -13,7 +11,7 @@ describe('questNodeDispatchRunnerBroker', () => {
       const runner = questNodeDispatchRunnerBroker({
         onWake,
         offWake: jest.fn(),
-        runLoop: jest.fn().mockResolvedValue(AdapterResultStub()),
+        runLoop: jest.fn().mockResolvedValue(undefined),
       });
 
       runner.start();
@@ -28,7 +26,7 @@ describe('questNodeDispatchRunnerBroker', () => {
       const runner = questNodeDispatchRunnerBroker({
         onWake,
         offWake: jest.fn(),
-        runLoop: jest.fn().mockResolvedValue(AdapterResultStub()),
+        runLoop: jest.fn().mockResolvedValue(undefined),
       });
 
       runner.start();
@@ -45,7 +43,7 @@ describe('questNodeDispatchRunnerBroker', () => {
       const runner = questNodeDispatchRunnerBroker({
         onWake,
         offWake,
-        runLoop: jest.fn().mockResolvedValue(AdapterResultStub()),
+        runLoop: jest.fn().mockResolvedValue(undefined),
       });
 
       runner.start();
@@ -63,7 +61,7 @@ describe('questNodeDispatchRunnerBroker', () => {
       const runner = questNodeDispatchRunnerBroker({
         onWake: jest.fn(),
         offWake,
-        runLoop: jest.fn().mockResolvedValue(AdapterResultStub()),
+        runLoop: jest.fn().mockResolvedValue(undefined),
       });
 
       runner.stop();
@@ -75,7 +73,7 @@ describe('questNodeDispatchRunnerBroker', () => {
   describe('kick single-flight', () => {
     it('VALID: {kick} => runs the loop once', async () => {
       questNodeDispatchRunnerBrokerProxy();
-      const runLoop = jest.fn().mockResolvedValue(AdapterResultStub());
+      const runLoop = jest.fn().mockResolvedValue(undefined);
 
       const runner = questNodeDispatchRunnerBroker({
         onWake: jest.fn(),
@@ -97,11 +95,11 @@ describe('questNodeDispatchRunnerBroker', () => {
           async () =>
             new Promise((resolve) => {
               gate.set('release', (): void => {
-                resolve(AdapterResultStub());
+                resolve(undefined);
               });
             }),
         )
-        .mockResolvedValue(AdapterResultStub());
+        .mockResolvedValue(undefined);
 
       const runner = questNodeDispatchRunnerBroker({
         onWake: jest.fn(),
@@ -121,7 +119,7 @@ describe('questNodeDispatchRunnerBroker', () => {
     it('VALID: {wake handler fires} => kicks the loop', async () => {
       questNodeDispatchRunnerBrokerProxy();
       const onWake = jest.fn();
-      const runLoop = jest.fn().mockResolvedValue(AdapterResultStub());
+      const runLoop = jest.fn().mockResolvedValue(undefined);
 
       const runner = questNodeDispatchRunnerBroker({
         onWake,
@@ -144,7 +142,7 @@ describe('questNodeDispatchRunnerBroker', () => {
       const runLoop = jest
         .fn()
         .mockRejectedValueOnce(new Error('scan blew up'))
-        .mockResolvedValue(AdapterResultStub());
+        .mockResolvedValue(undefined);
 
       const runner = questNodeDispatchRunnerBroker({
         onWake: jest.fn(),

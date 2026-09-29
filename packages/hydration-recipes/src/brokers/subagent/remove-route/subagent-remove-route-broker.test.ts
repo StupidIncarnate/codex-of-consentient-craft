@@ -11,12 +11,12 @@ describe('subagentRemoveRouteBroker', () => {
         '/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1/subagents/agent-seed-agent-1.jsonl';
       proxy.succeeds({ filePath });
 
-      const result = await subagentRemoveRouteBroker({
-        target,
-        record: { agentId: 'seed-agent-1', toolUseId: 'toolu_seed1', filePath, lineCount: 1 },
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        subagentRemoveRouteBroker({
+          target,
+          record: { agentId: 'seed-agent-1', toolUseId: 'toolu_seed1', filePath, lineCount: 1 },
+        }),
+      ).resolves.toBe(undefined);
     });
   });
 });

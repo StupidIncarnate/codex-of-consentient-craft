@@ -16,9 +16,7 @@
  */
 
 import {
-  adapterResultContract,
   filePathContract,
-  type AdapterResult,
   type FileContents,
   type FilePath,
   type RiftcarverResult,
@@ -37,7 +35,7 @@ export const riftcarverPersistResultBroker = async ({
   questFolderPath: FilePath;
   riftcarverResultId: RiftcarverResult['id'];
   logContents: FileContents;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const riftcarverResultsDir = filePathContract.parse(
     join(questFolderPath, locationsStatics.quest.riftcarverResultsDir),
   );
@@ -49,6 +47,4 @@ export const riftcarverPersistResultBroker = async ({
   );
 
   await writeFile(filePath, logContents);
-
-  return adapterResultContract.parse({ success: true });
 };

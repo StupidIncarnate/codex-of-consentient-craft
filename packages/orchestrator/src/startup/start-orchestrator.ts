@@ -15,7 +15,6 @@
  */
 
 import type {
-  AdapterResult,
   AddQuestInput,
   AddQuestResult,
   AgentPromptResult,
@@ -118,7 +117,7 @@ export const StartOrchestrator = {
       ...(path !== undefined && { path }),
     }),
 
-  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<AdapterResult> =>
+  removeGuild: async ({ guildId }: { guildId: GuildId }): Promise<void> =>
     GuildFlow.remove({ guildId }),
 
   browseDirectories: ({ path }: { path?: GuildPath }): DirectoryEntry[] =>
@@ -346,7 +345,7 @@ export const StartOrchestrator = {
     sessionId: SessionId;
     guildId: GuildId;
     chatProcessId?: ProcessId;
-  }): Promise<AdapterResult> =>
+  }): Promise<void> =>
     ChatReplayFlow({
       sessionId,
       guildId,
@@ -460,7 +459,7 @@ export const StartOrchestrator = {
     signal: 'complete';
     operationItemId?: OperationItemId;
     blockedReason?: BlockedReason;
-  }): Promise<AdapterResult> =>
+  }): Promise<void> =>
     QuestFlow.handleSignalBack({ questId, workItemId, signal, ...operationOutcome }),
 
   // MCP-driven get-server-config (slash commands resolve baseUrl + port)

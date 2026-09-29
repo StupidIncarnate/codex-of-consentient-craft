@@ -17,9 +17,7 @@ describe('questDeleteBroker', () => {
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
-      const result = await questDeleteBroker({ questId, guildId });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(questDeleteBroker({ questId, guildId })).resolves.toBe(undefined);
 
       const rmCalls = proxy.getRmCallArgs();
 
@@ -36,9 +34,7 @@ describe('questDeleteBroker', () => {
       const proxy = questDeleteBrokerProxy();
       proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
-      const result = await questDeleteBroker({ questId, guildId });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(questDeleteBroker({ questId, guildId })).resolves.toBe(undefined);
 
       const appended = proxy.getAppendedContent();
 

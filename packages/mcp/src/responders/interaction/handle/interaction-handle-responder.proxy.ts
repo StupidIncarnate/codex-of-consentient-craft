@@ -7,7 +7,6 @@
  */
 
 import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
@@ -35,7 +34,7 @@ export const InteractionHandleResponderProxy = (): {
   // The signal-back tool call awaits this but never reads its result, and the questId/workItemId
   // it will be called with vary per test — this proxy has no per-test address to key on, so it
   // stages an explicit wildcard resolve rather than leaving the call unstaged.
-  orchestratorProxy.handleSignalBackResolves({ result: AdapterResultStub() });
+  orchestratorProxy.handleSignalBackResolves({});
 
   return {
     callResponder: InteractionHandleResponder,

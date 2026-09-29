@@ -23,14 +23,14 @@ export const processSyncEventLayerBrokerProxy = (): {
     typeof processSyncEventLayerBroker
   >;
   // Default: resolve success so dispatched fire-and-forget calls don't throw.
-  mocked.mockResolvedValue({ success: true });
+  mocked.mockResolvedValue(undefined);
 
   return {
     reset: (): void => {
       // jest.clearAllMocks (from @dungeonmaster/testing setup) resets call history per test.
     },
     setupSucceeds: (): void => {
-      mocked.mockResolvedValueOnce({ success: true });
+      mocked.mockResolvedValueOnce(undefined);
     },
     setupRejects: ({ error }: { error: Error }): void => {
       mocked.mockRejectedValueOnce(error);

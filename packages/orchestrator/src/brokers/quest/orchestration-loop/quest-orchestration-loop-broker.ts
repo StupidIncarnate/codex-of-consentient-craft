@@ -9,7 +9,6 @@
 import { stderr } from '#gateway/node/process';
 import { configResolveBroker } from '@dungeonmaster/config';
 import type {
-  AdapterResult,
   FilePath,
   GuildId,
   ProcessId,
@@ -18,7 +17,6 @@ import type {
   WorkItem,
   WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
@@ -64,10 +62,9 @@ export const questOrchestrationLoopBroker = async ({
   abortSignal: AbortSignal;
   userMessage?: UserInput;
   slotCount?: SlotCount;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   if (abortSignal.aborted) {
-    return result;
+    return;
   }
 
   // Resolve slotCount from project config ONCE per quest run, then propagate through the
@@ -98,7 +95,7 @@ export const questOrchestrationLoopBroker = async ({
   // Paused quests must not spawn agents. User explicitly stopped execution;
   // resume happens via a status flip to 'in_progress' (auto-resume in quest-modify-responder).
   if (isUserPausedQuestStatusGuard({ status: quest.status })) {
-    return result;
+    return;
   }
 
   // 2. Find ready work items
@@ -151,7 +148,7 @@ export const questOrchestrationLoopBroker = async ({
         );
       }
     }
-    return result;
+    return;
   }
 
   if (questBlocked) {
@@ -172,7 +169,7 @@ export const questOrchestrationLoopBroker = async ({
         `[orchestration-loop] blocked transition threw for questId=${questId}: ${String(error)}\n`,
       );
     }
-    return result;
+    return;
   }
 
   if (ready.length === 0) {
@@ -182,7 +179,7 @@ export const questOrchestrationLoopBroker = async ({
     stderr.write(
       `[orchestration-loop] quest=${questId} decision: 0 ready, ${String(runningCount)} in flight -> waiting for active agents\n`,
     );
-    return result;
+    return;
   }
 
   // This loop only dispatches chat roles (chaoswhisperer / bughunt). Every execution
@@ -194,7 +191,7 @@ export const questOrchestrationLoopBroker = async ({
     stderr.write(
       `[orchestration-loop] quest=${questId} decision: ${String(ready.length)} ready, 0 chat-role -> execution roles dispatch via the dispatch loop; chat loop idle\n`,
     );
-    return result;
+    return;
   }
 
   // 4. Single-role concurrency: group ready chat items by role, pick first group
@@ -210,7 +207,7 @@ export const questOrchestrationLoopBroker = async ({
 
   const firstEntry = roleGroupMap.entries().next().value;
   if (!firstEntry) {
-    return result;
+    return;
   }
 
   const [roleName, roleItemsRaw] = firstEntry;
@@ -221,7 +218,7 @@ export const questOrchestrationLoopBroker = async ({
   // item would launch a follow-up agent with no question to answer — burning a session and
   // writing a transcript nobody asked for.
   if (isChatWorkItemRoleGuard({ role: roleName }) && userMessage === undefined) {
-    return result;
+    return;
   }
 
   if (isChatWorkItemRoleGuard({ role: roleName })) {
@@ -231,18 +228,18 @@ export const questOrchestrationLoopBroker = async ({
         isActiveWorkItemStatusGuard({ status: wi.status }),
     );
     if (anyInProgress) {
-      return result;
+      return;
     }
     const [singleItem] = roleItems;
     if (!singleItem) {
-      return result;
+      return;
     }
     roleItems = [singleItem];
   }
 
   const [firstItem] = roleItems;
   if (!firstItem) {
-    return result;
+    return;
   }
 
   stderr.write(

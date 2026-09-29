@@ -10,7 +10,8 @@
  * // Throws when the family graph or any step graph carries a reachability violation; otherwise
  * // returns { success: true }
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { GraphReachabilityCheckResponder } from '../../responders/graph-reachability/check/graph-reachability-check-responder';
 
-export const GraphReachabilityBootFlow = (): AdapterResult => GraphReachabilityCheckResponder();
+export const GraphReachabilityBootFlow = (): void => {
+  GraphReachabilityCheckResponder();
+};

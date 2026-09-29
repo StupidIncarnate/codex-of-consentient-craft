@@ -11,8 +11,6 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 import type {
   NodeDispatchRunnerController,
@@ -25,8 +23,6 @@ export const questNodeDispatchRunnerBroker = ({
   offWake,
   runLoop,
 }: NodeDispatchRunnerDeps): NodeDispatchRunnerController => {
-  const ok = adapterResultContract.parse({ success: true });
-
   const internal: {
     running: boolean;
     kickPending: boolean;
@@ -38,9 +34,9 @@ export const questNodeDispatchRunnerBroker = ({
   };
 
   const controller: NodeDispatchRunnerController = {
-    start: (): AdapterResult => {
+    start: (): void => {
       if (internal.wakeHandler !== null) {
-        return ok;
+        return;
       }
       internal.wakeHandler = (): void => {
         controller.kick().catch((error: unknown) => {
@@ -48,22 +44,20 @@ export const questNodeDispatchRunnerBroker = ({
         });
       };
       onWake({ handler: internal.wakeHandler });
-      return ok;
     },
 
-    stop: (): AdapterResult => {
+    stop: (): void => {
       if (internal.wakeHandler === null) {
-        return ok;
+        return;
       }
       offWake({ handler: internal.wakeHandler });
       internal.wakeHandler = null;
-      return ok;
     },
 
-    kick: async (): Promise<AdapterResult> => {
+    kick: async (): Promise<void> => {
       if (internal.running) {
         internal.kickPending = true;
-        return ok;
+        return;
       }
       internal.running = true;
       try {
@@ -76,7 +70,6 @@ export const questNodeDispatchRunnerBroker = ({
           await controller.kick();
         }
       }
-      return ok;
     },
   };
 

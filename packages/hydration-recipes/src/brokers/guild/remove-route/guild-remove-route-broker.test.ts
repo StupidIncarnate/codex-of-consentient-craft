@@ -12,9 +12,7 @@ describe('guildRemoveRouteBroker', () => {
       const guild = GuildStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       proxy.succeeds({ guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      const result = await guildRemoveRouteBroker({ target, record: guild });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(guildRemoveRouteBroker({ target, record: guild })).resolves.toBe(undefined);
     });
   });
 
@@ -33,17 +31,18 @@ describe('guildRemoveRouteBroker', () => {
       const target = DmTargetStub({ baseUrl: 'http://app.in-process', request });
       const guild = GuildStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      const result = await guildRemoveRouteBroker({ target, record: guild });
+      await expect(guildRemoveRouteBroker({ target, record: guild })).resolves.toStrictEqual({
+        success: true,
+      });
 
       expect(calls).toStrictEqual([
         { method: 'DELETE', path: '/api/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479' },
       ]);
-      expect(result).toStrictEqual({ success: true });
     });
   });
 
-  describe('a success body carrying fields beyond the contract', () => {
-    it('VALID: {body: success plus an extra field} => strips the extra field through adapterResultContract', async () => {
+  describe('a success body carrying fields beyond success', () => {
+    it('VALID: {body: success plus an extra field} => returns the body as the server sent it', async () => {
       guildRemoveRouteBrokerProxy();
       const request = async (): Promise<ReturnType<typeof DmHttpResponseStub>> =>
         Promise.resolve(
@@ -52,9 +51,10 @@ describe('guildRemoveRouteBroker', () => {
       const target = DmTargetStub({ baseUrl: 'http://app.in-process', request });
       const guild = GuildStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
-      const result = await guildRemoveRouteBroker({ target, record: guild });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(guildRemoveRouteBroker({ target, record: guild })).resolves.toStrictEqual({
+        success: true,
+        sweepCount: 3,
+      });
     });
   });
 

@@ -3,13 +3,13 @@ import { GraphReachabilityCheckResponderProxy } from './graph-reachability-check
 
 describe('GraphReachabilityCheckResponder', () => {
   describe('a clean graph', () => {
-    it('VALID: {no violations} => returns { success: true }', () => {
+    it('VALID: {no violations} => returns undefined', () => {
       const proxy = GraphReachabilityCheckResponderProxy();
       proxy.setupClean();
 
-      const result = GraphReachabilityCheckResponder();
+      const check: () => unknown = GraphReachabilityCheckResponder;
 
-      expect(result).toStrictEqual({ success: true });
+      expect(check()).toBe(undefined);
     });
   });
 
@@ -19,7 +19,9 @@ describe('GraphReachabilityCheckResponder', () => {
       const message = "Step 'orphan' in the 'test' graph is reached by no route from 'plan'.";
       proxy.setupViolation({ message });
 
-      expect(() => GraphReachabilityCheckResponder()).toThrow(new Error(message));
+      expect(() => {
+        GraphReachabilityCheckResponder();
+      }).toThrow(new Error(message));
     });
   });
 });

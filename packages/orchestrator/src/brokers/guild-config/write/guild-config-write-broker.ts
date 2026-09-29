@@ -14,8 +14,8 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, AdapterResult, GuildConfig } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -28,7 +28,7 @@ export const guildConfigWriteBroker = async ({
 }: {
   config: GuildConfig;
   home?: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 
   const configFilePath = filePathContract.parse(
@@ -36,5 +36,4 @@ export const guildConfigWriteBroker = async ({
   );
 
   await writeFile(configFilePath, JSON.stringify(config, null, questStatics.json.indentSpaces));
-  return adapterResultContract.parse({ success: true });
 };

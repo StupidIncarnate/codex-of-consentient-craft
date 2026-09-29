@@ -10,12 +10,12 @@ describe('sessionRemoveRouteBroker', () => {
       const filePath = '/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl';
       proxy.succeeds({ filePath });
 
-      const result = await sessionRemoveRouteBroker({
-        target,
-        record: { sessionId: 'seed-session-1', cwd: '/tmp/guild-1', filePath, lineCount: 1 },
-      });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(
+        sessionRemoveRouteBroker({
+          target,
+          record: { sessionId: 'seed-session-1', cwd: '/tmp/guild-1', filePath, lineCount: 1 },
+        }),
+      ).resolves.toBe(undefined);
     });
   });
 });

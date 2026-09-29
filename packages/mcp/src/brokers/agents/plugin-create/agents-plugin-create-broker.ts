@@ -7,11 +7,7 @@
  * // Creates .agents/plugins/dungeonmaster/plugin.json and mcp_config.json
  */
 
-import {
-  pathSegmentContract,
-  type AdapterResult,
-  type PathSegment,
-} from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract, type PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -22,7 +18,7 @@ export const agentsPluginCreateBroker = async ({
   targetProjectRoot,
 }: {
   targetProjectRoot: PathSegment;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const pluginDir = pathSegmentContract.parse(
     join(
       targetProjectRoot,
@@ -63,6 +59,4 @@ export const agentsPluginCreateBroker = async ({
 
   await writeFile(pluginJsonPath, pluginJsonContent);
   await writeFile(mcpConfigJsonPath, mcpConfigContent);
-
-  return { success: true };
 };

@@ -14,7 +14,6 @@ import {
   filePathContract,
   operationItemIdContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { operationOwningQuestFindBroker } from '../owning-quest-find/operation-owning-quest-find-broker';
 import { questFolderPathResolveBroker } from '../../quest/folder-path-resolve/quest-folder-path-resolve-broker';
@@ -27,7 +26,7 @@ export const operationRemoveRouteBroker = async ({
 }: {
   target: DmTarget;
   record: Record<string, unknown>;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const operationItemId = operationItemIdContract.parse(record.id);
   const quest = await operationOwningQuestFindBroker({ operationItemId });
 

@@ -11,12 +11,7 @@
  */
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  adapterResultContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
 import { wardResultDetailArgsContract } from '../../../contracts/ward-result-detail-args/ward-result-detail-args-contract';
@@ -30,7 +25,7 @@ export const questWardResultDetailWriteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
   args: Record<string, unknown>;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const parsedArgs = wardResultDetailArgsContract.parse(args);
   const questFolderPath = await questFolderPathResolveBroker({ target, record });
   const wardResultsDirPath = `${questFolderPath}/${locationsStatics.quest.wardResultsDir}`;
@@ -41,6 +36,4 @@ export const questWardResultDetailWriteBroker = async ({
     filePathContract.parse(`${wardResultsDirPath}/${parsedArgs.wardResultId}.json`),
     fileContentsContract.parse(JSON.stringify(parsedArgs.detail)),
   );
-
-  return adapterResultContract.parse({ success: true });
 };

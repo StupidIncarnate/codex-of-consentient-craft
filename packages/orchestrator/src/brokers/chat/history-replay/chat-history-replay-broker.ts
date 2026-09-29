@@ -35,13 +35,11 @@ import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
-  adapterResultContract,
   arrayIndexContract,
   fileNameContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type {
-  AdapterResult,
   ArrayIndex,
   ChatEntry,
   GuildId,
@@ -90,8 +88,7 @@ export const chatHistoryReplayBroker = async ({
   // `chat-replay-responder`'s orphan branch), which keeps the guild-path walk-up below.
   questId?: QuestId;
   onEntries: (params: { entries: ChatEntry[] }) => void;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const resolvedProjectPath = await (async () => {
     if (questId !== undefined) {
       const resolution = await questCwdResolveBroker({ questId, sessionId });
@@ -385,5 +382,4 @@ export const chatHistoryReplayBroker = async ({
       }
     }
   }
-  return result;
 };

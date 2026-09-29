@@ -140,15 +140,16 @@ describe('chatHistoryReplayBroker', () => {
 
       const batches: unknown[] = [];
 
-      const result = await chatHistoryReplayBroker({
-        sessionId,
-        guildId,
-        onEntries: ({ entries }) => {
-          batches.push(entries);
-        },
-      });
+      await expect(
+        chatHistoryReplayBroker({
+          sessionId,
+          guildId,
+          onEntries: ({ entries }) => {
+            batches.push(entries);
+          },
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(
         batches
           .flat()

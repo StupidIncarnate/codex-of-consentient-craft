@@ -9,14 +9,12 @@
  * // Loads folder constraints and the discover ignore list from disk into in-memory state
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { discoverIgnoreInitBroker } from '../../../brokers/discover-ignore/init/discover-ignore-init-broker';
 import { folderConstraintsInitBroker } from '../../../brokers/folder-constraints/init/folder-constraints-init-broker';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 
-export const ServerInitResponder = async (): Promise<AdapterResult> => {
+export const ServerInitResponder = async (): Promise<void> => {
   const [{ folderConstraints }, ignorePatterns] = await Promise.all([
     folderConstraintsInitBroker(),
     discoverIgnoreInitBroker(),
@@ -27,6 +25,4 @@ export const ServerInitResponder = async (): Promise<AdapterResult> => {
   }
 
   discoverIgnoreState.set({ patterns: ignorePatterns });
-
-  return adapterResultContract.parse({ success: true });
 };
