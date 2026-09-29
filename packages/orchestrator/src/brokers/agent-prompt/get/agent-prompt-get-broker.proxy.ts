@@ -33,6 +33,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -69,6 +70,9 @@ export const agentPromptGetBrokerProxy = (): {
   // the stamp reads a genuine `git rev-parse HEAD` exit code and stdout. Unstaged, any git call
   // THROWS, which is what proves the repo-root default never reaches git at all.
   const gitHeadShaProxy = headShaProxy();
+
+  // The stamp's best-effort catch writes to stderr; composed so no test reaches the real stream.
+  stderrProxy();
 
   // Wired to satisfy enforce-proxy-child-creation (the implementation imports both) — never
   // staged. The module mocks above are the real staging mechanism; see the docblock.

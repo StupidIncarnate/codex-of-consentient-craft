@@ -45,6 +45,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
 
 import { headSha } from '#gateway/bin/git';
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
@@ -161,7 +162,7 @@ export const agentPromptGetBroker = async ({
         });
       }
     } catch (error: unknown) {
-      process.stderr.write(
+      stderr.write(
         `[get-agent-prompt] start-ref stamp failed for work item ${String(workItemId)} on quest ${String(questId)}: ${error instanceof Error ? error.message : String(error)}\n`,
       );
     }

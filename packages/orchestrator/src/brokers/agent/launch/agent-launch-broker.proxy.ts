@@ -1,5 +1,7 @@
 import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { randomUUID } from '#gateway/node/crypto';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 import { agentSpawnUnifiedBrokerProxy } from '../spawn-unified/agent-spawn-unified-broker.proxy';
 import { chatStreamProcessHandleBrokerProxy } from '../../chat/stream-process-handle/chat-stream-process-handle-broker.proxy';
@@ -22,6 +24,7 @@ type MainTailHomeDirParams = Parameters<
 const LAUNCHER_PROCESS_UUID = '00000000-0000-4000-8000-000000000a01';
 
 export const agentLaunchBrokerProxy = (): {
+  setupProcessUuid: (params: { uuid: string }) => void;
   setupSpawnAndEmitLines: (params: SpawnEmitParams) => void;
   setupSpawnExitOnKill: (params: SpawnEmitParams) => SpawnExitOnKillReturn;
   setupSpawnSuccess: (params: SuccessConfigParams) => void;
@@ -49,15 +52,20 @@ export const agentLaunchBrokerProxy = (): {
   // wired here to satisfy enforce-proxy-child-creation.
   composeKillLayerBrokerProxy();
 
-  // Mock the launcher's own crypto.randomUUID call (mints the processId). registerSpyOn
-  // is stack-based — this handle is independent of the handle-broker proxy's UUID mock
-  // (which seeds entry uuids), so tests can assert a deterministic processId. randomUUID
-  // takes no identifying argument — [] is the honest address.
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns(LAUNCHER_PROCESS_UUID);
+  // Pin the launcher's own randomUUID call (mints the processId). The handle-broker proxy's UUID
+  // mock seeds entry uuids on a different object, so the two never answer for one another and
+  // tests can assert a deterministic processId. randomUUID takes no identifying argument — []
+  // is the honest address.
+  const processUuidHandle = registerMock({ fn: randomUUID });
+  processUuidHandle.calledWith([]).returns(LAUNCHER_PROCESS_UUID);
+
+  // The launcher writes its diagnostics to stderr; composed so no test writes to the real stream.
+  stderrProxy();
 
   return {
+    setupProcessUuid: ({ uuid }: { uuid: string }): void => {
+      processUuidHandle.calledWith([]).returns(uuid);
+    },
     setupSpawnAndEmitLines: (params: SpawnEmitParams): void => {
       spawnProxy.setupSpawnAndEmitLines(params);
     },

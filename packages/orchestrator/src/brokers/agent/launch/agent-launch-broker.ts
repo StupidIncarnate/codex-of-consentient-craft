@@ -30,6 +30,8 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { randomUUID } from '#gateway/node/crypto';
+import { stderr } from '#gateway/node/process';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessIdPrefix } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
@@ -123,7 +125,7 @@ export const agentLaunchBroker = ({
   kill: () => void;
   sessionId$: Promise<SessionId | null>;
 } => {
-  const processId = processIdContract.parse(`${processIdPrefix}-${crypto.randomUUID()}`);
+  const processId = processIdContract.parse(`${processIdPrefix}-${randomUUID()}`);
 
   // Tail stop slot for post-exit JSONL appends. Wired lazily inside the spawn's
   // `onComplete` (after the CLI exits, when the file has been fully written by the live
@@ -167,7 +169,7 @@ export const agentLaunchBroker = ({
     // output: when the watchdog flags a silent process, the same proc:<id> in stderr lines
     // shows WHY (e.g. "API request failed (529 overloaded), retrying in 4s").
     onStderrLine: ({ line }): void => {
-      process.stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
+      stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
     },
     onComplete: ({ exitCode, sessionId: completedSessionId }): void => {
       // CLI exited. Do NOT stop the handle here — it owns the sub-agent tails, and for
@@ -208,7 +210,7 @@ export const agentLaunchBroker = ({
             tailStopMap.set('stop', stopMainTail);
           }
         } catch (error: unknown) {
-          process.stderr.write(
+          stderr.write(
             `[agent-launch] post-exit main-tail wiring failed: ${error instanceof Error ? error.message : String(error)}\n`,
           );
         }
@@ -271,7 +273,7 @@ export const agentLaunchBroker = ({
       onSessionId({ chatProcessId: processId, sessionId: resolvedSid });
     })
     .catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[agent-launch] sessionId resolve failed: ${error instanceof Error ? error.message : String(error)}\n`,
       );
     });

@@ -8,6 +8,7 @@ import {
   SystemInitStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { ProcessIdPrefixStub } from '../../../contracts/process-id-prefix/process-id-prefix.stub';

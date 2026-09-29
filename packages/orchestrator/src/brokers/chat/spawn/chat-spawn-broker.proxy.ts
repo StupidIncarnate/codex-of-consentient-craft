@@ -155,6 +155,9 @@ export const chatSpawnBrokerProxy = (): {
     .resolves({ success: true as const });
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
+  // The launcher mints its processId through the gateway's randomUUID; restaged on the
+  // launcher proxy's own handle so the chat spawn's processId is the id asserted below.
+  launchProxy.setupProcessUuid({ uuid: CREATED_QUEST_ID });
 
   return {
     setupNewSession: ({
