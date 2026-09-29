@@ -6,4 +6,4 @@
  * // Returns utility types used across the monorepo
  */
 
-export type { StubArgument } from './src/@types/stub-argument.type';
+export type { StubArgument } from './stub-argument.type';

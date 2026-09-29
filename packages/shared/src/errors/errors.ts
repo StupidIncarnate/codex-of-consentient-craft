@@ -8,4 +8,4 @@
 // Subpath export entry for @dungeonmaster/shared/errors
 
 // Project Root Errors
-export * from './src/errors/project-root-not-found/project-root-not-found-error';
+export * from './project-root-not-found/project-root-not-found-error';
