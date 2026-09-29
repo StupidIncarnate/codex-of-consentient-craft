@@ -756,7 +756,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 
 | ID | Chunk | Needs | Who | Status | Notes |
 |---|---|---|---|---|---|
-| 4.0 | Decisions: B11 keepers, brand classes (owned id, ownerless id, value), the 124 `z.unknown()` sites, hydration interfaces | Phase 3 | 1 agent | todo | Writes tables into B11, B15 item files. |
+| 4.0 | Decisions: B11 keepers, brand classes (owned id, ownerless id, value), the 124 `z.unknown()` sites, hydration interfaces | Phase 3 | 1 agent | active | Writes tables into B11, B15 item files. Started early (read-only, 2026-09-29): one agent on items 1 and 4 (B11 keepers, hydration interfaces, non-`z.infer` exports), one on items 2 and 3 (brand classes including `questFolder`, `z.unknown()` sites). |
 | R1 | [Contract index in `shared`; `require-contract-parse`](items/b02-contract-index-and-unused-contracts.md) | 3.1 | 1 agent | todo | |
 | R2 | [`require-object-contract-brands` with autofix](items/b12-require-object-contract-brands.md); `ban-primitives`, `require-zod-on-primitives` removed | Phase 3 | 1 agent | todo | lands off |
 | R3 | [`ban-type-aliases`; `ban-adhoc-types` B9 extension](items/b14-type-alias-and-adhoc-type-rules.md) | Phase 3 | 1 agent | todo | lands off |
