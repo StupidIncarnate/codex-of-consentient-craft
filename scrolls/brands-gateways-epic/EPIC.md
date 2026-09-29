@@ -122,11 +122,11 @@ eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonma
 Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
 operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
 agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
-web (B25; B26 is unblocked: concession 9 already settles C4); orchestrator (B03, a fresh agent);
+web (B28); orchestrator (B03, a fresh agent);
 server (B03); siegelense (S04 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
 sweep 77318459e); GN11 (a `setTimeout` proxy in `@gateway/node`; siegelense and server stage timers by hand without it).
 
-A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli (all); web B01 to B24;
+A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli (all); web B01 to B27;
 orchestrator B01 (8b28b66e4), B02; server B01, B02 (2597b4807); siegelense zod sweep, S01 to S03. Phase 2 is complete (A13
 7cb5ff272). Gateway units added this session, all built: GN5 to GN10 (stream/http/zlib; stdout/stderr recording
 proxies and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow` and `setupNowOnce`, fetch `getCallsFor`; unix

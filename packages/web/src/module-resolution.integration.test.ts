@@ -15,7 +15,7 @@
  * resolution error.
  */
 
-import { resolve } from 'path';
+import { resolve } from '#gateway/node/path';
 
 const REPO_ROOT = resolve(__dirname, '../../..');
 

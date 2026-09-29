@@ -6,7 +6,7 @@
  * // Returns <Route path="/:guildSlug/session/:sessionId" element={<AppSessionViewResponder />} />
  */
 
-import { Route } from 'react-router-dom';
+import { Route } from '#gateway/npm/react-router-dom';
 
 import { AppSessionViewResponder } from '../../responders/app/session-view/app-session-view-responder';
 

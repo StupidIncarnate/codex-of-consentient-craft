@@ -1,4 +1,4 @@
-import { matchPath } from 'react-router-dom';
+import { matchPath } from '#gateway/npm/react-router-dom';
 
 import { AppSessionViewResponder } from '../../responders/app/session-view/app-session-view-responder';
 import { SessionViewFlow } from './session-view-flow';

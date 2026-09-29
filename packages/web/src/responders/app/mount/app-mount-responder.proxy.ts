@@ -1,3 +1,4 @@
+import { document } from '#gateway/browser/document';
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { reactRootMountBrokerProxy } from '../../../brokers/react-root/mount/react-root-mount-broker.proxy';

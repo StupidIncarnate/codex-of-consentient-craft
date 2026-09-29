@@ -2,7 +2,7 @@
  * PURPOSE: Tests for main Vite entry point - verifies module structure
  */
 
-import path from 'path';
+import path from '#gateway/node/path';
 
 describe('main', () => {
   describe('module structure', () => {
