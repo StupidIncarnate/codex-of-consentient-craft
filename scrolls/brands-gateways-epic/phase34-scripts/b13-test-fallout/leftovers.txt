@@ -1,0 +1,278 @@
+# B13 test-fallout leftovers: diagnostics that remain after the retype overlay plus this script's edits.
+# One line per diagnostic: pkg file:line | reason | source text
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:284 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:330 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:460 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:547 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:613 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:634 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:674 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:695 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:740 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:761 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:811 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:832 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:873 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:899 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:944 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:965 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1002 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1023 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1071 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1117 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1164 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1209 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1286 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1346 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1379 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1423 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1457 | no stub for brand QuestFolder | questFolder
+mcp packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1610 | no stub for brand QuestFolder | questFolder
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:14 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:17 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:27 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:30 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:33 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:46 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:48 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:50 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:61 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:63 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:78 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/brokers/ward/persist-result/ward-persist-result-broker.test.ts:83 | no stub for brand WardResultId | wardResultId
+orchestrator packages/orchestrator/src/errors/guild-not-found/guild-not-found-error.test.ts:20 | literal is not valid for GuildId (uuid) | guildId: ''
+orchestrator packages/orchestrator/src/errors/quest-not-found/quest-not-found-error.test.ts:29 | literal is not valid for QuestId (z.string().min(1)) | questId: ''
+orchestrator packages/orchestrator/src/responders/quest/get-planning-notes/quest-get-planning-notes-responder.test.ts:67 | literal is not valid for QuestId (z.string().min(1)) | questId: ''
+orchestrator packages/orchestrator/src/responders/quest/get-projection/quest-get-projection-responder.test.ts:56 | literal is not valid for QuestId (z.string().min(1)) | questId: ''
+orchestrator packages/orchestrator/src/responders/quest/get-summary/quest-get-summary-responder.test.ts:82 | literal is not valid for QuestId (z.string().min(1)) | questId: ''
+orchestrator packages/orchestrator/test/harnesses/quest-seed/quest-seed.harness.ts:29 | error node is BindingElement, not an object-literal property | guildId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1401 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1448 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1504 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1572 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1636 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1687 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1749 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1815 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1907 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:1964 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:2042 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:2125 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:2191 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/flows/quest/quest-flow.integration.test.ts:2257 | no stub for brand QuestFolder | questFolder: questId
+server packages/server/src/responders/server/init/server-init-responder.test.ts:200 | no stub for brand WardResultId | wardResultId
+web packages/web/src/flows/home/bughunt-begin-transition.e2e.ts:129 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/bughunt-begin-transition.e2e.ts:342 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/execution-queue-streaming.e2e.ts:72 | no stub for brand QuestFolder | questFolder: String(created1.questFolder)
+web packages/web/src/flows/home/execution-queue-streaming.e2e.ts:151 | no stub for brand QuestFolder | questFolder: String(created2.questFolder)
+web packages/web/src/flows/home/guild-delete.e2e.ts:25 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/home/guild-delete.e2e.ts:44 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/home/guild-delete.e2e.ts:60 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/home/home-click-routing.e2e.ts:49 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/home-session-list-distinct-rows.e2e.ts:60 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/quest-approve.e2e.ts:53 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-begin-transition.e2e.ts:87 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-begin-transition.e2e.ts:208 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-begin-transition.e2e.ts:350 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-begin-transition.e2e.ts:520 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-delete-from-root.e2e.ts:56 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/quest-delete-from-root.e2e.ts:131 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/home/quest-delete-from-root.e2e.ts:194 | no stub for brand QuestFolder | questFolder
+web packages/web/src/flows/home/quest-delete-from-root.e2e.ts:221 | no stub for brand QuestFolder | questFolder
+web packages/web/src/flows/home/quest-start.e2e.ts:50 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/quest-start.e2e.ts:123 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/home/unreadable-quest-file-reported.e2e.ts:52 | no stub for brand QuestFolder | questFolder: String(legacy.questFolder)
+web packages/web/src/flows/home/unreadable-quest-file-reported.e2e.ts:137 | no stub for brand QuestFolder | questFolder: String(legacy.questFolder)
+web packages/web/src/flows/quest-chat/abandoned-quest-chaos-only-transcript.e2e.ts:55 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/carved-quest-session-cwds.e2e.ts:160 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/chat-send-auto-resumes.e2e.ts:60 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/chat-stop-pauses-quest.e2e.ts:61 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/chat-streaming-background-subagent.e2e.ts:63 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/chat-streaming-subagent-grouping.e2e.ts:61 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/clarification-design-decisions.e2e.ts:64 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/clarification-design-decisions.e2e.ts:165 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/composer-draft-quest-scoped.e2e.ts:66 | no stub for brand QuestFolder | questFolder: String(createdA.questFolder)
+web packages/web/src/flows/quest-chat/composer-draft-quest-scoped.e2e.ts:89 | no stub for brand QuestFolder | questFolder: String(createdB.questFolder)
+web packages/web/src/flows/quest-chat/composer-draft-quest-scoped.e2e.ts:154 | no stub for brand QuestFolder | questFolder: String(createdA.questFolder)
+web packages/web/src/flows/quest-chat/composer-draft-quest-scoped.e2e.ts:177 | no stub for brand QuestFolder | questFolder: String(createdB.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:82 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:164 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:236 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:289 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:345 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:420 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:496 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:574 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:654 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:732 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:824 | no stub for brand QuestFolder | questFolder: String(createdA.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:884 | no stub for brand QuestFolder | questFolder: String(createdB.questFolder)
+web packages/web/src/flows/quest-chat/composer-paste-draft-reload.e2e.ts:986 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/composer-send-reload-race.e2e.ts:80 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/dispatch-survives-unparseable-quest-file.e2e.ts:59 | no stub for brand QuestFolder | questFolder: String(legacy.questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-absent.e2e.ts:92 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-absent.e2e.ts:169 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-absent.e2e.ts:290 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-absent.e2e.ts:383 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-bands.e2e.ts:79 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-bands.e2e.ts:244 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-bands.e2e.ts:324 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-bands.e2e.ts:403 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-bands.e2e.ts:486 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:69 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:191 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:278 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:356 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:439 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:522 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-finished.e2e.ts:605 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-pause.e2e.ts:72 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-pause.e2e.ts:178 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:56 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:127 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:216 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:318 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:408 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:502 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/elapsed-duration-tick.e2e.ts:580 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/execution-panel-active-row-collapse.e2e.ts:59 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/execution-panel-pause-button.e2e.ts:48 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/execution-panel-pause-button.e2e.ts:99 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/execution-panel-pause-button.e2e.ts:150 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/execution-panel-pause-button.e2e.ts:201 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/execution-panel-pause-button.e2e.ts:262 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/execution-panel-paused-row-expandable.e2e.ts:61 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/execution-row-rework-readout.e2e.ts:57 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/guild-path-special-chars-reload.e2e.ts:68 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/malformed-quest-file-reported.e2e.ts:43 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/malformed-quest-file-reported.e2e.ts:105 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/malformed-quest-file-reported.e2e.ts:138 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/multi-widget-coexistence.e2e.ts:91 | no stub for brand QuestFolder | questFolder: String(primary.questFolder)
+web packages/web/src/flows/quest-chat/multi-widget-coexistence.e2e.ts:119 | no stub for brand QuestFolder | questFolder: String(queued.questFolder)
+web packages/web/src/flows/quest-chat/nested-subagent-rendering.e2e.ts:62 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/nested-subagent-rendering.e2e.ts:270 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/operations-approval-gate.e2e.ts:47 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/operations-approval-gate.e2e.ts:106 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/operations-ledger-spec-panel.e2e.ts:47 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/pause-resume-emits-lifecycle-event.e2e.ts:51 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/pause-resume-emits-lifecycle-event.e2e.ts:124 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/pause-resume-status-matrix.e2e.ts:97 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/quest-dual-panel.e2e.ts:63 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-dual-panel.e2e.ts:151 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-dual-panel.e2e.ts:241 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-dual-panel.e2e.ts:297 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-dual-panel.e2e.ts:355 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-pause-resume.e2e.ts:45 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-pause-resume.e2e.ts:107 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-replay-execution-rows.e2e.ts:60 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/quest-spec-panel.e2e.ts:53 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-summary-human-check-verdict.e2e.ts:93 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/quest-summary-under-raccoon.e2e.ts:142 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/quest-tab-stream-isolation.e2e.ts:68 | no stub for brand QuestFolder | questFolder: String(createdA.questFolder)
+web packages/web/src/flows/quest-chat/quest-tab-stream-isolation.e2e.ts:83 | no stub for brand QuestFolder | questFolder: String(createdB.questFolder)
+web packages/web/src/flows/quest-chat/quest-ws-update.e2e.ts:54 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/quest-ws-update.e2e.ts:126 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/resume-execution-row-runs-again.e2e.ts:89 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/resume-starts-dispatch.e2e.ts:142 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/role-transition-streams-live.e2e.ts:107 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/screenshot-path-renders-in-transcript.e2e.ts:81 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/screenshot-path-with-spaces-renders.e2e.ts:77 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/screenshot-path-with-spaces-renders.e2e.ts:178 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/screenshot-path-with-spaces-renders.e2e.ts:272 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/screenshot-path-with-spaces-renders.e2e.ts:367 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:92 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:174 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:258 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:334 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:410 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:530 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:636 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:745 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:827 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:964 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-chat-route.e2e.ts:1055 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:68 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:147 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:240 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:332 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:419 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:517 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:615 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-reach-the-agent.e2e.ts:901 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-rejection.e2e.ts:246 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-images-rejection.e2e.ts:321 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:64 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:138 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:192 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:253 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:328 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/send-text-only-and-newline.e2e.ts:412 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:82 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:89 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:219 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:226 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:272 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:279 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:327 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:365 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:374 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:424 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:431 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:474 | not a plain-string-to-brand mismatch | value
+web packages/web/src/flows/quest-chat/spec-panel-edit-mode-removed.e2e.ts:481 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-user-request-image.e2e.ts:72 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-panel-user-request-image.e2e.ts:176 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/spec-phase-chat-streams.e2e.ts:56 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/start-starts-dispatch.e2e.ts:75 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/subagent-duration-frozen-figure.e2e.ts:177 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-frozen-figure.e2e.ts:383 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-frozen-figure.e2e.ts:490 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-live-tick.e2e.ts:80 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-live-tick.e2e.ts:165 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-live-tick.e2e.ts:298 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-live-tick.e2e.ts:419 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-nested.e2e.ts:61 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-nested.e2e.ts:170 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-nested.e2e.ts:286 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-nested.e2e.ts:373 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-notification-arrives.e2e.ts:80 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-notification-arrives.e2e.ts:199 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-placement.e2e.ts:78 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-placement.e2e.ts:151 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-row-status-gate.e2e.ts:106 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/subagent-duration-row-status-gate.e2e.ts:222 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/transcript-replaces-optimistic.e2e.ts:89 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/ward-crash-detail.e2e.ts:62 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/ward-crash-detail.e2e.ts:101 | no stub for brand WardResultId | wardResultId
+web packages/web/src/flows/quest-chat/ward-discovery-mismatch-detail.e2e.ts:64 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/src/flows/quest-chat/ward-discovery-mismatch-detail.e2e.ts:104 | no stub for brand WardResultId | wardResultId
+web packages/web/src/flows/quest-chat/warpgate-followup-transcript.e2e.ts:60 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-merge-button-visibility.e2e.ts:52 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-merge-button-visibility.e2e.ts:92 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-merge-button-visibility.e2e.ts:145 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-merge-button-visibility.e2e.ts:163 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-pause-and-abandon.e2e.ts:33 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/warpgate-queue-listing.e2e.ts:58 | no stub for brand QuestFolder | questFolder: String(createdA.questFolder)
+web packages/web/src/flows/quest-chat/warpgate-queue-listing.e2e.ts:102 | no stub for brand QuestFolder | questFolder: questFolderB
+web packages/web/src/flows/quest-chat/warpgate-queue-listing.e2e.ts:132 | no stub for brand QuestFolder | questFolder: questFolderB
+web packages/web/src/flows/quest-chat/warpgate-queue-listing.e2e.ts:169 | no stub for brand QuestFolder | questFolder: String(createdC.questFolder)
+web packages/web/src/flows/quest-chat/warpgate-row-and-header.e2e.ts:37 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/quest-chat/worker-subagent-reaches-own-row.e2e.ts:71 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/src/flows/quest-chat/ws-reconnect.e2e.ts:115 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/src/flows/session-view/subagent-duration-session-no-tick.e2e.ts:138 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/comment-box/comment-box.harness.ts:508 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/comment-queue-lifecycle/comment-queue-lifecycle.harness.ts:262 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/comment-queue-send/comment-queue-send.harness.ts:297 | no stub for brand QuestFolder | questFolder: seeded.questFolder
+web packages/web/test/harnesses/comment-queue-send/comment-queue-send.harness.ts:387 | no stub for brand QuestFolder | questFolder: seeded.questFolder
+web packages/web/test/harnesses/comment-queue-send/comment-queue-send.harness.ts:403 | no stub for brand QuestFolder | questFolder: seeded.questFolder
+web packages/web/test/harnesses/comment-queue-send/comment-queue-send.harness.ts:413 | no stub for brand QuestFolder | questFolder: seeded.questFolder
+web packages/web/test/harnesses/dispatch/dispatch.harness.ts:264 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/flow-diagram/flow-diagram.harness.ts:434 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/followup/followup.harness.ts:158 | no stub for brand QuestFolder | questFolder: String(questFolder)
+web packages/web/test/harnesses/persisted-comments/persisted-comments.harness.ts:392 | not a plain-string-to-brand mismatch | value
+web packages/web/test/harnesses/persisted-comments/persisted-comments.harness.ts:403 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/quest-approved-modal/quest-approved-modal.harness.ts:96 | not a plain-string-to-brand mismatch | questFolder
+web packages/web/test/harnesses/sticky-header/sticky-header.harness.ts:232 | not a plain-string-to-brand mismatch | value
+web packages/web/test/harnesses/sticky-header/sticky-header.harness.ts:239 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
+web packages/web/test/harnesses/subagent-launch-order/subagent-launch-order.harness.ts:307 | not a plain-string-to-brand mismatch | value
+web packages/web/test/harnesses/subagent-launch-order/subagent-launch-order.harness.ts:314 | no stub for brand QuestFolder | questFolder: String(created.questFolder)
