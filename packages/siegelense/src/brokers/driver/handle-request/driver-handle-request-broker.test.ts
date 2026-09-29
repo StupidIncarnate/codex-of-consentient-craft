@@ -7,7 +7,6 @@ import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-en
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunRequestStub } from '../../../contracts/run-request/run-request.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
-import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 
 import { driverHandleRequestBroker } from './driver-handle-request-broker';
@@ -59,9 +58,7 @@ describe('driverHandleRequestBroker', () => {
       proxy.stageRunSucceeds({ runId });
       const lane = proxy.laneForRun();
       const steps = [StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) })];
-      const payload = JSON.stringify(
-        RunRequestStub({ instanceId, steps, stopOn: StopOnStub({ value: 'error' }) }),
-      );
+      const payload = JSON.stringify(RunRequestStub({ instanceId, steps, stopOn: 'error' }));
 
       const response = await driverHandleRequestBroker({
         request: DriverRequestStub({ kind: 'run', payload }),

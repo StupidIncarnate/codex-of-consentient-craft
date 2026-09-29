@@ -2,7 +2,6 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
-import { RunStatusStub } from '../../contracts/run-status/run-status.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 import { StoppedAtStub } from '../../contracts/stopped-at/stopped-at.stub';
@@ -13,7 +12,7 @@ describe('runAnswerRenderTransformer', () => {
     it('VALID: {status: done, shots: []} => renders single line with 0ms duration default', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
-        status: RunStatusStub({ value: 'done' }),
+        status: 'done',
         stepsRun: StepIndexStub({ value: 5 }),
         stoppedAt: null,
         shots: [],
@@ -27,7 +26,7 @@ describe('runAnswerRenderTransformer', () => {
     it('VALID: {status: done, durationMs: 250} => renders line with measured duration', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_2' }),
-        status: RunStatusStub({ value: 'done' }),
+        status: 'done',
         stepsRun: StepIndexStub({ value: 3 }),
         stoppedAt: null,
         shots: [],
@@ -50,7 +49,7 @@ describe('runAnswerRenderTransformer', () => {
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_3' }),
-        status: RunStatusStub({ value: 'failed' }),
+        status: 'failed',
         stepsRun: StepIndexStub({ value: 3 }),
         stoppedAt,
         shots: [],
@@ -76,7 +75,7 @@ describe('runAnswerRenderTransformer', () => {
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
-        status: RunStatusStub({ value: 'done' }),
+        status: 'done',
         stepsRun: StepIndexStub({ value: 1 }),
         stoppedAt: null,
         shots: [shot],
@@ -111,7 +110,7 @@ describe('runAnswerRenderTransformer', () => {
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_4' }),
-        status: RunStatusStub({ value: 'timeout' }),
+        status: 'timeout',
         stepsRun: StepIndexStub({ value: 2 }),
         stoppedAt,
         shots: [shot1, shot2],

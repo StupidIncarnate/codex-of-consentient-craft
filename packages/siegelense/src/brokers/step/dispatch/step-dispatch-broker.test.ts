@@ -7,7 +7,6 @@ import {
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
-import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
@@ -269,7 +268,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'waitFor',
         target: SelectorStub(),
-        state: LocatorStateStub({ value: 'visible' }),
+        state: 'visible',
       });
 
       const result = await stepDispatchBroker({
@@ -530,7 +529,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'waitFor',
         target: SelectorStub(),
-        state: LocatorStateStub({ value: 'visible' }),
+        state: 'visible',
         expect: 'error',
       });
 
@@ -571,7 +570,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'waitFor',
         target: SelectorStub(),
-        state: LocatorStateStub({ value: 'visible' }),
+        state: 'visible',
         expect: 'error',
       });
 
@@ -976,7 +975,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'waitFor',
         target: SelectorStub(),
-        state: LocatorStateStub({ value: 'visible' }),
+        state: 'visible',
       });
 
       const result = await stepDispatchBroker({

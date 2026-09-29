@@ -80,7 +80,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       const [wholeOutput] = writes;
       const expectedJson = `${JSON.stringify(
-        docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) }),
+        docsAnswerComposeTransformer({ scope: 'walking' }),
         null,
         siegelenseOutputStatics.json.indentSpaces,
       )}\n`;
@@ -110,7 +110,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({
-        answer: docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) }),
+        answer: docsAnswerComposeTransformer({ scope: 'walking' }),
       });
 
       expect(wholeOutput).toBe(expectedMarkdown);

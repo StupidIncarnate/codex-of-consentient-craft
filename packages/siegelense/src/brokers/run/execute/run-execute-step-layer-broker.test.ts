@@ -2,7 +2,6 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
-import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
@@ -254,7 +253,7 @@ describe('runExecuteStepLayerBroker', () => {
       const step = StepStub({
         step: 'waitFor',
         target: SelectorStub(),
-        state: LocatorStateStub({ value: 'visible' }),
+        state: 'visible',
       });
 
       const outcome = await runExecuteStepLayerBroker({

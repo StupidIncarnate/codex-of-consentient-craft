@@ -1,6 +1,5 @@
 import { laneProcessPortResolveTransformer } from './lane-process-port-resolve-transformer';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
-import { PortRoleStub } from '../../contracts/port-role/port-role.stub';
 
 describe('laneProcessPortResolveTransformer', () => {
   describe('a process claiming the api role', () => {
@@ -8,7 +7,7 @@ describe('laneProcessPortResolveTransformer', () => {
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
 
       const result = laneProcessPortResolveTransformer({
-        portRole: PortRoleStub({ value: 'api' }),
+        portRole: 'api',
         ports,
       });
 
@@ -21,7 +20,7 @@ describe('laneProcessPortResolveTransformer', () => {
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
 
       const result = laneProcessPortResolveTransformer({
-        portRole: PortRoleStub({ value: 'web' }),
+        portRole: 'web',
         ports,
       });
 

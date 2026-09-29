@@ -6,7 +6,6 @@ import { FocusedElementStub } from '../../../contracts/focused-element/focused-e
 import { RawSettleProbeStub } from '../../../contracts/raw-settle-probe/raw-settle-probe.stub';
 import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
-import { VideoActionStub } from '../../../contracts/video-action/video-action.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { browserSessionLaunchBroker } from './browser-session-launch-broker';
 import { browserSessionLaunchBrokerProxy } from './browser-session-launch-broker.proxy';
@@ -1024,7 +1023,7 @@ describe('browserSessionLaunchBroker', () => {
       });
 
       const result = await session.videoAction({
-        action: VideoActionStub({ value: 'start' }),
+        action: 'start',
       });
 
       expect(result).toStrictEqual({
@@ -1042,7 +1041,7 @@ describe('browserSessionLaunchBroker', () => {
       });
 
       const result = await session.videoAction({
-        action: VideoActionStub({ value: 'stop' }),
+        action: 'stop',
       });
 
       expect(result).toStrictEqual({
@@ -1060,7 +1059,7 @@ describe('browserSessionLaunchBroker', () => {
       });
 
       const result = await session.videoAction({
-        action: VideoActionStub({ value: 'stop' }),
+        action: 'stop',
       });
 
       expect(result).toStrictEqual({

@@ -21,7 +21,7 @@ describe('isBrowserStepGuard', () => {
 
   describe('seed runs on a browserless lane', () => {
     it('VALID: {verb: seed} => returns false', () => {
-      const result = isBrowserStepGuard({ verb: StepVerbStub({ value: 'seed' }) });
+      const result = isBrowserStepGuard({ verb: 'seed' });
 
       expect(result).toBe(false);
     });

@@ -2,11 +2,7 @@ import { laneWorkspaceResolveBroker } from './lane-workspace-resolve-broker';
 import { laneWorkspaceResolveBrokerProxy } from './lane-workspace-resolve-broker.proxy';
 import type { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
-import {
-  AbsoluteFilePathStub,
-  PackageTypeStub,
-  PackageNameStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, PackageNameStub } from '@dungeonmaster/shared/contracts';
 
 describe('laneWorkspaceResolveBroker', () => {
   describe('exactly one package answers the kind', () => {
@@ -25,7 +21,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const result = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       });
 
       expect(result).toBe('@dungeonmaster/server');
@@ -46,7 +42,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const result = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'frontend-react' }),
+        packageType: 'frontend-react',
       });
 
       expect(result).toBe('@dungeonmaster/web');
@@ -72,7 +68,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const result = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       });
 
       expect(result).toBe('@dungeonmaster/server');
@@ -94,7 +90,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const result = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'frontend-react' }),
+        packageType: 'frontend-react',
       });
 
       expect(result).toBe('@dungeonmaster/server');
@@ -116,7 +112,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const caughtError = (await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       }).catch((error: unknown) => error)) as LaneWorkspaceNoneMatchedError;
 
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
@@ -151,7 +147,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const caughtError = (await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       }).catch((error: unknown) => error)) as LaneWorkspaceSeveralMatchedError;
 
       expect({ name: caughtError.name, message: caughtError.message }).toStrictEqual({
@@ -187,7 +183,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const caughtError = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       }).catch((error: unknown) => error);
 
       expect(caughtError instanceof LaneWorkspaceSeveralMatchedError).toBe(true);
@@ -209,7 +205,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
       const result = await laneWorkspaceResolveBroker({
         repoRoot,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       });
 
       expect(result).toBe(PackageNameStub({ value: '@dungeonmaster/server' }));

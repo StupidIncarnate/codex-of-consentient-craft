@@ -1,7 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
-import { InstanceStateStub } from '../../contracts/instance-state/instance-state.stub';
 import { ResultsAnswerStub } from '../../contracts/results-answer/results-answer.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
 import { resultsStatics } from '../../statics/results/results-statics';
@@ -12,7 +11,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {rows: []} => outputs instance header and none found notice', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         rows: [],
       });
 
@@ -26,7 +25,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {rows with step, verb, content} => outputs formatted readings', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         rows: [
           ContentTextStub({
             value: JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
@@ -47,7 +46,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {rows with step, verb, reading} => formats using reading field', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         rows: [
           ContentTextStub({
             value: JSON.stringify({ step: 1, verb: 'goto', reading: 'navigated to /' }),
@@ -66,7 +65,7 @@ describe('resultsAnswerRenderTransformer', () => {
       const runResult = RunResultStub({ shots: [] });
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'killed' }),
+        instanceState: 'killed',
         rows: [],
         storedReturn: runResult,
       });
@@ -82,7 +81,7 @@ describe('resultsAnswerRenderTransformer', () => {
       const runResult = RunResultStub({ shots: [] });
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         rows: [
           ContentTextStub({
             value: JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
@@ -107,7 +106,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {kind: console, rows: error and warning} => prefixes each with its level, so the two never look identical', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         kind: 'console',
         rows: [
           ContentTextStub({
@@ -145,7 +144,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {kind: network, row with method/status/url/body} => renders one readable row per exchange', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         kind: 'network',
         rows: [
           ContentTextStub({
@@ -172,7 +171,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('VALID: {kind: network, requestfailed row with no status} => renders ERR in place of a status code', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         kind: 'network',
         rows: [
           ContentTextStub({
@@ -200,7 +199,7 @@ describe('resultsAnswerRenderTransformer', () => {
       const longBody = 'x'.repeat(resultsStatics.render.bodyTrimChars + 50);
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         kind: 'network',
         rows: [
           ContentTextStub({
@@ -227,7 +226,7 @@ describe('resultsAnswerRenderTransformer', () => {
     it('EMPTY: {kind: network, no request or response body} => renders the exchange with no trailing body', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        instanceState: InstanceStateStub({ value: 'alive' }),
+        instanceState: 'alive',
         kind: 'network',
         rows: [
           ContentTextStub({

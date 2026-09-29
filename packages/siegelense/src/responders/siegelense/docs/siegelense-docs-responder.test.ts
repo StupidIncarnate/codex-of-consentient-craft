@@ -1,4 +1,3 @@
-import { DocsScopeStub } from '../../../contracts/docs-scope/docs-scope.stub';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { docsAnswerComposeTransformer } from '../../../transformers/docs-answer-compose/docs-answer-compose-transformer';
 import { docsAnswerRenderTransformer } from '../../../transformers/docs-answer-render/docs-answer-render-transformer';
@@ -10,7 +9,7 @@ describe('SiegelenseDocsResponder', () => {
   describe('one scope', () => {
     it('VALID: {scope: fixing, isJson: true} => writes that document alone as JSON, naming it in requested, with no about preamble', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'fixing' });
+      const scope = 'fixing';
 
       await SiegelenseDocsResponder({ scope, isJson: true });
 
@@ -26,7 +25,7 @@ describe('SiegelenseDocsResponder', () => {
 
     it('VALID: {scope: fixing, isJson: false} => writes that document alone as Markdown by default', async () => {
       const proxy = SiegelenseDocsResponderProxy();
-      const scope = DocsScopeStub({ value: 'fixing' });
+      const scope = 'fixing';
 
       await SiegelenseDocsResponder({ scope, isJson: false });
 
@@ -43,7 +42,7 @@ describe('SiegelenseDocsResponder', () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'fixing' }),
+        scope: 'fixing',
         isJson: false,
       });
 
@@ -55,7 +54,7 @@ describe('SiegelenseDocsResponder', () => {
       const proxy = SiegelenseDocsResponderProxy();
 
       await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'fixing' }),
+        scope: 'fixing',
         isJson: false,
       });
 
@@ -73,7 +72,7 @@ describe('SiegelenseDocsResponder', () => {
       SiegelenseDocsResponderProxy();
 
       const result = await SiegelenseDocsResponder({
-        scope: DocsScopeStub({ value: 'fixing' }),
+        scope: 'fixing',
         isJson: false,
       });
 

@@ -10,7 +10,6 @@ import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
@@ -450,7 +449,7 @@ describe('instanceStartBroker', () => {
       const killedBeforeBoot = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_deadbeef0000400080008000deadbeef' }),
         bootedAtMs: null,
-        state: InstanceStateStub({ value: 'killed' }),
+        state: 'killed',
       });
       const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: EpochMsStub() });
 

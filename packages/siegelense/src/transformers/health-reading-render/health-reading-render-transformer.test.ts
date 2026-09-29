@@ -1,7 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { HealthReadingStub } from '../../contracts/health-reading/health-reading.stub';
-import { HealthVerdictStub } from '../../contracts/health-verdict/health-verdict.stub';
 import { HexColourStub } from '../../contracts/hex-colour/hex-colour.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { healthReadingRenderTransformer } from './health-reading-render-transformer';
@@ -22,7 +21,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'HEALTHY' }),
+        verdict: 'HEALTHY',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -54,7 +53,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -87,7 +86,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -120,7 +119,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -153,7 +152,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -186,7 +185,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -219,7 +218,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DEGRADED' }),
+        verdict: 'DEGRADED',
         rootPresent: true,
         blank: false,
         blankColour: null,
@@ -252,7 +251,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DOWN' }),
+        verdict: 'DOWN',
         rootPresent: false,
         blank: false,
         blankColour: null,
@@ -284,7 +283,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DOWN' }),
+        verdict: 'DOWN',
         rootPresent: true,
         blank: true,
         blankColour: HexColourStub({ value: '#0d0907' }),
@@ -317,7 +316,7 @@ describe('healthReadingRenderTransformer', () => {
 
     expect(reading).toStrictEqual(
       HealthReadingStub({
-        verdict: HealthVerdictStub({ value: 'DOWN' }),
+        verdict: 'DOWN',
         rootPresent: true,
         blank: true,
         blankColour: null,

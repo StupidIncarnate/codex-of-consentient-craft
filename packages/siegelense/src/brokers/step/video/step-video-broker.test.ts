@@ -1,4 +1,3 @@
-import { VideoActionStub } from '../../../contracts/video-action/video-action.stub';
 import { VideoResultStub } from '../../../contracts/video-result/video-result.stub';
 import { stepVideoBroker } from './step-video-broker';
 import { stepVideoBrokerProxy } from './step-video-broker.proxy';
@@ -12,7 +11,7 @@ describe('stepVideoBroker', () => {
 
     const result = await stepVideoBroker({
       session,
-      action: VideoActionStub({ value: 'start' }),
+      action: 'start',
     });
 
     expect(getVideoActionCalls()).toStrictEqual([[{ action: 'start' }]]);
@@ -30,7 +29,7 @@ describe('stepVideoBroker', () => {
 
     const result = await stepVideoBroker({
       session,
-      action: VideoActionStub({ value: 'stop' }),
+      action: 'stop',
     });
 
     expect(getVideoActionCalls()).toStrictEqual([[{ action: 'stop' }]]);
@@ -50,7 +49,7 @@ describe('stepVideoBroker', () => {
 
       const result = await stepVideoBroker({
         session,
-        action: VideoActionStub({ value: 'stop' }),
+        action: 'stop',
       });
 
       expect(result).toBe(

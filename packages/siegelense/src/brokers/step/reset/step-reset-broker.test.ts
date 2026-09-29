@@ -5,7 +5,6 @@ import { BrowserSessionStub } from '../../../contracts/browser-session/browser-s
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { ResetLevelStub } from '../../../contracts/reset-level/reset-level.stub';
 import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { stepResetBroker } from './step-reset-broker';
@@ -29,7 +28,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'page' }),
+        level: 'page',
         to: null,
         reseed: null,
       });
@@ -47,7 +46,7 @@ describe('stepResetBroker', () => {
       await expect(
         stepResetBroker({
           lane,
-          level: ResetLevelStub({ value: 'page' }),
+          level: 'page',
           to: null,
           reseed: null,
         }),
@@ -120,7 +119,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'state' }),
+        level: 'state',
         to: snapshotName,
         reseed: null,
       });
@@ -161,7 +160,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'state' }),
+        level: 'state',
         to: snapshotName,
         reseed: null,
       });
@@ -181,7 +180,7 @@ describe('stepResetBroker', () => {
       await expect(
         stepResetBroker({
           lane,
-          level: ResetLevelStub({ value: 'state' }),
+          level: 'state',
           to: snapshotName,
           reseed: null,
         }),
@@ -195,7 +194,7 @@ describe('stepResetBroker', () => {
       await expect(
         stepResetBroker({
           lane,
-          level: ResetLevelStub({ value: 'state' }),
+          level: 'state',
           to: null,
           reseed: null,
         }),
@@ -237,7 +236,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'instance' }),
+        level: 'instance',
         to: snapshotName,
         reseed: null,
       });
@@ -256,7 +255,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'instance' }),
+        level: 'instance',
         to: null,
         reseed: null,
       });
@@ -320,7 +319,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'instance' }),
+        level: 'instance',
         to: null,
         reseed: null,
       });
@@ -345,7 +344,7 @@ describe('stepResetBroker', () => {
 
       const result = await stepResetBroker({
         lane,
-        level: ResetLevelStub({ value: 'instance' }),
+        level: 'instance',
         to: null,
         reseed: null,
       });

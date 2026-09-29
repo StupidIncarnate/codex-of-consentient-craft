@@ -1,8 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
-import { DomFieldStub } from '../../contracts/dom-field/dom-field.stub';
 import { DomRectStub } from '../../contracts/dom-rect/dom-rect.stub';
-import { DomTextModeStub } from '../../contracts/dom-text-mode/dom-text-mode.stub';
 import { RawDomReadingStub } from '../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { domReadTransformer } from './dom-read-transformer';
@@ -23,7 +21,7 @@ describe('domReadTransformer', () => {
 
       const source = domRead.readSource({
         target: '[data-testid="BTN"]',
-        text: DomTextModeStub({ value: 'full' }),
+        text: 'full',
       });
 
       expect(source.indexOf('element.textContent')).toBeGreaterThanOrEqual(0);
@@ -34,7 +32,7 @@ describe('domReadTransformer', () => {
 
       const source = domRead.readSource({
         target: '[data-testid="BTN"]',
-        text: DomTextModeStub({ value: 'own' }),
+        text: 'own',
       });
 
       expect(source.indexOf('node.nodeType === 3')).toBeGreaterThanOrEqual(0);
@@ -98,7 +96,7 @@ describe('domReadTransformer', () => {
 
       const result = domRead.toReading({
         raw,
-        fields: [DomFieldStub({ value: 'count' })],
+        fields: ['count'],
       });
 
       expect(result).toStrictEqual({
@@ -113,7 +111,7 @@ describe('domReadTransformer', () => {
 
       const result = domRead.toReading({
         raw,
-        fields: [DomFieldStub({ value: 'text' }), DomFieldStub({ value: 'rect' })],
+        fields: ['text', 'rect'],
       });
 
       expect(result).toStrictEqual({

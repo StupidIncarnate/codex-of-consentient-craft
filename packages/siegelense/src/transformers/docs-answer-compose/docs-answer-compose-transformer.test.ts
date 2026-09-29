@@ -1,4 +1,3 @@
-import { DocsScopeStub } from '../../contracts/docs-scope/docs-scope.stub';
 import { docsStatics } from '../../statics/docs/docs-statics';
 
 import { docsAnswerComposeTransformer } from './docs-answer-compose-transformer';
@@ -20,14 +19,14 @@ describe('docsAnswerComposeTransformer', () => {
 
   describe('one scope', () => {
     it('VALID: {scope: fixing} => serves that document alone, with requested naming it', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'fixing' }) });
+      const result = docsAnswerComposeTransformer({ scope: 'fixing' });
 
       expect(result.scopes.map((document) => document.scope)).toStrictEqual(['fixing']);
       expect(result.requested).toBe('fixing');
     });
 
     it('VALID: {scope: fixing} => the served document carries the start-nothing rule verbatim', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'fixing' }) });
+      const result = docsAnswerComposeTransformer({ scope: 'fixing' });
 
       expect(result.scopes[0]?.sections[0]).toStrictEqual({
         heading: 'WHAT YOU WERE HANDED, AND WHAT THE FIRST FOUR READS COST',
@@ -43,13 +42,13 @@ describe('docsAnswerComposeTransformer', () => {
 
   describe('the preamble', () => {
     it('EMPTY: {scope: walking} => a role page carries no About block, so about is empty', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'walking' }) });
+      const result = docsAnswerComposeTransformer({ scope: 'walking' });
 
       expect(result.about).toStrictEqual([]);
     });
 
     it('EMPTY: {scope: fixing} => every role page carries no About block, not just walking', () => {
-      const result = docsAnswerComposeTransformer({ scope: DocsScopeStub({ value: 'fixing' }) });
+      const result = docsAnswerComposeTransformer({ scope: 'fixing' });
 
       expect(result.about).toStrictEqual([]);
     });

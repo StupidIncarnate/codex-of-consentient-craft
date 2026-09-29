@@ -3,7 +3,6 @@ import { ContentTextStub, FilePathStub, GuildIdStub } from '@dungeonmaster/share
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -57,7 +56,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'alive' }),
+        state: 'alive',
         named: false,
         nowMs,
         oomKillsSinceBoot: null,
@@ -114,7 +113,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'alive' }),
+        state: 'alive',
         named: false,
         nowMs,
         oomKillsSinceBoot: null,
@@ -186,7 +185,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'dead' }),
+        state: 'dead',
         named: true,
         nowMs,
         oomKillsSinceBoot: null,
@@ -264,7 +263,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'dead' }),
+        state: 'dead',
         named: true,
         nowMs,
         oomKillsSinceBoot: null,
@@ -353,7 +352,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'dead' }),
+        state: 'dead',
         named: true,
         nowMs,
         oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
@@ -459,7 +458,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'dead' }),
+        state: 'dead',
         named: true,
         nowMs,
         oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
@@ -548,7 +547,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'dead' }),
+        state: 'dead',
         named: true,
         nowMs: EpochMsStub({ value: 1_700_001_000_000 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
@@ -634,7 +633,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'killed' }),
+        state: 'killed',
         named: true,
         nowMs,
         oomKillsSinceBoot: null,
@@ -721,7 +720,7 @@ describe('instanceEntryLayerBroker', () => {
 
       const result = await instanceEntryLayerBroker({
         entry,
-        state: InstanceStateStub({ value: 'killed' }),
+        state: 'killed',
         named: true,
         nowMs,
         oomKillsSinceBoot: null,
