@@ -12,26 +12,31 @@ When adding new functionality to `@dungeonmaster/shared`, you MUST:
     - `src/transformers/` - Data transformation functions
     - etc.
 
-2. **Create a barrel export file** at the package root:
-    - Create `<category>.ts` (e.g., `guards.ts`, `contracts.ts`)
-    - Export all items from the category:
-      ```typescript
-      // guards.ts - Subpath export entry for @dungeonmaster/shared/guards
-      export * from './src/guards/is-key-of/is-key-of-guard';
-      export * from './src/guards/another-guard/another-guard-guard';
-      ```
+2. **Export it from the folder's barrel**, `src/<folderType>/<folderType>.ts` (e.g. `src/guards/guards.ts`). A barrel
+   holds one `export *` line per production entry file, and nothing else:
+   ```typescript
+   // src/guards/guards.ts - Subpath export entry for @dungeonmaster/shared/guards
+   export * from './is-key-of/is-key-of-guard';
+   export * from './another-guard/another-guard-guard';
+   ```
+   A stub or a proxy is never exported from a barrel. It sits beside the file it belongs to and a test imports it
+   straight from there: `@dungeonmaster/shared/contracts/quest/quest.stub`.
 
-3. **Update package.json exports** — every subpath carries a `source` condition pointing at the barrel file
-   itself, so ward's `--conditions=source` checks (typecheck, unit, integration) read the edited TypeScript
-   directly, with no rebuild in between:
+3. **Check package.json `exports`.** Each folder-type barrel has its own explicit key, carrying a `source` condition
+   that points at the barrel, so ward's `--conditions=source` checks (typecheck, unit, integration) read the edited
+   TypeScript directly, with no rebuild in between. A new folder type adds one key; a new file in an existing
+   folder adds none. The single-star `./*.proxy` and `./*.stub` keys carry only `source` and never grow:
    ```json
    {
      "exports": {
+       "./package.json": "./package.json",
+       "./*.proxy": { "source": "./src/*.proxy.ts" },
+       "./*.stub": { "source": "./src/*.stub.ts" },
        "./guards": {
-         "source": "./guards.ts",
-         "import": "./dist/guards.js",
-         "require": "./dist/guards.js",
-         "types": "./dist/guards.d.ts"
+         "source": "./src/guards/guards.ts",
+         "import": "./dist/src/guards/guards.js",
+         "require": "./dist/src/guards/guards.js",
+         "types": "./dist/src/guards/guards.d.ts"
        }
      }
    }

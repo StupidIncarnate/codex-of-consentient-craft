@@ -33,9 +33,9 @@ starting, and expect these:
 - `flows/mcp-server/mcp-server-flow.integration.test.ts` also holds a per-tool
   `describe('tools/call with <tool>')` block that drives the real stdio server, separate from the
   size-cap suite above.
-- A tool whose handler needs a broker of its own reaches three more files: `packages/mcp/brokers.ts`
-  exports the broker, `packages/mcp/testing.ts` exports its `.proxy`, and the owning responder's own
-  `.proxy.ts` calls every broker proxy that responder reaches.
+- A tool whose handler needs a broker of its own reaches two more files: `packages/mcp/src/brokers/brokers.ts`
+  exports the broker, and the owning responder's own `.proxy.ts` calls every broker proxy that responder
+  reaches, each imported from its own file.
 
 **A tool handled inline in `responders/quest/handle/quest-handle-responder.ts` costs cyclomatic
 complexity**, and that function sits AT the ceiling (`complexity: max 50`). A branch with a

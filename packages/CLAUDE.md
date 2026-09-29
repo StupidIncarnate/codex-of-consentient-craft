@@ -18,6 +18,27 @@ packages use `jest.config.cjs` rather than `.js` — and a copy reliably loses t
 that keep `.stub.ts` and `.harness.ts` out of `dist`, along with the `incremental` and
 `tsBuildInfoFile` pair every `build:clean` deletes.
 
+### What the package looks like
+
+A package's public surface is one barrel per folder type, at `src/<folderType>/<folderType>.ts` (for example
+`src/contracts/contracts.ts`), and every barrel line re-exports one production entry file. There is no root-level
+barrel and no `testing.ts`. `package.json` `exports` holds:
+
+- `.`, only where the package has an entry (a `cli-tool` or `eslint-plugin`);
+- `./package.json`;
+- one explicit key per barrel, `./contracts` and so on, each carrying `source`, `types`, `import` and `require`.
+  Never a two-star pattern such as `./*` to `./src/*/*.ts`: declaration emit names a module by splitting an `exports`
+  target at its first `*`, so a two-star key fails with TS2742;
+- `./*.proxy` and `./*.stub`, single-star keys carrying only `source`. `testing` and the four `@gateway/*` packages
+  keep the full condition set on these keys.
+
+A stub sits beside its contract and a proxy beside the file it mocks. No barrel exports either, and nothing
+aggregates them at the folder level. A test imports each one from its own file, through those two keys:
+`@dungeonmaster/shared/contracts/path-segment/path-segment.stub`,
+`@dungeonmaster/orchestrator/startup/start-orchestrator.proxy`. Production code never imports a stub or a proxy.
+
+`create-package` writes this layout for every package type.
+
 ### What the two tsconfigs are for
 
 `tsconfig.json` is the CHECKING config, and what ward's per-package `tsc --noEmit` runs. It emits
@@ -36,7 +57,8 @@ Add it to `dependencies` as `"@dungeonmaster/shared": "*"`.
 
 **Remember:** `@dungeonmaster/shared`'s package.json exports a `source` condition on every subpath, so ward's
 typecheck, unit and integration checks (which set `--conditions=source`) read edited contracts directly —
-no rebuild needed for those. Every runtime path that does not set that condition (`npm run prod`,
+no rebuild needed for those. The `./*.proxy` and `./*.stub` keys carry only `source`, since a stub or proxy is
+excluded from `dist`. Every runtime path that does not set that condition (`npm run prod`,
 `dungeonmaster start` in a consumer, the MCP server, `npm run build` itself) still resolves
 `@dungeonmaster/shared` through `dist/`, so rebuild it before exercising any of those:
 

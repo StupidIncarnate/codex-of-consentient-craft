@@ -20,7 +20,7 @@ describe('packageSeedPlainStatics', () => {
       }).toStrictEqual({
         barrel: {
           fileName: 'statics.ts',
-          exportPaths: ['./src/statics/__NAME__/__NAME__-statics'],
+          exportPaths: ['./__NAME__/__NAME__-statics'],
         },
         dependencies: {},
         devDependencies: {},
@@ -64,7 +64,7 @@ describe('packageSeedPlainStatics', () => {
       }).toStrictEqual({
         barrel: {
           fileName: 'flows.ts',
-          exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+          exportPaths: ['./__NAME__/__NAME__-flow'],
         },
         dependencies: { '__SCOPE__/shared': '*' },
         devDependencies: {},

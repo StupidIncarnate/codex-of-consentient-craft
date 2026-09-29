@@ -91,16 +91,20 @@ export const packageScaffoldFilesTransformer = ({
     ['__SCOPE__', scope] as const,
   ];
 
+  // A build rooted at './src' strips that prefix from every emitted path; a build rooted at './'
+  // keeps it. `exports` targets follow whichever one the seed's tsconfig.build.json sets.
+  const distSrcPrefix = seed.buildRootDir === './src' ? './dist' : './dist/src';
   const barrelStem = seed.barrel === null ? null : seed.barrel.fileName.replace(/\.ts$/u, '');
+  const barrelSourcePath = barrelStem === null ? null : `src/${barrelStem}/${barrelStem}.ts`;
   const barrelBlock =
-    seed.barrel !== null && barrelStem !== null
-      ? {
-          source: `./${seed.barrel.fileName}`,
-          import: `./dist/${barrelStem}.js`,
-          require: `./dist/${barrelStem}.js`,
-          types: `./dist/${barrelStem}.d.ts`,
-        }
-      : null;
+    barrelStem === null
+      ? null
+      : {
+          source: `./src/${barrelStem}/${barrelStem}.ts`,
+          types: `${distSrcPrefix}/${barrelStem}/${barrelStem}.d.ts`,
+          import: `${distSrcPrefix}/${barrelStem}/${barrelStem}.js`,
+          require: `${distSrcPrefix}/${barrelStem}/${barrelStem}.js`,
+        };
 
   // Only cli-tool and eslint-plugin ever set exportsDot; buildRootDir tells the two apart
   // (null keeps the src/ prefix, './src' strips it) rather than a second branch on packageType.
@@ -121,13 +125,16 @@ export const packageScaffoldFilesTransformer = ({
       }
     : null;
 
-  const exportsEntries = [
-    ...(barrelStem !== null && barrelBlock !== null
-      ? [[`./${barrelStem}`, barrelBlock] as const]
-      : []),
-    ...(dotBlock === null ? [] : [['.', dotBlock] as const]),
-  ];
-  const exportsField = exportsEntries.length > 0 ? Object.fromEntries(exportsEntries) : null;
+  // `./*.proxy` and `./*.stub` carry only `source`: a stub or proxy is imported per file by tests,
+  // which resolve `source`, and the build config excludes both from `dist`. One explicit key per
+  // folder-type barrel, never a two-star pattern, which declaration emit cannot name.
+  const exportsField = {
+    ...(dotBlock === null ? {} : { '.': dotBlock }),
+    './package.json': './package.json',
+    './*.proxy': { source: './src/*.proxy.ts' },
+    './*.stub': { source: './src/*.stub.ts' },
+    ...(barrelStem === null || barrelBlock === null ? {} : { [`./${barrelStem}`]: barrelBlock }),
+  };
 
   const binHasEntries = Object.keys(seed.bin).length > 0;
   const substitutedBin = Object.fromEntries(
@@ -160,7 +167,7 @@ export const packageScaffoldFilesTransformer = ({
     version: packageScaffoldConfigStatics.packageVersion,
     description: request.description,
     imports: gatewayImports,
-    ...(exportsField === null ? {} : { exports: exportsField }),
+    exports: exportsField,
     files: packageScaffoldConfigStatics.files,
     ...(binHasEntries ? { bin: substitutedBin } : {}),
     scripts: scriptsField,
@@ -292,10 +299,10 @@ ${seed.barrel.exportPaths
           }),
         ]
       : []),
-    ...(seed.barrel !== null && barrelContents !== null
+    ...(barrelSourcePath !== null && barrelContents !== null
       ? [
           scaffoldFileContract.parse({
-            relativePath: pathSegmentContract.parse(seed.barrel.fileName),
+            relativePath: pathSegmentContract.parse(barrelSourcePath),
             contents: fileContentsContract.parse(barrelContents),
           }),
         ]

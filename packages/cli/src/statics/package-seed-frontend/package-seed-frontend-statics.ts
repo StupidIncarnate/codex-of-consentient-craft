@@ -13,7 +13,7 @@ export const packageSeedFrontendStatics = {
   'frontend-react': {
     barrel: {
       fileName: 'widgets.ts',
-      exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
+      exportPaths: ['./__NAME__-panel/__NAME__-panel-widget'],
     },
     // `@types/react` and `@types/react-dom` are runtime-shaped devDependencies but declared here in
     // `dependencies` anyway: without them a scaffolded package neither typechecks (no
@@ -50,9 +50,9 @@ export const packageSeedFrontendStatics = {
       {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         contents: `/**
- * PURPOSE: Starting point for this package's public widget surface, wired into the root widgets.ts
- * barrel so a fresh frontend-react package already renders something real. Replace the markup with
- * the package's actual UI once one exists.
+ * PURPOSE: Starting point for this package's public widget surface, exported by the
+ * src/widgets/widgets.ts barrel so a fresh frontend-react package already renders something real.
+ * Replace the markup with the package's actual UI once one exists.
  *
  * USAGE:
  * <__PASCAL__PanelWidget />
@@ -93,7 +93,7 @@ describe('__PASCAL__PanelWidget', () => {
   'frontend-ink': {
     barrel: {
       fileName: 'widgets.ts',
-      exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
+      exportPaths: ['./__NAME__-panel/__NAME__-panel-widget'],
     },
     // `ink` is declared, never imported: a consumer's `@gateway/npm` starts empty, so a seed that
     // imported it through `#gateway/npm/ink` would fail lint and typecheck until someone wrote that
@@ -119,7 +119,7 @@ describe('__PASCAL__PanelWidget', () => {
       {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         contents: `/**
- * PURPOSE: Starting point for this package's ink UI, wired into the root widgets.ts barrel. It
+ * PURPOSE: Starting point for this package's ink UI, exported by the src/widgets/widgets.ts barrel. It
  * returns a bare fragment because ink's \`Text\` is an npm value and a consumer's \`@gateway/npm\`
  * starts empty: write \`packages/@gateway/npm/src/ink/ink.ts\`, then wrap this content in
  * \`<Text>\` imported from \`#gateway/npm/ink\`. The package already declares \`ink\`.

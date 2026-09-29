@@ -31,7 +31,7 @@ describe('recipesScaffoldFilesTransformer', () => {
           locationsStatics.repoRoot.tsconfig,
           'tsconfig.build.json',
           'jest.config.js',
-          'responders.ts',
+          'src/responders/responders.ts',
           'src/index.ts',
           'src/index.integration.test.ts',
           'src/startup/start-hydration-recipes.ts',
@@ -67,6 +67,15 @@ describe('recipesScaffoldFilesTransformer', () => {
             require: './dist/index.js',
             types: './dist/index.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
+          },
         },
         scripts: {
           build: 'tsc -p tsconfig.build.json',
@@ -99,6 +108,15 @@ describe('recipesScaffoldFilesTransformer', () => {
             import: './dist/index.js',
             require: './dist/index.js',
             types: './dist/index.d.ts',
+          },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
           },
         },
         scripts: {
@@ -140,6 +158,15 @@ describe('recipesScaffoldFilesTransformer', () => {
             require: './dist/index.js',
             types: './dist/index.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
+          },
         },
         scripts: {
           build: 'tsc -p tsconfig.build.json',
@@ -158,7 +185,7 @@ describe('recipesScaffoldFilesTransformer', () => {
   });
 
   describe('tsconfig.json', () => {
-    it('VALID: {} => extends the repo root tsconfig and includes src/ plus the root responders barrel', () => {
+    it('VALID: {} => extends the repo root tsconfig and includes src/ alone, which holds the responders barrel', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
       const files = recipesScaffoldFilesTransformer({ packageName });
@@ -170,13 +197,13 @@ describe('recipesScaffoldFilesTransformer', () => {
         compilerOptions: {
           typeRoots: ['../../node_modules/@types', '../../@types'],
         },
-        include: ['src/**/*', 'responders.ts'],
+        include: ['src/**/*'],
       });
     });
   });
 
   describe('tsconfig.build.json', () => {
-    it('VALID: {} => compiles src/index.ts down to dist/index.js, and excludes responders.ts from the emit', () => {
+    it('VALID: {} => compiles src/index.ts down to dist/index.js, and emits the responders barrel beside it', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
       const files = recipesScaffoldFilesTransformer({ packageName });
@@ -194,7 +221,6 @@ describe('recipesScaffoldFilesTransformer', () => {
           incremental: true,
           tsBuildInfoFile: './.ward/build.tsbuildinfo',
         },
-        include: ['src/**/*'],
         exclude: [
           '**/*.test.ts',
           '**/*.integration.test.ts',
@@ -226,17 +252,17 @@ module.exports = {
     });
   });
 
-  describe('responders.ts', () => {
+  describe('src/responders/responders.ts', () => {
     it('VALID: {} => re-exports both responders', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
       const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(findContents({ files, relativePath: 'responders.ts' })).toMatch(
-        /^export \* from '\.\/src\/responders\/recipes\/listing\/recipes-listing-responder';$/mu,
+      expect(findContents({ files, relativePath: 'src/responders/responders.ts' })).toMatch(
+        /^export \* from '\.\/recipes\/listing\/recipes-listing-responder';$/mu,
       );
-      expect(findContents({ files, relativePath: 'responders.ts' })).toMatch(
-        /^export \* from '\.\/src\/responders\/recipes\/seed\/recipes-seed-responder';$/mu,
+      expect(findContents({ files, relativePath: 'src/responders/responders.ts' })).toMatch(
+        /^export \* from '\.\/recipes\/seed\/recipes-seed-responder';$/mu,
       );
     });
   });

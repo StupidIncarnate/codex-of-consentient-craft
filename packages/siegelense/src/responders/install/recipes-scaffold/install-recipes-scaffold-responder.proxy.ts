@@ -25,7 +25,7 @@ const SCAFFOLD_RELATIVE_PATHS = [
   'tsconfig.json',
   'tsconfig.build.json',
   'jest.config.js',
-  'responders.ts',
+  'src/responders/responders.ts',
   'src/index.ts',
   'src/index.integration.test.ts',
   'src/startup/start-hydration-recipes.ts',
@@ -48,6 +48,7 @@ const SCAFFOLD_DIR_PATHS = [
   `${RECIPES_PACKAGE_ROOT}/src`,
   `${RECIPES_PACKAGE_ROOT}/src/startup`,
   `${RECIPES_PACKAGE_ROOT}/src/flows/recipes`,
+  `${RECIPES_PACKAGE_ROOT}/src/responders`,
   `${RECIPES_PACKAGE_ROOT}/src/responders/recipes/listing`,
   `${RECIPES_PACKAGE_ROOT}/src/responders/recipes/seed`,
 ] as const;

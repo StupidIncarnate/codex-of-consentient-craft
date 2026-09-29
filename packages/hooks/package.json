@@ -62,6 +62,7 @@
     "access": "public"
   },
   "exports": {
+    "./package.json": "./package.json",
     "./*.proxy": {
       "source": "./src/*.proxy.ts"
     },

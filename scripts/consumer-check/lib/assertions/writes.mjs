@@ -269,15 +269,17 @@ const checkGatewayPackages = ({ report, consumerRoot, gt }) => {
     const manifest = readJson(packageJsonPath);
     const exportKeys = Object.keys(manifest.exports ?? {}).sort();
     const hasExactThreeKeys =
-      JSON.stringify(exportKeys) === JSON.stringify(['./*', './*.proxy', './*.stub'].sort());
+      JSON.stringify(exportKeys) ===
+      JSON.stringify(['./package.json', './*', './*.proxy', './*.stub'].sort());
     const ownSourceCondition = `${folder}-own-source`;
     const carriesOwnSourceCondition = ['./*', './*.proxy', './*.stub'].every((key) =>
       Object.prototype.hasOwnProperty.call(manifest.exports?.[key] ?? {}, ownSourceCondition),
     );
     const noTestKey = !Object.keys(manifest.exports ?? {}).some((key) => key.includes('_test_'));
+    const exposesManifest = manifest.exports?.['./package.json'] === './package.json';
     report.check(
-      `packages/@gateway/${folder}'s package.json exports exactly ./*.proxy, ./*.stub, ./* with the ${ownSourceCondition} condition and no _test_ key`,
-      hasExactThreeKeys && carriesOwnSourceCondition && noTestKey,
+      `packages/@gateway/${folder}'s package.json exports exactly ./package.json, ./*.proxy, ./*.stub, ./* with the ${ownSourceCondition} condition and no _test_ key`,
+      hasExactThreeKeys && carriesOwnSourceCondition && noTestKey && exposesManifest,
       JSON.stringify(exportKeys),
     );
 

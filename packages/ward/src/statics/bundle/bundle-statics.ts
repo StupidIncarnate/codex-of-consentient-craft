@@ -28,9 +28,9 @@ export const bundleStatics = {
   // The lockfile is hashed alongside the closure's own sources: a dependency version bump changes
   // no file inside any workspace package, and the bundle it produces is a different bundle.
   lockfileName: 'package-lock.json',
-  // Everything a workspace package contributes to a bundle built from it. `*.ts` at the package
-  // ROOT is not covered by `src/**`: a package's public surface is its root barrels, which live
-  // outside src/, and web imports five of shared's at hundreds of sites.
+  // Everything a workspace package contributes to a bundle built from it. A package's barrels sit
+  // at `src/<folderType>/<folderType>.ts`, inside `src/**`; `*.ts` at the package ROOT holds the
+  // config files a build reads (`playwright.config.ts`, `vite.config.ts`).
   closurePatterns: ['src/**', '*.ts', 'package.json', 'tsconfig*.json'],
   // The bundler's own inputs, which only the package being bundled has — a library reached through
   // a `dependencies` edge has no vite config and no HTML shell.

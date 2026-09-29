@@ -2,7 +2,7 @@
  * PURPOSE: `packageScaffoldFilesTransformer` needs camelCase, PascalCase, AND UPPER_SNAKE_CASE
  * from one kebab-case `directoryName` in a single pass. `eslint-plugin`'s
  * `kebabToCamelCaseTransformer` / `kebabToPascalCaseTransformer` cover the first two but live in
- * a package this one may not reach into (only a package's own root barrels are public), and
+ * a package this one may not reach into (only a package's own folder-type barrels are public), and
  * neither derives the UPPER_SNAKE_CASE test-id form the seed templates also need.
  *
  * USAGE:

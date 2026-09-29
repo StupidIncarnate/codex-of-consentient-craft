@@ -14,7 +14,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'statics.ts',
+      'src/statics/statics.ts',
       'src/statics/sample-pkg/sample-pkg-statics.ts',
       'src/statics/sample-pkg/sample-pkg-statics.test.ts',
     ],
@@ -26,7 +26,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'flows.ts',
+      'src/flows/flows.ts',
       'src/state/sample-pkg/sample-pkg-state.ts',
       'src/state/sample-pkg/sample-pkg-state.proxy.ts',
       'src/state/sample-pkg/sample-pkg-state.test.ts',
@@ -46,7 +46,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'flows.ts',
+      'src/flows/flows.ts',
       'src/statics/tool/tool-statics.ts',
       'src/statics/tool/tool-statics.test.ts',
       'src/flows/sample-pkg/sample-pkg-flow.ts',
@@ -60,7 +60,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'flows.ts',
+      'src/flows/flows.ts',
       'src/statics/route/route-statics.ts',
       'src/statics/route/route-statics.test.ts',
       'src/flows/sample-pkg/sample-pkg-flow.ts',
@@ -77,7 +77,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'playwright.config.ts',
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
-      'widgets.ts',
+      'src/widgets/widgets.ts',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.proxy.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.test.tsx',
@@ -93,7 +93,7 @@ const RELATIVE_PATHS_BY_TYPE = [
       'playwright.config.ts',
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
-      'widgets.ts',
+      'src/widgets/widgets.ts',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.proxy.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.test.tsx',
@@ -189,11 +189,18 @@ describe('packageScaffoldFilesTransformer', () => {
     "#gateway/bin/*": "@acme/bin/*"
   },
   "exports": {
+    "./package.json": "./package.json",
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
+    },
     "./statics": {
-      "source": "./statics.ts",
-      "import": "./dist/statics.js",
-      "require": "./dist/statics.js",
-      "types": "./dist/statics.d.ts"
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
     }
   },
   "files": [
@@ -274,7 +281,7 @@ describe('packageScaffoldFilesTransformer', () => {
   });
 
   describe('package.json field presence', () => {
-    it('VALID: {packageType: "library"} => bin and dependencies are absent, exports carries the statics barrel', () => {
+    it('VALID: {packageType: "library"} => bin and dependencies are absent, exports carries the package.json, source-only proxy and stub keys and the statics barrel under src/statics', () => {
       const files = packageScaffoldFilesTransformer({ request: CreatePackageRequestStub() });
       const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
       const parsed = JSON.parse(packageJsonFile!.contents);
@@ -290,11 +297,14 @@ describe('packageScaffoldFilesTransformer', () => {
           '#gateway/bin/*': '@acme/bin/*',
         },
         exports: {
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
           './statics': {
-            source: './statics.ts',
-            import: './dist/statics.js',
-            require: './dist/statics.js',
-            types: './dist/statics.d.ts',
+            source: './src/statics/statics.ts',
+            import: './dist/src/statics/statics.js',
+            require: './dist/src/statics/statics.js',
+            types: './dist/src/statics/statics.d.ts',
           },
         },
         files: ['dist/**/*'],
@@ -314,7 +324,7 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageType: "hook-handlers"} => bin and dependencies are present, exports is entirely absent', () => {
+    it('VALID: {packageType: "hook-handlers"} => bin and dependencies are present, exports carries only package.json, proxy and stub keys', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({ packageType: 'hook-handlers' }),
       });
@@ -330,6 +340,11 @@ describe('packageScaffoldFilesTransformer', () => {
           '#gateway/node/*': '@acme/node/*',
           '#gateway/browser/*': '@acme/browser/*',
           '#gateway/bin/*': '@acme/bin/*',
+        },
+        exports: {
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
         },
         files: ['dist/**/*'],
         bin: {
@@ -354,7 +369,7 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageType: "cli-tool"} => postbuild is present and exports carries only a "." subpath under dist/src', () => {
+    it('VALID: {packageType: "cli-tool"} => postbuild is present and exports carries the "." subpath under dist/src beside the package.json, proxy and stub keys', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({ packageType: 'cli-tool' }),
       });
@@ -378,6 +393,9 @@ describe('packageScaffoldFilesTransformer', () => {
             require: './dist/src/startup/start-widgets.js',
             types: './dist/src/startup/start-widgets.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
         },
         files: ['dist/**/*'],
         bin: {
@@ -400,7 +418,7 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageType: "eslint-plugin"} => no postbuild and exports carries only a "." subpath stripped of src/', () => {
+    it('VALID: {packageType: "eslint-plugin"} => no postbuild and exports carries the "." subpath stripped of src/ beside the package.json, proxy and stub keys', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({ packageType: 'eslint-plugin' }),
       });
@@ -424,6 +442,9 @@ describe('packageScaffoldFilesTransformer', () => {
             require: './dist/index.js',
             types: './dist/index.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
         },
         files: ['dist/**/*'],
         scripts: {
@@ -461,11 +482,14 @@ describe('packageScaffoldFilesTransformer', () => {
           '#gateway/bin/*': '@acme/bin/*',
         },
         exports: {
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
           './flows': {
-            source: './flows.ts',
-            import: './dist/flows.js',
-            require: './dist/flows.js',
-            types: './dist/flows.d.ts',
+            source: './src/flows/flows.ts',
+            import: './dist/src/flows/flows.js',
+            require: './dist/src/flows/flows.js',
+            types: './dist/src/flows/flows.d.ts',
           },
         },
         files: ['dist/**/*'],

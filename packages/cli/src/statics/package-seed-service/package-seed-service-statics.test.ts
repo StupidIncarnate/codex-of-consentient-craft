@@ -8,7 +8,7 @@ describe('packageSeedServiceStatics', () => {
       expect(rest).toStrictEqual({
         barrel: {
           fileName: 'flows.ts',
-          exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+          exportPaths: ['./__NAME__/__NAME__-flow'],
         },
         dependencies: { hono: '^4.0.0' },
         devDependencies: {},
@@ -66,7 +66,7 @@ describe('packageSeedServiceStatics', () => {
       expect(rest).toStrictEqual({
         barrel: {
           fileName: 'flows.ts',
-          exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+          exportPaths: ['./__NAME__/__NAME__-flow'],
         },
         dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
         devDependencies: {},

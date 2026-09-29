@@ -7,7 +7,7 @@
  * (`node_modules/.bin/*`), never this checkout's compiled output.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
@@ -78,6 +78,66 @@ const assertJestConfigBase = ({ report, consumerRoot }) => {
       `create-package gave packages/${packageName} a jest.config.js requiring the published testing base (F6)`,
       requiresPublishedBase,
       requiresPublishedBase ? '' : content,
+    );
+  }
+};
+
+// Rule 13 (EPIC.md): every scaffolded package has the workspace layout and nothing else. Barrels sit
+// at `src/<folderType>/<folderType>.ts`, one explicit `exports` key each (a two-star pattern breaks
+// declaration emit, concession 22); `./*.proxy` and `./*.stub` carry only `source`; there is no root
+// barrel, no `testing.ts` and no `./testing` key.
+const ROOT_TS_ALLOWED = new Set(['playwright.config.ts']);
+const PACKAGE_JSON_SUBPATH = './package.json';
+const PROXY_STUB_KEYS = ['./*.proxy', './*.stub'];
+
+const assertScaffoldedLayout = ({ report, consumerRoot }) => {
+  for (const packageName of [...SEEDED_PACKAGE_NAMES, PROBE_PACKAGE_NAME]) {
+    const packageDir = join(consumerRoot, 'packages', packageName);
+    const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
+    const exportsMap = manifest.exports ?? {};
+    const keys = Object.keys(exportsMap);
+
+    report.check(
+      `packages/${packageName} exports ./package.json`,
+      exportsMap[PACKAGE_JSON_SUBPATH] === PACKAGE_JSON_SUBPATH,
+      JSON.stringify(keys),
+    );
+
+    const proxyStubSourceOnly = PROXY_STUB_KEYS.every(
+      (key) =>
+        JSON.stringify(exportsMap[key]) ===
+        JSON.stringify({ source: `./src/${key.replace('./*.', '*.')}.ts` }),
+    );
+    report.check(
+      `packages/${packageName} exports ./*.proxy and ./*.stub with only a source condition`,
+      proxyStubSourceOnly,
+      JSON.stringify(PROXY_STUB_KEYS.map((key) => exportsMap[key])),
+    );
+
+    const barrelKeys = keys.filter(
+      (key) => key !== '.' && key !== PACKAGE_JSON_SUBPATH && !PROXY_STUB_KEYS.includes(key),
+    );
+    const barrelsAreExplicit = barrelKeys.every((key) => {
+      const folderType = key.slice(2);
+      return (
+        !key.includes('*') &&
+        exportsMap[key]?.source === `./src/${folderType}/${folderType}.ts` &&
+        existsSync(join(packageDir, 'src', folderType, `${folderType}.ts`))
+      );
+    });
+    report.check(
+      `packages/${packageName} has one explicit barrel key per folder type, each at src/<ft>/<ft>.ts (no ./testing, no two-star key)`,
+      barrelKeys.length > 0 && barrelsAreExplicit && !keys.includes('./testing') && !keys.includes('./*'),
+      JSON.stringify(barrelKeys),
+    );
+
+    const strayRootFiles = readdirSync(packageDir).filter(
+      (name) => /\.tsx?$/u.test(name) && !ROOT_TS_ALLOWED.has(name),
+    );
+    report.check(
+      `packages/${packageName} has no root barrel and no testing.ts`,
+      strayRootFiles.length === 0 && !existsSync(join(packageDir, 'testing.ts')),
+      JSON.stringify(strayRootFiles),
     );
   }
 };
@@ -436,6 +496,7 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
+  assertScaffoldedLayout({ report, consumerRoot });
 
   // `lintViolationFile` (from sample-sources.mjs) sits inside the DEDICATED `probe` package's own
   // `src/brokers/`, fully covered by ITS tsconfig `include` — a real consumer never has source at

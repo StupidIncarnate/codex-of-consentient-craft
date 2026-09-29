@@ -2,19 +2,20 @@
 /**
  * Grades what each package's compiled `dist/` ships, in TWO categories that get different verdicts.
  *
- * FORBIDDEN — `.test.`, `.integration.`, and anything under a `test/` directory inside dist. These
- * grade the source and nothing imports them from outside the package, so a `dist/` carrying one is
- * shipping a suite to every consumer. This category FAILS the script.
+ * FORBIDDEN — `.test.`, `.integration.`, anything under a `test/` directory inside dist, and, in every
+ * package but `@dungeonmaster/testing` and the `@gateway/*` packages, `.proxy.`, `.stub.` and `.harness.`
+ * files. These grade the source and nothing imports them from outside the package, so a `dist/`
+ * carrying one is shipping test support to every consumer. This category FAILS the script.
  *
- * PUBLISHED ON PURPOSE — `.proxy.`, `.stub.`, `.harness.`. These look like test-only code and are
- * not: several packages export them as real public API, so a consumer's own tests can build the
- * same fixtures and mock the same adapters. `@dungeonmaster/shared/contracts` re-exports the stub
- * beside every contract, `@dungeonmaster/shared/testing` IS the proxy barrel, and
- * `@dungeonmaster/testing` and `@dungeonmaster/config` export stubs from their own index. A file a
- * barrel exports must compile into `dist/` or the export resolves to nothing — so this category is
- * REPORTED and never fails. What makes it correct is the barrel: an entry here whose package
- * exports nothing of the kind is a build config emitting more than it means to, and the fix is that
- * package's `tsconfig.build.json` exclude list.
+ * A stub or a proxy sits beside the file it belongs to and no production barrel exports it, so a
+ * build that emits one has a production file importing it and the fix is that import. The
+ * `./*.proxy` and `./*.stub` keys of an ordinary package carry only a `source` condition, which
+ * resolves TypeScript and never reads `dist/`.
+ *
+ * PUBLISHED ON PURPOSE — `.proxy.`, `.stub.`, `.harness.` in `@dungeonmaster/testing` and the
+ * `@gateway/*` packages. A consumer's own tests import them from `dist/` through those packages'
+ * `import`/`require`/`types` conditions, so a file their exports name must compile into `dist/`.
+ * This category is REPORTED and never fails.
  *
  * `.d.ts` and `.js.map` siblings count as the same file by another extension, in both categories.
  *
@@ -38,10 +39,15 @@ import { listWorkspacePackageDirs } from './workspace-package-dirs.mjs';
 const PACKAGES_DIR = 'packages';
 
 const FORBIDDEN_NAME_MARKERS = ['.test.', '.integration.'];
-const INTENTIONAL_NAME_MARKERS = ['.proxy.', '.stub.', '.harness.'];
+const TEST_SUPPORT_NAME_MARKERS = ['.proxy.', '.stub.', '.harness.'];
+const TEST_SUPPORT_PUBLISHERS = new Set(['testing']);
+const GATEWAY_GROUP_PREFIX = '@gateway/';
+
+const publishesTestSupport = ({ dir }) =>
+  TEST_SUPPORT_PUBLISHERS.has(dir) || dir.startsWith(GATEWAY_GROUP_PREFIX);
 const TEST_DIR_SEGMENT = 'test';
 
-const collectFindings = ({ distPath, relative }) => {
+const collectFindings = ({ distPath, relative, testSupportIsPublished }) => {
   const findings = { forbidden: [], intentional: [] };
 
   let entries;
@@ -63,7 +69,11 @@ const collectFindings = ({ distPath, relative }) => {
         );
         continue;
       }
-      const nested = collectFindings({ distPath: join(distPath, entry.name), relative: childRelative });
+      const nested = collectFindings({
+        distPath: join(distPath, entry.name),
+        relative: childRelative,
+        testSupportIsPublished,
+      });
       findings.forbidden.push(...nested.forbidden);
       findings.intentional.push(...nested.intentional);
       continue;
@@ -75,8 +85,8 @@ const collectFindings = ({ distPath, relative }) => {
       continue;
     }
 
-    if (INTENTIONAL_NAME_MARKERS.some((marker) => entry.name.includes(marker))) {
-      findings.intentional.push(childRelative);
+    if (TEST_SUPPORT_NAME_MARKERS.some((marker) => entry.name.includes(marker))) {
+      (testSupportIsPublished ? findings.intentional : findings.forbidden).push(childRelative);
     }
   }
 
@@ -135,7 +145,11 @@ for (const dir of packageDirs) {
   }
 
   anyDistFound = true;
-  const findings = collectFindings({ distPath, relative: '' });
+  const findings = collectFindings({
+    distPath,
+    relative: '',
+    testSupportIsPublished: publishesTestSupport({ dir }),
+  });
   rows.push({
     name: manifest.name,
     dir,
@@ -171,7 +185,7 @@ const publishingIntentional = rows.filter((row) => row.skipped === null && row.i
 
 if (publishingIntentional.length > 0) {
   process.stdout.write(
-    '\nProxy / stub / harness files in dist — published on purpose by the packages whose barrels\nexport them, so these are reported and do not fail:\n',
+    '\nProxy / stub / harness files in dist — published on purpose by testing and the gateway packages,\nso these are reported and do not fail:\n',
   );
   for (const row of publishingIntentional) {
     process.stdout.write(`\n  ${row.name} (${String(row.intentional.length)}):\n`);
@@ -198,7 +212,7 @@ if (failing.length > 0) {
     }
   }
   process.stderr.write(
-    `\n${String(failing.length)} package(s) publish test suites. Narrow each one's build config exclude list.\n`,
+    `\n${String(failing.length)} package(s) publish test suites or test support. Narrow each one's build config exclude list, or remove the production import that drags the file in.\n`,
   );
   process.exit(1);
 }

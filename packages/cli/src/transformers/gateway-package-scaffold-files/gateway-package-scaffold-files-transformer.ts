@@ -1,8 +1,8 @@
 /**
  * PURPOSE: The pure file-building half of scaffolding ONE gateway workspace package —
  * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` carry in
- * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports` (three
- * keys — `./*.proxy` to `./src/*.proxy.ts`, `./*.stub` to `./src/*.stub.ts`, and the barrel key `./*`
+ * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports` (`./package.json`
+ * and three pattern keys — `./*.proxy` to `./src/*.proxy.ts`, `./*.stub` to `./src/*.stub.ts`, and the barrel key `./*`
  * to `./src/*\/*.ts`, each led by `<folder>-own-source` then `gateway-dist`; there is no `_test_` key,
  * since a test imports each stub and proxy from its own file) and `sideEffects: false`, both
  * tsconfigs, and a Jest config. node and browser get their source copied in afterwards
@@ -55,6 +55,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     sideEffects: false,
     imports: gatewayImportsFieldTransformer({ scope }),
     exports: {
+      './package.json': './package.json',
       './*.proxy': {
         [ownSourceCondition]: './src/*.proxy.ts',
         'gateway-dist': './dist/*.proxy.d.ts',

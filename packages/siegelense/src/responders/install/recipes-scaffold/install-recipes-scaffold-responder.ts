@@ -126,7 +126,7 @@ export const InstallRecipesScaffoldResponder = async ({
     ),
   );
 
-  const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, responders.ts, ${SRC_DIRNAME}/index.ts, ${SRC_DIRNAME}/startup/, ${SRC_DIRNAME}/flows/, ${SRC_DIRNAME}/responders/)`;
+  const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, ${SRC_DIRNAME}/index.ts, ${SRC_DIRNAME}/startup/, ${SRC_DIRNAME}/flows/, ${SRC_DIRNAME}/responders/)`;
 
   // Until `npm install` links the freshly scaffolded workspace and `npm run build` compiles it,
   // `recipesLocateBroker` throws `RecipesBuildMissingError` on every `siegelense recipes` call —

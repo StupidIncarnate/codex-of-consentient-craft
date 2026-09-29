@@ -10,6 +10,7 @@
     "#gateway/bin/*": "@dungeonmaster/bin/*"
   },
   "exports": {
+    "./package.json": "./package.json",
     "./*.proxy": {
       "bin-own-source": "./src/*.proxy.ts",
       "gateway-dist": "./dist/*.proxy.d.ts",

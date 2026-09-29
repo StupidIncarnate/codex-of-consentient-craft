@@ -167,13 +167,13 @@ describe('architectureOverviewBroker', () => {
       expect(result).toMatch(/^### Starting a new package$/mu);
     });
 
-    it('VALID: {} => documents the node10 source-resolution rule for typecheck, lint, and runtime', () => {
+    it('VALID: {} => documents the source-condition resolution rule for ward checks and the dist runtime path', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^- \*\*node10 resolution\*\* \(`moduleResolution: "node"`.*rebuild before running\.$/mu,
+        /^- \*\*Ward's typecheck, lint, unit and integration checks set the `source` condition\*\*, .*rebuild the package before running those\.$/mu,
       );
     });
 

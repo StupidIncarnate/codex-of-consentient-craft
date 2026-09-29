@@ -21,6 +21,7 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
+    "./package.json": "./package.json",
     "./rule-tester.harness": {
       "source": "./test/harnesses/rule-tester/rule-tester.harness.ts"
     },

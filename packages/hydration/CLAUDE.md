@@ -196,14 +196,15 @@ ward run. Anything owning fixtures resolves paths through the compiler helper, w
 
 ## The `exports` map has no `./adapters` subpath, and that is deliberate
 
-`contracts.ts`, `brokers.ts`, `transformers.ts` and `errors.ts` are the whole public surface.
+The barrels `src/contracts/contracts.ts`, `src/brokers/brokers.ts`, `src/transformers/transformers.ts`,
+`src/errors/errors.ts` and `src/statics/statics.ts` are the whole public surface.
 This package has no adapters folder; route helpers and runner I/O call `#gateway/*` directly.
 Adding a `./adapters` subpath later is a decision to make deliberately, not a gap to fill by
 matching what `@dungeonmaster/shared` happens to export.
 
 `hydrationCreateBroker` returns `{ ingredient, registry, recipe, run, listing }`. `run` is the public
 name a spec tree reaches with no MCP boundary, and it calls `planRunBroker` against whichever
-ingredients that same binding's `registry()` call registered — `brokers.ts` also exports
+ingredients that same binding's `registry()` call registered — `src/brokers/brokers.ts` also exports
 `planRunBroker` directly, for a caller that builds its own ingredient list instead of going through
 this broker's binding. `listing` reads the SAME `registeredIngredients` closure `run` reads, folding
 `planRunsTransformer` and `planMakesTransformer` over one plan without asking the caller to hand its

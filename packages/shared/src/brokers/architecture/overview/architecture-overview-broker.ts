@@ -103,11 +103,13 @@ Inside one domain folder every file may import every other, helpers and layers i
 
 ## Cross-Package Public API
 
-Packages expose their public surface through **root barrel files named per folder type** — one \`.ts\` file at the package root per folder (\`contracts.ts\`, \`brokers.ts\`, \`guards.ts\`, …). Each barrel line re-exports one entry file (an \`export *\` of, e.g., \`./src/contracts/user/user-contract\`).
+Packages expose their public surface through **folder-type barrel files** — one \`.ts\` file per folder type, named for it and sitting inside the folder it covers (\`src/contracts/contracts.ts\`, \`src/brokers/brokers.ts\`, \`src/guards/guards.ts\`, …). Each barrel line re-exports one entry file (an \`export *\` of, e.g., \`./user/user-contract\`).
 
-- Root barrels live **outside \`src/\`**, matched by tsconfig \`include: ["*.ts"]\`, so they are exempt from \`enforce-implementation-colocation\` (no \`.test.ts\` needed). A \`src/index.ts\` barrel is NOT exempt and gets flagged — keep barrels at the package root.
-- \`package.json\` \`exports\` maps each subpath (\`./contracts\`) to \`source\` (\`./contracts.ts\`), \`require\`/\`import\` (\`./dist/contracts.js\`), and \`types\` (\`./dist/contracts.d.ts\`).
-- **node10 resolution** (\`moduleResolution: "node"\`, used everywhere) ignores the \`exports\` map and resolves the root \`contracts.ts\` **source** directly for typecheck + lint (no build needed), while Node at **runtime** honors \`exports\` to hit \`dist/contracts.js\`. Load-bearing: editing a contract lets downstream packages typecheck against the new source immediately, but they must rebuild before running.
+- A barrel holds production exports only, and nothing else. No package has a root-level barrel and no \`testing.ts\`.
+- \`package.json\` \`exports\` holds \`./package.json\`, \`.\` where the package has an entry, and **one explicit key per barrel** (\`"./contracts"\` with \`source\` \`./src/contracts/contracts.ts\`, plus \`import\`/\`require\` \`./dist/contracts.js\` and \`types\` \`./dist/contracts.d.ts\`). Never a two-star pattern: declaration emit names a module by splitting an \`exports\` target at its first \`*\`, so a two-star key fails with TS2742.
+- **Ward's typecheck, lint, unit and integration checks set the \`source\` condition**, so a package resolves to the TypeScript on disk and an edited contract is visible downstream with no build. Every runtime path that does not set it (the production server, the MCP server, \`npm run build\`) honors \`import\`/\`require\` and reads \`dist/\`, so rebuild the package before running those.
+
+A stub sits beside its contract and a proxy beside the file it mocks. No barrel exports either, and production code never imports one. A test imports each stub and proxy from its own file, through the single-star \`./*.stub\` and \`./*.proxy\` keys, which carry only the \`source\` condition (\`@scope/pkg/contracts/user/user.stub\`, \`@scope/pkg/brokers/user/fetch/user-fetch-broker.proxy\`).
 
 ### Consuming another package's API
 

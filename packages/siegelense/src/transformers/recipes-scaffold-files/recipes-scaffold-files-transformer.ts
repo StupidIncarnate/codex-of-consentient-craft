@@ -25,7 +25,7 @@
  * USAGE:
  * recipesScaffoldFilesTransformer({ packageName: PackageNameStub({ value: '@acme/hydration-recipes' }), scope: PathSegmentStub({ value: '@acme' }) });
  * // Returns the ordered RecipesScaffoldFile[]: package.json, tsconfig.json, tsconfig.build.json,
- * // jest.config.js, responders.ts, src/index.ts, src/index.integration.test.ts, a startup file
+ * // jest.config.js, src/responders/responders.ts, src/index.ts, src/index.integration.test.ts, a startup file
  * // (plus its integration test), a flow (plus its integration test), and two responders (each with
  * // a proxy and a unit test)
  */
@@ -67,6 +67,15 @@ export const recipesScaffoldFilesTransformer = ({
         require: './dist/index.js',
         types: './dist/index.d.ts',
       },
+      './package.json': './package.json',
+      './*.proxy': { source: './src/*.proxy.ts' },
+      './*.stub': { source: './src/*.stub.ts' },
+      './responders': {
+        source: './src/responders/responders.ts',
+        types: './dist/responders/responders.d.ts',
+        import: './dist/responders/responders.js',
+        require: './dist/responders/responders.js',
+      },
     },
     scripts: {
       build: 'tsc -p tsconfig.build.json',
@@ -87,7 +96,7 @@ export const recipesScaffoldFilesTransformer = ({
     compilerOptions: {
       typeRoots: ['../../node_modules/@types', '../../@types'],
     },
-    include: ['src/**/*', 'responders.ts'],
+    include: ['src/**/*'],
   };
 
   const tsconfigBuildJson = {
@@ -101,11 +110,6 @@ export const recipesScaffoldFilesTransformer = ({
       incremental: true,
       tsBuildInfoFile: './.ward/build.tsbuildinfo',
     },
-    // Overrides the checking tsconfig's wider `include` (which also names root-level
-    // `responders.ts`, for the lint rule below) back down to `src/**/*` alone — nothing outside
-    // this package imports `responders.ts`'s compiled output, so it needs no place in `dist/`, and
-    // building it under `rootDir: './src'` would trip TS6059 (a file outside `rootDir`).
-    include: ['src/**/*'],
     exclude: [
       '**/*.test.ts',
       '**/*.integration.test.ts',
@@ -129,7 +133,7 @@ module.exports = {
   // requires this exact path to exist, so `dungeonmaster siegelense recipes`'s own consumer
   // scaffold lints clean instead of reporting five missing-structure violations.
   const respondersTs = `/**
- * PURPOSE: Root barrel exporting all responders declared by this package.
+ * PURPOSE: Barrel exporting all responders declared by this package.
  *
  * USAGE:
  * import {
@@ -138,8 +142,8 @@ module.exports = {
  * } from '<packageName>/responders';
  */
 
-export * from './src/responders/recipes/listing/recipes-listing-responder';
-export * from './src/responders/recipes/seed/recipes-seed-responder';
+export * from './recipes/listing/recipes-listing-responder';
+export * from './recipes/seed/recipes-seed-responder';
 `;
 
   const listingResponderTs = `/**
@@ -332,7 +336,7 @@ describe('hydration-recipes starter index', () => {
       contents: `${JSON.stringify(tsconfigBuildJson, null, JSON_INDENT_SPACES)}\n`,
     },
     { relativePath: 'jest.config.js', contents: jestConfigJs },
-    { relativePath: 'responders.ts', contents: respondersTs },
+    { relativePath: 'src/responders/responders.ts', contents: respondersTs },
 
     {
       relativePath: 'src/responders/recipes/listing/recipes-listing-responder.ts',

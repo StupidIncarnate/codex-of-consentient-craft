@@ -13,7 +13,7 @@ export const packageSeedServiceStatics = {
   'http-backend': {
     barrel: {
       fileName: 'flows.ts',
-      exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+      exportPaths: ['./__NAME__/__NAME__-flow'],
     },
     // `hono` is declared, never imported, and the seed carries no contract: a consumer's
     // `@gateway/npm` starts empty (no `#gateway/npm/hono`, no `#gateway/npm/zod`) and it has no
@@ -95,7 +95,7 @@ describe('__PASCAL__Flow', () => {
   'mcp-server': {
     barrel: {
       fileName: 'flows.ts',
-      exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+      exportPaths: ['./__NAME__/__NAME__-flow'],
     },
     // The MCP SDK is declared, never imported, and the seed carries no contract: a consumer's
     // `@gateway/npm` starts empty (no `#gateway/npm/@modelcontextprotocol/sdk`, no

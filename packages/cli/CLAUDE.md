@@ -62,6 +62,14 @@ passed in, the scope derived from the package name), never an empty string. Chan
 that round-trip, and `packages/cli/src/transformers/package-scaffold-files/package-scaffold-files-transformer.test.ts`
 is what catches it.
 
+**A scaffolded package has the workspace layout.** Its barrel sits at `src/<folderType>/<folderType>.ts` (the seed's
+`barrel.fileName` names the folder type, `barrel.exportPaths` are relative to that barrel), and `package.json` `exports`
+holds `.` (only where the type has an entry), `./package.json`, one explicit key per barrel, and single-star
+`./*.proxy` and `./*.stub` keys carrying only a `source` condition. It has no root barrel, no `testing.ts` and no
+`./testing` key: a test imports each stub and proxy from its own file, for example
+`@dungeonmaster/shared/contracts/path-segment/path-segment.stub`. `init`'s gateway packages carry `./package.json` plus
+the three pattern keys with the full condition set.
+
 **The config values come from what the packages on disk actually carry, not from the prose.**
 `statics/package-scaffold-config/package-scaffold-config-statics.ts` holds them and its header names the three that a
 hand-copied config gets wrong.

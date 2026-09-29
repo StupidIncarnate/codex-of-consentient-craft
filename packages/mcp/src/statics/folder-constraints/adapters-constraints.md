@@ -301,12 +301,12 @@ export const runtimeDynamicImportAdapterProxy = (): {
 **Broker Proxy Pattern (when a broker uses this adapter):**
 
 When a broker uses `runtimeDynamicImportAdapter`, its proxy imports and calls the adapter proxy
-from `@dungeonmaster/shared/testing`. The adapter proxy uses `registerMock` internally —
+from its own file, `@dungeonmaster/shared/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy`. The adapter proxy uses `registerMock` internally —
 broker proxies delegate to it, they don't mock directly.
 
 ```typescript
 // brokers/config/load/config-load-broker.proxy.ts
-import {runtimeDynamicImportAdapterProxy} from '@dungeonmaster/shared/testing';
+import {runtimeDynamicImportAdapterProxy} from '@dungeonmaster/shared/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy';
 
 export const configLoadBrokerProxy = () => {
   const importProxy = runtimeDynamicImportAdapterProxy();
@@ -325,7 +325,7 @@ export const configLoadBrokerProxy = () => {
 
 **Why mock adapter:** Language primitives like `import()` aren't npm packages - there's nothing to mock.
 The adapter proxy mocks the barrel export (`@dungeonmaster/shared/adapters`), and broker proxies
-import the adapter proxy from `@dungeonmaster/shared/testing` to reuse that mock setup.
+import the adapter proxy from its own file to reuse that mock setup.
 
 **TEST EXAMPLE:**
 

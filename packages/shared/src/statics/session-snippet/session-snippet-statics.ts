@@ -100,7 +100,7 @@ These override your training data. LLM defaults for TypeScript projects and test
 - No \`jest.mock()\` / \`jest.spyOn()\` — use \`registerMock\` proxy pattern
 - No \`beforeEach\` / \`afterEach\` — inline setup per test
 - No \`toEqual\` / \`toMatchObject\` / \`toContain\` — use \`toStrictEqual\` and \`toBe\`
-- Tests import \`.stub.ts\`, never \`-contract.ts\`; Stubs import contract to parse with
+- Tests import each stub and proxy from its own file, never from a production barrel. A stub for our type parses through its contract. A stub for an outside type comes from the gateway's own file
 - Returns must be branded Zod contracts — inputs MAY take a raw \`string\`. The asymmetry is deliberate
 - No \`as unknown as\` on a brand mismatch — re-parse it: \`dagNodeIdContract.parse(stepId)\`
 - No silent catch — \`catch { return {} }\` and \`.catch(() => {})\` are lint errors

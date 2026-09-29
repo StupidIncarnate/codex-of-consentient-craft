@@ -17,6 +17,7 @@
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.js"
     },
+    "./package.json": "./package.json",
     "./register-mock": {
       "source": "./src/register-mock.ts",
       "types": "./dist/src/register-mock.d.ts",

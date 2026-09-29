@@ -305,6 +305,7 @@ describe('InstallFlow', () => {
           '#gateway/bin/*': '@acme/bin/*',
         },
         exports: {
+          './package.json': './package.json',
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',
@@ -568,6 +569,7 @@ export {};
           '#gateway/bin/*': '@my-app/bin/*',
         },
         exports: {
+          './package.json': './package.json',
           './*.proxy': {
             'npm-own-source': './src/*.proxy.ts',
             'gateway-dist': './dist/*.proxy.d.ts',

@@ -42,6 +42,7 @@
       "require": "./dist/index.js",
       "import": "./dist/index.js"
     },
+    "./package.json": "./package.json",
     "./*.proxy": {
       "source": "./src/*.proxy.ts"
     },

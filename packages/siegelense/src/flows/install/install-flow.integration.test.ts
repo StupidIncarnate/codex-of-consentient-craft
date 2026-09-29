@@ -56,7 +56,7 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/)`,
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, src/index.ts, src/startup/, src/flows/, src/responders/)`,
       });
       expect(gitignoreContent).toBe('.dungeonmaster-assets/siegelense-assets\n');
       expect(recipesEntries).toStrictEqual([
@@ -169,7 +169,7 @@ describe('InstallFlow', () => {
         packageName: '@dungeonmaster/siegelense',
         success: true,
         action: 'created',
-        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; removed legacy .siegelense symlink; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/)`,
+        message: `Created .dungeonmaster-assets/siegelense-assets -> ${dungeonmasterHomePath}/siegelense; removed legacy .siegelense symlink; Created .gitignore with .dungeonmaster-assets/siegelense-assets; Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, src/index.ts, src/startup/, src/flows/, src/responders/)`,
       });
       expect(legacyLinkEntries).toBe(null);
       expect(nestedLinkEntries).toStrictEqual([]);

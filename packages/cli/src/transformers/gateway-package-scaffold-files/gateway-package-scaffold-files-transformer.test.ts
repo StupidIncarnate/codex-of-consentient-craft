@@ -61,6 +61,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
+        './package.json': './package.json',
         './*.proxy': {
           'npm-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',
@@ -124,6 +125,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
+        './package.json': './package.json',
         './*.proxy': {
           'browser-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',

@@ -2,7 +2,7 @@
  * PURPOSE: Pins this package's own `package.json` `exports` map to its standard shape — a check
  * ESLint's file-glob rules cannot make, since `package.json` is JSON, not a source file a rule's
  * selectors can parse. Two things are checked, deliberately kept separate: the exact SET of top-level
- * subpath keys — `./*.proxy`, `./*.stub`, `./*`, and NOTHING else (an accidental extra key, such as a
+ * subpath keys — `./package.json`, `./*.proxy`, `./*.stub`, `./*`, and NOTHING else (an accidental extra key, such as a
  * stray root `.` entry or a leftover `./_test_/*`, fails this) — and each key's `source` condition —
  * the one ward's typecheck/unit/integration checks actually resolve through — against the standard
  * glob. This does NOT pin the whole nested condition object, because this package's own build adds a
@@ -40,22 +40,30 @@ const readOwnExports = (): Record<string, unknown> => {
 };
 
 describe('gateway node package exports shape', () => {
-  it('VALID: {this package.json exports} => holds exactly the standard subpath keys, no root "." entry', () => {
+  it('VALID: {this package.json exports} => holds exactly "./package.json" and the standard subpath keys, no root "." entry', () => {
     const exportsShape = readOwnExports();
 
     expect(Object.keys(exportsShape).sort()).toStrictEqual(
-      Object.keys(STANDARD_SOURCE_TARGETS).sort(),
+      ['./package.json', ...Object.keys(STANDARD_SOURCE_TARGETS)].sort(),
     );
+  });
+
+  it('VALID: {"./package.json" key} => points at the package manifest itself', () => {
+    const exportsShape = readOwnExports();
+
+    expect(exportsShape['./package.json']).toBe('./package.json');
   });
 
   it('VALID: {each subpath key} => its "source" condition targets the standard glob', () => {
     const exportsShape = readOwnExports();
 
     const sourceTargets = Object.fromEntries(
-      Object.entries(exportsShape).map(([exportKey, exportValue]) => [
-        exportKey,
-        (exportValue as Record<string, unknown>).source,
-      ]),
+      Object.entries(exportsShape)
+        .filter(([exportKey]) => exportKey !== './package.json')
+        .map(([exportKey, exportValue]) => [
+          exportKey,
+          (exportValue as Record<string, unknown>).source,
+        ]),
     );
 
     expect(sourceTargets).toStrictEqual(STANDARD_SOURCE_TARGETS);

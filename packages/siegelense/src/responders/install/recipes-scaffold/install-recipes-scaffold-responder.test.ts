@@ -26,7 +26,7 @@ describe('InstallRecipesScaffoldResponder', () => {
         action: 'created',
         message:
           'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, ' +
-          'jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/)',
+          'jest.config.js, src/index.ts, src/startup/, src/flows/, src/responders/)',
       });
 
       const sortByLocale = (a: unknown, b: unknown) => String(a).localeCompare(String(b));
@@ -37,6 +37,7 @@ describe('InstallRecipesScaffoldResponder', () => {
           '/project/packages/hydration-recipes/src',
           '/project/packages/hydration-recipes/src/startup',
           '/project/packages/hydration-recipes/src/flows/recipes',
+          '/project/packages/hydration-recipes/src/responders',
           '/project/packages/hydration-recipes/src/responders/recipes/listing',
           '/project/packages/hydration-recipes/src/responders/recipes/seed',
         ].sort(sortByLocale),
@@ -64,6 +65,15 @@ describe('InstallRecipesScaffoldResponder', () => {
             import: './dist/index.js',
             require: './dist/index.js',
             types: './dist/index.d.ts',
+          },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
           },
         },
         scripts: {
@@ -120,6 +130,15 @@ describe('InstallRecipesScaffoldResponder', () => {
             require: './dist/index.js',
             types: './dist/index.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
+          },
         },
         scripts: {
           build: 'tsc -p tsconfig.build.json',
@@ -166,6 +185,15 @@ describe('InstallRecipesScaffoldResponder', () => {
             require: './dist/index.js',
             types: './dist/index.d.ts',
           },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
+          },
         },
         scripts: {
           build: 'tsc -p tsconfig.build.json',
@@ -197,7 +225,7 @@ describe('InstallRecipesScaffoldResponder', () => {
         compilerOptions: {
           typeRoots: ['../../node_modules/@types', '../../@types'],
         },
-        include: ['src/**/*', 'responders.ts'],
+        include: ['src/**/*'],
       });
     });
 
@@ -222,7 +250,6 @@ describe('InstallRecipesScaffoldResponder', () => {
           incremental: true,
           tsBuildInfoFile: './.ward/build.tsbuildinfo',
         },
-        include: ['src/**/*'],
         exclude: [
           '**/*.test.ts',
           '**/*.integration.test.ts',
@@ -280,7 +307,9 @@ describe('InstallRecipesScaffoldResponder', () => {
           }),
         ).includes('export const RecipesFlow'),
         respondersBarrel: String(
-          proxy.getWrittenContents({ relativePath: PathSegmentStub({ value: 'responders.ts' }) }),
+          proxy.getWrittenContents({
+            relativePath: PathSegmentStub({ value: 'src/responders/responders.ts' }),
+          }),
         ).includes('export * from'),
         listingResponder: String(
           proxy.getWrittenContents({
@@ -334,6 +363,15 @@ describe('InstallRecipesScaffoldResponder', () => {
             import: './dist/index.js',
             require: './dist/index.js',
             types: './dist/index.d.ts',
+          },
+          './package.json': './package.json',
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './responders': {
+            source: './src/responders/responders.ts',
+            types: './dist/responders/responders.d.ts',
+            import: './dist/responders/responders.js',
+            require: './dist/responders/responders.js',
           },
         },
         scripts: {

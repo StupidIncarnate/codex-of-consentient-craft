@@ -13,7 +13,7 @@ export const packageSeedPlainStatics = {
   library: {
     barrel: {
       fileName: 'statics.ts',
-      exportPaths: ['./src/statics/__NAME__/__NAME__-statics'],
+      exportPaths: ['./__NAME__/__NAME__-statics'],
     },
     dependencies: {},
     devDependencies: {},
@@ -60,7 +60,7 @@ describe('__CAMEL__Statics', () => {
   'programmatic-service': {
     barrel: {
       fileName: 'flows.ts',
-      exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
+      exportPaths: ['./__NAME__/__NAME__-flow'],
     },
     dependencies: { '__SCOPE__/shared': '*' },
     devDependencies: {},
@@ -124,7 +124,8 @@ export const __CAMEL__StateProxy = (): {
       },
       {
         path: 'src/state/__NAME__/__NAME__-state.test.ts',
-        contents: `import { PathSegmentStub, ContentTextStub } from '__SCOPE__/shared/contracts';
+        contents: `import { PathSegmentStub } from '__SCOPE__/shared/contracts/path-segment/path-segment.stub';
+import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
 import { __CAMEL__State } from './__NAME__-state';
 import { __CAMEL__StateProxy } from './__NAME__-state.proxy';
 
@@ -247,7 +248,7 @@ export const __PASCAL__Flow = ({
       },
       {
         path: 'src/flows/__NAME__/__NAME__-flow.integration.test.ts',
-        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts';
+        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
 import { __PASCAL__Flow } from './__NAME__-flow';
 
 describe('__PASCAL__Flow', () => {
@@ -290,7 +291,7 @@ export const Start__PASCAL__ = {
       },
       {
         path: 'src/startup/start-__NAME__.integration.test.ts',
-        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts';
+        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
 import { Start__PASCAL__ } from './start-__NAME__';
 
 describe('Start__PASCAL__', () => {

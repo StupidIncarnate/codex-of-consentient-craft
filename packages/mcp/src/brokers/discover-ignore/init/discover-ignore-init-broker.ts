@@ -28,9 +28,9 @@ import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-g
 // Deliberately relative: fs resolves it against process.cwd(), which is the same scan root
 // fileScannerBroker globs from, so the .gitignore read and the scan can never disagree about which
 // repo they mean. Resolving it through cwd + path adapters here would pull
-// '@dungeonmaster/shared/testing' into this broker's proxy, and that barrel's re-exported path
-// proxies hoist jest.mock('path') across the whole test file — stubbing out the real path.resolve
-// folderConstraintsInitBroker needs under the same startup responder.
+// a path-adapter proxy into this broker's proxy, and its jest.mock('path') would hoist across the
+// whole test file — stubbing out the real path.resolve folderConstraintsInitBroker needs under the
+// same startup responder.
 const GITIGNORE_FILENAME = '.gitignore';
 
 export const discoverIgnoreInitBroker = async (): Promise<readonly GlobPattern[]> => {

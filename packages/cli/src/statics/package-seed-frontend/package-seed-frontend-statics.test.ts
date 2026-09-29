@@ -8,7 +8,7 @@ describe('packageSeedFrontendStatics', () => {
       expect(rest).toStrictEqual({
         barrel: {
           fileName: 'widgets.ts',
-          exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
+          exportPaths: ['./__NAME__-panel/__NAME__-panel-widget'],
         },
         dependencies: {
           '__SCOPE__/node': '*',
@@ -51,7 +51,7 @@ describe('packageSeedFrontendStatics', () => {
       expect(rest).toStrictEqual({
         barrel: {
           fileName: 'widgets.ts',
-          exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
+          exportPaths: ['./__NAME__-panel/__NAME__-panel-widget'],
         },
         dependencies: {
           '__SCOPE__/node': '*',
