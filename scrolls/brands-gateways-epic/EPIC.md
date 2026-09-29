@@ -103,7 +103,7 @@ The operator stopped here because the user moved sessions. Read this section fir
 - **Agents running at handoff** (all told never to commit; the operator commits each one's own files after a scoped ward exits 0). See "Agents at handoff" below for what landed before the session ended.
 - **Build:** the last whole-repo build was a plain `npm run build` mid-session; since then `@gateway/node` was rebuilt once. `ward`, `shared`, `testing`, `@gateway/npm`, `@gateway/browser`, `tooling` and `eslint-plugin` have source changes newer than their `dist`. **Before anything runs compiled output, run `npm run build:clean`**, then `npm run check:consumer` and `npm run check:published` (concession 8, the source-only `./rule-tester.harness` export, is unverified against `check:published`).
 - **A full `npm run ward` has not run since the morning handoff.** Every commit this session was gated by ward on its own package plus the packages that compose its proxies, and web's e2e (131 files) passed at every web commit. Run the full ward at the first quiet point, and fix what it finds (user rule 4).
-- **Known slow-test flags:** `packages/web/src/widgets/app/app-widget.test.tsx` and `home-content-widget.test.tsx` (1.2 to 1.3s under load); agent web-slow was fixing them at handoff.
+- **Slow-test flags:** web's app-widget and home-content tests were fixed before handoff (guild form proxy pastes). A heavily loaded full run can still push a first-in-file web test toward 1s.
 
 ### User decisions this session
 
@@ -138,7 +138,7 @@ The operator stopped here because the user moved sessions. Read this section fir
 | a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | running |
 | a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | running |
 | a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | running |
-| web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | running |
+| web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | done (the web slow-tests commit): the shared guild form proxy pastes instead of typing |
 
 If an agent's result never arrived before the session ended, its files are uncommitted in the tree: run `git status`, send a sonnet sub-agent to review them against the chunk's item section, and commit what is green.
 
