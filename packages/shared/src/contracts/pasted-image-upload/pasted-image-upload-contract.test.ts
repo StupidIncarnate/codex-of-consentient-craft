@@ -21,7 +21,7 @@ describe('pastedImageUploadContract', () => {
         pastedImageUploadContract.parse({
           mediaType: 'image/svg+xml',
           dataBase64: 'iVBORw0KGgo=',
-        } as never),
+        }),
       ).toThrow(/Invalid option/u);
     });
 
@@ -30,7 +30,7 @@ describe('pastedImageUploadContract', () => {
         pastedImageUploadContract.parse({
           mediaType: PastedImageMediaTypeStub(),
           dataBase64: 'not base64!',
-        } as never),
+        }),
       ).toThrow(/Invalid base64 image data/u);
     });
   });
@@ -41,7 +41,7 @@ describe('pastedImageUploadContract', () => {
         pastedImageUploadContract.parse({
           mediaType: PastedImageMediaTypeStub(),
           dataBase64: '',
-        } as never),
+        }),
       ).toThrow(/too_small/u);
     });
   });
@@ -57,7 +57,7 @@ describe('pastedImageUploadContract', () => {
         pastedImageUploadContract.parse({
           mediaType: PastedImageMediaTypeStub(),
           dataBase64: overCeiling,
-        } as never),
+        }),
       ).toThrow(expectedMessage);
     });
   });

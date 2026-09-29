@@ -50,9 +50,9 @@ describe('thinkingBlockParamContract', () => {
     });
 
     it('INVALID: {thinking: 123} => throws on non-string thinking', () => {
-      expect(() =>
-        thinkingBlockParamContract.parse({ type: 'thinking', thinking: 123 as never }),
-      ).toThrow(/expected string/u);
+      expect(() => thinkingBlockParamContract.parse({ type: 'thinking', thinking: 123 })).toThrow(
+        /expected string/u,
+      );
     });
   });
 });

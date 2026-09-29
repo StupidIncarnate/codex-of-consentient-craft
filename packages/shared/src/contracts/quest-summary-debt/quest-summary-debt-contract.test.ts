@@ -77,7 +77,7 @@ describe('questSummaryDebtContract', () => {
     it('INVALID: {mark: met} => refused, a proven unit is not debt', () => {
       // The thrown message is `JSON.stringify(issues, null, 2)`, so a quoted option name inside
       // one issue's own `message` field is escaped (`\"cant-meet\"`) in the thrown string.
-      expect(() => QuestSummaryDebtStub({ mark: 'met' as never })).toThrow(
+      expect(() => QuestSummaryDebtStub({ mark: 'met' })).toThrow(
         /Invalid option: expected one of \\"cant-meet\\"\|\\"unmet\\"/u,
       );
     });
@@ -118,13 +118,11 @@ describe('questSummaryDebtContract', () => {
     });
 
     it('INVALID: {kind: "path"} => throws', () => {
-      expect(() => QuestSummaryDebtStub({ kind: 'path' as never })).toThrow(/Invalid option/u);
+      expect(() => QuestSummaryDebtStub({ kind: 'path' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {workItemId: "not-a-uuid"} => throws, the entry must route back to a session', () => {
-      expect(() => QuestSummaryDebtStub({ workItemId: 'not-a-uuid' as never })).toThrow(
-        /Invalid UUID/u,
-      );
+      expect(() => QuestSummaryDebtStub({ workItemId: 'not-a-uuid' })).toThrow(/Invalid UUID/u);
     });
 
     it('EMPTY: {empty object} => reports failure on every required field', () => {

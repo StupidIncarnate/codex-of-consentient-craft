@@ -61,13 +61,13 @@ describe('operationPlanContract', () => {
 
     it('EMPTY: {discipline: ""} => throws validation error', () => {
       expect(() => {
-        return OperationPlanStub({ discipline: '' as never });
+        return OperationPlanStub({ discipline: '' });
       }).toThrow(/too_small/u);
     });
 
     it('EMPTY: {summary: ""} => throws validation error', () => {
       expect(() => {
-        return OperationPlanStub({ summary: '' as never });
+        return OperationPlanStub({ summary: '' });
       }).toThrow(/too_small/u);
     });
 
@@ -86,19 +86,19 @@ describe('operationPlanContract', () => {
 
     it('INVALID: {operationItemId: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
-        return OperationPlanStub({ operationItemId: 'not-a-uuid' as never });
+        return OperationPlanStub({ operationItemId: 'not-a-uuid' });
       }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {workItemId: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
-        return OperationPlanStub({ workItemId: 'not-a-uuid' as never });
+        return OperationPlanStub({ workItemId: 'not-a-uuid' });
       }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {at: "not-a-timestamp"} => throws validation error', () => {
       expect(() => {
-        return OperationPlanStub({ at: 'not-a-timestamp' as never });
+        return OperationPlanStub({ at: 'not-a-timestamp' });
       }).toThrow(/Invalid ISO datetime/u);
     });
   });

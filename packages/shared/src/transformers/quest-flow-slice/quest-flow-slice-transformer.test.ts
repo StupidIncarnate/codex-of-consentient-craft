@@ -27,96 +27,96 @@ const SERVER_ENTRY = QuestPackageEntryStub({
 
 // A seam node: it lands in both packages and carries one observable attributed to each.
 const LOGIN_PAGE_NODE = FlowNodeStub({
-  id: 'login-page' as never,
-  label: 'Login page' as never,
+  id: 'login-page',
+  label: 'Login page',
   type: 'state',
-  packages: ['web' as never, 'server' as never],
+  packages: ['web', 'server'],
   observables: [
     FlowObservableStub({
-      id: 'form-renders' as never,
+      id: 'form-renders',
       type: 'ui-state',
-      description: 'the form renders with an empty email field' as never,
-      package: 'web' as never,
+      description: 'the form renders with an empty email field',
+      package: 'web',
     }),
     FlowObservableStub({
-      id: 'session-probe' as never,
+      id: 'session-probe',
       type: 'api-call',
-      description: 'GET /api/session answers 401 for an anonymous visitor' as never,
-      package: 'server' as never,
+      description: 'GET /api/session answers 401 for an anonymous visitor',
+      package: 'server',
     }),
   ],
 });
 const AUTH_CHECK_NODE = FlowNodeStub({
-  id: 'auth-check' as never,
-  label: 'Credentials checked' as never,
+  id: 'auth-check',
+  label: 'Credentials checked',
   type: 'decision',
-  packages: ['server' as never],
+  packages: ['server'],
   observables: [
     FlowObservableStub({
-      id: 'rejects-bad-password' as never,
+      id: 'rejects-bad-password',
       type: 'api-call',
-      description: 'a wrong password answers 401' as never,
-      package: 'server' as never,
+      description: 'a wrong password answers 401',
+      package: 'server',
     }),
   ],
 });
 
 const LOGIN_FLOW = FlowStub({
-  id: 'login-flow' as never,
-  name: 'Log in' as never,
+  id: 'login-flow',
+  name: 'Log in',
   flowType: 'runtime',
-  entryPoint: 'login-page' as never,
-  exitPoints: ['Dashboard shown' as never, 'Signup started' as never],
+  entryPoint: 'login-page',
+  exitPoints: ['Dashboard shown', 'Signup started'],
   nodes: [LOGIN_PAGE_NODE, AUTH_CHECK_NODE],
   edges: [
     FlowEdgeStub({
-      id: 'submits' as never,
-      from: 'login-page' as never,
-      to: 'auth-check' as never,
-      label: 'submits credentials' as never,
+      id: 'submits',
+      from: 'login-page',
+      to: 'auth-check',
+      label: 'submits credentials',
     }),
     FlowEdgeStub({
-      id: 'to-signup' as never,
-      from: 'login-page' as never,
-      to: 'signup-flow:signup-page' as never,
-      label: 'no account yet' as never,
+      id: 'to-signup',
+      from: 'login-page',
+      to: 'signup-flow:signup-page',
+      label: 'no account yet',
     }),
   ],
 });
 
 // The sibling flow, which enters LOGIN_FLOW back at its entry node.
 const SIGNUP_FLOW = FlowStub({
-  id: 'signup-flow' as never,
-  name: 'Sign up' as never,
+  id: 'signup-flow',
+  name: 'Sign up',
   flowType: 'runtime',
-  entryPoint: 'signup-page' as never,
-  exitPoints: ['Account created' as never],
+  entryPoint: 'signup-page',
+  exitPoints: ['Account created'],
   nodes: [
     FlowNodeStub({
-      id: 'signup-page' as never,
-      label: 'Signup page' as never,
+      id: 'signup-page',
+      label: 'Signup page',
       type: 'state',
-      packages: ['web' as never],
+      packages: ['web'],
       observables: [],
     }),
   ],
   edges: [
     FlowEdgeStub({
-      id: 'back-to-login' as never,
-      from: 'signup-page' as never,
-      to: 'login-flow:login-page' as never,
-      label: 'already has an account' as never,
+      id: 'back-to-login',
+      from: 'signup-page',
+      to: 'login-flow:login-page',
+      label: 'already has an account',
     }),
   ],
 });
 
 const LOGIN_CONTRACT = QuestContractEntryStub({
-  id: 'login-credentials' as never,
-  name: 'LoginCredentials' as never,
+  id: 'login-credentials',
+  name: 'LoginCredentials',
   kind: 'data',
   status: 'new',
   source: 'packages/web/src/contracts/login-credentials/login-credentials-contract.ts',
-  nodeId: 'login-page' as never,
+  nodeId: 'login-page',
   properties: [
     {
       name: 'email',
@@ -132,41 +132,41 @@ const LOGIN_CONTRACT = QuestContractEntryStub({
   ],
 });
 const SIGNUP_CONTRACT = QuestContractEntryStub({
-  id: 'signup-payload' as never,
-  name: 'SignupPayload' as never,
+  id: 'signup-payload',
+  name: 'SignupPayload',
   kind: 'data',
   status: 'new',
   source: 'packages/web/src/contracts/signup-payload/signup-payload-contract.ts',
-  nodeId: 'signup-page' as never,
+  nodeId: 'signup-page',
   properties: [{ name: 'email', type: 'EmailAddress', description: 'The address signed up with' }],
 });
 
 const QUEST = QuestStub({
-  id: 'add-auth' as never,
-  title: 'Add Authentication' as never,
+  id: 'add-auth',
+  title: 'Add Authentication',
   status: 'in_progress',
   questType: 'feature',
-  userRequest: 'Let people log in and sign up' as never,
+  userRequest: 'Let people log in and sign up',
   packagesAffected: [WEB_ENTRY, SERVER_ENTRY],
   flows: [LOGIN_FLOW, SIGNUP_FLOW],
   contracts: [LOGIN_CONTRACT, SIGNUP_CONTRACT],
   designDecisions: [
     DesignDecisionStub({
-      id: 'jwt-over-sessions' as never,
-      title: 'Use JWT rather than server sessions' as never,
-      rationale: 'The API is stateless behind a CDN' as never,
-      relatedNodeIds: ['auth-check' as never],
+      id: 'jwt-over-sessions',
+      title: 'Use JWT rather than server sessions',
+      rationale: 'The API is stateless behind a CDN',
+      relatedNodeIds: ['auth-check'],
     }),
     DesignDecisionStub({
-      id: 'signup-double-opt-in' as never,
-      title: 'Signup confirms by email' as never,
-      rationale: 'Bots register faster than humans do' as never,
-      relatedNodeIds: ['signup-page' as never],
+      id: 'signup-double-opt-in',
+      title: 'Signup confirms by email',
+      rationale: 'Bots register faster than humans do',
+      relatedNodeIds: ['signup-page'],
     }),
     DesignDecisionStub({
-      id: 'no-third-party-auth' as never,
-      title: 'No third-party identity provider' as never,
-      rationale: 'The user asked for a self-hosted login' as never,
+      id: 'no-third-party-auth',
+      title: 'No third-party identity provider',
+      rationale: 'The user asked for a self-hosted login',
       relatedNodeIds: [],
     }),
   ],
@@ -178,17 +178,16 @@ const QUEST = QuestStub({
 const SCALE_OBSERVABLE_COUNTS = [13, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
 const SCALE_NODES = SCALE_OBSERVABLE_COUNTS.map((observableCount, index) =>
   FlowNodeStub({
-    id: `node-${String(index)}` as never,
-    label: `A node whose label is about as long as a real one gets ${String(index)}` as never,
+    id: `node-${String(index)}`,
+    label: `A node whose label is about as long as a real one gets ${String(index)}`,
     type: 'action',
-    packages: ['web' as never, 'server' as never],
+    packages: ['web', 'server'],
     observables: Array.from({ length: observableCount }, (_unused, obsIndex) =>
       FlowObservableStub({
-        id: `node-${String(index)}-obs-${String(obsIndex)}` as never,
+        id: `node-${String(index)}-obs-${String(obsIndex)}`,
         type: 'api-call',
-        description:
-          `the response body carries the ordered image paths and the composer clears, measured at node ${String(index)} observable ${String(obsIndex)}` as never,
-        package: 'web' as never,
+        description: `the response body carries the ordered image paths and the composer clears, measured at node ${String(index)} observable ${String(obsIndex)}`,
+        package: 'web',
       }),
     ),
   }),
@@ -196,33 +195,33 @@ const SCALE_NODES = SCALE_OBSERVABLE_COUNTS.map((observableCount, index) =>
 const SCALE_EDGES = [
   ...Array.from({ length: 17 }, (_unused, index) =>
     FlowEdgeStub({
-      id: `edge-${String(index)}` as never,
-      from: `node-${String(index)}` as never,
-      to: `node-${String(index + 1)}` as never,
-      label: `a branch label as long as a real decision branch gets ${String(index)}` as never,
+      id: `edge-${String(index)}`,
+      from: `node-${String(index)}`,
+      to: `node-${String(index + 1)}`,
+      label: `a branch label as long as a real decision branch gets ${String(index)}`,
     }),
   ),
   FlowEdgeStub({
-    id: 'edge-back' as never,
-    from: 'node-17' as never,
-    to: 'node-0' as never,
-    label: 'retries from the top' as never,
+    id: 'edge-back',
+    from: 'node-17',
+    to: 'node-0',
+    label: 'retries from the top',
   }),
   FlowEdgeStub({
-    id: 'edge-out' as never,
-    from: 'node-17' as never,
-    to: 'signup-flow:signup-page' as never,
-    label: 'hands off to the sibling flow' as never,
+    id: 'edge-out',
+    from: 'node-17',
+    to: 'signup-flow:signup-page',
+    label: 'hands off to the sibling flow',
   }),
 ];
 const SCALE_QUEST = QuestStub({
   ...QUEST,
   flows: [
     FlowStub({
-      id: 'send-message-with-images' as never,
-      name: 'Send a message carrying images' as never,
-      entryPoint: 'node-0' as never,
-      exitPoints: ['Composer cleared' as never],
+      id: 'send-message-with-images',
+      name: 'Send a message carrying images',
+      entryPoint: 'node-0',
+      exitPoints: ['Composer cleared'],
       nodes: SCALE_NODES,
       edges: SCALE_EDGES,
     }),
@@ -230,10 +229,10 @@ const SCALE_QUEST = QuestStub({
   ],
   contracts: Array.from({ length: 12 }, (_unused, index) =>
     QuestContractEntryStub({
-      id: `contract-${String(index)}` as never,
-      name: `ContractNumber${String(index)}` as never,
+      id: `contract-${String(index)}`,
+      name: `ContractNumber${String(index)}`,
       source: `packages/web/src/contracts/contract-${String(index)}/contract-${String(index)}-contract.ts`,
-      nodeId: `node-${String(index)}` as never,
+      nodeId: `node-${String(index)}`,
       properties: Array.from({ length: 6 }, (_ignored, propIndex) => ({
         name: `propertyNumber${String(propIndex)}`,
         type: 'BrandedValue',
@@ -244,11 +243,10 @@ const SCALE_QUEST = QuestStub({
   ),
   designDecisions: Array.from({ length: 33 }, (_unused, index) =>
     DesignDecisionStub({
-      id: `decision-${String(index)}` as never,
-      title: `A decision title about as long as a real one ${String(index)}` as never,
-      rationale:
-        `The rationale runs a couple of sentences, because it has to carry why the alternative was refused as well as what was chosen — decision ${String(index)}` as never,
-      relatedNodeIds: index < 24 ? [`node-${String(index % 18)}` as never] : [],
+      id: `decision-${String(index)}`,
+      title: `A decision title about as long as a real one ${String(index)}`,
+      rationale: `The rationale runs a couple of sentences, because it has to carry why the alternative was refused as well as what was chosen — decision ${String(index)}`,
+      relatedNodeIds: index < 24 ? [`node-${String(index % 18)}`] : [],
     }),
   ),
 });
@@ -257,9 +255,9 @@ const OVERSIZED_QUEST = QuestStub({
   ...QUEST,
   designDecisions: Array.from({ length: 400 }, (_unused, index) =>
     DesignDecisionStub({
-      id: `decision-${String(index)}` as never,
-      title: `A decision title ${String(index)}` as never,
-      rationale: 'x'.repeat(500) as never,
+      id: `decision-${String(index)}`,
+      title: `A decision title ${String(index)}`,
+      rationale: 'x'.repeat(500),
       relatedNodeIds: [],
     }),
   ),
@@ -624,12 +622,12 @@ describe('questFlowSliceTransformer', () => {
     // `server` tags nodes on login-flow only, so a server-owned contract anchored to a node on
     // signup-flow reaches no server cell through the flow route.
     const ORPHANED_CONTRACT = QuestContractEntryStub({
-      id: 'signup-rate-limit' as never,
-      name: 'SignupRateLimit' as never,
+      id: 'signup-rate-limit',
+      name: 'SignupRateLimit',
       kind: 'data',
       status: 'new',
       source: 'packages/server/src/statics/signup-rate-limit/signup-rate-limit-statics.ts',
-      nodeId: 'signup-page' as never,
+      nodeId: 'signup-page',
       properties: [
         {
           name: 'perHour',

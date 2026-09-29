@@ -81,7 +81,7 @@ describe('searchResultBlockParamContract', () => {
           type: 'search_result',
           source: 'https://example.com',
           title: 'Title',
-          content: 123 as never,
+          content: 123,
         }),
       ).toThrow(/expected array/u);
     });

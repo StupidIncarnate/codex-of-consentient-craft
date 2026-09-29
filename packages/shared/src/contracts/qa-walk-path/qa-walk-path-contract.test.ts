@@ -38,11 +38,11 @@ describe('qaWalkPathContract', () => {
     });
 
     it('INVALID: {non-kebab node id} => throws', () => {
-      expect(() => QaWalkPathStub({ nodeIds: ['NotKebab' as never] })).toThrow(/Invalid/u);
+      expect(() => QaWalkPathStub({ nodeIds: ['NotKebab'] })).toThrow(/Invalid/u);
     });
 
     it('EMPTY: {blank branch label} => throws, because an unlabelled edge is sequence, not a decision', () => {
-      expect(() => QaWalkPathStub({ branchLabels: ['' as never] })).toThrow(
+      expect(() => QaWalkPathStub({ branchLabels: [''] })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });

@@ -9,10 +9,8 @@ describe('flowGraphToTextTransformer', () => {
   describe('single node', () => {
     it('VALID: {flow: single node no edges} => renders node with terminal', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
-        nodes: [
-          FlowNodeStub({ id: 'login-page' as never, label: 'Login Page' as never, type: 'state' }),
-        ],
+        entryPoint: 'login-page',
+        nodes: [FlowNodeStub({ id: 'login-page', label: 'Login Page', type: 'state' })],
         edges: [],
       });
 
@@ -28,16 +26,16 @@ describe('flowGraphToTextTransformer', () => {
   describe('linear chain', () => {
     it('VALID: {flow: two connected nodes} => renders depth-first walk', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
-          FlowNodeStub({ id: 'login-page' as never, label: 'Login' as never, type: 'state' }),
-          FlowNodeStub({ id: 'dashboard' as never, label: 'Dashboard' as never, type: 'state' }),
+          FlowNodeStub({ id: 'login-page', label: 'Login', type: 'state' }),
+          FlowNodeStub({ id: 'dashboard', label: 'Dashboard', type: 'state' }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'login-page' as never,
-            to: 'dashboard' as never,
+            id: 'e-one',
+            from: 'login-page',
+            to: 'dashboard',
           }),
         ],
       });
@@ -56,17 +54,17 @@ describe('flowGraphToTextTransformer', () => {
   describe('labeled edges', () => {
     it('VALID: {flow: edge with label} => renders label in quotes', () => {
       const flow = FlowStub({
-        entryPoint: 'check' as never,
+        entryPoint: 'check',
         nodes: [
-          FlowNodeStub({ id: 'check' as never, label: 'Check' as never, type: 'decision' }),
-          FlowNodeStub({ id: 'success' as never, label: 'Success' as never, type: 'terminal' }),
+          FlowNodeStub({ id: 'check', label: 'Check', type: 'decision' }),
+          FlowNodeStub({ id: 'success', label: 'Success', type: 'terminal' }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'check' as never,
-            to: 'success' as never,
-            label: 'yes' as never,
+            id: 'e-one',
+            from: 'check',
+            to: 'success',
+            label: 'yes',
           }),
         ],
       });
@@ -85,14 +83,14 @@ describe('flowGraphToTextTransformer', () => {
   describe('back-references', () => {
     it('VALID: {flow: cycle with back edge} => renders back-reference marker', () => {
       const flow = FlowStub({
-        entryPoint: 'start' as never,
+        entryPoint: 'start',
         nodes: [
-          FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' }),
-          FlowNodeStub({ id: 'middle' as never, label: 'Middle' as never, type: 'action' }),
+          FlowNodeStub({ id: 'start', label: 'Start', type: 'state' }),
+          FlowNodeStub({ id: 'middle', label: 'Middle', type: 'action' }),
         ],
         edges: [
-          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'middle' as never }),
-          FlowEdgeStub({ id: 'e-two' as never, from: 'middle' as never, to: 'start' as never }),
+          FlowEdgeStub({ id: 'e-one', from: 'start', to: 'middle' }),
+          FlowEdgeStub({ id: 'e-two', from: 'middle', to: 'start' }),
         ],
       });
 
@@ -110,15 +108,15 @@ describe('flowGraphToTextTransformer', () => {
   describe('merge nodes', () => {
     it('VALID: {flow: node with multiple incoming edges} => shows MERGE marker', () => {
       const flow = FlowStub({
-        entryPoint: 'a' as never,
+        entryPoint: 'a',
         nodes: [
-          FlowNodeStub({ id: 'a' as never, label: 'A' as never, type: 'state' }),
-          FlowNodeStub({ id: 'b' as never, label: 'B' as never, type: 'state' }),
-          FlowNodeStub({ id: 'c' as never, label: 'C' as never, type: 'state' }),
+          FlowNodeStub({ id: 'a', label: 'A', type: 'state' }),
+          FlowNodeStub({ id: 'b', label: 'B', type: 'state' }),
+          FlowNodeStub({ id: 'c', label: 'C', type: 'state' }),
         ],
         edges: [
-          FlowEdgeStub({ id: 'e-one' as never, from: 'a' as never, to: 'c' as never }),
-          FlowEdgeStub({ id: 'e-two' as never, from: 'b' as never, to: 'c' as never }),
+          FlowEdgeStub({ id: 'e-one', from: 'a', to: 'c' }),
+          FlowEdgeStub({ id: 'e-two', from: 'b', to: 'c' }),
         ],
       });
 
@@ -139,11 +137,9 @@ describe('flowGraphToTextTransformer', () => {
   describe('cross-flow references', () => {
     it('VALID: {flow: edge to node not in current flow} => renders cross-flow marker', () => {
       const flow = FlowStub({
-        entryPoint: 'start' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' })],
-        edges: [
-          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'other-node' as never }),
-        ],
+        entryPoint: 'start',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start', type: 'state' })],
+        edges: [FlowEdgeStub({ id: 'e-one', from: 'start', to: 'other-node' })],
       });
 
       const result = flowGraphToTextTransformer({ flow });
@@ -158,16 +154,16 @@ describe('flowGraphToTextTransformer', () => {
   describe('observables', () => {
     it('VALID: {flow: node with observables} => renders observable lines', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
+            id: 'login-page',
+            label: 'Login',
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'shows-form' as never,
-                description: 'shows login form' as never,
+                id: 'shows-form',
+                description: 'shows login form',
                 type: 'ui-state',
               }),
             ],
@@ -199,16 +195,16 @@ describe('flowGraphToTextTransformer', () => {
   describe('observable provenance and read-check', () => {
     it('VALID: {observable added mid-quest} => observable line carries provenance', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
+            id: 'login-page',
+            label: 'Login',
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'crash-on-bleh' as never,
-                description: 'POST /api/auth/login returns 400 for a non-JSON body' as never,
+                id: 'crash-on-bleh',
+                description: 'POST /api/auth/login returns 400 for a non-JSON body',
                 type: 'api-call',
                 addedBy: 'siegemaster',
               }),
@@ -229,16 +225,16 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {observable carrying verifyByReading} => the line carries (read-check) after its type, so a session sees no test settles it', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
+            id: 'login-page',
+            label: 'Login',
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'pattern-not-inlined' as never,
-                description: 'the token pattern is read from the shared statics' as never,
+                id: 'pattern-not-inlined',
+                description: 'the token pattern is read from the shared statics',
                 type: 'custom',
                 verifyByReading: true,
               }),
@@ -259,16 +255,16 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {read-check observable also added mid-quest} => (read-check) sits between the type and the provenance', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
+            id: 'login-page',
+            label: 'Login',
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'pattern-not-inlined' as never,
-                description: 'the token pattern is read from the shared statics' as never,
+                id: 'pattern-not-inlined',
+                description: 'the token pattern is read from the shared statics',
                 type: 'custom',
                 verifyByReading: true,
                 addedBy: 'codeweaver',
@@ -290,16 +286,16 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {spec observable} => no provenance marker, so the line is unchanged', () => {
       const flow = FlowStub({
-        entryPoint: 'login-page' as never,
+        entryPoint: 'login-page',
         nodes: [
           FlowNodeStub({
-            id: 'login-page' as never,
-            label: 'Login' as never,
+            id: 'login-page',
+            label: 'Login',
             type: 'state',
             observables: [
               FlowObservableStub({
-                id: 'shows-form' as never,
-                description: 'shows login form' as never,
+                id: 'shows-form',
+                description: 'shows login form',
                 type: 'ui-state',
               }),
             ],
@@ -321,28 +317,28 @@ describe('flowGraphToTextTransformer', () => {
   describe('regression: a flow with zero sign-offs renders unchanged', () => {
     it('EMPTY: {no sign-offs anywhere} => no markers, no provenance, no off-map line', () => {
       const flow = FlowStub({
-        entryPoint: 'check' as never,
+        entryPoint: 'check',
         nodes: [
           FlowNodeStub({
-            id: 'check' as never,
-            label: 'Check' as never,
+            id: 'check',
+            label: 'Check',
             type: 'decision',
             observables: [
               FlowObservableStub({
-                id: 'shows-form' as never,
-                description: 'shows login form' as never,
+                id: 'shows-form',
+                description: 'shows login form',
                 type: 'ui-state',
               }),
             ],
           }),
-          FlowNodeStub({ id: 'success' as never, label: 'Success' as never, type: 'terminal' }),
+          FlowNodeStub({ id: 'success', label: 'Success', type: 'terminal' }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'check' as never,
-            to: 'success' as never,
-            label: 'yes' as never,
+            id: 'e-one',
+            from: 'check',
+            to: 'success',
+            label: 'yes',
           }),
         ],
         offMapSignoffs: [
@@ -364,11 +360,9 @@ describe('flowGraphToTextTransformer', () => {
 
     it('EMPTY: {no sign-offs, cross-flow edge} => the cross-flow line is unchanged', () => {
       const flow = FlowStub({
-        entryPoint: 'start' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' })],
-        edges: [
-          FlowEdgeStub({ id: 'e-one' as never, from: 'start' as never, to: 'other-node' as never }),
-        ],
+        entryPoint: 'start',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start', type: 'state' })],
+        edges: [FlowEdgeStub({ id: 'e-one', from: 'start', to: 'other-node' })],
       });
 
       const result = flowGraphToTextTransformer({ flow });
@@ -383,13 +377,13 @@ describe('flowGraphToTextTransformer', () => {
   describe('package tags on the node line', () => {
     it('VALID: {node tagging two packages} => renders both names in one brace group', () => {
       const flow = FlowStub({
-        entryPoint: 'post-chat' as never,
+        entryPoint: 'post-chat',
         nodes: [
           FlowNodeStub({
-            id: 'post-chat' as never,
-            label: 'POST the message' as never,
+            id: 'post-chat',
+            label: 'POST the message',
             type: 'action',
-            packages: ['web' as never, 'server' as never],
+            packages: ['web', 'server'],
           }),
         ],
         edges: [],
@@ -407,37 +401,37 @@ describe('flowGraphToTextTransformer', () => {
   describe('ownPackage marks, it never filters', () => {
     it('VALID: {ownPackage: web} => every node still renders, and only web nodes carry the mark', () => {
       const flow = FlowStub({
-        entryPoint: 'send-pressed' as never,
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'Send pressed' as never,
+            id: 'send-pressed',
+            label: 'Send pressed',
             type: 'action',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
           FlowNodeStub({
-            id: 'clear-composer' as never,
-            label: 'Composer clears' as never,
+            id: 'clear-composer',
+            label: 'Composer clears',
             type: 'terminal',
-            packages: ['web' as never, 'server' as never],
+            packages: ['web', 'server'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'send-pressed' as never,
-            to: 'write-image-file' as never,
+            id: 'e-one',
+            from: 'send-pressed',
+            to: 'write-image-file',
           }),
           FlowEdgeStub({
-            id: 'e-two' as never,
-            from: 'write-image-file' as never,
-            to: 'clear-composer' as never,
+            id: 'e-two',
+            from: 'write-image-file',
+            to: 'clear-composer',
           }),
         ],
       });
@@ -461,37 +455,37 @@ describe('flowGraphToTextTransformer', () => {
     // the observable's own package erased 9 of 18 lines.
     it('VALID: {ownPackage: web, seam node web tags} => every observable prints, each carrying its own {package}', () => {
       const flow = FlowStub({
-        entryPoint: 'post-chat' as never,
+        entryPoint: 'post-chat',
         nodes: [
           FlowNodeStub({
-            id: 'post-chat' as never,
-            label: 'POST the message' as never,
+            id: 'post-chat',
+            label: 'POST the message',
             type: 'action',
-            packages: ['web' as never, 'server' as never, 'shared' as never],
+            packages: ['web', 'server', 'shared'],
             observables: [
               FlowObservableStub({
-                id: 'progress-bar-tracks-bytes' as never,
-                description: 'the progress bar advances as bytes are sent' as never,
+                id: 'progress-bar-tracks-bytes',
+                description: 'the progress bar advances as bytes are sent',
                 type: 'ui-state',
-                package: 'web' as never,
+                package: 'web',
               }),
               FlowObservableStub({
-                id: 'body-carries-ordered-images' as never,
-                description: 'the request body carries the images in paste order' as never,
+                id: 'body-carries-ordered-images',
+                description: 'the request body carries the images in paste order',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
               FlowObservableStub({
-                id: 'images-dir-name-is-shared' as never,
-                description: 'the images directory name is read from shared statics' as never,
+                id: 'images-dir-name-is-shared',
+                description: 'the images directory name is read from shared statics',
                 type: 'custom',
-                package: 'shared' as never,
+                package: 'shared',
               }),
               FlowObservableStub({
-                id: 'rejects-a-sixth-image' as never,
-                description: 'a sixth image answers 400' as never,
+                id: 'rejects-a-sixth-image',
+                description: 'a sixth image answers 400',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
             ],
           }),
@@ -515,25 +509,25 @@ describe('flowGraphToTextTransformer', () => {
     // count, which on such a node is the only signal that anything is expected there at all.
     it('VALID: {ownPackage: web, node web does not tag} => none of its observables print and the brace count still does', () => {
       const flow = FlowStub({
-        entryPoint: 'write-image-file' as never,
+        entryPoint: 'write-image-file',
         nodes: [
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
             observables: [
               FlowObservableStub({
-                id: 'file-lands-on-disk' as never,
-                description: 'each image is written under the quest images directory' as never,
+                id: 'file-lands-on-disk',
+                description: 'each image is written under the quest images directory',
                 type: 'file-exists',
-                package: 'server' as never,
+                package: 'server',
               }),
               FlowObservableStub({
-                id: 'rejects-a-sixth-image' as never,
-                description: 'a sixth image answers 400' as never,
+                id: 'rejects-a-sixth-image',
+                description: 'a sixth image answers 400',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
             ],
           }),
@@ -554,54 +548,54 @@ describe('flowGraphToTextTransformer', () => {
     // server-only node prints none under a count that is the whole of what it says.
     it('VALID: {ownPackage: web, one tagged node and one not} => the brace counts render on both, the observable lines on one', () => {
       const flow = FlowStub({
-        entryPoint: 'send-pressed' as never,
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'Send pressed' as never,
+            id: 'send-pressed',
+            label: 'Send pressed',
             type: 'action',
-            packages: ['web' as never, 'server' as never],
+            packages: ['web', 'server'],
             observables: [
               FlowObservableStub({
-                id: 'composer-disables' as never,
-                description: 'the composer disables while the send is in flight' as never,
+                id: 'composer-disables',
+                description: 'the composer disables while the send is in flight',
                 type: 'ui-state',
-                package: 'web' as never,
+                package: 'web',
               }),
               FlowObservableStub({
-                id: 'post-carries-paths' as never,
-                description: 'POST /api/chat carries the image paths in paste order' as never,
+                id: 'post-carries-paths',
+                description: 'POST /api/chat carries the image paths in paste order',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
               FlowObservableStub({
-                id: 'rejects-a-sixth-image' as never,
-                description: 'a sixth image answers 400' as never,
+                id: 'rejects-a-sixth-image',
+                description: 'a sixth image answers 400',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
             ],
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
             observables: [
               FlowObservableStub({
-                id: 'file-lands-on-disk' as never,
-                description: 'each image is written under the quest images directory' as never,
+                id: 'file-lands-on-disk',
+                description: 'each image is written under the quest images directory',
                 type: 'file-exists',
-                package: 'server' as never,
+                package: 'server',
               }),
             ],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'e-one' as never,
-            from: 'send-pressed' as never,
-            to: 'write-image-file' as never,
+            id: 'e-one',
+            from: 'send-pressed',
+            to: 'write-image-file',
           }),
         ],
       });
@@ -624,25 +618,25 @@ describe('flowGraphToTextTransformer', () => {
     // it is the only session that can report the mis-attribution.
     it('EDGE: {ownPackage: web, observable naming a package the node does not tag} => it prints and is counted after the tagged packages', () => {
       const flow = FlowStub({
-        entryPoint: 'post-chat' as never,
+        entryPoint: 'post-chat',
         nodes: [
           FlowNodeStub({
-            id: 'post-chat' as never,
-            label: 'POST the message' as never,
+            id: 'post-chat',
+            label: 'POST the message',
             type: 'action',
-            packages: ['web' as never],
+            packages: ['web'],
             observables: [
               FlowObservableStub({
-                id: 'progress-bar-tracks-bytes' as never,
-                description: 'the progress bar advances as bytes are sent' as never,
+                id: 'progress-bar-tracks-bytes',
+                description: 'the progress bar advances as bytes are sent',
                 type: 'ui-state',
-                package: 'web' as never,
+                package: 'web',
               }),
               FlowObservableStub({
-                id: 'images-dir-name-is-shared' as never,
-                description: 'the images directory name is read from shared statics' as never,
+                id: 'images-dir-name-is-shared',
+                description: 'the images directory name is read from shared statics',
                 type: 'custom',
-                package: 'shared' as never,
+                package: 'shared',
               }),
             ],
           }),
@@ -662,25 +656,25 @@ describe('flowGraphToTextTransformer', () => {
 
     it('EMPTY: {no ownPackage} => every observable renders verbatim and the tag set still counts them per package', () => {
       const flow = FlowStub({
-        entryPoint: 'post-chat' as never,
+        entryPoint: 'post-chat',
         nodes: [
           FlowNodeStub({
-            id: 'post-chat' as never,
-            label: 'POST the message' as never,
+            id: 'post-chat',
+            label: 'POST the message',
             type: 'action',
-            packages: ['web' as never, 'server' as never],
+            packages: ['web', 'server'],
             observables: [
               FlowObservableStub({
-                id: 'progress-bar-tracks-bytes' as never,
-                description: 'the progress bar advances as bytes are sent' as never,
+                id: 'progress-bar-tracks-bytes',
+                description: 'the progress bar advances as bytes are sent',
                 type: 'ui-state',
-                package: 'web' as never,
+                package: 'web',
               }),
               FlowObservableStub({
-                id: 'body-carries-ordered-images' as never,
-                description: 'the request body carries the images in paste order' as never,
+                id: 'body-carries-ordered-images',
+                description: 'the request body carries the images in paste order',
                 type: 'api-call',
-                package: 'server' as never,
+                package: 'server',
               }),
             ],
           }),
@@ -704,25 +698,25 @@ describe('flowGraphToTextTransformer', () => {
     // that could tell the two branches apart.
     it('EMPTY: {no ownPackage, node tagging one package but carrying another’s observable} => both lines render', () => {
       const flow = FlowStub({
-        entryPoint: 'write-image-file' as never,
+        entryPoint: 'write-image-file',
         nodes: [
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
             observables: [
               FlowObservableStub({
-                id: 'file-lands-on-disk' as never,
-                description: 'each image is written under the quest images directory' as never,
+                id: 'file-lands-on-disk',
+                description: 'each image is written under the quest images directory',
                 type: 'file-exists',
-                package: 'server' as never,
+                package: 'server',
               }),
               FlowObservableStub({
-                id: 'progress-bar-tracks-bytes' as never,
-                description: 'the progress bar advances as bytes are sent' as never,
+                id: 'progress-bar-tracks-bytes',
+                description: 'the progress bar advances as bytes are sent',
                 type: 'ui-state',
-                package: 'web' as never,
+                package: 'web',
               }),
             ],
           }),
@@ -744,35 +738,35 @@ describe('flowGraphToTextTransformer', () => {
   describe('outbound cross-flow edges resolve against otherFlows', () => {
     it('VALID: {labelled edge into another flow} => the label rides the line and the target is resolved under it', () => {
       const flow = FlowStub({
-        id: 'paste-image-into-composer' as never,
-        entryPoint: 'draft-restored' as never,
+        id: 'paste-image-into-composer',
+        entryPoint: 'draft-restored',
         nodes: [
           FlowNodeStub({
-            id: 'draft-restored' as never,
-            label: 'Draft restored' as never,
+            id: 'draft-restored',
+            label: 'Draft restored',
             type: 'terminal',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'restored-draft-to-send' as never,
-            from: 'draft-restored' as never,
-            to: 'send-message-with-images:send-pressed' as never,
-            label: 'sends the restored draft' as never,
+            id: 'restored-draft-to-send',
+            from: 'draft-restored',
+            to: 'send-message-with-images:send-pressed',
+            label: 'sends the restored draft',
           }),
         ],
       });
       const target = FlowStub({
-        id: 'send-message-with-images' as never,
-        name: 'Send a message carrying images' as never,
-        entryPoint: 'send-pressed' as never,
+        id: 'send-message-with-images',
+        name: 'Send a message carrying images',
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'User presses Enter' as never,
+            id: 'send-pressed',
+            label: 'User presses Enter',
             type: 'action',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
         ],
         edges: [],
@@ -790,22 +784,22 @@ describe('flowGraphToTextTransformer', () => {
 
     it('EMPTY: {no otherFlows} => the qualified target stays a bare stub', () => {
       const flow = FlowStub({
-        id: 'paste-image-into-composer' as never,
-        entryPoint: 'draft-restored' as never,
+        id: 'paste-image-into-composer',
+        entryPoint: 'draft-restored',
         nodes: [
           FlowNodeStub({
-            id: 'draft-restored' as never,
-            label: 'Draft restored' as never,
+            id: 'draft-restored',
+            label: 'Draft restored',
             type: 'terminal',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'restored-draft-to-send' as never,
-            from: 'draft-restored' as never,
-            to: 'send-message-with-images:send-pressed' as never,
-            label: 'sends the restored draft' as never,
+            id: 'restored-draft-to-send',
+            from: 'draft-restored',
+            to: 'send-message-with-images:send-pressed',
+            label: 'sends the restored draft',
           }),
         ],
       });
@@ -820,34 +814,34 @@ describe('flowGraphToTextTransformer', () => {
 
     it('EDGE: {otherFlows given but the target flow holds no such node} => the stub renders with no resolution lines', () => {
       const flow = FlowStub({
-        id: 'paste-image-into-composer' as never,
-        entryPoint: 'draft-restored' as never,
+        id: 'paste-image-into-composer',
+        entryPoint: 'draft-restored',
         nodes: [
           FlowNodeStub({
-            id: 'draft-restored' as never,
-            label: 'Draft restored' as never,
+            id: 'draft-restored',
+            label: 'Draft restored',
             type: 'terminal',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'restored-draft-to-send' as never,
-            from: 'draft-restored' as never,
-            to: 'send-message-with-images:renamed-away' as never,
+            id: 'restored-draft-to-send',
+            from: 'draft-restored',
+            to: 'send-message-with-images:renamed-away',
           }),
         ],
       });
       const target = FlowStub({
-        id: 'send-message-with-images' as never,
-        name: 'Send a message carrying images' as never,
-        entryPoint: 'send-pressed' as never,
+        id: 'send-message-with-images',
+        name: 'Send a message carrying images',
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'User presses Enter' as never,
+            id: 'send-pressed',
+            label: 'User presses Enter',
             type: 'action',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
         ],
         edges: [],
@@ -871,25 +865,25 @@ describe('flowGraphToTextTransformer', () => {
   describe('the edge id on every edge line', () => {
     it('VALID: {labelled ordinary edge} => the line opens with <edge:id> and still ends with the target node id', () => {
       const flow = FlowStub({
-        entryPoint: 'clipboard-has-image' as never,
+        entryPoint: 'clipboard-has-image',
         nodes: [
           FlowNodeStub({
-            id: 'clipboard-has-image' as never,
-            label: 'Clipboard has image' as never,
+            id: 'clipboard-has-image',
+            label: 'Clipboard has image',
             type: 'decision',
           }),
           FlowNodeStub({
-            id: 'paste-plain-text' as never,
-            label: 'Paste plain text' as never,
+            id: 'paste-plain-text',
+            label: 'Paste plain text',
             type: 'terminal',
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'no-image-item' as never,
-            from: 'clipboard-has-image' as never,
-            to: 'paste-plain-text' as never,
-            label: 'no image' as never,
+            id: 'no-image-item',
+            from: 'clipboard-has-image',
+            to: 'paste-plain-text',
+            label: 'no image',
           }),
         ],
       });
@@ -906,21 +900,21 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {cross-flow edge to a qualified flowId:nodeId target} => the edge id precedes the target', () => {
       const flow = FlowStub({
-        id: 'paste-image-into-composer' as never,
-        entryPoint: 'draft-restored' as never,
+        id: 'paste-image-into-composer',
+        entryPoint: 'draft-restored',
         nodes: [
           FlowNodeStub({
-            id: 'draft-restored' as never,
-            label: 'Draft restored' as never,
+            id: 'draft-restored',
+            label: 'Draft restored',
             type: 'terminal',
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'restored-draft-to-send' as never,
-            from: 'draft-restored' as never,
-            to: 'send-message-with-images:send-pressed' as never,
-            label: 'sends the restored draft' as never,
+            id: 'restored-draft-to-send',
+            from: 'draft-restored',
+            to: 'send-message-with-images:send-pressed',
+            label: 'sends the restored draft',
           }),
         ],
       });
@@ -935,14 +929,14 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {cross-flow edge to a bare node id this flow does not hold} => the edge id precedes the target', () => {
       const flow = FlowStub({
-        entryPoint: 'start' as never,
-        nodes: [FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' })],
+        entryPoint: 'start',
+        nodes: [FlowNodeStub({ id: 'start', label: 'Start', type: 'state' })],
         edges: [
           FlowEdgeStub({
-            id: 'start-to-elsewhere' as never,
-            from: 'start' as never,
-            to: 'other-node' as never,
-            label: 'hands off' as never,
+            id: 'start-to-elsewhere',
+            from: 'start',
+            to: 'other-node',
+            label: 'hands off',
           }),
         ],
       });
@@ -957,22 +951,22 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {back-reference edge} => the back-ref line carries the edge id before the target and the ↩', () => {
       const flow = FlowStub({
-        entryPoint: 'start' as never,
+        entryPoint: 'start',
         nodes: [
-          FlowNodeStub({ id: 'start' as never, label: 'Start' as never, type: 'state' }),
-          FlowNodeStub({ id: 'middle' as never, label: 'Middle' as never, type: 'action' }),
+          FlowNodeStub({ id: 'start', label: 'Start', type: 'state' }),
+          FlowNodeStub({ id: 'middle', label: 'Middle', type: 'action' }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'start-to-middle' as never,
-            from: 'start' as never,
-            to: 'middle' as never,
+            id: 'start-to-middle',
+            from: 'start',
+            to: 'middle',
           }),
           FlowEdgeStub({
-            id: 'retry-from-middle' as never,
-            from: 'middle' as never,
-            to: 'start' as never,
-            label: 'retry' as never,
+            id: 'retry-from-middle',
+            from: 'middle',
+            to: 'start',
+            label: 'retry',
           }),
         ],
       });
@@ -994,24 +988,24 @@ describe('flowGraphToTextTransformer', () => {
     // exactly as it names a labelled one.
     it('VALID: {unlabelled edge} => it carries its id, with no label between the id and the target', () => {
       const flow = FlowStub({
-        entryPoint: 'send-pressed' as never,
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'Send pressed' as never,
+            id: 'send-pressed',
+            label: 'Send pressed',
             type: 'action',
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'terminal',
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'send-writes-images' as never,
-            from: 'send-pressed' as never,
-            to: 'write-image-file' as never,
+            id: 'send-writes-images',
+            from: 'send-pressed',
+            to: 'write-image-file',
           }),
         ],
       });
@@ -1033,51 +1027,51 @@ describe('flowGraphToTextTransformer', () => {
   describe('the owned-edge mark', () => {
     it('VALID: {ownPackage: web} => a labelled edge leaving a web node is marked and one leaving a server node is not', () => {
       const flow = FlowStub({
-        entryPoint: 'clipboard-has-image' as never,
+        entryPoint: 'clipboard-has-image',
         nodes: [
           FlowNodeStub({
-            id: 'clipboard-has-image' as never,
-            label: 'Clipboard has image' as never,
+            id: 'clipboard-has-image',
+            label: 'Clipboard has image',
             type: 'decision',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'paste-plain-text' as never,
-            label: 'Paste plain text' as never,
+            id: 'paste-plain-text',
+            label: 'Paste plain text',
             type: 'terminal',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
           FlowNodeStub({
-            id: 'done' as never,
-            label: 'Done' as never,
+            id: 'done',
+            label: 'Done',
             type: 'terminal',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'no-image-item' as never,
-            from: 'clipboard-has-image' as never,
-            to: 'paste-plain-text' as never,
-            label: 'no image' as never,
+            id: 'no-image-item',
+            from: 'clipboard-has-image',
+            to: 'paste-plain-text',
+            label: 'no image',
           }),
           FlowEdgeStub({
-            id: 'has-image-item' as never,
-            from: 'clipboard-has-image' as never,
-            to: 'write-image-file' as never,
-            label: 'has image' as never,
+            id: 'has-image-item',
+            from: 'clipboard-has-image',
+            to: 'write-image-file',
+            label: 'has image',
           }),
           FlowEdgeStub({
-            id: 'write-done' as never,
-            from: 'write-image-file' as never,
-            to: 'done' as never,
-            label: 'written' as never,
+            id: 'write-done',
+            from: 'write-image-file',
+            to: 'done',
+            label: 'written',
           }),
         ],
       });
@@ -1099,26 +1093,26 @@ describe('flowGraphToTextTransformer', () => {
 
     it('VALID: {ownPackage: web, unlabelled edge leaving a web node} => no mark, because an unlabelled edge is not a unit', () => {
       const flow = FlowStub({
-        entryPoint: 'send-pressed' as never,
+        entryPoint: 'send-pressed',
         nodes: [
           FlowNodeStub({
-            id: 'send-pressed' as never,
-            label: 'Send pressed' as never,
+            id: 'send-pressed',
+            label: 'Send pressed',
             type: 'action',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'terminal',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'send-writes-images' as never,
-            from: 'send-pressed' as never,
-            to: 'write-image-file' as never,
+            id: 'send-writes-images',
+            from: 'send-pressed',
+            to: 'write-image-file',
           }),
         ],
       });
@@ -1135,51 +1129,51 @@ describe('flowGraphToTextTransformer', () => {
 
     it('EMPTY: {no ownPackage} => no edge carries the mark, on the same graph that marks two with one', () => {
       const flow = FlowStub({
-        entryPoint: 'clipboard-has-image' as never,
+        entryPoint: 'clipboard-has-image',
         nodes: [
           FlowNodeStub({
-            id: 'clipboard-has-image' as never,
-            label: 'Clipboard has image' as never,
+            id: 'clipboard-has-image',
+            label: 'Clipboard has image',
             type: 'decision',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'paste-plain-text' as never,
-            label: 'Paste plain text' as never,
+            id: 'paste-plain-text',
+            label: 'Paste plain text',
             type: 'terminal',
-            packages: ['web' as never],
+            packages: ['web'],
           }),
           FlowNodeStub({
-            id: 'write-image-file' as never,
-            label: 'Write each image' as never,
+            id: 'write-image-file',
+            label: 'Write each image',
             type: 'action',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
           FlowNodeStub({
-            id: 'done' as never,
-            label: 'Done' as never,
+            id: 'done',
+            label: 'Done',
             type: 'terminal',
-            packages: ['server' as never],
+            packages: ['server'],
           }),
         ],
         edges: [
           FlowEdgeStub({
-            id: 'no-image-item' as never,
-            from: 'clipboard-has-image' as never,
-            to: 'paste-plain-text' as never,
-            label: 'no image' as never,
+            id: 'no-image-item',
+            from: 'clipboard-has-image',
+            to: 'paste-plain-text',
+            label: 'no image',
           }),
           FlowEdgeStub({
-            id: 'has-image-item' as never,
-            from: 'clipboard-has-image' as never,
-            to: 'write-image-file' as never,
-            label: 'has image' as never,
+            id: 'has-image-item',
+            from: 'clipboard-has-image',
+            to: 'write-image-file',
+            label: 'has image',
           }),
           FlowEdgeStub({
-            id: 'write-done' as never,
-            from: 'write-image-file' as never,
-            to: 'done' as never,
-            label: 'written' as never,
+            id: 'write-done',
+            from: 'write-image-file',
+            to: 'done',
+            label: 'written',
           }),
         ],
       });

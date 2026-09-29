@@ -34,15 +34,15 @@ describe('sessionIdContract', () => {
     });
 
     it('INVALID: {value: null} => throws for null', () => {
-      expect(() => sessionIdContract.parse(null as never)).toThrow(/invalid_type/u);
+      expect(() => sessionIdContract.parse(null)).toThrow(/invalid_type/u);
     });
 
     it('INVALID: {value: undefined} => throws for undefined', () => {
-      expect(() => sessionIdContract.parse(undefined as never)).toThrow(/invalid_type/u);
+      expect(() => sessionIdContract.parse(undefined)).toThrow(/invalid_type/u);
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => sessionIdContract.parse(123 as never)).toThrow(/invalid_type/u);
+      expect(() => sessionIdContract.parse(123)).toThrow(/invalid_type/u);
     });
   });
 

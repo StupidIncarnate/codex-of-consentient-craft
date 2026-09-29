@@ -217,7 +217,7 @@ describe('questNoteContract', () => {
         QuestNoteStub({
           kind: 'human-verdict',
           unitId: 'motion-feels-smooth',
-          outcome: 'confirmed' as never,
+          outcome: 'confirmed',
         }),
       ).toThrow(/Invalid option/u);
     });
@@ -251,23 +251,21 @@ describe('questNoteContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {summary: ""} => throws, so no note lands without the line a reader scans', () => {
-      expect(() => QuestNoteStub({ summary: '' as never })).toThrow(
+      expect(() => QuestNoteStub({ summary: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {kind: "blocked"} => throws, because the note kinds are a closed set', () => {
-      expect(() => QuestNoteStub({ kind: 'blocked' as never })).toThrow(/Invalid option/u);
+      expect(() => QuestNoteStub({ kind: 'blocked' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {id: ""} => throws, because an un-addressable note would make every write replace the array', () => {
-      expect(() => QuestNoteStub({ id: '' as never })).toThrow(
-        /expected string to have >=1 characters/u,
-      );
+      expect(() => QuestNoteStub({ id: '' })).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {at: "2026-01-01"} => throws', () => {
-      expect(() => QuestNoteStub({ at: '2026-01-01' as never })).toThrow(/Invalid ISO datetime/u);
+      expect(() => QuestNoteStub({ at: '2026-01-01' })).toThrow(/Invalid ISO datetime/u);
     });
   });
 });

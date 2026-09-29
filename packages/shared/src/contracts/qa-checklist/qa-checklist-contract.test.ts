@@ -51,19 +51,19 @@ describe('qaChecklistContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {flowName: ""} => throws', () => {
-      expect(() => QaChecklistStub({ flowName: '' as never })).toThrow(
+      expect(() => QaChecklistStub({ flowName: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {entryPoint: ""} => throws', () => {
-      expect(() => QaChecklistStub({ entryPoint: '' as never })).toThrow(
+      expect(() => QaChecklistStub({ entryPoint: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {remaining id not a checklist item id} => throws', () => {
-      expect(() => QaChecklistStub({ remainingItemIds: ['not-three-segments' as never] })).toThrow(
+      expect(() => QaChecklistStub({ remainingItemIds: ['not-three-segments'] })).toThrow(
         /Invalid/u,
       );
     });

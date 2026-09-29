@@ -100,7 +100,7 @@ describe('toolResultBlockParamContract', () => {
         toolResultBlockParamContract.parse({
           type: 'tool_result',
           tool_use_id: 'toolu_abc',
-          is_error: 'yes' as never,
+          is_error: 'yes',
         }),
       ).toThrow(/expected boolean/u);
     });

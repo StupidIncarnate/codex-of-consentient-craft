@@ -18,11 +18,11 @@ describe('questQueueEntryContract', () => {
   it('VALID: {all fields incl. questSource, startedAt, error, activeSessionId} => parses fully populated entry', () => {
     const entry = QuestQueueEntryStub({
       questSource: 'smoketest-orchestration',
-      activeSessionId: 'chat-session-abc' as never,
-      startedAt: '2024-01-15T10:05:00.000Z' as never,
+      activeSessionId: 'chat-session-abc',
+      startedAt: '2024-01-15T10:05:00.000Z',
       error: {
-        message: 'runner threw' as never,
-        at: '2024-01-15T10:06:00.000Z' as never,
+        message: 'runner threw',
+        at: '2024-01-15T10:06:00.000Z',
       },
     });
 
@@ -57,25 +57,25 @@ describe('questQueueEntryContract', () => {
 
   it('INVALID: {empty questTitle} => throws validation error', () => {
     expect(() => {
-      return QuestQueueEntryStub({ questTitle: '' as never });
+      return QuestQueueEntryStub({ questTitle: '' });
     }).toThrow(/>=1/u);
   });
 
   it('INVALID: {bad status enum} => throws validation error', () => {
     expect(() => {
-      return QuestQueueEntryStub({ status: 'not-a-status' as never });
+      return QuestQueueEntryStub({ status: 'not-a-status' });
     }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {bad questSource enum} => throws validation error', () => {
     expect(() => {
-      return QuestQueueEntryStub({ questSource: 'smoketest-unknown' as never });
+      return QuestQueueEntryStub({ questSource: 'smoketest-unknown' });
     }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {bad enqueuedAt format} => throws validation error', () => {
     expect(() => {
-      return QuestQueueEntryStub({ enqueuedAt: 'not-a-timestamp' as never });
+      return QuestQueueEntryStub({ enqueuedAt: 'not-a-timestamp' });
     }).toThrow(/datetime/u);
   });
 
@@ -83,8 +83,8 @@ describe('questQueueEntryContract', () => {
     expect(() => {
       return QuestQueueEntryStub({
         error: {
-          message: '' as never,
-          at: '2024-01-15T10:06:00.000Z' as never,
+          message: '',
+          at: '2024-01-15T10:06:00.000Z',
         },
       });
     }).toThrow(/>=1/u);

@@ -4,7 +4,7 @@ import { TextBlockParamStub } from './text-block-param.stub';
 describe('textBlockParamContract', () => {
   describe('valid input', () => {
     it('VALID: {type: "text", text: "Hello"} => returns TextBlockParam with branded fields', () => {
-      const result = TextBlockParamStub({ text: 'Hello' as never });
+      const result = TextBlockParamStub({ text: 'Hello' });
 
       expect(result).toStrictEqual({
         type: 'text',
@@ -34,7 +34,7 @@ describe('textBlockParamContract', () => {
     });
 
     it('INVALID: {type: "text", text: 123} => throws on non-string text', () => {
-      expect(() => textBlockParamContract.parse({ type: 'text', text: 123 as never })).toThrow(
+      expect(() => textBlockParamContract.parse({ type: 'text', text: 123 })).toThrow(
         /expected string/u,
       );
     });

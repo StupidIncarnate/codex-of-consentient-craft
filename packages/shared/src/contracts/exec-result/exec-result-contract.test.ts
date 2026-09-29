@@ -76,7 +76,7 @@ describe('execResultContract', () => {
     it('INVALID: {stdout: number} => throws validation error', () => {
       expect(() => {
         return execResultContract.parse({
-          stdout: 123 as never,
+          stdout: 123,
           stderr: '',
           exitCode: 0,
         });

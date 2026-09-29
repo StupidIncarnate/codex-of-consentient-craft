@@ -564,7 +564,7 @@ describe('workItemContract', () => {
         status: 'in_progress',
         spawnerType: 'agent',
         createdAt: '2024-01-15T10:00:00.000Z',
-        startedAt: null as never,
+        startedAt: null,
       });
 
       expect(result).toStrictEqual({
@@ -603,7 +603,7 @@ describe('workItemContract', () => {
         spawnerType: 'agent',
         createdAt: '2024-01-15T10:00:00.000Z',
         startedAt: '2024-01-15T10:01:00.000Z',
-        completedAt: null as never,
+        completedAt: null,
       });
 
       expect(result).toStrictEqual({

@@ -31,7 +31,7 @@ describe('blightChecklistContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {baseRef: ""} => throws', () => {
-      expect(() => BlightChecklistStub({ baseRef: '' as never })).toThrow(
+      expect(() => BlightChecklistStub({ baseRef: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });

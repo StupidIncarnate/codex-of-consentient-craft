@@ -40,7 +40,7 @@ describe('toolReferenceBlockParamContract', () => {
 
     it('INVALID: {tool_name: 123} => throws on non-string tool_name', () => {
       expect(() =>
-        toolReferenceBlockParamContract.parse({ type: 'tool_reference', tool_name: 123 as never }),
+        toolReferenceBlockParamContract.parse({ type: 'tool_reference', tool_name: 123 }),
       ).toThrow(/expected string/u);
     });
   });

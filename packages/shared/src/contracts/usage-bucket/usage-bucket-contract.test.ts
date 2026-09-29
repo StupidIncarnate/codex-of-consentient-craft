@@ -37,11 +37,11 @@ describe('usageBucketContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {input: -1} => throws, because spend never goes backwards', () => {
-      expect(() => UsageBucketStub({ input: -1 as never })).toThrow(/to be >=0/u);
+      expect(() => UsageBucketStub({ input: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {output: 1.5} => throws on a fractional token count', () => {
-      expect(() => UsageBucketStub({ output: 1.5 as never })).toThrow(/expected int/u);
+      expect(() => UsageBucketStub({ output: 1.5 })).toThrow(/expected int/u);
     });
 
     it('INVALID: {cacheRead missing} => throws', () => {

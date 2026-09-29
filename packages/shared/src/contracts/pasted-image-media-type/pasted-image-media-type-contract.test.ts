@@ -22,7 +22,7 @@ describe('pastedImageMediaTypeContract', () => {
     });
 
     it('INVALID: 123 => throws validation error for non-string', () => {
-      expect(() => pastedImageMediaTypeContract.parse(123 as never)).toThrow(
+      expect(() => pastedImageMediaTypeContract.parse(123)).toThrow(
         'Invalid option: expected one of',
       );
     });

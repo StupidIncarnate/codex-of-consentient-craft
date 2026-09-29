@@ -106,13 +106,13 @@ describe('operationPlanPieceContract', () => {
   describe('invalid pieces', () => {
     it('EMPTY: {title: ""} => throws validation error', () => {
       expect(() => {
-        return OperationPlanPieceStub({ title: '' as never });
+        return OperationPlanPieceStub({ title: '' });
       }).toThrow(/too_small/u);
     });
 
     it('EMPTY: {intent: ""} => throws validation error', () => {
       expect(() => {
-        return OperationPlanPieceStub({ intent: '' as never });
+        return OperationPlanPieceStub({ intent: '' });
       }).toThrow(/too_small/u);
     });
 
@@ -130,7 +130,7 @@ describe('operationPlanPieceContract', () => {
 
     it('EMPTY: {notes: ""} => throws validation error', () => {
       expect(() => {
-        return OperationPlanPieceStub({ notes: '' as never });
+        return OperationPlanPieceStub({ notes: '' });
       }).toThrow(/too_small/u);
     });
 
@@ -152,7 +152,7 @@ describe('operationPlanPieceContract', () => {
 
     it('INVALID: {status: "in-flight"} => throws validation error', () => {
       expect(() => {
-        return OperationPlanPieceStub({ status: 'in-flight' as never });
+        return OperationPlanPieceStub({ status: 'in-flight' });
       }).toThrow(/invalid_value/u);
     });
 

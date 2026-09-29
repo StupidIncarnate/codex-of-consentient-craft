@@ -16,7 +16,7 @@ describe('systemInitStreamLineContract', () => {
     });
 
     it('VALID: {custom session_id} => parses with override', () => {
-      const streamLine = SystemInitStreamLineStub({ session_id: 'custom-session-456' as never });
+      const streamLine = SystemInitStreamLineStub({ session_id: 'custom-session-456' });
 
       const result = systemInitStreamLineContract.parse(streamLine);
 

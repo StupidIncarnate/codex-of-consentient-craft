@@ -25,7 +25,7 @@ describe('flowOffMapSignoffContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {id: "timezones"} => throws, because the id is a probe family and the family list is closed', () => {
-      expect(() => FlowOffMapSignoffStub({ id: 'timezones' as never })).toThrow(/Invalid option/u);
+      expect(() => FlowOffMapSignoffStub({ id: 'timezones' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {id missing entirely} => throws, because a Record-shaped entry with no id would be merged wholesale', () => {

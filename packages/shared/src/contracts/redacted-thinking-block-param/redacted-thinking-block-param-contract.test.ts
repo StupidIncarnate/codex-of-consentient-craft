@@ -42,7 +42,7 @@ describe('redactedThinkingBlockParamContract', () => {
       expect(() =>
         redactedThinkingBlockParamContract.parse({
           type: 'redacted_thinking',
-          data: 123 as never,
+          data: 123,
         }),
       ).toThrow(/expected string/u);
     });

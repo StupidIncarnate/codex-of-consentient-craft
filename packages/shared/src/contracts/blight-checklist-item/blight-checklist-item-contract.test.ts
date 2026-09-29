@@ -47,7 +47,7 @@ describe('blightChecklistItemContract', () => {
     });
 
     it('EMPTY: {packageName: ""} => throws, because an empty name names no package', () => {
-      expect(() => BlightChecklistItemStub({ packageName: '' as never })).toThrow(
+      expect(() => BlightChecklistItemStub({ packageName: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
@@ -69,31 +69,27 @@ describe('blightChecklistItemContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {concern: "novel"} => throws', () => {
-      expect(() => BlightChecklistItemStub({ concern: 'novel' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => BlightChecklistItemStub({ concern: 'novel' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {label: ""} => throws, because a unit with no text tells a reviewer nothing to confirm', () => {
-      expect(() => BlightChecklistItemStub({ label: '' as never })).toThrow(
+      expect(() => BlightChecklistItemStub({ label: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {implPath: ""} => throws', () => {
-      expect(() => BlightChecklistItemStub({ implPath: '' as never })).toThrow(
+      expect(() => BlightChecklistItemStub({ implPath: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {implPath: absolute path} => throws, because persisted paths must stay repo-relative', () => {
-      expect(() => BlightChecklistItemStub({ implPath: '/abs/path.ts' as never })).toThrow(
-        /repo-relative/u,
-      );
+      expect(() => BlightChecklistItemStub({ implPath: '/abs/path.ts' })).toThrow(/repo-relative/u);
     });
 
     it('EMPTY: {id: ""} => throws', () => {
-      expect(() => BlightChecklistItemStub({ id: '' as never })).toThrow(
+      expect(() => BlightChecklistItemStub({ id: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });

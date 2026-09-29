@@ -19,8 +19,8 @@ describe('questSummaryFlowContract', () => {
     it('VALID: {operational flow} => carries a siegemaster row alone', () => {
       expect(
         QuestSummaryFlowStub({
-          id: 'lint-rule-registration' as never,
-          name: 'Register the lint rule' as never,
+          id: 'lint-rule-registration',
+          name: 'Register the lint rule',
           flowType: 'operational',
           tracks: [
             QuestSummaryTrackCountsStub({
@@ -54,21 +54,21 @@ describe('questSummaryFlowContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {id: "Not Kebab"} => throws', () => {
-      expect(() => QuestSummaryFlowStub({ id: 'Not Kebab' as never })).toThrow(/Invalid/u);
+      expect(() => QuestSummaryFlowStub({ id: 'Not Kebab' })).toThrow(/Invalid/u);
     });
 
     it('EMPTY: {name: ""} => throws', () => {
-      expect(() => QuestSummaryFlowStub({ name: '' as never })).toThrow(
+      expect(() => QuestSummaryFlowStub({ name: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {flowType: "batch"} => throws', () => {
-      expect(() => QuestSummaryFlowStub({ flowType: 'batch' as never })).toThrow(/Invalid option/u);
+      expect(() => QuestSummaryFlowStub({ flowType: 'batch' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {tracks: [{id: "blightwarden"}]} => throws', () => {
-      expect(() => QuestSummaryFlowStub({ tracks: [{ id: 'blightwarden' } as never] })).toThrow(
+      expect(() => QuestSummaryFlowStub({ tracks: [{ id: 'blightwarden' }] })).toThrow(
         /Invalid option/u,
       );
     });

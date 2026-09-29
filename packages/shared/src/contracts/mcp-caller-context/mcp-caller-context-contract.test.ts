@@ -13,7 +13,7 @@ describe('mcpCallerContextContract', () => {
 
   it('VALID: {cwd, sessionId, agentId} => parses a sub-agent caller', () => {
     const result = mcpCallerContextContract.parse(
-      McpCallerContextStub({ agentId: 'a493e1c2168b46114' as never }),
+      McpCallerContextStub({ agentId: 'a493e1c2168b46114' }),
     );
 
     expect(result).toStrictEqual({

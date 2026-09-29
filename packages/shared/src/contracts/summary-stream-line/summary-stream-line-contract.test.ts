@@ -15,7 +15,7 @@ describe('summaryStreamLineContract', () => {
     });
 
     it('VALID: {custom summary text} => parses with override', () => {
-      const streamLine = SummaryStreamLineStub({ summary: 'Refactored auth module' as never });
+      const streamLine = SummaryStreamLineStub({ summary: 'Refactored auth module' });
 
       const result = summaryStreamLineContract.parse(streamLine);
 

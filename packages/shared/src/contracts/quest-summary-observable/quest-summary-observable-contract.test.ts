@@ -26,31 +26,29 @@ describe('questSummaryObservableContract', () => {
     );
 
     it('EMPTY: {description: ""} => a blank observable is carried, not dropped', () => {
-      expect(QuestSummaryObservableStub({ description: '' as never }).description).toBe('');
+      expect(QuestSummaryObservableStub({ description: '' }).description).toBe('');
     });
   });
 
   describe('invalid input', () => {
     it('INVALID: {id: "not-three-segments"} => throws, the id is the derived unit id', () => {
-      expect(() => QuestSummaryObservableStub({ id: 'not-three-segments' as never })).toThrow(
-        /Invalid/u,
-      );
+      expect(() => QuestSummaryObservableStub({ id: 'not-three-segments' })).toThrow(/Invalid/u);
     });
 
     it('INVALID: {addedBy: "blightwarden"} => throws', () => {
-      expect(() => QuestSummaryObservableStub({ addedBy: 'blightwarden' as never })).toThrow(
+      expect(() => QuestSummaryObservableStub({ addedBy: 'blightwarden' })).toThrow(
         /Invalid option/u,
       );
     });
 
     it('INVALID: {observableType: "vibes"} => throws', () => {
-      expect(() => QuestSummaryObservableStub({ observableType: 'vibes' as never })).toThrow(
+      expect(() => QuestSummaryObservableStub({ observableType: 'vibes' })).toThrow(
         /Invalid option/u,
       );
     });
 
     it('INVALID: {nodeId: "Submit Credentials"} => throws', () => {
-      expect(() => QuestSummaryObservableStub({ nodeId: 'Submit Credentials' as never })).toThrow(
+      expect(() => QuestSummaryObservableStub({ nodeId: 'Submit Credentials' })).toThrow(
         /Invalid/u,
       );
     });

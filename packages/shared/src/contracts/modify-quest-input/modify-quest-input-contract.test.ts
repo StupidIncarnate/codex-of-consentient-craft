@@ -32,7 +32,7 @@ describe('modifyQuestInputContract', () => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
         unknownField: 'should fail',
-      } as never);
+      });
     }).toThrow(/Unrecognized key/u);
   });
 
@@ -323,7 +323,7 @@ describe('modifyQuestInputContract', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
-        packagesAffected: ['orchestrator', 'web', 'shared'] as never,
+        packagesAffected: ['orchestrator', 'web', 'shared'],
       });
     }).toThrow(/Invalid input: expected object, received string/u);
   });
@@ -519,7 +519,7 @@ describe('modifyQuestInputContract', () => {
             changeType: 'edit',
           },
         ],
-      } as never);
+      });
     }).toThrow(/Unrecognized key/u);
   });
 
@@ -938,7 +938,7 @@ describe('modifyQuestInputContract', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
-        comments: [{ text: 'orphaned comment' } as never],
+        comments: [{ text: 'orphaned comment' }],
       });
     }).toThrow(/Invalid input/u);
   });
@@ -947,7 +947,7 @@ describe('modifyQuestInputContract', () => {
     expect(() => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
-        operations: [{ status: 'complete' } as never],
+        operations: [{ status: 'complete' }],
       });
     }).toThrow(/Required|Invalid/u);
   });
@@ -962,7 +962,7 @@ describe('modifyQuestInputContract', () => {
             role: 'codeweaver',
             text: 'core: config load+validate adapter',
             status: 'partial',
-          } as never,
+          },
         ],
       });
     }).toThrow(/Invalid/u);
@@ -973,7 +973,7 @@ describe('modifyQuestInputContract', () => {
       return modifyQuestInputContract.parse({
         questId: 'add-auth',
         steps: [{ id: 'web-update-widget' }],
-      } as never);
+      });
     }).toThrow(/Unrecognized key/u);
   });
 });

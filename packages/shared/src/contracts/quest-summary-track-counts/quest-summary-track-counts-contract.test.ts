@@ -80,9 +80,7 @@ describe('questSummaryTrackCountsContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {id: "blightwarden"} => throws, blightwarden is not a verification track', () => {
-      expect(() => QuestSummaryTrackCountsStub({ id: 'blightwarden' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => QuestSummaryTrackCountsStub({ id: 'blightwarden' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {} => throws, the row cannot exist without the denominator track it counts over', () => {
@@ -94,18 +92,16 @@ describe('questSummaryTrackCountsContract', () => {
     it.each(COUNT_FIELDS)(
       'INVALID: {%s: -1} => throws, a unit count is never negative',
       (field) => {
-        expect(() => QuestSummaryTrackCountsStub({ [field]: -1 } as never)).toThrow(/to be >=0/u);
+        expect(() => QuestSummaryTrackCountsStub({ [field]: -1 })).toThrow(/to be >=0/u);
       },
     );
 
     it.each(COUNT_FIELDS)('INVALID: {%s: 1.5} => throws, a unit count is whole', (field) => {
-      expect(() => QuestSummaryTrackCountsStub({ [field]: 1.5 } as never)).toThrow(/expected int/u);
+      expect(() => QuestSummaryTrackCountsStub({ [field]: 1.5 })).toThrow(/expected int/u);
     });
 
     it.each(COUNT_FIELDS)('INVALID: {%s: "1"} => throws, a unit count is a number', (field) => {
-      expect(() => QuestSummaryTrackCountsStub({ [field]: '1' } as never)).toThrow(
-        /expected number/u,
-      );
+      expect(() => QuestSummaryTrackCountsStub({ [field]: '1' })).toThrow(/expected number/u);
     });
 
     it('INVALID: {confirmed: 4} => throws, a retired count name never passes as a silent zeroed row', () => {

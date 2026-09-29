@@ -50,9 +50,7 @@ describe('questSummaryNoteGroupContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {id: "blocker"} => throws, the group id is a note kind', () => {
-      expect(() => QuestSummaryNoteGroupStub({ id: 'blocker' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => QuestSummaryNoteGroupStub({ id: 'blocker' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {notes: [{}]} => throws, a note carries required fields', () => {

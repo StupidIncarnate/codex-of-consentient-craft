@@ -82,7 +82,7 @@ describe('questBlightLedgerEntryContract', () => {
 
   describe('evidence is mandatory on every disposition', () => {
     it('EMPTY: {evidence: ""} => throws, so no unit can be dispositioned with nothing behind it', () => {
-      expect(() => QuestBlightLedgerEntryStub({ evidence: '' as never })).toThrow(
+      expect(() => QuestBlightLedgerEntryStub({ evidence: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
@@ -102,27 +102,23 @@ describe('questBlightLedgerEntryContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {disposition: "pending"} => throws, because a unit with no entry has no disposition at all', () => {
-      expect(() => QuestBlightLedgerEntryStub({ disposition: 'pending' as never })).toThrow(
+      expect(() => QuestBlightLedgerEntryStub({ disposition: 'pending' })).toThrow(
         /Invalid option/u,
       );
     });
 
     it('INVALID: {itemId empty} => throws', () => {
-      expect(() => QuestBlightLedgerEntryStub({ itemId: '' as never })).toThrow(
+      expect(() => QuestBlightLedgerEntryStub({ itemId: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {workItemId not a uuid} => throws', () => {
-      expect(() => QuestBlightLedgerEntryStub({ workItemId: 'work-item-1' as never })).toThrow(
-        /Invalid/u,
-      );
+      expect(() => QuestBlightLedgerEntryStub({ workItemId: 'work-item-1' })).toThrow(/Invalid/u);
     });
 
     it('INVALID: {createdAt not a datetime} => throws', () => {
-      expect(() => QuestBlightLedgerEntryStub({ createdAt: '2024-01-15' as never })).toThrow(
-        /Invalid/u,
-      );
+      expect(() => QuestBlightLedgerEntryStub({ createdAt: '2024-01-15' })).toThrow(/Invalid/u);
     });
   });
 });

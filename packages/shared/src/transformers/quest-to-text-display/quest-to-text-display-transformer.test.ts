@@ -27,7 +27,7 @@ describe('questToTextDisplayTransformer', () => {
 
   describe('header', () => {
     it('VALID: {quest: with title and status} => renders title and status', () => {
-      const quest = QuestStub({ title: 'Add Auth' as never, status: 'in_progress' });
+      const quest = QuestStub({ title: 'Add Auth', status: 'in_progress' });
 
       const result = questToTextDisplayTransformer({ quest });
 
@@ -48,10 +48,10 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         designDecisions: [
           DesignDecisionStub({
-            id: 'use-jwt' as never,
-            title: 'Use JWT' as never,
-            rationale: 'Stateless auth' as never,
-            relatedNodeIds: ['login-page' as never],
+            id: 'use-jwt',
+            title: 'Use JWT',
+            rationale: 'Stateless auth',
+            relatedNodeIds: ['login-page'],
           }),
         ],
       });
@@ -89,15 +89,15 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         contracts: [
           QuestContractEntryStub({
-            id: 'login-creds' as never,
-            name: 'LoginCredentials' as never,
+            id: 'login-creds',
+            name: 'LoginCredentials',
             kind: 'data',
             status: 'new',
             properties: [
               {
-                name: 'email' as never,
-                type: 'EmailAddress' as never,
-                description: 'User email' as never,
+                name: 'email',
+                type: 'EmailAddress',
+                description: 'User email',
               },
             ],
           }),
@@ -116,7 +116,7 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         contracts: [
           QuestContractEntryStub({
-            source: 'src/contracts/user.ts' as never,
+            source: 'src/contracts/user.ts',
           }),
         ],
       });
@@ -142,11 +142,11 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         toolingRequirements: [
           ToolingRequirementStub({
-            id: 'pg-driver' as never,
-            name: 'PostgreSQL Driver' as never,
-            packageName: 'pg' as never,
-            reason: 'DB access' as never,
-            requiredByObservables: ['obs-one' as never],
+            id: 'pg-driver',
+            name: 'PostgreSQL Driver',
+            packageName: 'pg',
+            reason: 'DB access',
+            requiredByObservables: ['obs-one'],
           }),
         ],
       });
@@ -172,8 +172,8 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         packagesAffected: [
           QuestPackageEntryStub({
-            name: 'ui-app' as never,
-            location: './packages/ui-app' as never,
+            name: 'ui-app',
+            location: './packages/ui-app',
             changeType: 'edit',
             packageType: 'frontend-react',
           }),
@@ -189,11 +189,11 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         packagesAffected: [
           QuestPackageEntryStub({
-            name: 'queue-runner' as never,
-            location: './packages/queue-runner' as never,
+            name: 'queue-runner',
+            location: './packages/queue-runner',
             changeType: 'new',
             packageType: 'programmatic-service',
-            usedBy: ['ui-app' as never, 'api-service' as never],
+            usedBy: ['ui-app', 'api-service'],
           }),
         ],
       });
@@ -210,8 +210,8 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         packagesAffected: [
           QuestPackageEntryStub({
-            name: 'core-lib' as never,
-            location: './packages/core-lib' as never,
+            name: 'core-lib',
+            location: './packages/core-lib',
             changeType: 'edit',
             packageType: 'library',
             usedBy: [],
@@ -231,20 +231,20 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
-            id: 'login-flow' as never,
-            name: 'Login Flow' as never,
-            scope: 'authentication' as never,
-            entryPoint: 'login-page' as never,
-            exitPoints: ['dashboard' as never],
+            id: 'login-flow',
+            name: 'Login Flow',
+            scope: 'authentication',
+            entryPoint: 'login-page',
+            exitPoints: ['dashboard'],
             nodes: [
               FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
+                id: 'login-page',
+                label: 'Login Page',
                 type: 'state',
                 observables: [
                   FlowObservableStub({
-                    id: 'shows-form' as never,
-                    description: 'shows login form' as never,
+                    id: 'shows-form',
+                    description: 'shows login form',
                     type: 'ui-state',
                   }),
                 ],
@@ -284,16 +284,16 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
-            entryPoint: 'login-page' as never,
+            entryPoint: 'login-page',
             nodes: [
               FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
+                id: 'login-page',
+                label: 'Login Page',
                 type: 'state',
                 observables: [
                   FlowObservableStub({
-                    id: 'crash-on-bleh' as never,
-                    description: 'returns 400 for a non-JSON body' as never,
+                    id: 'crash-on-bleh',
+                    description: 'returns 400 for a non-JSON body',
                     type: 'api-call',
                     addedBy: 'siegemaster',
                   }),
@@ -321,16 +321,16 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         flows: [
           FlowStub({
-            entryPoint: 'login-page' as never,
+            entryPoint: 'login-page',
             nodes: [
               FlowNodeStub({
-                id: 'login-page' as never,
-                label: 'Login Page' as never,
+                id: 'login-page',
+                label: 'Login Page',
                 type: 'state',
                 observables: [
                   FlowObservableStub({
-                    id: 'shows-form' as never,
-                    description: 'shows login form' as never,
+                    id: 'shows-form',
+                    description: 'shows login form',
                     type: 'ui-state',
                   }),
                 ],
@@ -398,9 +398,9 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'codeweaver',
-            text: 'core: config load+validate adapter' as never,
+            text: 'core: config load+validate adapter',
             status: 'pending',
           }),
         ],
@@ -417,9 +417,9 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'ward',
-            text: 'ward gate' as never,
+            text: 'ward gate',
             status: 'in_progress',
             locked: true,
           }),
@@ -437,9 +437,9 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'flowrider',
-            text: 'author the suites' as never,
+            text: 'author the suites',
             status: 'pending',
             flowIds: ['send-comment'],
             packageNames: ['web', 'server'],
@@ -458,9 +458,9 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'codeweaver',
-            text: 'shared: the entry contract' as never,
+            text: 'shared: the entry contract',
             status: 'pending',
             packageNames: ['shared'],
           }),
@@ -478,9 +478,9 @@ describe('questToTextDisplayTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+            id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             role: 'codeweaver',
-            text: 'shared: the entry contract' as never,
+            text: 'shared: the entry contract',
             status: 'pending',
             packageNames: [],
           }),

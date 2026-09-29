@@ -28,11 +28,11 @@ describe('blockedReasonContract', () => {
     });
 
     it('INVALID: {value: 123} => throws Expected string', () => {
-      expect(() => blockedReasonContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => blockedReasonContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws Required', () => {
-      expect(() => blockedReasonContract.parse(undefined as never)).toThrow(/received undefined/u);
+      expect(() => blockedReasonContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 });

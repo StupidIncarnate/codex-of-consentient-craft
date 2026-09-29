@@ -31,7 +31,7 @@ describe('processIdContract', () => {
 
     it('INVALID: {value: 123} => throws validation error', () => {
       expect(() => {
-        processIdContract.parse(123 as never);
+        processIdContract.parse(123);
       }).toThrow(/expected string/u);
     });
 

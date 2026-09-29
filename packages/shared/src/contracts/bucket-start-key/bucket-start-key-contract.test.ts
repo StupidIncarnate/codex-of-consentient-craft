@@ -14,7 +14,7 @@ describe('bucketStartKeyContract', () => {
 
   describe('invalid keys', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => bucketStartKeyContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => bucketStartKeyContract.parse(123)).toThrow(/expected string/u);
     });
   });
 });

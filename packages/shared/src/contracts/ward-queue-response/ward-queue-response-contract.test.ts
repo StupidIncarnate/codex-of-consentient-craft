@@ -39,7 +39,7 @@ describe('wardQueueResponseContract', () => {
 
   describe('invalid responses', () => {
     it('INVALID: {value: null} => throws for null', () => {
-      expect(() => wardQueueResponseContract.parse(null as never)).toThrow(/invalid_type/u);
+      expect(() => wardQueueResponseContract.parse(null)).toThrow(/invalid_type/u);
     });
   });
 });

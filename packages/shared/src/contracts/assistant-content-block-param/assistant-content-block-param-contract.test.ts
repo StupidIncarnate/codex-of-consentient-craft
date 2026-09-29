@@ -83,7 +83,7 @@ describe('assistantContentBlockParamContract', () => {
     });
 
     it('INVALID: {type: 123} => throws on invalid discriminator value', () => {
-      expect(() => assistantContentBlockParamContract.parse({ type: 123 as never })).toThrow(
+      expect(() => assistantContentBlockParamContract.parse({ type: 123 })).toThrow(
         /Invalid discriminator value/u,
       );
     });

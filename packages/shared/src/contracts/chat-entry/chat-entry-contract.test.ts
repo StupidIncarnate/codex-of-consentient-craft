@@ -16,7 +16,7 @@ const FIXED_TS = '2026-05-04T20:12:38.738Z';
 describe('chatEntryContract', () => {
   describe('user entries', () => {
     it('VALID: {role: "user", content: "Hello world"} => parses successfully', () => {
-      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -33,7 +33,7 @@ describe('chatEntryContract', () => {
         content: 'Custom message',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -51,7 +51,7 @@ describe('chatEntryContract', () => {
       const entry = AssistantTextChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -74,7 +74,7 @@ describe('chatEntryContract', () => {
         },
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -99,7 +99,7 @@ describe('chatEntryContract', () => {
       const entry = AssistantToolUseChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -118,7 +118,7 @@ describe('chatEntryContract', () => {
         toolUseId: 'toolu_abc123',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -139,7 +139,7 @@ describe('chatEntryContract', () => {
       const entry = AssistantToolResultChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -158,7 +158,7 @@ describe('chatEntryContract', () => {
         isError: true,
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -178,7 +178,7 @@ describe('chatEntryContract', () => {
         durationMs: 59965,
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -199,14 +199,14 @@ describe('chatEntryContract', () => {
           durationMs: -1,
           uuid: FIXED_UUID,
           timestamp: FIXED_TS,
-        } as never),
+        }),
       ).toThrow(/to be >=0/u);
     });
   });
 
   describe('system error entries', () => {
     it('VALID: {role: "system", type: "error"} => parses successfully', () => {
-      const entry = SystemErrorChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = SystemErrorChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -225,7 +225,7 @@ describe('chatEntryContract', () => {
       const entry = TaskNotificationChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -248,7 +248,7 @@ describe('chatEntryContract', () => {
         durationMs: 45000,
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -274,7 +274,7 @@ describe('chatEntryContract', () => {
         agentId: 'abc123',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -292,7 +292,7 @@ describe('chatEntryContract', () => {
         agentId: 'agent-42',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -308,7 +308,7 @@ describe('chatEntryContract', () => {
     });
 
     it('VALID: {role: "user", no agentId} => parses without agentId (optional)', () => {
-      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -323,7 +323,7 @@ describe('chatEntryContract', () => {
 
   describe('TaskToolUseChatEntryStub', () => {
     it('VALID: TaskToolUseChatEntryStub => creates tool_use with Task toolName', () => {
-      const entry = TaskToolUseChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = TaskToolUseChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -342,7 +342,7 @@ describe('chatEntryContract', () => {
         agentId: 'sub-1',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -363,7 +363,7 @@ describe('chatEntryContract', () => {
       const entry = AssistantThinkingChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -381,7 +381,7 @@ describe('chatEntryContract', () => {
         agentId: 'agent-99',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -402,7 +402,7 @@ describe('chatEntryContract', () => {
         model: 'claude-opus-4-6',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -421,7 +421,7 @@ describe('chatEntryContract', () => {
         model: 'claude-sonnet-4',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -441,7 +441,7 @@ describe('chatEntryContract', () => {
         model: 'claude-opus-4-6',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -459,7 +459,7 @@ describe('chatEntryContract', () => {
       const entry = AssistantTextChatEntryStub({
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -479,7 +479,7 @@ describe('chatEntryContract', () => {
         isInjectedPrompt: true,
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -493,7 +493,7 @@ describe('chatEntryContract', () => {
     });
 
     it('VALID: {user entry without isInjectedPrompt} => isInjectedPrompt is optional', () => {
-      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -572,7 +572,7 @@ describe('chatEntryContract', () => {
         parentAgentId: 'parent-1',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -590,7 +590,7 @@ describe('chatEntryContract', () => {
         parentAgentId: 'parent-2',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -606,7 +606,7 @@ describe('chatEntryContract', () => {
     });
 
     it('VALID: {role: "user", no parentAgentId} => parses without parentAgentId (optional)', () => {
-      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS } as never);
+      const entry = ChatEntryStub({ uuid: FIXED_UUID, timestamp: FIXED_TS });
 
       const result = chatEntryContract.parse(entry);
 
@@ -625,7 +625,7 @@ describe('chatEntryContract', () => {
         source: 'session',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 
@@ -643,7 +643,7 @@ describe('chatEntryContract', () => {
         source: 'subagent',
         uuid: FIXED_UUID,
         timestamp: FIXED_TS,
-      } as never);
+      });
 
       const result = chatEntryContract.parse(entry);
 

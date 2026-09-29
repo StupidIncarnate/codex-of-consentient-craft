@@ -157,7 +157,7 @@ describe('operationItemContract', () => {
 
     it('EMPTY: {text: ""} => throws validation error', () => {
       expect(() => {
-        return OperationItemStub({ text: '' as never });
+        return OperationItemStub({ text: '' });
       }).toThrow(/too_small/u);
     });
 

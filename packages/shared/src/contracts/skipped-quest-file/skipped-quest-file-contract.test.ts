@@ -47,13 +47,13 @@ describe('skippedQuestFileContract', () => {
 
   describe('invalid skipped files', () => {
     it('INVALID: {questFolder: ""} => throws validation error', () => {
-      expect(() => SkippedQuestFileStub({ questFolder: '' as never })).toThrow(
+      expect(() => SkippedQuestFileStub({ questFolder: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {reason: ""} => throws validation error', () => {
-      expect(() => SkippedQuestFileStub({ reason: '' as never })).toThrow(
+      expect(() => SkippedQuestFileStub({ reason: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
