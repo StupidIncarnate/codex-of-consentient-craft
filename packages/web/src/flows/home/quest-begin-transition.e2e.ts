@@ -12,6 +12,13 @@ const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 3000;
 const IN_PROGRESS_TIMEOUT = 10_000;
+// How long the fake ward holds riftcarver's preflight typecheck open, for the one test that waits on
+// the carve. The carve is pending when POST /start answers — the dispatcher has woken but not yet
+// claimed it, and a pause landing in that gap is honoured by the loop's post-scan isPlaying()
+// check, so the carve never runs. That test pauses only once the carve's work item reads
+// `in_progress`, and this hold keeps that state on disk long enough for a poll to see it. It
+// outlasts expect.poll's longest default interval (1s), so at least one poll lands inside it.
+const CARVE_TYPECHECK_HOLD_MS = 2_000;
 const HTTP_OK = 200;
 
 // A feature quest reaches the observables gate carrying NO ledger of its own: `operations` is off
@@ -125,11 +132,10 @@ test.describe('Quest Begin Transition', () => {
     // start-post-fired: BEGIN QUEST sends no request body — the questId travels in the URL only.
     expect(startRequest.postData()).toBe(null);
 
-    // The start response only lands after its own play() call has resolved server-side, so pausing
-    // here is the earliest point this spec can reach that is guaranteed to run AFTER the dispatcher
-    // woke — before its slower steps (a real `git worktree add` against the fixture repo) have had
-    // time to run. `POST /api/orchestration/dispatch/play` never refuses, so nothing else in this
-    // package can hold the queue shut for the rest of this test.
+    // Stop the dispatcher the Start just played. Nothing this test asserts depends on whether the
+    // carve got claimed before the pause landed — only on what POST /start itself wrote.
+    // `POST /api/orchestration/dispatch/play` never refuses, so nothing else in this package can
+    // hold the queue shut for the rest of this test.
     await startResponsePromise;
     await dispatchPauseHarness({ request }).pause();
 
@@ -240,8 +246,8 @@ test.describe('Quest Begin Transition', () => {
 
     await startPromise;
     await startResponsePromise;
-    // See the sibling test's own comment: pausing here is the earliest point guaranteed to land
-    // after the dispatcher's own play() call, ahead of its slower steps.
+    // See the first test's own comment: this pause stops the dispatcher, and nothing below depends
+    // on whether the carve was claimed before it landed.
     await dispatchPauseHarness({ request }).pause();
 
     // Modal should close
@@ -322,6 +328,13 @@ test.describe('Quest Begin Transition', () => {
     const sessionId = `e2e-relay-graph-${Date.now()}`;
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
+    // The carve's preflight typecheck runs the fake ward CLI, whose queue is root-scoped (the
+    // carve's cwd is the fresh worktree, not the guild path). One held green response is what the
+    // carve-start poll below needs a window from.
+    dispatchHarness({ request, guildPath: GUILD_PATH }).queueScript({
+      script: [{ role: 'riftcarver', outcome: 'green', delayMs: CARVE_TYPECHECK_HOLD_MS }],
+    });
+
     const created = await questHarness({ request }).createQuest({
       guildId,
       title: 'E2E Relay Graph Quest',
@@ -373,8 +386,24 @@ test.describe('Quest Begin Transition', () => {
 
     await startPromise;
     await startResponsePromise;
-    // See the first test's own comment: pausing here is the earliest point guaranteed to land after
-    // the dispatcher's own play() call, ahead of its slower steps.
+    // This test waits on the carve below, so it pauses only once the carve is RUNNING — see
+    // CARVE_TYPECHECK_HOLD_MS for why the start response alone is too early. Paused mid-carve, the
+    // dispatcher finishes it and routes nothing past it.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return null;
+          }
+          const data = await response.json();
+          return data.quest.workItems
+            .filter((wi: { role: string }) => wi.role === 'riftcarver')
+            .map((wi: { status: string }) => wi.status);
+        },
+        { timeout: IN_PROGRESS_TIMEOUT },
+      )
+      .toStrictEqual(['in_progress']);
     await dispatchPauseHarness({ request }).pause();
 
     // Wait for in_progress — proves OrchestrationStartResponder finished its relay seed + status
@@ -393,9 +422,8 @@ test.describe('Quest Begin Transition', () => {
       )
       .toBe('in_progress');
 
-    // `POST /api/orchestration/dispatch/play` never refuses, so the dispatcher is already carving
-    // for real against the fixture repo by this point. Poll for its attempt ref rather than reading
-    // once, so this test's own timing never races the carve's.
+    // The carve is running for real against the fixture repo by this point. Poll for its attempt ref
+    // rather than reading once, so this test's own timing never races the carve's.
     await expect
       .poll(
         async () => {
