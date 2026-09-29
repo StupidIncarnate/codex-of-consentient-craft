@@ -1,22 +1,23 @@
 /**
  * PURPOSE: Assembles one `InstanceStatus` row from a registry row, its resolved state, and its
  * heartbeat file — the post-mortem `status` prints for one instance (siegelense-tooling.md lines
- * 1174-1183). `runs` and `evidenceComplete` are always populated: neither requires already holding
+ * 1174-1183). `runs` and `lastRunSaved` are always populated: neither requires already holding
  * this instance's id, so counting or checking completeness is not "browsing". Both come off
  * `runEvidenceComputeTransformer` — the SAME function `results`' `runListLayerBroker` calls — so the
  * two tools can never disagree about how many runs an instance holds or whether the latest one
- * finished. `lastStep` and `evidence` populate ONLY when `named` is true — a `status {}` fleet
+ * finished; `lastRunSaved` is `null` for an instance with no run at all. `lastStep` and `evidence`
+ * populate ONLY when `named` is true — a `status {}` fleet
  * listing never carries a run or an evidence path for an instance the caller has not already named
  * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). A named `evidence` is the directory
  * plus EVERY file `evidenceTreeLayerBroker` finds under it, each an absolute path — never a fixed set
- * of known names, which is how a recorded video went unlisted. `rssMB` (current) and `rssAtLastBeat`
- * (from the heartbeat file) never both carry a value: the first only while `state` is `'alive'`, the
- * second only once it is not. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`,
- * and `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
+ * of known names, which is how a recorded video went unlisted. `memory` is the live process-group
+ * reading while `state` is `'alive'` and the heartbeat file's last figure once it is not, tagged
+ * with which one it is. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`, and
+ * `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
  * actively-managed lane, never a leak, and the spec reserves "orphans" for what a dead one's driver
  * left BEHIND (siegelense-tooling.md:2497-2500, "a dead one carries … its surviving orphan pgids").
  * Reporting an alive instance's own lane under that name reads as a leak that is not there.
- * `shutdownReasonReadBroker` draws the SAME line as `orphans`/`rssAtLastBeat`: it runs only once
+ * `shutdownReasonReadBroker` draws the SAME line as `orphans`/`memory`: it runs only once
  * `state` is not `'alive'`, and its result feeds `likelyCauseLayerBroker` so a driver's own recorded
  * reason for tearing its lane down (an idle-timeout self-reap) reaches `likelyCause` verbatim instead
  * of the RSS/OOM reading standing in for it.
@@ -42,6 +43,7 @@ import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-re
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceEvidenceListingContract } from '../../../contracts/instance-evidence-listing/instance-evidence-listing-contract';
+import { instanceMemoryContract } from '../../../contracts/instance-memory/instance-memory-contract';
 import { instanceStatusContract } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceStatus } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
@@ -118,6 +120,15 @@ export const instanceEntryLayerBroker = async ({
       : elapsedRenderTransformer({ elapsedMs: epochMsContract.parse(nowMs - entry.lastBeatMs) });
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
+  const memory =
+    state === 'alive'
+      ? rssMB === null
+        ? null
+        : instanceMemoryContract.parse({ megabytes: rssMB, measured: 'live' })
+      : rssAtLastBeat === null
+        ? null
+        : instanceMemoryContract.parse({ megabytes: rssAtLastBeat, measured: 'at-last-beat' });
+  const lastRunSaved = lastRunId === null ? null : evidenceComplete;
 
   // Sequential, run only AFTER the Promise.all above has fully settled: profileSoloReadLayerBroker
   // reaches profileReadBroker, which joins its own paths through the SAME shared pathJoinAdapter
@@ -144,14 +155,13 @@ export const instanceEntryLayerBroker = async ({
       uptime,
       lastBeat,
       runs,
-      rssMB,
-      rssAtLastBeat,
+      memory,
       lastStep: null,
       orphans,
       evidence: null,
       likelyCause,
       branch: entry.branch ?? null,
-      evidenceComplete,
+      lastRunSaved,
     });
   }
 
@@ -169,14 +179,13 @@ export const instanceEntryLayerBroker = async ({
       uptime,
       lastBeat,
       runs,
-      rssMB,
-      rssAtLastBeat,
+      memory,
       lastStep: null,
       orphans,
       evidence,
       likelyCause,
       branch: entry.branch ?? null,
-      evidenceComplete,
+      lastRunSaved,
     });
   }
 
@@ -198,8 +207,7 @@ export const instanceEntryLayerBroker = async ({
     uptime,
     lastBeat,
     runs,
-    rssMB,
-    rssAtLastBeat,
+    memory,
     lastStep:
       lastReading === null
         ? null
@@ -212,6 +220,6 @@ export const instanceEntryLayerBroker = async ({
     evidence,
     likelyCause,
     branch: entry.branch ?? null,
-    evidenceComplete,
+    lastRunSaved,
   });
 };

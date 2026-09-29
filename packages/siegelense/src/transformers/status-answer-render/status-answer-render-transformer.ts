@@ -2,7 +2,9 @@
  * PURPOSE: Renders a `StatusAnswer` into the text a person reads at a terminal — the fleet form
  * (monitored vocabulary, machine reading, one line per instance) whenever no single instance
  * carries evidence, and the full single-instance form (last beat, last step, MEMORY, orphans,
- * the evidence directory and its file tree, likelyCause) when the one instance present does. MEMORY is the last measured
+ * the evidence directory and its file tree, likelyCause) when the one instance present does. The
+ * MACHINE line says `OOM kills unreadable` when the kernel counter could not be read, so it never
+ * reads like a count of zero. MEMORY is the last measured
  * memory of the instance's processes — for a killed instance, its footprint when it ended — labelled
  * plainly rather than as "RSS". Evidence is non-null only for a NAMED
  * query — `statusReadBroker`'s own no-browsing rule leaves it `null` on every fleet row — so that
@@ -59,7 +61,7 @@ export const statusAnswerRenderTransformer = ({
   since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): ContentText => {
   const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
-  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
+  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? 'unreadable'}`;
 
   if (answer.instances.length === 0) {
     if (instanceId !== null) {
@@ -109,11 +111,11 @@ export const statusAnswerRenderTransformer = ({
         ? '-'
         : `${onlyInstance.lastStep.run} step ${onlyInstance.lastStep.step} ${onlyInstance.lastStep.verb}`;
     const rssText =
-      onlyInstance.rssMB === null
-        ? onlyInstance.rssAtLastBeat === null
-          ? '-'
-          : `at last beat ${onlyInstance.rssAtLastBeat}MB`
-        : `${onlyInstance.rssMB}MB`;
+      onlyInstance.memory === null
+        ? '-'
+        : onlyInstance.memory.measured === 'live'
+          ? `${onlyInstance.memory.megabytes}MB`
+          : `at last beat ${onlyInstance.memory.megabytes}MB`;
 
     const { headers: singleHeaders, cellPadding: singleCellPadding } =
       statusTableStatics.singleInstanceTable;
@@ -158,12 +160,7 @@ export const statusAnswerRenderTransformer = ({
   const { headers, cellPadding } = statusTableStatics.table;
 
   const rows = answer.instances.map((instance) => {
-    const rss =
-      instance.rssMB === null
-        ? instance.rssAtLastBeat === null
-          ? '-'
-          : `${instance.rssAtLastBeat}MB`
-        : `${instance.rssMB}MB`;
+    const rss = instance.memory === null ? '-' : `${instance.memory.megabytes}MB`;
     return [
       instance.id,
       instance.state,

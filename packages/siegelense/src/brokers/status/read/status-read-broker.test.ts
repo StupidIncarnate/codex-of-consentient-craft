@@ -93,7 +93,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: ids.map((id) => ({
             id,
@@ -102,14 +101,13 @@ describe('statusReadBroker', () => {
             uptime: '1m',
             lastBeat: '1s',
             runs: 0,
-            rssMB: 0,
-            rssAtLastBeat: null,
+            memory: { megabytes: 0, measured: 'live' },
             lastStep: null,
             orphans: [],
             evidence: null,
             likelyCause: null,
             branch: null,
-            evidenceComplete: true,
+            lastRunSaved: null,
           })),
         }),
       );
@@ -146,7 +144,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [],
         }),
@@ -155,7 +152,7 @@ describe('statusReadBroker', () => {
   });
 
   describe('a named dead instance, with a completed run', () => {
-    it('VALID: {instanceId named, a dead instance} => evidence, lastStep, orphans, rssAtLastBeat and likelyCause all populated', async () => {
+    it('VALID: {instanceId named, a dead instance} => evidence, lastStep, orphans, memory at last beat and likelyCause all populated', async () => {
       const proxy = statusReadBrokerProxy();
       const nowMs = 1_700_001_000_000;
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
@@ -272,7 +269,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [
             {
@@ -282,8 +278,7 @@ describe('statusReadBroker', () => {
               uptime: null,
               lastBeat: '4m',
               runs: 2,
-              rssMB: null,
-              rssAtLastBeat: 2980,
+              memory: { megabytes: 2980, measured: 'at-last-beat' },
               lastStep: { run: 'run_2', step: 7, verb: 'click' },
               orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
               evidence: {
@@ -313,7 +308,7 @@ describe('statusReadBroker', () => {
               likelyCause:
                 'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
               branch: null,
-              evidenceComplete: false,
+              lastRunSaved: false,
             },
           ],
           queriedInstanceState: 'dead',
@@ -355,7 +350,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [],
           queriedInstanceState: 'unknown',
@@ -430,14 +424,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'feat/branch-a',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -509,14 +502,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -588,14 +580,13 @@ describe('statusReadBroker', () => {
           uptime: null,
           lastBeat: null,
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: null,
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -691,14 +682,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
         {
           id: idOld,
@@ -707,14 +697,13 @@ describe('statusReadBroker', () => {
           uptime: null,
           lastBeat: '7h',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -786,14 +775,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });

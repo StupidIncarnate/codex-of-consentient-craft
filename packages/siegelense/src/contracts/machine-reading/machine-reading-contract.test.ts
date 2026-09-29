@@ -11,7 +11,6 @@ describe('machineReadingContract', () => {
         cores: 8,
         loadAvg: [7.9, 6.2, 4.1],
         oomKillsSinceBoot: 2,
-        lastOomAt: '20:11:04',
       });
 
       const result = machineReadingContract.parse(reading);
@@ -23,11 +22,10 @@ describe('machineReadingContract', () => {
         cores: 8,
         loadAvg: [7.9, 6.2, 4.1],
         oomKillsSinceBoot: 2,
-        lastOomAt: '20:11:04',
       });
     });
 
-    it('VALID: {freeDiskMB: null, oomKillsSinceBoot: null, lastOomAt: null} => the unavailable case is a real reading', () => {
+    it('VALID: {freeDiskMB: null, oomKillsSinceBoot: null} => the unavailable case is a real reading', () => {
       const reading = MachineReadingStub({
         freeMemMB: 980,
         totalMemMB: 16_000,
@@ -35,7 +33,6 @@ describe('machineReadingContract', () => {
         cores: 8,
         loadAvg: [7.9, 6.2, 4.1],
         oomKillsSinceBoot: null,
-        lastOomAt: null,
       });
 
       const result = machineReadingContract.parse(reading);
@@ -47,7 +44,6 @@ describe('machineReadingContract', () => {
         cores: 8,
         loadAvg: [7.9, 6.2, 4.1],
         oomKillsSinceBoot: null,
-        lastOomAt: null,
       });
     });
   });
@@ -61,7 +57,6 @@ describe('machineReadingContract', () => {
           cores: 8,
           loadAvg: [7.9, 6.2, 4.1],
           oomKillsSinceBoot: null,
-          lastOomAt: null,
         }),
       ).toThrow(/Required/u);
     });
@@ -74,7 +69,6 @@ describe('machineReadingContract', () => {
           cores: 8,
           loadAvg: [7.9, 6.2, 4.1],
           oomKillsSinceBoot: null,
-          lastOomAt: null,
         }),
       ).toThrow(/Required/u);
     });
@@ -88,7 +82,6 @@ describe('machineReadingContract', () => {
           cores: 8,
           loadAvg: [7.9, 6.2, 4.1],
           oomKillsSinceBoot: null,
-          lastOomAt: null,
         }),
       ).toThrow(/Number must be greater than or equal to 0/u);
     });

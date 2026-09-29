@@ -24,7 +24,7 @@ const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }
 
 describe('instanceEntryLayerBroker', () => {
   describe('an alive instance, not named', () => {
-    it('VALID: {alive, unnamed, empty pgids} => uptime, lastBeat and rssMB populated; lastStep and evidence stay null', async () => {
+    it('VALID: {alive, unnamed, empty pgids} => uptime, lastBeat and live memory populated; lastStep and evidence stay null', async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
@@ -72,8 +72,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: '14m',
           lastBeat: '2s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          lastRunSaved: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
@@ -130,8 +130,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: '14m',
           lastBeat: '2s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          lastRunSaved: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
@@ -201,8 +201,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          lastRunSaved: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: {
@@ -280,8 +280,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          lastRunSaved: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: {
@@ -376,8 +376,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: 622,
+          lastRunSaved: null,
+          memory: { megabytes: 622, measured: 'at-last-beat' },
           lastStep: null,
           orphans: [],
           evidence: {
@@ -403,7 +403,7 @@ describe('instanceEntryLayerBroker', () => {
   });
 
   describe('a dead instance, named, with a completed run', () => {
-    it("VALID: {dead, named, one prior run and a dying run} => last beat, last step, rssAtLastBeat, orphan pgids and every evidence file (both runs' shots and the video) populated", async () => {
+    it("VALID: {dead, named, one prior run and a dying run} => last beat, last step, memory at last beat, orphan pgids and every evidence file (both runs' shots and the video) populated", async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -520,8 +520,7 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 2,
-          rssMB: null,
-          rssAtLastBeat: 2980,
+          memory: { megabytes: 2980, measured: 'at-last-beat' },
           lastStep: { run: 'run_2', step: 7, verb: 'click' },
           orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
           evidence: {
@@ -566,7 +565,7 @@ describe('instanceEntryLayerBroker', () => {
           },
           likelyCause:
             'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
-          evidenceComplete: false,
+          lastRunSaved: false,
         }),
       );
     });
@@ -636,8 +635,8 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: 609,
+          lastRunSaved: null,
+          memory: { megabytes: 609, measured: 'at-last-beat' },
           lastStep: null,
           orphans: [],
           evidence: {
@@ -655,7 +654,7 @@ describe('instanceEntryLayerBroker', () => {
   });
 
   describe('a killed instance, named, distinguishing a clean stop from a crash mid-run', () => {
-    it('VALID: {killed, named, run_1 finished cleanly} => evidenceComplete true and likelyCause null, because a plain kill is deliberate', async () => {
+    it('VALID: {killed, named, run_1 finished cleanly} => lastRunSaved true and likelyCause null, because a plain kill is deliberate', async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0002' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -737,8 +736,7 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 1,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: { run: 'run_1', step: 3, verb: 'click' },
           orphans: [],
           evidence: {
@@ -762,12 +760,12 @@ describe('instanceEntryLayerBroker', () => {
             ],
           },
           likelyCause: null,
-          evidenceComplete: true,
+          lastRunSaved: true,
         }),
       );
     });
 
-    it('VALID: {killed, named, run_2 crashed mid-step with no run_2.json} => evidenceComplete false, proving the field says something state does not', async () => {
+    it('VALID: {killed, named, run_2 crashed mid-step with no run_2.json} => lastRunSaved false, proving the field says something state does not', async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0003' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -835,8 +833,7 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 2,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: { run: 'run_2', step: 7, verb: 'click' },
           orphans: [],
           evidence: {
@@ -847,7 +844,7 @@ describe('instanceEntryLayerBroker', () => {
             files: [],
           },
           likelyCause: null,
-          evidenceComplete: false,
+          lastRunSaved: false,
         }),
       );
     });
@@ -920,8 +917,7 @@ describe('instanceEntryLayerBroker', () => {
           uptime: null,
           lastBeat: '4m',
           runs: 2,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: {
@@ -932,7 +928,7 @@ describe('instanceEntryLayerBroker', () => {
             files: [],
           },
           likelyCause: null,
-          evidenceComplete: false,
+          lastRunSaved: false,
         }),
       );
     });
