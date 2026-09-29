@@ -18,12 +18,18 @@ export const resolveSpawnedProgramLayerBroker = ({
   commandNode,
   argsNode,
   moduleBody,
+  filename,
 }: {
   commandNode: Tsestree | undefined;
   argsNode: Tsestree | undefined;
   moduleBody: readonly Tsestree[];
+  filename?: string | undefined;
 }): ContentText | undefined => {
-  const resolvedCommand = resolveStaticStringLayerBroker({ node: commandNode, moduleBody });
+  const resolvedCommand = resolveStaticStringLayerBroker({
+    node: commandNode,
+    moduleBody,
+    filename,
+  });
   if (resolvedCommand === undefined) {
     return undefined;
   }
@@ -46,10 +52,10 @@ export const resolveSpawnedProgramLayerBroker = ({
     const flag =
       flagNode === null || flagNode === undefined
         ? undefined
-        : resolveStaticStringLayerBroker({ node: flagNode, moduleBody });
+        : resolveStaticStringLayerBroker({ node: flagNode, moduleBody, filename });
     const script =
       flag === '-c' && scriptNode !== null && scriptNode !== undefined
-        ? resolveStaticStringLayerBroker({ node: scriptNode, moduleBody })
+        ? resolveStaticStringLayerBroker({ node: scriptNode, moduleBody, filename })
         : undefined;
     if (script !== undefined) {
       return firstWordTransformer({ text: script });

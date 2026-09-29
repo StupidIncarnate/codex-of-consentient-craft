@@ -178,6 +178,53 @@ describe('resolveStaticStringLayerBroker', () => {
     });
   });
 
+  describe('imported statics object property', () => {
+    const importedMember = TsestreeStub({
+      type: TsestreeNodeType.MemberExpression,
+      computed: false,
+      object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'bundleStatics' }),
+      property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'buildCommand' }),
+    });
+    const bundleImport = TsestreeStub({
+      type: TsestreeNodeType.ImportDeclaration,
+      source: TsestreeStub({
+        type: TsestreeNodeType.Literal,
+        value: '../../../statics/bundle/bundle-statics',
+      }),
+      specifiers: [
+        TsestreeStub({
+          type: TsestreeNodeType.ImportSpecifier,
+          imported: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'bundleStatics' }),
+          local: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'bundleStatics' }),
+        }),
+      ],
+    });
+
+    it('VALID: {bundleStatics.buildCommand, imported from a relative path, filename given} => returns the statics file value', () => {
+      const proxy = resolveStaticStringLayerBrokerProxy();
+      proxy.setupImportedFile({
+        path: '/repo/packages/ward/src/statics/bundle/bundle-statics.ts',
+        contents: "export const bundleStatics = { buildCommand: 'npm' } as const;",
+      });
+
+      expect(
+        resolveStaticStringLayerBroker({
+          node: importedMember,
+          moduleBody: [bundleImport],
+          filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
+        }),
+      ).toBe('npm');
+    });
+
+    it('EMPTY: {imported object, no filename} => returns undefined without reading a file', () => {
+      resolveStaticStringLayerBrokerProxy();
+
+      expect(
+        resolveStaticStringLayerBroker({ node: importedMember, moduleBody: [bundleImport] }),
+      ).toBe(undefined);
+    });
+  });
+
   describe('unresolvable node shapes', () => {
     it('EMPTY: {node: undefined} => returns undefined', () => {
       resolveStaticStringLayerBrokerProxy();

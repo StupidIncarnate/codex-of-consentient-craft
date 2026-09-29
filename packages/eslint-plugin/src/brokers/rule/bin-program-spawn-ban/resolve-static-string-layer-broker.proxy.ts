@@ -2,15 +2,25 @@
  * PURPOSE: Proxy for resolveStaticStringLayerBroker
  *
  * USAGE:
- * resolveStaticStringLayerBrokerProxy();
+ * const proxy = resolveStaticStringLayerBrokerProxy();
+ * proxy.setupImportedFile({ path, contents }); // the statics file an imported object lives in
  *
- * WHEN-TO-USE: Composes findModuleConstInitLayerBrokerProxy (enforce-proxy-child-creation) — the
- * layer itself is a pure AST walk with no I/O boundary of its own to mock.
+ * WHEN-TO-USE: Composes findModuleConstInitLayerBrokerProxy and resolveImportedStaticsLayerBrokerProxy
+ * (enforce-proxy-child-creation) — the layer itself is a pure AST walk; the only I/O boundary is the
+ * statics file the imported-statics layer reads, staged through `setupImportedFile`.
  */
 import { findModuleConstInitLayerBrokerProxy } from './find-module-const-init-layer-broker.proxy';
+import { resolveImportedStaticsLayerBrokerProxy } from './resolve-imported-statics-layer-broker.proxy';
 
-export const resolveStaticStringLayerBrokerProxy = (): Record<PropertyKey, never> => {
+export const resolveStaticStringLayerBrokerProxy = (): {
+  setupImportedFile: (args: { path: string; contents: string }) => void;
+} => {
   findModuleConstInitLayerBrokerProxy();
+  const importedProxy = resolveImportedStaticsLayerBrokerProxy();
 
-  return {};
+  return {
+    setupImportedFile: ({ path, contents }: { path: string; contents: string }): void => {
+      importedProxy.setupFile({ path, contents });
+    },
+  };
 };

@@ -9,7 +9,7 @@
  * suggestion must read identically in every consumer repo.
  *
  * USAGE:
- * reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody });
+ * reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody, filename });
  * // Calls ctx.report() when the resolved command names a homed program, otherwise does nothing
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
@@ -26,14 +26,21 @@ export const reportBinProgramSpawnLayerBroker = ({
   commandNode,
   argsNode,
   moduleBody,
+  filename,
 }: {
   ctx: EslintContext;
   node: Tsestree;
   commandNode: Tsestree | undefined;
   argsNode: Tsestree | undefined;
   moduleBody: readonly Tsestree[];
+  filename?: string | undefined;
 }): AdapterResult => {
-  const program = resolveSpawnedProgramLayerBroker({ commandNode, argsNode, moduleBody });
+  const program = resolveSpawnedProgramLayerBroker({
+    commandNode,
+    argsNode,
+    moduleBody,
+    filename,
+  });
   const home =
     program !== undefined && program in binProgramHomeStatics.programs
       ? binProgramHomeStatics.programs[program as keyof typeof binProgramHomeStatics.programs]

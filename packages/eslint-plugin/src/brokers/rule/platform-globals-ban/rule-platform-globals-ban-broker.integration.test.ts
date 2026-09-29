@@ -27,6 +27,8 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
     { code: '__dirname;', filename: NODE_PACKAGE_FILE },
     { code: '__filename;', filename: NODE_PACKAGE_FILE },
     { code: "require('./x');", filename: NODE_PACKAGE_FILE },
+    { code: 'module.exports = {};', filename: NODE_PACKAGE_FILE },
+    { code: 'const isEntry = require.main === module;', filename: NODE_PACKAGE_FILE },
     // A type position never runs — Buffer as a parameter type, not a value
     { code: 'const f = (b: Buffer): void => undefined;', filename: NODE_PACKAGE_FILE },
     // useRef<HTMLDivElement> — the type argument is a type position too

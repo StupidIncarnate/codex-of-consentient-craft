@@ -1,14 +1,20 @@
 /**
  * PURPOSE: Bans a direct spawn of a program that has a home in `@<scope>/bin` (`git`, `npm`,
  * `claude`, `cp`, `lsof`, `kill`) from anywhere outside the gateway packages. Reads the spawned
- * command off a `@<scope>/node/child_process` gateway call's `command` property, or off a raw
- * `child_process` call's first argument — the raw shape is checked too, independent of whether
- * `raw-import-ban` is even enabled, per the design doc. Command resolution is intentionally narrow:
- * a string literal, a template literal's static leading text, a `sh -c '<script>'` string (combined
- * or split across `command`/`args`), and a same-module `const` or `const` object property. Anything
- * else — a runtime value, an imported statics object's property, `process.execPath` — is NOT
- * resolved, and the call is silently allowed, matching the doc's own "commands built at runtime are
- * allowed" rule: this rule fails OPEN, never reporting "cannot determine command".
+ * command off a gateway `child_process` call's `command` property — imported as
+ * `#gateway/node/child_process` (how every caller imports it) or `@<scope>/node/child_process` — or
+ * off a raw `child_process` call's first argument. A raw function (`spawn`, `execSync`, …) imported
+ * from the gateway subpath is read as the raw shape, since that subpath re-exports Node's module.
+ * The raw shape is checked independent of whether `raw-import-ban` is even enabled, per the design
+ * doc. Command resolution is intentionally narrow: a string literal, a template literal's static
+ * leading text, a `sh -c '<script>'` string (combined or split across `command`/`args`), a
+ * same-module `const` or `const` object property, and a property of an object imported BY NAME from
+ * a RELATIVE path (the statics file is read and scanned; see `resolveImportedStaticsLayerBroker`).
+ * Anything else — a runtime value, a property reached through a workspace-package or `#` import, a
+ * default or namespace import, a nested statics object, `process.execPath` — is NOT resolved, and
+ * the call is silently allowed, matching the doc's own "commands built at runtime are allowed"
+ * rule: this rule fails OPEN, never reporting "cannot determine command". A namespace import of the
+ * gateway (`import * as cp from '#gateway/node/child_process'`) is not tracked.
  *
  * USAGE:
  * const rule = ruleBinProgramSpawnBanBroker();
@@ -17,6 +23,7 @@
  */
 import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -79,7 +86,8 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
       return defaultScopeCache.value;
     })();
 
-    const gatewayChildProcessSource = `${scope}/node/child_process`;
+    const scopedGatewaySource = `${scope}/${gatewayLocationsStatics.folders.node}/child_process`;
+    const aliasedGatewaySource = `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.node}/child_process`;
 
     let moduleBody: Tsestree[] = [];
     const gatewayLocalNames = new Set<ContentText>();
@@ -99,9 +107,12 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
             continue;
           }
 
-          const isGatewaySource = source === gatewayChildProcessSource;
-          const isRawSource = source === 'child_process' || source === 'node:child_process';
-          if (!isGatewaySource && !isRawSource) {
+          const isGatewaySource = source === scopedGatewaySource || source === aliasedGatewaySource;
+          const isNodeModuleSource = source === 'child_process' || source === 'node:child_process';
+          // The gateway subpath is `export * from 'child_process'` plus its own wrappers, so its raw
+          // names (`spawn`, `execSync`, …) are the raw positional shape too.
+          const isRawSource = isNodeModuleSource || isGatewaySource;
+          if (!isGatewaySource && !isNodeModuleSource) {
             continue;
           }
 
@@ -137,7 +148,7 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
               }
             }
 
-            if (specifier.type === 'ImportNamespaceSpecifier' && isRawSource) {
+            if (specifier.type === 'ImportNamespaceSpecifier' && isNodeModuleSource) {
               const localName =
                 specifier.local?.type === 'Identifier'
                   ? contentTextContract.parse(String(specifier.local.name))
@@ -172,6 +183,7 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
             commandNode: objectPropertyValueTransformer({ properties, name: 'command' }),
             argsNode: objectPropertyValueTransformer({ properties, name: 'args' }),
             moduleBody,
+            filename,
           });
           return;
         }
@@ -208,7 +220,14 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
         )
           ? undefined
           : secondArg;
-        reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody });
+        reportBinProgramSpawnLayerBroker({
+          ctx,
+          node,
+          commandNode,
+          argsNode,
+          moduleBody,
+          filename,
+        });
       },
     };
   },

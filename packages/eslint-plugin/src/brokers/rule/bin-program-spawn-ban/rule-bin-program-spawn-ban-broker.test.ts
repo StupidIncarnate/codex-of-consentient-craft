@@ -3,6 +3,11 @@ import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-t
 
 const ruleTester = ruleTesterHarness();
 
+// The cross-file cases read a real statics file, which a unit test's I/O trap refuses; they live in
+// rule-bin-program-spawn-ban-broker.integration.test.ts.
+const WARD_BUILD_BROKER_FILE =
+  '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts';
+
 // Every case passes `scope` explicitly (except the gateway-exempt ones, which return before scope
 // is ever read) so this rule's own unit test never falls through to the real filesystem walk.
 ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
@@ -39,6 +44,27 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
     // --- a call to an untracked function is not a spawn at all ---
     {
       code: "import { spawn } from 'child_process'; doSomething('git');",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+
+    // --- a program with no home in the bin gateway is allowed through the '#gateway' alias too ---
+    {
+      code: "import { run } from '#gateway/node/child_process'; run({ command: 'tsc', args: ['--noEmit'], cwd: '/repo' });",
+      filename: '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+
+    // --- an imported object the rule cannot read (a workspace-package import) fails open ---
+    {
+      code: "import { run } from '#gateway/node/child_process'; import { wardStatics } from '@dungeonmaster/shared/statics'; run({ command: wardStatics.command, args: [], cwd: '/repo' });",
+      filename: WARD_BUILD_BROKER_FILE,
+      options: [{ scope: '@dungeonmaster' }],
+    },
+
+    // --- a namespace import of the gateway is not tracked (documented gap) ---
+    {
+      code: "import * as childProcess from '#gateway/node/child_process'; childProcess.run({ command: 'git', args: [], cwd: '/repo' });",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
       options: [{ scope: '@dungeonmaster' }],
     },
@@ -148,6 +174,70 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
         {
           messageId: 'binProgramSpawn',
           data: { program: 'npm', binFunction: 'install', gatewayPath: '#gateway/bin/npm' },
+        },
+      ],
+    },
+
+    // --- git, through the '#gateway/node/child_process' alias every caller imports ---
+    {
+      code: "import { run } from '#gateway/node/child_process'; run({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: '/repo' });",
+      filename: '/repo/packages/ward/src/brokers/git/head/git-head-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'git',
+            binFunction: 'currentBranch',
+            gatewayPath: '#gateway/bin/git',
+          },
+        },
+      ],
+    },
+
+    // --- every gateway function is tracked, aliased locals included ---
+    {
+      code: "import { spawnLive as live } from '#gateway/node/child_process'; live({ command: 'claude', args: ['--print'], cwd: '/repo' });",
+      filename: '/repo/packages/orchestrator/src/brokers/agent/x/agent-x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'claude',
+            binFunction: 'spawnStreamJson',
+            gatewayPath: '#gateway/bin/claude',
+          },
+        },
+      ],
+    },
+
+    // --- a raw function re-exported by the gateway subpath is the raw positional shape ---
+    {
+      code: "import { execSync } from '#gateway/node/child_process'; execSync('lsof -ti :3737');",
+      filename: '/repo/packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'lsof',
+            binFunction: 'listeningPids',
+            gatewayPath: '#gateway/bin/lsof',
+          },
+        },
+      ],
+    },
+
+    // --- the '@<scope>' gateway spelling is still caught alongside the alias ---
+    {
+      code: "import { runSync } from '@acme/node/child_process'; runSync({ command: 'kill', args: ['-9', '1'] });",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@acme' }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: { program: 'kill', binFunction: 'killPid', gatewayPath: '#gateway/bin/kill' },
         },
       ],
     },

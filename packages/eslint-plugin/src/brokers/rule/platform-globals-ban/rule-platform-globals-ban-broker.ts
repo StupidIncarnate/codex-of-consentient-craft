@@ -35,9 +35,10 @@ import { resolvePackagePlatformLayerBroker } from './resolve-package-platform-la
 import { resolveGatewayScopeLayerBroker } from './resolve-gateway-scope-layer-broker';
 
 // CommonJS module-scope values: each module gets its own copy (`__dirname` is the calling file's
-// own folder), so exporting one from the gateway would describe the gateway's folder instead —
-// the one exemption the design doc carves out of the globals rule by name.
-const EXEMPT_NAMES = new Set(['require', '__dirname', '__filename']);
+// own folder, `module` is the calling file's own module record — `require.main === module` asks
+// whether THIS file is the entry point), so exporting one from the gateway would describe the
+// gateway's file instead — the one exemption the design doc carves out of the globals rule by name.
+const EXEMPT_NAMES = new Set(['require', '__dirname', '__filename', 'module']);
 
 export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
