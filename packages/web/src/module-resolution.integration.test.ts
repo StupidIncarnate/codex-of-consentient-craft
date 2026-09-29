@@ -25,7 +25,7 @@ describe('jest module resolution', () => {
       const resolved = require.resolve('@dungeonmaster/shared/statics');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/statics.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/statics/statics.ts`,
         insideDist: false,
       });
     });
@@ -34,7 +34,7 @@ describe('jest module resolution', () => {
       const resolved = require.resolve('@dungeonmaster/shared/contracts');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/contracts.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/contracts/contracts.ts`,
         insideDist: false,
       });
     });

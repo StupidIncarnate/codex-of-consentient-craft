@@ -19,19 +19,19 @@ describe('jest module resolution', () => {
     it('VALID: {@dungeonmaster/shared/statics} => resolves to the source barrel', () => {
       const resolved = require.resolve('@dungeonmaster/shared/statics');
 
-      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/statics.ts`);
+      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/src/statics/statics.ts`);
     });
 
     it('VALID: {@dungeonmaster/shared/contracts} => resolves to the source barrel', () => {
       const resolved = require.resolve('@dungeonmaster/shared/contracts');
 
-      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/contracts.ts`);
+      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/src/contracts/contracts.ts`);
     });
 
     it('VALID: {@dungeonmaster/shared/transformers} => resolves to the source barrel', () => {
       const resolved = require.resolve('@dungeonmaster/shared/transformers');
 
-      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/transformers.ts`);
+      expect(resolved).toBe(`${REPO_ROOT}/packages/shared/src/transformers/transformers.ts`);
     });
   });
 

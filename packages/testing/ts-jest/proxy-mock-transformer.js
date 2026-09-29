@@ -23,18 +23,19 @@ const {
   typescriptProgramContract,
 } = require('../src/contracts/typescript-program/typescript-program-contract');
 
-// Compute version from shared/testing.ts barrel AND all proxy files across the monorepo,
+// Compute version from shared's package.json (its `./*.proxy` and `./*.stub` export keys decide which files
+// a per-file test import reaches) AND all proxy files across the monorepo,
 // so cache invalidates when any proxy file's jest.mock() calls change.
 // Proxy files outside the test file itself affect the hoisted mocks, so ALL proxy files
 // must contribute to the cache key.
 const computeVersion = () => {
   try {
     const { globSync } = require('glob');
-    const barrelPath = path.resolve(__dirname, '../../shared/testing.ts');
+    const sharedManifestPath = path.resolve(__dirname, '../../shared/package.json');
     const packagesRoot = path.resolve(__dirname, '../../');
     const hash = crypto.createHash('md5');
 
-    hash.update(fs.readFileSync(barrelPath, 'utf-8'));
+    hash.update(fs.readFileSync(sharedManifestPath, 'utf-8'));
     hash.update(
       fs.readFileSync(
         path.resolve(

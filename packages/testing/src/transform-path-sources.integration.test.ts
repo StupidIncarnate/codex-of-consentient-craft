@@ -56,7 +56,7 @@ describe('jest transform path', () => {
       });
 
       expect(resolvedPaths).toStrictEqual([
-        { relativePath: '../../shared/testing.ts', exists: true },
+        { relativePath: '../../shared/package.json', exists: true },
         { relativePath: '../../', exists: true },
         {
           relativePath:
