@@ -30,7 +30,7 @@ import type {
   PathSegment,
 } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
-import { stdin, stdout } from '#gateway/node/process';
+import { getStdin, stdout } from '#gateway/node/process';
 import { question } from '#gateway/node/readline';
 
 import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-config/package-scaffold-config-statics';
@@ -53,7 +53,7 @@ export const createPackageResolveRequestBroker = async ({
     args.name === undefined
       ? interactive
         ? await question({
-            input: stdin,
+            input: getStdin(),
             output: stdout,
             prompt: 'Package name: ',
             fallback: '',
@@ -95,7 +95,7 @@ export const createPackageResolveRequestBroker = async ({
     args.packageType === undefined
       ? interactive
         ? await question({
-            input: stdin,
+            input: getStdin(),
             output: stdout,
             prompt: 'Package type: ',
             fallback: 'library',
@@ -124,7 +124,7 @@ export const createPackageResolveRequestBroker = async ({
       ? interactive
         ? contentTextContract.parse(
             await question({
-              input: stdin,
+              input: getStdin(),
               output: stdout,
               prompt: 'Description: ',
               fallback: descriptionDefault,

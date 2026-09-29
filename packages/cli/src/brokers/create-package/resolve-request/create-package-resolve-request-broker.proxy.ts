@@ -1,5 +1,5 @@
 import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
-import { stdinProxy } from '#gateway/node/process/stdin/stdin.proxy';
+import { getStdinProxy } from '#gateway/node/process/get-stdin/get-stdin.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { questionProxy } from '#gateway/node/readline/question/question.proxy';
 
@@ -7,12 +7,14 @@ export const createPackageResolveRequestBrokerProxy = (): {
   setupAnswers: (params: { name?: string; packageType?: string; description?: string }) => void;
   getPromptsAsked: () => readonly ContentText[];
 } => {
-  stdinProxy();
+  const stdin = getStdinProxy();
   stdoutProxy();
   const question = questionProxy();
 
   return {
     setupAnswers: ({ name, packageType, description }): void => {
+      stdin.setupStream();
+
       if (name !== undefined) {
         question.answers({ prompt: 'Package name: ', answer: name });
       }

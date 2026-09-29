@@ -3,7 +3,7 @@
  * colocated file with its own `.test.ts`/`.proxy.ts` — a global capture (`stdout`, `stderr`,
  * `argv`, `pid`, `platform`, `execPath`) same as a real wrapper function (`cwd`, `exit`, `on`,
  * `kill`, `getEnv`, `setEnv`, `deleteEnv`, `envSnapshot`, `chdir`, `nextTick`, `emit`,
- * `removeAllListeners`, `readStdinToEnd`, `stdinIsTty`, `getExitCode`, `setExitCode`) — so this file holds only
+ * `removeAllListeners`, `readStdinToEnd`, `getStdin`, `stdinIsTty`, `getExitCode`, `setExitCode`) — so this file holds only
  * re-exports, never an implementation of its own.
  *
  * USAGE:
@@ -21,6 +21,7 @@ export { exit } from './exit/exit';
 export { getEnv } from './get-env/get-env';
 export { getExitCode } from './get-exit-code/get-exit-code';
 export { getPlatform } from './get-platform/get-platform';
+export { getStdin } from './get-stdin/get-stdin';
 export { kill } from './kill/kill';
 export { nextTick } from './next-tick/next-tick';
 export { on } from './on/on';
@@ -31,6 +32,5 @@ export { removeAllListeners } from './remove-all-listeners/remove-all-listeners'
 export { setEnv } from './set-env/set-env';
 export { setExitCode } from './set-exit-code/set-exit-code';
 export { stderr } from './stderr/stderr';
-export { stdin } from './stdin/stdin';
 export { stdinIsTty } from './stdin-is-tty/stdin-is-tty';
 export { stdout } from './stdout/stdout';

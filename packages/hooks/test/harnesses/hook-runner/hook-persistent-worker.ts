@@ -5,7 +5,7 @@
  * echo '{"hookData":{...}}' | npx tsx hook-persistent-worker.ts /path/to/flow
  * // Reads {hookData?, rawInput?, args?} envelopes per line, processes through the flow, outputs results as NDJSON
  */
-import { argv, exit, stderr, stdin, stdout } from '#gateway/node/process';
+import { argv, exit, getStdin, stderr, stdout } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
@@ -87,7 +87,7 @@ const main = async (): Promise<void> => {
 
   stdout.write('READY\n');
 
-  const reader = lineReader({ input: stdin });
+  const reader = lineReader({ input: getStdin() });
   // Envelopes are answered strictly in arrival order: each line chains onto the previous one's
   // completion, because a caller pairs every response with the request it sent by position.
   const queue: { tail: Promise<void> } = { tail: Promise.resolve() };

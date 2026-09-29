@@ -15,6 +15,7 @@ import {
   on,
   stdinIsTty,
   getPlatform,
+  getStdin,
 } from './process';
 
 describe('#gateway/node/process', () => {
@@ -48,6 +49,7 @@ describe('#gateway/node/process', () => {
       on,
       stdinIsTty,
       getPlatform,
+      getStdin,
     }).toStrictEqual({
       envSnapshot: expect.any(Function),
       setEnv: expect.any(Function),
@@ -59,6 +61,7 @@ describe('#gateway/node/process', () => {
       on: expect.any(Function),
       stdinIsTty: expect.any(Function),
       getPlatform: expect.any(Function),
+      getStdin: expect.any(Function),
     });
   });
 });
