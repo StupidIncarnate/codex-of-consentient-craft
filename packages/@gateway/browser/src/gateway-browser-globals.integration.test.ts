@@ -38,6 +38,7 @@ const browserGlobalNamesForTest = [
   'console',
   'createImageBitmap',
   'crypto',
+  'Date',
   'document',
   'Element',
   'Event',

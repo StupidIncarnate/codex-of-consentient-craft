@@ -109,6 +109,24 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
+### In flight — Phase 2 finish session (2026-09-28, late)
+
+The user asked to finish Phase 2 (A18 and A19) as fast as possible. This operator's plan:
+
+1. Fresh three-rule census of every package: `node tmp/a18-census/run.mjs <pkg>` writes `tmp/a18-census/<pkg>.json`
+   (config `tmp/a18-census.config.js`). First run: 745 files with hits; hooks, ward and local-eslint at 0.
+2. A codemod agent writes `tmp/a18-codemod/` (import specifier swaps, same-named gateway imports for globals,
+   read-only `process.X` rewrites), trialled on session-forensics and tooling. Then the operator applies it package
+   by package, gated per package.
+3. A read-only gap census writes `tmp/a18-census/gaps.md`: every gateway proxy method the hand work needs, built
+   first in gateway units, and the hand batches per package (web and orchestrator split into two disjoint halves).
+4. A19's prep runs now (folder type removed, `platform-globals-ban` shorthand and `page.evaluate` carve-out); only
+   the rule switch-on waits for A18.
+
+Landed this session: `build:clean` green; GB4 (`@gateway/browser` `consoleError`/`consoleWarn`/`consoleLog`/
+`consoleInfo`/`consoleDebug` with recording proxies, `randomUuid` with `randomUuidProxy`, `#gateway/browser/Date`
+`now`/`nowIso` with `setupNow`). Active: codemod, gap census, A19 prep, F77.
+
 Last updated 2026-09-28 night, at the end of an operator session. The user asked the operator to launch no more
 agents and to leave this file ready for the next handoff. Read this section, then the status tables. Git history
 holds every earlier handoff.
