@@ -24,11 +24,8 @@ export const configFileLoadBroker = async ({
     const filePath = filePathContract.parse(configPath);
     const fileContents = await readFile(filePath);
 
-    // Parse JSON contents
-    const configData: unknown = JSON.parse(fileContents);
-
     // Validate and return
-    return dungeonmasterConfigContract.parse(configData);
+    return dungeonmasterConfigContract.parse(JSON.parse(fileContents));
   } catch (error) {
     if (error instanceof InvalidConfigError) {
       throw error;
