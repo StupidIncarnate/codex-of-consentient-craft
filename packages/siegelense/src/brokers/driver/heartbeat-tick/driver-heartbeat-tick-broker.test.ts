@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { pid } from '#gateway/node/process';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -127,7 +128,11 @@ describe('driverHeartbeatTickBroker', () => {
       });
       proxy.stageSampleRecordFails({
         instanceId,
-        error: new Error('EACCES: profiles directory unwritable'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          syscall: 'open',
+          path: '/home/user/.dungeonmaster/siegelense/profiles',
+        }),
       });
 
       await expect(driverHeartbeatTickBroker({ instanceId, guildId: null, lane })).resolves.toBe(
@@ -136,7 +141,7 @@ describe('driverHeartbeatTickBroker', () => {
 
       expect(proxy.getStderrMessages()).toStrictEqual([
         '[heartbeat-tick] recording the profile sample for inst_7f3a9c21 failed, the beat itself ' +
-          'stands: Error: EACCES: profiles directory unwritable\n',
+          "stands: Error: EACCES: open '/home/user/.dungeonmaster/siegelense/profiles'\n",
       ]);
     });
   });

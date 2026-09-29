@@ -14,6 +14,7 @@ import type {
   Guild,
 } from '@dungeonmaster/shared/contracts';
 
+import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -36,7 +37,6 @@ import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.
 
 // Re-declared locally rather than imported: browser-session-contract.ts keeps its own parsing
 // contract private, the same reason step-dispatch-broker.proxy.ts re-declares matchCountContract.
-const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const ONE_MATCH_COUNT = 1;
 
@@ -395,14 +395,11 @@ export const runExecuteBrokerProxy = (): {
         browser: {
           goto: jest.fn().mockResolvedValue(undefined),
           capture: jest.fn().mockResolvedValue(undefined),
-          // Re-branded from ReadingCount to BufferLineCount — both are non-negative ints under a
-          // different domain brand, and the caller only has ReadingCount (an existing contract) to
-          // hand in without this proxy file importing zod for a one-off local brand.
-          bufferLengths: jest.fn().mockReturnValue({
-            consoleLines: bufferLineCountContract.parse(consoleStart),
-            networkLines: bufferLineCountContract.parse(networkStart),
-            websocketLines: bufferLineCountContract.parse(0),
-          }),
+          bufferLengths: jest
+            .fn()
+            .mockReturnValue(
+              BufferLengthsStub({ consoleLines: consoleStart, networkLines: networkStart }),
+            ),
           // Only one call happens per run against each of these (after the whole step loop), with
           // fromIndex fixed to the window's own start — so a constant return is enough to prove the
           // window reads forward from THAT index rather than from zero.
@@ -429,11 +426,9 @@ export const runExecuteBrokerProxy = (): {
         browser: {
           goto: gotoMock,
           capture: jest.fn().mockResolvedValue(undefined),
-          bufferLengths: jest.fn().mockImplementation(() => ({
-            consoleLines: bufferLineCountContract.parse(consoleBuffer.length),
-            networkLines: bufferLineCountContract.parse(0),
-            websocketLines: bufferLineCountContract.parse(0),
-          })),
+          bufferLengths: jest
+            .fn()
+            .mockImplementation(() => BufferLengthsStub({ consoleLines: consoleBuffer.length })),
           readConsoleSince: jest
             .fn()
             .mockImplementation(({ fromIndex }: { fromIndex: number }) =>
@@ -473,11 +468,9 @@ export const runExecuteBrokerProxy = (): {
           countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
           clickMatch: clickMock,
           capture: jest.fn().mockResolvedValue(undefined),
-          bufferLengths: jest.fn().mockImplementation(() => ({
-            consoleLines: bufferLineCountContract.parse(0),
-            networkLines: bufferLineCountContract.parse(networkBuffer.length),
-            websocketLines: bufferLineCountContract.parse(0),
-          })),
+          bufferLengths: jest
+            .fn()
+            .mockImplementation(() => BufferLengthsStub({ networkLines: networkBuffer.length })),
           readNetworkSince: jest
             .fn()
             .mockImplementation(({ fromIndex }: { fromIndex: number }) =>

@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -1142,7 +1143,9 @@ describe('runExecuteBroker', () => {
       const proxy = runExecuteBrokerProxy();
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
-      proxy.failSnapshotCapture({ error: new Error('ENOSPC: no space left on device') });
+      proxy.failSnapshotCapture({
+        error: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/snapshots/home' }),
+      });
       const lane = proxy.cleanLane();
 
       const result = await runExecuteBroker({
@@ -1167,8 +1170,8 @@ describe('runExecuteBroker', () => {
         stepsRun: 3,
         stoppedAt: null,
         stderr:
-          '[run-execute] start snapshot failed for run_1: Error: ENOSPC: no space left on device\n' +
-          '[run-execute] end snapshot failed for run_1: Error: ENOSPC: no space left on device\n',
+          "[run-execute] start snapshot failed for run_1: Error: ENOSPC: write '/snapshots/home'\n" +
+          "[run-execute] end snapshot failed for run_1: Error: ENOSPC: write '/snapshots/home'\n",
       });
     });
   });

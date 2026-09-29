@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
@@ -195,7 +196,7 @@ describe('runExecuteStepLayerBroker', () => {
       const proxy = runExecuteStepLayerBrokerProxy();
       const lane = proxy.laneGotoRejectsAndCaptureFails({
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
-        captureError: new Error('ENOSPC: no space left on device'),
+        captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step3.png' }),
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
       const shotPath = AbsoluteFilePathStub({

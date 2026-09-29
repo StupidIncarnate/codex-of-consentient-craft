@@ -9,7 +9,7 @@
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
+import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { shotBlankReadBrokerProxy } from '../../shot/blank-read/shot-blank-read-broker.proxy';
 
@@ -37,13 +37,7 @@ export const stepHealthBrokerProxy = (): {
     }: {
       consoleLines?: number;
       networkLines?: number;
-    } = {}): ReturnType<BrowserSession['bufferLengths']> => {
-      const base = BrowserSessionStub().bufferLengths();
-      return {
-        ...base,
-        consoleLines: consoleLines as typeof base.consoleLines,
-        networkLines: networkLines as typeof base.networkLines,
-      };
-    },
+    } = {}): ReturnType<BrowserSession['bufferLengths']> =>
+      BufferLengthsStub({ consoleLines, networkLines }),
   };
 };

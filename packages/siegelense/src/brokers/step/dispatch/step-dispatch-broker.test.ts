@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -681,7 +682,7 @@ describe('stepDispatchBroker', () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, captureCallArgs } = proxy.laneRejectingClickMatchAndCapture({
         clickError: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
-        captureError: new Error('ENOSPC: no space left on device'),
+        captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step1.png' }),
       });
       const step = StepStub({ step: 'click', target: SelectorStub() });
       const shotPath = AbsoluteFilePathStub({
@@ -723,7 +724,7 @@ describe('stepDispatchBroker', () => {
         ],
       ]);
       expect(proxy.getStderrText()).toBe(
-        '[step-dispatch] failure screenshot capture failed for step 1: Error: ENOSPC: no space left on device\n',
+        "[step-dispatch] failure screenshot capture failed for step 1: Error: ENOSPC: write '/shots/step1.png'\n",
       );
     });
 
@@ -836,7 +837,7 @@ describe('stepDispatchBroker', () => {
       // the step's own error.
       proxy.stagesShotReadError({
         shotPath: secondShotPath,
-        error: new Error('EACCES: permission denied, read'),
+        error: FsErrorStub({ code: 'EACCES', syscall: 'read', path: String(secondShotPath) }),
       });
 
       const error = await stepDispatchBroker({
