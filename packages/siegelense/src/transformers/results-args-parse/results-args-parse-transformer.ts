@@ -49,6 +49,7 @@ import { stepIndexContract } from '../../contracts/step-index/step-index-contrac
 import { stepRangeContract } from '../../contracts/step-range/step-range-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { resultsArgsScopeCheckTransformer } from '../results-args-scope-check/results-args-scope-check-transformer';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
@@ -152,7 +153,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
     whereLevelValue !== null ||
     whereStepsValue !== null;
 
-  return resultsArgsContract.parse({
+  const parsedArgs = resultsArgsContract.parse({
     instanceId: flagContractParseTransformer({
       flag: INSTANCE_FLAG,
       parse: () => instanceIdContract.parse(instanceValue),
@@ -230,4 +231,6 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
           }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
+
+  return resultsArgsScopeCheckTransformer({ args: parsedArgs });
 };

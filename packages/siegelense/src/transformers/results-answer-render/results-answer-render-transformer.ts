@@ -46,9 +46,30 @@ export const resultsAnswerRenderTransformer = ({
     }
     const record = parsed.value as Record<PropertyKey, unknown>;
 
+    // Only a `--since boot` row carries `run`; a single run's rows keep their bare shape.
+    const atDate = typeof record.at === 'number' ? new Date(record.at) : null;
+    const stamp = [
+      typeof record.run === 'string' ? record.run : 'run' in record ? 'between runs' : null,
+      typeof record.step === 'number' ? `step ${String(record.step)}` : null,
+      atDate === null || Number.isNaN(atDate.getTime()) ? null : atDate.toISOString(),
+    ].filter((part) => part !== null);
+    const stampPrefix = 'run' in record ? `[${stamp.join(' ')}] ` : '';
+
     if (answer.kind === 'console' && typeof record.text === 'string') {
       const level = typeof record.type === 'string' ? record.type : 'log';
-      return `${level.toUpperCase()}: ${record.text}`;
+      return `${stampPrefix}${level.toUpperCase()}: ${record.text}`;
+    }
+
+    if (
+      answer.kind === 'ws' &&
+      typeof record.direction === 'string' &&
+      typeof record.url === 'string'
+    ) {
+      const payload = typeof record.payload === 'string' ? record.payload : '';
+      const frame = `${stampPrefix}${record.direction} ${record.url}`;
+      return payload.length === 0
+        ? frame
+        : `${frame} — ${networkBodyTrimTransformer({ body: contentTextContract.parse(payload) })}`;
     }
 
     if (answer.kind === 'network' && typeof record.method === 'string') {
@@ -60,7 +81,7 @@ export const resultsAnswerRenderTransformer = ({
           : typeof record.requestBody === 'string' && record.requestBody.length > 0
             ? record.requestBody
             : '';
-      const exchange = `${record.method} ${status} ${url}`;
+      const exchange = `${stampPrefix}${record.method} ${status} ${url}`;
       return bodySource.length === 0
         ? exchange
         : `${exchange} — ${networkBodyTrimTransformer({ body: contentTextContract.parse(bodySource) })}`;
