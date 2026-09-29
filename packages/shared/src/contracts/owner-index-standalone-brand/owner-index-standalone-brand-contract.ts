@@ -1,0 +1,24 @@
+/**
+ * PURPOSE: A non-object contract that is one branded value, such as `questIdContract`, with the
+ * brand text it carries. Reach for this over the owner list when a rule must resolve a field that
+ * points at a standalone brand back to the text it stands for.
+ *
+ * USAGE:
+ * ownerIndexStandaloneBrandContract.parse({ contractName: 'questIdContract', brandText: 'QuestId', filePath: '/repo/packages/a/src/contracts/quest-id/quest-id-contract.ts', packageName: '@repo/a' });
+ * // Returns: OwnerIndexStandaloneBrand validated object
+ */
+
+import { z } from '#gateway/npm/zod';
+
+import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
+import { identifierContract } from '../identifier/identifier-contract';
+import { packageNameContract } from '../package-name/package-name-contract';
+
+export const ownerIndexStandaloneBrandContract = z.object({
+  contractName: identifierContract,
+  brandText: identifierContract,
+  filePath: absoluteFilePathContract,
+  packageName: packageNameContract,
+});
+
+export type OwnerIndexStandaloneBrand = z.infer<typeof ownerIndexStandaloneBrandContract>;

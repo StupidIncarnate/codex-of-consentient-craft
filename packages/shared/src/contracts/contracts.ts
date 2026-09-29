@@ -589,3 +589,10 @@ export * from './gateway-lint-config/gateway-lint-config-contract';
 // every scaffolder that writes this field, and the merge step that reconciles it into an existing
 // package.json, share this one validated shape)
 export * from './gateway-imports-map/gateway-imports-map-contract';
+export * from './owner-index/owner-index-contract';
+export * from './owner-index-field/owner-index-field-contract';
+export * from './owner-index-owner/owner-index-owner-contract';
+export * from './owner-index-standalone-brand/owner-index-standalone-brand-contract';
+export * from './owner-index-package/owner-index-package-contract';
+export * from './owner-index-match/owner-index-match-contract';
+export * from './owner-index-usage/owner-index-usage-contract';

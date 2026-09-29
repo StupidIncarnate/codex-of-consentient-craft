@@ -96,3 +96,4 @@ export * from './locations/claude-config-dir-find/locations-claude-config-dir-fi
 export * from './locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker';
 export * from './locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker';
 export * from './contract-index/build/contract-index-build-broker';
+export * from './owner-index/build/owner-index-build-broker';
