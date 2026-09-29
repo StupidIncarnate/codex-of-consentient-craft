@@ -219,17 +219,17 @@ describe('verificationUnitContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {kind: nonsense} => throws', () => {
-      expect(() => VerificationUnitStub({ kind: 'nonsense' as never })).toThrow(/Invalid option/u);
+      expect(() => VerificationUnitStub({ kind: 'nonsense' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {addedBy: nobody} => throws', () => {
-      expect(() => VerificationUnitStub({ addedBy: 'nobody' as never })).toThrow(/Invalid option/u);
+      expect(() => VerificationUnitStub({ addedBy: 'nobody' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {trackMarks.codeweaver: nonsense} => throws', () => {
       expect(() =>
         VerificationUnitStub({
-          trackMarks: { codeweaver: 'nonsense' as never },
+          trackMarks: { codeweaver: 'nonsense' },
         }),
       ).toThrow(/Invalid option/u);
     });

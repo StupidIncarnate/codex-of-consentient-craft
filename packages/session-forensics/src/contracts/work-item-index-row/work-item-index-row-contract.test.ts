@@ -52,13 +52,13 @@ describe('workItemIndexRowContract', () => {
   describe('invalid rows', () => {
     it('INVALID: {role: "not-a-role"} => throws', () => {
       expect(() => {
-        WorkItemIndexRowStub({ role: 'not-a-role' as never });
+        WorkItemIndexRowStub({ role: 'not-a-role' });
       }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {status: "not-a-status"} => throws', () => {
       expect(() => {
-        WorkItemIndexRowStub({ status: 'not-a-status' as never });
+        WorkItemIndexRowStub({ status: 'not-a-status' });
       }).toThrow(/Invalid option/u);
     });
 

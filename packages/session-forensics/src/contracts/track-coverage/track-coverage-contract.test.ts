@@ -125,11 +125,11 @@ describe('trackCoverageContract', () => {
     });
 
     it("INVALID: {track: 'ward'} => throws", () => {
-      expect(() => TrackCoverageStub({ track: 'ward' as never })).toThrow(/Invalid option/u);
+      expect(() => TrackCoverageStub({ track: 'ward' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {owed: -1} => throws', () => {
-      expect(() => TrackCoverageStub({ owed: -1 as never })).toThrow(
+      expect(() => TrackCoverageStub({ owed: -1 })).toThrow(
         /Too small: expected number to be >=0/u,
       );
     });

@@ -62,9 +62,9 @@ describe('subagentRosterRowContract', () => {
     });
 
     it('INVALID: {meta: missing required fields} => throws', () => {
-      expect(() =>
-        SubagentRosterRowStub({ meta: { agentType: 'general-purpose' } as never }),
-      ).toThrow(/received undefined/u);
+      expect(() => SubagentRosterRowStub({ meta: { agentType: 'general-purpose' } })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 

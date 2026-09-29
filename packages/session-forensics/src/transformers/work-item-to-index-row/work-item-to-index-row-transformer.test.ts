@@ -204,11 +204,11 @@ describe('workItemToIndexRowTransformer', () => {
       const wardResult = WardResultStub({
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
         exitCode: 1,
-        runId: 'run-42' as never,
+        runId: 'run-42',
       });
       const workItem = WorkItemStub({
         relatedDataItems: [],
-        lastWardRunId: 'run-42' as never,
+        lastWardRunId: 'run-42',
       });
 
       const result = workItemToIndexRowTransformer({
