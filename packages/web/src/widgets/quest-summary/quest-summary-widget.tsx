@@ -85,6 +85,15 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
     );
   }
 
+  // `debt` carries only `cant-meet` and `unmet` marks; an unmarked unit is `outstanding` and never
+  // enters it. So an empty DEBT list proves nothing on its own: the empty line may claim "proven"
+  // only when COVERAGE above it has nothing outstanding either.
+  const outstandingCount = data.flows.reduce(
+    (flowSum, flow) =>
+      flowSum + flow.tracks.reduce((trackSum, track) => trackSum + Number(track.outstanding), 0),
+    0,
+  );
+
   return (
     <Box
       data-testid="QUEST_SUMMARY"
@@ -167,7 +176,9 @@ export const QuestSummaryWidget = ({ questId }: QuestSummaryWidgetProps): React.
             data-testid="QUEST_SUMMARY_DEBT_EMPTY"
             style={{ fontSize: ROW_FONT_SIZE, color: colors['text-dim'], paddingLeft: ROW_INDENT }}
           >
-            every unit is proven
+            {outstandingCount === 0
+              ? 'every unit is proven'
+              : `no cant-meet or unmet marks — ${String(outstandingCount)} outstanding, not proven`}
           </Text>
         ) : (
           data.debt.map((entry) => <DebtRowLayerWidget key={entry.id} entry={entry} />)

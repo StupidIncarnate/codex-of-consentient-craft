@@ -32,7 +32,6 @@ import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/u
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { completedCountContract } from '@dungeonmaster/shared/contracts';
-import type { CompletedCount } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -44,7 +43,6 @@ import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { totalCountContract } from '@dungeonmaster/shared/contracts';
-import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import {
   isActiveWorkItemStatusGuard,
@@ -226,10 +224,6 @@ export const ExecutionPanelWidget = ({
   });
   const { now } = useElapsedTickBinding({ enabled: hasRunningWorkItem });
 
-  const totalOperations = quest.operations.length as TotalCount;
-  const completedOperations = quest.operations.filter((op) => op.status === 'complete')
-    .length as CompletedCount;
-
   // The status bar prefers the PROJECTION's own step walk (27d) — it counts every family's actual
   // and planned STEPS, not merely operations, so it advances even mid-scope. `data` stays null both
   // while the fetch is in flight and after it fails outright, so testing it alone covers both
@@ -242,17 +236,6 @@ export const ExecutionPanelWidget = ({
   const projectionCompletedSteps = projection?.completedSteps;
   const projectionUsable = projectionTotalSteps !== undefined && projectionError === null;
   const progressSource: 'projection' | 'ledger' = projectionUsable ? 'projection' : 'ledger';
-  const rawTotalSteps = projectionUsable ? Number(projectionTotalSteps) : Number(totalOperations);
-  const rawCompletedSteps = projectionUsable
-    ? Number(projectionCompletedSteps ?? 0)
-    : Number(completedOperations);
-  // 27d's own ASSERT: the ratio must never exceed 1. `questProjectionContract`'s doc says
-  // completedSteps <= totalPlannedSteps "by construction", but this bar clamps anyway rather than
-  // trust a producer it cannot see fail — a stale or malformed projection must never read past 100%.
-  const progressTotalCount = totalCountContract.parse(rawTotalSteps);
-  const progressCompletedCount = completedCountContract.parse(
-    Math.min(rawCompletedSteps, rawTotalSteps),
-  );
 
   const operationsById = new Map(quest.operations.map((op) => [op.id, op]));
 
@@ -523,6 +506,38 @@ export const ExecutionPanelWidget = ({
   unclaimedOperations.forEach((op) => {
     renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as RowOrder });
   });
+
+  // The ledger fallback counts the NUMBERED rows it sits above, not `quest.operations`: a work item
+  // whose operations ref is absent or dangling still renders a numbered row of its own, so an
+  // operations tally would read `3/3` over four rows. A nested step row carries no number and is
+  // folded into its header's status. A quest with no operations has no plan yet, so it stays at 0
+  // and the bar reads AWAITING PLAN whatever work items it already carries.
+  const numberedRowStatuses: ExecutionStepStatus[] =
+    quest.operations.length === 0
+      ? []
+      : renderRows.flatMap((row) => {
+          if (row.kind === 'header') {
+            const info = headerInfoByScopeKey.get(row.scopeKey);
+            return info === undefined ? [] : [info.status];
+          }
+          if (row.kind === 'unclaimed') {
+            return [row.operation.status as ExecutionStepStatus];
+          }
+          return row.order === undefined ? [] : [row.workItem.status as ExecutionStepStatus];
+        });
+  const rawTotalSteps = projectionUsable
+    ? Number(projectionTotalSteps)
+    : numberedRowStatuses.length;
+  const rawCompletedSteps = projectionUsable
+    ? Number(projectionCompletedSteps ?? 0)
+    : numberedRowStatuses.filter((status) => status === ('complete' as ExecutionStepStatus)).length;
+  // 27d's own ASSERT: the ratio must never exceed 1. `questProjectionContract`'s doc says
+  // completedSteps <= totalPlannedSteps "by construction", but this bar clamps anyway rather than
+  // trust a producer it cannot see fail — a stale or malformed projection must never read past 100%.
+  const progressTotalCount = totalCountContract.parse(rawTotalSteps);
+  const progressCompletedCount = completedCountContract.parse(
+    Math.min(rawCompletedSteps, rawTotalSteps),
+  );
 
   // The running-row auto-expand "focus" (T2-9a) hands to exactly one work item — the FIRST one, in
   // RENDER order, that is in_progress and already has a transcript of its own. Computed over

@@ -175,6 +175,68 @@ describe('ExecutionPanelWidget', () => {
         'EXECUTION1/2 OPERATIONS',
       );
     });
+
+    it('VALID: {3 complete operations each claimed, plus a failed riftcarver work item with no operation} => the header counts the 4 numbered rows it heads: 3/4 OPERATIONS', () => {
+      const proxy = ExecutionPanelWidgetProxy();
+      const quest: Quest = QuestStub({
+        status: 'blocked',
+        operations: [
+          OperationItemStub({
+            id: OP_ID_1,
+            role: 'chaoswhisperer',
+            text: 'spec the quest',
+            status: 'complete',
+          }),
+          OperationItemStub({ id: OP_ID_2, text: 'build the broker', status: 'complete' }),
+          OperationItemStub({
+            id: OP_ID_3,
+            role: 'ward',
+            text: 'verify: ward',
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000001',
+            role: 'chaoswhisperer',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_1}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000002',
+            role: 'riftcarver',
+            status: 'failed',
+            relatedDataItems: [],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000003',
+            role: 'codeweaver',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_2}`],
+          }),
+          WorkItemStub({
+            id: 'a0000000-0000-0000-0000-000000000004',
+            role: 'ward',
+            status: 'complete',
+            relatedDataItems: [`operations/${OP_ID_3}`],
+          }),
+        ],
+      });
+
+      mantineRenderAdapter({
+        ui: <ExecutionPanelWidget quest={quest} />,
+      });
+
+      expect(proxy.getStepRows().map((r) => r.textContent)).toStrictEqual([
+        '▸01[CHAOSWHISPERER]spec the questDONE',
+        '▸02[RIFTCARVER]RiftcarverFAILED',
+        '▸03[CODEWEAVER]build the brokerDONE',
+        '▸04[WARD]verify: wardDONE',
+      ]);
+      expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+        'EXECUTION3/4 OPERATIONS',
+      );
+    });
   });
 
   describe('status bar progress sourced from the projection', () => {
