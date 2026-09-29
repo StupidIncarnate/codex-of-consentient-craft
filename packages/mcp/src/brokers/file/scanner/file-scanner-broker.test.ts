@@ -914,11 +914,11 @@ export const orphanGuard = (): boolean => true;`,
 
       proxy.setupGlobFailure({
         pattern,
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({ code: 'EACCES', path: '/default/cwd', syscall: 'scandir' }),
       });
 
       await expect(fileScannerBroker({})).rejects.toThrow(
-        /^glob failed for pattern "\/default\/cwd\/\*\*\/\*": EACCES: permission denied$/u,
+        /^glob failed for pattern "\/default\/cwd\/\*\*\/\*": EACCES: scandir '\/default\/cwd'$/u,
       );
     });
   });

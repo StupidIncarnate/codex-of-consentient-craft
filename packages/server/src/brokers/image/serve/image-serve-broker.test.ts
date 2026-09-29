@@ -1,3 +1,4 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { imageServeBroker } from './image-serve-broker';
@@ -98,7 +99,7 @@ describe('imageServeBroker', () => {
     const proxy = imageServeBrokerProxy();
     proxy.setupReadFailure({
       filePath,
-      error: new Error('ENOENT: no such file or directory'),
+      error: FileMissingErrorStub({ path: filePath }),
     });
 
     const result = await imageServeBroker({ path: filePath });

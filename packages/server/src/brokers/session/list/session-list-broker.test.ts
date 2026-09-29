@@ -1,3 +1,5 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
@@ -122,7 +124,13 @@ describe('sessionListBroker', () => {
         files: ['/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl'],
       });
       proxy.setupFileStat({ birthtime, mtimeMs: 1708473600000 });
-      proxy.setupFileContentError({ error: new Error('read failed') });
+      proxy.setupFileContentError({
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl',
+          syscall: 'open',
+        }),
+      });
       proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });
@@ -160,7 +168,11 @@ describe('sessionListBroker', () => {
       proxy.setupGlobFiles({
         files: ['/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl'],
       });
-      proxy.setupFileStatError({ error: new Error('stat failed') });
+      proxy.setupFileStatError({
+        error: FileMissingErrorStub({
+          path: '/home/user/.claude/projects/-home-user-my-guild/session-1.jsonl',
+        }),
+      });
       proxy.setupQuests({ guildId, quests: [] });
 
       const getCacheMock = jest.fn().mockReturnValue({ hit: false });

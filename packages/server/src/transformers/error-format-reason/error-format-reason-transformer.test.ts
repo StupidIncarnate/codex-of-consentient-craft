@@ -1,3 +1,5 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+
 import { errorFormatReasonTransformer } from './error-format-reason-transformer';
 
 describe('errorFormatReasonTransformer', () => {
@@ -11,11 +13,13 @@ describe('errorFormatReasonTransformer', () => {
     });
 
     it('VALID: {error: Error with an Error cause} => appends the cause message', () => {
-      const error = new Error('load failed', { cause: new Error('ENOENT') });
+      const error = new Error('load failed', {
+        cause: FileMissingErrorStub({ path: '/tmp/quest.json' }),
+      });
 
       const result = errorFormatReasonTransformer({ error });
 
-      expect(result).toBe('load failed | cause: ENOENT');
+      expect(result).toBe("load failed | cause: ENOENT: open '/tmp/quest.json'");
     });
 
     it('VALID: {error: Error with a non-Error cause} => appends the JSON-stringified cause', () => {

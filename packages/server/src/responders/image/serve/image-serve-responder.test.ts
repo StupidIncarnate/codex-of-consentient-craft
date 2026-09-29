@@ -1,3 +1,4 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { imageServeStatics } from '../../../statics/image-serve/image-serve-statics';
@@ -82,7 +83,7 @@ describe('ImageServeResponder', () => {
   it('ERROR: {read rejects ENOENT} => 404 with an empty body', async () => {
     const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
     const proxy = ImageServeResponderProxy();
-    proxy.setupReadFailure({ filePath, error: new Error('ENOENT: no such file or directory') });
+    proxy.setupReadFailure({ filePath, error: FileMissingErrorStub({ path: filePath }) });
 
     const result = await proxy.callResponder({ path: filePath });
 
@@ -125,7 +126,7 @@ describe('ImageServeResponder', () => {
     const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
     const proxy = ImageServeResponderProxy();
     proxy.enableDevLogs();
-    proxy.setupReadFailure({ filePath, error: new Error('ENOENT: no such file or directory') });
+    proxy.setupReadFailure({ filePath, error: FileMissingErrorStub({ path: filePath }) });
 
     const result = await proxy.callResponder({ path: filePath });
 
@@ -137,7 +138,7 @@ describe('ImageServeResponder', () => {
     const readFailedLines = writtenLines.filter((line) => line.includes('Image read failed for'));
 
     expect(readFailedLines).toStrictEqual([
-      '[dev] Image read failed for /tmp/quest/images/missing.png: ENOENT: no such file or directory\n',
+      "[dev] Image read failed for /tmp/quest/images/missing.png: ENOENT: open '/tmp/quest/images/missing.png'\n",
     ]);
   });
 });

@@ -1,3 +1,4 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { QuestSummaryResponderProxy } from './quest-summary-responder.proxy';
@@ -53,7 +54,7 @@ describe('QuestSummaryResponder', () => {
     it('ERROR: {orchestrator throws an Error carrying a cause} => returns 404 with the cause unwound into the reason', async () => {
       const proxy = QuestSummaryResponderProxy();
       const notFound = new Error('Quest with id "q-gone" not found in any guild', {
-        cause: new Error('ENOENT: no such file or directory'),
+        cause: FileMissingErrorStub({ path: '/home/user/.dungeonmaster/guilds/g1/quests/q-gone' }),
       });
       proxy.setupQuestNotFoundWithCause({ error: notFound });
 
@@ -63,7 +64,7 @@ describe('QuestSummaryResponder', () => {
         status: 404,
         data: {
           error:
-            'Quest with id "q-gone" not found in any guild | cause: ENOENT: no such file or directory',
+            'Quest with id "q-gone" not found in any guild | cause: ENOENT: open \'/home/user/.dungeonmaster/guilds/g1/quests/q-gone\'',
         },
       });
     });
