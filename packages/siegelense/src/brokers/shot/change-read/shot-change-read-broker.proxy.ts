@@ -16,8 +16,8 @@ import { PNG } from 'pngjs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { pixelmatchCompareAdapterProxy } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter.proxy';
 import { pngjsDecodeAdapterProxy } from '../../../adapters/pngjs/decode/pngjs-decode-adapter.proxy';
+import { shotDiffCountBrokerProxy } from '../diff-count/shot-diff-count-broker.proxy';
 
 export const shotChangeReadBrokerProxy = (): {
   stagesShot: (params: {
@@ -34,7 +34,7 @@ export const shotChangeReadBrokerProxy = (): {
 } => {
   const readProxy = fsReadFileAdapterProxy();
   pngjsDecodeAdapterProxy();
-  pixelmatchCompareAdapterProxy();
+  shotDiffCountBrokerProxy();
 
   return {
     stagesShot: ({

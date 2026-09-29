@@ -19,7 +19,7 @@ describe('shotChangeReadBroker', () => {
   });
 
   describe('measured pixel differences on a 10x10 (100-pixel) frame', () => {
-    it("VALID: {2 of 100 pixels differ} => returns '2%'", async () => {
+    it("VALID: {2 of 100 pixels differ} => returns '2.00% (2 px)'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
         value:
@@ -46,10 +46,10 @@ describe('shotChangeReadBroker', () => {
 
       const result = await shotChangeReadBroker({ previousPath, currentPath });
 
-      expect(result).toBe('2%');
+      expect(result).toBe('2.00% (2 px)');
     });
 
-    it("VALID: {0 of 100 differ} => returns '0%', a real reading that must not collapse to null", async () => {
+    it("VALID: {0 of 100 differ} => returns '0 px', a real reading that must not collapse to null", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
         value:
@@ -76,10 +76,10 @@ describe('shotChangeReadBroker', () => {
 
       const result = await shotChangeReadBroker({ previousPath, currentPath });
 
-      expect(result).toBe('0%');
+      expect(result).toBe('0 px');
     });
 
-    it("VALID: {100 of 100 differ} => returns '100%'", async () => {
+    it("VALID: {100 of 100 differ} => returns '100.00% (100 px)'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
         value:
@@ -101,12 +101,42 @@ describe('shotChangeReadBroker', () => {
 
       const result = await shotChangeReadBroker({ previousPath, currentPath });
 
-      expect(result).toBe('100%');
+      expect(result).toBe('100.00% (100 px)');
+    });
+  });
+
+  describe('a small change on a 100x100 frame', () => {
+    it("VALID: {11 of 10000 pixels differ} => returns '0.11% (11 px)', never a bare 0%", async () => {
+      const proxy = shotChangeReadBrokerProxy();
+      const previousPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step9.png',
+      });
+      const currentPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step10.png',
+      });
+      const previousPixels = new Uint8Array(10000 * 4).fill(255);
+      const currentPixels = new Uint8Array(10000 * 4).fill(255);
+      const flatPixelStride = 4;
+      const changedPixels = 11;
+      for (let pixel = 0; pixel < changedPixels; pixel += 1) {
+        currentPixels[pixel * flatPixelStride] = 0;
+        currentPixels[pixel * flatPixelStride + 1] = 0;
+        currentPixels[pixel * flatPixelStride + 2] = 0;
+      }
+
+      proxy.stagesShot({ path: previousPath, width: 100, height: 100, pixels: previousPixels });
+      proxy.stagesShot({ path: currentPath, width: 100, height: 100, pixels: currentPixels });
+
+      const result = await shotChangeReadBroker({ previousPath, currentPath });
+
+      expect(result).toBe('0.11% (11 px)');
     });
   });
 
   describe('dimension mismatch', () => {
-    it("VALID: {frames of different sizes} => returns '100%'", async () => {
+    it("VALID: {frames of different sizes} => returns '100.00% (100 px)'", async () => {
       const proxy = shotChangeReadBrokerProxy();
       const previousPath = AbsoluteFilePathStub({
         value:
@@ -132,7 +162,7 @@ describe('shotChangeReadBroker', () => {
 
       const result = await shotChangeReadBroker({ previousPath, currentPath });
 
-      expect(result).toBe('100%');
+      expect(result).toBe('100.00% (100 px)');
     });
   });
 });

@@ -6,7 +6,7 @@
  * `cleanupRunBroker` against real files on disk rather than a mocked filesystem. Every screenshot is a
  * REAL PNG encoded by `pngjs`: `run_1/step1.png` is one solid `#0d0907` frame (proves `blank`),
  * `run_2/step1.png` differs over exactly half its pixels (proves `pixelChange` reads a real measured
- * value — deterministically 50% with `includeAA:false` and two flat colour blocks). `beforeEach` mints
+ * value — deterministically 50.00% (50 px) with `includeAA:false` and two flat colour blocks). `beforeEach` mints
  * a brand-new testbed and rebuilds the whole tree, so one test's mutation (`cleanup`'s reap, or the
  * crash variant's deleted stored return) can never leak into the next. `readResults`/`readStatus`/
  * `readCompare`/`runCleanup`/`readRegistry`/`measureBlank`/`measureChange` wrap the seven read-path
@@ -394,7 +394,7 @@ export const evidenceTreeHarness = (): {
         expected: 'ok',
         reading: 'navigated to /missing',
         shot: run2Shot1Path(),
-        pixelChange: '50%',
+        pixelChange: '50.00% (50 px)',
         blank: false,
         blankColour: null,
         serverWindow: serverLog.run2Window,
@@ -449,7 +449,7 @@ export const evidenceTreeHarness = (): {
           open: true,
           why: 'changed',
           node: null,
-          pixelChange: '50%',
+          pixelChange: '50.00% (50 px)',
           blank: false,
           blankColour: null,
         }),

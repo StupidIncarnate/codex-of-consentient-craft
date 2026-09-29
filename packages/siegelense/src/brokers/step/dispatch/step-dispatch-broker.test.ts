@@ -285,7 +285,7 @@ describe('stepDispatchBroker', () => {
         recordBinding: NOOP,
       });
 
-      expect(result.pixelChange).toBe('2%');
+      expect(result.pixelChange).toBe('2.00% (2 px)');
       expect(proxy.lastShotPath()).toBe(secondShotPath);
     });
   });
@@ -916,7 +916,7 @@ describe('stepDispatchBroker', () => {
         captured: true,
         blank: true,
         blankColour: '#ffffff',
-        pixelChange: '100%',
+        pixelChange: '100.00% (8 px)',
       });
     });
 

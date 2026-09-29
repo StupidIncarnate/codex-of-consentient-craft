@@ -532,7 +532,7 @@ describe('SiegelenseFlow', () => {
             open: true,
             why: 'changed',
             node: null,
-            pixelChange: '50%',
+            pixelChange: '50.00% (50 px)',
             blank: false,
             blankColour: null,
           },
@@ -541,7 +541,7 @@ describe('SiegelenseFlow', () => {
         expect(tree.run2Shot1Path().startsWith('/')).toBe(true);
         expect(measuredBlank1).toStrictEqual({ blank: true, colour: '#0d0907' });
         expect(measuredBlank2).toStrictEqual({ blank: false, colour: null });
-        expect(measuredChange).toBe('50%');
+        expect(measuredChange).toBe('50.00% (50 px)');
       });
 
       it("EMPTY: {results, an id the registry never held} => instanceState 'unknown', rows []", async () => {
@@ -632,7 +632,7 @@ describe('SiegelenseFlow', () => {
           console: { errors: '+1', new: tree.consoleRun2ErrorRows() },
           server: { errors: '-1', new: tree.serverRun2ErrorRows() },
           network: { errors: '+1', new: tree.networkRun2NonSuccessRows() },
-          pixels: `last capture differs 50% (run_1: ${tree.killedInstanceEvidenceDir()}/runs/run_1/step1.png, run_2: ${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png)`,
+          pixels: `last capture differs 50.00% (50 px) (run_1: ${tree.killedInstanceEvidenceDir()}/runs/run_1/step1.png, run_2: ${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png)`,
           elements: { runA: null, runB: null },
         });
       });
@@ -670,8 +670,8 @@ describe('SiegelenseFlow', () => {
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.json`, bytes: 414 },
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.jsonl`, bytes: 969 },
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png`, bytes: 104 },
-          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.json`, bytes: 413 },
-          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 384 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.json`, bytes: 424 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 395 },
           { path: `${tree.killedInstanceEvidenceDir()}/ws.jsonl`, bytes: 0 },
         ]);
         expect(entry?.lastStep).toStrictEqual({ run: 'run_2', step: 1, verb: 'goto' });
@@ -701,7 +701,7 @@ describe('SiegelenseFlow', () => {
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.json`, bytes: 414 },
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.jsonl`, bytes: 969 },
           { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png`, bytes: 104 },
-          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 384 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 395 },
           { path: `${tree.killedInstanceEvidenceDir()}/ws.jsonl`, bytes: 0 },
         ]);
       });
