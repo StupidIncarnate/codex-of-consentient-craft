@@ -16,6 +16,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 
 export const questDeleteBrokerProxy = (): {
   setupDelete: () => void;
+  setupNotOk: (params: { status: number; bodyText: string }) => void;
   setupError: () => void;
 } => {
   const jsonFetchProxy = fetchJsonProxy();
@@ -32,6 +33,14 @@ export const questDeleteBrokerProxy = (): {
         method: 'delete',
         url: webConfigStatics.api.routes.questById,
         body: { deleted: true },
+      });
+    },
+    setupNotOk: ({ status, bodyText }: { status: number; bodyText: string }): void => {
+      jsonFetchProxy.setupNotOk({
+        method: 'delete',
+        url: webConfigStatics.api.routes.questById,
+        status,
+        bodyText,
       });
     },
     setupError: (): void => {

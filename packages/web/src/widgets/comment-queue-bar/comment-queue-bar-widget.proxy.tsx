@@ -14,17 +14,21 @@ import { notifications } from '#gateway/npm/mantine__notifications';
 import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
+import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
+import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
 import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/use-comment-queue-binding.proxy';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import type { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentBatchSendResultStub } from '../../contracts/comment-batch-send-result/comment-batch-send-result.stub';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 
+import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
@@ -39,8 +43,6 @@ type SendCallCount = ReturnType<MockHandle['callsMatching']>['length'];
 // useQuestChatBinding.sendCommentBatch echoes back the markdown turn it delivered so the chat panel
 // can render it. The queue bar ignores that field, so one fixed value covers every success.
 const DELIVERED_MESSAGE = 'Queued comments delivered to the agent.';
-// What the binding rejects with when the POST never reaches the server at all.
-const NETWORK_FAILURE_MESSAGE = 'Failed to fetch';
 
 export const CommentQueueBarWidgetProxy = (): {
   onSend: SendHandler;
@@ -117,7 +119,17 @@ export const CommentQueueBarWidgetProxy = (): {
         .resolves(CommentBatchSendResultStub({ outcome: 'failed', error }));
     },
     setupSendNetworkError: (): void => {
-      sendHandle.calledWith([isSendPayload]).rejects(new Error(NETWORK_FAILURE_MESSAGE));
+      // The refusal is the real broker's: onSend runs questCommentBatchBroker against an endpoint
+      // that refuses the connection, so it rejects with whatever the fetch wrapper really throws.
+      StartEndpointMock.listen({
+        method: 'post',
+        url: webConfigStatics.api.routes.questComments,
+      }).networkError();
+      sendHandle
+        .calledWith([isSendPayload])
+        .implement(async ({ comments }: SendParams) =>
+          questCommentBatchBroker({ questId: QuestIdStub(), comments }),
+        );
     },
 
     clickClear: async (): Promise<void> => {

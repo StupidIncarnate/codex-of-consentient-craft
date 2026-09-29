@@ -23,7 +23,6 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 import type { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
@@ -46,7 +45,6 @@ type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
-type QuestId = ReturnType<typeof QuestIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
@@ -84,12 +82,7 @@ export const HomeContentWidgetProxy = (): {
   setupCreateGuildError: () => void;
   clearStorage: () => void;
   setupDeleteQuest: () => void;
-  setupDeleteQuestRejectsWithMessage: (params: {
-    questId: QuestId;
-    guildId: GuildId;
-    message: string;
-  }) => void;
-  setupDeleteQuestRejectsWithoutMessage: (params: { questId: QuestId; guildId: GuildId }) => void;
+  setupDeleteQuestNotOk: (params: { status: number; bodyText: string }) => void;
   clickDeleteButton: (params: { testId: string }) => Promise<void>;
   clickBanish: () => Promise<void>;
   isPopoverVisible: (params: { testId: string }) => boolean;
@@ -217,31 +210,10 @@ export const HomeContentWidgetProxy = (): {
     setupDeleteQuest: (): void => {
       deleteQuestProxy.setupDelete();
     },
-    setupDeleteQuestRejectsWithMessage: ({
-      questId,
-      guildId,
-      message,
-    }: {
-      questId: QuestId;
-      guildId: GuildId;
-      message: string;
-    }): void => {
-      deleteBrokerSpy.calledWith([{ questId, guildId }]).implement(async () => {
-        await Promise.resolve();
-        throw new Error(message);
-      });
-    },
-    setupDeleteQuestRejectsWithoutMessage: ({
-      questId,
-      guildId,
-    }: {
-      questId: QuestId;
-      guildId: GuildId;
-    }): void => {
-      deleteBrokerSpy.calledWith([{ questId, guildId }]).implement(async () => {
-        await Promise.resolve();
-        throw new Error('');
-      });
+    // The delete endpoint answers non-2xx, so the passthrough broker rejects the way fetchJson
+    // really does: with a message naming the request, the status and the response body.
+    setupDeleteQuestNotOk: ({ status, bodyText }: { status: number; bodyText: string }): void => {
+      deleteQuestProxy.setupNotOk({ status, bodyText });
     },
     clickDeleteButton: async ({ testId }: { testId: string }): Promise<void> => {
       await sessionList.clickDeleteButton({ testId });

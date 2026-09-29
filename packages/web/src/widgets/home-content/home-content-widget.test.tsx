@@ -766,7 +766,7 @@ describe('HomeContentWidget', () => {
       expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
     });
 
-    it("ERROR: {delete rejects with 'Quest is currently running'} => red toast with that message, row remains, popover hidden", async () => {
+    it("ERROR: {delete answers 409 'Quest is currently running'} => red toast with the request failure message, row remains, popover hidden", async () => {
       const proxy = HomeContentWidgetProxy();
 
       proxy.setupDirectoryBrowse({ entries: [] });
@@ -784,11 +784,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
       proxy.setupQuests({ quests: [quest] });
-      proxy.setupDeleteQuestRejectsWithMessage({
-        questId,
-        guildId,
-        message: 'Quest is currently running',
-      });
+      proxy.setupDeleteQuestNotOk({ status: 409, bodyText: 'Quest is currently running' });
 
       await act(async () => {
         mantineRenderMiddleware({
@@ -817,76 +813,17 @@ describe('HomeContentWidget', () => {
 
       await waitFor(() => {
         expect(proxy.getShownToast()).toStrictEqual({
-          message: 'Quest is currently running',
+          message: `DELETE /api/quests/${questId}?guildId=${guildId} failed with status 409: Quest is currently running`,
           color: 'red',
         });
       });
 
       expect(proxy.getShownToast()).toStrictEqual({
-        message: 'Quest is currently running',
+        message: `DELETE /api/quests/${questId}?guildId=${guildId} failed with status 409: Quest is currently running`,
         color: 'red',
       });
       expect(screen.getByTestId(`QUEST_ITEM_${questId}`).tagName).toBe('DIV');
       expect(proxy.isPopoverVisible({ testId: `QUEST_DELETE_POPOVER_${questId}` })).toBe(false);
-    });
-
-    it('ERROR: {delete rejects with empty-message error} => red toast with fallback message, row remains', async () => {
-      const proxy = HomeContentWidgetProxy();
-
-      proxy.setupDirectoryBrowse({ entries: [] });
-      proxy.clearStorage();
-      const guildId = GuildIdStub({ value: 'b2b2c3d4-e5f6-7890-abcd-ef1234567890' });
-      const guild = GuildListItemStub({ id: guildId, name: 'Fallback Guild' });
-      const questId = QuestIdStub({ value: 'fallback-quest' });
-      const quest = QuestListItemStub({
-        id: questId,
-        title: 'Fallback Quest',
-        status: 'complete',
-      });
-      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
-
-      proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupSessions({ sessions: [] });
-      proxy.setupQuests({ quests: [quest] });
-      proxy.setupDeleteQuestRejectsWithoutMessage({ questId, guildId });
-
-      await act(async () => {
-        mantineRenderMiddleware({
-          ui: (
-            <MemoryRouter>
-              <HomeContentWidget />
-            </MemoryRouter>
-          ),
-        });
-        await Promise.resolve();
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
-      });
-
-      await act(async () => {
-        await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        await proxy.clickBanish();
-        await Promise.resolve();
-      });
-
-      await waitFor(() => {
-        expect(proxy.getShownToast()).toStrictEqual({
-          message: 'Failed to delete quest',
-          color: 'red',
-        });
-      });
-
-      expect(proxy.getShownToast()).toStrictEqual({
-        message: 'Failed to delete quest',
-        color: 'red',
-      });
-      expect(screen.getByTestId(`QUEST_ITEM_${questId}`).tagName).toBe('DIV');
     });
   });
 
