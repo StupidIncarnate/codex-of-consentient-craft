@@ -6,6 +6,7 @@
  * // Runs all checks, prints summary, exits 0 on pass or 1 on failure
  */
 
+import { setExitCode, stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
@@ -66,7 +67,7 @@ export const commandRunBroker = async ({
     !(Array.isArray(gitScopedConfig.passthrough) && gitScopedConfig.passthrough.length > 0);
 
   if (fileScopeResolvedEmpty) {
-    process.stdout.write(`${fileScopeEmptyStatics.message}\n`);
+    stdout.write(`${fileScopeEmptyStatics.message}\n`);
     return adapterResultContract.parse({ success: true });
   }
 
@@ -99,10 +100,10 @@ export const commandRunBroker = async ({
 
   if (missingPaths.length > 0 && isExplicitPathScopeGuard({ config })) {
     const pathList = missingPaths.map((arg) => `  ${String(arg)}`).join('\n');
-    process.stdout.write(
+    stdout.write(
       `${pathNotFoundStatics.heading}\n${pathList}\n\n${pathNotFoundStatics.guidance}\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
     return adapterResultContract.parse({ success: true });
   }
 
@@ -121,13 +122,13 @@ export const commandRunBroker = async ({
 
   if (missingPaths.length > 0) {
     const droppedList = missingPaths.map((arg) => `  ${String(arg)}`).join('\n');
-    process.stdout.write(`${gitScopeDroppedPathsStatics.heading}\n${droppedList}\n\n`);
+    stdout.write(`${gitScopeDroppedPathsStatics.heading}\n${droppedList}\n\n`);
 
     // DROPPING EVERY SURVIVING PATH LANDS ON THE SAME EMPTY-SCOPE ANSWER an already-clean tree
     // gets, not a silent pass: a scope that resolved to zero files after the drop has exactly as
     // much to check as one that resolved to zero files from the start.
     if (!(Array.isArray(survivingPassthrough) && survivingPassthrough.length > 0)) {
-      process.stdout.write(`${fileScopeEmptyStatics.message}\n`);
+      stdout.write(`${fileScopeEmptyStatics.message}\n`);
       return adapterResultContract.parse({ success: true });
     }
   }
@@ -172,10 +173,10 @@ export const commandRunBroker = async ({
           ...platformDedupeProjectResultParam,
         });
 
-  process.stderr.write('\r\x1b[K\n');
+  stderr.write('\r\x1b[K\n');
   const summary = resultToSummaryTransformer({ wardResult, cwd: rootPath });
 
-  process.stdout.write(`${summary}\n`);
+  stdout.write(`${summary}\n`);
 
   const hasFailing = wardResult.checks.some((check) => check.status === 'fail');
 
@@ -187,19 +188,19 @@ export const commandRunBroker = async ({
 
   if (mismatchedChecks.length > 0) {
     const mismatchList = mismatchedChecks.map((check) => `  - ${check.checkType}`).join('\n');
-    process.stdout.write(
+    stdout.write(
       `\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n${mismatchList}\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward's discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn't, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward's discovery to match the buggy state.\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   // Every package the pattern reached came back empty, so the pattern itself is wrong. A pattern
   // that matched somewhere leaves the packages without such a test as plain skips.
   if (hasUnmatchedTestNamePatternGuard({ wardResult })) {
-    process.stdout.write(
+    stdout.write(
       `\n--onlyTests pattern "${String(resolvedConfig.onlyTests)}" matched 0 tests in any package — possible typo or stale test name\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   // THE THIRD SILENCE, and it is neither of the two the short-circuits above catch. The scope was
@@ -214,10 +215,10 @@ export const commandRunBroker = async ({
   // asked of `config`, the object the CALLER handed in, never of `resolvedConfig`.
   if (isExplicitPathScopeGuard({ config }) && hasNoFilesProcessedGuard({ wardResult })) {
     const scopeList = (scopedConfig.passthrough ?? []).map((arg) => `  ${String(arg)}`).join('\n');
-    process.stdout.write(
+    stdout.write(
       `\n${noFilesProcessedStatics.heading}\n${scopeList}\n\n${noFilesProcessedStatics.guidance}\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   // A SLOW SUITE AND A LEAKED HANDLE ARE FAILURES, not notes. Neither makes any single file's check
@@ -225,24 +226,22 @@ export const commandRunBroker = async ({
   // that make later runs slow and flaky. The sections above already name every one of them; these
   // only decide the exit code.
   if (hasSlowFilesGuard({ wardResult })) {
-    process.stdout.write(
+    stdout.write(
       `\n${qualityGateStatics.slowFiles.heading}\n${qualityGateStatics.slowFiles.guidance}\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   if (hasOpenHandlesGuard({ wardResult })) {
-    process.stdout.write(
+    stdout.write(
       `\n${qualityGateStatics.openHandles.heading}\n${qualityGateStatics.openHandles.guidance}\n`,
     );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   if (hasFailing) {
-    process.stdout.write(
-      `\nFull error details: npm run ward -- detail ${wardResult.runId} <filePath>\n`,
-    );
-    process.exitCode = wardExitCodeStatics.exitCodes.failing;
+    stdout.write(`\nFull error details: npm run ward -- detail ${wardResult.runId} <filePath>\n`);
+    setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
 
   // A crashed project means a check never reported on the code at all. Consumers that dispatch
@@ -253,7 +252,7 @@ export const commandRunBroker = async ({
   );
 
   if (hasCrash) {
-    process.exitCode = wardExitCodeStatics.exitCodes.crash;
+    setExitCode(wardExitCodeStatics.exitCodes.crash);
   }
   return adapterResultContract.parse({ success: true });
 };

@@ -36,7 +36,7 @@ describe('commandRawBroker', () => {
 
       await commandRawBroker({ rootPath, runId, checkType });
 
-      expect(process.stdout.write).toHaveBeenCalledWith('lint output here\n');
+      expect(proxy.getStdoutCalls()).toStrictEqual(['lint output here\n']);
     });
 
     it('VALID: {wardResult with stderr} => writes raw stderr to stdout', async () => {
@@ -63,7 +63,7 @@ describe('commandRawBroker', () => {
 
       await commandRawBroker({ rootPath, runId, checkType });
 
-      expect(process.stdout.write).toHaveBeenCalledWith('type error output\n');
+      expect(proxy.getStdoutCalls()).toStrictEqual(['type error output\n']);
     });
   });
 
@@ -82,9 +82,7 @@ describe('commandRawBroker', () => {
 
       await commandRawBroker({ rootPath, runId, checkType });
 
-      expect(process.stderr.write).toHaveBeenCalledWith(
-        `No typecheck check found in run ${runId}\n`,
-      );
+      expect(proxy.getStderrCalls()).toStrictEqual([`No typecheck check found in run ${runId}\n`]);
     });
   });
 
@@ -99,7 +97,7 @@ describe('commandRawBroker', () => {
 
       await commandRawBroker({ rootPath, runId, checkType });
 
-      expect(process.stderr.write).toHaveBeenCalledWith(`No ward result found for run ${runId}\n`);
+      expect(proxy.getStderrCalls()).toStrictEqual([`No ward result found for run ${runId}\n`]);
     });
   });
 });

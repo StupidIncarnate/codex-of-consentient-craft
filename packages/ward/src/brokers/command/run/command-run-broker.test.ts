@@ -1,3 +1,4 @@
+import { getExitCode, setExitCode } from '#gateway/node/process';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
@@ -24,7 +25,7 @@ describe('commandRunBroker', () => {
   // than on an unstaged call — the assertion bites on what ward DID, not on what it reached for.
   describe('file scope that resolves to nothing', () => {
     it('EMPTY: {uncommitted: true, clean working tree} => runs no checks and says the scope is empty', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithCleanTree();
@@ -36,17 +37,15 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [`${fileScopeEmptyStatics.message}\n`],
         exitCode: 0,
-        exitCalls: [],
       });
     });
 
     it('EMPTY: {committed: true, nothing committed} => runs no checks and says the scope is empty', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupCommittedWithNothingCommitted();
@@ -58,12 +57,10 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [`${fileScopeEmptyStatics.message}\n`],
         exitCode: 0,
-        exitCalls: [],
       });
     });
 
@@ -72,7 +69,7 @@ describe('commandRunBroker', () => {
     // five separate places — reads it identically to an unset one, which is the whole repo. Nothing
     // about that hazard is specific to the two git flags, so the short-circuit may not be either.
     it('EMPTY: {passthrough: []} => runs no checks and says the file scope is empty', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
 
@@ -83,19 +80,17 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [`${fileScopeEmptyStatics.message}\n`],
         exitCode: 0,
-        exitCalls: [],
       });
     });
 
     // The complement, and the reason the short-circuit reads `passthrough` rather than the flag: a
     // git scope that DID resolve to files is an ordinary scoped run and must still execute.
     it('VALID: {uncommitted: true, one edited source file} => runs the checks instead of short-circuiting', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
@@ -127,7 +122,7 @@ describe('commandRunBroker', () => {
   // and `checkResultBuildTransformer` reads an EMPTY projectResults as `pass` rather than `skip`.
   describe('file scope naming a path that is not on disk', () => {
     it('ERROR: {passthrough names a missing path} => runs no checks and exits non-zero', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupMissingPath({
@@ -141,14 +136,12 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           `${pathNotFoundStatics.heading}\n  packages/wardd/src/typo.ts\n\n${pathNotFoundStatics.guidance}\n`,
         ],
         exitCode: 1,
-        exitCalls: [],
       });
     });
   });
@@ -161,7 +154,7 @@ describe('commandRunBroker', () => {
   // still named, and `git add -A` first did not help.
   describe('git-derived file scope naming a path that has been deleted', () => {
     it('VALID: {uncommitted resolves to one surviving and one deleted file} => runs checks on the survivor and reports the drop', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithSurvivingAndDeletedFile();
@@ -195,7 +188,7 @@ describe('commandRunBroker', () => {
     // line `resultToSummaryTransformer` would print for an executed run is absent, so nothing here
     // could be misread as a pass.
     it('EMPTY: {uncommitted resolves to only a deleted file} => lands on the empty-scope answer, exits 0, and is not reported as a pass', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOnlyDeletedFile();
@@ -207,15 +200,13 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           `${gitScopeDroppedPathsStatics.heading}\n  src/gone.ts\n\n`,
           `${fileScopeEmptyStatics.message}\n`,
         ],
         exitCode: 0,
-        exitCalls: [],
       });
     });
   });
@@ -229,7 +220,7 @@ describe('commandRunBroker', () => {
   // belongs to no workspace package.
   describe('caller-typed file scope that no check processed', () => {
     it('ERROR: {passthrough names a real path, lint reports 0 files} => exits non-zero and names the path', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageLintPassWithNoFiles();
       proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
@@ -241,15 +232,13 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           ['run: 1739625600000-a38e', 'lint:      WARN  0 files run', ''].join('\n'),
           `\n${noFilesProcessedStatics.heading}\n  src/index.ts\n\n${noFilesProcessedStatics.guidance}\n`,
         ],
         exitCode: 1,
-        exitCalls: [],
       });
     });
 
@@ -258,7 +247,7 @@ describe('commandRunBroker', () => {
     // legitimately holds root-level files nothing lints, so failing here would redden ordinary
     // `--uncommitted` runs. Pinning the WHOLE stdout list is what proves nothing extra was printed.
     it('VALID: {uncommitted: true resolves to a file no check processed} => prints no unprocessed-path guidance', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
@@ -287,7 +276,7 @@ describe('commandRunBroker', () => {
     // Listing a check there that the summary never mentioned sent a reader hunting for a line
     // that was not printed.
     it('VALID: {uncommitted: true resolves to a file no check processed} => guidance names only the checks the summary flagged', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
@@ -313,7 +302,7 @@ describe('commandRunBroker', () => {
 
   describe('discovery mismatch run', () => {
     it('VALID: {checks discover files but process zero} => sets process.exitCode to 1 with mismatch guidance', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
 
@@ -327,8 +316,7 @@ describe('commandRunBroker', () => {
       expect({
         summary: stdoutCalls[0],
         guidance: stdoutCalls[1],
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         summary: [
           'run: 1739625600000-a38e',
@@ -346,14 +334,13 @@ describe('commandRunBroker', () => {
         guidance:
           '\nDISCOVERY MISMATCH — ward discovered files that were not processed (or vice versa). Every test must run; an unrun test is a hidden regression. This run is FAILING until each mismatch below is investigated and resolved at the root cause:\n  - typecheck\n  - unit\n  - integration\n  - e2e\n\nFor each check above: read the "only processed" / "only discovered" lines in the summary, then determine WHY discovery and processing diverged (e.g. test runner config drift from ward\'s discovery globs, untyped imports pulling in dist files, files matching a pattern they shouldn\'t, missing config exclusions). Fix the root cause — do not paper over the mismatch by adjusting ward\'s discovery to match the buggy state.\n',
         exitCode: 1,
-        exitCalls: [],
       });
     });
   });
 
   describe('failing run', () => {
     it('VALID: {checks fail with errors} => sets process.exitCode to 1 instead of calling process.exit', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageFail();
 
@@ -363,18 +350,16 @@ describe('commandRunBroker', () => {
       await commandRunBroker({ config, rootPath });
 
       expect({
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         exitCode: 1,
-        exitCalls: [],
       });
     });
   });
 
   describe('--onlyTests across packages', () => {
     it('VALID: {pattern matches one package, misses the rest} => leaves process.exitCode at 0', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'matched', 'unmatched'] });
 
@@ -385,7 +370,7 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           [
@@ -399,7 +384,7 @@ describe('commandRunBroker', () => {
     });
 
     it('VALID: {pattern misses every package} => sets process.exitCode to 1 with typo guidance', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'unmatched', 'unmatched'] });
 
@@ -412,7 +397,7 @@ describe('commandRunBroker', () => {
 
       expect({
         guidance: stdoutCalls[stdoutCalls.length - 1],
-        exitCode: process.exitCode,
+        exitCode: getExitCode(),
       }).toStrictEqual({
         guidance:
           '\n--onlyTests pattern "XYZNONEXISTENT" matched 0 tests in any package — possible typo or stale test name\n',
@@ -423,7 +408,7 @@ describe('commandRunBroker', () => {
 
   describe('crashed run', () => {
     it('VALID: {check fails with no findings} => sets process.exitCode to 2', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageCrash();
 
@@ -433,11 +418,9 @@ describe('commandRunBroker', () => {
       await commandRunBroker({ config, rootPath });
 
       expect({
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         exitCode: 2,
-        exitCalls: [],
       });
     });
 
@@ -448,7 +431,7 @@ describe('commandRunBroker', () => {
     // sentences were true and the cause was wrong. Pinning the WHOLE stdout list is what proves the
     // unprocessed-path block is absent rather than merely reworded.
     it('VALID: {caller-typed path scope and a crashed child} => reports the crash and no unprocessed-path guidance', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageCrash();
       proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
@@ -460,7 +443,7 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           [
@@ -481,7 +464,7 @@ describe('commandRunBroker', () => {
 
   describe('a platform-crossing violation folds into the lint result', () => {
     it('VALID: {an otherwise-clean run, one platform-crossing violation} => the summary reports it under lint and the run fails', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
       const violation = PlatformCrossingViolationStub();
@@ -494,8 +477,7 @@ describe('commandRunBroker', () => {
 
       expect({
         stdoutCalls: proxy.getStdoutCalls(),
-        exitCode: process.exitCode,
-        exitCalls: proxy.getExitCalls(),
+        exitCode: getExitCode(),
       }).toStrictEqual({
         stdoutCalls: [
           [
@@ -510,7 +492,6 @@ describe('commandRunBroker', () => {
           '\nFull error details: npm run ward -- detail 1739625600000-a38e <filePath>\n',
         ],
         exitCode: 1,
-        exitCalls: [],
       });
     });
   });

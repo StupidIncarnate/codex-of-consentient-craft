@@ -1,5 +1,6 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import { setExitCodeProxy } from '#gateway/node/process/set-exit-code/set-exit-code.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -44,18 +45,11 @@ export const commandRunBrokerProxy = (): {
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
   setupPlatformCrossingViolation: (params: { violation: PlatformCrossingViolation }) => void;
-  getStdoutCalls: () => unknown[];
-  getExitCalls: () => RecordedCalls;
+  getStdoutCalls: () => readonly unknown[];
 } => {
-  // process.exit is never actually called by this broker (it sets process.exitCode instead) —
-  // the catch-all only guards against an accidental future call, so there is no exit code to key on.
-  const exitSpy = registerSpyOn({ object: process, method: 'exit' });
-  exitSpy.calledWith([]).returns(undefined);
-  // write()'s return value never varies by content in these tests — only what was written matters,
-  // and that is read back through callsMatching below, so the catch-all stays unaddressed.
-  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.calledWith([]).returns(true);
-  registerSpyOn({ object: process.stderr, method: 'write' }).calledWith([]).returns(true);
+  setExitCodeProxy();
+  const stdout = stdoutProxy();
+  stderrProxy();
 
   const workspaceProxy = workspaceDiscoverBrokerProxy();
   const gitScopeProxy = gitScopeLayerBrokerProxy();
@@ -244,7 +238,6 @@ export const commandRunBrokerProxy = (): {
     // No independent address exists for arbitrary stdout text — flatten via .map() (a real
     // transform over the WHOLE call history, not an unaddressed peek) so callers needing a
     // specific write's text by position (summary vs guidance) can still index the result.
-    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
-    getExitCalls: (): RecordedCalls => exitSpy.callsMatching([]),
+    getStdoutCalls: (): readonly unknown[] => stdout.getWrites(),
   };
 };

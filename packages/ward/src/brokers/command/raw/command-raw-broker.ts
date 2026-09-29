@@ -6,6 +6,7 @@
  * // Writes raw process output to stdout
  */
 
+import { stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -26,23 +27,23 @@ export const commandRawBroker = async ({
   const wardResult = await storageLoadBroker({ rootPath, runId });
 
   if (!wardResult) {
-    process.stderr.write(`No ward result found for run ${runId}\n`);
+    stderr.write(`No ward result found for run ${runId}\n`);
     return result;
   }
 
   const matchingCheck = wardResult.checks.find((check) => check.checkType === checkType);
 
   if (!matchingCheck) {
-    process.stderr.write(`No ${checkType} check found in run ${runId}\n`);
+    stderr.write(`No ${checkType} check found in run ${runId}\n`);
     return result;
   }
 
   for (const project of matchingCheck.projectResults) {
     if (String(project.rawOutput.stdout)) {
-      process.stdout.write(`${project.rawOutput.stdout}\n`);
+      stdout.write(`${project.rawOutput.stdout}\n`);
     }
     if (String(project.rawOutput.stderr)) {
-      process.stdout.write(`${project.rawOutput.stderr}\n`);
+      stdout.write(`${project.rawOutput.stderr}\n`);
     }
   }
   return result;
