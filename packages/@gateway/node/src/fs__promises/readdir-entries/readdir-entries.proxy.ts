@@ -1,6 +1,7 @@
 import { readdir } from 'fs/promises';
 import type { Dirent } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { DirentStub } from '../../fs/readdir-entries-sync/dirent.stub';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
 import type { PathMatcher } from '../../gateway-test-support/path-matcher';
@@ -11,15 +12,7 @@ interface DirentEntry {
 }
 
 const buildDirents = (entries: readonly DirentEntry[]): Dirent[] =>
-  entries.map(
-    (entry) =>
-      ({
-        name: entry.name,
-        isFile: (): boolean => entry.kind === 'file',
-        isDirectory: (): boolean => entry.kind === 'directory',
-        isSymbolicLink: (): boolean => entry.kind === 'symlink',
-      }) as unknown as Dirent,
-  );
+  entries.map((entry) => DirentStub({ name: entry.name, kind: entry.kind }));
 
 export const readdirEntriesProxy = (): {
   returns: (params: { path: string; entries: readonly DirentEntry[] }) => void;

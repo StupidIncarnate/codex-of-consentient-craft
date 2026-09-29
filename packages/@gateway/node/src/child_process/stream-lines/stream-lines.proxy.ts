@@ -1,9 +1,7 @@
-import { spawn, type ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import { PassThrough } from 'stream';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-
-type ErrorCallback = (error: Error) => void;
-type CloseCallback = (code: number | null, signal: NodeJS.Signals | null) => void;
+import { ChildProcessStub } from '../child-process/child-process.stub';
 
 // A caller composing this proxy for a program that takes an argument only known at test-run time
 // needs a tolerant element or a whole-array predicate, not just a literal — the identical shape
@@ -43,30 +41,17 @@ const buildSpawnAddress = ({
 };
 
 const createMockChild = (): {
-  child: ChildProcess;
+  child: ReturnType<typeof ChildProcessStub>;
   stdout: PassThrough;
   stderr: PassThrough;
-  listeners: { error: ErrorCallback[]; close: CloseCallback[] };
 } => {
   const stdout = new PassThrough();
   const stderr = new PassThrough();
-  const listeners = { error: [] as ErrorCallback[], close: [] as CloseCallback[] };
+  const child = ChildProcessStub();
+  child.stdout = stdout;
+  child.stderr = stderr;
 
-  const child = {
-    stdout,
-    stderr,
-    on: (event: string, callback: ErrorCallback | CloseCallback): unknown => {
-      if (event === 'error') {
-        listeners.error.push(callback as ErrorCallback);
-      }
-      if (event === 'close') {
-        listeners.close.push(callback as CloseCallback);
-      }
-      return undefined;
-    },
-  } as unknown as ChildProcess;
-
-  return { child, stdout, stderr, listeners };
+  return { child, stdout, stderr };
 };
 
 export const streamLinesProxy = (): {
@@ -132,13 +117,13 @@ export const streamLinesProxy = (): {
           }),
         )
         .implement(() => {
-          const { child, stdout, listeners } = createMockChild();
+          const { child, stdout } = createMockChild();
           process.nextTick(() => {
             for (const line of stdoutLines) {
               stdout.write(`${line}\n`);
             }
             stdout.end();
-            for (const cb of listeners.close) cb(exitCode, null);
+            child.emit('close', exitCode, null);
           });
           return child;
         });
@@ -164,10 +149,10 @@ export const streamLinesProxy = (): {
           }),
         )
         .implement(() => {
-          const { child, stdout, listeners } = createMockChild();
+          const { child, stdout } = createMockChild();
           process.nextTick(() => {
             stdout.end();
-            for (const cb of listeners.close) cb(null, signal);
+            child.emit('close', null, signal);
           });
           return child;
         });
@@ -195,14 +180,14 @@ export const streamLinesProxy = (): {
           }),
         )
         .implement(() => {
-          const { child, stdout, stderr, listeners } = createMockChild();
+          const { child, stdout, stderr } = createMockChild();
           process.nextTick(() => {
             stdout.end();
             for (const chunk of stderrChunks) {
               stderr.write(chunk);
             }
             stderr.end();
-            for (const cb of listeners.close) cb(exitCode, null);
+            child.emit('close', exitCode, null);
           });
           return child;
         });
@@ -228,10 +213,10 @@ export const streamLinesProxy = (): {
           }),
         )
         .implement(() => {
-          const { child, stdout, listeners } = createMockChild();
+          const { child, stdout } = createMockChild();
           process.nextTick(() => {
             stdout.end();
-            for (const cb of listeners.error) cb(error);
+            child.emit('error', error);
           });
           return child;
         });

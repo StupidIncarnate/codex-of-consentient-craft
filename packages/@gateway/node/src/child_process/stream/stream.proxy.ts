@@ -1,51 +1,20 @@
-import { spawn, type ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
+import { PassThrough } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-
-type DataCallback = (chunk: Buffer) => void;
-type ErrorCallback = (error: Error) => void;
-type CloseCallback = (code: number | null, signal: NodeJS.Signals | null) => void;
+import { ChildProcessStub } from '../child-process/child-process.stub';
 
 const createMockChild = (): {
-  child: ChildProcess;
-  listeners: {
-    stdoutData: DataCallback[];
-    stderrData: DataCallback[];
-    error: ErrorCallback[];
-    close: CloseCallback[];
-  };
+  child: ReturnType<typeof ChildProcessStub>;
+  stdout: PassThrough;
+  stderr: PassThrough;
 } => {
-  const listeners = {
-    stdoutData: [] as DataCallback[],
-    stderrData: [] as DataCallback[],
-    error: [] as ErrorCallback[],
-    close: [] as CloseCallback[],
-  };
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const child = ChildProcessStub();
+  child.stdout = stdout;
+  child.stderr = stderr;
 
-  const child = {
-    stdout: {
-      on: (_event: string, callback: DataCallback): unknown => {
-        listeners.stdoutData.push(callback);
-        return undefined;
-      },
-    },
-    stderr: {
-      on: (_event: string, callback: DataCallback): unknown => {
-        listeners.stderrData.push(callback);
-        return undefined;
-      },
-    },
-    on: (event: string, callback: ErrorCallback | CloseCallback): unknown => {
-      if (event === 'error') {
-        listeners.error.push(callback as ErrorCallback);
-      }
-      if (event === 'close') {
-        listeners.close.push(callback as CloseCallback);
-      }
-      return undefined;
-    },
-  } as unknown as ChildProcess;
-
-  return { child, listeners };
+  return { child, stdout, stderr };
 };
 
 export const streamProxy = (): {
@@ -80,15 +49,15 @@ export const streamProxy = (): {
       stderr: string;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, listeners } = createMockChild();
+        const { child, stdout: stdoutStream, stderr: stderrStream } = createMockChild();
         process.nextTick(() => {
           if (stdout) {
-            for (const cb of listeners.stdoutData) cb(Buffer.from(stdout));
+            stdoutStream.emit('data', Buffer.from(stdout));
           }
           if (stderr) {
-            for (const cb of listeners.stderrData) cb(Buffer.from(stderr));
+            stderrStream.emit('data', Buffer.from(stderr));
           }
-          for (const cb of listeners.close) cb(exitCode, null);
+          child.emit('close', exitCode, null);
         });
         return child;
       });
@@ -104,12 +73,12 @@ export const streamProxy = (): {
       stdout: string;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, listeners } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild();
         process.nextTick(() => {
           if (stdout) {
-            for (const cb of listeners.stdoutData) cb(Buffer.from(stdout));
+            stdoutStream.emit('data', Buffer.from(stdout));
           }
-          for (const cb of listeners.close) cb(null, signal);
+          child.emit('close', null, signal);
         });
         return child;
       });
@@ -125,12 +94,12 @@ export const streamProxy = (): {
       stdout?: string;
     }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, listeners } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild();
         process.nextTick(() => {
           if (stdout) {
-            for (const cb of listeners.stdoutData) cb(Buffer.from(stdout));
+            stdoutStream.emit('data', Buffer.from(stdout));
           }
-          for (const cb of listeners.error) cb(error);
+          child.emit('error', error);
         });
         return child;
       });
@@ -138,12 +107,12 @@ export const streamProxy = (): {
 
     setupCloseNull: ({ command, stdout }: { command: string; stdout: string }): void => {
       handle.calledWith([command]).implement(() => {
-        const { child, listeners } = createMockChild();
+        const { child, stdout: stdoutStream } = createMockChild();
         process.nextTick(() => {
           if (stdout) {
-            for (const cb of listeners.stdoutData) cb(Buffer.from(stdout));
+            stdoutStream.emit('data', Buffer.from(stdout));
           }
-          for (const cb of listeners.close) cb(null, null);
+          child.emit('close', null, null);
         });
         return child;
       });

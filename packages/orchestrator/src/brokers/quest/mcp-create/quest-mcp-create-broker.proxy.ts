@@ -2,13 +2,13 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
 import type {
   AddQuestInput,
-  AddQuestResult,
   Guild,
   GuildListItem,
   GuildName,
   GuildPath,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
+import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
@@ -124,28 +124,33 @@ export const questMcpCreateBrokerProxy = (): {
       guildId: Guild['id'];
       questId?: QuestId;
     }): void => {
-      const addResult = {
+      const addResult = AddQuestResultStub({
         success: true,
         questId,
         questFolder: questId,
         filePath: FilePathStub({ value: '/tmp/quest.json' }),
-        chaoswhispererWorkItemId: questId,
-      } as unknown as AddQuestResult;
+      });
       addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
     setupAddSuccessWithoutQuestId: ({ guildId }: { guildId: Guild['id'] }): void => {
-      const addResult = {
+      const addResult = AddQuestResultStub({
         success: true,
-      } as unknown as AddQuestResult;
+        questId: undefined,
+        questFolder: undefined,
+        filePath: undefined,
+      });
       addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
     setupAddFailure: ({ guildId, error }: { guildId: Guild['id']; error: string }): void => {
-      const addResult = {
+      const addResult = AddQuestResultStub({
         success: false,
+        questId: undefined,
+        questFolder: undefined,
+        filePath: undefined,
         error,
-      } as unknown as AddQuestResult;
+      });
       addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 

@@ -1,24 +1,9 @@
 import { open } from 'fs/promises';
-import type { FileHandle } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { FileHandleStub } from './file-handle.stub';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
 import type { PathMatcher } from '../../gateway-test-support/path-matcher';
-
-const buildFileHandle = ({ size, contents }: { size: number; contents: string }): FileHandle =>
-  ({
-    stat: async (): Promise<{ size: number }> => Promise.resolve({ size }),
-    read: async (
-      buffer: Buffer,
-      offset: number,
-      length: number,
-      _position: number,
-    ): Promise<void> => {
-      buffer.write(contents, offset, length, 'utf8');
-      return Promise.resolve(undefined);
-    },
-    close: async (): Promise<void> => Promise.resolve(undefined),
-  }) as unknown as FileHandle;
 
 export const readFileFromOffsetProxy = (): {
   returns: (params: { path: string; size: number; contents: string }) => void;
@@ -33,7 +18,7 @@ export const readFileFromOffsetProxy = (): {
 
   return {
     returns: ({ path, size, contents }: { path: string; size: number; contents: string }): void => {
-      handle.calledWith([path, 'r']).resolves(buildFileHandle({ size, contents }));
+      handle.calledWith([path, 'r']).resolves(FileHandleStub({ size, contents }));
     },
     missing: ({ path }: { path: string }): void => {
       handle.calledWith([path, 'r']).rejects(FsErrorStub({ code: 'ENOENT', path }));
@@ -53,7 +38,7 @@ export const readFileFromOffsetProxy = (): {
       size: number;
       contents: string;
     }): void => {
-      handle.calledWith([path, 'r']).resolves(buildFileHandle({ size, contents }));
+      handle.calledWith([path, 'r']).resolves(FileHandleStub({ size, contents }));
     },
     throwsMatchingPath: ({ path, error }: { path: PathMatcher; error: FsError }): void => {
       handle.calledWith([path, 'r']).rejects(error);
