@@ -1,6 +1,7 @@
 import { readItem } from '../read-item/read-item';
 import { clear } from './clear';
 import { clearProxy } from './clear.proxy';
+import { StorageDisabledErrorStub } from '../read-item/storage-disabled-error.stub';
 
 describe('clear', () => {
   it('VALID: {two keys stored} => removes both and returns { success: true }', () => {
@@ -24,7 +25,7 @@ describe('clear', () => {
 
   it('ERROR: {storage disabled, clear throws} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = clearProxy();
-    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    const securityError = StorageDisabledErrorStub();
     proxy.setupClearFails({ error: securityError });
 
     const result = clear();

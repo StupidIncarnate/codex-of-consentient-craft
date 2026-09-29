@@ -1,6 +1,8 @@
 import { readItem } from '../read-item/read-item';
 import { writeItem } from './write-item';
 import { writeItemProxy } from './write-item.proxy';
+import { StorageQuotaErrorStub } from './storage-quota-error.stub';
+import { StorageDisabledErrorStub } from '../read-item/storage-disabled-error.stub';
 
 describe('writeItem', () => {
   it('VALID: {key, value} => writes the value and returns { success: true }', () => {
@@ -12,7 +14,7 @@ describe('writeItem', () => {
 
   it('ERROR: {quota exceeded} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = writeItemProxy();
-    const quotaError = Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' });
+    const quotaError = StorageQuotaErrorStub();
     proxy.setupWriteFails({ key: 'write-item-quota', error: quotaError });
 
     const result = writeItem({ key: 'write-item-quota', value: 'x' });
@@ -22,7 +24,7 @@ describe('writeItem', () => {
 
   it('ERROR: {storage disabled for writes} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = writeItemProxy();
-    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    const securityError = StorageDisabledErrorStub();
     proxy.setupWriteFails({ key: 'write-item-blocked', error: securityError });
 
     const result = writeItem({ key: 'write-item-blocked', value: 'x' });
@@ -33,9 +35,7 @@ describe('writeItem', () => {
   describe('tolerant addressing', () => {
     it('ERROR: {throwsMatchingKey, a predicate} => returns { success: false, error } for a key the predicate accepts', () => {
       const proxy = writeItemProxy();
-      const quotaError = Object.assign(new Error('quota exceeded'), {
-        name: 'QuotaExceededError',
-      });
+      const quotaError = StorageQuotaErrorStub();
       proxy.throwsMatchingKey({
         key: (value) => String(value).startsWith('write-item-computed-'),
         error: quotaError,

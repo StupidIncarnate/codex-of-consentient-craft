@@ -1,6 +1,7 @@
 import { readItem } from '../read-item/read-item';
 import { removeItem } from './remove-item';
 import { removeItemProxy } from './remove-item.proxy';
+import { StorageDisabledErrorStub } from '../read-item/storage-disabled-error.stub';
 
 describe('removeItem', () => {
   it('VALID: {key holds a value} => removes it and returns { success: true }', () => {
@@ -14,7 +15,7 @@ describe('removeItem', () => {
 
   it('ERROR: {storage disabled, removeItem throws} => returns { success: false, error } carrying the real error rather than throwing', () => {
     const proxy = removeItemProxy();
-    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    const securityError = StorageDisabledErrorStub();
     proxy.setupRemoveFails({ key: 'remove-item-blocked', error: securityError });
 
     const result = removeItem({ key: 'remove-item-blocked' });
@@ -25,7 +26,7 @@ describe('removeItem', () => {
   describe('tolerant addressing', () => {
     it('ERROR: {throwsMatchingKey, a predicate} => returns { success: false, error } for a key the predicate accepts', () => {
       const proxy = removeItemProxy();
-      const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      const securityError = StorageDisabledErrorStub();
       proxy.throwsMatchingKey({
         key: (value) => String(value).startsWith('remove-item-computed-'),
         error: securityError,

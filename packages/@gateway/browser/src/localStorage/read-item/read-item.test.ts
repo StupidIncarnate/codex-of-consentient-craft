@@ -1,5 +1,6 @@
 import { readItem } from './read-item';
 import { readItemProxy } from './read-item.proxy';
+import { StorageDisabledErrorStub } from './storage-disabled-error.stub';
 
 describe('readItem', () => {
   it('VALID: {key holds a value} => returns the stored string', () => {
@@ -22,7 +23,7 @@ describe('readItem', () => {
     const proxy = readItemProxy();
     proxy.setupReadFails({
       key: 'read-item-blocked',
-      error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
+      error: StorageDisabledErrorStub(),
     });
 
     expect(readItem({ key: 'read-item-blocked' })).toBe(null);
@@ -33,7 +34,7 @@ describe('readItem', () => {
       const proxy = readItemProxy();
       proxy.throwsMatchingKey({
         key: (value) => String(value).startsWith('read-item-computed-'),
-        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
+        error: StorageDisabledErrorStub(),
       });
 
       expect(readItem({ key: 'read-item-computed-at-runtime' })).toBe(null);

@@ -1,5 +1,6 @@
 import { keys } from './keys';
 import { keysProxy } from './keys.proxy';
+import { StorageDisabledErrorStub } from '../read-item/storage-disabled-error.stub';
 
 describe('keys', () => {
   it('VALID: {storage holds entries} => returns { success: true, keys } with every key', () => {
@@ -20,7 +21,7 @@ describe('keys', () => {
     globalThis.localStorage.clear();
     globalThis.localStorage.setItem('keys-blocked', 'a');
     const proxy = keysProxy();
-    const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+    const securityError = StorageDisabledErrorStub();
     proxy.setupEnumerationFails({ error: securityError });
 
     expect(keys()).toStrictEqual({ success: false, error: securityError });
