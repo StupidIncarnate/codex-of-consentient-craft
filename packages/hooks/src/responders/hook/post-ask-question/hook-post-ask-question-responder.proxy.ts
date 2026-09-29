@@ -14,6 +14,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fetchWithStatusProxy } from '#gateway/node/fetch/fetch-with-status/fetch-with-status.proxy';
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 const DEFAULT_NOW_MS = 0;
 const MOCK_PORT = '3737';
@@ -53,6 +54,7 @@ export const HookPostAskQuestionResponderProxy = (): {
   // to the shared fetch spy below — only the direct registration in this file stages responses.
   fetchWithStatusProxy();
   fetchJsonProxy();
+  stderrProxy();
 
   const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
 

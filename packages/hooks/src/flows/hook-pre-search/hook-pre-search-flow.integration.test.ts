@@ -6,7 +6,7 @@ describe('HookPreSearchFlow', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/hook-flow-project',
         hook_event_name: 'PreToolUse',
         tool_name: 'Grep',
         tool_input: { pattern: 'permission', output_mode: 'files_with_matches' },
@@ -25,7 +25,7 @@ describe('HookPreSearchFlow', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/hook-flow-project',
         hook_event_name: 'PreToolUse',
         tool_name: 'Glob',
         tool_input: { pattern: '**/*.ts' },
@@ -46,7 +46,7 @@ describe('HookPreSearchFlow', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/hook-flow-project',
         hook_event_name: 'PreToolUse',
         tool_name: 'Grep',
         tool_input: { pattern: 'import', output_mode: 'content' },
@@ -65,7 +65,7 @@ describe('HookPreSearchFlow', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/hook-flow-project',
         hook_event_name: 'PreToolUse',
         tool_name: 'Grep',
         tool_input: { pattern: 'import.*from' },
@@ -84,7 +84,7 @@ describe('HookPreSearchFlow', () => {
       const inputData = JSON.stringify({
         session_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         transcript_path: '/tmp/transcript.jsonl',
-        cwd: process.cwd(),
+        cwd: '/tmp/hook-flow-project',
         hook_event_name: 'PreToolUse',
         tool_name: 'Glob',
         tool_input: { pattern: '**/*.json' },

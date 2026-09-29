@@ -23,6 +23,7 @@ import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contr
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { questBySessionResponseContract } from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
 import { fetchJson, fetchWithStatus } from '#gateway/node/fetch';
+import { stderr } from '#gateway/node/process';
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { askQuestionToDesignDecisionsTransformer } from '../../../transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer';
@@ -37,7 +38,7 @@ export const HookPostAskQuestionResponder = async ({
   const hookParsed = postToolUseHookDataContract.safeParse(JSON.parse(inputData));
   if (!hookParsed.success) {
     const message = `invalid hook payload: ${hookParsed.error.message}`;
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
@@ -53,7 +54,7 @@ export const HookPostAskQuestionResponder = async ({
 
   const responseParsed = askUserQuestionResponseContract.safeParse(hookData.tool_response);
   if (!responseParsed.success) {
-    process.stderr.write(
+    stderr.write(
       `[post-ask-question] invalid AskUserQuestion tool_response shape: ${responseParsed.error.message}\n`,
     );
     return execResultContract.parse({
@@ -83,7 +84,7 @@ export const HookPostAskQuestionResponder = async ({
 
   if (!lookupResult.ok) {
     const message = `quest lookup failed at ${url}: status ${String(lookupResult.status)}`;
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
@@ -103,7 +104,7 @@ export const HookPostAskQuestionResponder = async ({
   const sessionParsed = questBySessionResponseContract.safeParse(parsedBody);
   if (!sessionParsed.success) {
     const message = `quest lookup at ${url} returned invalid shape: ${sessionParsed.error.message}`;
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
@@ -120,7 +121,7 @@ export const HookPostAskQuestionResponder = async ({
 
   if (designDecisions.length === 0) {
     const message = 'no answers matched questions, nothing to PATCH';
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
@@ -137,7 +138,7 @@ export const HookPostAskQuestionResponder = async ({
   } catch (error: unknown) {
     const cause = error instanceof Error ? error.message : String(error);
     const message = `PATCH /api/quests/${String(questId)} failed: ${cause}`;
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
