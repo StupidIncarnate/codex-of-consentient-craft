@@ -38,10 +38,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
+import { install, runBuild } from '#gateway/bin/npm';
 import { readFile } from '#gateway/node/fs__promises';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { npmInstallAdapter } from '../../../adapters/npm/install/npm-install-adapter';
-import { npmRunBuildAdapter } from '../../../adapters/npm/run-build/npm-run-build-adapter';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
@@ -133,7 +132,7 @@ export const InstallRecipesScaffoldResponder = async ({
   // hand.
   const targetProjectRootCwd = absoluteFilePathContract.parse(context.targetProjectRoot);
 
-  const installResult = await npmInstallAdapter({ cwd: targetProjectRootCwd });
+  const installResult = await install({ cwd: targetProjectRootCwd });
   if (installResult.exitCode !== 0) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -141,13 +140,13 @@ export const InstallRecipesScaffoldResponder = async ({
       action: 'created',
       message: installMessageContract.parse(
         `${createdMessage}; npm install failed (exit ${String(installResult.exitCode)}): ` +
-          `${String(installResult.output)} — run "npm install" at the repo root, then "${buildCommand}" ` +
+          `${installResult.output} — run "npm install" at the repo root, then "${buildCommand}" ` +
           'to finish setting it up',
       ),
     };
   }
 
-  const buildResult = await npmRunBuildAdapter({
+  const buildResult = await runBuild({
     cwd: targetProjectRootCwd,
     workspace: recipesPackageName,
   });
@@ -158,7 +157,7 @@ export const InstallRecipesScaffoldResponder = async ({
       action: 'created',
       message: installMessageContract.parse(
         `${createdMessage}; ${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
-          `${String(buildResult.output)} — run "${buildCommand}" to finish setting it up`,
+          `${buildResult.output} — run "${buildCommand}" to finish setting it up`,
       ),
     };
   }

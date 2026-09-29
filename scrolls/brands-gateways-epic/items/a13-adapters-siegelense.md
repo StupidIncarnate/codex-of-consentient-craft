@@ -521,3 +521,443 @@ Once all callers are migrated, delete `packages/siegelense/src/adapters/fs/read-
 - Scoped ward run (`--only lint,typecheck,unit -- <all 56 touched files>`): exit code 0 (`1790634416231-3508`).
 - Full siegelense unit test run (`--only unit -- packages/siegelense`): exit code 0 (`1790634556895-1612`, 525/525 files passed).
 
+
+## Plan — SL-PW
+
+Chunk: `packages/siegelense/src/adapters/playwright/session/` (41 files: 13 implementations, 13 proxies, 14 unit tests,
+1 integration test). Census 2026-09-28, code wins:
+
+- `playwright-session-adapter.ts` already imports `chromium` from `#gateway/npm/playwright__test`. Every other real
+  Playwright call (`browser.newContext`, `page.on`, `page.evaluate`, `page.addInitScript`, `page.setViewportSize`,
+  `page.waitForTimeout`) is a METHOD on an object that call returns, so none of them names an import to move.
+- `playwright-session-adapter.proxy.ts` stages the whole browser by `registerModuleMock({ module: '@playwright/test' })`
+  and hand-built fake `Browser`/`BrowserContext`/`Page` objects.
+- `packages/@gateway/npm/src/playwright__test/` holds only the barrel and an `expect` stub. It has NO `.proxy.ts` — no
+  staging for `chromium.launch` and no fake `Page` a caller could compose.
+
+### Gap (stops the "split" half)
+
+Work step 4 asks each caller's proxy to compose `#gateway/npm/playwright__test/playwright__test.proxy`. That file does
+not exist, so moving the facade into `brokers/` would mean either keeping the raw `registerModuleMock` of
+`@playwright/test` in a broker proxy (the pattern T1/T3 retire) or writing the gateway proxy, which is outside this
+chunk (`packages/@gateway`). Per the dispatch, the split files stay put and the gap is reported:
+
+- needed: `packages/@gateway/npm/src/playwright__test/playwright__test.proxy.ts` (or a `chromium` sub-folder proxy)
+  that stages `chromium.launch` addressed by its options and hands back a fake `Browser` -> `BrowserContext` -> `Page`
+  whose methods record calls with read-back (`newContext` options, `addInitScript`, `setViewportSize`, `evaluate`
+  answered by source content, `waitForTimeout`, `screenshot`, locator `click`/`fill`/`waitFor`/`count`,
+  `keyboard.press`, `waitForFunction`, `video().path()`), and lets a test emit `console`, `pageerror`, `request`,
+  `response`, `requestfailed` and `websocket` events. `playwright-session-adapter.proxy.ts` lines 143-490 is that
+  surface today.
+
+Blocked files (untouched): `paste`, `storage-read`, `init-script-add`, `settle-wait`, `settle-poll`, `viewport-set`,
+`ref-registry` layer adapters and `playwright-session-adapter.ts`, each with proxy and test, plus the integration test.
+The layers take `page` as a parameter and would become `*-layer-broker.ts` beside a `browser-session/launch` broker;
+a layer cannot sit beside an adapter parent in another folder type, so they move only together with the facade.
+
+### Done in this pass: the pure "stays" builders
+
+The transformer folder accepts the factory shape (a first lint run on `root-check` passed), so each builder moved WHOLE,
+its output strings byte-identical, to `src/transformers/<name>/<name>-transformer.ts` with its test beside it. Their
+empty proxies are gone: a transformer takes none.
+
+| From (`adapters/playwright/session/`) | To (`src/transformers/`) |
+|---|---|
+| `dom-read-layer-adapter.ts` | `dom-read/dom-read-transformer.ts` (`domReadTransformer`) |
+| `key-press-layer-adapter.ts` | `key-press/key-press-transformer.ts` (`keyPressTransformer`) |
+| `key-read-layer-adapter.ts` | `key-read/key-read-transformer.ts` (`keyReadTransformer`) |
+| `root-check-layer-adapter.ts` | `root-check/root-check-transformer.ts` (`rootCheckTransformer`) |
+| `listeners-layer-adapter.ts` | `listener-lines/listener-lines-transformer.ts` (`listenerLinesTransformer`) |
+
+Edited: `playwright-session-adapter.ts` (imports), `.proxy.ts` (five empty child-proxy calls dropped), `.test.ts` (one
+test name). Name-only mentions updated: `test/harnesses/evidence-tree/evidence-tree.harness.ts`,
+`src/contracts/raw-dom-reading/raw-dom-reading-contract.ts`, `src/statics/results/results-statics.test.ts`,
+`src/transformers/run-index-compute/run-index-compute-transformer.ts`.
+
+### Execution result — SL-PW
+
+- Five builders moved; 15 adapter files deleted. 26 files remain in `adapters/playwright/session/`, all blocked on the
+  gateway proxy gap above.
+- Integration: `npm run ward -- --only integration -- packages/siegelense/src/flows` passed, 15 files (`1790635857614-e648`).
+
+
+## Plan — SL-MISC
+
+Group SL-MISC: Remaining non-playwright, non-fs adapters in `packages/siegelense`:
+Migrate 5 adapters to their `#gateway/*` counterparts and delete them, staying within the ~45-file batch limit (42 files total):
+1. `adapters/pixelmatch/compare/` -> `pixelmatch` from `#gateway/npm/pixelmatch` (pass-through function).
+2. `adapters/pngjs/decode/` -> `decodePng` from `#gateway/npm/pngjs`, staged via `decodePngProxy` from `#gateway/npm/pngjs/decode-png/decode-png.proxy`.
+3. `adapters/crypto/hash/` -> `createHash` from `#gateway/node/crypto` (pass-through function).
+4. `adapters/fetch/probe/` -> `fetchOk` from `#gateway/node/fetch`, staged via `fetchOkProxy` from `#gateway/node/fetch/fetch-ok/fetch-ok.proxy`.
+5. `adapters/error/is-native-error/` -> `isNativeError` from `#gateway/node/util__types`, staged via `isNativeErrorProxy` from `#gateway/node/util__types/is-native-error/is-native-error.proxy`.
+
+### Full File Scope (42 files)
+
+#### Adapters to delete (15 files)
+- `packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter.ts`
+- `packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter.test.ts`
+- `packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter.ts`
+- `packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter.test.ts`
+- `packages/siegelense/src/adapters/crypto/hash/crypto-hash-adapter.ts`
+- `packages/siegelense/src/adapters/crypto/hash/crypto-hash-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/crypto/hash/crypto-hash-adapter.test.ts`
+- `packages/siegelense/src/adapters/fetch/probe/fetch-probe-adapter.ts`
+- `packages/siegelense/src/adapters/fetch/probe/fetch-probe-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fetch/probe/fetch-probe-adapter.test.ts`
+- `packages/siegelense/src/adapters/error/is-native-error/error-is-native-error-adapter.ts`
+- `packages/siegelense/src/adapters/error/is-native-error/error-is-native-error-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/error/is-native-error/error-is-native-error-adapter.test.ts`
+
+#### Barrel export to update (1 file)
+- `packages/siegelense/adapters.ts` (remove exports for `pixelmatch-compare-adapter` and `pngjs-decode-adapter`)
+
+#### Contract documentation comments to update (2 files)
+- `packages/siegelense/src/contracts/decoded-frame/decoded-frame-contract.ts` (remove reference to deleted `pngjsDecodeAdapter`)
+- `packages/siegelense/src/contracts/pixel-count/pixel-count-contract.ts` (remove reference to deleted `pixelmatchCompareAdapter`)
+
+#### Direct callers to migrate (8 units = 24 files)
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.test.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.test.ts`
+- `packages/siegelense/src/brokers/lane-spec/hash/lane-spec-hash-broker.ts`
+- `packages/siegelense/src/brokers/lane-spec/hash/lane-spec-hash-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane-spec/hash/lane-spec-hash-broker.test.ts`
+- `packages/siegelense/src/brokers/lane/ready-wait/lane-ready-wait-broker.ts`
+- `packages/siegelense/src/brokers/lane/ready-wait/lane-ready-wait-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane/ready-wait/lane-ready-wait-broker.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.proxy.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.test.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.test.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.test.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.proxy.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.test.ts`
+<!-- Discovered during migration as remaining callers of error-is-native-error-adapter in packages/siegelense needed to allow deleting the adapter: -->
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.ts`
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.proxy.ts`
+- `packages/siegelense/src/brokers/run/execute/run-execute-step-layer-broker.ts`
+- `packages/siegelense/src/brokers/run/execute/run-execute-step-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/dispatch/step-dispatch-broker.ts`
+- `packages/siegelense/src/brokers/step/dispatch/step-dispatch-broker.proxy.ts`
+<!-- Discovered during migration as remaining callers of crypto-hash-adapter in packages/siegelense needed to allow deleting the adapter: -->
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.test.ts`
+
+#### Composing proxies (no edits needed — child proxies maintain identical public methods and signatures)
+- `packages/siegelense/src/brokers/step/dispatch/step-health-broker.proxy.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/read/machine-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/instance-reclaim/prune-instance-reclaim-broker.proxy.ts`
+- `packages/siegelense/src/flows/install/install-flow.ts`
+
+### Left for future chunks
+- `npm/install` and `npm/run-build` (`install-recipes-scaffold-responder.proxy.ts` needs `getSpawnedCwd()` and `getSpawnedArgs()`).
+- `fs/close-fd` (`lane-teardown-broker.test.ts` cross-function ordering assertion with kill).
+- `child-process/spawn-detached` (`unrefedPids()` and `[command, args]` matching used in `instance-start-broker.proxy.ts`).
+- Remaining `fs/*` adapters (`rm`, `stat`, `statfs`, `symlink`, `unlink`, `write-file`).
+### Execution result — SL-MISC
+
+- 5 adapters completely migrated and deleted (15 files removed):
+  - `packages/siegelense/src/adapters/pixelmatch/compare/` (3 files) -> `pixelmatch` from `#gateway/npm/pixelmatch`
+  - `packages/siegelense/src/adapters/pngjs/decode/` (3 files) -> `decodePng` from `#gateway/npm/pngjs`, staged via `decodePngProxy`
+  - `packages/siegelense/src/adapters/crypto/hash/` (3 files) -> `createHash` from `#gateway/node/crypto`
+  - `packages/siegelense/src/adapters/fetch/probe/` (3 files) -> `fetchOk` from `#gateway/node/fetch`, staged via `fetchOkProxy`
+  - `packages/siegelense/src/adapters/error/is-native-error/` (3 files) -> `isNativeError` from `#gateway/node/util__types`, staged via `isNativeErrorProxy`
+- Removed barrel export lines for `pixelmatch-compare-adapter` and `pngjs-decode-adapter` from `packages/siegelense/adapters.ts`.
+- Updated contract documentation comments in `decoded-frame-contract.ts` and `pixel-count-contract.ts`.
+- Migrated all direct callers, their proxies, and their tests across 13 units:
+  - `brokers/shot/blank-read/` (migrated to `decodePng`)
+  - `brokers/shot/change-read/` (migrated to `decodePng` and `pixelmatch`)
+  - `brokers/lane-spec/hash/` (migrated to `createHash`)
+  - `brokers/lane/ready-wait/` (migrated to `fetchOk`)
+  - `brokers/boot-lock/acquire/` (migrated to `isNativeError`)
+  - `brokers/machine/rss-by-pgid/` (migrated to `isNativeError`)
+  - `brokers/orphan/read/` (migrated to `isNativeError`)
+  - `responders/install/link-create/` (migrated to `isNativeError`)
+  - `brokers/citation/resolve/verified-prelude-layer-broker` (migrated to `isNativeError`)
+  - `brokers/registry/lock-acquire/registry-lock-acquire-broker` (migrated to `isNativeError`)
+  - `brokers/run/execute/run-execute-step-layer-broker` (migrated to `isNativeError`)
+  - `brokers/step/dispatch/step-dispatch-broker` (migrated to `isNativeError`)
+  - `brokers/step/reset/snapshot-restore-layer-broker` (migrated to `createHash`)
+- Unit test suite run: `npm run ward -- --only unit -- packages/siegelense` passed 100% (522 files passed/0 failed, run `1790638095983-6072`).
+- Scoped ward run (`--only lint,unit -- <all touched files>`): exit code 0.
+
+## Plan — F73
+
+Follow-up F73 closes the SL-PW gap: `@gateway/npm`'s `playwright__test` subpath gets a proxy that stages
+`chromium.launch` and hands back a fake `Browser` -> `BrowserContext` -> `Page`. Scope is
+`packages/@gateway/npm/src/playwright__test/**` only; siegelense is not migrated here.
+
+### Design
+
+- **A wrapper, like F45's `ESLint`.** `chromium/chromium.ts` exports OUR `chromium`: a plain object whose
+  `launch` is an arrow property delegating to the real `chromium.launch(options)`. The barrel re-exports it by name
+  (`export { chromium } from './chromium/chromium'`), so `chromium` becomes a WRAPPED export with its own proxy, and
+  `gateway-colocation`'s completeness check sees the pair. An arrow property, not the real `BrowserType` method,
+  so the proxy can spy on it with no `unbound-method` trip and no `as unknown as jest.Mock`.
+- **The proxy never loads real Playwright.** Loading `@playwright/test` trips the unit-test I/O trap, so the proxy
+  replaces it with `registerModuleMock({ module: '@playwright/test', factory: () => ({}) })`. The wrapper only
+  reaches the package at call time, and the spy answers every call before that happens.
+- **Every fake method is a `registerSpyOn` handle on a fake object.** `registerSpyOn` works on any object, so the
+  fake `Page`/`Browser`/`BrowserContext`/locator get the same argument-addressed dispatch, throw-on-unmatched
+  and `callsMatching` read-back as every other proxy. The fakes are built inside the proxy (no stub): the gateway's
+  stub convention is a REAL value, and a real `Page` needs a real browser (see `expect.stub.ts`).
+- **What is addressed (throws when unstaged, G19):** `chromium.launch` by its options; `page.evaluate` by its
+  page function (a string, a RegExp, or a predicate — the same matcher shape `eslint.proxy.ts` takes); locator
+  `count` by selector; `page.video()` (no argument, so `[]` is its honest address, but nothing answers until a
+  test stages `videoRecorded` or `videoAbsent`).
+- **What records and answers (`calledWith([])`, record-and-swallow per the testing doc):** the structural chain
+  (`newContext` -> the one context, `newPage` -> the one page, `grantPermissions`, both `close`s) and every void
+  action (`goto`, `addInitScript`, `setViewportSize`, `waitForTimeout`, `screenshot`, locator
+  `click`/`fill`/`focus`/`waitFor`, `keyboard.press`, `waitForFunction`). Each exists only because a test staged a
+  launch; what it was called with is read back. A test overrides one by address: `locatorActionRejects`,
+  `waitForFunctionRejects`, `evaluateRejects`.
+- **Playwright's string-source quirk is modelled, not bypassed.** Real Playwright applies `evaluate`'s second
+  argument only to a FUNCTION page function; a string source is evaluated bare and its arg is dropped, so a
+  function-valued expression comes back `undefined`. The proxy stages that at construction as a two-predicate
+  address (`[string source, defined arg]`), which outranks any one-argument staging, so a caller that regresses to
+  threading `arg` into a string source reads `undefined` just as it would against a real browser.
+- **Events:** the fake page is a real `node:events` `EventEmitter`, so `page.on(...)` is the real subscription.
+  `emitConsole`, `emitPageError`, `emitRequest`, `emitResponse` (async: flushes one macrotask, so a handler's
+  `response.text()` chain settles), `emitRequestFailed` and `emitWebsocket` (returns
+  `frameSent`/`frameReceived`/`close` drivers on a second emitter) build the Playwright-shaped objects a listener
+  reads.
+
+### Files
+
+- `packages/@gateway/npm/src/playwright__test/playwright__test.ts` — barrel gains the named `chromium` re-export.
+- `packages/@gateway/npm/src/playwright__test/chromium/chromium.ts` — new wrapper.
+- `packages/@gateway/npm/src/playwright__test/chromium/chromium.proxy.ts` — new proxy.
+- `packages/@gateway/npm/src/playwright__test/chromium/chromium.test.ts` — the proxy's own tests, driven through
+  the real Playwright types.
+- `packages/@gateway/npm/src/playwright__test/chromium/chromium.integration.test.ts` — the wrapper against a real
+  headless Chromium (launch, evaluate, close).
+
+### Method mapping — `playwrightSessionAdapterProxy` -> `chromiumProxy`
+
+For the agent that migrates siegelense. Old defaults become explicit staging: every test that reaches a staged read
+stages it.
+
+| Old (`playwright-session-adapter.proxy.ts`) | New (`#gateway/npm/playwright__test/chromium/chromium.proxy`) |
+|---|---|
+| `registerModuleMock('@playwright/test')` + `chromium.launch.mockResolvedValue(browser)` | `launchResolves({ options: { headless: true } })` |
+| `lane-boot-broker.proxy`'s `chromium.launch.mock.calls.length` | `getLaunchCalls().length` |
+| `getNewContextCalls()` -> `[options]` | `getNewContextCalls()` -> `[[options]]` (argument tuples); `context.grantPermissions` is `getGrantPermissionsCalls()`, `browser.close` is `getBrowserCloseCalls()` |
+| `setLocatorCount({ selector, count })` (unstaged = 0) | `locatorCountReturns({ selector, count })` (unstaged throws) |
+| `getClickCalls()` / `getFillCalls()` / `getFocusCalls()` / `getWaitForCalls()` -> `{selector, ...}` | `getLocatorCalls({ action: 'click' / 'fill' / 'focus' / 'waitFor' })` -> `[selector, ...args]` tuples |
+| `getKeyboardPressCalls()` -> `[key]` | `getKeyboardPressCalls()` -> `[[key]]` |
+| `getWaitForFunctionCalls()` -> `{source, options}` | `getWaitForFunctionCalls()` -> `[source, arg, options]` tuples |
+| `setWaitForFunctionRejects()` | `waitForFunctionRejects({ source, error })` |
+| `getWaitForTimeoutCalls()`, `getInitScripts()`, `getScreenshotCalls()`, `getSetViewportSizeCalls()` | `getWaitForTimeoutCalls()`, `getAddInitScriptCalls()`, `getScreenshotCalls()`, `getSetViewportSizeCalls()`, argument tuples; `page.goto` is `getGotoCalls()` |
+| `set{DescribeMatches,NearestNames,KeyRead,DomRead,Focused,Box,SettleProbe}Result`, `setRefState`, `setRootPresent`, `setEvaluateSourceResult` (substring markers, first hit wins) | `evaluateReturns({ source, result })`, `source` a RegExp or predicate on each builder's own marker; the marker ORDER the old proxy relied on becomes one distinct pattern per builder |
+| `getStampCalls()` (`'stamp'`/`'unstamp'`) | `evaluateReturns({ source: /setAttribute\('siege-target'/u, result: true })` + `getEvaluateCallsFor({ source })` |
+| `setStorageResult` / `getClearStorageCalls` / `getClipboardWrites` (function sources) | `evaluateReturns` / `getEvaluateCallsFor` with a predicate on `String(pageFunction)`; a clipboard write's text is the call tuple's second element |
+| `setHasVideo({ hasVideo: false })` / `setVideoPath({ videoPath })` | `videoAbsent()` / `videoRecorded({ path })` |
+| `setResponseTextThrows()` | `emitResponse({ ..., body: new Error(...) })` (an `Error` body makes `text()` reject with it) |
+| `emitConsoleMessage({ type, text, url, line })` | `emitConsole({ type, text, url, lineNumber })` |
+| `emitPageError`, `emitRequestFailed`, `emitWebsocket` | same names; `requestBody` -> `postData` |
+| `emitRequestStarted` | `emitRequest` |
+| `emitResponse({ ..., requestBody, responseText })` | `emitResponse({ ..., postData, body })` |
+
+Not moved: `homedir`/`join` passthroughs, the six layer child proxies and the `Date.now` spy are the adapter's own
+staging, not Playwright's; they stay in the siegelense proxy.
+
+Every unaddressed read-back (`get...Calls()`) returns `RecordedCalls` (`callsMatching([])`'s type: `length`, `map`,
+`filter`, iteration, no index); `getEvaluateCallsFor({ source })` is addressed and returns plain tuples.
+
+### Execution result — F73
+
+- Written as planned: wrapper, proxy, unit test (proxy exercised through Playwright's real types) and an integration
+  test that launches a real headless Chromium through the wrapper. Barrel re-exports `chromium` by name.
+- `npm run ward -- --only lint,typecheck,unit,integration -- packages/@gateway/npm` passed (`1790636625426-0c07`).
+- Build needed: `@dungeonmaster/npm` (the barrel and a new wrapper) before anything reads its `dist`.
+
+
+## Plan — SL-PW2
+
+Finishes `packages/siegelense/src/adapters/playwright/session/` on top of F73's `chromiumProxy`. Census
+2026-09-28, code wins: the facade already launches through `chromium` from `#gateway/npm/playwright__test`;
+every other Playwright call is a method on what that returns. The one caller outside the folder is
+`lane-boot-broker` (implementation, proxy, test).
+
+### Lint-measured constraint that shapes the layers
+
+A layer that takes a `page` cannot get a fake one from `chromiumProxy`: `enforce-proxy-child-creation`
+flags `chromiumProxy` as a PHANTOM in a layer proxy (the layer does not import `chromium`), and
+`enforce-proxy-patterns` refuses creating it lazily inside `openPage()` instead. Measured on a first
+`storage-read-layer-broker` draft (runs `1790637278812-84b3`, `1790637336051-b0ba`). So only the facade,
+which imports `chromium`, composes `chromiumProxy`, and no layer takes a `Page`.
+
+### Design
+
+- **The facade becomes `brokers/browser-session/launch/browser-session-launch-broker.ts`**
+  (`browserSessionLaunchBroker`). Not under `brokers/step/` (`ban-locator-pick`'s scope). Behaviour,
+  source strings and error text unchanged. `Page` is a type import from `#gateway/npm/playwright__test`.
+- **Layers beside it, none taking a page:**
+  - `ref-registry-layer-broker` — the pure source-string builder and `toResolution`, empty proxy.
+  - `settle-wait-layer-broker` / `settle-poll-layer-broker` — take `evaluate({ source })` and
+    `pause({ ms })` closures instead of the page; the facade closes them over `page.evaluate` and
+    `page.waitForTimeout`. Their proxies build those closures over a virtual clock, as the old fake page
+    did, with no cast.
+  - `paste-payload-layer-broker` — the page-free half of paste: refuse a missing `filePath`/`value`,
+    check the file exists (`existsSync`), read it (`readFileBytesSync`, both `#gateway/node/fs`), pick the
+    mime type (`extname` from `#gateway/node/path`), and hand back a `ClipboardPayload`. The facade does the
+    page half (focus, clipboard write, `ControlOrMeta+V`).
+- **Folded into the facade:** `storage-read`, `init-script-add` and `viewport-set` are one page call each
+  (the architecture's "under 50 lines, keep inline"); the facade's own tests already cover them.
+- **Brokers cannot import `zod`** (lint-confirmed), so the adapter's private schemas become contracts, each
+  with stub and test: `match-count`, `buffer-line-count` (the brands `browser-session-contract.ts` declared
+  privately; it now imports them), `raw-ref-state`, `raw-settle-probe`, plus `clipboard-payload` for the
+  paste split. `z.array(x)` becomes `x.array()`.
+- **R1:** nothing returns `AdapterResult` any more.
+- **The facade proxy composes `chromiumProxy`**, stages the launch in its constructor (every facade test
+  and `lane-boot`'s browsered boot launch one), and keeps the `Date.now` spy and the `homedir`/`join`
+  passthroughs (F73 decision 5). Read-backs follow F73's mapping table; old defaults become explicit staging
+  in the test that reaches them.
+- The integration test moves beside the facade as `browser-session-launch-broker.integration.test.ts`,
+  unchanged apart from the name.
+
+### Files (all under `packages/siegelense/src/`)
+
+New, `brokers/browser-session/launch/`:
+- `browser-session-launch-broker.ts`, `.proxy.ts`, `.test.ts`, `.integration.test.ts`
+- `ref-registry-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `settle-wait-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `settle-poll-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `paste-payload-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+
+New contracts, each `-contract.ts`, `-contract.test.ts`, `.stub.ts`:
+- `contracts/match-count/`, `contracts/buffer-line-count/`, `contracts/raw-ref-state/`,
+  `contracts/raw-settle-probe/`, `contracts/clipboard-payload/`
+
+Edited:
+- `contracts/browser-session/browser-session-contract.ts` (imports the two count types; header names the broker)
+- `brokers/lane/boot/lane-boot-broker.ts`, `.proxy.ts`, `.test.ts` (only the browser lines; its other
+  adapter proxies are untouched)
+- Name-only mentions: `statics/driver/driver-statics.ts`,
+  `transformers/settle-request-shape/settle-request-shape-transformer.ts`,
+  `transformers/listener-lines/listener-lines-transformer.ts`, `brokers/step/eval-source/step-eval-source-broker.ts`
+
+Deleted: all 26 files in `adapters/playwright/session/`, then the empty `adapters/playwright/` folder.
+
+## Plan — SL-MISC2
+
+Group SL-MISC2: Continuing migration of remaining siegelense adapters outside playwright session.
+Migrate 6 adapters to their `#gateway/*` counterparts and delete them, staying within the ~45-file batch limit (31 files total):
+1. `adapters/async/delay/` -> `setTimeout` from `#gateway/node/setTimeout` (wraps as awaitable Promise in caller).
+2. `adapters/os/info/` -> `cpus`, `freemem`, `loadavg`, `totalmem` from `#gateway/node/os` (MB conversion stays in `machine-read-broker.ts`).
+3. `adapters/fs/statfs/` -> `diskFreeBytes` from `#gateway/node/fs__promises`, staged via `diskFreeBytesProxy` from `#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy`.
+4. `adapters/fs/symlink/` -> `symlink` from `#gateway/node/fs__promises`, staged via `symlinkProxy` from `#gateway/node/fs__promises/symlink/symlink.proxy`.
+5. `adapters/npm/install/` -> `install` from `#gateway/bin/npm`, staged via `installProxy` from `#gateway/bin/npm/install/install.proxy`.
+6. `adapters/npm/run-build/` -> `runBuild` from `#gateway/bin/npm`, staged via `runBuildProxy` from `#gateway/bin/npm/run-build/run-build.proxy`.
+
+### Full File Scope (31 files)
+
+#### Adapters to delete (18 files)
+- `packages/siegelense/src/adapters/async/delay/async-delay-adapter.ts`
+- `packages/siegelense/src/adapters/async/delay/async-delay-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/async/delay/async-delay-adapter.test.ts`
+- `packages/siegelense/src/adapters/os/info/os-info-adapter.ts`
+- `packages/siegelense/src/adapters/os/info/os-info-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/os/info/os-info-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/statfs/fs-statfs-adapter.ts`
+- `packages/siegelense/src/adapters/fs/statfs/fs-statfs-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/statfs/fs-statfs-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/symlink/fs-symlink-adapter.ts`
+- `packages/siegelense/src/adapters/fs/symlink/fs-symlink-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/symlink/fs-symlink-adapter.test.ts`
+- `packages/siegelense/src/adapters/npm/install/npm-install-adapter.ts`
+- `packages/siegelense/src/adapters/npm/install/npm-install-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/npm/install/npm-install-adapter.test.ts`
+- `packages/siegelense/src/adapters/npm/run-build/npm-run-build-adapter.ts`
+- `packages/siegelense/src/adapters/npm/run-build/npm-run-build-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/npm/run-build/npm-run-build-adapter.test.ts`
+
+#### Barrel export to update (1 file)
+- `packages/siegelense/adapters.ts` (remove exports for `fs-symlink-adapter`, `fs-statfs-adapter`, `os-info-adapter`, and `async-delay-adapter`)
+
+#### Direct callers to migrate (4 units = 12 files)
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.test.ts`
+- `packages/siegelense/src/brokers/machine/read/machine-read-broker.ts`
+- `packages/siegelense/src/brokers/machine/read/machine-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/read/machine-read-broker.test.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.proxy.ts`
+- `packages/siegelense/src/responders/install/link-create/install-link-create-responder.test.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.proxy.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.test.ts`
+
+#### Composing proxies (no edits needed — child proxies maintain identical public methods and signatures)
+- `packages/siegelense/src/brokers/step/dispatch/run-verb-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/dispatch/step-dispatch-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/status-read-broker.proxy.ts`
+- `packages/siegelense/src/flows/install/install-flow.ts`
+
+### Left for future chunks
+- `fs/close-fd` (`lane-teardown-broker.test.ts` cross-function ordering assertion with kill; stays until ordering read-back exists).
+- `fetch/http-request` (`step-request-broker.ts` needs `statusText` from gateway fetch which `fetchWithStatus` currently omits).
+- `child-process/spawn-detached` (`instance-start-broker.ts`, `lane-boot-broker.ts`).
+- `cli-package/bin-resolve` (`cli-package-bin-resolve-adapter.ts`, `package-root-find-layer-adapter.ts`).
+- `os/tmpdir` (`instance-kill-broker.ts`, `instance-start-broker.ts`, `locations-instance-home-path-find-broker.ts`, `locations-socket-path-find-broker.ts`).
+- `process/is-alive` and `process/kill-group` (`instance-kill-broker.ts`, `lane-boot-broker.ts`, `lane-teardown-broker.ts`, `orphan-read-broker.ts`).
+- `net/unix-request` and `net/unix-serve` (`instance-kill-broker.ts`, `instance-run-broker.ts`, `instance-start-boot-poll-layer-broker.ts`, `driver-serve-layer-responder.ts`).
+- Remaining `fs/*` adapters (`rm`, `stat`, `unlink`, `write-file`).
+
+
+### Execution result — SL-PW2
+
+- `packages/siegelense/src/adapters/playwright/` is gone (all 26 files). The facade is
+  `brokers/browser-session/launch/browser-session-launch-broker.ts` with four layers (`ref-registry`,
+  `settle-wait`, `settle-poll`, `paste-payload`) and five new contracts, as the plan above says.
+- The facade proxy composes `chromiumProxy`; every page read is staged by its own source (exact string for
+  the ref-registry, key-press and root-check builders, a marker predicate for the rest), and the void page
+  writes (stamp, unstamp, storage clear, clipboard write) are record-and-resolve in its constructor.
+- The paste clipboard write is one page function over the whole `ClipboardPayload` (text or file) instead of
+  two, so `pasteMatch` and `pasteRef` share no nested helper (`forbid-non-exported-functions`).
+- The unreachable "either target or ref must be provided" refusal is gone: `pasteMatch` always carries a
+  target and `pasteRef` a ref.
+- New facade tests: goto options, browser close, grant-permissions, a file paste, a paste refused before the
+  page is touched, and unstamp-on-failure for `clickRef` and `pasteRef`.
+- Ward: `--only lint,typecheck,unit` over every touched file passed (`1790638164585-28d5`); `--only
+  integration` on the moved integration test (real Chromium) passed (`1790638215971-48e6`); `--only
+  integration -- packages/siegelense/src/flows` passed, 15 files (`1790638240864-5bbc`).
+
+### Execution result — SL-MISC2
+
+- 6 adapters completely migrated and deleted (18 files removed):
+  - `packages/siegelense/src/adapters/async/delay/` (3 files) -> `setTimeout` from `#gateway/node/setTimeout`
+  - `packages/siegelense/src/adapters/os/info/` (3 files) -> `cpus`, `freemem`, `loadavg`, `totalmem` from `#gateway/node/os`
+  - `packages/siegelense/src/adapters/fs/statfs/` (3 files) -> `diskFreeBytes` from `#gateway/node/fs__promises`
+  - `packages/siegelense/src/adapters/fs/symlink/` (3 files) -> `symlink` from `#gateway/node/fs__promises`
+  - `packages/siegelense/src/adapters/npm/install/` (3 files) -> `install` from `#gateway/bin/npm`
+  - `packages/siegelense/src/adapters/npm/run-build/` (3 files) -> `runBuild` from `#gateway/bin/npm`
+- Removed barrel export lines for `fs-symlink-adapter`, `fs-statfs-adapter`, `os-info-adapter`, and `async-delay-adapter` from `packages/siegelense/adapters.ts`.
+- Migrated 4 direct caller units:
+  - `step-hold-broker.ts` & proxy: direct `setTimeout` call and proxy registration.
+  - `machine-read-broker.ts` & proxy: direct `os` metrics + in-broker MB math, direct `diskFreeBytes` call and proxy composition.
+  - `install-link-create-responder.ts` & proxy: direct `symlink` call and `symlinkProxy` composition.
+  - `install-recipes-scaffold-responder.ts` & proxy: direct `install` and `runBuild` calls, composing `installProxy` and `runBuildProxy`.
+- Verified composing proxies and tests: `run-verb-layer-broker.test.ts`, `capacity-read-broker.test.ts`, `status-read-broker.test.ts`, `install-flow.integration.test.ts`.
+- Full scoped ward check passed clean:
+  `npm run ward -- --only lint,typecheck,unit,integration -- <all 13 touched files>`
+  Result: run `1790639949773-7d95`, lint PASS 13/13, typecheck PASS 1432/1432, unit PASS 17/17 (516 discovered), integration PASS 9/9 (23 discovered).
+

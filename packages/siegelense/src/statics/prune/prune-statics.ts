@@ -35,7 +35,7 @@ export const pruneStatics = {
     },
   },
   assets: {
-    // The one evidence extension `evidenceFileStatics` does not hold: `playwrightSessionAdapter`
+    // The one evidence extension `evidenceFileStatics` does not hold: `browserSessionLaunchBroker`
     // writes a screencast through Playwright's own `recordVideo`, not through this package's shot
     // or transcript writers, so it lives here rather than there — `prune --kind video` is a real
     // extension match against that recording, not a branch waiting to be wired.

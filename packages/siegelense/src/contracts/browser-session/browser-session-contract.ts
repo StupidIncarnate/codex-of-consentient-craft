@@ -1,8 +1,8 @@
 /**
- * PURPOSE: The operations a walk drives against a live page, described structurally so an adapter can
- * hand one back without this package ever importing Playwright — contracts/ may import only `statics`,
+ * PURPOSE: The operations a walk drives against a live page, described structurally so a broker can
+ * hand one back without this contract ever naming Playwright — contracts/ may import only `statics`,
  * `errors`, `contracts` and `zod`, never an npm package, so the `Page`/`Browser` types
- * `adapters/playwright/session/` closes over never leave that folder. A Zod object schema cannot
+ * `brokers/browser-session/launch/` closes over never leave that folder. A Zod object schema cannot
  * express a function, so the data half stays an empty `z.object({})` and every operation is added
  * through a TypeScript intersection instead — the same shape `eslintContextContract`
  * (`packages/eslint-plugin/src/contracts/eslint-context/`) already uses for ESLint's own
@@ -13,9 +13,9 @@
  * empty reading (siegelense-tooling.md line 1623).
  *
  * USAGE:
- * const session: BrowserSession = await playwrightSessionAdapter({ baseUrl, evidencePath });
+ * const session: BrowserSession = await browserSessionLaunchBroker({ baseUrl, evidencePath });
  * const count = await session.countMatches({ target: '[data-testid="PIXEL_BTN"]' });
- * // Every page read or write goes through here; nothing above adapters/playwright/session/ ever
+ * // Every page read or write goes through here; nothing outside brokers/browser-session/launch/ ever
  * // touches a Playwright Page
  */
 
@@ -24,11 +24,13 @@ import { z } from 'zod';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BoxReading } from '../box-reading/box-reading-contract';
+import type { BufferLineCount } from '../buffer-line-count/buffer-line-count-contract';
 import type { DomField } from '../dom-field/dom-field-contract';
 import type { DomReading } from '../dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
 import type { KeyListing } from '../key-listing/key-listing-contract';
 import type { KeyReading } from '../key-reading/key-reading-contract';
+import type { MatchCount } from '../match-count/match-count-contract';
 import type { RefResolution } from '../ref-resolution/ref-resolution-contract';
 import type { SettleReading } from '../settle-reading/settle-reading-contract';
 import type { StepCandidate } from '../step-candidate/step-candidate-contract';
@@ -39,12 +41,6 @@ import type { VideoResult } from '../video-result/video-result-contract';
 // `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
 // v4), which the field-carrying intersection below could never satisfy.
 export const browserSessionContract = z.object({}).loose();
-
-const _matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
-export type MatchCount = z.infer<typeof _matchCountContract>;
-
-const _bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
-type BufferLineCount = z.infer<typeof _bufferLineCountContract>;
 
 export interface BufferLengths {
   consoleLines: BufferLineCount;
@@ -59,8 +55,8 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   // region, which is rung 2 of the ladder (siegelense-tooling.md line 623).
   look: ({ within }: { within: string | null }) => Promise<KeyListing>;
   // Whether one ref still reaches an element, and which boundary it crossed when it does not.
-  // Reports a STATE rather than throwing, because `errors/` is outside what an adapter may import —
-  // `stepTargetResolveBroker` is what raises `RefStaleError` / `RefUnknownError` from this.
+  // Reports a STATE rather than throwing — `stepTargetResolveBroker` is what raises
+  // `RefStaleError` / `RefUnknownError` from this.
   refState: ({ ref }: { ref: number }) => Promise<RefResolution>;
   countMatches: ({ target, within }: { target: string; within?: string }) => Promise<MatchCount>;
   describeMatches: ({

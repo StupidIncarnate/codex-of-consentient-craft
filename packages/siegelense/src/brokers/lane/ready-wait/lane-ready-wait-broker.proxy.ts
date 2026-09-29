@@ -1,4 +1,4 @@
-// PURPOSE: Proxy for lane-ready-wait-broker — delegates to fetch-probe-adapter's proxy for
+// PURPOSE: Proxy for lane-ready-wait-broker — delegates to fetch-ok's proxy for
 // reachability, and stages Date.now ONLY when a test asks for a deadline-exceeded case. Staging the
 // clock in the constructor unconditionally would spy on every Date.now() call for the rest of the
 // test, including ones this scenario never described — a reachable-on-first-probe test never calls
@@ -8,14 +8,14 @@
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { fetchProbeAdapterProxy } from '../../../adapters/fetch/probe/fetch-probe-adapter.proxy';
+import { fetchOkProxy } from '#gateway/node/fetch/fetch-ok/fetch-ok.proxy';
 
 export const laneReadyWaitBrokerProxy = (): {
   setupReachable: (params: { url: string }) => void;
   setupUnreachable: (params: { url: string }) => void;
   stageDeadlineExceeded: (params: { firstCallMs: number; thenMs: number }) => void;
 } => {
-  const fetchProxy = fetchProbeAdapterProxy();
+  const fetchProxy = fetchOkProxy();
 
   return {
     setupReachable: ({ url }: { url: string }): void => {

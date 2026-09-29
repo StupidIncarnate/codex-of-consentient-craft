@@ -1,11 +1,11 @@
-import { join } from '#gateway/node/path';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import { join } from '#gateway/node/path';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 
 const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
@@ -19,7 +19,7 @@ export const machineRssByPgidBrokerProxy = (): {
   setupPidStatm: (params: { pid: string; residentPages: number }) => void;
   setupPidStatmVanished: (params: { pid: string; code?: 'ENOENT' | 'ESRCH' }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
   // the broker imports. Joining '/proc', a pid and a leaf name needs no substitution to compute a

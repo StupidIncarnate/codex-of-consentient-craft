@@ -8,13 +8,6 @@
 
 export * from './src/adapters/fs/unlink/fs-unlink-adapter';
 export * from './src/adapters/fs/write-file/fs-write-file-adapter';
-export * from './src/adapters/fs/symlink/fs-symlink-adapter';
-
-export * from './src/adapters/pixelmatch/compare/pixelmatch-compare-adapter';
-export * from './src/adapters/pngjs/decode/pngjs-decode-adapter';
 
 export * from './src/adapters/fs/stat/fs-stat-adapter';
-export * from './src/adapters/fs/statfs/fs-statfs-adapter';
-export * from './src/adapters/os/info/os-info-adapter';
 export * from './src/adapters/fetch/http-request/fetch-http-request-adapter';
-export * from './src/adapters/async/delay/async-delay-adapter';

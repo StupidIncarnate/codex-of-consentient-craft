@@ -6,7 +6,7 @@ import type {
   Guild,
 } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { stepDispatchBrokerProxy } from '../../step/dispatch/step-dispatch-broker.proxy';
@@ -50,7 +50,7 @@ export const runExecuteStepLayerBrokerProxy = (): {
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
 } => {
   const dispatchProxy = stepDispatchBrokerProxy();
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
 
   return {
     lastShotPath: dispatchProxy.lastShotPath,

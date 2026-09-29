@@ -2,9 +2,9 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { locationsCitationQuestPlansPathFindBrokerProxy } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker.proxy';
 
 export const verifiedPreludeLayerBrokerProxy = (): {
@@ -14,7 +14,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const readFileMock = readFileProxy();
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
   locationsCitationQuestPlansPathFindBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
   // nested/plan-file path this broker joins (plansDir + name, nestedDir + entryName) is already

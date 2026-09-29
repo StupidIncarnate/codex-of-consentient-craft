@@ -1,19 +1,20 @@
+import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
-import type { FsError } from '#gateway/node/fs';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
+import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
-import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
+
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
-import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
+import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
-import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
+import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
+import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
@@ -27,7 +28,7 @@ const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
 // rejection actually has under Jest — see `registryLockAcquireBrokerProxy`'s identical comment for
 // why (`@dungeonmaster/testing`'s own `mockStagingCreateTransformer` shares the same instanceof
 // gap, so `.throws()`/`.rejects()` cannot relay a cross-realm error faithfully at this level).
-// `errorIsNativeErrorAdapter`'s own test proves the realm-safety mechanism against a genuine
+// `isNativeError` proves the realm-safety mechanism against a genuine
 // `vm`-realm error; `driver-flow.integration.test.ts` proves it against the real failure mode.
 //
 // A failed exclusive create is what every scenario but the plain-absent one stages FIRST — the
@@ -114,7 +115,7 @@ export const bootLockAcquireBrokerProxy = (): {
   stageBootLockPathResolution();
   stageBootLockPathResolution();
 
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
   const readProxy = readFileIfExistsProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();

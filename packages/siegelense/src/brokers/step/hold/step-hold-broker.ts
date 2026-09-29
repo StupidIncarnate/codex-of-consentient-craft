@@ -21,7 +21,7 @@ import { dirname, join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { asyncDelayAdapter } from '../../../adapters/async/delay/async-delay-adapter';
+import { setTimeout } from '#gateway/node/setTimeout';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { holdReadingContract } from '../../../contracts/hold-reading/hold-reading-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -64,7 +64,9 @@ export const stepHoldBroker = async ({
     await previous;
 
     if (i > 0) {
-      await asyncDelayAdapter({ ms: everyMs });
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, everyMs);
+      });
     }
 
     await session.captureLive({ filePath: currentFramePath });

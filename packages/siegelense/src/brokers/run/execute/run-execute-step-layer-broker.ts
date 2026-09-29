@@ -52,7 +52,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
+import { isNativeError } from '#gateway/node/util__types';
 import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
@@ -192,18 +192,16 @@ export const runExecuteStepLayerBroker = async ({
     // `stepDispatchBroker` (when `step.expect` was not `'error'`) as well as this package's own
     // `WaitForCeilingHitError` or `BrowserStepUnsupportedError`. Playwright raises errors built by
     // Node's own internals outside the vm realm a Jest test file runs inside — `error instanceof
-    // Error` reads false even though the value genuinely is one (error-is-native-error-adapter.ts's
-    // header documents the same failure) — while `errorIsNativeErrorAdapter` answers correctly
+    // Error` reads false even though the value genuinely is one — while `isNativeError` answers correctly
     // whichever realm constructed the value, our own error classes included, since `isNativeError`
     // inspects the V8 error slot rather than the prototype chain. The `'message' in error` check is
-    // what lets the property access typecheck, since the adapter call itself returns a plain
-    // boolean and narrows nothing.
+    // what lets the property access typecheck.
     const message = contentTextContract.parse(
       underlyingError !== null &&
         typeof underlyingError === 'object' &&
-        errorIsNativeErrorAdapter({ value: underlyingError }) &&
+        isNativeError(underlyingError) &&
         'message' in underlyingError
-        ? String(underlyingError.message)
+        ? underlyingError.message
         : String(underlyingError),
     );
     // The STRUCTURED half of an ambiguity. The message already carries every candidate, but a

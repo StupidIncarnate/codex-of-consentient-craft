@@ -17,12 +17,13 @@
  */
 
 import { readFileBytes } from '#gateway/node/fs__promises';
+import pixelmatch from '#gateway/npm/pixelmatch';
+import { decodePng } from '#gateway/npm/pngjs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { pixelmatchCompareAdapter } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter';
-import { pngjsDecodeAdapter } from '../../../adapters/pngjs/decode/pngjs-decode-adapter';
 import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
+import { perceptionStatics } from '../../../statics/perception/perception-statics';
 
 const PERCENT_MULTIPLIER = 100;
 
@@ -42,15 +43,25 @@ export const shotChangeReadBroker = async ({
     readFileBytes(currentPath),
   ]);
 
-  const previousFrame = pngjsDecodeAdapter({ bytes: previousBytes });
-  const currentFrame = pngjsDecodeAdapter({ bytes: currentBytes });
+  const previousFrame = decodePng({ bytes: Buffer.from(previousBytes) });
+  const currentFrame = decodePng({ bytes: Buffer.from(currentBytes) });
 
   if (previousFrame.width !== currentFrame.width || previousFrame.height !== currentFrame.height) {
     return pixelChangeContract.parse('100%');
   }
 
   const totalPixels = previousFrame.width * previousFrame.height;
-  const diffCount = pixelmatchCompareAdapter({ before: previousFrame, after: currentFrame });
+  const diffCount = pixelmatch(
+    previousFrame.pixels,
+    currentFrame.pixels,
+    null,
+    previousFrame.width,
+    previousFrame.height,
+    {
+      threshold: perceptionStatics.diff.yiqThreshold,
+      includeAA: false,
+    },
+  );
   const percent = Math.round((diffCount / totalPixels) * PERCENT_MULTIPLIER);
 
   return pixelChangeContract.parse(`${String(percent)}%`);

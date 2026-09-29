@@ -49,7 +49,7 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
+import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { laneReadyWaitBroker } from '../ready-wait/lane-ready-wait-broker';
@@ -240,7 +240,7 @@ export const laneBootBroker = async ({
 
   const webBaseUrl = `http://${environmentStatics.hostname}:${String(ports.web)}`;
   const browser = spec.browser
-    ? await playwrightSessionAdapter({ baseUrl: webBaseUrl, evidencePath })
+    ? await browserSessionLaunchBroker({ baseUrl: webBaseUrl, evidencePath })
     : null;
 
   // laneSpecContract refines on `processes.length > 0`, so this is always populated — the check is

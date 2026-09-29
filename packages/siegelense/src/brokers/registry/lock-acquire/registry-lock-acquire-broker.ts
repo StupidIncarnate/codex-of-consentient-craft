@@ -22,9 +22,9 @@
  * // (instanceLifecycleStatics.registryLock.waitCeilingMs) is reached.
  */
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { isNativeError } from '#gateway/node/util__types';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -59,14 +59,12 @@ export const registryLockAcquireBroker = async ({
     // it rather than reading a file whose absence has nothing to do with this error. This is a
     // REAL `fs/promises` rejection, built by Node's own internals outside Jest's vm realm, so
     // `createError instanceof Error` reads false even when it genuinely is one —
-    // `errorIsNativeErrorAdapter` checks the V8-internal error slot instead, which answers
-    // correctly whichever realm constructed the value. The adapter call itself narrows nothing (a
-    // destructured-object parameter can't narrow the caller's own variable), so the null/typeof
-    // checks ahead of it are what let `createError.code` typecheck below.
+    // `isNativeError` checks the V8-internal error slot instead, which answers
+    // correctly whichever realm constructed the value.
     if (
       createError === null ||
       typeof createError !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: createError }) ||
+      !isNativeError(createError) ||
       !('code' in createError) ||
       createError.code !== 'EEXIST'
     ) {
@@ -95,7 +93,7 @@ export const registryLockAcquireBroker = async ({
       if (
         unlinkError === null ||
         typeof unlinkError !== 'object' ||
-        !errorIsNativeErrorAdapter({ value: unlinkError }) ||
+        !isNativeError(unlinkError) ||
         !('code' in unlinkError) ||
         unlinkError.code !== 'ENOENT'
       ) {

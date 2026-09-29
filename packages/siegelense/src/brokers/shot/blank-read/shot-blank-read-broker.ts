@@ -12,9 +12,9 @@
  */
 
 import { readFileBytes } from '#gateway/node/fs__promises';
+import { decodePng } from '#gateway/npm/pngjs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { pngjsDecodeAdapter } from '../../../adapters/pngjs/decode/pngjs-decode-adapter';
 import { blankReadingContract } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
 import { colourChannelContract } from '../../../contracts/colour-channel/colour-channel-contract';
@@ -32,7 +32,7 @@ export const shotBlankReadBroker = async ({
   shotPath: AbsoluteFilePath;
 }): Promise<BlankReading> => {
   const bytes = await readFileBytes(shotPath);
-  const frame = pngjsDecodeAdapter({ bytes });
+  const frame = decodePng({ bytes: Buffer.from(bytes) });
   const totalPixels = frame.width * frame.height;
 
   const referenceRed = frame.pixels[RED_BYTE_OFFSET];

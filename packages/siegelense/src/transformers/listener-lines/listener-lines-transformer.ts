@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Pure JSON-line builders for the console, pageerror, network (response + requestfailed)
- * and websocket events `playwright-session-adapter` listens for. This file touches no Playwright
+ * and websocket events `browser-session-launch-broker` listens for. This file touches no Playwright
  * object and imports nothing from `@playwright/test` — the session arms every `page.on(...)`
  * listener itself, extracts each event's fields, and hands this transformer plain values to shape
  * into the `ContentText` line it pushes onto a buffer.

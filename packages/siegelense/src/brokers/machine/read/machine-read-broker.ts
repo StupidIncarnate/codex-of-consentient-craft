@@ -15,24 +15,38 @@
  * // Returns { freeMemMB, totalMemMB, freeDiskMB, cores, loadAvg, oomKillsSinceBoot, lastOomAt: null }
  */
 
+import { diskFreeBytes } from '#gateway/node/fs__promises';
+import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsStatfsAdapter } from '../../../adapters/fs/statfs/fs-statfs-adapter';
-import { osInfoAdapter } from '../../../adapters/os/info/os-info-adapter';
+import { loadAverageContract } from '../../../contracts/load-average/load-average-contract';
 import { machineReadingContract } from '../../../contracts/machine-reading/machine-reading-contract';
 import type { MachineReading } from '../../../contracts/machine-reading/machine-reading-contract';
+import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
+import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
+import { machineStatics } from '../../../statics/machine/machine-statics';
 import { machineOomCountBroker } from '../oom-count/machine-oom-count-broker';
 
 export const machineReadBroker = async (): Promise<MachineReading> => {
-  const { freeMemMB, totalMemMB, cores, loadAvg } = osInfoAdapter();
+  const { bytesPerMegabyte } = machineStatics.units;
+  const freeMemMB = megabytesContract.parse(Math.floor(freemem() / bytesPerMegabyte));
+  const totalMemMB = megabytesContract.parse(Math.floor(totalmem() / bytesPerMegabyte));
+  const cores = readingCountContract.parse(cpus().length);
+  const loadAvg = loadAverageContract.parse(loadavg());
+
   const { homePath } = dungeonmasterHomeFindBroker();
   const homeDirPath = absoluteFilePathContract.parse(homePath);
 
-  const [freeDiskMB, oomKillsSinceBoot] = await Promise.all([
-    fsStatfsAdapter({ dirPath: homeDirPath }),
+  const [freeDiskBytes, oomKillsSinceBoot] = await Promise.all([
+    diskFreeBytes(homeDirPath),
     machineOomCountBroker(),
   ]);
+
+  const freeDiskMB =
+    freeDiskBytes === null
+      ? null
+      : megabytesContract.parse(Math.floor(freeDiskBytes / bytesPerMegabyte));
 
   return machineReadingContract.parse({
     freeMemMB,

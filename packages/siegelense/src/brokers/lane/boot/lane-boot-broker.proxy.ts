@@ -4,7 +4,6 @@
 // USAGE: const proxy = laneBootBrokerProxy(); const repoRoot = proxy.resolveRepoRoot();
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
-import { chromium } from '@playwright/test';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
@@ -18,8 +17,8 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
+import { browserSessionLaunchBrokerProxy } from '../../browser-session/launch/browser-session-launch-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
@@ -80,7 +79,7 @@ export const laneBootBrokerProxy = (): {
   getBrowserLaunchCallCount: () => ReadingCount;
   // The env a spawned process's stdio inherits, captured at the SAME point `lane-boot-broker`
   // itself reads `process.env` — a test reading process.env only after `await`ing the whole boot
-  // would also pick up playwrightSessionAdapter's own later PLAYWRIGHT_BROWSERS_PATH mutation.
+  // would also pick up browserSessionLaunchBroker's own later PLAYWRIGHT_BROWSERS_PATH mutation.
   getInheritedEnvSnapshot: () => Record<PropertyKey, ContentText>;
 } => {
   const resolveProxy = cwdResolveBrokerProxy();
@@ -107,7 +106,7 @@ export const laneBootBrokerProxy = (): {
   const closeFdProxy = closeSyncProxy();
   const rmProxy = fsRmAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
-  playwrightSessionAdapterProxy();
+  const browserProxy = browserSessionLaunchBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
   const workspaceProxy = laneWorkspaceResolveBrokerProxy();
   serverLogReaderLayerBrokerProxy();
@@ -220,7 +219,7 @@ export const laneBootBrokerProxy = (): {
     getRemovedHomePaths: (): readonly unknown[] => rmProxy.getRemovedPaths(),
 
     getBrowserLaunchCallCount: (): ReadingCount =>
-      ReadingCountStub({ value: (chromium.launch as unknown as jest.Mock).mock.calls.length }),
+      ReadingCountStub({ value: browserProxy.getLaunchCalls().length }),
 
     getInheritedEnvSnapshot: (): Record<PropertyKey, ContentText> =>
       Object.fromEntries(

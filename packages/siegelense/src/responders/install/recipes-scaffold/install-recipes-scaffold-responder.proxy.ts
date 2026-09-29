@@ -10,10 +10,10 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
+import { installProxy } from '#gateway/bin/npm/install/install.proxy';
+import { runBuildProxy } from '#gateway/bin/npm/run-build/run-build.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { npmInstallAdapterProxy } from '../../../adapters/npm/install/npm-install-adapter.proxy';
-import { npmRunBuildAdapterProxy } from '../../../adapters/npm/run-build/npm-run-build-adapter.proxy';
 import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-responder';
 
 // pathBasenameAdapterProxy/pathDirnameAdapterProxy/pathResolveAdapterProxy formerly staged REAL
@@ -71,6 +71,9 @@ const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
   ]),
 );
 
+const isCallRecord = (call: unknown): call is { args: unknown; cwd: unknown } =>
+  typeof call === 'object' && call !== null && 'args' in call && 'cwd' in call;
+
 export const InstallRecipesScaffoldResponderProxy = (): {
   callResponder: typeof InstallRecipesScaffoldResponder;
   setupPackageAbsent: (params?: {
@@ -114,8 +117,8 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   }
   const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  const installProxy = npmInstallAdapterProxy();
-  const buildProxy = npmRunBuildAdapterProxy();
+  const installGatewayProxy = installProxy();
+  const buildGatewayProxy = runBuildProxy();
 
   return {
     callResponder: InstallRecipesScaffoldResponder,
@@ -171,8 +174,8 @@ export const InstallRecipesScaffoldResponderProxy = (): {
         resolvedScope === undefined ? 'hydration-recipes' : `${resolvedScope}/hydration-recipes`,
       );
 
-      installProxy.setupSuccess();
-      buildProxy.setupSuccess({ workspace });
+      installGatewayProxy.setupResult({ exitCode: 0, output: '' });
+      buildGatewayProxy.setupResult({ workspace, exitCode: 0, output: '' });
     },
 
     // The package already exists — real or seeded by a prior install. Nothing under it is read
@@ -185,12 +188,13 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     // attempt to build a workspace `npm install` never linked into node_modules — an unstaged
     // build call throws "nothing set up", which fails the test if the short-circuit regresses.
     setupInstallFails: ({ output }: { output: string }): void => {
-      installProxy.setupFailure({ output });
+      installGatewayProxy.setupResult({ exitCode: 1, output });
     },
 
     setupBuildFails: ({ output }: { output: string }): void => {
-      buildProxy.setupFailure({
-        workspace: packageNameContract.parse('hydration-recipes'),
+      buildGatewayProxy.setupResult({
+        workspace: 'hydration-recipes',
+        exitCode: 1,
         output,
       });
     },
@@ -205,17 +209,28 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       return filePath === undefined ? undefined : writeProxy.getWrittenFor({ filePath });
     },
 
-    getInstallSpawnArgs: (): unknown => installProxy.getSpawnedArgs(),
+    getInstallSpawnArgs: (): unknown => {
+      const call = installGatewayProxy.getCallsFor().at(-1)?.[0];
+      return isCallRecord(call) ? call.args : undefined;
+    },
 
-    getBuildSpawnArgs: (): unknown => buildProxy.getSpawnedArgs(),
+    getBuildSpawnArgs: (): unknown => {
+      const call = buildGatewayProxy.getCallsFor({ workspace: () => true }).at(-1)?.[0];
+      return isCallRecord(call) ? call.args : undefined;
+    },
 
-    wasInstallSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean =>
-      installProxy.getSpawnedCwd() === cwd,
+    wasInstallSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean => {
+      const call = installGatewayProxy.getCallsFor().at(-1)?.[0];
+      return isCallRecord(call) && call.cwd === cwd;
+    },
 
-    wasBuildSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean =>
-      buildProxy.getSpawnedCwd() === cwd,
+    wasBuildSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean => {
+      const call = buildGatewayProxy.getCallsFor({ workspace: () => true }).at(-1)?.[0];
+      return isCallRecord(call) && call.cwd === cwd;
+    },
 
     wasNpmSpawned: (): boolean =>
-      installProxy.getSpawnedArgs() !== undefined || buildProxy.getSpawnedArgs() !== undefined,
+      installGatewayProxy.getCallsFor().length > 0 ||
+      buildGatewayProxy.getCallsFor({ workspace: () => true }).length > 0,
   };
 };

@@ -1,10 +1,8 @@
 /**
  * PURPOSE: Stages the two PNG files `shotChangeReadBroker` reads. Builds a real PNG per path with
  * `PNG.sync.write` from the RGBA pixel bytes a test hands in and stages each as
- * `readFileBytes`' bytes, so the REAL (unmocked) `pngjsDecodeAdapter` decodes each
- * back exactly and the REAL `pixelmatchCompareAdapter` (via its own real-passthrough proxy)
- * computes a genuinely measured diff — `brokers/` itself may never import `pngjs`, but this
- * `.proxy.ts` file is exempt from that boundary.
+ * `readFileBytes`' bytes, so the REAL (unmocked) `decodePng` decodes each
+ * back exactly and the REAL `pixelmatch` computes a genuinely measured diff.
  *
  * USAGE:
  * const proxy = shotChangeReadBrokerProxy();
@@ -12,12 +10,10 @@
  * proxy.stagesShot({ path: currentPath, width: 10, height: 10, pixels: new Uint8Array([...]) });
  */
 
-import { PNG } from 'pngjs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
 import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
-import { pixelmatchCompareAdapterProxy } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter.proxy';
-import { pngjsDecodeAdapterProxy } from '../../../adapters/pngjs/decode/pngjs-decode-adapter.proxy';
+import { PNG } from '#gateway/npm/pngjs';
+import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const shotChangeReadBrokerProxy = (): {
   stagesShot: (params: {
@@ -33,8 +29,7 @@ export const shotChangeReadBrokerProxy = (): {
   stagesDefaultShot: (params: { bytes: Uint8Array }) => void;
 } => {
   const readProxy = readFileBytesProxy();
-  pngjsDecodeAdapterProxy();
-  pixelmatchCompareAdapterProxy();
+  decodePngProxy();
 
   return {
     stagesShot: ({

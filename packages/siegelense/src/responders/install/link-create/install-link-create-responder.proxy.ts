@@ -1,15 +1,15 @@
-import { mkdir, readlink, symlink } from 'fs/promises';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.proxy';
 import { join } from '#gateway/node/path';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { mkdir, readlink, symlink } from 'fs/promises';
 
-import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
+import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
 import { InstallLinkCreateResponder } from './install-link-create-responder';
 
 // Every caller in this file exercises targetProjectRoot: '/project', with the siegelense root
@@ -24,7 +24,6 @@ const LINK_PATH_VALUE = '/project/.dungeonmaster-assets/siegelense-assets';
 // branch the nested link itself takes — see install-link-create-responder.ts's own local literal.
 const LEGACY_LINK_PATH_VALUE = '/project/.siegelense';
 
-const targetDirAbs = AbsoluteFilePathStub({ value: TARGET_DIR_VALUE });
 const targetDirFp = FilePathStub({ value: TARGET_DIR_VALUE });
 const linkPathAbs = AbsoluteFilePathStub({ value: LINK_PATH_VALUE });
 const legacyLinkPathAbs = AbsoluteFilePathStub({ value: LEGACY_LINK_PATH_VALUE });
@@ -45,8 +44,8 @@ export const InstallLinkCreateResponderProxy = (): {
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   // Empty proxy, called only to satisfy enforce-proxy-child-creation for the implementation's
-  // errorIsNativeErrorAdapter import — nothing to configure on it.
-  errorIsNativeErrorAdapterProxy();
+  // isNativeError import — nothing to configure on it.
+  isNativeErrorProxy();
   // #gateway/node/path re-exports `join` bare (no per-function proxy of its own, unlike
   // fs/fs__promises/child_process) — mocked directly here, with the same sticky real-passthrough
   // default instance-start-broker.proxy.ts's own `join` staging uses (A12 SL7). `onceFor([])`
@@ -56,7 +55,7 @@ export const InstallLinkCreateResponderProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const mkdirProxy = ensureDirProxy();
   const existsProxy = existsSyncProxy();
-  const symlinkProxy = fsSymlinkAdapterProxy();
+  const linkProxy = symlinkProxy();
   const linkReadlink = readlinkProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
@@ -101,7 +100,7 @@ export const InstallLinkCreateResponderProxy = (): {
       joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: false });
-      symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
+      linkProxy.succeeds({ target: TARGET_DIR_VALUE, path: LINK_PATH_VALUE });
       setupLegacyAbsent();
     },
 
@@ -125,7 +124,7 @@ export const InstallLinkCreateResponderProxy = (): {
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       linkReadlink.returns({ path: LINK_PATH_VALUE, target: wrongTarget });
       unlinkProxy.succeeds({ filePath: linkPathAbs });
-      symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
+      linkProxy.succeeds({ target: TARGET_DIR_VALUE, path: LINK_PATH_VALUE });
       setupLegacyAbsent();
     },
 
@@ -155,7 +154,9 @@ export const InstallLinkCreateResponderProxy = (): {
     },
 
     getSymlinkCalls: (): readonly { targetPath: unknown; linkPath: unknown; type: unknown }[] =>
-      symlinkProxy.getCalls(),
+      linkProxy
+        .getCallsFor({ target: () => true, path: () => true })
+        .map((call) => ({ targetPath: call[0], linkPath: call[1], type: call[2] })),
 
     getReadlinkCalls: (): readonly unknown[] =>
       (readlink as jest.MockedFunction<typeof readlink>).mock.calls.map(([path]) => path),

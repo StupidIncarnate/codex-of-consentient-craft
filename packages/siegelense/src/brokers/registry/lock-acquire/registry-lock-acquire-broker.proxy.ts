@@ -5,7 +5,7 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -22,7 +22,7 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 // These stage a SAME-REALM `Error` deliberately, not the cross-realm shape a real `fs/promises`
 // rejection actually has under Jest (Node's own internals construct that error outside the vm
 // context a test file runs inside, which is what made `registryLockAcquireBroker`'s own
-// `instanceof Error` check reject a genuine EEXIST — see `errorIsNativeErrorAdapter` and its own
+// `instanceof Error` check reject a genuine EEXIST — see `isNativeError` and its own
 // test, which reproduces that exact shape via `vm.runInNewContext`). A cross-realm error cannot be
 // staged faithfully at THIS level: `@dungeonmaster/testing`'s `mockStagingCreateTransformer` (the
 // shared `rejects`/`throws` implementation every `registerMock` proxy in this repo shares) itself
@@ -30,7 +30,7 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 // so a cross-realm error handed to `.rejects()`/`.throws()` here is silently rebuilt into a
 // same-realm one with its `code` dropped before this broker ever sees it. These tests stay honest
 // about what they prove at this level: the broker's CLASSIFICATION LOGIC on an Error-shaped,
-// `code`-carrying object. The realm-safety MECHANISM is proven by `errorIsNativeErrorAdapter`'s own
+// `code`-carrying object. The realm-safety MECHANISM is proven by `isNativeError`'s own
 // test, and the real, cross-process failure mode by `driver-flow.integration.test.ts`.
 const eexistError = (): Error =>
   Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' });
@@ -96,7 +96,7 @@ export const registryLockAcquireBrokerProxy = (): {
     });
   };
 
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
   const readProxy = readFileIfExistsProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();

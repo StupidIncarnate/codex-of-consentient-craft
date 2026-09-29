@@ -37,8 +37,9 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir, readlink } from '#gateway/node/fs__promises';
+import { ensureDir, readlink, symlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { isNativeError } from '#gateway/node/util__types';
 import {
   absoluteFilePathContract,
   installMessageContract,
@@ -48,8 +49,6 @@ import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contra
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { locationsRootPathFindBroker } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker';
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
@@ -99,7 +98,7 @@ export const InstallLinkCreateResponder = async ({
     if (
       legacyReadError === null ||
       typeof legacyReadError !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: legacyReadError }) ||
+      !isNativeError(legacyReadError) ||
       !('code' in legacyReadError)
     ) {
       throw legacyReadError;
@@ -115,7 +114,7 @@ export const InstallLinkCreateResponder = async ({
   const linkExists = existsSync(linkPath);
 
   if (!linkExists) {
-    await fsSymlinkAdapter({ targetPath: targetDir, linkPath });
+    await symlink({ target: targetDir, path: linkPath, type: 'dir' });
 
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -141,7 +140,7 @@ export const InstallLinkCreateResponder = async ({
   }
 
   await fsUnlinkAdapter({ filePath: linkPath });
-  await fsSymlinkAdapter({ targetPath: targetDir, linkPath });
+  await symlink({ target: targetDir, path: linkPath, type: 'dir' });
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

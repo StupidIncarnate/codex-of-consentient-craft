@@ -16,11 +16,11 @@
  * // Returns one OrphanReading per pgid, in the same order; cmd is null once nothing in /proc holds it
  */
 
+import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { isNativeError } from '#gateway/node/util__types';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
@@ -50,7 +50,7 @@ export const orphanReadBroker = async ({
         if (
           error !== null &&
           typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
+          isNativeError(error) &&
           'code' in error &&
           error.code === 'ESRCH'
         ) {
@@ -96,7 +96,7 @@ export const orphanReadBroker = async ({
         if (
           error !== null &&
           typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
+          isNativeError(error) &&
           'code' in error &&
           error.code === 'ESRCH'
         ) {

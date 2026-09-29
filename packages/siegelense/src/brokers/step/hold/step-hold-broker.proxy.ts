@@ -14,11 +14,17 @@
 import { PNG } from 'pngjs';
 import { copyFileProxy } from '#gateway/node/fs__promises/copy-file/copy-file.proxy';
 import { dirname, join } from '#gateway/node/path';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { asyncDelayAdapterProxy } from '../../../adapters/async/delay/async-delay-adapter.proxy';
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
+
+type TimeoutMs = ReturnType<typeof TimeoutMsStub>;
+
+const isCallback = (value: unknown): boolean => typeof value === 'function';
+const isNumber = (value: unknown): boolean => typeof value === 'number';
 
 const DEFAULT_FRAME_WIDTH = 2;
 const DEFAULT_FRAME_HEIGHT = 2;
@@ -31,7 +37,7 @@ defaultPng.data = Buffer.from(new Uint8Array(DEFAULT_TOTAL_PIXEL_BYTES).fill(OPA
 const DEFAULT_FRAME_PNG = new Uint8Array(PNG.sync.write(defaultPng));
 
 export const stepHoldBrokerProxy = (): {
-  getRequestedDelay: ReturnType<typeof asyncDelayAdapterProxy>['getRequestedDelay'];
+  getRequestedDelay: () => TimeoutMs | undefined;
   stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
   stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
   succeedsCopy: (params: {
@@ -52,14 +58,22 @@ export const stepHoldBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const delayProxy = asyncDelayAdapterProxy();
+  const state: { delayMs: TimeoutMs | undefined } = { delayMs: undefined };
+  const setTimeoutMock = registerMock({ fn: setTimeout });
+  setTimeoutMock
+    .calledWith([isCallback, isNumber])
+    .implement((callback: () => void, ms: number) => {
+      state.delayMs = TimeoutMsStub({ value: ms });
+      callback();
+      return undefined;
+    });
   const shotChangeProxy = shotChangeReadBrokerProxy();
   const copyProxy = copyFileProxy();
 
   shotChangeProxy.stagesDefaultShot({ bytes: DEFAULT_FRAME_PNG });
 
   return {
-    getRequestedDelay: delayProxy.getRequestedDelay,
+    getRequestedDelay: (): TimeoutMs | undefined => state.delayMs,
     stagesShot: shotChangeProxy.stagesShot,
     stagesDefaultShot: shotChangeProxy.stagesDefaultShot,
     succeedsCopy: ({ sourcePath, destinationPath }): void => {

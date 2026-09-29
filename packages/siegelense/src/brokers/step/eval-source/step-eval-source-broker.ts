@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Drives the `eval` step. `session.evaluateSource` already returns the stringified evaluated
- * value (`playwright-session-adapter.ts`'s own `evaluateSource`), so this broker exists only to give
+ * value (`browser-session-launch-broker.ts`'s own `evaluateSource`), so this broker exists only to give
  * `eval` the same one-file-per-verb shape as the other five rather than a bare pass-through call
  * inline in the dispatcher.
  *

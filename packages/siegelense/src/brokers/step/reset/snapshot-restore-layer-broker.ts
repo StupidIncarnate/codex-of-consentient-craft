@@ -18,16 +18,15 @@
  * // Returns { files: 3, added: 1, modified: 1, removed: 1 }
  */
 
+import { createHash } from '#gateway/node/crypto';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { copyDirContents, readFile } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
-  contentTextContract,
   relativeFilePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
-import { cryptoHashAdapter } from '../../../adapters/crypto/hash/crypto-hash-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
@@ -144,10 +143,9 @@ export const snapshotRestoreLayerBroker = async ({
       const payloadContent = await readFile(
         absoluteFilePathContract.parse(`${String(payloadPath)}${String(relPath).slice(1)}`),
       );
-      return (
-        cryptoHashAdapter({ content: contentTextContract.parse(homeContent) }) !==
-        cryptoHashAdapter({ content: contentTextContract.parse(payloadContent) })
-      );
+      const homeHash = createHash('sha256').update(homeContent).digest('hex');
+      const payloadHash = createHash('sha256').update(payloadContent).digest('hex');
+      return homeHash !== payloadHash;
     }),
   );
   modifiedCount += contentDiffers.filter(Boolean).length;

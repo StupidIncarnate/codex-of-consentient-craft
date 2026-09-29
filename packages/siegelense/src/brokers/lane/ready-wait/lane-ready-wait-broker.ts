@@ -14,7 +14,8 @@
  * // Resolves true once reachable, or false once deadlineMs passes with no answer
  */
 
-import { fetchProbeAdapter } from '../../../adapters/fetch/probe/fetch-probe-adapter';
+import { fetchOk } from '#gateway/node/fetch';
+
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const laneReadyWaitBroker = async ({
@@ -24,7 +25,7 @@ export const laneReadyWaitBroker = async ({
   url: string;
   deadlineMs: number;
 }): Promise<boolean> => {
-  const reachable = await fetchProbeAdapter({
+  const reachable = await fetchOk({
     url,
     timeoutMs: driverStatics.boot.readyProbeTimeoutMs,
   });

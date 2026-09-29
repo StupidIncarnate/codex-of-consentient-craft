@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Collapses one request's method and URL into the SHAPE key `settleWaitLayerAdapter`
+ * PURPOSE: Collapses one request's method and URL into the SHAPE key `settleWaitLayerBroker`
  * counts repeats on, so a poller issuing `?since=1700` and then `?since=1750` reads as the same
  * request rather than as two new ones. Reach for this over comparing raw URLs: the cursor, the
  * cache-buster and the fragment are exactly the parts a poll varies every tick, and a detector

@@ -21,11 +21,11 @@
  * // Returns the summed resident memory in whole megabytes, or null if /proc is unavailable
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { join } from '#gateway/node/path';
-
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { isNativeError } from '#gateway/node/util__types';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -62,7 +62,7 @@ export const machineRssByPgidBroker = async ({
         if (
           error !== null &&
           typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
+          isNativeError(error) &&
           'code' in error &&
           error.code === 'ESRCH'
         ) {
@@ -101,7 +101,7 @@ export const machineRssByPgidBroker = async ({
         if (
           error !== null &&
           typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
+          isNativeError(error) &&
           'code' in error &&
           error.code === 'ESRCH'
         ) {

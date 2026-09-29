@@ -1,4 +1,4 @@
-import { PNG } from 'pngjs';
+import { PNG } from '#gateway/npm/pngjs';
 import { z } from 'zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type {
@@ -9,7 +9,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
+import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -100,7 +100,7 @@ export const stepDispatchBrokerProxy = (): {
   // scenario a lane stub could carry. Kept as a reference only because `stagesSeedRecipe` below
   // delegates to it.
   const verbLayerProxy = runVerbLayerBrokerProxy();
-  errorIsNativeErrorAdapterProxy();
+  isNativeErrorProxy();
 
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
   dateHandle.calledWith([]).returns(FIXED_NOW_MS);

@@ -18,8 +18,8 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
+import { isNativeError } from '#gateway/node/util__types';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
@@ -60,7 +60,7 @@ export const verifiedPreludeLayerBroker = async ({
           if (
             error !== null &&
             typeof error === 'object' &&
-            errorIsNativeErrorAdapter({ value: error }) &&
+            isNativeError(error) &&
             'code' in error &&
             error.code === 'ENOTDIR'
           ) {

@@ -4,7 +4,8 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { browserSessionContract } from './browser-session-contract';
-import type { BrowserSession, BufferLengths, MatchCount } from './browser-session-contract';
+import type { BrowserSession, BufferLengths } from './browser-session-contract';
+import type { MatchCount } from '../match-count/match-count-contract';
 import { BoxReadingStub } from '../box-reading/box-reading.stub';
 import type { BoxReading } from '../box-reading/box-reading-contract';
 import { DomReadingStub } from '../dom-reading/dom-reading.stub';

@@ -1,22 +1,19 @@
 /**
  * PURPOSE: Stages the one PNG file `shotBlankReadBroker` reads. Builds a real PNG with
  * `PNG.sync.write` from the RGBA pixel bytes a test hands in and stages it as
- * `readFileBytes`' bytes, so the REAL (unmocked) `pngjsDecodeAdapter` decodes it
- * back exactly — `brokers/` itself may never import `pngjs` (enforced by
- * `@dungeonmaster/enforce-project-structure`), but this `.proxy.ts` file is exempt from that
- * boundary, so the PNG construction stays here rather than leaking into the test.
+ * `readFileBytes`' bytes, so the REAL (unmocked) `decodePng` decodes it
+ * back exactly.
  *
  * USAGE:
  * const proxy = shotBlankReadBrokerProxy();
  * proxy.stagesShot({ shotPath, width: 4, height: 4, pixels: new Uint8Array([...]) });
  */
 
-import { PNG } from 'pngjs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
 import type { FsError } from '#gateway/node/fs';
 import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
-import { pngjsDecodeAdapterProxy } from '../../../adapters/pngjs/decode/pngjs-decode-adapter.proxy';
+import { PNG } from '#gateway/npm/pngjs';
+import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const shotBlankReadBrokerProxy = (): {
   stagesShot: (params: {
@@ -33,7 +30,7 @@ export const shotBlankReadBrokerProxy = (): {
   stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
 } => {
   const readProxy = readFileBytesProxy();
-  pngjsDecodeAdapterProxy();
+  decodePngProxy();
 
   return {
     stagesShot: ({

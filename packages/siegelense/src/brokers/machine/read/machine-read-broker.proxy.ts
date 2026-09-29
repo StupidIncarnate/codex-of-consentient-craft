@@ -1,8 +1,10 @@
-import { AbsoluteFilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
+import { diskFreeBytesProxy } from '#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy';
+import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import { fsStatfsAdapterProxy } from '../../../adapters/fs/statfs/fs-statfs-adapter.proxy';
-import { osInfoAdapterProxy } from '../../../adapters/os/info/os-info-adapter.proxy';
 import { machineOomCountBrokerProxy } from '../oom-count/machine-oom-count-broker.proxy';
 
 export const machineReadBrokerProxy = (): {
@@ -51,9 +53,30 @@ export const machineReadBrokerProxy = (): {
     vmstatContent: string;
   }) => void;
 } => {
-  const osProxy = osInfoAdapterProxy();
+  const freememHandle: MockHandle = registerMock({ fn: freemem });
+  const totalmemHandle: MockHandle = registerMock({ fn: totalmem });
+  const cpusHandle: MockHandle = registerMock({ fn: cpus });
+  const loadavgHandle: MockHandle = registerMock({ fn: loadavg });
+
+  const stageOs = ({
+    freeMemBytes,
+    totalMemBytes,
+    coreCount,
+    loadAvg,
+  }: {
+    freeMemBytes: number;
+    totalMemBytes: number;
+    coreCount: number;
+    loadAvg: readonly [number, number, number];
+  }): void => {
+    freememHandle.calledWith([]).returns(freeMemBytes);
+    totalmemHandle.calledWith([]).returns(totalMemBytes);
+    cpusHandle.calledWith([]).returns(Array.from({ length: coreCount }, () => ({})));
+    loadavgHandle.calledWith([]).returns([...loadAvg]);
+  };
+
   const homeProxy = dungeonmasterHomeFindBrokerProxy();
-  const statfsProxy = fsStatfsAdapterProxy();
+  const statfsProxy = diskFreeBytesProxy();
   const oomProxy = machineOomCountBrokerProxy();
 
   return {
@@ -84,10 +107,10 @@ export const machineReadBrokerProxy = (): {
       diskBsize: number;
       vmstatContent: string;
     }): void => {
-      osProxy.stages({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
+      stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       homeProxy.setupHomePath({ homeDir, homePath });
-      statfsProxy.resolves({
-        dirPath: AbsoluteFilePathStub({ value: homePath }),
+      statfsProxy.returns({
+        path: homePath,
         bavail: diskBavail,
         bsize: diskBsize,
       });
@@ -115,10 +138,10 @@ export const machineReadBrokerProxy = (): {
       diskBavail: number;
       diskBsize: number;
     }): void => {
-      osProxy.stages({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
+      stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       homeProxy.setupHomePath({ homeDir, homePath });
-      statfsProxy.resolves({
-        dirPath: AbsoluteFilePathStub({ value: homePath }),
+      statfsProxy.returns({
+        path: homePath,
         bavail: diskBavail,
         bsize: diskBsize,
       });
@@ -153,19 +176,14 @@ export const machineReadBrokerProxy = (): {
       diskBsize: number;
       vmstatContent: string;
     }): void => {
-      osProxy.stages({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
+      stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       homeProxy.setupHomePath({ homeDir, homePath });
-      statfsProxy.resolves({
-        dirPath: AbsoluteFilePathStub({ value: homePath }),
+      statfsProxy.returns({
+        path: homePath,
         bavail: diskBavail,
         bsize: diskBsize,
       });
-      statfsProxy.rejects({
-        dirPath: AbsoluteFilePathStub({ value: rootPath }),
-        error: Object.assign(new Error(`ENOENT: no such file or directory, statfs '${rootPath}'`), {
-          code: 'ENOENT',
-        }),
-      });
+      statfsProxy.missing({ path: rootPath });
       oomProxy.setupVmstat({ content: vmstatContent });
     },
 
@@ -188,12 +206,9 @@ export const machineReadBrokerProxy = (): {
       loadAvg: readonly [number, number, number];
       vmstatContent: string;
     }): void => {
-      osProxy.stages({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
+      stageOs({ freeMemBytes, totalMemBytes, coreCount, loadAvg });
       homeProxy.setupHomePath({ homeDir, homePath });
-      statfsProxy.rejects({
-        dirPath: AbsoluteFilePathStub({ value: homePath }),
-        error: Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),
-      });
+      statfsProxy.denied({ path: homePath });
       oomProxy.setupVmstat({ content: vmstatContent });
     },
   };

@@ -71,7 +71,7 @@ describe('laneBootBroker', () => {
       });
       proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34173/' });
-      // Snapshotted BEFORE the call: playwrightSessionAdapter (browser: true above) mutates the
+      // Snapshotted BEFORE the call: browserSessionLaunchBroker (browser: true above) mutates the
       // real process.env as a side effect, and inheritedEnv is built from process.env before that
       // happens — a snapshot taken after the await would include that later mutation.
       const inheritedEnvSnapshot = proxy.getInheritedEnvSnapshot();

@@ -77,7 +77,7 @@ export const driverStatics = {
   run: {
     // Playwright's own default action timeout for `click`/`fill`/`waitFor`-style calls is
     // 30000ms. Matching it means a step that omits `timeoutMs` behaves exactly as Playwright
-    // would out of the box, and the session adapter never has to invent a second number the two
+    // would out of the box, and the browser session never has to invent a second number the two
     // could silently disagree on.
     defaultStepTimeoutMs: 30_000,
     // `until`'s own poll interval, for the two forms that poll rather than delegate to a
@@ -87,17 +87,17 @@ export const driverStatics = {
     untilPollMs: 100,
   },
   settle: {
-    // Matches `settleWaitLayerAdapter`'s own DEFAULT_QUIET_WINDOW_MS
-    // (adapters/playwright/session/settle-wait-layer-adapter.ts) — how long every one of its
+    // Matches `settleWaitLayerBroker`'s own DEFAULT_QUIET_WINDOW_MS
+    // (brokers/browser-session/launch/settle-wait-layer-broker.ts) — how long every one of its
     // three signals (network, DOM, animation) must hold still before a wait reports settled: true.
     quietWindowMs: 250,
-    // Matches the adapter's own DEFAULT_CEILING_MS — the most one wait spends before giving up
+    // Matches the settle detector's own DEFAULT_CEILING_MS — the most one wait spends before giving up
     // and reporting settled: false rather than hanging.
     ceilingMs: 5_000,
-    // Matches the adapter's own DEFAULT_POLL_MS — the probe cadence inside one wait.
+    // Matches the settle detector's own DEFAULT_POLL_MS — the probe cadence inside one wait.
     pollMs: 50,
-    // Matches the adapter's own DEFAULT_POLLER_REPEAT_THRESHOLD. Unlike the three values above,
-    // this one belongs at `settleWaitLayerAdapter`'s CONSTRUCTION, not on a `waitForSettle` call —
+    // Matches the settle detector's own DEFAULT_POLLER_REPEAT_THRESHOLD. Unlike the three values above,
+    // this one belongs at `settleWaitLayerBroker`'s CONSTRUCTION, not on a `waitForSettle` call —
     // a request shape is classified while requests arrive on the event stream between waits, not
     // during the one wait it would otherwise be read from.
     pollerRepeatThreshold: 3,
