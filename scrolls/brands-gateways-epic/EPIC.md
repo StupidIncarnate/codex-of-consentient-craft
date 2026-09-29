@@ -113,9 +113,19 @@ dcd5c0aad, node batch 2 4447e93e8 (T05 now scans 0 in web, testing apart from co
 A18 `zod` wave 2 bd5242af3 (only siegelense left). Built since: npm, server, cli, siegelense, node, web, shared,
 eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonmaster/npm` dependency.
 
-Active now: A13 SL-LAST (one Opus agent, started from `tmp/agy/sl-last-partial.patch`); an Opus agent fixing web's
-`bughunt-begin-transition.e2e.ts` second-Start test, red before the merge too (push to the test's origin repo fails,
-then a repair carve).
+Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
+operator gates, commits, then messages the next batch; owners in `tmp/op-agents.txt`): A13 SL-LAST (Opus);
+cli (B03 next); hooks (GN7: a clock wrapper, `getCallsFor` on the fetch proxies, a socket-free
+`setupConnectionRefused`); ward (B03).
+
+Landed since: hooks-B01 to B04 (8c3b3a8ab, f79eea299, 9d3f12c61) and hooks' post-ask-question proxy cleanup
+(fef9a2d1b); ward-B01 with `@gateway/bin`'s `NpmNotInstalledErrorProxy` and `runScriptProxy().setupNotFound`
+(f0fc85a2f), ward-B02 (cdbd76225); GN6, the `@gateway/node` stdout and stderr proxies that record every write
+(`getWrites`, `getWrittenText`) plus `stdinIsTty`, with cli-B02 (ea3436ad6); web e2e races fixed in
+bughunt-begin-transition (b1b9c23cc) and quest-begin-transition (8f09703db); full web e2e 131 of 131
+(1790648506112-d52e).
+
+A18 still open: decisions C2 (a `tsx` resolver, for cli-B04 and hooks-B10) and C3 (web's vite config).
 
 Earlier notes from this session, kept for the record:
 
