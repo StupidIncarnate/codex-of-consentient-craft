@@ -106,6 +106,40 @@ More rules for the operator:
 Last updated 2026-09-28 evening, at the end of an operator session. Read this section, then the status tables
 further down. Git history holds every earlier handoff; this file keeps only what is current.
 
+### In flight (operator session 2026-09-28 night)
+
+Landed this session: master merge a62edf57d; GN5 be8178b0c; T05 node fetch 9420865e9, npm hono 63920bf1e, testing
+dcd5c0aad, node batch 2 4447e93e8 (T05 now scans 0 in web, testing apart from concession 13, and every `@gateway/*`);
+A18 `zod` wave 2 bd5242af3 (only siegelense left). Built since: npm, server, cli, siegelense, node, web, shared,
+eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonmaster/npm` dependency.
+
+Active now: A13 SL-LAST (one Opus agent, started from `tmp/agy/sl-last-partial.patch`); an Opus agent fixing web's
+`bughunt-begin-transition.e2e.ts` second-Start test, red before the merge too (push to the test's origin repo fails,
+then a repair carve).
+
+Earlier notes from this session, kept for the record:
+
+- **Master merge, uncommitted.** `git merge --no-commit master` (33 commits, DEF-48 to DEF-159, mostly siegelense).
+  An agent is resolving 9 conflicted files in cli and siegelense. The next commit is the merge commit, so nothing
+  else commits until it lands.
+- **The whole tree was rebuilt up to siegelense.** A stopped `build:clean` had deleted every `dist`; `npm run build`
+  rebuilt every package before siegelense. siegelense, and whatever builds after it, need a build once the merge
+  resolves.
+- **GN5 is done and green (ward 1790645426620-551e), uncommitted**: `@gateway/node` `stream`, `http`, `zlib`. It
+  commits after the merge. `events/events.ts` still uses `export =` (the F33 shape); not yet a unit.
+- **Merge conflicts resolved and staged** (the merge agent also moved master's new install-finalize responder and
+  prune video listing onto the gateway). Waiting only on the fetch fix below; then the staged tree is the merge
+  commit.
+- **Done, green, uncommitted (commit after the merge):** T05 testing (1 proxy; 2 hits are concession 13), T05
+  `@gateway/npm` hono proxies (`setupListen`, `setupUpgrade`; server-init proxy moved), A18 `zod` sweep for web
+  (139 files) and testing (55). Web needs its e2e and a web build before its commit.
+- **Active:** T05 `@gateway/node` fetch proxies: its `setupUnreachable` opened a real socket and broke 8 siegelense
+  tests; being fixed. T05 `@gateway/node` batch 2 (`ensure-dir-sync`, `write-file-sync`, `question`). web and
+  `@gateway/{bin,browser}` scan 0.
+- **For siegelense's T05 sweep:** master brought `calledWith([])` in the prune and driver responder proxies and
+  several stub-field `as never` casts.
+- **Phase 3 and 4 scripts:** an Opus agent is writing them under `tmp/phase34/`, dry-run only (user's request).
+
 ### Where things stand
 
 - **Phase 2 (delete every adapter) has one package left: siegelense.** Every other package has no `src/adapters/`.
@@ -229,7 +263,8 @@ Each row is a script used for bulk edits or census. Output is always gated by wa
 | `tmp/t04-scan.config.js` | ESLint config that switches `ban-workspace-export-mocks` on; run as `node_modules/.bin/eslint -c tmp/t04-scan.config.js -f json -o <out> <paths>` | `tmp/` | T04 82713ea0c to 0bd6040d1 |
 | python import-path rewrites | One-off `python3` rewrites of import lines (rule-tester harness, testing-library, mantine render paths), output checked by the agent and gated by ward | agents' scratch | 235a64368, cdd59573b, 2d7f1d25f, f7eabaf73 |
 | `adapter-census` | Census of remaining adapters per package (published command) | `@dungeonmaster/tooling` | S1 4130e9c6f |
-| `tmp/a18-zod/rewrite.py <pkg> [apply]` | A18 -Z sweep: re-censuses a package's files whose only raw import is `zod` and rewrites `from 'zod'` to `from '#gateway/npm/zod'` (dry run without `apply`; skips files with any other raw import) | `tmp/a18-zod/` (gitignored) | A18 -Z wave 1 (cli, config, hooks, hydration, mcp, session-forensics, tooling) |
+| `tmp/a18-zod/rewrite.py <pkg> [apply]` | A18 -Z sweep: re-censuses a package's files whose only raw import is `zod` and rewrites `from 'zod'` to `from '#gateway/npm/zod'` (dry run without `apply`; skips files with any other raw import) | `tmp/a18-zod/` (gitignored) | A18 -Z wave 1 (cli, config, hooks, hydration, mcp, session-forensics, tooling); wave 2 bd5242af3 |
+| `tmp/phase34/*` (nine scripts; `tmp/phase34/README.md` holds run order, dry-run counts and proofs) | Phase 3 and 4 codemods, written before those phases on the user's request. Each re-censuses on every run, writes only with `apply`, and resolves through TypeScript fenced to this worktree (`lib/repo.cjs`). `b02-contract-index/{index,delete}.cjs` (index; deletes only contracts a fresh index still calls dead, from a reviewed list), `b03-exports-barrels/run.cjs` (three-key `exports`, barrels into `src/<ft>/<ft>.ts`), `b03-per-file-imports/rewrite.cjs` (stub and proxy imports to per-file specifiers: 1,670 files, 4,090 names on 2026-09-28), `b03-strip-barrels/run.cjs`, `b11-contract-merge/{census,move}.cjs`, `b15-as-never/run.cjs` (removes a stub-field `as never` only where typecheck stays identical: 2,970 of 3,717), `b15-stub-unwrap/run.cjs`, `b15-rename/rename.cjs` (language-service renames). Not scripted, by measurement: B04, B05, B12, B13, B14, B16, B17, B18(b). | `tmp/phase34/`; committed copy in `scrolls/brands-gateways-epic/phase34-scripts/` | not yet run |
 
 ## Machine-wide side effects
 
@@ -263,6 +298,7 @@ was planned. Add a row whenever execution forces another.
 | 10 | T05: no accept-all staging predicate (`() => true`, `typeof value === 'string'`) on a path argument. | A proxy's opt-in `setupImplementation` (a test-supplied function that answers per path, for a virtual file tree) may address `[anyPath]` where `anyPath` accepts any string. Exact `setupReturns`/`setupError` stages still outrank it, and no proxy stages it by default. Shared's architecture proxies (the T05 shared commit) and F32's `imports-in-folder-type-find` do this. | Staging the full `[path, 'utf8']` arity ties with exact addresses and the later staging wins, which broke 10 tests. The one-argument address keeps exact stages winning. A test opts in by calling `setupImplementation`, so nothing is answered silently. |
 | 11 | EPIC rule 8: 2 to 4 files per migration agent. | A18's `-Z` lists (files whose only change is `'zod'` becoming `'#gateway/npm/zod'`) run as one scripted agent per package: a `python3` substitution, then that package's lint, typecheck and unit. Each script is listed in "Scripts used". | A one-token edit per file; splitting into fours makes hundreds of agents. The user allowed scripts that cut work, provided they are notated (2026-09-28). |
 | 12 | Hydration's negative type-fixture tests compile a standalone TypeScript program with `Node10` module resolution. | `packages/hydration/test/type-fixtures/typescript-program-diagnostics.ts` uses `Bundler` resolution with `customConditions: ['source']` and `module: ESNext`. | `Node10` ignores `package.json` `imports`, so `#gateway/npm/zod` resolved to nothing and the fixtures saw `any` (about 25 failures); `Bundler` alone resolved `@dungeonmaster/hydration-recipes` to `dist`. A18's zod sweep. |
+| 13 | T05: `ban-invented-failures` applies to every test and proxy file. | When T05 switches the rule on, the eslint config turns it off for `packages/testing/src/transformers/mock-staging-create/mock-staging-create-transformer.test.ts` alone, by a file-scoped config entry, not an inline disable. | That file tests the mock-staging API itself: its `new Error(...)` is an opaque value the test checks is passed through, not a faked outside failure. The rule matches any `new Error` under a `rejects`/`throws`/`implement` call and reads no message or `code`, so no rewrite of the test clears it (T05 testing agent, 2026-09-28). |
 
 ## Status key
 
