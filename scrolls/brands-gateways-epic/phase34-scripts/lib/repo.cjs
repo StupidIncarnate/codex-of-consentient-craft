@@ -244,8 +244,23 @@ const threeKeyExports = (w) => {
   return {
     './*.proxy': w.short === 'testing' ? entry('*.proxy', '*.proxy') : { source: './src/*.proxy.ts' },
     './*.stub': w.short === 'testing' ? entry('*.stub', '*.stub') : { source: './src/*.stub.ts' },
-    './*': entry('*/*', '*/*'),
   };
+};
+
+// One explicit key per folder-type barrel: TypeScript names a module from an exports pattern by
+// splitting at the first `*` only, so a two-star `./*` key breaks declaration emit (TS2742).
+const barrelKeys = (w, names) => {
+  const d = distSrcPrefix(w);
+  const out = {};
+  for (const ft of [...names].sort()) {
+    out[`./${ft}`] = {
+      source: `./src/${ft}/${ft}.ts`,
+      types: `${d}/${ft}/${ft}.d.ts`,
+      import: `${d}/${ft}/${ft}.js`,
+      require: `${d}/${ft}/${ft}.js`,
+    };
+  }
+  return out;
 };
 
 // Which existing `exports` keys a folder-type barrel key replaces: `./<name>` whose name is a
@@ -277,7 +292,24 @@ const plannedExports = (w, { keepTesting = true, keepUnmovedBarrels = true } = {
     }
     kept[k] = v;
   }
-  return { exports: { ...kept, ...threeKeyExports(w) }, dropped, kept: Object.keys(kept) };
+  const barrels = new Set(dropped.filter((k) => k !== './testing').map((k) => k.slice(2)));
+  for (const ft of fts) if (fs.existsSync(path.join(w.dir, 'src', ft, `${ft}.ts`))) barrels.add(ft);
+  for (const k of Object.keys(kept)) barrels.delete(k.slice(2));
+  // A package with no `exports` keeps its package.json subpath, and its bare-specifier entry when it has a `main`:
+  // adding `exports` closes both otherwise.
+  const legacy = {};
+  const main = w.packageJson.main;
+  if (w.packageJson.exports === undefined) legacy['./package.json'] = './package.json';
+  if (w.packageJson.exports === undefined && typeof main === 'string' && /^\.?\/?dist\/.+\.js$/u.test(main)) {
+    const base = main.replace(/^\.?\/?dist\//u, '').replace(/\.js$/u, '');
+    legacy['.'] = {
+      source: `./${base}.ts`,
+      types: `./dist/${base}.d.ts`,
+      import: `./dist/${base}.js`,
+      require: `./dist/${base}.js`,
+    };
+  }
+  return { exports: { ...legacy, ...kept, ...threeKeyExports(w), ...barrelKeys(w, barrels) }, dropped, kept: Object.keys(kept) };
 };
 
 const unifiedDiff = (file, before, after) => {
