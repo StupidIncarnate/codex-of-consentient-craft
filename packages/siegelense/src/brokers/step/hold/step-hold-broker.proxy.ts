@@ -13,7 +13,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { asyncDelayAdapterProxy } from '../../../adapters/async/delay/async-delay-adapter.proxy';
 import { fsCopyFileAdapterProxy } from '../../../adapters/fs/copy-file/fs-copy-file-adapter.proxy';
-import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
+import { shotDiffCountBrokerProxy } from '../../shot/diff-count/shot-diff-count-broker.proxy';
 
 const DEFAULT_FRAME_WIDTH = 2;
 const DEFAULT_FRAME_HEIGHT = 2;
@@ -27,15 +27,15 @@ const DEFAULT_FRAME_PNG = PNG.sync.write(defaultPng).toString('latin1');
 
 export const stepHoldBrokerProxy = (): {
   getRequestedDelay: ReturnType<typeof asyncDelayAdapterProxy>['getRequestedDelay'];
-  stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
-  stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
+  stagesShot: ReturnType<typeof shotDiffCountBrokerProxy>['stagesShot'];
+  stagesDefaultShot: ReturnType<typeof shotDiffCountBrokerProxy>['stagesDefaultShot'];
   succeedsCopy: (params: { sourcePath: AbsoluteFilePath }) => void;
   getDestinationPathFor: (params: { sourcePath: AbsoluteFilePath }) => unknown;
 } => {
   pathDirnameAdapterProxy();
   pathJoinAdapterProxy();
   const delayProxy = asyncDelayAdapterProxy();
-  const shotChangeProxy = shotChangeReadBrokerProxy();
+  const shotChangeProxy = shotDiffCountBrokerProxy();
   const copyProxy = fsCopyFileAdapterProxy();
 
   shotChangeProxy.stagesDefaultShot({ content: DEFAULT_FRAME_PNG });

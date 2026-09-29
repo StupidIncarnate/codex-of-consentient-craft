@@ -8,9 +8,13 @@ describe('holdStatics', () => {
         everyMs: 1500,
         minFrames: 2,
       },
+      format: {
+        frameSeparator: ', ',
+      },
       verdicts: {
         nothingChanged: 'NOTHING CHANGED across {duration}s',
-        stillChanging: 'still changing at {duration}s',
+        stillChanging:
+          'still changing at {duration}s — these frames differ from the one before: {changed}',
       },
     });
   });
