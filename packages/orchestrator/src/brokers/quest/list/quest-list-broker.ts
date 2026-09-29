@@ -27,6 +27,10 @@
  * the UI which file it dropped. Callers that omit it keep this signature and behavior unchanged.
  * `onSkipped` fires on EVERY skip, unlike the stderr line: the dedup above exists to keep the log
  * readable, while a caller building a response needs the full skip set on every call.
+ *
+ * QUIET: pass `quiet: true` when the caller only needs the quests that DO load and a dropped file
+ * belongs to another subsystem (siegelense resolving `--quest` to its guild). A quiet pass writes no
+ * stderr line and leaves the dedup memo untouched, so a later non-quiet pass still reports the file.
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -54,9 +58,11 @@ const lastReportedReason = new Map<FilePath, ErrorMessage>();
 export const questListBroker = async ({
   guildId,
   onSkipped,
+  quiet,
 }: {
   guildId: GuildId;
   onSkipped?: (params: { skipped: SkippedQuestFile }) => void;
+  quiet?: boolean;
 }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
 
@@ -79,7 +85,7 @@ export const questListBroker = async ({
         const reason = errorMessageContract.parse(
           error instanceof Error ? error.message : String(error),
         );
-        if (lastReportedReason.get(reportKey) !== reason) {
+        if (quiet !== true && lastReportedReason.get(reportKey) !== reason) {
           lastReportedReason.set(reportKey, reason);
           process.stderr.write(
             `[quest-list] skipping unloadable quest — ${reason} (repeats suppressed until this file changes)\n`,

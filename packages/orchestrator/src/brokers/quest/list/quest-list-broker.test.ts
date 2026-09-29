@@ -182,6 +182,43 @@ describe('questListBroker', () => {
     });
   });
 
+  describe('a quiet list', () => {
+    it('EDGE: {quiet: true, one quest file rejected} => writes nothing to stderr and still reports the skip through onSkipped', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub();
+      const skipped: unknown[] = [];
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
+      });
+      proxy.setupQuestDirectories({ files: [FileNameStub({ value: '020-quiet' })] });
+      proxy.setupQuestFilePath({
+        result: FilePathStub({ value: '/project/.dungeonmaster-quests/020-quiet/quest.json' }),
+      });
+      proxy.setupQuestFile({ questJson: '{ not valid json' });
+
+      const result = await questListBroker({
+        guildId,
+        quiet: true,
+        onSkipped: ({ skipped: file }) => {
+          skipped.push(file);
+        },
+      });
+
+      expect(result).toStrictEqual([]);
+      expect(proxy.getSkipReports()).toStrictEqual([]);
+      expect(skipped).toStrictEqual([
+        {
+          questFolder: '020-quiet',
+          questFilePath: '/project/.dungeonmaster-quests/020-quiet/quest.json',
+          reason: 'file contents are not valid JSON',
+        },
+      ]);
+    });
+  });
+
   // Nothing caches quests — every caller re-reads and re-parses, and timer-driven callers reach
   // this broker many times a minute — so an unchanged bad file fails identically forever. Only
   // the REPORT is deduped. Each test uses its own quest folder because the dedupe memo is

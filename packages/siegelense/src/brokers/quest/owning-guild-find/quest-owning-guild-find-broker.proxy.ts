@@ -21,6 +21,7 @@ export const questOwningGuildFindBrokerProxy = (): {
     guilds: readonly GuildListItem[];
     questsByGuildId: Readonly<Record<string, readonly Quest[]>>;
   }) => void;
+  getQuestListCalls: () => readonly unknown[];
 } => {
   // guildListBrokerProxy/questListBrokerProxy's own setup answers only ONE call each — created here
   // only to satisfy `enforce-proxy-child-creation`; this broker's own registerMock below answers
@@ -43,5 +44,7 @@ export const questOwningGuildFindBrokerProxy = (): {
         listQuestsHandle.calledWith([{ guildId }]).resolves(quests);
       });
     },
+    getQuestListCalls: (): readonly unknown[] =>
+      listQuestsHandle.callsMatching([]).map((call) => call[0]),
   };
 };
