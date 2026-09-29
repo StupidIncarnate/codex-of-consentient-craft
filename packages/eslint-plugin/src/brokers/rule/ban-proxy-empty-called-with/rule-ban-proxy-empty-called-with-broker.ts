@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Refuses a `calledWith([])` answer on a handle from `registerMock({ fn })` where `fn`'s
- * real signature requires at least one argument — the prefix-match rule that lets `calledWith`
+ * real signature requires at least one argument, or from `registerSpyOn({ object, method })` where
+ * `object[method]` does — the prefix-match rule that lets `calledWith`
  * describe fewer arguments than a call passes makes an empty array match ANY call, so this is a
  * catch-all in every way that matters except syntax. Needs the TypeScript type checker to tell
  * `fn`'s signature (so `randomUUID`, which takes none, still passes), so this rule runs only through
@@ -12,6 +13,7 @@
  * USAGE:
  * const rule = ruleBanProxyEmptyCalledWithBroker();
  * // Flags `registerMock({ fn: readFileSync })` then `handle.calledWith([]).returns('')`;
+ * // and `registerSpyOn({ object: process.stderr, method: 'write' })` then `spy.calledWith([])`;
  * // leaves `registerMock({ fn: randomUUID })` then `handle.calledWith([]).returns(uuid)` alone
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -21,6 +23,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
+import { typedSpyMethodTakesNoArgsLayerBroker } from './typed-spy-method-takes-no-args-layer-broker';
 
 export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -45,21 +48,24 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
       return {};
     }
 
-    // `fnProperty.value` reads as `unknown` from the Tsestree contract (the same gap
-    // validate-no-exposed-child-proxies-layer-broker documents for Property.value) — it is handed
-    // straight to typedFunctionTakesNoArgsTransformer, whose own `node` parameter is `unknown` too
-    // and narrows it internally via the real TSESTree.Node cast, so no narrowing happens here.
-    const fnNodesByHandleName = new Map<Identifier, unknown>();
+    // `Property.value` reads as `unknown` from the Tsestree contract (the same gap
+    // validate-no-exposed-child-proxies-layer-broker documents) — each node is handed straight to
+    // the type-checker helpers, whose own parameters are `unknown` and narrow via the real
+    // TSESTree.Node cast. A handle maps to a thunk so the type checker runs only when a
+    // `calledWith([])` on it is actually found.
+    const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
 
     return {
       VariableDeclarator: (node: Tsestree): void => {
         const { id, init } = node;
 
-        if (!id?.name || init?.type !== 'CallExpression') {
+        if (!id?.name || init?.type !== 'CallExpression' || init.callee?.type !== 'Identifier') {
           return;
         }
 
-        if (init.callee?.type !== 'Identifier' || init.callee.name !== 'registerMock') {
+        const registerName = init.callee.name;
+
+        if (registerName !== 'registerMock' && registerName !== 'registerSpyOn') {
           return;
         }
 
@@ -69,15 +75,41 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const fnProperty = (optionsArgument.properties ?? []).find(
-          (property) => property.key?.name === 'fn',
-        );
+        const properties = optionsArgument.properties ?? [];
+        const handleName = identifierContract.parse(id.name);
 
-        if (!fnProperty?.value) {
+        if (registerName === 'registerMock') {
+          const fnNode = properties.find((property) => property.key?.name === 'fn')?.value;
+
+          if (fnNode) {
+            takesNoArgsByHandleName.set(handleName, () =>
+              typedFunctionTakesNoArgsTransformer({ context: ctx, node: fnNode }),
+            );
+          }
+
           return;
         }
 
-        fnNodesByHandleName.set(identifierContract.parse(id.name), fnProperty.value);
+        const objectNode = properties.find((property) => property.key?.name === 'object')?.value;
+        const method = properties.find((property) => property.key?.name === 'method')?.value;
+
+        if (
+          objectNode &&
+          typeof method === 'object' &&
+          method !== null &&
+          'value' in method &&
+          typeof method.value === 'string'
+        ) {
+          const methodName = method.value;
+
+          takesNoArgsByHandleName.set(handleName, () =>
+            typedSpyMethodTakesNoArgsLayerBroker({
+              context: ctx,
+              objectNode,
+              method: methodName,
+            }),
+          );
+        }
       },
 
       CallExpression: (node: Tsestree): void => {
@@ -92,9 +124,11 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const fnValueNode = fnNodesByHandleName.get(identifierContract.parse(callee.object.name));
+        const takesNoArgsOf = takesNoArgsByHandleName.get(
+          identifierContract.parse(callee.object.name),
+        );
 
-        if (!fnValueNode) {
+        if (!takesNoArgsOf) {
           return;
         }
 
@@ -107,12 +141,7 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const takesNoArgs = typedFunctionTakesNoArgsTransformer({
-          context: ctx,
-          node: fnValueNode,
-        });
-
-        if (takesNoArgs === false) {
+        if (takesNoArgsOf() === false) {
           ctx.report({ node, messageId: 'emptyCalledWithRequiresArgs' });
         }
       },

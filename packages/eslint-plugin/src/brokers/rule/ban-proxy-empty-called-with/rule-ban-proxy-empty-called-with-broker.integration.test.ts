@@ -44,8 +44,46 @@ const handle = registerMock({ fn: readFileSync });
 handle.calledWith([]).returns('');`,
       filename: NON_PROXY_FILE,
     },
+    // A spied method that takes no argument: calledWith([]) is the honest description
+    {
+      code: `const spy = registerSpyOn({ object: process, method: 'cwd' });
+spy.calledWith([]).returns('/repo');`,
+      filename: PROXY_FILE,
+    },
+    // A spy addressed by the real argument tuple, even though write requires an argument
+    {
+      code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+spy.calledWith(['text']).returns(true);`,
+      filename: PROXY_FILE,
+    },
+    // A spy on a property with no call signature is unresolvable, so it is not reported
+    {
+      code: `const spy = registerSpyOn({ object: process, method: 'pid' });
+spy.calledWith([]).returns(1);`,
+      filename: PROXY_FILE,
+    },
+    // Non-proxy files are outside this rule's scope for spies too
+    {
+      code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+spy.calledWith([]).returns(true);`,
+      filename: NON_PROXY_FILE,
+    },
   ],
   invalid: [
+    // ward's own stderr spy: write requires its first argument, so [] matches every call
+    {
+      code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+spy.calledWith([]).returns(true);`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    // passthrough spies are still spies: an empty address is still a catch-all
+    {
+      code: `const spy = registerSpyOn({ object: process.stdout, method: 'write', passthrough: true });
+spy.calledWith([]).returns(true);`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
     {
       code: `import { readFileSync } from 'fs';
 const handle = registerMock({ fn: readFileSync });

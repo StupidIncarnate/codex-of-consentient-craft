@@ -43,8 +43,47 @@ ruleTester.run('ban-proxy-catch-all-defaults', ruleBanProxyCatchAllDefaultsBroke
 };`,
       filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
     },
+    // A spy addressed by a real argument, not a wildcard predicate
+    {
+      code: `export const stderrWriteAdapterProxy = () => {
+  const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+  return {
+    captures: ({ text }) => spy.calledWith([text]).returns(true),
+  };
+};`,
+      filename: '/project/src/adapters/process/stderr-write/stderr-write-adapter.proxy.ts',
+    },
+    // A spy's wildcard literal sits inside a RETURNED opt-in scenario method
+    {
+      code: `export const stderrWriteAdapterProxy = () => {
+  const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+  return {
+    setupAlwaysTrue: () => spy.calledWith([() => true]).returns(true),
+  };
+};`,
+      filename: '/project/src/adapters/process/stderr-write/stderr-write-adapter.proxy.ts',
+    },
   ],
   invalid: [
+    // A registerSpyOn handle staged with an accept-all predicate in the constructor
+    {
+      code: `export const stderrWriteAdapterProxy = () => {
+  const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+  spy.calledWith([() => true]).returns(true);
+  return {};
+};`,
+      filename: '/project/src/adapters/process/stderr-write/stderr-write-adapter.proxy.ts',
+      errors: [{ messageId: 'catchAllProxyDefault' }],
+    },
+    // The same wildcard chained directly off registerSpyOn
+    {
+      code: `export const stderrWriteAdapterProxy = () => {
+  registerSpyOn({ object: process.stderr, method: 'write' }).calledWith([() => true]).returns(true);
+  return {};
+};`,
+      filename: '/project/src/adapters/process/stderr-write/stderr-write-adapter.proxy.ts',
+      errors: [{ messageId: 'catchAllProxyDefault' }],
+    },
     // Implicit-return arrow catch-all, staged in the constructor
     {
       code: `export const fsReadFileAdapterProxy = () => {
