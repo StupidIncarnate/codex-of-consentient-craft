@@ -21,7 +21,6 @@ export const packageJsonReadBroker = ({ filePath }: { filePath: string }): Packa
   const fileContents = contentTextContract.parse(
     readFileSync(absoluteFilePathContract.parse(filePath)),
   );
-  const parsedContents: unknown = JSON.parse(fileContents);
 
-  return packageJsonContract.parse(parsedContents);
+  return packageJsonContract.parse(JSON.parse(fileContents));
 };

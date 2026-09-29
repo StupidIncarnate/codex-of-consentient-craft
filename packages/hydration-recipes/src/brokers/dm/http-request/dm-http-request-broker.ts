@@ -16,6 +16,7 @@
  */
 import { fetchWithStatus } from '#gateway/node/fetch';
 import { dmHttpResponseContract } from '../../../contracts/dm-http-response/dm-http-response-contract';
+import { dmResponseBodyContract } from '../../../contracts/dm-response-body/dm-response-body-contract';
 import type { DmHttpResponse } from '../../../contracts/dm-http-response/dm-http-response-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -51,7 +52,8 @@ export const dmHttpRequestBroker = async ({
     ...(body === undefined ? {} : { headers: { 'Content-Type': JSON_CONTENT_TYPE }, body }),
   });
 
-  const responseBody: unknown = JSON.parse(response.body);
-
-  return dmHttpResponseContract.parse({ status: response.status, body: responseBody });
+  return dmHttpResponseContract.parse({
+    status: response.status,
+    body: dmResponseBodyContract.parse(JSON.parse(response.body)),
+  });
 };
