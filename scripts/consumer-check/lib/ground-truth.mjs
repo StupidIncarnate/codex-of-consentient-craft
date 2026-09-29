@@ -18,7 +18,7 @@ export const REPO_ROOT = join(HERE, '..', '..', '..');
 const distPath = (...segments) => join(REPO_ROOT, ...segments);
 
 export const loadGroundTruth = async () => {
-  const shared = await import(distPath('packages', 'shared', 'dist', 'statics.js'));
+  const shared = await import('@dungeonmaster/shared/statics');
   const devDependenciesStaticsModule = await import(
     distPath(
       'packages',
@@ -69,9 +69,7 @@ export const loadGroundTruth = async () => {
       'jest-config-template-statics.js',
     )
   );
-  const gatewayImportsFieldTransformerModule = await import(
-    distPath('packages', 'shared', 'dist', 'transformers.js')
-  );
+  const gatewayImportsFieldTransformerModule = await import('@dungeonmaster/shared/transformers');
   const dungeonmasterHooksCreatorTransformerModule = await import(
     distPath(
       'packages',

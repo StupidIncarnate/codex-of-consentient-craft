@@ -210,7 +210,7 @@ const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
     if (packageName === PROBE_PACKAGE_NAME) {
       const violatorResult = eslintJson.find((entry) => entry.filePath === lintViolationFile);
       report.check(
-        'lint flags the sample file with a known violation (ban-primitives: a raw string return)',
+        'lint flags the sample file with a known violation (no-explicit-any: an `any` parameter)',
         Boolean(violatorResult && violatorResult.errorCount > 0),
         violatorResult ? `errorCount ${violatorResult.errorCount}` : 'file not present in eslint results',
       );
@@ -410,10 +410,18 @@ const assertPreEditHook = async ({ report, consumerRoot, lintViolationFile }) =>
   // are byte-identical, so nothing was ADDED, and it allows the write (confirmed against a real run
   // of this suite: exit 0, not the expected 2). A path that does not exist on disk YET has no "old"
   // text to diff against, so the violating content the payload proposes is entirely new.
-  const violatingContent = readFileSync(lintViolationFile, 'utf8');
+  // The path is correctly named for its folder, so the ONLY thing the hook can object to is the
+  // `any` — a misnamed file would be blocked for its name and pass this check for the wrong reason.
+  const violatingContent = readFileSync(lintViolationFile, 'utf8').replaceAll(
+    'preEditProbeBroker',
+    'preEditProbeNewBroker',
+  );
   const neverWrittenFile = join(
-    join(lintViolationFile, '..'),
-    'pre-edit-hook-new-file-probe-broker.ts',
+    lintViolationFile,
+    '..',
+    '..',
+    'probe-new',
+    'pre-edit-probe-new-broker.ts',
   );
   const blockedResult = await run({
     command: binPath,
@@ -423,12 +431,12 @@ const assertPreEditHook = async ({ report, consumerRoot, lintViolationFile }) =>
   });
   report.check(
     'the pre-edit hook blocks a Write that adds a lint violation (exit code 2)',
-    blockedResult.code === 2,
+    blockedResult.code === 2 && /no-explicit-any|Unexpected any/u.test(`${blockedResult.stdout}${blockedResult.stderr}`),
     `exit ${String(blockedResult.code)}: ${blockedResult.stdout}${blockedResult.stderr}`.slice(-1500),
   );
 
   // Same export name and file identity as the on-disk violator (`preEditProbeBroker`, in
-  // `pre-edit-probe-broker.ts`) — only the return type changes, from a raw `string` to a branded
+  // `pre-edit-probe-broker.ts`) — only the `any` becomes `string` and the return a branded
   // `PathSegment` — so this is a genuine same-file fix, never a different function under the same
   // name the naming convention (entry file name = folder path + suffix) would itself flag.
   const cleanContent =

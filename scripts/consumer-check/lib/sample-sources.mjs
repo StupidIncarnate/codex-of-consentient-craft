@@ -506,8 +506,8 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   const mswTrapTestFile = join(mswTrapDomainDir, 'msw-trap-probe-broker.test.ts');
   writeFileSync(mswTrapTestFile, MSW_TRAP_PROOF_TEST);
 
-  // A known, ACTIVE violation (`ban-primitives`: a function returning a raw `string` instead of a
-  // branded type), inside a fully colocated broker (header, proxy, test) so the ONLY thing lint
+  // A known, ACTIVE violation (`@typescript-eslint/no-explicit-any`, a pre-edit rule that is on in
+  // every consumer's config; `ban-primitives` is gone and its replacement is off), inside a fully colocated broker (header, proxy, test) so the ONLY thing lint
   // flags about it is the one deliberate violation `assertLint` expects — never a missing-companion
   // or missing-header finding this suite did not intend. Lives in the DEDICATED `probe` package, not
   // `lib` — `assertWardCleanFixture` scopes `dungeonmaster ward` onto `lib`/`app` and expects exit 0,
@@ -518,15 +518,15 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   writeFileSync(
     lintViolationFile,
     `/**
- * PURPOSE: Uppercases a path segment. Returns a raw string instead of a branded type on purpose, so
- * this fixture carries a real ban-primitives violation for the consumer's lint to catch.
+ * PURPOSE: Uppercases a path segment. Types the input as \`any\` on purpose, so this fixture carries
+ * a real @typescript-eslint/no-explicit-any violation for the consumer's lint to catch.
  *
  * USAGE:
  * preEditProbeBroker({ path: 'a/b' });
- * // Returns 'A/B' — lint flags the return type itself, not this call
+ * // Returns 'A/B' — lint flags the parameter type itself, not this call
  */
 
-export const preEditProbeBroker = ({ path }: { path: string }): string => path.toUpperCase();
+export const preEditProbeBroker = ({ path }: { path: any }): unknown => path.toUpperCase();
 `,
   );
   writeFileSync(
