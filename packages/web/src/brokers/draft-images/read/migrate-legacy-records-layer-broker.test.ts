@@ -13,9 +13,8 @@ describe('migrateLegacyRecordsLayerBroker', () => {
     });
     const db = proxy.openDb();
 
-    const result = await migrateLegacyRecordsLayerBroker({ db, storeName });
+    await expect(migrateLegacyRecordsLayerBroker({ db, storeName })).resolves.toBe(undefined);
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStoredDrafts()).toStrictEqual([
       { attachmentId: 'a', mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=', scopeKey: 'create' },
     ]);
@@ -38,9 +37,8 @@ describe('migrateLegacyRecordsLayerBroker', () => {
     });
     const db = proxy.openDb();
 
-    const result = await migrateLegacyRecordsLayerBroker({ db, storeName });
+    await expect(migrateLegacyRecordsLayerBroker({ db, storeName })).resolves.toBe(undefined);
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStoredDrafts()).toStrictEqual([
       {
         attachmentId: 'a',
@@ -56,9 +54,8 @@ describe('migrateLegacyRecordsLayerBroker', () => {
     const proxy = migrateLegacyRecordsLayerBrokerProxy();
     const db = proxy.openDb();
 
-    const result = await migrateLegacyRecordsLayerBroker({ db, storeName });
+    await expect(migrateLegacyRecordsLayerBroker({ db, storeName })).resolves.toBe(undefined);
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStoredDrafts()).toStrictEqual([]);
     expect(proxy.getWriteTransactions()).toStrictEqual([]);
   });

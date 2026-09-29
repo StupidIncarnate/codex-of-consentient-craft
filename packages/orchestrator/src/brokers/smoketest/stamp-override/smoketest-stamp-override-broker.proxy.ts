@@ -21,7 +21,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const smoketestStampOverrideBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
-  setupQuestNotFound: () => void;
+  setupQuestNotFound: (params: { questId: string }) => void;
   getAllPersistedContents: () => readonly unknown[];
 } => {
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces
@@ -72,10 +72,8 @@ export const smoketestStampOverrideBrokerProxy = (): {
       persistMock.calledWith([{ questFilePath }]).resolves({ success: true as const });
     },
 
-    setupQuestNotFound: (): void => {
-      // No quest to key on here — every caller of this scenario searches for whatever questId
-      // it was given and finds nothing, so `[]` honestly describes "not found, for any questId."
-      findQuestPathMock.calledWith([]).rejects(new QuestNotFoundError({ questId: 'unknown' }));
+    setupQuestNotFound: ({ questId }: { questId: string }): void => {
+      findQuestPathMock.calledWith([{ questId }]).rejects(new QuestNotFoundError({ questId }));
     },
 
     // Read the `contents` argument straight off every questPersistBroker call this test made,

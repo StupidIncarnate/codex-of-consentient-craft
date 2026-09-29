@@ -10,9 +10,8 @@
  * await StartSiegelense({ args: ['status'] });
  */
 import { z } from '#gateway/npm/zod';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export type StartSiegelenseFn = (params: { args: readonly string[] }) => Promise<AdapterResult>;
+export type StartSiegelenseFn = (params: { args: readonly string[] }) => Promise<void>;
 
 const startSiegelenseFnContract = z.custom<StartSiegelenseFn>(
   (value) => typeof value === 'function',

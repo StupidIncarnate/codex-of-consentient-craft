@@ -57,6 +57,9 @@ registerModuleMock({ module: './quest-modify-broker' });
 export const questModifyBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  // Runs the real broker for any `{ input }` call, for a call that fails on its own input before
+  // any quest is looked up.
+  setupRealBroker: () => void;
   setupReject: (params: { error: Error }) => void;
   setupResolveSuccessOnce: () => void;
   setupResolveFailureOnce: () => void;
@@ -114,24 +117,27 @@ export const questModifyBrokerProxy = (): {
   const repoRootProxy = questRepoRootBrokerProxy();
   repoRootProxy.setupRepoRoot({ repoRoot: PROJECT_ROOT });
 
-  // Re-apply passthrough to the actual implementation (resetAllMocks clears between tests).
-  // `input` varies per call and the passthrough runs the REAL logic against whatever it
-  // receives rather than answering a canned value, so there is no per-input address to stage —
-  // `[]` is the honest, generic catch-all. setupReject/setupResolveSuccessOnce/
-  // setupResolveFailureOnce below stage live one-shots at the same `[]` address, which win over
-  // this sticky passthrough for exactly one call, then fall back to it.
+  // Any `{ input }` call. `setupQuestFound` stages the real implementation at this address, and
+  // setupReject/setupResolveSuccessOnce/setupResolveFailureOnce below stage live one-shots at the
+  // same address, which win over that sticky passthrough for exactly one call, then fall back to it.
+  const isModifyCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'input' in call;
   const realMod = requireActual<{ questModifyBroker: typeof questModifyBroker }>({
     module: './quest-modify-broker',
   });
   const modifyMock = registerMock({ fn: questModifyBroker });
-  modifyMock.calledWith([]).implement(realMod.questModifyBroker as never);
 
   return {
     setupResolves: ({ input, result }: { input: ModifyInput; result: ModifyResult }): void => {
       modifyMock.calledWith([{ input }]).resolves(result);
     },
 
+    setupRealBroker: (): void => {
+      modifyMock.calledWith([isModifyCall]).implement(realMod.questModifyBroker as never);
+    },
+
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      modifyMock.calledWith([isModifyCall]).implement(realMod.questModifyBroker as never);
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({
@@ -183,20 +189,20 @@ export const questModifyBrokerProxy = (): {
     },
 
     setupReject: ({ error }: { error: Error }): void => {
-      modifyMock.onceFor([]).rejects(error);
+      modifyMock.onceFor([isModifyCall]).rejects(error);
     },
 
     // Resolve { success: true } for the next call without running the real read-modify-write —
     // isolates a caller's handling of a successful persist.
     setupResolveSuccessOnce: (): void => {
-      modifyMock.onceFor([]).resolves(ModifyQuestResultStub());
+      modifyMock.onceFor([isModifyCall]).resolves(ModifyQuestResultStub());
     },
 
     // Resolve { success: false } for the next call — questModifyBroker swallows I/O and validation
     // failures into a falsy result rather than throwing, so callers that must not silently drop a
     // failed persist are tested against this resolved-failure shape (not a rejection).
     setupResolveFailureOnce: (): void => {
-      modifyMock.onceFor([]).resolves(ModifyQuestResultStub({ success: false }));
+      modifyMock.onceFor([isModifyCall]).resolves(ModifyQuestResultStub({ success: false }));
     },
 
     // Stages fs.access to succeed for one contract's source path, so the
@@ -249,6 +255,7 @@ export const questModifyBrokerProxy = (): {
         .map(({ content }) => content),
 
     setupEmptyFolder: (): void => {
+      modifyMock.calledWith([isModifyCall]).implement(realMod.questModifyBroker as never);
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({
         value: '/home/testuser/.dungeonmaster/guilds',

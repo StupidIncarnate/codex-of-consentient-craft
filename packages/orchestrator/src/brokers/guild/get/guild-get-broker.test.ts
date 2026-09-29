@@ -98,6 +98,7 @@ describe('guildGetBroker', () => {
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [] }),
+        missingGuildId: guildId,
       });
 
       await expect(guildGetBroker({ guildId })).rejects.toThrow(
@@ -116,6 +117,7 @@ describe('guildGetBroker', () => {
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [otherGuild] }),
+        missingGuildId: guildId,
       });
 
       await expect(guildGetBroker({ guildId })).rejects.toThrow(

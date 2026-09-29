@@ -29,12 +29,8 @@
  * // Scaffolds packages/widgets, registers it in the root package.json, and narrates both to stdout
  */
 
-import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
-import {
-  adapterResultContract,
-  filePathContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import type { InstallContext } from '@dungeonmaster/shared/contracts';
+import { filePathContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -57,7 +53,7 @@ export const CliCreatePackageResponder = async ({
 }: {
   context: InstallContext;
   args: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const parsedArgs = createPackageArgsParseTransformer({ args });
 
   const rootPackageJsonPath = filePathContract.parse(
@@ -107,7 +103,7 @@ export const CliCreatePackageResponder = async ({
 
   if (parsedArgs.dryRun) {
     stdout.write(`Would write ${files.length} files. Nothing was written.\n`);
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   const writtenFiles = await packageScaffoldWriteBroker({ packageRoot, files });
@@ -138,6 +134,4 @@ export const CliCreatePackageResponder = async ({
       '  ward\'s e2e check stays red until this package adds a "dev:no-watch" script and at least one *.e2e.ts spec.\n',
     );
   }
-
-  return adapterResultContract.parse({ success: true });
 };

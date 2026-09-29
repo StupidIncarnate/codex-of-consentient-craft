@@ -25,7 +25,7 @@ describe('storagePruneBroker', () => {
         now,
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${name}`]);
     });
@@ -44,7 +44,7 @@ describe('storagePruneBroker', () => {
         now,
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -57,7 +57,7 @@ describe('storagePruneBroker', () => {
       const proxy = storagePruneBrokerProxy();
       proxy.setupEmpty({ rootPath });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -73,7 +73,7 @@ describe('storagePruneBroker', () => {
         now,
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -86,7 +86,7 @@ describe('storagePruneBroker', () => {
       const proxy = storagePruneBrokerProxy();
       proxy.setupReaddirFail({ rootPath });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
     });
   });
 
@@ -105,7 +105,7 @@ describe('storagePruneBroker', () => {
         mtimes: { [name]: expiredMtime },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${name}`]);
     });
@@ -126,7 +126,7 @@ describe('storagePruneBroker', () => {
         mtimes: { [name]: freshMtime },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -142,7 +142,7 @@ describe('storagePruneBroker', () => {
       const proxy = storagePruneBrokerProxy();
       proxy.setupWithFiles({ rootPath, entries: [name], now, mtimes: { [name]: now } });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${name}`]);
     });
@@ -157,7 +157,7 @@ describe('storagePruneBroker', () => {
       const proxy = storagePruneBrokerProxy();
       proxy.setupWithFiles({ rootPath, entries: [name], now, statNullFor: [name] });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -184,7 +184,7 @@ describe('storagePruneBroker', () => {
         mtimes: { [mtimeExpiredName]: expiredMtime, [mtimeFreshName]: freshMtime },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([
         `${rootPath}/.ward/${timestampedExpiredName}`,
@@ -212,7 +212,7 @@ describe('storagePruneBroker', () => {
         sizes: { [newest]: budget - 10, [older]: 10 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -231,7 +231,7 @@ describe('storagePruneBroker', () => {
         sizes: { [newest]: budget, [middle]: 1, [oldest]: 1 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([
         `${rootPath}/.ward/${middle}`,
@@ -253,7 +253,7 @@ describe('storagePruneBroker', () => {
         sizes: { [newest]: 100, [big]: budget, [small]: 1 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([
         `${rootPath}/.ward/${big}`,
@@ -273,7 +273,7 @@ describe('storagePruneBroker', () => {
         sizes: { [only]: budget * 2 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });
@@ -291,7 +291,7 @@ describe('storagePruneBroker', () => {
         sizes: { [newest]: budget * 2, [older]: 1 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${older}`]);
     });
@@ -314,7 +314,7 @@ describe('storagePruneBroker', () => {
         sizes: { [dispatch]: budget - 5, [stamped]: 5, [stampedOlder]: 1 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${stampedOlder}`]);
     });
@@ -333,7 +333,7 @@ describe('storagePruneBroker', () => {
         sizes: { [newest]: budget, [older]: 1 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([
         `${rootPath}/.ward/${expired}`,
@@ -354,7 +354,7 @@ describe('storagePruneBroker', () => {
         sizes: { [first]: budget, [second]: budget },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([`${rootPath}/.ward/${first}`]);
     });
@@ -368,7 +368,7 @@ describe('storagePruneBroker', () => {
         sizes: { 'config.json': budget * 2 },
       });
 
-      await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
+      await expect(storagePruneBroker({ rootPath })).resolves.toBe(undefined);
 
       expect(proxy.getDeletedPaths()).toStrictEqual([]);
     });

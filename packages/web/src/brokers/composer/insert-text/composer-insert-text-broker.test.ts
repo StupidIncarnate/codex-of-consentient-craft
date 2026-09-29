@@ -17,9 +17,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: 'hello' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'hello' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -43,9 +41,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: 'def' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'def' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -73,9 +69,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: 'XY' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'XY' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -108,9 +102,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: 'mid' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'mid' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -138,9 +130,7 @@ describe('composerInsertTextBroker', () => {
     const selection = document.getSelection();
     selection?.removeAllRanges();
 
-    const result = composerInsertTextBroker({ editor, text: 'def' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'def' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -173,9 +163,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: 'def' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'def' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -201,9 +189,7 @@ describe('composerInsertTextBroker', () => {
     selection?.addRange(range);
 
     composerInsertTextBroker({ editor, text: 'ab' });
-    const result = composerInsertTextBroker({ editor, text: 'cd' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: 'cd' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -231,9 +217,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: '\n' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: '\n' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -266,9 +250,7 @@ describe('composerInsertTextBroker', () => {
     selection?.addRange(range);
 
     composerInsertTextBroker({ editor, text: '\n' });
-    const result = composerInsertTextBroker({ editor, text: '\n' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: '\n' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -302,9 +284,7 @@ describe('composerInsertTextBroker', () => {
     selection?.removeAllRanges();
     selection?.addRange(range);
 
-    const result = composerInsertTextBroker({ editor, text: '\n' });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertTextBroker({ editor, text: '\n' });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,

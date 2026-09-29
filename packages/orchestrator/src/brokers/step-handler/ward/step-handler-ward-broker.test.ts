@@ -20,6 +20,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       const runId = FileNameStub({ value: '1780108054226-a080' });
       proxy.wardExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
         runId,
         detailJson: FileContentsStub({ value: '{"checks":[]}' }),
@@ -39,6 +40,7 @@ describe('stepHandlerWardBroker', () => {
       const proxy = stepHandlerWardBrokerProxy();
       const runId = FileNameStub({ value: '1780108054226-a080' });
       proxy.wardExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
         runId,
         detailJson: FileContentsStub({ value: '{"checks":[]}' }),
@@ -59,6 +61,7 @@ describe('stepHandlerWardBroker', () => {
     it('EMPTY: {exit 0, no run: <id> line} => classifies empty, not done', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
       });
 
@@ -77,6 +80,7 @@ describe('stepHandlerWardBroker', () => {
     it('VALID: {exit 1} => classifies unmet, never wall', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.failing }),
       });
 
@@ -95,6 +99,7 @@ describe('stepHandlerWardBroker', () => {
     it('ERROR: {exit 2} => classifies wall', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.crash }),
       });
 
@@ -113,6 +118,7 @@ describe('stepHandlerWardBroker', () => {
     it('VALID: {args: [--committed, --uncommitted]} => spawns [run, --committed, --uncommitted]', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
       });
 
@@ -129,6 +135,7 @@ describe('stepHandlerWardBroker', () => {
     it('VALID: {args: []} => spawns [run] — the full ward, not the branch gate', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExitsWithoutRunId({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
       });
 
@@ -146,7 +153,10 @@ describe('stepHandlerWardBroker', () => {
   describe('a missing worktree', () => {
     it('ERROR: {missing-worktree resolution} => throws — a wall at the handler boundary', async () => {
       const proxy = stepHandlerWardBrokerProxy();
-      proxy.setupWorktreeMissing({ worktreePath: '/repo/worktrees/add-auth' });
+      proxy.setupWorktreeMissing({
+        questId: QUEST_ID,
+        worktreePath: '/repo/worktrees/add-auth',
+      });
 
       await expect(
         stepHandlerWardBroker({
@@ -163,6 +173,7 @@ describe('stepHandlerWardBroker', () => {
     it('VALID: {ward output} => a line reaches the callback DURING the run', async () => {
       const proxy = stepHandlerWardBrokerProxy();
       proxy.wardExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
         runId: FileNameStub({ value: '1780108054226-a080' }),
         detailJson: FileContentsStub({ value: '{"checks":[]}' }),

@@ -43,9 +43,8 @@ describe('CliServeResponder', () => {
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'darwin' });
 
-      const result = await proxy.callResponder();
+      await expect(proxy.callResponder()).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getBrowserOpenCalls({ command: `open ${SERVER_URL}` })).toStrictEqual([
         [`open ${SERVER_URL}`],
       ]);
@@ -56,9 +55,8 @@ describe('CliServeResponder', () => {
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'win32' });
 
-      const result = await proxy.callResponder();
+      await expect(proxy.callResponder()).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getBrowserOpenCalls({ command: `start ${SERVER_URL}` })).toStrictEqual([
         [`start ${SERVER_URL}`],
       ]);
@@ -69,9 +67,8 @@ describe('CliServeResponder', () => {
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'linux' });
 
-      const result = await proxy.callResponder();
+      await expect(proxy.callResponder()).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getBrowserOpenCalls({ command: `xdg-open ${SERVER_URL}` })).toStrictEqual([
         [`xdg-open ${SERVER_URL}`],
       ]);

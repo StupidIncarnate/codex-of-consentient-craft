@@ -81,12 +81,12 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
 
     const before = harness.listRoot({ packageRoot });
 
-    const result = await e2eArtifactsPruneBroker({ packageRoot });
+    await e2eArtifactsPruneBroker({ packageRoot });
 
     const after = harness.listRoot({ packageRoot });
 
     testbed.cleanup();
 
-    expect({ result, after }).toStrictEqual({ result: { success: true }, after: before });
+    expect(after).toStrictEqual(before);
   });
 });

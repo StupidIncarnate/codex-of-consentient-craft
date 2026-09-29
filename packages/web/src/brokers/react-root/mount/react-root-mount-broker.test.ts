@@ -16,16 +16,13 @@ describe('reactRootMountBroker', () => {
       const rootElement = document.createElement('div');
       rootElement.id = 'test-root';
       document.body.appendChild(rootElement);
-      const results: unknown[] = [];
 
       act(() => {
-        results.push(
-          reactRootMountBroker({
-            rootElementId: 'test-root',
-            Wrapper: TestWrapper,
-            content: createElement('span', { 'data-testid': 'CONTENT' }, 'Hello'),
-          }),
-        );
+        reactRootMountBroker({
+          rootElementId: 'test-root',
+          Wrapper: TestWrapper,
+          content: createElement('span', { 'data-testid': 'CONTENT' }, 'Hello'),
+        });
       });
 
       const content = await screen.findByTestId('CONTENT');
@@ -34,7 +31,6 @@ describe('reactRootMountBroker', () => {
       const rootContainsWrapper = rootElement.contains(wrapper);
       document.body.removeChild(rootElement);
 
-      expect(results).toStrictEqual([{ success: true }]);
       expect(content.textContent).toBe('Hello');
       expect(wrapperContainsContent).toBe(true);
       expect(rootContainsWrapper).toBe(true);
@@ -45,13 +41,13 @@ describe('reactRootMountBroker', () => {
     it('ERROR: {rootElementId: "nonexistent"} => throws when element not found', () => {
       reactRootMountBrokerProxy();
 
-      expect(() =>
+      expect(() => {
         reactRootMountBroker({
           rootElementId: 'nonexistent',
           Wrapper: TestWrapper,
           content: createElement('span', null, 'Hello'),
-        }),
-      ).toThrow(/^Root element not found: nonexistent$/u);
+        });
+      }).toThrow(/^Root element not found: nonexistent$/u);
     });
   });
 });

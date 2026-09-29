@@ -16,9 +16,7 @@ describe('e2eArtifactsPruneBroker', () => {
       proxy.setupPortFree({ port: 40000 });
       proxy.setupRemovable({ packageRoot, parentDir: 'node_modules', name: '.vite-40000' });
 
-      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toBe(undefined);
 
       expect(
         proxy.getRemovedPaths({ packageRoot, parentDir: 'node_modules', name: '.vite-40000' }),
@@ -172,9 +170,7 @@ describe('e2eArtifactsPruneBroker', () => {
         entries: ['my-spec-renders-chromium'],
       });
 
-      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toBe(undefined);
 
       expect(
         proxy.getRemovedPaths({
@@ -205,9 +201,7 @@ describe('e2eArtifactsPruneBroker', () => {
       proxy.setupRemoveFails({ packageRoot, parentDir: 'node_modules', name: '.vite-40000' });
       proxy.setupRemovable({ packageRoot, parentDir: 'node_modules', name: '.vite-51244' });
 
-      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toBe(undefined);
 
       expect({
         attempted: proxy.getRemovedPaths({
@@ -238,9 +232,7 @@ describe('e2eArtifactsPruneBroker', () => {
 
       proxy.setupEntries({ packageRoot, parentDir: 'node_modules', entries: [] });
 
-      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsPruneBroker({ packageRoot })).resolves.toBe(undefined);
     });
   });
 });

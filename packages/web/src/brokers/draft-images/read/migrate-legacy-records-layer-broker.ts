@@ -8,11 +8,9 @@
  *
  * USAGE:
  * await migrateLegacyRecordsLayerBroker({ db, storeName: 'dungeonmaster-chat-draft-images' });
- * // Returns AdapterResult. Tags every scopeKey-less record in the store with the create-surface
+ * // Returns nothing. Tags every scopeKey-less record in the store with the create-surface
  * // scope, in one transaction; a no-op (no write transaction opened) when none exist
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { getAll, replaceAll } from '#gateway/browser/indexedDB';
 
@@ -25,11 +23,11 @@ export const migrateLegacyRecordsLayerBroker = async ({
 }: {
   db: IDBDatabase;
   storeName: string;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const existing = await getAll({ db, storeName });
 
   const hasLegacyRecords = existing.some((record) => isLegacyComposerScopeRecordGuard({ record }));
-  if (!hasLegacyRecords) return { success: true as const };
+  if (!hasLegacyRecords) return;
 
   await replaceAll({
     db,
@@ -46,6 +44,4 @@ export const migrateLegacyRecordsLayerBroker = async ({
         return { ...record, scopeKey: chatComposerStatics.draftScope.createScopeKey };
       }),
   });
-
-  return { success: true as const };
 };

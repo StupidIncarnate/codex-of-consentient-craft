@@ -7,11 +7,7 @@
  */
 
 import { setExitCode, stderr } from '#gateway/node/process';
-import {
-  adapterResultContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
@@ -36,8 +32,7 @@ export const WardFlow = async ({
 }: {
   args: readonly string[];
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const rawCommand = args[COMMAND_ARG_INDEX];
   const isImplicitRun = !rawCommand || rawCommand.startsWith('-');
   const command = isImplicitRun ? COMMANDS.run : rawCommand;
@@ -47,27 +42,27 @@ export const WardFlow = async ({
       ? [...args.slice(0, COMMAND_ARG_INDEX), COMMANDS.run, ...args.slice(COMMAND_ARG_INDEX)]
       : args;
     await WardRunResponder({ args: normalizedArgs, rootPath });
-    return result;
+    return;
   }
 
   if (command === COMMANDS.list) {
     await WardListResponder({ args, rootPath });
-    return result;
+    return;
   }
 
   if (command === COMMANDS.detail) {
     await WardDetailResponder({ args, rootPath });
-    return result;
+    return;
   }
 
   if (command === COMMANDS.raw) {
     await WardRawResponder({ args, rootPath });
-    return result;
+    return;
   }
 
   if (command === COMMANDS.scan) {
     await WardScanResponder({ args, rootPath });
-    return result;
+    return;
   }
 
   // A NAME NOBODY ROUTES MUST NOT EXIT 0. Every caller of ward — a CI job, a pre-push gate, a
@@ -76,5 +71,4 @@ export const WardFlow = async ({
   stderr.write(`Unknown command: ${command}\n`);
   stderr.write('Available commands: run, list, detail, raw, scan\n');
   setExitCode(wardExitCodeStatics.exitCodes.failing);
-  return result;
 };

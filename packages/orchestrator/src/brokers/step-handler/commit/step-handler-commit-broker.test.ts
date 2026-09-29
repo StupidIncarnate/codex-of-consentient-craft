@@ -92,7 +92,7 @@ describe('stepHandlerCommitBroker', () => {
       const questId = QuestIdStub();
       const proxy = stepHandlerCommitBrokerProxy();
       proxy.setupQuest({ quest: buildQuest({ questId }) });
-      proxy.setupWorktree({ worktreePath: '/repo/worktrees/add-auth' });
+      proxy.setupWorktree({ questId, worktreePath: '/repo/worktrees/add-auth' });
       proxy.setupWorkingTreeFiles({ files: ['packages/auth/src/x.ts'] });
 
       await stepHandlerCommitBroker({
@@ -132,7 +132,7 @@ describe('stepHandlerCommitBroker', () => {
       const questId = QuestIdStub();
       const proxy = stepHandlerCommitBrokerProxy();
       proxy.setupQuest({ quest: buildQuest({ questId }) });
-      proxy.setupWorktreeMissing({ worktreePath: '/repo/worktrees/add-auth' });
+      proxy.setupWorktreeMissing({ questId, worktreePath: '/repo/worktrees/add-auth' });
 
       await expect(
         stepHandlerCommitBroker({

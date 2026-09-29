@@ -7,16 +7,11 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { InstallContext } from '@dungeonmaster/shared/contracts';
 
 import { installRunBroker } from '../../../brokers/install/run/install-run-broker';
 
-export const CliInitResponder = async ({
-  context,
-}: {
-  context: InstallContext;
-}): Promise<AdapterResult> => {
+export const CliInitResponder = async ({ context }: { context: InstallContext }): Promise<void> => {
   const results = await installRunBroker({
     context,
   });
@@ -29,5 +24,4 @@ export const CliInitResponder = async ({
       (result.success ? result.message : result.error) ?? 'no install message reported';
     stdout.write(`[${status}] ${result.packageName}: ${detail}\n`);
   }
-  return adapterResultContract.parse({ success: true });
 };

@@ -3,7 +3,7 @@ import { CliSiegelenseResponderProxy } from './cli-siegelense-responder.proxy';
 describe('CliSiegelenseResponder', () => {
   describe('driver route', () => {
     it('VALID: {args: [driver, --instance, inst_7f3a]} => delegates with those args', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -17,7 +17,7 @@ describe('CliSiegelenseResponder', () => {
 
   describe('bare fleet route', () => {
     it('VALID: {args: []} => forwards as an empty array', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -29,7 +29,7 @@ describe('CliSiegelenseResponder', () => {
 
   describe('status route', () => {
     it('VALID: {args: [status]} => delegates with those args rather than rejecting it as unknown', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -39,7 +39,7 @@ describe('CliSiegelenseResponder', () => {
     });
 
     it('VALID: {args: [status, --instance, inst_7f3a]} => StartSiegelense receives exactly those args', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -53,7 +53,7 @@ describe('CliSiegelenseResponder', () => {
 
   describe('cleanup route', () => {
     it('VALID: {args: [cleanup]} => delegates with those args rather than rejecting it as unknown', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -69,7 +69,7 @@ describe('CliSiegelenseResponder', () => {
     // real siegelense call that is simply not built yet — passes straight through rather than
     // being refused here. The refusal, if any, belongs one layer down.
     it('VALID: {args: [capacity]} => forwards verbatim rather than refusing an unrecognised subcommand', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 
@@ -79,7 +79,7 @@ describe('CliSiegelenseResponder', () => {
     });
 
     it('VALID: {args: [driver]} => forwards verbatim with no --instance pre-check', async () => {
-      const StartSiegelense = jest.fn().mockResolvedValue({ success: true });
+      const StartSiegelense = jest.fn().mockResolvedValue(undefined);
       const proxy = CliSiegelenseResponderProxy();
       proxy.setupModule({ StartSiegelense });
 

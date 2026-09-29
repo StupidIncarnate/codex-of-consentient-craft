@@ -10,9 +10,8 @@
  * StartServer({ serveWebBundle: true });
  */
 import { z } from '#gateway/npm/zod';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export type StartServerFn = (args?: { serveWebBundle?: boolean }) => AdapterResult;
+export type StartServerFn = (args?: { serveWebBundle?: boolean }) => void;
 
 const startServerFnContract = z.custom<StartServerFn>((value) => typeof value === 'function', {
   message: 'Expected a StartServer function',

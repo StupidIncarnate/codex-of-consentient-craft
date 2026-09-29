@@ -9,11 +9,9 @@
  *
  * USAGE:
  * await draftImagesSaveBroker({ scopeKey: 'quest-a', attachments });
- * // Returns AdapterResult — IndexedDB now holds exactly these attachments under THIS scope, in
+ * // Returns nothing — IndexedDB now holds exactly these attachments under THIS scope, in
  * // this order; every other composer's records are untouched
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { openStore, replaceAll } from '#gateway/browser/indexedDB';
 
@@ -30,7 +28,7 @@ export const draftImagesSaveBroker = async ({
 }: {
   scopeKey: ComposerScopeKey;
   attachments: readonly ComposerAttachment[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   // The text draft's [Pasted Image N] placeholders are the only source of truth for ORDER, and a
   // paste can land BETWEEN two existing images — so insertion order and placeholder order diverge
   // the moment anything but a plain append happens. The caller passes attachments in composer
@@ -70,8 +68,6 @@ export const draftImagesSaveBroker = async ({
     } finally {
       db.close();
     }
-
-    return { success: true as const };
   } catch (error) {
     throw new Error(
       `draftImagesSaveBroker: failed to save draft images — ${error instanceof Error ? error.message : String(error)}`,

@@ -80,10 +80,13 @@ export const scanOnceLayerBrokerProxy = (): {
   getLastPersistedQuest: () => Quest;
   // Routes one scope on the next scan, so the step the scan hands back is the one the router's
   // mint produced rather than the advance self-heal's.
-  setupRouted: () => void;
+  setupRouted: (params: { questId: Quest['id'] }) => void;
   // The router halted the quest. The scan must stop there — nothing below it may act on a quest
   // that just blocked.
-  setupRouterBlocked: () => void;
+  setupRouterBlocked: (params: { questId: Quest['id'] }) => void;
+  // The block-on-failure broker answers `{ blocked: true }`, so a scenario that reaches the halt
+  // asserts the call it was handed rather than a real block.
+  setupBlocked: () => void;
   getBlockCalls: () => readonly unknown[];
   // The git argv actually spawned during this scan — empty when the scan never touched git.
   // Asserting the complete array proves both the checkout's exact branchName AND that nothing
@@ -135,12 +138,14 @@ export const scanOnceLayerBrokerProxy = (): {
           cwdResolveMock
             .calledWith([{ questId: quest.id }])
             .resolves(QuestCwdResolutionStub({ kind: 'repo-root', cwd: defaultRepoRoot }));
+          routeScopeProxy.setupIdle({ questId: quest.id });
         }
       }
     },
     setupNoGuilds: activeQuestsProxy.setupNoGuilds,
     setupRouted: routeScopeProxy.setupRouted,
     setupRouterBlocked: routeScopeProxy.setupRouterBlocked,
+    setupBlocked: recoverProxy.setupBlocked,
     setupModifyForQuest: recoverProxy.setupModifyForQuest,
     setupWorktreeMissing: ({
       quest,

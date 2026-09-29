@@ -6,12 +6,8 @@
  * // Mounts React app into #root DOM element
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-
 import { AppMountFlow } from '../flows/app-mount/app-mount-flow';
 
-export const StartApp = (): AdapterResult => {
+export const StartApp = (): void => {
   AppMountFlow();
-  return adapterResultContract.parse({ success: true });
 };

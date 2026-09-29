@@ -27,17 +27,14 @@
 import { userInfo } from '#gateway/node/os';
 import { readdirIfExists, realpath, rm, statIfExists } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { jestCacheStatics } from '../../../statics/jest-cache/jest-cache-statics';
 import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 
 const UID_RADIX = 36;
 
-export const jestCachePruneBroker = async (): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
-
+export const jestCachePruneBroker = async (): Promise<void> => {
   try {
     const { uid } = userInfo();
     const realTmp = await realpath(String(tmpdirFindBroker()));
@@ -47,7 +44,7 @@ export const jestCachePruneBroker = async (): Promise<AdapterResult> => {
 
     const entries = await readdirIfExists(String(cacheDir));
     if (entries === null) {
-      return result;
+      return;
     }
     const now = Date.now();
 
@@ -73,6 +70,4 @@ export const jestCachePruneBroker = async (): Promise<AdapterResult> => {
   } catch (error: unknown) {
     stderr.write(`ward: Jest cache prune skipped: ${String(error)}\n`);
   }
-
-  return result;
 };

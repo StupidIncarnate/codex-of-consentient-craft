@@ -7,7 +7,6 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
 
-import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../../quest/load/quest-load-broker.proxy';
@@ -22,7 +21,6 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const smoketestSignOutstandingUnitsBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
-  setupQuestNotFound: () => void;
   getAllPersistedContents: () => readonly unknown[];
   // The persisted bytes parsed back into quests, so a test can read the sign-offs the broker wrote
   // onto the flow graph rather than string-matching JSON.
@@ -69,10 +67,6 @@ export const smoketestSignOutstandingUnitsBrokerProxy = (): {
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       persistMock.calledWith([{ questFilePath }]).resolves({ success: true as const });
-    },
-
-    setupQuestNotFound: (): void => {
-      findQuestPathMock.calledWith([]).rejects(new QuestNotFoundError({ questId: 'unknown' }));
     },
 
     getAllPersistedContents: (): readonly unknown[] =>

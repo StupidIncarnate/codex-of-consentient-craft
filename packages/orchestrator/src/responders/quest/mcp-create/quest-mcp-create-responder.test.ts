@@ -22,7 +22,7 @@ describe('QuestMcpCreateResponder', () => {
 
     proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
     proxy.setupGuilds({ guilds: [guild] });
-    proxy.setupSuccessfulAdd({ questId });
+    proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
     const result = await proxy.callResponder({ userRequest });
 
@@ -42,7 +42,7 @@ describe('QuestMcpCreateResponder', () => {
 
     proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
     proxy.setupGuilds({ guilds: [guild] });
-    proxy.setupSuccessfulAdd({ questId });
+    proxy.setupSuccessfulAdd({ guildId: guild.id, questId });
 
     const result = await proxy.callResponder({ userRequest, questType: 'bug-hunt' });
 
@@ -65,7 +65,7 @@ describe('QuestMcpCreateResponder', () => {
     });
     proxy.setupGuilds({ guilds: [] });
     proxy.setupAutoCreatedGuild({ guild: createdGuild });
-    proxy.setupSuccessfulAdd({ questId });
+    proxy.setupSuccessfulAdd({ guildId: createdGuild.id, questId });
 
     const result = await proxy.callResponder({ userRequest });
 

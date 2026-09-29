@@ -39,9 +39,9 @@ export const questMcpCreateBrokerProxy = (): {
   setupResolveError: (params: { cwd: string; error: Error }) => void;
   setupGuilds: (params: { guilds: readonly GuildListItem[] }) => void;
   setupAutoCreatedGuild: (params: { guild: Guild }) => void;
-  setupSuccessfulAdd: (params: { questId?: QuestId }) => void;
-  setupAddSuccessWithoutQuestId: () => void;
-  setupAddFailure: (params: { error: string }) => void;
+  setupSuccessfulAdd: (params: { guildId: Guild['id']; questId?: QuestId }) => void;
+  setupAddSuccessWithoutQuestId: (params: { guildId: Guild['id'] }) => void;
+  setupAddFailure: (params: { guildId: Guild['id']; error: string }) => void;
   getGuildAddCalls: () => readonly { name: GuildName; path: GuildPath }[];
   getLastQuestAddCall: () => {
     questType: AddQuestInput['questType'];
@@ -120,8 +120,10 @@ export const questMcpCreateBrokerProxy = (): {
     },
 
     setupSuccessfulAdd: ({
+      guildId,
       questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
     }: {
+      guildId: Guild['id'];
       questId?: QuestId;
     }): void => {
       const addResult = {
@@ -131,25 +133,22 @@ export const questMcpCreateBrokerProxy = (): {
         filePath: FilePathStub({ value: '/tmp/quest.json' }),
         chaoswhispererWorkItemId: questId,
       } as unknown as AddQuestResult;
-      // questUserAddBroker fires exactly once per broker invocation, and each test stages
-      // exactly one of setupSuccessfulAdd / setupAddSuccessWithoutQuestId / setupAddFailure —
-      // there is never a second call for `[]` to collide with, so it is the honest address.
-      addQuestMock.calledWith([]).resolves(addResult);
+      addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
-    setupAddSuccessWithoutQuestId: (): void => {
+    setupAddSuccessWithoutQuestId: ({ guildId }: { guildId: Guild['id'] }): void => {
       const addResult = {
         success: true,
       } as unknown as AddQuestResult;
-      addQuestMock.calledWith([]).resolves(addResult);
+      addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
-    setupAddFailure: ({ error }: { error: string }): void => {
+    setupAddFailure: ({ guildId, error }: { guildId: Guild['id']; error: string }): void => {
       const addResult = {
         success: false,
         error,
       } as unknown as AddQuestResult;
-      addQuestMock.calledWith([]).resolves(addResult);
+      addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
     getGuildAddCalls: (): readonly { name: GuildName; path: GuildPath }[] =>

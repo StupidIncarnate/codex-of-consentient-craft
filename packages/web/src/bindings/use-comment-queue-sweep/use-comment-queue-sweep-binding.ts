@@ -10,16 +10,12 @@
 
 import { useEffect } from '#gateway/npm/react';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import { commentQueueState } from '../../state/comment-queue/comment-queue-state';
 
-export const useCommentQueueSweepBinding = (): AdapterResult => {
+export const useCommentQueueSweepBinding = (): void => {
   useEffect(() => {
     // Empty dep list: the sweep is a mount-time purge, not a per-render concern. `Date.now()` is
     // read here rather than inside the store so the store stays deterministic and testable.
     commentQueueState.sweepExpired({ nowMs: Date.now() });
   }, []);
-
-  return { success: true as const };
 };

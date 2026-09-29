@@ -12,8 +12,6 @@
  * (logged to stderr) — stdout passthrough always succeeds. Exit code 0 always.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { now } from '#gateway/node/Date';
 import { readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 
@@ -22,7 +20,7 @@ import { rateLimitsSnapshotWriteBroker } from '../../../brokers/rate-limits/snap
 import { statuslineInputContract } from '../../../contracts/statusline-input/statusline-input-contract';
 import { statuslineToSnapshotTransformer } from '../../../transformers/statusline-to-snapshot/statusline-to-snapshot-transformer';
 
-export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
+export const CliStatuslineTapResponder = async (): Promise<void> => {
   const inputData = await readStdinToEnd();
   stdout.write(inputData);
 
@@ -43,6 +41,4 @@ export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
   } catch (error: unknown) {
     stderr.write(`statusline-tap: ${error instanceof Error ? error.message : String(error)}\n`);
   }
-
-  return adapterResultContract.parse({ success: true });
 };

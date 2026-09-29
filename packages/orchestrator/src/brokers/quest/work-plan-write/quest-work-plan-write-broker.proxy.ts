@@ -7,7 +7,6 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { plannedWorkWriteBrokerProxy } from '../../planned-work/write/planned-work-write-broker.proxy';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
@@ -24,7 +23,6 @@ export const questWorkPlanWriteBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest; writesOperationItemId?: OperationItemId }) => {
     questFolderPath: AbsoluteFilePath;
   };
-  setupQuestNotFound: () => void;
   getWrittenPlan: (params: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
@@ -76,10 +74,6 @@ export const questWorkPlanWriteBrokerProxy = (): {
       }
 
       return { questFolderPath };
-    },
-
-    setupQuestNotFound: (): void => {
-      findQuestPathMock.calledWith([]).rejects(new QuestNotFoundError({ questId: 'unknown' }));
     },
 
     getWrittenPlan: ({

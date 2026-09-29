@@ -34,6 +34,7 @@ import { questCwdResolveBrokerProxy } from '../../../brokers/quest/cwd-resolve/q
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';
 import { questLoadBroker } from '../../../brokers/quest/load/quest-load-broker';
+import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
 import { questPersistBroker } from '../../../brokers/quest/persist/quest-persist-broker';
@@ -115,9 +116,9 @@ export const RecoverGuildLayerResponderProxy = (): {
   stderrProxy();
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
-  // Wired to satisfy enforce-proxy-child-creation; questModifyBroker itself still runs for
-  // real below (only its findQuestPath/load/persist dependencies are bypassed directly).
-  questModifyBrokerProxy();
+  // questModifyBroker itself still runs for real below (only its findQuestPath/load/persist
+  // dependencies are bypassed directly).
+  const modifyProxy = questModifyBrokerProxy();
   questOrchestrationLoopBrokerProxy();
   orchestrationEventsStateProxy();
   const stateProxy = orchestrationProcessesStateProxy();
@@ -136,29 +137,33 @@ export const RecoverGuildLayerResponderProxy = (): {
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
   const loadMock = registerMock({ fn: questLoadBroker });
   const persistMock = registerMock({ fn: questPersistBroker });
+  // The block path's real body re-reads the quest through questGetBroker, which answers each staged
+  // quest by running its real lookup over the find/load mocks above.
+  const getMock = registerMock({ fn: questGetBroker });
+  const realGetMod = requireActual<{ questGetBroker: typeof questGetBroker }>({
+    module: '../../../brokers/quest/get/quest-get-broker',
+  });
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const worktreeRestoreMock = registerMock({ fn: worktreeResumeRestoreBroker });
 
   registerMock({ fn: randomUUID }).calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
-  // Every quest resolves to the repo-root branch by default — the shape every quest built via
-  // QuestStub (no worktreePath) is meant to take — so the worktree gate is transparent to every
-  // test that isn't specifically about it. A test that wants a different resolution overrides
-  // via setupWorktreeMissing/setupWorktreeDrifted below, addressed by that quest's own id, which
-  // wins over this `[]` catch-all on specificity.
-  cwdResolveMock.calledWith([]).resolves(
-    QuestCwdResolutionStub({
-      kind: 'repo-root',
-      cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
-    }),
-  );
-
   const realWorktreeRestore = requireActual<{
     worktreeResumeRestoreBroker: typeof worktreeResumeRestoreBroker;
   }>({ module: '../../../brokers/worktree/resume-restore/worktree-resume-restore-broker' });
-  worktreeRestoreMock
-    .calledWith([])
-    .implement(realWorktreeRestore.worktreeResumeRestoreBroker as never);
+  // Every quest resolves to the repo-root branch by default — the shape every quest built via
+  // QuestStub (no worktreePath) is meant to take — so the worktree gate is transparent to every
+  // test that isn't specifically about it. A test that wants a different resolution overrides
+  // via setupWorktreeMissing/setupWorktreeDrifted below with a live one-shot at the same address,
+  // which wins over this sticky default whichever was staged first.
+  const stageRepoRoot = ({ quest }: { quest: Quest }): void => {
+    cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
+      QuestCwdResolutionStub({
+        kind: 'repo-root',
+        cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
+      }),
+    );
+  };
 
   const stageOrphanResetChain = ({ guildId, quest }: { guildId: GuildId; quest: Quest }): void => {
     const questPath = FilePathStub({
@@ -169,6 +174,10 @@ export const RecoverGuildLayerResponderProxy = (): {
     findQuestPathMock.calledWith([{ questId: quest.id }]).resolves({ questPath, guildId });
     loadMock.calledWith([{ questFilePath }]).resolves(quest);
     persistMock.calledWith([{ questFilePath }]).resolves({ success: true as const });
+    stageRepoRoot({ quest });
+    getMock
+      .calledWith([{ input: { questId: quest.id } }])
+      .implement(realGetMod.questGetBroker as never);
   };
 
   return {
@@ -187,6 +196,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       // questModifyBroker (orphan reset, or the missing-worktree block path's get+modify) reads
       // and writes through this same chain for every quest — staged unconditionally so either
       // path composes for real regardless of which quest a test targets.
+      modifyProxy.setupRealBroker();
       for (const quest of quests) {
         stageOrphanResetChain({ guildId, quest });
       }
@@ -200,7 +210,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       worktreePath: AbsoluteFilePath;
     }): void => {
       cwdResolveMock
-        .calledWith([{ questId: quest.id }])
+        .onceFor([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'missing-worktree', worktreePath }));
     },
 
@@ -215,12 +225,15 @@ export const RecoverGuildLayerResponderProxy = (): {
       branchName: QuestBranchName;
       currentBranchName: string;
     }): void => {
-      cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
+      cwdResolveMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
           cwd: RepoRootCwdStub({ value: worktreePath }),
         }),
       );
+      worktreeRestoreMock
+        .calledWith([{ worktreePath, branchName }])
+        .implement(realWorktreeRestore.worktreeResumeRestoreBroker as never);
       ensureQuestBranchProxy.setupDrifted({ currentBranchName });
       ensureQuestBranchProxy.setupCheckoutSucceeds({ branchName });
     },
@@ -238,12 +251,15 @@ export const RecoverGuildLayerResponderProxy = (): {
       currentBranchName: string;
       output: string;
     }): void => {
-      cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
+      cwdResolveMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
           cwd: RepoRootCwdStub({ value: worktreePath }),
         }),
       );
+      worktreeRestoreMock
+        .calledWith([{ worktreePath, branchName }])
+        .implement(realWorktreeRestore.worktreeResumeRestoreBroker as never);
       ensureQuestBranchProxy.setupDrifted({ currentBranchName });
       ensureQuestBranchProxy.setupCheckoutFails({ branchName, output });
     },

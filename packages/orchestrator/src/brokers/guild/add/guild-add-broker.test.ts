@@ -243,7 +243,8 @@ describe('guildAddBroker', () => {
     });
 
     it("INVALID: {home: 'relative/dm-home'} => throws absoluteFilePathContract's own validation error", async () => {
-      guildAddBrokerProxy();
+      const proxy = guildAddBrokerProxy();
+      proxy.setupRealBroker();
 
       await expect(
         guildAddBroker({
@@ -260,7 +261,8 @@ describe('guildAddBroker', () => {
     // prefixed and so stays acceptable, which is how a home validated as any-file-path reaches the
     // filesystem resolving against `process.cwd()` instead of throwing here.
     it("INVALID: {home: '../dm-home'} => throws rather than resolving against the process cwd", async () => {
-      guildAddBrokerProxy();
+      const proxy = guildAddBrokerProxy();
+      proxy.setupRealBroker();
 
       await expect(
         guildAddBroker({

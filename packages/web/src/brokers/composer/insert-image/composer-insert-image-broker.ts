@@ -15,8 +15,6 @@
 
 import { Node } from '#gateway/browser/Node';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
 
@@ -26,7 +24,7 @@ export const composerInsertImageBroker = ({
 }: {
   editor: HTMLElement;
   attachment: ComposerAttachment;
-}): AdapterResult => {
+}): void => {
   const { ownerDocument } = editor;
   const selection = ownerDocument.getSelection();
   const liveRange = selection !== null && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
@@ -81,6 +79,4 @@ export const composerInsertImageBroker = ({
   collapsedRange.collapse(true);
   selection?.removeAllRanges();
   selection?.addRange(collapsedRange);
-
-  return { success: true as const };
 };

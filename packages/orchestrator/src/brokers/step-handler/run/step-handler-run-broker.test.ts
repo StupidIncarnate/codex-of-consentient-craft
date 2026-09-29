@@ -11,7 +11,7 @@ describe('stepHandlerRunBroker', () => {
   describe('dispatching by handler name', () => {
     it('VALID: {handler: ward} => runs the ward handler and returns its result', async () => {
       const proxy = stepHandlerRunBrokerProxy();
-      proxy.setupWardDone();
+      proxy.setupWardDone({ questId: QUEST_ID });
 
       const result = await stepHandlerRunBroker({
         handler: 'ward',
@@ -26,7 +26,7 @@ describe('stepHandlerRunBroker', () => {
 
     it('VALID: {handler: cleanup} => runs the cleanup handler and returns its result', async () => {
       const proxy = stepHandlerRunBrokerProxy();
-      proxy.setupCleanupDone();
+      proxy.setupCleanupDone({ questId: QUEST_ID });
 
       const result = await stepHandlerRunBroker({
         handler: 'cleanup',
@@ -43,7 +43,10 @@ describe('stepHandlerRunBroker', () => {
   describe('a handler that throws — the handler boundary', () => {
     it('ERROR: {ward hits a missing-worktree resolution} => classifies wall instead of rejecting', async () => {
       const proxy = stepHandlerRunBrokerProxy();
-      proxy.setupWardMissingWorktree({ worktreePath: '/repo/worktrees/add-auth' });
+      proxy.setupWardMissingWorktree({
+        questId: QUEST_ID,
+        worktreePath: '/repo/worktrees/add-auth',
+      });
 
       const result = await stepHandlerRunBroker({
         handler: 'ward',
@@ -58,7 +61,10 @@ describe('stepHandlerRunBroker', () => {
 
     it('ERROR: {ward hits a missing-worktree resolution} => detail carries the error message', async () => {
       const proxy = stepHandlerRunBrokerProxy();
-      proxy.setupWardMissingWorktree({ worktreePath: '/repo/worktrees/add-auth' });
+      proxy.setupWardMissingWorktree({
+        questId: QUEST_ID,
+        worktreePath: '/repo/worktrees/add-auth',
+      });
 
       const result = await stepHandlerRunBroker({
         handler: 'ward',

@@ -10,6 +10,7 @@ import { blockOnMissingWorktreeLayerBrokerProxy } from './block-on-missing-workt
 describe('blockOnMissingWorktreeLayerBroker', () => {
   it('VALID: {quest with a pending work item, worktree missing} => blocks via questBlockOnFailureBroker carrying that item and the reason naming the absolute path', async () => {
     const proxy = blockOnMissingWorktreeLayerBrokerProxy();
+    proxy.setupBlocked();
     const questId = QuestIdStub({ value: 'q-missing-worktree' });
     const pendingId = QuestWorkItemIdStub({ value: 'aaa00000-1111-4222-9333-444444444444' });
     const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-1' });
@@ -35,6 +36,7 @@ describe('blockOnMissingWorktreeLayerBroker', () => {
 
   it('VALID: {quest whose work items are all terminal} => blocks via questBlockOnFailureBroker carrying the LAST work item and the reason naming the absolute path', async () => {
     const proxy = blockOnMissingWorktreeLayerBrokerProxy();
+    proxy.setupBlocked();
     const questId = QuestIdStub({ value: 'q-missing-worktree-terminal' });
     const firstId = QuestWorkItemIdStub({ value: 'bbb00000-1111-4222-9333-444444444444' });
     const lastId = QuestWorkItemIdStub({ value: 'ccc00000-1111-4222-9333-444444444444' });

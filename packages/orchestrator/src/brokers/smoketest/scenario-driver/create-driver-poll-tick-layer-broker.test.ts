@@ -83,7 +83,7 @@ describe('createDriverPollTickLayerBroker', () => {
   describe('quest-gone triggers stopNow + onQuestGone', () => {
     it('VALID: {sweep fails with "not found in any guild"} => stopNow fires and onQuestGone fires once with questId', async () => {
       const proxy = createDriverPollTickLayerBrokerProxy();
-      proxy.setupQuestNotFound();
+      proxy.setupQuestNotFound({ questId: QUEST_ID });
       const controller = new AbortController();
       let stopNowCalls = 0;
       const goneQuestIds: ReturnType<typeof QuestIdStub>[] = [];
@@ -112,7 +112,7 @@ describe('createDriverPollTickLayerBroker', () => {
   describe('quest-gone without onQuestGone callback is safe', () => {
     it('VALID: {sweep fails quest-not-found, no onQuestGone supplied} => stopNow still fires, no throw', async () => {
       const proxy = createDriverPollTickLayerBrokerProxy();
-      proxy.setupQuestNotFound();
+      proxy.setupQuestNotFound({ questId: QUEST_ID });
       const controller = new AbortController();
       let stopNowCalls = 0;
 

@@ -331,6 +331,7 @@ describe('questGetBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
 
       proxy.setupQuestFound({ quest });
+      proxy.setupRealLookup({ questId: GetQuestInputStub({ questId: 'nonexistent' }).questId });
 
       const input = GetQuestInputStub({ questId: 'nonexistent' });
       const result = await questGetBroker({ input });

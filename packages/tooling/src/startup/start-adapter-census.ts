@@ -8,11 +8,10 @@
  * // Delegates to AdapterCensusFlow with process.argv args
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { AdapterCensusFlow } from '../flows/adapter-census/adapter-census-flow';
 import { argv } from '#gateway/node/process';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
-export const StartAdapterCensus = async (): Promise<AdapterResult> =>
+export const StartAdapterCensus = async (): Promise<void> =>
   AdapterCensusFlow({ args: argv.slice(COMMAND_LINE_ARG_START_INDEX) });

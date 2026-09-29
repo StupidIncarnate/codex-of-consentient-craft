@@ -62,8 +62,9 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const IDLE = { routed: false, blocked: false };
 
 export const questRouteScopeBrokerProxy = (): {
-  setupRouted: () => void;
-  setupRouterBlocked: () => void;
+  setupIdle: (params: { questId: Quest['id'] }) => void;
+  setupRouted: (params: { questId: Quest['id'] }) => void;
+  setupRouterBlocked: (params: { questId: Quest['id'] }) => void;
   setupPassthrough: () => void;
   setupQuest: (params: { quest: QuestInput }) => void;
   setupPlan: (params: {
@@ -75,10 +76,11 @@ export const questRouteScopeBrokerProxy = (): {
   getBlockCalls: () => readonly BlockCall[];
 } => {
   const mocked = registerMock({ fn: questRouteScopeBroker });
-  mocked.calledWith([]).resolves(IDLE);
+  // Any `{ questId }` call, for the opt-in `setupPassthrough` whose caller never names the quest.
+  const isRouteCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'questId' in call;
 
   const blockProxy = questBlockOnFailureBrokerProxy();
-  blockProxy.setupBlocked();
   const blockHandle = registerMock({ fn: questBlockOnFailureBroker });
 
   const planProxy = plannedWorkReadBrokerProxy();
@@ -90,19 +92,26 @@ export const questRouteScopeBrokerProxy = (): {
   const uuidCounter = { value: 0 };
 
   return {
-    setupRouted: (): void => {
-      mocked.onceFor([]).resolves({ routed: true, blocked: false });
+    // The router found nothing to move for this quest — what a composing scan needs from it when the
+    // scenario is about something else.
+    setupIdle: ({ questId }: { questId: Quest['id'] }): void => {
+      mocked.calledWith([{ questId }]).resolves(IDLE);
     },
 
-    setupRouterBlocked: (): void => {
-      mocked.onceFor([]).resolves({ routed: false, blocked: true });
+    setupRouted: ({ questId }: { questId: Quest['id'] }): void => {
+      mocked.onceFor([{ questId }]).resolves({ routed: true, blocked: false });
+    },
+
+    setupRouterBlocked: ({ questId }: { questId: Quest['id'] }): void => {
+      mocked.onceFor([{ questId }]).resolves({ routed: false, blocked: true });
     },
 
     setupPassthrough: (): void => {
       const realMod = requireActual<{ questRouteScopeBroker: typeof questRouteScopeBroker }>({
         module: './quest-route-scope-broker',
       });
-      mocked.calledWith([]).implement(realMod.questRouteScopeBroker);
+      mocked.calledWith([isRouteCall]).implement(realMod.questRouteScopeBroker);
+      blockProxy.setupBlocked();
 
       // Sequenced ids and a pinned clock, so a minted scope or work item can be asserted whole.
       // Neither global takes an identifying argument, so `[]` is the honest address for both.

@@ -13,8 +13,8 @@
 import { configFileFindBroker } from '../../config-file/find/config-file-find-broker';
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { dirname } from '#gateway/node/path';
-import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBroker = async ({
@@ -25,13 +25,12 @@ export const findParentConfigsLayerBroker = async ({
   currentPath: FilePath;
   originalConfigPath: FilePath;
   configs: DungeonmasterConfig[];
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   try {
     const parentConfigPath = await configFileFindBroker({ startPath: currentPath });
 
     if (parentConfigPath === originalConfigPath) {
-      return result;
+      return;
     }
 
     const parentConfig = await configFileLoadBroker({
@@ -41,7 +40,7 @@ export const findParentConfigsLayerBroker = async ({
     configs.unshift(parentConfig);
 
     if (parentConfig.framework === 'monorepo') {
-      return result;
+      return;
     }
 
     const nextPath = filePathContract.parse(dirname(parentConfigPath));
@@ -49,5 +48,4 @@ export const findParentConfigsLayerBroker = async ({
   } catch {
     // No more parent configs found
   }
-  return result;
 };

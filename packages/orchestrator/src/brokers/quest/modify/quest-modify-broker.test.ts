@@ -256,6 +256,7 @@ describe('questModifyBroker', () => {
   describe('duplicate sibling ids (Tier 1, rejected before quest load)', () => {
     it('INVALID: {designDecisions: two entries sharing the same id in one payload} => rejects with the duplicate-id message; quest is never looked up', async () => {
       const proxy = questModifyBrokerProxy();
+      proxy.setupRealBroker();
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',

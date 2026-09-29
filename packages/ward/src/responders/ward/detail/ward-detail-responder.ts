@@ -7,11 +7,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import {
-  adapterResultContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import { errorEntryContract } from '../../../contracts/error-entry/error-entry-contract';
@@ -26,8 +22,7 @@ export const WardDetailResponder = async ({
 }: {
   args: readonly string[];
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const positionalArgs = args.slice(FIRST_POSITIONAL_INDEX).filter((arg) => arg !== JSON_FLAG);
   const json = args.includes(JSON_FLAG);
 
@@ -35,7 +30,7 @@ export const WardDetailResponder = async ({
 
   if (!runIdArg) {
     stderr.write('Usage: ward detail <run-id> [file-path] [--json]\n');
-    return result;
+    return;
   }
 
   const runId = runIdContract.parse(runIdArg);
@@ -43,9 +38,8 @@ export const WardDetailResponder = async ({
   if (filePathArg) {
     const filePath = errorEntryContract.shape.filePath.parse(filePathArg);
     await commandDetailBroker({ rootPath, runId, filePath, json });
-    return result;
+    return;
   }
 
   await commandDetailBroker({ rootPath, runId, json });
-  return result;
 };

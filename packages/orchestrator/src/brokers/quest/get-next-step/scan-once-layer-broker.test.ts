@@ -140,6 +140,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {orphan at the reset budget with a pending operation item behind it} => blocks and returns null WITHOUT advancing the ledger or dispatching', async () => {
     const proxy = scanOnceLayerBrokerProxy();
+    proxy.setupBlocked();
     const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-orphan-exhausted' });
@@ -269,7 +270,7 @@ describe('scanOnceLayerBroker', () => {
       guildItems: [guildItem],
       questsByGuildId: [{ guildId, quests: [quest] }],
     });
-    proxy.setupRouterBlocked();
+    proxy.setupRouterBlocked({ questId });
     const clear = jest.fn();
     const setActive = jest.fn();
     const activeQuest = ActiveQuestFacadeStub({ clear, setActive });
@@ -369,6 +370,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {quest whose recorded worktree is missing} => returns null, blocks the quest naming the path, and dispatches nothing', async () => {
     const proxy = scanOnceLayerBrokerProxy();
+    proxy.setupBlocked();
     const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-missing-worktree' });
@@ -478,6 +480,7 @@ describe('scanOnceLayerBroker', () => {
     // repo-root checkout would grade the wrong branch.
     it('VALID: {recorded worktree missing, ready ward gate step instead} => returns null and blocks the quest naming the path', async () => {
       const proxy = scanOnceLayerBrokerProxy();
+      proxy.setupBlocked();
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-ward' });
@@ -636,6 +639,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('VALID: {same missing worktree, ready codeweaver item instead} => returns null and blocks the quest naming the path', async () => {
       const proxy = scanOnceLayerBrokerProxy();
+      proxy.setupBlocked();
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-codeweaver' });

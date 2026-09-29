@@ -87,7 +87,11 @@ describe('spawnOneAgentLayerBroker', () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
       proxy.setupModifySucceeds({ times: 1 });
-      proxy.setupSpawnEmitsApiOverloadThenExits({ sessionId: SESSION_ID, exitCode: 0 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({
+        instruction,
+        sessionId: SESSION_ID,
+        exitCode: 0,
+      });
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
 
@@ -114,7 +118,11 @@ describe('spawnOneAgentLayerBroker', () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
       proxy.setupModifySucceeds({ times: 2 });
-      proxy.setupSpawnEmitsApiOverloadThenExits({ sessionId: SESSION_ID, exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({
+        instruction,
+        sessionId: SESSION_ID,
+        exitCode: 1,
+      });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
@@ -154,7 +162,7 @@ describe('spawnOneAgentLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       // Neither attempt reaches its init line, so nothing is ever captured to resume — the
       // retry has to fall back to a fresh spawn from taskPrompt.
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
@@ -191,7 +199,7 @@ describe('spawnOneAgentLayerBroker', () => {
       const resumeSessionId = SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' });
       const resumePrompt = PromptTextStub({ value: 'Finish and signal back.' });
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
@@ -230,7 +238,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {overload on retry 10 then again} => crosses into the slow tier on retry 11', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
 
       await spawnOneAgentLayerBroker({
@@ -245,7 +253,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {overload with the schedule already spent} => no respawn, hands off to orphan recovery', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       const spentAttempts =
         apiOverloadRetryStatics.fastAttempts + apiOverloadRetryStatics.slowAttempts;
 
@@ -267,7 +275,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {dispatch already paused when the overload lands} => no backoff, no respawn', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       const isPlaying = jest.fn().mockReturnValue(false);
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying });
@@ -282,7 +290,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {dispatch paused DURING the backoff} => waits, then abandons without respawning', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       const isPlaying = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD, isPlaying });
@@ -298,8 +306,9 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {work item went terminal during the backoff} => no respawn (it signalled back before dying)', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupWorkItemStatusOnReread({
+        questId: instruction.questId,
         workItemId: instruction.workItemId,
         status: 'complete',
       });
@@ -316,9 +325,10 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {work item still in_progress during the backoff} => respawns', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
       proxy.setupWorkItemStatusOnReread({
+        questId: instruction.questId,
         workItemId: instruction.workItemId,
         status: 'in_progress',
       });
@@ -391,7 +401,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {overload retry with unregisterProcess} => each dead attempt is unregistered, so the watchdog never sees a pile', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
       const unregisterProcess = jest.fn();
 
@@ -406,7 +416,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {overload retry with registerProcess} => registers each attempt separately', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const instruction = SpawnInstructionStub();
-      proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
+      proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
       const registerProcess = jest.fn();
 

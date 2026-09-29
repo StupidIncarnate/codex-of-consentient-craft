@@ -7,8 +7,8 @@
  *
  * USAGE:
  * const proxy = stepHandlerCommitBrokerProxy();
- * proxy.setupWorktree({ worktreePath: '/repo/worktrees/add-auth' });
  * proxy.setupQuest({ quest });
+ * proxy.setupWorktree({ questId: quest.id, worktreePath: '/repo/worktrees/add-auth' });
  * proxy.setupWorkingTreeFiles({ files: ['packages/auth/src/x.ts'] });
  * const result = await stepHandlerCommitBroker({ args: [], questId, workItemId, onLine: () => undefined });
  */
@@ -38,9 +38,11 @@ registerModuleMock({ module: '../../quest/get/quest-get-broker' });
 type QuestResult = ReturnType<typeof GetQuestResultStub>;
 type Quest = NonNullable<QuestResult['quest']>;
 
+const DEFAULT_WORKTREE_PATH = '/repo/worktrees/add-auth';
+
 export const stepHandlerCommitBrokerProxy = (): {
-  setupWorktree: (params: { worktreePath: string }) => void;
-  setupWorktreeMissing: (params: { worktreePath: string }) => void;
+  setupWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
+  setupWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setupQuest: (params: { quest: Quest }) => void;
   setupWorkingTreeFiles: (params: { files: readonly string[] }) => void;
   setupPushFails: (params: { output: string }) => void;
@@ -68,21 +70,18 @@ export const stepHandlerCommitBrokerProxy = (): {
   lockProxy.setupEmpty();
 
   const workingTreeMock = registerMock({ fn: gitWorkingTreeFilesBroker });
-  workingTreeMock.calledWith([]).resolves([]);
-
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
-  cwdMock.calledWith([]).resolves(
-    QuestCwdResolutionStub({
-      kind: 'worktree',
-      cwd: RepoRootCwdStub({ value: '/repo/worktrees/add-auth' }),
-    }),
-  );
-
   const getMock = registerMock({ fn: questGetBroker });
 
   return {
-    setupWorktree: ({ worktreePath }: { worktreePath: string }): void => {
-      cwdMock.calledWith([]).resolves(
+    setupWorktree: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: Quest['id'];
+      worktreePath: string;
+    }): void => {
+      cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
           cwd: RepoRootCwdStub({ value: worktreePath }),
@@ -90,8 +89,14 @@ export const stepHandlerCommitBrokerProxy = (): {
       );
     },
 
-    setupWorktreeMissing: ({ worktreePath }: { worktreePath: string }): void => {
-      cwdMock.calledWith([]).resolves(
+    setupWorktreeMissing: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: Quest['id'];
+      worktreePath: string;
+    }): void => {
+      cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
           worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
@@ -99,13 +104,25 @@ export const stepHandlerCommitBrokerProxy = (): {
       );
     },
 
+    // Stages the quest read, the default worktree the quest resolves to, and a clean tree in it —
+    // each addressed by the exact argument the broker passes. `setupWorktree`,
+    // `setupWorktreeMissing` and `setupWorkingTreeFiles` restage the same addresses afterwards.
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      getMock.calledWith([]).resolves(GetQuestResultStub({ success: true, quest }));
+      getMock
+        .calledWith([{ input: { questId: quest.id } }])
+        .resolves(GetQuestResultStub({ success: true, quest }));
+      cwdMock.calledWith([{ questId: quest.id }]).resolves(
+        QuestCwdResolutionStub({
+          kind: 'worktree',
+          cwd: RepoRootCwdStub({ value: DEFAULT_WORKTREE_PATH }),
+        }),
+      );
+      workingTreeMock.calledWith([{ cwd: DEFAULT_WORKTREE_PATH }]).resolves([]);
     },
 
     setupWorkingTreeFiles: ({ files }: { files: readonly string[] }): void => {
       workingTreeMock
-        .calledWith([])
+        .calledWith([{ cwd: DEFAULT_WORKTREE_PATH }])
         .resolves(files.map((file) => RepoRelativePathStub({ value: file })));
     },
 

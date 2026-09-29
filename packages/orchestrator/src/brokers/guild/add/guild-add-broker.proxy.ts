@@ -37,6 +37,9 @@ export const guildAddBrokerProxy = (): {
   }) => void;
   setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
   stageGeneratedId: (params: { id: string }) => void;
+  // Runs the real broker for any object input with nothing else staged — a call that must fail on
+  // its own input validation before it touches any I/O.
+  setupRealBroker: () => void;
   // Answers one exact input with a caller-chosen guild, without running the real broker — which
   // mints its own id and createdAt. Any other input runs the real broker.
   setupResolves: (params: { input: AddInput; guild: Guild }) => void;
@@ -60,7 +63,12 @@ export const guildAddBrokerProxy = (): {
     module: './guild-add-broker',
   });
   const addMock = registerMock({ fn: guildAddBroker });
-  addMock.calledWith([]).implement(realMod.guildAddBroker as never);
+  // The scenario setups below run the real broker for any object input; an exact `setupResolves`
+  // address outranks it.
+  const isAddInput = (input: unknown): boolean => typeof input === 'object' && input !== null;
+  const runRealBroker = (): void => {
+    addMock.calledWith([isAddInput]).implement(realMod.guildAddBroker as never);
+  };
 
   // randomUUID and Date.prototype.toISOString take no identifying argument — [] is
   // the honest address for both.
@@ -71,6 +79,9 @@ export const guildAddBrokerProxy = (): {
     .returns('2024-01-15T10:00:00.000Z');
 
   return {
+    setupRealBroker: (): void => {
+      runRealBroker();
+    },
     setupResolves: ({ input, guild }: { input: AddInput; guild: Guild }): void => {
       addMock.calledWith([input]).resolves(guild);
     },
@@ -91,6 +102,7 @@ export const guildAddBrokerProxy = (): {
       guildDirPath: FilePath;
       questsDirPath: FilePath;
     }): void => {
+      runRealBroker();
       configReadProxy.setupConfig({ config: existingConfig });
       homeEnsureProxy.setupEnsureSuccess({ homeDir, homePath, guildsPath });
 
@@ -121,6 +133,7 @@ export const guildAddBrokerProxy = (): {
       existingConfig: GuildConfig;
       configFilePath: FilePath;
     }): void => {
+      runRealBroker();
       configReadProxy.setupConfigAt({ configFilePath, config: existingConfig });
       configWriteProxy.setupSuccessAt({ configFilePath });
 
@@ -138,6 +151,7 @@ export const guildAddBrokerProxy = (): {
     },
 
     setupDuplicatePath: ({ existingConfig }: { existingConfig: GuildConfig }): void => {
+      runRealBroker();
       configReadProxy.setupConfig({ config: existingConfig });
     },
 

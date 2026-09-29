@@ -10,12 +10,14 @@ describe('startServerModuleContract', () => {
     expect(parsed.StartServer).toBe(startServer);
   });
 
-  it('VALID: {default stub} => parses with StartServer returning a success result', () => {
+  it('VALID: {default stub} => parses with StartServer returning undefined', async () => {
     const startServerModule = StartServerModuleStub();
 
-    const result = startServerModule.StartServer();
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(
+      Promise.resolve().then(() => {
+        startServerModule.StartServer();
+      }),
+    ).resolves.toBe(undefined);
   });
 
   it('INVALID: {missing StartServer} => throws', () => {

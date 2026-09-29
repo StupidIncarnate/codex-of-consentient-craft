@@ -7,6 +7,7 @@ import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-nam
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const resolvePackageEntryFactsLayerBrokerProxy = (): {
   setupLocationExists: (params: { packageRoot: string }) => void;
@@ -114,7 +115,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
     setupUnreadableRoot: ({ root }: { root: string }): void => {
       readdirProxy.throws({
         path: root,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+        error: FileMissingErrorStub({ path: root }),
       });
     },
   };

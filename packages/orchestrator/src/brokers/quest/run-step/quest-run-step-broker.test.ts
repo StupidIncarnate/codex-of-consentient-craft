@@ -53,6 +53,7 @@ describe('questRunStepBroker', () => {
       const proxy = questRunStepBrokerProxy();
       proxy.setupQuest({ quest: COMMIT_QUEST });
       proxy.handlerReturns({
+        step: COMMIT_STEP,
         result: StepHandlerResultStub({ outcome: 'done', detail: 'codeweaver/commit: web slice' }),
       });
 
@@ -78,7 +79,10 @@ describe('questRunStepBroker', () => {
     it('VALID: {the same run} => the item is stamped in_progress BEFORE the handler and terminal after it', async () => {
       const proxy = questRunStepBrokerProxy();
       proxy.setupQuest({ quest: COMMIT_QUEST });
-      proxy.handlerReturns({ result: StepHandlerResultStub({ outcome: 'empty' }) });
+      proxy.handlerReturns({
+        step: COMMIT_STEP,
+        result: StepHandlerResultStub({ outcome: 'empty' }),
+      });
 
       await questRunStepBroker({ step: COMMIT_STEP, onLine: () => undefined });
 
@@ -95,6 +99,7 @@ describe('questRunStepBroker', () => {
       const proxy = questRunStepBrokerProxy();
       proxy.setupQuest({ quest: COMMIT_QUEST });
       proxy.handlerReturns({
+        step: COMMIT_STEP,
         result: StepHandlerResultStub({ outcome: 'wall', detail: 'worktree not found: /gone' }),
       });
 
@@ -118,7 +123,10 @@ describe('questRunStepBroker', () => {
     it('VALID: {a ward step declaring two args} => they reach the handler verbatim, with the handler name', async () => {
       const proxy = questRunStepBrokerProxy();
       proxy.setupQuest({ quest: COMMIT_QUEST });
-      proxy.handlerReturns({ result: StepHandlerResultStub({ outcome: 'done' }) });
+      proxy.handlerReturns({
+        step: WARD_STEP,
+        result: StepHandlerResultStub({ outcome: 'done' }),
+      });
 
       await questRunStepBroker({ step: WARD_STEP, onLine: () => undefined });
 

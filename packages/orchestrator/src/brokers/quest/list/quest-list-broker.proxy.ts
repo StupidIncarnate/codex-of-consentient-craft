@@ -44,13 +44,13 @@ export const questListBrokerProxy = (): {
   const stderrChild = stderrProxy();
 
   const mocked = registerMock({ fn: questListBroker });
-  // Default: passthrough so existing consumers driving the fs chain keep working. `guildId`
-  // varies per call and the real implementation handles any guildId correctly using the args
-  // it actually receives, so `[]` is the honest address for this generic fallback.
   const realMod = requireActual<{ questListBroker: typeof questListBroker }>({
     module: './quest-list-broker',
   });
-  mocked.calledWith([]).implement(realMod.questListBroker as never);
+  // Any `{ guildId }` call, for the fs-chain scenarios (`setupQuestsPath`) whose guild id the test
+  // never names; an exact `setupDirectList` address outranks it.
+  const isListCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'guildId' in call;
 
   // setupQuestsPath is always called immediately before setupQuestDirectories* in every caller —
   // captured here so the readdir mock can be addressed by the SAME questsPath the broker will
@@ -68,6 +68,7 @@ export const questListBrokerProxy = (): {
       questsPath: FilePath;
     }): void => {
       questsPathRef.value = questsPath;
+      mocked.calledWith([isListCall]).implement(realMod.questListBroker as never);
       resolveQuestsPathProxy.setupQuestsPath({
         homeDir,
         homePath,

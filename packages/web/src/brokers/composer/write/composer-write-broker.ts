@@ -12,8 +12,6 @@
 
 import { Text } from '#gateway/browser/Text';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerSegment } from '../../../contracts/composer-segment/composer-segment-contract';
@@ -28,7 +26,7 @@ export const composerWriteBroker = ({
   editor: HTMLElement;
   segments: readonly ComposerSegment[];
   attachments: ReadonlyMap<AttachmentId, ComposerAttachment>;
-}): AdapterResult => {
+}): void => {
   const nodes: Node[] = [];
 
   segments.forEach((segment) => {
@@ -74,6 +72,4 @@ export const composerWriteBroker = ({
   }
 
   editor.replaceChildren(...nodes);
-
-  return { success: true as const };
 };

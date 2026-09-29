@@ -94,6 +94,7 @@ describe('invalidationApplyLayerBroker', () => {
   describe('successful invalidation', () => {
     it('VALID: {a siege fixer mid-family, step: fixHappy} => touches no field on the flow and appends a walk-reset note', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const quest = QuestStub({
         id: QUEST_ID,
         operations: [SIEGE_OPERATION],
@@ -140,6 +141,7 @@ describe('invalidationApplyLayerBroker', () => {
   describe('ownership', () => {
     it('INVALID: {flowId outside the operation item scope} => rejects naming the flow and the work item, persisting nothing', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const quest = QuestStub({
         id: QUEST_ID,
         operations: [SIEGE_OPERATION],
@@ -167,6 +169,7 @@ describe('invalidationApplyLayerBroker', () => {
 
     it('INVALID: {a flowrider work item asks for a reset} => rejects, family resolves to flowrider not siegemaster', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const quest = QuestStub({
         id: QUEST_ID,
         operations: [FLOWRIDER_OPERATION],
@@ -194,6 +197,7 @@ describe('invalidationApplyLayerBroker', () => {
 
     it('INVALID: {work item with no operations/ ref} => rejects, it declares no flow scope to check against', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const quest = QuestStub({
         id: QUEST_ID,
         operations: [SIEGE_OPERATION],
@@ -223,6 +227,7 @@ describe('invalidationApplyLayerBroker', () => {
   describe('the no-flows-at-all branch', () => {
     it("INVALID: {operation item declares zero flowIds} => the scope reads 'no flows at all', not empty", async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const emptyScopeOperation = OperationItemStub({
         id: SIEGE_OP_ID,
         role: 'siegemaster',
@@ -259,6 +264,7 @@ describe('invalidationApplyLayerBroker', () => {
   describe('error cases', () => {
     it('ERROR: {flowId in scope but absent from the quest} => throws naming the missing flow', async () => {
       const proxy = invalidationApplyLayerBrokerProxy();
+      proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
       const quest = QuestStub({
         id: QUEST_ID,
         operations: [SIEGE_OPERATION],

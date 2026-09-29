@@ -23,9 +23,7 @@ describe('composerInsertImageBroker', () => {
     selection?.addRange(range);
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -54,9 +52,7 @@ describe('composerInsertImageBroker', () => {
     selection?.addRange(range);
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -92,9 +88,7 @@ describe('composerInsertImageBroker', () => {
     });
 
     composerInsertImageBroker({ editor, attachment: attachmentOne });
-    const result = composerInsertImageBroker({ editor, attachment: attachmentTwo });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment: attachmentTwo });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -128,9 +122,7 @@ describe('composerInsertImageBroker', () => {
     selection?.addRange(range);
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -221,13 +213,11 @@ describe('composerInsertImageBroker', () => {
     selection?.addRange(range);
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
+    composerInsertImageBroker({ editor, attachment });
 
     const liveRange = selection?.getRangeAt(0);
     const textNode = document.createTextNode('next');
     liveRange?.insertNode(textNode);
-
-    expect(result).toStrictEqual({ success: true });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -251,9 +241,7 @@ describe('composerInsertImageBroker', () => {
     selection?.removeAllRanges();
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,
@@ -287,9 +275,7 @@ describe('composerInsertImageBroker', () => {
     selection?.addRange(range);
 
     const attachment = ComposerAttachmentStub();
-    const result = composerInsertImageBroker({ editor, attachment });
-
-    expect(result).toStrictEqual({ success: true });
+    composerInsertImageBroker({ editor, attachment });
 
     const snapshot = Array.from(editor.childNodes).map((node) => ({
       nodeName: node.nodeName,

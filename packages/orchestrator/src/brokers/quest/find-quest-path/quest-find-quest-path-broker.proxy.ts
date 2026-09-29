@@ -23,6 +23,7 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { matchCandidatesLayerBrokerProxy } from './match-candidates-layer-broker.proxy';
 import { questFindQuestPathBroker } from './quest-find-quest-path-broker';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 registerModuleMock({ module: './quest-find-quest-path-broker' });
 
@@ -262,10 +263,15 @@ export const questFindQuestPathBrokerProxy = (): {
   const realMod = requireActual<{ questFindQuestPathBroker: typeof questFindQuestPathBroker }>({
     module: './quest-find-quest-path-broker',
   });
-  // Real-broker default at `[]`. A proxy that stages its own `[]` answer for this function must
-  // compose this one BEFORE staging: the later `[]` registration at the same address wins.
   const findMock = registerMock({ fn: questFindQuestPathBroker });
-  findMock.calledWith([]).implement(realMod.questFindQuestPathBroker as never);
+  // Any `{ questId }` call: the scenarios below stage the fs the real lookup walks, and the id it
+  // is asked for is the address a scenario that stages a whole home never names. An exact
+  // `setupResolves` address outranks it.
+  const isFindCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'questId' in call;
+  const runRealBroker = (): void => {
+    findMock.calledWith([isFindCall]).implement(realMod.questFindQuestPathBroker as never);
+  };
 
   const stageGuildsDir = ({
     homePath,
@@ -331,6 +337,7 @@ export const questFindQuestPathBrokerProxy = (): {
         }[];
       }[];
     }): void => {
+      runRealBroker();
       homeFindProxy.setupHomePath({ homeDir, homePath });
       stageGuildsDir({ homePath, guildsDir });
       stageGuildsList({ guildsDir, guilds });
@@ -349,6 +356,7 @@ export const questFindQuestPathBrokerProxy = (): {
       homePath: FilePath;
       guildsDir: FilePath;
     }): void => {
+      runRealBroker();
       homeFindProxy.setupHomePath({ homeDir, homePath });
       stageGuildsDir({ homePath, guildsDir });
       readdirProxy.returns({ path: guildsDir, entries: [] });
@@ -363,11 +371,12 @@ export const questFindQuestPathBrokerProxy = (): {
       homePath: FilePath;
       guildsDir: FilePath;
     }): void => {
+      runRealBroker();
       homeFindProxy.setupHomePath({ homeDir, homePath });
       stageGuildsDir({ homePath, guildsDir });
       readdirProxy.throws({
         path: guildsDir,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+        error: FileMissingErrorStub({ path: guildsDir }),
       });
     },
 
@@ -399,6 +408,7 @@ export const questFindQuestPathBrokerProxy = (): {
         }[];
       }[];
     }): void => {
+      runRealBroker();
       homeFindProxy.setupHomePath({ homeDir, homePath });
       stageGuildsDir({ homePath, guildsDir });
       stageGuildsList({ guildsDir, guilds });
@@ -421,6 +431,7 @@ export const questFindQuestPathBrokerProxy = (): {
       guildDirName: FileName;
       questsDirPath: FilePath;
     }): void => {
+      runRealBroker();
       homeFindProxy.setupHomePath({ homeDir, homePath });
       stageGuildsDir({ homePath, guildsDir });
       stageGuildsList({ guildsDir, guilds: [{ dirName: guildDirName }] });
@@ -438,7 +449,7 @@ export const questFindQuestPathBrokerProxy = (): {
         .returns(questsDirPath);
       readdirProxy.throws({
         path: questsDirPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+        error: FileMissingErrorStub({ path: questsDirPath }),
       });
     },
 
@@ -459,6 +470,7 @@ export const questFindQuestPathBrokerProxy = (): {
       questPath: AbsoluteFilePath;
       homeDir?: string;
     }): void => {
+      findMock.calledWith([{ questId }]).implement(realMod.questFindQuestPathBroker as never);
       const homeDir = givenHomeDir ?? `/quest-find-quest-path-broker-proxy/${String(questId)}`;
       const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
       const guildsDir = filePathContract.parse(`${homePath}/guilds`);
@@ -499,6 +511,7 @@ export const questFindQuestPathBrokerProxy = (): {
       questId: QuestId;
       homeDir?: string;
     }): void => {
+      findMock.calledWith([{ questId }]).implement(realMod.questFindQuestPathBroker as never);
       const homeDir = givenHomeDir ?? `/quest-find-quest-path-broker-proxy/${String(questId)}`;
       const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
       const guildsDir = filePathContract.parse(`${homePath}/guilds`);

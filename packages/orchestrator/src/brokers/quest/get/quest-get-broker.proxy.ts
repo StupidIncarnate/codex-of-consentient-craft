@@ -33,6 +33,9 @@ registerModuleMock({ module: './quest-get-broker' });
 export const questGetBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  // Runs the real lookup for one quest id whose own fs staging a composing proxy (or a lookup for
+  // an id the staged quest does not hold) already made.
+  setupRealLookup: (params: { questId: Quest['id'] }) => void;
   // Answers one exact `input` with a caller-chosen result, without running the lookup — for a
   // caller asserting on the `error` text of a `{ success: false, error }`. Any other input runs the
   // real broker.
@@ -45,11 +48,17 @@ export const questGetBrokerProxy = (): {
     module: './quest-get-broker',
   });
   const getMock = registerMock({ fn: questGetBroker });
-  getMock.calledWith([]).implement(realMod.questGetBroker as never);
+  // Any `{ input }` call, for the opt-in `setupEmptyFolder` whose lookup id the test never names.
+  const isGetCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'input' in call;
 
   return {
     setupResolves: ({ input, result }: { input: GetInput; result: GetResult }): void => {
       getMock.calledWith([{ input }]).resolves(result);
+    },
+
+    setupRealLookup: ({ questId }: { questId: Quest['id'] }): void => {
+      getMock.calledWith([{ input: { questId } }]).implement(realMod.questGetBroker as never);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -97,9 +106,14 @@ export const questGetBrokerProxy = (): {
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+      getMock
+        .calledWith([{ input: { questId: quest.id } }])
+        .implement(realMod.questGetBroker as never);
     },
 
     setupEmptyFolder: (): void => {
+      getMock.calledWith([isGetCall]).implement(realMod.questGetBroker as never);
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({
         value: '/home/testuser/.dungeonmaster/guilds',

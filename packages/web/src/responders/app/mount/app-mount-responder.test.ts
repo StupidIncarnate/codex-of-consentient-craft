@@ -4,17 +4,17 @@ import { AppMountResponderProxy } from './app-mount-responder.proxy';
 
 describe('AppMountResponder', () => {
   describe('mounting', () => {
-    it('VALID: {content} => renders content inside AppRootWidget in #root and returns success', async () => {
+    it('VALID: {content} => renders content inside AppRootWidget in #root', async () => {
       const proxy = AppMountResponderProxy();
       proxy.setupRootElement();
 
-      const result = proxy.callResponder({ content: 'test-content' });
+      proxy.callResponder({ content: 'test-content' });
 
       await waitFor(() => {
         expect(proxy.isMountedInsideAppRoot()).toBe(true);
       });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(proxy.isMountedInsideAppRoot()).toBe(true);
     });
   });
 });

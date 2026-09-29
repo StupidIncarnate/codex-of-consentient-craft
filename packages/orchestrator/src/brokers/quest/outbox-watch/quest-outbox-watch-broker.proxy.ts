@@ -56,6 +56,41 @@ export const questOutboxWatchBrokerProxy = (): {
   };
   const watchTailProxy = tailFileProxy();
 
+  const captured: {
+    resetOnStart: boolean | undefined;
+    onQuestChanged: OnQuestChanged | undefined;
+    onError: OnError | undefined;
+  } = { resetOnStart: undefined, onQuestChanged: undefined, onError: undefined };
+
+  // The broker itself is mocked (registerModuleMock above) purely to intercept and capture what a
+  // caller passed in — every real fs-level behavior still runs through the REAL broker via
+  // requireActual, driven by the same staged homeEnsureProxy/joinHandle/watchTailProxy this file
+  // wires above.
+  const mocked = registerMock({ fn: questOutboxWatchBroker });
+  const realMod = requireActual<{ questOutboxWatchBroker: typeof questOutboxWatchBroker }>({
+    module: './quest-outbox-watch-broker',
+  });
+  // Any `{ onQuestChanged, onError }` call: the watch scenarios below stage the outbox the real
+  // broker tails, and the caller's own callbacks are the address it can never name in advance.
+  const isWatchCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'onQuestChanged' in call;
+  const runRealWatch = (): void => {
+    mocked
+      .calledWith([isWatchCall])
+      .implement(
+        async (params: {
+          onQuestChanged: OnQuestChanged;
+          onError: OnError;
+          resetOnStart?: boolean;
+        }): Promise<{ stop: () => void }> => {
+          captured.resetOnStart = params.resetOnStart;
+          captured.onQuestChanged = params.onQuestChanged;
+          captured.onError = params.onError;
+          return realMod.questOutboxWatchBroker(params);
+        },
+      );
+  };
+
   const stageOutboxPath = ({
     homeDir,
     homePath,
@@ -65,6 +100,7 @@ export const questOutboxWatchBrokerProxy = (): {
     homePath: FilePath;
     outboxPath: FilePath;
   }): void => {
+    runRealWatch();
     homeEnsureProxy.setupEnsureSuccess({
       homeDir,
       homePath,
@@ -82,35 +118,6 @@ export const questOutboxWatchBrokerProxy = (): {
     stageStagedOutboxPaths(outboxPath);
     writeHandle.succeeds({ path: outboxPath });
   };
-
-  const captured: {
-    resetOnStart: boolean | undefined;
-    onQuestChanged: OnQuestChanged | undefined;
-    onError: OnError | undefined;
-  } = { resetOnStart: undefined, onQuestChanged: undefined, onError: undefined };
-
-  // The broker itself is mocked (registerModuleMock above) purely to intercept and capture what a
-  // caller passed in — every real fs-level behavior still runs through the REAL broker via
-  // requireActual, driven by the same staged homeEnsureProxy/joinHandle/watchTailProxy this file
-  // wires above.
-  const mocked = registerMock({ fn: questOutboxWatchBroker });
-  const realMod = requireActual<{ questOutboxWatchBroker: typeof questOutboxWatchBroker }>({
-    module: './quest-outbox-watch-broker',
-  });
-  mocked
-    .calledWith([])
-    .implement(
-      async (params: {
-        onQuestChanged: OnQuestChanged;
-        onError: OnError;
-        resetOnStart?: boolean;
-      }): Promise<{ stop: () => void }> => {
-        captured.resetOnStart = params.resetOnStart;
-        captured.onQuestChanged = params.onQuestChanged;
-        captured.onError = params.onError;
-        return realMod.questOutboxWatchBroker(params);
-      },
-    );
 
   return {
     setupOutboxPath: stageOutboxPath,
@@ -146,7 +153,7 @@ export const questOutboxWatchBrokerProxy = (): {
     },
     setupWatchCaptureOnly: (): void => {
       mocked
-        .calledWith([])
+        .calledWith([isWatchCall])
         .implement(
           async (params: {
             onQuestChanged: OnQuestChanged;

@@ -16,6 +16,8 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 
 import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
 import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('RecoverGuildLayerResponder', () => {
   describe('invalid guild', () => {
@@ -305,9 +307,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 
       const proxy = RecoverGuildLayerResponderProxy();
-      const enoentError = Object.assign(new Error('ENOENT: no such file or directory'), {
-        code: 'ENOENT',
-      });
+      const enoentError = FileMissingErrorStub();
       proxy.setupGuildDirectoryReadFailure({ error: enoentError });
 
       const result = await RecoverGuildLayerResponder({ guildItem });
@@ -321,13 +321,15 @@ describe('RecoverGuildLayerResponder', () => {
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 
       const proxy = RecoverGuildLayerResponderProxy();
-      const permissionError = Object.assign(new Error('EACCES: permission denied'), {
+      const permissionError = FsErrorStub({
         code: 'EACCES',
+        syscall: 'scandir',
+        path: '/home/user/test-guild',
       });
       proxy.setupGuildDirectoryReadFailure({ error: permissionError });
 
       await expect(RecoverGuildLayerResponder({ guildItem })).rejects.toThrow(
-        'EACCES: permission denied',
+        "EACCES: scandir '/home/user/test-guild'",
       );
     });
   });

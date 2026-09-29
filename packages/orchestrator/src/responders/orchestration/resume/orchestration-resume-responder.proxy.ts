@@ -91,7 +91,7 @@ export const OrchestrationResumeResponderProxy = (): {
   // internals — those are covered by its own test suite. Reach around its semantic surface (it
   // exposes no call-inspection method of its own) the same way blockOnMissingWorktreeLayerBroker's
   // proxy does, for the sibling halt route this one mirrors.
-  questBlockOnFailureBrokerProxy();
+  const blockProxy = questBlockOnFailureBrokerProxy();
   const blockOnFailureMock = questBlockOnFailureBroker as jest.MockedFunction<
     typeof questBlockOnFailureBroker
   >;
@@ -233,6 +233,7 @@ export const OrchestrationResumeResponderProxy = (): {
     }): void => {
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
+      blockProxy.setupBlocked();
       cwdResolveMock
         .calledWith([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'missing-worktree', worktreePath }));

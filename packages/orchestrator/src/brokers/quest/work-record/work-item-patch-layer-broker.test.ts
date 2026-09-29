@@ -16,6 +16,7 @@ const NOW_AT = '2026-01-15T10:00:00.000Z';
 describe('workItemPatchLayerBroker', () => {
   it('VALID: {patch: {declaredWord, declaredReason}} => persists the quest with only the addressed work item changed, updatedAt bumped', async () => {
     const proxy = workItemPatchLayerBrokerProxy();
+    proxy.setupPersistSucceeds({ questFilePath: QUEST_FILE_PATH });
     const targetWorkItem = WorkItemStub({ id: WORK_ITEM_ID, role: 'codeweaver' });
     const otherWorkItem = WorkItemStub({ id: OTHER_WORK_ITEM_ID, role: 'flowrider' });
     const quest = QuestStub({

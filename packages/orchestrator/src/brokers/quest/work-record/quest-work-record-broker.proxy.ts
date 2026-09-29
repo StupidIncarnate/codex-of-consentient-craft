@@ -6,7 +6,6 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
 
-import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { laneKillBrokerProxy } from '../../lane/kill/lane-kill-broker.proxy';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
@@ -26,7 +25,6 @@ export const questWorkRecordBrokerProxy = (): {
   // give a second, later `questWorkRecordBroker` call a DIFFERENT starting snapshot than the
   // first — the shape a lock-serialized second read of a just-written file actually has.
   queueNextQuestRead: (params: { quest: Quest }) => void;
-  setupQuestNotFound: () => void;
   getPersistedQuests: () => readonly unknown[];
   // Stages the lane's `kill` call for an `outcome` record on a `needsLane` item. Not called by a
   // test whose work item is not `needsLane` — the broker never reaches the dynamic import at all
@@ -46,7 +44,7 @@ export const questWorkRecordBrokerProxy = (): {
   // Constructing both keeps `enforce-proxy-child-creation` satisfied for each layer this parent
   // can dispatch to; only the first's accessor is read from below.
   const patchProxy = workItemPatchLayerBrokerProxy();
-  invalidationApplyLayerBrokerProxy();
+  const invalidationProxy = invalidationApplyLayerBrokerProxy();
   const killProxy = laneKillBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
@@ -75,14 +73,13 @@ export const questWorkRecordBrokerProxy = (): {
         .returns(questFilePath);
 
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+      patchProxy.setupPersistSucceeds({ questFilePath });
+      invalidationProxy.setupPersistSucceeds({ questFilePath });
     },
 
     queueNextQuestRead: ({ quest }: { quest: Quest }): void => {
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
-    },
-
-    setupQuestNotFound: (): void => {
-      findQuestPathMock.calledWith([]).rejects(new QuestNotFoundError({ questId: 'unknown' }));
     },
 
     getPersistedQuests: (): readonly unknown[] => patchProxy.getPersistedQuests(),

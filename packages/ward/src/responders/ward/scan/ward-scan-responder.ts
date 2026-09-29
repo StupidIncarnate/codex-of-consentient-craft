@@ -9,8 +9,7 @@
  */
 
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
@@ -26,9 +25,7 @@ export const WardScanResponder = async ({
 }: {
   args: readonly string[];
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
-
+}): Promise<void> => {
   try {
     const config = scanArgsParseTransformer({
       args: args.slice(FIRST_POSITIONAL_INDEX).map((arg) => cliArgContract.parse(arg)),
@@ -39,6 +36,4 @@ export const WardScanResponder = async ({
     stderr.write(`Scan failed: ${error instanceof Error ? error.message : String(error)}\n`);
     setExitCode(wardExitCodeStatics.exitCodes.failing);
   }
-
-  return result;
 };

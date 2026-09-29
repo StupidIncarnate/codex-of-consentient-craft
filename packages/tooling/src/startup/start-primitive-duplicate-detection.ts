@@ -6,11 +6,10 @@
  * // Delegates to PrimitiveDuplicateDetectionFlow with process.argv args
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { PrimitiveDuplicateDetectionFlow } from '../flows/primitive-duplicate-detection/primitive-duplicate-detection-flow';
 import { argv } from '#gateway/node/process';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
-export const StartPrimitiveDuplicateDetection = async (): Promise<AdapterResult> =>
+export const StartPrimitiveDuplicateDetection = async (): Promise<void> =>
   PrimitiveDuplicateDetectionFlow({ args: argv.slice(COMMAND_LINE_ARG_START_INDEX) });

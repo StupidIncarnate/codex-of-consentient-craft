@@ -14,8 +14,6 @@
 
 import { Node } from '#gateway/browser/Node';
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-
 import { composerCaretFillerElementTransformer } from '../../../transformers/composer-caret-filler-element/composer-caret-filler-element-transformer';
 
 export const composerInsertTextBroker = ({
@@ -24,7 +22,7 @@ export const composerInsertTextBroker = ({
 }: {
   editor: HTMLElement;
   text: string;
-}): AdapterResult => {
+}): void => {
   const { ownerDocument } = editor;
   const selection = ownerDocument.getSelection();
   const liveRange = selection !== null && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
@@ -76,6 +74,4 @@ export const composerInsertTextBroker = ({
   collapsedRange.collapse(true);
   selection?.removeAllRanges();
   selection?.addRange(collapsedRange);
-
-  return { success: true as const };
 };

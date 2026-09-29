@@ -22,8 +22,8 @@ describe('WardFlow', () => {
     it('ERROR: {args: ["node", "ward", "detail"]} with missing runId => routes to WardDetailResponder and resolves', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-detail-missing' });
 
-      await expect(WardFlow({ args: ['node', 'ward', 'detail'], rootPath })).resolves.toStrictEqual(
-        { success: true },
+      await expect(WardFlow({ args: ['node', 'ward', 'detail'], rootPath })).resolves.toBe(
+        undefined,
       );
     });
 
@@ -35,7 +35,7 @@ describe('WardFlow', () => {
           args: ['node', 'ward', 'detail', VALID_RUN_ID, 'src/index.ts'],
           rootPath,
         }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
     });
 
     it('VALID: {args: ["node", "ward", "detail", runId, filePath]} with existing ward result => routes to WardDetailResponder and resolves', async () => {
@@ -65,9 +65,7 @@ describe('WardFlow', () => {
     it('VALID: {args: ["node", "ward", "list"]} with no stored result => routes to WardListResponder and resolves', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-list-no-result' });
 
-      await expect(WardFlow({ args: ['node', 'ward', 'list'], rootPath })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(WardFlow({ args: ['node', 'ward', 'list'], rootPath })).resolves.toBe(undefined);
     });
 
     it('VALID: {args: ["node", "ward", "list", runId]} with existing ward result => routes to WardListResponder and resolves', async () => {
@@ -97,9 +95,7 @@ describe('WardFlow', () => {
     it('ERROR: {args: ["node", "ward", "raw"]} with missing runId and checkType => routes to WardRawResponder and resolves', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-raw-missing' });
 
-      await expect(WardFlow({ args: ['node', 'ward', 'raw'], rootPath })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(WardFlow({ args: ['node', 'ward', 'raw'], rootPath })).resolves.toBe(undefined);
     });
 
     it('VALID: {args: ["node", "ward", "raw", runId, checkType]} with no matching result => routes to WardRawResponder and resolves', async () => {
@@ -110,7 +106,7 @@ describe('WardFlow', () => {
           args: ['node', 'ward', 'raw', VALID_RUN_ID, 'lint'],
           rootPath,
         }),
-      ).resolves.toStrictEqual({ success: true });
+      ).resolves.toBe(undefined);
     });
 
     it('VALID: {args: ["node", "ward", "raw", runId, checkType]} with existing ward result => routes to WardRawResponder and resolves', async () => {
@@ -144,12 +140,9 @@ describe('WardFlow', () => {
       setExitCode(0);
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-unknown' });
 
-      const result = await WardFlow({ args: ['node', 'ward', 'unknown-command'], rootPath });
+      await WardFlow({ args: ['node', 'ward', 'unknown-command'], rootPath });
 
-      expect({ result, exitCode: getExitCode() }).toStrictEqual({
-        result: { success: true },
-        exitCode: 1,
-      });
+      expect(getExitCode()).toBe(1);
     });
   });
 });

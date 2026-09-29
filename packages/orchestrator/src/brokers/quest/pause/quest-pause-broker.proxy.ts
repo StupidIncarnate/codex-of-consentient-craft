@@ -66,9 +66,10 @@ export const questPauseBrokerProxy = (): {
 } => {
   stderrProxy();
   const mocked = registerMock({ fn: questPauseBroker });
-  // questId/guildId/previousStatus vary per call but neither the stub result nor the passthrough
-  // depends on which quest was paused — `[]` is the honest address for both.
-  mocked.calledWith([]).resolves({ paused: true });
+  // Any `{ questId, guildId, previousStatus }` call, for the opt-in scenarios below, whose caller
+  // never names which quest gets paused.
+  const isPauseCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'questId' in call;
 
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });
@@ -87,18 +88,18 @@ export const questPauseBrokerProxy = (): {
 
   return {
     setupPaused: (): void => {
-      mocked.onceFor([]).resolves({ paused: true });
+      mocked.onceFor([isPauseCall]).resolves({ paused: true });
     },
 
     setupNotPaused: (): void => {
-      mocked.onceFor([]).resolves({ paused: false });
+      mocked.onceFor([isPauseCall]).resolves({ paused: false });
     },
 
     setupPassthrough: (): void => {
       const realMod = requireActual<{ questPauseBroker: typeof questPauseBroker }>({
         module: './quest-pause-broker',
       });
-      mocked.calledWith([]).implement(realMod.questPauseBroker as never);
+      mocked.calledWith([isPauseCall]).implement(realMod.questPauseBroker as never);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

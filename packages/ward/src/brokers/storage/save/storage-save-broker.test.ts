@@ -26,9 +26,7 @@ describe('storageSaveBroker', () => {
       const proxy = storageSaveBrokerProxy();
       proxy.setupSuccess({ rootPath, runId: wardResult.runId });
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toBe(undefined);
 
       expect(proxy.getWrittenContent({ rootPath, runId: wardResult.runId })).toBe(
         JSON.stringify(wardResult),
@@ -44,9 +42,7 @@ describe('storageSaveBroker', () => {
       const proxy = storageSaveBrokerProxy();
       proxy.setupSuccess({ rootPath, runId: wardResult.runId });
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toBe(undefined);
     });
   });
 

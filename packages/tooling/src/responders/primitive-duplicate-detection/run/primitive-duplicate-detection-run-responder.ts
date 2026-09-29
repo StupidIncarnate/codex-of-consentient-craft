@@ -5,8 +5,6 @@
  * await PrimitiveDuplicateDetectionRunResponder({ args: process.argv.slice(2) });
  * // Outputs a formatted duplicate literals report or a success message to stdout
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { duplicateDetectionDetectBroker } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
@@ -20,8 +18,7 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
   args,
 }: {
   args: readonly string[];
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const patternArg = args.find((arg) => arg.startsWith('--pattern='));
   const cwdArg = args.find((arg) => arg.startsWith('--cwd='));
   const thresholdArg = args.find((arg) => arg.startsWith('--threshold='));
@@ -57,7 +54,7 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
 
   if (duplicates.length === 0) {
     stdout.write('✅ No duplicate primitives found!\n');
-    return result;
+    return;
   }
 
   stdout.write(`Found ${duplicates.length} duplicate primitive(s):\n\n`);
@@ -77,5 +74,4 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
 
   stdout.write(`\nSuggestion: Extract these literals to statics files:\n`);
   stdout.write(`  packages/*/src/statics/[domain]/[domain]-statics.ts\n`);
-  return result;
 };

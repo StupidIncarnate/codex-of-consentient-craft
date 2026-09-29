@@ -24,7 +24,7 @@ describe('WardScanResponder', () => {
         ]),
       });
 
-      const result = await proxy.callResponder({
+      await proxy.callResponder({
         args: ['node', 'ward', 'scan', 'no-console'],
         rootPath,
       });
@@ -33,12 +33,10 @@ describe('WardScanResponder', () => {
       setExitCode(0);
 
       expect({
-        result,
         stdout: JSON.parse(proxy.getStdoutText()) as unknown,
         stderr: proxy.getStderrText(),
         exitCode,
       }).toStrictEqual({
-        result: { success: true },
         stdout: {
           rule: 'no-console',
           packages: [
@@ -87,18 +85,16 @@ describe('WardScanResponder', () => {
       setExitCode(0);
       const proxy = WardScanResponderProxy();
 
-      const result = await proxy.callResponder({ args: ['node', 'ward', 'scan'], rootPath });
+      await proxy.callResponder({ args: ['node', 'ward', 'scan'], rootPath });
 
       const exitCode = getExitCode();
       setExitCode(0);
 
       expect({
-        result,
         stdout: proxy.getStdoutText(),
         stderr: proxy.getStderrText(),
         exitCode,
       }).toStrictEqual({
-        result: { success: true },
         stdout: '',
         stderr:
           'Scan failed: scan needs a rule name first.\nUsage: npm run ward -- scan <rule> [-- <files or packages>]\n',

@@ -7,7 +7,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const createDriverPollTickLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
-  setupQuestNotFound: () => void;
+  setupQuestNotFound: (params: { questId: string }) => void;
   getAllPersistedContents: () => readonly unknown[];
 } => {
   const sweepProxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
@@ -17,8 +17,8 @@ export const createDriverPollTickLayerBrokerProxy = (): {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       sweepProxy.setupQuestFound({ quest });
     },
-    setupQuestNotFound: (): void => {
-      sweepProxy.setupQuestNotFound();
+    setupQuestNotFound: ({ questId }: { questId: string }): void => {
+      sweepProxy.setupQuestNotFound({ questId });
     },
     getAllPersistedContents: (): readonly unknown[] => sweepProxy.getAllPersistedContents(),
   };

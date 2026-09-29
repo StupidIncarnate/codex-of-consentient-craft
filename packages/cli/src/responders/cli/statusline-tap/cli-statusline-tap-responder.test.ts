@@ -14,10 +14,10 @@ describe('CliStatuslineTapResponder', () => {
     proxy.setupStdin({ data: stdin });
     proxy.setupAcceptedWrite();
 
-    const result = await CliStatuslineTapResponder();
+    await expect(CliStatuslineTapResponder()).resolves.toBe(undefined);
+
     proxy.restoreStdin();
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStdoutWrites()).toStrictEqual([stdin]);
     expect(proxy.getStderrWrites()).toStrictEqual([]);
     expect(proxy.getSnapshotWriteCalls().map((c) => c.path)).toStrictEqual([
@@ -39,10 +39,10 @@ describe('CliStatuslineTapResponder', () => {
     proxy.setupStdin({ data: stdin });
     proxy.setupThrottledWrite({ mtimeMs: 1746449999000 });
 
-    const result = await CliStatuslineTapResponder();
+    await expect(CliStatuslineTapResponder()).resolves.toBe(undefined);
+
     proxy.restoreStdin();
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStdoutWrites()).toStrictEqual([stdin]);
     expect(proxy.getHistoryAppendCalls()).toStrictEqual([]);
   });
@@ -53,10 +53,10 @@ describe('CliStatuslineTapResponder', () => {
     proxy.setupStdin({ data: stdin });
     proxy.setupAcceptedWrite();
 
-    const result = await CliStatuslineTapResponder();
+    await expect(CliStatuslineTapResponder()).resolves.toBe(undefined);
+
     proxy.restoreStdin();
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStdoutWrites()).toStrictEqual([stdin]);
     expect(proxy.getSnapshotWriteCalls()).toStrictEqual([]);
   });
@@ -67,10 +67,10 @@ describe('CliStatuslineTapResponder', () => {
     proxy.setupStdin({ data: stdin });
     proxy.setupAcceptedWrite();
 
-    const result = await CliStatuslineTapResponder();
+    await expect(CliStatuslineTapResponder()).resolves.toBe(undefined);
+
     proxy.restoreStdin();
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getStdoutWrites()).toStrictEqual([stdin]);
     expect(proxy.getSnapshotWriteCalls()).toStrictEqual([]);
   });

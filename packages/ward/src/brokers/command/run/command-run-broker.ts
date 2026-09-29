@@ -7,8 +7,7 @@
  */
 
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
@@ -43,7 +42,7 @@ export const commandRunBroker = async ({
 }: {
   config: WardConfig;
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const gitScopedConfig = await gitScopeLayerBroker({ config, rootPath });
 
   // AN EMPTY FILE SCOPE IS NOT AN ABSENT ONE, and every consumer below this line reads it as one:
@@ -69,7 +68,7 @@ export const commandRunBroker = async ({
 
   if (fileScopeResolvedEmpty) {
     stdout.write(`${fileScopeEmptyStatics.message}\n`);
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   // Every path reaching a check runner is repo-relative with no `./`, because that is the ONE form
@@ -105,7 +104,7 @@ export const commandRunBroker = async ({
       `${pathNotFoundStatics.heading}\n${pathList}\n\n${pathNotFoundStatics.guidance}\n`,
     );
     setExitCode(wardExitCodeStatics.exitCodes.failing);
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   // A GIT-DERIVED PATH THAT IS GONE IS NOT A TYPO. `--committed` diffs merge-base against HEAD
@@ -130,7 +129,7 @@ export const commandRunBroker = async ({
     // much to check as one that resolved to zero files from the start.
     if (!(Array.isArray(survivingPassthrough) && survivingPassthrough.length > 0)) {
       stdout.write(`${fileScopeEmptyStatics.message}\n`);
-      return adapterResultContract.parse({ success: true });
+      return;
     }
   }
 
@@ -262,5 +261,4 @@ export const commandRunBroker = async ({
   if (hasCrash) {
     setExitCode(wardExitCodeStatics.exitCodes.crash);
   }
-  return adapterResultContract.parse({ success: true });
 };

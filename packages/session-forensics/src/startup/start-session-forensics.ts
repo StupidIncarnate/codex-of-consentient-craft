@@ -8,14 +8,13 @@
  * StartSessionForensics();
  * // Writes the flow's rendered ContentText, or a usage block, to stdout with a trailing newline.
  */
-import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SessionForensicsFlow } from '../flows/session-forensics/session-forensics-flow';
 import { argv as processArgv, setExitCode, stderr, stdout } from '#gateway/node/process';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
-export const StartSessionForensics = (): AdapterResult => {
+export const StartSessionForensics = (): void => {
   try {
     const argv = processArgv.slice(COMMAND_LINE_ARG_START_INDEX);
     const result = SessionForensicsFlow({ argv });
@@ -24,6 +23,4 @@ export const StartSessionForensics = (): AdapterResult => {
     stderr.write(`${String(error)}\n`);
     setExitCode(1);
   }
-
-  return adapterResultContract.parse({ success: true });
 };

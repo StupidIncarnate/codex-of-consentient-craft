@@ -16,8 +16,7 @@
  *
  * USAGE:
  * const proxy = stepHandlerWardBrokerProxy();
- * proxy.setupWorktree({ worktreePath: '/repo/worktrees/add-auth' });
- * proxy.wardExits({ exitCode: ExitCodeStub({ value: 0 }), runId, detailJson: FileContentsStub() });
+ * proxy.wardExits({ questId, exitCode: ExitCodeStub({ value: 0 }), runId, detailJson: FileContentsStub() });
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 
@@ -28,7 +27,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import type { ExitCode, FileContents, FileName } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, FileContents, FileName, QuestId } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -63,13 +62,17 @@ const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 // wardDetailBrokerProxy's `run` call for the same WARD_COMMAND (args `['detail', ...]`).
 const WARD_COMMAND = 'dungeonmaster-ward';
 const RUN_SUBCOMMAND = 'run';
+const DEFAULT_WORKTREE_PATH = '/repo/worktrees/add-auth';
 
 export const stepHandlerWardBrokerProxy = (): {
-  setupWorktree: (params: { worktreePath: string }) => void;
-  setupWorktreeMissing: (params: { worktreePath: string }) => void;
-  wardExits: (params: { exitCode: ExitCode; runId: FileName; detailJson: FileContents }) => void;
-  wardExitsWithoutRunId: (params: { exitCode: ExitCode }) => void;
-  setupModifyFails: (params: { error: string }) => void;
+  setupWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
+  wardExits: (params: {
+    questId: QuestId;
+    exitCode: ExitCode;
+    runId: FileName;
+    detailJson: FileContents;
+  }) => void;
+  wardExitsWithoutRunId: (params: { questId: QuestId; exitCode: ExitCode }) => void;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
 } => {
@@ -95,25 +98,15 @@ export const stepHandlerWardBrokerProxy = (): {
   questCwdResolveBrokerProxy();
   questFindQuestPathBrokerProxy();
   // Also inert for the same reason: questModifyBrokerProxy module-mocks questModifyBroker itself
-  // and defaults it to a real-implementation passthrough. The direct staging below (same `[]`
-  // address, registered after) overrides that default for this handler's purposes.
+  // and defaults it to a real-implementation passthrough. The direct staging below, addressed by
+  // the quest's own id and registered after, overrides that default for this handler's purposes.
   questModifyBrokerProxy();
   RunNotFoundErrorProxy();
   const wardSpawn = streamLinesProxy();
 
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
-  cwdMock.calledWith([]).resolves(
-    QuestCwdResolutionStub({
-      kind: 'worktree',
-      cwd: RepoRootCwdStub({ value: '/repo/worktrees/add-auth' }),
-    }),
-  );
-
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
-  findQuestPathMock.calledWith([]).resolves({ questPath: QUEST_PATH, guildId: GuildIdStub() });
-
   const modifyMock = registerMock({ fn: questModifyBroker });
-  modifyMock.calledWith([]).resolves(ModifyQuestResultStub({ success: true }));
 
   registerMock({ fn: randomUUID })
     .calledWith([])
@@ -127,18 +120,32 @@ export const stepHandlerWardBrokerProxy = (): {
   // see the file header.
   const isRunSubcommand = (value: readonly unknown[]): boolean => value[0] === RUN_SUBCOMMAND;
 
-  return {
-    setupWorktree: ({ worktreePath }: { worktreePath: string }): void => {
-      cwdMock.calledWith([]).resolves(
-        QuestCwdResolutionStub({
-          kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
-        }),
-      );
-    },
+  // The quest-scoped answers every ward run reads: its worktree, its folder, and the write of its
+  // ward result, each addressed by the arguments `stepHandlerWardBroker` passes for that quest.
+  const stageQuest = ({ questId }: { questId: QuestId }): void => {
+    cwdMock.calledWith([{ questId }]).resolves(
+      QuestCwdResolutionStub({
+        kind: 'worktree',
+        cwd: RepoRootCwdStub({ value: DEFAULT_WORKTREE_PATH }),
+      }),
+    );
+    findQuestPathMock
+      .calledWith([{ questId }])
+      .resolves({ questPath: QUEST_PATH, guildId: GuildIdStub() });
+    modifyMock
+      .calledWith([{ input: { questId } }])
+      .resolves(ModifyQuestResultStub({ success: true }));
+  };
 
-    setupWorktreeMissing: ({ worktreePath }: { worktreePath: string }): void => {
-      cwdMock.calledWith([]).resolves(
+  return {
+    setupWorktreeMissing: ({
+      questId,
+      worktreePath,
+    }: {
+      questId: QuestId;
+      worktreePath: string;
+    }): void => {
+      cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
           worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
@@ -147,14 +154,17 @@ export const stepHandlerWardBrokerProxy = (): {
     },
 
     wardExits: ({
+      questId,
       exitCode,
       runId,
       detailJson,
     }: {
+      questId: QuestId;
       exitCode: ExitCode;
       runId: FileName;
       detailJson: FileContents;
     }): void => {
+      stageQuest({ questId });
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
@@ -164,17 +174,20 @@ export const stepHandlerWardBrokerProxy = (): {
       detailProxy.setupSuccess({ output: String(detailJson) });
     },
 
-    wardExitsWithoutRunId: ({ exitCode }: { exitCode: ExitCode }): void => {
+    wardExitsWithoutRunId: ({
+      questId,
+      exitCode,
+    }: {
+      questId: QuestId;
+      exitCode: ExitCode;
+    }): void => {
+      stageQuest({ questId });
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
         exitCode: Number(exitCode),
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
-    },
-
-    setupModifyFails: ({ error }: { error: string }): void => {
-      modifyMock.calledWith([]).resolves(ModifyQuestResultStub({ success: false, error }));
     },
 
     getSpawnedWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: WARD_COMMAND }),

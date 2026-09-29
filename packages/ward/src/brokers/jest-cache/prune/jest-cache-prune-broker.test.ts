@@ -26,7 +26,7 @@ describe('jestCachePruneBroker', () => {
       proxy.setupRemovable({ path: `${CACHE_DIR}/haste-map-old` });
       proxy.setupRemovable({ path: `${CACHE_DIR}/jest-transform-cache-old` });
 
-      await expect(jestCachePruneBroker()).resolves.toStrictEqual({ success: true });
+      await expect(jestCachePruneBroker()).resolves.toBe(undefined);
 
       expect(proxy.getRemoveCalls()).toStrictEqual([
         [`${CACHE_DIR}/haste-map-old`, { recursive: true, force: true }],
@@ -51,7 +51,7 @@ describe('jestCachePruneBroker', () => {
       const proxy = jestCachePruneBrokerProxy();
       proxy.setupEntries({ cacheDir: CACHE_DIR, entries: [] });
 
-      await expect(jestCachePruneBroker()).resolves.toStrictEqual({ success: true });
+      await expect(jestCachePruneBroker()).resolves.toBe(undefined);
 
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
     });
@@ -60,7 +60,7 @@ describe('jestCachePruneBroker', () => {
       const proxy = jestCachePruneBrokerProxy();
       proxy.setupCacheMissing({ cacheDir: CACHE_DIR });
 
-      await expect(jestCachePruneBroker()).resolves.toStrictEqual({ success: true });
+      await expect(jestCachePruneBroker()).resolves.toBe(undefined);
 
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
       expect(proxy.getStderrText()).toBe('');
@@ -114,7 +114,7 @@ describe('jestCachePruneBroker', () => {
       proxy.setupRemoveFails({ path: `${CACHE_DIR}/refused` });
       proxy.setupRemovable({ path: `${CACHE_DIR}/removed` });
 
-      await expect(jestCachePruneBroker()).resolves.toStrictEqual({ success: true });
+      await expect(jestCachePruneBroker()).resolves.toBe(undefined);
 
       expect(proxy.getRemovedPaths()).toStrictEqual([
         `${CACHE_DIR}/refused`,
@@ -129,7 +129,7 @@ describe('jestCachePruneBroker', () => {
       const proxy = jestCachePruneBrokerProxy();
       proxy.setupRealpathMissing({ tmp: '/gone' });
 
-      await expect(jestCachePruneBroker()).resolves.toStrictEqual({ success: true });
+      await expect(jestCachePruneBroker()).resolves.toBe(undefined);
 
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
       expect(proxy.getStderrText()).toBe(

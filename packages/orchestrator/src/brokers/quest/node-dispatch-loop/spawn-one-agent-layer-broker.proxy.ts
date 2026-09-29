@@ -12,6 +12,7 @@ import {
   registerSpyOn,
 } from '@dungeonmaster/testing/register-mock';
 
+import type { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import type { ElapsedMsStub } from '../../../contracts/elapsed-ms/elapsed-ms.stub';
 import { apiOverloadRetryStatics } from '../../../statics/api-overload-retry/api-overload-retry-statics';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
@@ -41,15 +42,21 @@ registerModuleMock({ module: '../session-record/quest-session-record-broker' });
 registerModuleMock({ module: '../../dispatch-hold/reject/dispatch-hold-reject-broker' });
 
 const PROCESS_UUID = '00000000-0000-4000-8000-00000000d15b';
+const PINNED_NOW_MS = Date.parse('2026-09-13T04:49:29.242Z');
 
 type QuestWorkItemId = ReturnType<typeof QuestWorkItemIdStub>;
+type SpawnInstruction = ReturnType<typeof SpawnInstructionStub>;
 type WorkItemStatus = ReturnType<typeof WorkItemStatusStub>;
 type ElapsedMs = ReturnType<typeof ElapsedMsStub>;
 
 export const spawnOneAgentLayerBrokerProxy = (): {
   setupSpawnEmitsSessionThenExits: (params: { sessionId: string; exitCode: number }) => void;
   setupSpawnExitsWithoutSession: (params: { exitCode: number }) => void;
-  setupSpawnEmitsApiOverloadThenExits: (params: { sessionId?: string; exitCode: number }) => void;
+  setupSpawnEmitsApiOverloadThenExits: (params: {
+    instruction: SpawnInstruction;
+    sessionId?: string;
+    exitCode: number;
+  }) => void;
   setupSpawnEmitsRateLimitRefusalThenExits: (params: {
     sessionId?: string;
     exitCode: number;
@@ -58,6 +65,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   setupModifySucceeds: (params: { times: number }) => void;
   setupModifyRejectsOnce: (params: { error: Error }) => void;
   setupWorkItemStatusOnReread: (params: {
+    questId: SpawnInstruction['questId'];
     workItemId: QuestWorkItemId;
     status: WorkItemStatus;
   }) => void;
@@ -87,9 +95,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
 
   // The refusal path stamps the hold with Date.now(); pinned so the recorded argument is an exact
   // value a test can assert rather than a moving target.
-  registerSpyOn({ object: Date, method: 'now' })
-    .calledWith([])
-    .returns(Date.parse('2026-09-13T04:49:29.242Z'));
+  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(PINNED_NOW_MS);
 
   // Record-and-swallow: the retry path narrates every decision to stderr, which would bury the
   // test output. The line text is what a test asserts, via getStderrLines below.
@@ -103,18 +109,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     .resolves({ success: true as const });
 
   const rejectMock = registerMock({ fn: dispatchHoldRejectBroker });
-  rejectMock.calledWith([]).resolves(
-    DispatchHoldStub({
-      reason: 'rejected',
-      resumeAt: '2026-09-13T05:19:29.242Z',
-    }),
-  );
-
   const getMock = registerMock({ fn: questGetBroker });
-  // Default: the quest carries no matching work item, so the retry proceeds (the terminal check
-  // only short-circuits on a FOUND terminal item). Tests that need the
-  // signalled-back-during-backoff branch override with setupWorkItemStatusOnReread.
-  getMock.calledWith([]).resolves(GetQuestResultStub({ success: true, quest: QuestStub() }));
 
   return {
     setupSpawnEmitsSessionThenExits: ({
@@ -137,12 +132,20 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     // One attempt that emits the CLI's synthetic 529 line before dying — the exact shape a real
     // overloaded run produces. Omit sessionId for a child that died before its init line.
     setupSpawnEmitsApiOverloadThenExits: ({
+      instruction,
       sessionId,
       exitCode,
     }: {
+      instruction: SpawnInstruction;
       sessionId?: string;
       exitCode: number;
     }): void => {
+      // The quest the retry re-reads after the backoff carries no matching work item, so the retry
+      // proceeds (the terminal check only short-circuits on a FOUND terminal item). A test that
+      // needs the signalled-back-during-backoff branch overrides with setupWorkItemStatusOnReread.
+      getMock
+        .calledWith([{ input: { questId: instruction.questId } }])
+        .resolves(GetQuestResultStub({ success: true, quest: QuestStub() }));
       const overloadLine = JSON.stringify({
         type: 'assistant',
         isApiErrorMessage: true,
@@ -184,6 +187,12 @@ export const spawnOneAgentLayerBrokerProxy = (): {
           ],
         },
       });
+      rejectMock.calledWith([{ line: refusalLine, nowMs: PINNED_NOW_MS }]).resolves(
+        DispatchHoldStub({
+          reason: 'rejected',
+          resumeAt: '2026-09-13T05:19:29.242Z',
+        }),
+      );
       spawnProxy.setupSpawnAndEmitLines({
         lines:
           sessionId === undefined
@@ -207,13 +216,15 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     },
 
     setupWorkItemStatusOnReread: ({
+      questId,
       workItemId,
       status,
     }: {
+      questId: SpawnInstruction['questId'];
       workItemId: QuestWorkItemId;
       status: WorkItemStatus;
     }): void => {
-      getMock.calledWith([]).resolves(
+      getMock.calledWith([{ input: { questId } }]).resolves(
         GetQuestResultStub({
           success: true,
           quest: QuestStub({ workItems: [WorkItemStub({ id: workItemId, status })] }),

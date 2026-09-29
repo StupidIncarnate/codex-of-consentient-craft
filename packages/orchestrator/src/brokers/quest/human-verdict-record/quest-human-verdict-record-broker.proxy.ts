@@ -72,7 +72,6 @@ export const questHumanVerdictRecordBrokerProxy = (): {
     questHumanVerdictRecordBroker: typeof questHumanVerdictRecordBroker;
   }>({ module: './quest-human-verdict-record-broker' });
   const verdictMock = registerMock({ fn: questHumanVerdictRecordBroker });
-  verdictMock.calledWith([]).implement(realMod.questHumanVerdictRecordBroker as never);
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -88,6 +87,9 @@ export const questHumanVerdictRecordBrokerProxy = (): {
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
+      verdictMock
+        .calledWith([{ questId: quest.id }])
+        .implement(realMod.questHumanVerdictRecordBroker as never);
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({

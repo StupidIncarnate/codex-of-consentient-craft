@@ -267,7 +267,7 @@ describe('OrchestrationStartResponder', () => {
       const quest = QuestStub({ id: questId, status: 'approved' });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupPackageGraphDerived({ packageGraph: DERIVED_PACKAGE_GRAPH });
+      proxy.setupPackageGraphDerived({ quest, packageGraph: DERIVED_PACKAGE_GRAPH });
 
       await proxy.callResponder({ questId });
 
@@ -317,7 +317,7 @@ describe('OrchestrationStartResponder', () => {
       });
       const proxy = OrchestrationStartResponderProxy();
       proxy.setupStart({ quest });
-      proxy.setupPackageGraphDerived({ packageGraph: DERIVED_PACKAGE_GRAPH });
+      proxy.setupPackageGraphDerived({ quest, packageGraph: DERIVED_PACKAGE_GRAPH });
 
       await proxy.callResponder({ questId });
 

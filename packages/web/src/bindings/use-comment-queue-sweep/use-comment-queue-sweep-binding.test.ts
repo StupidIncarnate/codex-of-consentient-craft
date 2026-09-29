@@ -22,7 +22,9 @@ describe('useCommentQueueSweepBinding', () => {
         ],
       });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       expect(proxy.hasStoredQueue({ questId })).toBe(false);
     });
@@ -36,7 +38,9 @@ describe('useCommentQueueSweepBinding', () => {
       ];
       proxy.setupQueuedComments({ questId, entries: fresh });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       expect(proxy.getStoredValue({ questId })).toBe(JSON.stringify(fresh));
     });
@@ -55,7 +59,9 @@ describe('useCommentQueueSweepBinding', () => {
       });
       proxy.setupQueuedComments({ questId, entries: [stale, fresh] });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       expect(proxy.getStoredValue({ questId })).toBe(JSON.stringify([fresh]));
     });
@@ -76,7 +82,9 @@ describe('useCommentQueueSweepBinding', () => {
       });
       proxy.setupQueuedComments({ questId: questB, entries: otherEntries });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       expect(proxy.hasStoredQueue({ questId: questA })).toBe(false);
       expect(proxy.getStoredValue({ questId: questB })).toBe(JSON.stringify(otherEntries));
@@ -100,7 +108,9 @@ describe('useCommentQueueSweepBinding', () => {
         ],
       });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       // Two keys that BOTH need removing is the only shape that proves the scan snapshots its key
       // list before mutating: removing the first key re-indexes localStorage, so a live index walk
@@ -125,7 +135,9 @@ describe('useCommentQueueSweepBinding', () => {
         ],
       });
 
-      renderHook(() => useCommentQueueSweepBinding());
+      renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
       // The bare prefix addresses no quest, so slicing a questId out of it yields an empty string
       // that questIdContract rejects — sweeping it would throw out of the mount effect and take the
@@ -139,9 +151,11 @@ describe('useCommentQueueSweepBinding', () => {
       const proxy = useCommentQueueSweepBindingProxy();
       proxy.setupEmptyQueue();
 
-      const { result } = renderHook(() => useCommentQueueSweepBinding());
+      const { result } = renderHook(() => {
+        useCommentQueueSweepBinding();
+      });
 
-      expect(result.current).toStrictEqual({ success: true });
+      expect(result.current).toBe(undefined);
     });
   });
 });

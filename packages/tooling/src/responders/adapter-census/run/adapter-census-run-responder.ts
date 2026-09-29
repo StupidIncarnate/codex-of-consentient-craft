@@ -7,8 +7,6 @@
  * await AdapterCensusRunResponder({ args: process.argv.slice(2) });
  * // Writes the census to stdout
  */
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { adapterCensusRunBroker } from '../../../brokers/adapter-census/run/adapter-census-run-broker';
@@ -20,7 +18,7 @@ export const AdapterCensusRunResponder = async ({
   args,
 }: {
   args: readonly string[];
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const { cwd, format, packageFilter } = censusArgsParseTransformer({ args });
 
   const census = await adapterCensusRunBroker({
@@ -33,6 +31,4 @@ export const AdapterCensusRunResponder = async ({
       ? `${JSON.stringify(census, null, censusLayoutStatics.jsonIndent)}\n`
       : censusTableRenderTransformer({ census }),
   );
-
-  return adapterResultContract.parse({ success: true });
 };

@@ -9,12 +9,7 @@
  */
 
 import { readdirIfExists, statIfExists, unlink } from '#gateway/node/fs__promises';
-import {
-  adapterResultContract,
-  filePathContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
@@ -25,14 +20,13 @@ export const storagePruneBroker = async ({
   rootPath,
 }: {
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
 
   try {
     const entries = await readdirIfExists(String(wardDir));
     if (entries === null) {
-      return result;
+      return;
     }
     const now = Date.now();
 
@@ -108,5 +102,4 @@ export const storagePruneBroker = async ({
   } catch {
     // .ward directory may not exist yet - safe to ignore
   }
-  return result;
 };

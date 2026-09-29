@@ -78,7 +78,7 @@ export const OrchestrationStartResponderProxy = (): {
   setupStart: (params: { quest: Quest }) => void;
   setupStartSkipsOperationsPersist: (params: { quest: Quest }) => void;
   setupModifyFailure: (params: { quest: Quest }) => void;
-  setupPackageGraphDerived: (params: { packageGraph: PackageGraph }) => void;
+  setupPackageGraphDerived: (params: { quest: Quest; packageGraph: PackageGraph }) => void;
   getPersistedStatuses: () => readonly Parsed['status'][];
   getPersistedQuestAt: (params: { index: number }) => Parsed;
 } => {
@@ -102,15 +102,15 @@ export const OrchestrationStartResponderProxy = (): {
   // composed for real: it issues one manifest read per declared package, and staging those here
   // would collide with this proxy's own quest.json read staging. Wired to satisfy
   // enforce-proxy-child-creation; the registerMock below replaces the responder entirely so this
-  // child proxy's own fs mocks never fire. Its default is "nothing to stamp" — the shape for a quest
-  // declaring no packages — so every existing test keeps its single atomic persist.
+  // child proxy's own fs mocks never fire. Each staged quest gets "nothing to stamp" — the shape for
+  // a quest declaring no packages — so every existing test keeps its single atomic persist.
   PrepareQuestPackageGraphLayerResponderProxy();
   const packageGraphMock = registerMock({ fn: PrepareQuestPackageGraphLayerResponder });
-  packageGraphMock.calledWith([]).resolves(undefined);
 
   // The queue-entry guild lookup at the end of a successful Start: one more find-quest-path fs
   // round (for the guildId), then the guild-config read guildGetBroker performs.
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
+    packageGraphMock.calledWith([{ quest: { id: quest.id } }]).resolves(undefined);
     const guildId = GuildIdStub();
     const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
     const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
@@ -193,12 +193,19 @@ export const OrchestrationStartResponderProxy = (): {
     setupModifyFailure: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
       opsProxy.setupQuestFound({ quest });
+      packageGraphMock.calledWith([{ quest: { id: quest.id } }]).resolves(undefined);
       modifyProxy.setupResolveFailureOnce();
     },
 
     // The quest declares packages and carries no graph yet, so the layer returns entries to stamp.
-    setupPackageGraphDerived: ({ packageGraph }: { packageGraph: PackageGraph }): void => {
-      packageGraphMock.onceFor([]).resolves(packageGraph);
+    setupPackageGraphDerived: ({
+      quest,
+      packageGraph,
+    }: {
+      quest: Quest;
+      packageGraph: PackageGraph;
+    }): void => {
+      packageGraphMock.onceFor([{ quest: { id: quest.id } }]).resolves(packageGraph);
     },
 
     getPersistedStatuses: (): readonly Parsed['status'][] =>

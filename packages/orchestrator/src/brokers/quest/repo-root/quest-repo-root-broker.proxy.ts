@@ -22,10 +22,11 @@ type FilePath = ReturnType<typeof FilePathStub>;
 
 const GUILD_PATH = FilePathStub({ value: '/home/testuser/my-guild' });
 
-// Auto-mock so every caller resolves through one mocked module. The default below is a passthrough
-// to the real broker, so a test driving the quest-lookup + walk-up chain behaves exactly as before;
-// `setupRepoRoot` is for a COMPOSING proxy that only needs an answer, and whose own quest-path
-// staging would otherwise be consumed twice by this broker's second quest lookup.
+// Auto-mock so every caller resolves through one mocked module. `setupQuestFound` stages a
+// passthrough to the real broker for that quest's id, so a test driving the quest-lookup + walk-up
+// chain runs the real code; `setupRepoRoot` is for a COMPOSING proxy that only needs an answer, and
+// whose own quest-path staging would otherwise be consumed twice by this broker's second quest
+// lookup.
 registerModuleMock({ module: './quest-repo-root-broker' });
 
 export const questRepoRootBrokerProxy = (): {
@@ -39,15 +40,13 @@ export const questRepoRootBrokerProxy = (): {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
 
-  // `questId` varies per test and the passthrough runs the REAL lookup against whatever it
-  // receives rather than answering a canned value, so there is no per-input address to stage —
-  // `[]` is the honest, generic catch-all. setupRepoRoot stages at the same address afterwards,
-  // which wins by being the more recent registration at equal specificity.
   const realMod = requireActual<{ questRepoRootBroker: typeof questRepoRootBroker }>({
     module: './quest-repo-root-broker',
   });
   const repoRootMock = registerMock({ fn: questRepoRootBroker });
-  repoRootMock.calledWith([]).implement(realMod.questRepoRootBroker as never);
+  // Any `{ questId }` call, for the opt-in `setupRepoRoot` only.
+  const isQuestIdInput = (input: unknown): boolean =>
+    typeof input === 'object' && input !== null && 'questId' in input;
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
@@ -85,6 +84,10 @@ export const questRepoRootBrokerProxy = (): {
       });
 
       guildProxy.setupDirectGuild({ guild: GuildStub({ id: guildId, path: GUILD_PATH }) });
+
+      repoRootMock
+        .calledWith([{ questId: quest.id }])
+        .implement(realMod.questRepoRootBroker as never);
     },
 
     setupResolveSuccess: ({ repoRoot }: { repoRoot: RepoRootCwd }): void => {
@@ -106,7 +109,7 @@ export const questRepoRootBrokerProxy = (): {
     // real chain would consume a second time; use setupQuestFound + setupResolveSuccess when the
     // chain itself is what the test is about.
     setupRepoRoot: ({ repoRoot }: { repoRoot: RepoRootCwd }): void => {
-      repoRootMock.calledWith([]).resolves(repoRoot);
+      repoRootMock.calledWith([isQuestIdInput]).resolves(repoRoot);
     },
 
     getGuildPath: (): FilePath => GUILD_PATH,

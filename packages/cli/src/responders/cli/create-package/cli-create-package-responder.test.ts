@@ -32,12 +32,11 @@ describe('CliCreatePackageResponder', () => {
       value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
     });
 
-    const result = await CliCreatePackageResponder({
+    await CliCreatePackageResponder({
       context,
       args: ['--name', 'widgets', '--type', 'library'],
     });
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @acme/widgets at /repo/packages/widgets\n',
       '  package.json\n',
@@ -80,12 +79,11 @@ describe('CliCreatePackageResponder', () => {
       value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
     });
 
-    const result = await CliCreatePackageResponder({
+    await CliCreatePackageResponder({
       context,
       args: ['--name', 'widgets', '--type', 'library', '--dry-run'],
     });
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @acme/widgets at /repo/packages/widgets\n',
       '  package.json\n',
@@ -125,12 +123,11 @@ describe('CliCreatePackageResponder', () => {
       value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
     });
 
-    const result = await CliCreatePackageResponder({
+    await CliCreatePackageResponder({
       context,
       args: ['--name', 'widgets', '--type', 'library'],
     });
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @acme/widgets at /repo/packages/widgets\n',
       '  package.json\n',
@@ -171,12 +168,11 @@ describe('CliCreatePackageResponder', () => {
       value: { targetProjectRoot: projectRoot, dungeonmasterRoot: '/repo/.dungeonmaster' },
     });
 
-    const result = await CliCreatePackageResponder({
+    await CliCreatePackageResponder({
       context,
       args: ['--name', 'widgets', '--type', 'frontend-react'],
     });
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @acme/widgets at /repo/packages/widgets\n',
       '  package.json\n',
@@ -349,12 +345,11 @@ describe('CliCreatePackageResponder', () => {
       },
     });
 
-    const result = await CliCreatePackageResponder({
+    await CliCreatePackageResponder({
       context,
       args: ['--name', 'widgets', '--type', 'library'],
     });
 
-    expect(result).toStrictEqual({ success: true });
     expect(proxy.getOutput()).toStrictEqual([
       'Scaffolding @my-tool/widgets at /workspace/my-tool/packages/widgets\n',
       '  package.json\n',

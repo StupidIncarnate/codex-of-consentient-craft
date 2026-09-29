@@ -48,23 +48,24 @@ export const questBlockOnFailureBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
 } => {
   const mocked = registerMock({ fn: questBlockOnFailureBroker });
-  // questId/failedWorkItemId vary per call but neither the stub result nor the passthrough
-  // depends on which quest was blocked — `[]` is the honest address for both.
-  mocked.calledWith([]).resolves({ blocked: true });
+  // Any `{ questId, failedWorkItemId }` call, for the opt-in scenarios below, whose caller never
+  // names which quest gets blocked.
+  const isBlockCall = (call: unknown): boolean =>
+    typeof call === 'object' && call !== null && 'questId' in call && 'failedWorkItemId' in call;
 
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
 
   return {
     setupBlocked: (): void => {
-      mocked.onceFor([]).resolves({ blocked: true });
+      mocked.calledWith([isBlockCall]).resolves({ blocked: true });
     },
 
     setupPassthrough: (): void => {
       const realMod = requireActual<{
         questBlockOnFailureBroker: typeof questBlockOnFailureBroker;
       }>({ module: './quest-block-on-failure-broker' });
-      mocked.calledWith([]).implement(realMod.questBlockOnFailureBroker as never);
+      mocked.calledWith([isBlockCall]).implement(realMod.questBlockOnFailureBroker as never);
     },
 
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

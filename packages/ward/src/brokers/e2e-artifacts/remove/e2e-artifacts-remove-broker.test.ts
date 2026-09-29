@@ -13,9 +13,7 @@ describe('e2eArtifactsRemoveBroker', () => {
 
       proxy.setupRemovable({ packageRoot, port: 40000 });
 
-      await expect(e2eArtifactsRemoveBroker({ packageRoot, port })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsRemoveBroker({ packageRoot, port })).resolves.toBe(undefined);
 
       expect(proxy.getRemovedPaths({ packageRoot, port: 40000 })).toStrictEqual([
         ['/repo/packages/web/node_modules/.vite-40000', { recursive: true, force: true }],
@@ -51,9 +49,7 @@ describe('e2eArtifactsRemoveBroker', () => {
 
       proxy.setupRemoveFails({ packageRoot, port: 40000 });
 
-      await expect(e2eArtifactsRemoveBroker({ packageRoot, port })).resolves.toStrictEqual({
-        success: true,
-      });
+      await expect(e2eArtifactsRemoveBroker({ packageRoot, port })).resolves.toBe(undefined);
     });
   });
 });

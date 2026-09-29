@@ -6,8 +6,7 @@
  * // Starts server module, writes URL to stdout, opens browser with platform-appropriate command
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 import { runFireAndForget } from '#gateway/node/child_process';
 import { getPlatform, stdout } from '#gateway/node/process';
@@ -17,7 +16,7 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { httpBackendPackageResolveBroker } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker';
 import { startServerModuleContract } from '../../../contracts/start-server-module/start-server-module-contract';
 
-export const CliServeResponder = async (): Promise<AdapterResult> => {
+export const CliServeResponder = async (): Promise<void> => {
   const serverPackageName = await httpBackendPackageResolveBroker();
   const serverPath = filePathContract.parse(require.resolve(serverPackageName));
   const serverModule = startServerModuleContract.parse(await dynamicImport({ path: serverPath }));
@@ -37,5 +36,4 @@ export const CliServeResponder = async (): Promise<AdapterResult> => {
         ? `start ${serverUrl}`
         : `xdg-open ${serverUrl}`;
   runFireAndForget({ command: cmd });
-  return adapterResultContract.parse({ success: true });
 };

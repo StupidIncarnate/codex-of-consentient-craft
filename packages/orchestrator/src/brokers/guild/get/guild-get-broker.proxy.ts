@@ -11,6 +11,8 @@ type Guild = ReturnType<typeof GuildStub>;
 export const guildGetBrokerProxy = (): {
   setupConfig: (params: {
     config: GuildConfig;
+    // A lookup id the config does not hold, so the real broker's not-found throw is reachable.
+    missingGuildId?: Guild['id'];
     // Forwarded to guildConfigReadBrokerProxy's own setupConfig — see its header for why a
     // composing test must pass the SAME homeDir/homePath a sibling quest-path proxy staged.
     homeDir?: string;
@@ -25,24 +27,29 @@ export const guildGetBrokerProxy = (): {
   // AST-hoisted jest.mock() to take effect, so this proxy composes safely from a caller in
   // another PACKAGE too, whose own jest transform never sees this file's module-scope code.
   const mocked = registerMock({ fn: guildGetBroker });
-  // Default: passthrough so existing consumers driving the fs chain keep working. `guildId`
-  // varies per call and the real implementation handles any guildId correctly using the args
-  // it actually receives, so `[]` is the honest prefix-match address for this generic fallback.
   const realMod = requireActual<{ guildGetBroker: typeof guildGetBroker }>({
     module: './guild-get-broker',
   });
-  mocked.calledWith([]).implement(realMod.guildGetBroker as never);
 
   return {
     setupConfig: ({
       config,
+      missingGuildId,
       homeDir,
       homePath,
     }: {
       config: GuildConfig;
+      missingGuildId?: Guild['id'];
       homeDir?: string;
       homePath?: FilePath;
     }): void => {
+      // The real lookup answers each guild this config holds, addressed by that guild's own id.
+      config.guilds.forEach((guild) => {
+        mocked.calledWith([{ guildId: guild.id }]).implement(realMod.guildGetBroker as never);
+      });
+      if (missingGuildId !== undefined) {
+        mocked.calledWith([{ guildId: missingGuildId }]).implement(realMod.guildGetBroker as never);
+      }
       configReadProxy.setupConfig({
         config,
         ...(homeDir === undefined ? {} : { homeDir }),
@@ -60,7 +67,7 @@ export const guildGetBrokerProxy = (): {
       }
     },
     setupDirectGuild: ({ guild }: { guild: Guild }): void => {
-      mocked.onceFor([]).resolves(guild);
+      mocked.onceFor([{ guildId: guild.id }]).resolves(guild);
     },
   };
 };

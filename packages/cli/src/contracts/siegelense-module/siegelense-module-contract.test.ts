@@ -10,12 +10,10 @@ describe('siegelenseModuleContract', () => {
     expect(parsed.StartSiegelense).toBe(startSiegelense);
   });
 
-  it('VALID: {default stub} => parses with StartSiegelense resolving a success result', async () => {
+  it('VALID: {default stub} => parses with StartSiegelense resolving undefined', async () => {
     const siegelenseModule = SiegelenseModuleStub();
 
-    const result = await siegelenseModule.StartSiegelense({ args: [] });
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(siegelenseModule.StartSiegelense({ args: [] })).resolves.toBe(undefined);
   });
 
   it('INVALID: {missing StartSiegelense} => throws', () => {

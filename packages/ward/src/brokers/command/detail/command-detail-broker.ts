@@ -7,8 +7,7 @@
  */
 
 import { stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { ErrorEntry } from '../../../contracts/error-entry/error-entry-contract';
@@ -27,19 +26,18 @@ export const commandDetailBroker = async ({
   runId: RunId;
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
   json?: boolean;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const wardResult = await storageLoadBroker({ rootPath, runId });
 
   if (!wardResult) {
     stderr.write(`No ward result found for run ${runId}\n`);
-    return result;
+    return;
   }
 
   if (json) {
     const detail = resultToDetailJsonTransformer({ wardResult });
     stdout.write(`${detail}\n`);
-    return result;
+    return;
   }
 
   const detail = filePath
@@ -47,5 +45,4 @@ export const commandDetailBroker = async ({
     : resultToDetailTransformer({ wardResult });
 
   stdout.write(`${detail}\n`);
-  return result;
 };

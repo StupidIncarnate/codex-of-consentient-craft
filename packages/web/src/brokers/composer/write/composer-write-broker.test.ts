@@ -18,7 +18,7 @@ describe('composerWriteBroker', () => {
       });
       const editor = document.createElement('div');
 
-      const result = composerWriteBroker({
+      composerWriteBroker({
         editor,
         segments: [
           ComposerSegmentStub({ kind: 'text', text: 'before ' }),
@@ -31,12 +31,10 @@ describe('composerWriteBroker', () => {
       const thumbnail = editor.querySelector('img')!;
 
       expect({
-        brokerResult: result,
         nodeNames: Array.from(editor.childNodes, (node) => node.nodeName),
         thumbnailSrc: thumbnail.getAttribute('src'),
         thumbnailAttachmentId: thumbnail.getAttribute(chatComposerStatics.thumbnail.attributeName),
       }).toStrictEqual({
-        brokerResult: { success: true },
         nodeNames: ['#text', 'IMG', '#text'],
         thumbnailSrc: 'data:image/png;base64,iVBORw0KGgo=',
         thumbnailAttachmentId: attachmentId,
@@ -131,13 +129,11 @@ describe('composerWriteBroker', () => {
       composerWriteBrokerProxy();
       const editor = document.createElement('div');
 
-      const result = composerWriteBroker({
+      composerWriteBroker({
         editor,
         segments: [ComposerSegmentStub({ kind: 'text', text: 'one\n' })],
         attachments: new Map(),
       });
-
-      expect(result).toStrictEqual({ success: true });
 
       const snapshot = Array.from(editor.childNodes, (node) => ({
         nodeName: node.nodeName,

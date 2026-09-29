@@ -114,7 +114,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const prepareProxy = worktreePrepareBrokerProxy();
   const provisionProxy = worktreeProvisionBrokerProxy();
   questFindQuestPathBrokerProxy();
-  questGetBrokerProxy();
+  const getProxy = questGetBrokerProxy();
   const updateProxy = questOperationsUpdateBrokerProxy();
   const repoRootProxy = questRepoRootBrokerProxy();
   repoRootProxy.setupRepoRoot({ repoRoot: RepoRootCwdStub({ value: REPO_ROOT }) });
@@ -205,6 +205,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   return {
     setupQuest: ({ quest }: { quest: QuestInput }): void => {
       updateProxy.setupQuestOnDisk({ quest });
+      getProxy.setupRealLookup({ questId: quest.id });
       questFolderRef.value = FilePathStub({ value: `${QUESTS_DIR}/${String(quest.folder)}` });
 
       baseBranchProxy.setupMainExists();

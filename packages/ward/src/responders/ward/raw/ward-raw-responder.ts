@@ -7,8 +7,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import { checkTypeContract } from '../../../contracts/check-type/check-type-contract';
@@ -23,18 +22,16 @@ export const WardRawResponder = async ({
 }: {
   args: readonly string[];
   rootPath: AbsoluteFilePath;
-}): Promise<AdapterResult> => {
-  const result = adapterResultContract.parse({ success: true });
+}): Promise<void> => {
   const runIdArg = args[FIRST_POSITIONAL_INDEX];
   const checkTypeArg = args[SECOND_POSITIONAL_INDEX];
 
   if (!runIdArg || !checkTypeArg) {
     stderr.write('Usage: ward raw <run-id> <check-type>\n');
-    return result;
+    return;
   }
 
   const runId = runIdContract.parse(runIdArg);
   const checkType = checkTypeContract.parse(checkTypeArg);
   await commandRawBroker({ rootPath, runId, checkType });
-  return result;
 };

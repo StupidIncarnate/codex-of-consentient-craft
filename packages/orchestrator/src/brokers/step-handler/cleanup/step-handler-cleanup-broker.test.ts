@@ -17,6 +17,7 @@ describe('stepHandlerCleanupBroker', () => {
     it('EMPTY: {exit 0, everything at zero} => classifies empty', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
         answer: CleanupAnswerStub(),
       });
@@ -36,6 +37,7 @@ describe('stepHandlerCleanupBroker', () => {
     it('VALID: {exit 0, one reaped instance} => classifies done', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
         answer: CleanupAnswerStub({ reaped: [{ id: 'inst_9b2c' }] }),
       });
@@ -54,7 +56,11 @@ describe('stepHandlerCleanupBroker', () => {
   describe('a nonzero exit', () => {
     it('ERROR: {exit 1} => classifies wall', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
-      proxy.cleanupFails({ exitCode: ExitCodeStub({ value: 1 }), output: 'driver crashed' });
+      proxy.cleanupFails({
+        questId: QUEST_ID,
+        exitCode: ExitCodeStub({ value: 1 }),
+        output: 'driver crashed',
+      });
 
       const result = await stepHandlerCleanupBroker({
         args: [],
@@ -70,7 +76,11 @@ describe('stepHandlerCleanupBroker', () => {
   describe('the spawned call', () => {
     it('VALID: {any run} => spawns dungeonmaster siegelense cleanup --json', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
-      proxy.cleanupExits({ exitCode: ExitCodeStub({ value: 0 }), answer: CleanupAnswerStub() });
+      proxy.cleanupExits({
+        questId: QUEST_ID,
+        exitCode: ExitCodeStub({ value: 0 }),
+        answer: CleanupAnswerStub(),
+      });
 
       await stepHandlerCleanupBroker({
         args: [],
@@ -84,7 +94,11 @@ describe('stepHandlerCleanupBroker', () => {
 
     it('VALID: {any run} => cwd is the quest repo root', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
-      proxy.cleanupExits({ exitCode: ExitCodeStub({ value: 0 }), answer: CleanupAnswerStub() });
+      proxy.cleanupExits({
+        questId: QUEST_ID,
+        exitCode: ExitCodeStub({ value: 0 }),
+        answer: CleanupAnswerStub(),
+      });
 
       await stepHandlerCleanupBroker({
         args: [],
@@ -101,6 +115,7 @@ describe('stepHandlerCleanupBroker', () => {
     it('VALID: {cleanup output} => a line reaches the callback DURING the run', async () => {
       const proxy = stepHandlerCleanupBrokerProxy();
       proxy.cleanupExits({
+        questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
         answer: CleanupAnswerStub({ lockReleased: true }),
       });

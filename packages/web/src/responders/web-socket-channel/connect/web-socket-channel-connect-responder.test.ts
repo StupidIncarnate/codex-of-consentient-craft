@@ -13,14 +13,5 @@ describe('WebSocketChannelConnectResponder', () => {
 
       expect(webSocketChannelState.isConnected()).toBe(true);
     });
-
-    it('VALID: {responder return} => returns success AdapterResult', () => {
-      const proxy = WebSocketChannelConnectResponderProxy();
-      proxy.setupEmpty();
-
-      const result = WebSocketChannelConnectResponder();
-
-      expect(result).toStrictEqual({ success: true });
-    });
   });
 });

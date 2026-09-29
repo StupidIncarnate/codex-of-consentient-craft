@@ -10,8 +10,6 @@ import { document } from '#gateway/browser/document';
 import { createElement } from '#gateway/npm/react';
 import type { ComponentType, ReactNode } from '#gateway/npm/react';
 import { createRoot } from '#gateway/npm/react-dom__client';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
 export const reactRootMountBroker = ({
   rootElementId,
@@ -21,7 +19,7 @@ export const reactRootMountBroker = ({
   rootElementId: string;
   Wrapper: ComponentType<{ children: ReactNode }>;
   content: ReactNode;
-}): AdapterResult => {
+}): void => {
   const element = document.getElementById(rootElementId);
 
   if (!element) {
@@ -29,6 +27,4 @@ export const reactRootMountBroker = ({
   }
 
   createRoot(element).render(createElement(Wrapper, null, content));
-
-  return adapterResultContract.parse({ success: true });
 };

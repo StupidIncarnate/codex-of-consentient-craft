@@ -6,17 +6,13 @@
  * // After this, webSocketChannelState.connect has been invoked with ws[s]://<host>/ws
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-
 import { location } from '#gateway/browser/location';
 
 import { wsUrlContract } from '../../../contracts/ws-url/ws-url-contract';
 import { webSocketChannelState } from '../../../state/web-socket-channel/web-socket-channel-state';
 
-export const WebSocketChannelConnectResponder = (): AdapterResult => {
+export const WebSocketChannelConnectResponder = (): void => {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const url = wsUrlContract.parse(`${protocol}://${location.host}/ws`);
   webSocketChannelState.connect({ url });
-  return adapterResultContract.parse({ success: true });
 };

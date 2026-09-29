@@ -170,12 +170,13 @@ describe('draftImagesSaveBroker', () => {
     it('EMPTY: {attachments: []} against an already-empty store => leaves it empty and resolves via the adapter', async () => {
       const proxy = draftImagesSaveBrokerProxy();
 
-      const result = await draftImagesSaveBroker({
-        scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
-        attachments: [],
-      });
+      await expect(
+        draftImagesSaveBroker({
+          scopeKey: ComposerScopeKeyStub({ value: 'quest-a' }),
+          attachments: [],
+        }),
+      ).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.getStoredDrafts()).toStrictEqual([]);
     });
 

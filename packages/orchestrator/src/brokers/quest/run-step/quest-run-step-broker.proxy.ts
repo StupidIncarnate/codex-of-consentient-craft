@@ -7,7 +7,7 @@
  * USAGE:
  * const proxy = questRunStepBrokerProxy();
  * proxy.setupQuest({ quest });
- * proxy.handlerReturns({ result: StepHandlerResultStub({ outcome: 'done' }) });
+ * proxy.handlerReturns({ step, result: StepHandlerResultStub({ outcome: 'done' }) });
  * // ...call questRunStepBroker...
  * expect(proxy.getPersistedQuest().workItems[0].declaredWord).toBe('done');
  *
@@ -20,6 +20,7 @@ import type { Quest } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
+import type { RunStepStub } from '../../../contracts/run-step/run-step.stub';
 import type { StepHandlerResultStub } from '../../../contracts/step-handler-result/step-handler-result.stub';
 import { stepHandlerRunBroker } from '../../step-handler/run/step-handler-run-broker';
 import { stepHandlerRunBrokerProxy } from '../../step-handler/run/step-handler-run-broker.proxy';
@@ -29,42 +30,32 @@ registerModuleMock({ module: '../../step-handler/run/step-handler-run-broker' })
 
 type QuestInput = ReturnType<typeof QuestStub>;
 type StepHandlerResult = ReturnType<typeof StepHandlerResultStub>;
+type RunStep = ReturnType<typeof RunStepStub>;
 // The handler's own parameter object. `callsMatching` hands back `unknown[][]`, which is genuinely
 // all the mock knows; naming the shape through the function it recorded is the one place that
 // information exists.
 type HandlerCall = Parameters<typeof stepHandlerRunBroker>[0];
 
-// `stepHandlerWardBrokerProxy`, composed through `stepHandlerRunBrokerProxy`, module-mocks
-// `questFindQuestPathBroker` to answer `guilds/g1/quests/add-auth` for every quest in any suite that
-// loads it, this one included. The quest file is staged where that lookup points, not under the
-// quest stub's own folder.
-const MOCKED_GUILD_DIR = 'g1';
-const MOCKED_QUEST_FOLDER = 'add-auth';
-
 export const questRunStepBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
-  handlerReturns: (params: { result: StepHandlerResult }) => void;
+  handlerReturns: (params: { step: RunStep; result: StepHandlerResult }) => void;
   getHandlerCalls: () => readonly HandlerCall[];
   getPersistedQuest: () => Quest;
   getAllPersistedQuests: () => readonly Quest[];
 } => {
-  // Composed first: the ward handler's proxy stages its own `questFindQuestPathBroker` answer, and
-  // the update proxy's real-broker default for that function would replace it if it came later.
   const updateProxy = questOperationsUpdateBrokerProxy();
   stepHandlerRunBrokerProxy();
   const handlerHandle = registerMock({ fn: stepHandlerRunBroker });
 
   return {
     setupQuest: ({ quest }: { quest: QuestInput }): void => {
-      updateProxy.setupQuestOnDisk({
-        quest,
-        guildDirName: MOCKED_GUILD_DIR,
-        folderName: MOCKED_QUEST_FOLDER,
-      });
+      updateProxy.setupQuestOnDisk({ quest });
     },
 
-    handlerReturns: ({ result }: { result: StepHandlerResult }): void => {
-      handlerHandle.calledWith([]).resolves(result);
+    handlerReturns: ({ step, result }: { step: RunStep; result: StepHandlerResult }): void => {
+      handlerHandle
+        .calledWith([{ handler: step.handler, questId: step.questId, workItemId: step.workItemId }])
+        .resolves(result);
     },
 
     getHandlerCalls: (): readonly HandlerCall[] =>

@@ -17,7 +17,7 @@ type QuestModifiedHandler = (event: {
 
 export const smoketestScenarioDriverBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
-  setupQuestNotFound: () => void;
+  setupQuestNotFound: (params: { questId: string }) => void;
   getAllPersistedContents: () => readonly unknown[];
   subscribe: (handler: QuestModifiedHandler) => void;
   unsubscribe: (handler: QuestModifiedHandler) => void;
@@ -48,8 +48,8 @@ export const smoketestScenarioDriverBrokerProxy = (): {
       sweepProxy.setupQuestFound({ quest });
       sweepProxy.setupQuestFound({ quest });
     },
-    setupQuestNotFound: (): void => {
-      sweepProxy.setupQuestNotFound();
+    setupQuestNotFound: ({ questId }: { questId: string }): void => {
+      sweepProxy.setupQuestNotFound({ questId });
     },
     getAllPersistedContents: (): readonly unknown[] => sweepProxy.getAllPersistedContents(),
     subscribe: (handler: QuestModifiedHandler): void => {

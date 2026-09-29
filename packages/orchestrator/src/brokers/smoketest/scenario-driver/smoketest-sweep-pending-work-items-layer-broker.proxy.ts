@@ -26,7 +26,7 @@ const questFolderPathFor = ({ quest }: { quest: Quest }): FilePathValue =>
 
 export const smoketestSweepPendingWorkItemsLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => { questFolderPath: FilePathValue };
-  setupQuestNotFound: () => void;
+  setupQuestNotFound: (params: { questId: string }) => void;
   getAllPersistedContents: () => readonly unknown[];
   // The persisted bytes parsed back into overrides, so a test can assert the RESOLVED prompt text
   // without importing the quest contract itself.
@@ -57,8 +57,8 @@ export const smoketestSweepPendingWorkItemsLayerBrokerProxy = (): {
       stampProxy.setupQuestFound({ quest });
       return { questFolderPath: questFolderPathFor({ quest }) };
     },
-    setupQuestNotFound: (): void => {
-      stampProxy.setupQuestNotFound();
+    setupQuestNotFound: ({ questId }: { questId: string }): void => {
+      stampProxy.setupQuestNotFound({ questId });
     },
     getAllPersistedContents: (): readonly unknown[] => stampProxy.getAllPersistedContents(),
     getStampedOverrides: (): readonly (PromptText | undefined)[] =>

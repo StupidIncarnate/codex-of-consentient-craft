@@ -15,11 +15,7 @@
  */
 
 import { rm } from '#gateway/node/fs__promises';
-import {
-  filePathContract,
-  type AdapterResult,
-  type NetworkPort,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract, type NetworkPort } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
@@ -30,7 +26,7 @@ export const e2eArtifactsRemoveBroker = async ({
 }: {
   packageRoot: AbsoluteFilePath;
   port: NetworkPort;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const [cache] = e2eArtifactsStatics.artifacts;
 
   const cachePath = filePathContract.parse(
@@ -45,6 +41,4 @@ export const e2eArtifactsRemoveBroker = async ({
     // A cleanup must never change a check's verdict. Reclaiming disk is worth nothing next to
     // reporting an e2e run that really passed as a crash.
   }
-
-  return { success: true as const };
 };

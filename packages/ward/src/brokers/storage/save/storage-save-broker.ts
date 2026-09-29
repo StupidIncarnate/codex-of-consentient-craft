@@ -8,11 +8,9 @@
 
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import {
-  adapterResultContract,
   fileContentsContract,
   filePathContract,
   type AbsoluteFilePath,
-  type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
 
 import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
@@ -23,7 +21,7 @@ export const storageSaveBroker = async ({
 }: {
   rootPath: AbsoluteFilePath;
   wardResult: WardResult;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
   await ensureDir(wardDir);
 
@@ -31,5 +29,4 @@ export const storageSaveBroker = async ({
   const contents = fileContentsContract.parse(JSON.stringify(wardResult));
 
   await writeFile(filePath, contents);
-  return adapterResultContract.parse({ success: true });
 };
