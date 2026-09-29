@@ -1,5 +1,8 @@
 import { hasInlineStatusSetElementsLayerBrokerProxy } from './has-inline-status-set-elements-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
+import {
+  TsestreeStub,
+  TsestreeNodeType,
+} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('hasInlineStatusSetElementsLayerBroker', () => {
   describe('missing elements', () => {

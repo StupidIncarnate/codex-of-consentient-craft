@@ -1,5 +1,8 @@
 import { isPackageNameComparisonOperandGuard } from './is-package-name-comparison-operand-guard';
-import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
+import {
+  TsestreeStub,
+  TsestreeNodeType,
+} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('isPackageNameComparisonOperandGuard', () => {
   describe('missing node', () => {

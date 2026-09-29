@@ -1,4 +1,7 @@
-import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
+import {
+  TsestreeStub,
+  TsestreeNodeType,
+} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 import { packageNameLiteralStatics } from '../../statics/package-name-literal/package-name-literal-statics';
 import { effectiveExpressionParentTransformer } from './effective-expression-parent-transformer';
