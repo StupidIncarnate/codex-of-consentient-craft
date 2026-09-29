@@ -21,7 +21,6 @@ export type {
 } from './contracts/eslint-context/eslint-context-contract';
 export type { Tsestree } from './contracts/tsestree/tsestree-contract';
 export { tsestreeContract } from './contracts/tsestree/tsestree-contract';
-export { TsestreeStub, TsestreeNodeType } from './contracts/tsestree/tsestree.stub';
 
 // Export adapters for writing custom rule tests
 
