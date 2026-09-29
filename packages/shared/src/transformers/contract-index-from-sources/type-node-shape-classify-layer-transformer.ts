@@ -3,15 +3,22 @@
  * this to tell a type inferred from a schema (`z.infer<typeof xContract>`) from the three shapes Zod
  * has no schema for: a function type or method set (a call-signature property and a `length`
  * member included), and data plus functions
- * (`z.infer<typeof xContract> & { send: () => void }`).
+ * (`z.infer<typeof xContract> & { send: () => void }`). A reference to a type alias or interface
+ * declared in the same file (`typeAliases`) is read through to its right-hand side, at the top of
+ * the type, as an intersection member and as a property type. An interface keyed only by a same-file
+ * `unique symbol` const (`uniqueSymbolNames`), and `Record`/`Readonly` of one, is a 'phantom' carrier.
  *
  * USAGE:
  * typeNodeShapeClassifyLayerTransformer({ node: typeAlias.type, schemaNames: [IdentifierStub()] });
- * // Returns 'inferred' | 'functions' | 'data-plus-functions' | 'other'
+ * // Returns 'inferred' | 'functions' | 'data-plus-functions' | 'phantom' | 'other'
  */
 import * as ts from '#gateway/npm/typescript';
 
 import type { Identifier } from '../../contracts/identifier/identifier-contract';
+import { lengthPickDetectLayerTransformer } from './length-pick-detect-layer-transformer';
+import { phantomInterfaceDetectLayerTransformer } from './phantom-interface-detect-layer-transformer';
+import { typeAliasResolveLayerTransformer } from './type-alias-resolve-layer-transformer';
+import { typeMemberKindsLayerTransformer } from './type-member-kinds-layer-transformer';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
 
 const INFER_NAMES = contractIndexStatics.types.inferNames;
@@ -20,12 +27,24 @@ const WRAPPER_NAMES = contractIndexStatics.types.wrapperNames;
 export const typeNodeShapeClassifyLayerTransformer = ({
   node,
   schemaNames,
+  typeAliases = [],
+  uniqueSymbolNames = [],
+  visitedNames = [],
 }: {
   node: ts.Node;
   schemaNames: readonly Identifier[];
-}): 'inferred' | 'functions' | 'data-plus-functions' | 'other' => {
+  typeAliases?: readonly { name: Identifier; node: ts.Node }[];
+  uniqueSymbolNames?: readonly Identifier[];
+  visitedNames?: readonly Identifier[];
+}): 'inferred' | 'functions' | 'data-plus-functions' | 'phantom' | 'other' => {
   if (ts.isParenthesizedTypeNode(node)) {
-    return typeNodeShapeClassifyLayerTransformer({ node: node.type, schemaNames });
+    return typeNodeShapeClassifyLayerTransformer({
+      node: node.type,
+      schemaNames,
+      typeAliases,
+      uniqueSymbolNames,
+      visitedNames,
+    });
   }
 
   if (ts.isFunctionTypeNode(node)) {
@@ -34,29 +53,13 @@ export const typeNodeShapeClassifyLayerTransformer = ({
 
   if (ts.isTypeLiteralNode(node) || ts.isInterfaceDeclaration(node)) {
     const { members } = node;
-    const memberKinds = members.map((member) => {
-      if (ts.isMethodSignature(member)) {
-        return 'function';
-      }
-      if (!ts.isPropertySignature(member) || member.type === undefined) {
-        return 'data';
-      }
-      if (ts.isFunctionTypeNode(member.type)) {
-        return 'function';
-      }
-      if (
-        ts.isTypeLiteralNode(member.type) &&
-        member.type.members.length > 0 &&
-        member.type.members.every((inner) => inner.kind === ts.SyntaxKind.CallSignature)
-      ) {
-        return 'function';
-      }
-      return ts.isIdentifier(member.name) &&
-        member.name.text === 'length' &&
-        member.type.kind === ts.SyntaxKind.NumberKeyword
-        ? 'length'
-        : 'data';
-    });
+    const memberKinds = typeMemberKindsLayerTransformer({ members, typeAliases, visitedNames });
+    if (
+      ts.isInterfaceDeclaration(node) &&
+      phantomInterfaceDetectLayerTransformer({ declaration: node, uniqueSymbolNames })
+    ) {
+      return 'phantom';
+    }
     const isMethodSet = memberKinds.includes('function') && !memberKinds.includes('data');
     return isMethodSet && !(ts.isInterfaceDeclaration(node) && node.heritageClauses !== undefined)
       ? 'functions'
@@ -82,22 +85,30 @@ export const typeNodeShapeClassifyLayerTransformer = ({
     }
 
     if (ts.isIdentifier(typeName) && typeName.text === 'Readonly' && firstArgument !== undefined) {
-      return typeNodeShapeClassifyLayerTransformer({ node: firstArgument, schemaNames }) ===
-        'functions'
-        ? 'functions'
+      const wrapped = typeNodeShapeClassifyLayerTransformer({
+        node: firstArgument,
+        schemaNames,
+        typeAliases,
+        uniqueSymbolNames,
+        visitedNames,
+      });
+      return wrapped === 'functions' || wrapped === 'phantom' ? wrapped : 'other';
+    }
+
+    const [, recordValue] = typeArguments ?? [];
+    if (ts.isIdentifier(typeName) && typeName.text === 'Record' && recordValue !== undefined) {
+      return typeNodeShapeClassifyLayerTransformer({
+        node: recordValue,
+        schemaNames,
+        typeAliases,
+        uniqueSymbolNames,
+        visitedNames,
+      }) === 'phantom'
+        ? 'phantom'
         : 'other';
     }
 
-    const [, keyArgument] = typeArguments ?? [];
-    if (
-      ts.isIdentifier(typeName) &&
-      typeName.text === 'Pick' &&
-      firstArgument !== undefined &&
-      firstArgument.kind === ts.SyntaxKind.ArrayType &&
-      keyArgument !== undefined &&
-      keyArgument.kind === ts.SyntaxKind.LiteralType &&
-      ['"length"', "'length'"].includes(keyArgument.getText())
-    ) {
+    if (lengthPickDetectLayerTransformer({ node })) {
       return 'functions';
     }
 
@@ -106,17 +117,38 @@ export const typeNodeShapeClassifyLayerTransformer = ({
       WRAPPER_NAMES.some((wrapperName) => wrapperName === typeName.text)
     ) {
       return firstArgument !== undefined &&
-        typeNodeShapeClassifyLayerTransformer({ node: firstArgument, schemaNames }) === 'inferred'
+        typeNodeShapeClassifyLayerTransformer({
+          node: firstArgument,
+          schemaNames,
+          typeAliases,
+          uniqueSymbolNames,
+          visitedNames,
+        }) === 'inferred'
         ? 'inferred'
         : 'other';
     }
 
-    return 'other';
+    const alias = typeAliasResolveLayerTransformer({ typeNode: node, typeAliases, visitedNames });
+    return alias === undefined
+      ? 'other'
+      : typeNodeShapeClassifyLayerTransformer({
+          node: alias.node,
+          schemaNames,
+          typeAliases,
+          uniqueSymbolNames,
+          visitedNames: [...visitedNames, alias.name],
+        });
   }
 
   if (ts.isIntersectionTypeNode(node)) {
     const shapes = node.types.map((member) =>
-      typeNodeShapeClassifyLayerTransformer({ node: member, schemaNames }),
+      typeNodeShapeClassifyLayerTransformer({
+        node: member,
+        schemaNames,
+        typeAliases,
+        uniqueSymbolNames,
+        visitedNames,
+      }),
     );
     if (shapes.every((shape) => shape === 'functions')) {
       return 'functions';

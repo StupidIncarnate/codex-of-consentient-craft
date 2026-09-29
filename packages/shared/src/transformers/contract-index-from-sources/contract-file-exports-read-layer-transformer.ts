@@ -2,7 +2,8 @@
  * PURPOSE: Reads what a `-contract.ts` file exports: its consts, and for every exported type whether
  * it is inferred from a schema declared in the same file or exempt because Zod has no schema for it.
  * An alias or interface with type parameters is exempt as a compile-time type; a function type, a
- * method set and data plus functions are exempt through the shape classifier.
+ * method set, data plus functions and a unique-symbol phantom carrier are exempt through the shape
+ * classifier, which reads same-file aliases through `typeAliases`.
  *
  * USAGE:
  * contractFileExportsReadLayerTransformer({ sourceFile });
@@ -37,6 +38,29 @@ export const contractFileExportsReadLayerTransformer = ({
       ts.isIdentifier(declaration.name) ? [identifierContract.parse(declaration.name.text)] : [],
     );
 
+  const uniqueSymbolNames = sourceFile.statements
+    .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
+    .flatMap((statement) => statement.declarationList.declarations)
+    .flatMap((declaration) =>
+      ts.isIdentifier(declaration.name) &&
+      declaration.type !== undefined &&
+      declaration.type.kind === ts.SyntaxKind.TypeOperator &&
+      declaration.type.getText() === 'unique symbol'
+        ? [identifierContract.parse(declaration.name.text)]
+        : [],
+    );
+
+  const typeAliases = sourceFile.statements
+    .filter(
+      (statement): statement is ts.TypeAliasDeclaration | ts.InterfaceDeclaration =>
+        (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) &&
+        statement.typeParameters === undefined,
+    )
+    .map((statement) => ({
+      name: identifierContract.parse(statement.name.text),
+      node: ts.isTypeAliasDeclaration(statement) ? statement.type : statement,
+    }));
+
   const exportedConstNames = exportedStatements
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
     .flatMap((statement) => statement.declarationList.declarations)
@@ -53,6 +77,9 @@ export const contractFileExportsReadLayerTransformer = ({
       const shape = typeNodeShapeClassifyLayerTransformer({
         node: ts.isTypeAliasDeclaration(declaration) ? declaration.type : declaration,
         schemaNames,
+        typeAliases,
+        uniqueSymbolNames,
+        visitedNames: [identifierContract.parse(declaration.name.text)],
       });
       return {
         typeName: identifierContract.parse(declaration.name.text),
@@ -60,6 +87,7 @@ export const contractFileExportsReadLayerTransformer = ({
         isExempt:
           shape === 'functions' ||
           shape === 'data-plus-functions' ||
+          shape === 'phantom' ||
           declaration.typeParameters !== undefined,
       };
     });

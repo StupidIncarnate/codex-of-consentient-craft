@@ -79,6 +79,65 @@ describe('contractFileExportsReadLayerTransformer', () => {
       });
     });
 
+    it('VALID: {same-file z.infer alias, function alias, data alias} => exempts the intersections and the function carrier only', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/thing-contract.ts',
+        [
+          'export const thingContract = z.object({ id: z.string() });',
+          'type ThingData = z.infer<typeof thingContract>;',
+          'type Send = () => void;',
+          'type Plain = { id: string };',
+          'export type Thing = ThingData & { send: Send };',
+          'export type Carrier = { handler: Send };',
+          'export type Wrapped = ThingData;',
+          'export type Loose = { id: Plain };',
+          'export type Extra = ThingData & Plain;',
+        ].join('\n'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractFileExportsReadLayerTransformer({ sourceFile });
+
+      expect(result).toStrictEqual({
+        exportedConstNames: ['thingContract'],
+        typeExports: [
+          { typeName: 'Thing', isSchemaInferred: false, isExempt: true },
+          { typeName: 'Carrier', isSchemaInferred: false, isExempt: true },
+          { typeName: 'Wrapped', isSchemaInferred: true, isExempt: false },
+          { typeName: 'Loose', isSchemaInferred: false, isExempt: false },
+          { typeName: 'Extra', isSchemaInferred: false, isExempt: false },
+        ],
+      });
+    });
+
+    it('VALID: {unique symbol phantom interface, Record of it, interface with data beside the key} => exempts the first two only', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/ingredient-contract.ts',
+        [
+          'declare const ING: unique symbol;',
+          'export interface AnyIngredient { readonly [ING]: unknown }',
+          'export type Registry = Record<string, AnyIngredient>;',
+          'export interface Mixed { readonly [ING]: unknown; id: string }',
+          'export type MixedRegistry = Record<string, Mixed>;',
+        ].join('\n'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractFileExportsReadLayerTransformer({ sourceFile });
+
+      expect(result).toStrictEqual({
+        exportedConstNames: [],
+        typeExports: [
+          { typeName: 'AnyIngredient', isSchemaInferred: false, isExempt: true },
+          { typeName: 'Registry', isSchemaInferred: false, isExempt: true },
+          { typeName: 'Mixed', isSchemaInferred: false, isExempt: false },
+          { typeName: 'MixedRegistry', isSchemaInferred: false, isExempt: false },
+        ],
+      });
+    });
+
     it('VALID: {unexported const, destructured export} => lists only exported identifier consts', () => {
       const sourceFile = ts.createSourceFile(
         '/repo/thing-contract.ts',
