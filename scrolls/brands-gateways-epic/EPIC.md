@@ -119,7 +119,7 @@ holds every earlier handoff.
 - **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
   - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01 to B03; server B01 to B03;
     siegelense S01 to S05 (siegelense uses its own re-census, not the plan's section; see below).
-  - Hand batches left: web B31 onward (about 87), orchestrator B04
+  - Hand batches left (all agents stopped at a batch boundary): web B31 onward (about 87), orchestrator B04
     onward (51), server B04 onward (7), siegelense S06 onward (28), and every batch for shared (16), testing (12,
     re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
     config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
@@ -145,11 +145,10 @@ holds every earlier handoff.
   morning of 2026-09-28. Every commit was gated by ward on its package plus the packages composing its proxies, and
   web's full e2e (131 files) passed before every web commit group.
 
-### Agents still running when the operator stopped dispatching
+### The last five agents (all reported and committed)
 
-The user said: launch no more agents. These five were mid-task; the operator commits each one's result as it
-reports and gives none a next batch. If a result below still reads "running", check `git status` and the agent's
-last report; uncommitted work in that area is that agent's.
+The user said: launch no more agents. These five were mid-task at that point; each has since reported and been
+committed, and none was given a next batch. No agent is running and `packages/` has no uncommitted change.
 
 | Agent | Work | State |
 |---|---|---|
@@ -179,7 +178,7 @@ last report; uncommitted work in that area is that agent's.
 ### First steps for the next operator
 
 1. Read "How to operate". Set the heartbeat cron (rule 2) only if the user wants agents dispatched again.
-2. `git status`: commit or finish whatever the five agents above left (each area is named in the table).
+2. Restore the two tests F77 lists (siegelense `instance-start`) before any new A18 batch.
 3. `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`; wait on it), `npm run check:consumer`,
    `npm run check:published`. Fix every red (rule 4). Refresh `package-lock.json` (`npm install --package-lock-only`)
    for hydration-recipes' new `@dungeonmaster/npm` and `@gateway/npm`'s new `tsx` dependencies.
