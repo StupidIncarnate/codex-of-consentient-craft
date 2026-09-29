@@ -54,10 +54,29 @@ describe('gitDiffUncommittedBroker', () => {
 
       await gitDiffUncommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
-        ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
-        ['ls-files', '--others', '--exclude-standard'],
-      ]);
+      expect({
+        diff: proxy.getDiffCalls(),
+        untracked: proxy.getUntrackedCalls(),
+      }).toStrictEqual({
+        diff: [
+          [
+            {
+              command: 'git',
+              args: ['diff', 'HEAD', '--name-only', '--diff-filter=d'],
+              cwd: '/project',
+            },
+          ],
+        ],
+        untracked: [
+          [
+            {
+              command: 'git',
+              args: ['ls-files', '--others', '--exclude-standard'],
+              cwd: '/project',
+            },
+          ],
+        ],
+      });
     });
   });
 
@@ -97,10 +116,8 @@ describe('gitDiffUncommittedBroker', () => {
   });
 
   describe('git is not on this machine', () => {
-    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
-    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
-    // RunNotFoundError, which this broker catches and folds back into that same failed-run shape
-    // for both parallel calls.
+    // The gateway throws GitNotInstalledError for a missing `git`; the broker folds it into an
+    // empty reading.
     it('ERROR: {git is not on this machine} => returns empty array, same as a clean working tree', async () => {
       const proxy = gitDiffUncommittedBrokerProxy();
       proxy.setupGitNotFound();

@@ -17,7 +17,7 @@
  * // Returns GitRelativePath[] covering every commit this branch added on top of origin/main
  */
 
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { diffFiles, gitRun, GitNotInstalledError } from '#gateway/bin/git';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
@@ -30,46 +30,43 @@ export const gitDiffCommittedBroker = async ({
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitRelativePath[]> => {
-  // Origin's default branch first, the LOCAL one only as a fallback: a repo with no remote at all
-  // (a fresh `git init`, an offline clone that has never fetched) still has a main line worth
-  // measuring from, and refusing to answer there would leave `--committed` permanently empty.
-  const baseBranch =
-    (await gitDetectOriginDefaultBranchBroker({ cwd })) ??
-    (await gitDetectDefaultBranchBroker({ cwd }));
+  // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
+  // result — folded into an empty answer so it reads as "no merge base" / "empty diff", exactly as
+  // it always has.
+  try {
+    // Origin's default branch first, the LOCAL one only as a fallback: a repo with no remote at all
+    // (a fresh `git init`, an offline clone that has never fetched) still has a main line worth
+    // measuring from, and refusing to answer there would leave `--committed` permanently empty.
+    const baseBranch =
+      (await gitDetectOriginDefaultBranchBroker({ cwd })) ??
+      (await gitDetectDefaultBranchBroker({ cwd }));
 
-  if (baseBranch === null) {
-    return [];
-  }
+    if (baseBranch === null) {
+      return [];
+    }
 
-  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
-  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
-  // for an ENOENT, so this reads as "no merge base" / "empty diff" below, exactly as it always has.
-  const mergeBaseResult = await run({
-    command: 'git',
-    args: ['merge-base', 'HEAD', String(baseBranch)],
-    cwd,
-  }).catch((error: unknown) => {
-    if (!(error instanceof RunNotFoundError)) {
+    const mergeBaseResult = await gitRun({
+      args: ['merge-base', 'HEAD', String(baseBranch)],
+      cwd,
+    });
+
+    if (mergeBaseResult.exitCode !== 0) {
+      return [];
+    }
+
+    // `<merge-base>...HEAD` ends at HEAD, never the working tree; `excludeDeleted` keeps a removed
+    // path out of the set a check runner will open.
+    const files = await diffFiles({
+      cwd,
+      baseRef: mergeBaseResult.output.trim(),
+      excludeDeleted: true,
+    });
+
+    return parseDiffOutputTransformer({ output: files.join('\n') });
+  } catch (error: unknown) {
+    if (!(error instanceof GitNotInstalledError)) {
       throw error;
     }
-    return { exitCode: 1, output: '', signal: null, timedOut: false };
-  });
-
-  if (mergeBaseResult.exitCode !== 0) {
     return [];
   }
-
-  const mergeBase = mergeBaseResult.output.trim();
-  const diffResult = await run({
-    command: 'git',
-    args: ['diff', '--name-only', '--diff-filter=d', mergeBase, 'HEAD'],
-    cwd,
-  }).catch((error: unknown) => {
-    if (!(error instanceof RunNotFoundError)) {
-      throw error;
-    }
-    return { exitCode: 1, output: '', signal: null, timedOut: false };
-  });
-
-  return parseDiffOutputTransformer({ output: diffResult.output });
 };

@@ -1,3 +1,4 @@
+import { GitNotInstalledError } from '../git-run/git-not-installed.error';
 import { untrackedFiles } from './untracked-files';
 import { untrackedFilesProxy } from './untracked-files.proxy';
 
@@ -29,6 +30,17 @@ describe('untrackedFiles()', () => {
     const result = await untrackedFiles({ cwd: '/repo' });
 
     expect(result).toStrictEqual([]);
+  });
+
+  it('ERROR: {setupNotFound} => rejects with GitNotInstalledError naming the full command', async () => {
+    const proxy = untrackedFilesProxy();
+    proxy.setupNotFound();
+
+    await expect(untrackedFiles({ cwd: '/repo' })).rejects.toStrictEqual(
+      new GitNotInstalledError(
+        'git ls-files --others --exclude-standard could not start in /repo: "git" never started: ENOENT: open \'git\'',
+      ),
+    );
   });
 
   describe('call inspection', () => {

@@ -21,7 +21,7 @@ describe('gitDiffCommittedBroker', () => {
       ]);
     });
 
-    // The second ref is the whole point of this broker: `git diff <base>` with no second ref
+    // The range ends at HEAD, which is the whole point of this broker: a diff with no second ref
     // compares the base to the WORKING TREE, folding uncommitted edits into a set that claims to be
     // about commits. Naming HEAD is what keeps `--committed` and `--uncommitted` disjoint.
     it('VALID: {origin/main exists} => diffs the merge-base against HEAD, not the working tree', async () => {
@@ -30,26 +30,34 @@ describe('gitDiffCommittedBroker', () => {
 
       await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
 
-      expect(proxy.getDiffArgs()).toStrictEqual([
-        'diff',
-        '--name-only',
-        '--diff-filter=d',
-        'abc123',
-        'HEAD',
+      expect(proxy.getDiffCalls()).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['diff', 'abc123...HEAD', '--name-only', '--diff-filter=d'],
+            cwd: '/project',
+          },
+        ],
       ]);
     });
 
-    it('VALID: {origin/main exists} => takes the merge-base against origin/main', async () => {
+    it('VALID: {origin/main exists} => takes the merge-base against origin/main after verifying it', async () => {
       const proxy = gitDiffCommittedBrokerProxy();
       proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\n' });
 
       await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
 
-      expect(proxy.getSpawnedArgs()).toStrictEqual([
-        ['rev-parse', '--verify', 'origin/main'],
-        ['merge-base', 'HEAD', 'origin/main'],
-        ['diff', '--name-only', '--diff-filter=d', 'abc123', 'HEAD'],
-      ]);
+      expect({
+        revParse: proxy.getOriginRevParseCalls(),
+        mergeBase: proxy.getMergeBaseCalls({ baseBranch: 'origin/main' }),
+      }).toStrictEqual({
+        revParse: [
+          [{ command: 'git', args: ['rev-parse', '--verify', 'origin/main'], cwd: '/project' }],
+        ],
+        mergeBase: [
+          [{ command: 'git', args: ['merge-base', 'HEAD', 'origin/main'], cwd: '/project' }],
+        ],
+      });
     });
 
     it('EMPTY: {nothing committed since the base} => returns empty array', async () => {
@@ -105,13 +113,23 @@ describe('gitDiffCommittedBroker', () => {
   });
 
   describe('git is not on this machine', () => {
-    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
-    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
-    // RunNotFoundError. Both detection brokers this broker calls first fold that into their own
-    // failed-rev-parse shape, so the base branch resolves to null before merge-base is ever run.
+    // Both detection brokers fold the gateway's GitNotInstalledError into null, so the base branch
+    // resolves to null before merge-base is ever run.
     it('ERROR: {git is not on this machine} => returns empty array, same as no branch existing anywhere', async () => {
       const proxy = gitDiffCommittedBrokerProxy();
       proxy.setupGitNotFound();
+
+      const result = await gitDiffCommittedBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    // git vanishes after the base branch resolved: the merge-base call is what cannot start.
+    it('ERROR: {git cannot start at merge-base} => returns empty array', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupGitNotFoundAtMergeBase();
 
       const result = await gitDiffCommittedBroker({
         cwd: AbsoluteFilePathStub({ value: '/project' }),

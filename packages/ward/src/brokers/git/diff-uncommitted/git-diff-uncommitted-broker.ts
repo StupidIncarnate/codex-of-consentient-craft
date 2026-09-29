@@ -16,7 +16,7 @@
  * // Returns GitRelativePath[] — tracked edits first, then untracked additions
  */
 
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { diffFiles, untrackedFiles, GitNotInstalledError } from '#gateway/bin/git';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
@@ -27,47 +27,39 @@ export const gitDiffUncommittedBroker = async ({
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitRelativePath[]> => {
-  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
-  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
-  // for an ENOENT, so this reads as an empty tracked/untracked reading below, exactly as it always has.
-  const [trackedResult, untrackedResult] = await Promise.all([
-    run({
-      command: 'git',
-      args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
+  // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
+  // result — folded into an empty reading, exactly as it always has. The two readings run in
+  // sequence so a missing git stops at the first instead of leaving a second spawn in flight.
+  try {
+    const trackedFiles = await diffFiles({
       cwd,
-    }).catch((error: unknown) => {
-      if (!(error instanceof RunNotFoundError)) {
-        throw error;
+      baseRef: 'HEAD',
+      comparison: 'ref-to-working-tree',
+      excludeDeleted: true,
+    });
+    // `--exclude-standard` (inside untrackedFiles) applies .gitignore and friends, so build output
+    // and node_modules never reach a check runner.
+    const untrackedPaths = await untrackedFiles({ cwd });
+
+    const tracked = parseDiffOutputTransformer({ output: trackedFiles.join('\n') });
+    const untracked = parseDiffOutputTransformer({ output: untrackedPaths.join('\n') });
+
+    // An intent-to-add (`git add -N`) puts one path in BOTH readings, so the union is
+    // de-duplicated on first appearance rather than concatenated — a check runner handed the same
+    // path twice reports it twice.
+    const seen = new Set<GitRelativePath>();
+
+    return [...tracked, ...untracked].filter((file) => {
+      if (seen.has(file)) {
+        return false;
       }
-      return { exitCode: 1, output: '', signal: null, timedOut: false };
-    }),
-    // `--exclude-standard` applies .gitignore and friends, so build output and node_modules never
-    // reach a check runner. Without it the untracked reading is every generated file in the repo.
-    run({
-      command: 'git',
-      args: ['ls-files', '--others', '--exclude-standard'],
-      cwd,
-    }).catch((error: unknown) => {
-      if (!(error instanceof RunNotFoundError)) {
-        throw error;
-      }
-      return { exitCode: 1, output: '', signal: null, timedOut: false };
-    }),
-  ]);
-
-  const tracked = parseDiffOutputTransformer({ output: trackedResult.output });
-  const untracked = parseDiffOutputTransformer({ output: untrackedResult.output });
-
-  // An intent-to-add (`git add -N`) puts one path in BOTH readings, so the union is de-duplicated
-  // on first appearance rather than concatenated — a check runner handed the same path twice
-  // reports it twice.
-  const seen = new Set<GitRelativePath>();
-
-  return [...tracked, ...untracked].filter((file) => {
-    if (seen.has(file)) {
-      return false;
+      seen.add(file);
+      return true;
+    });
+  } catch (error: unknown) {
+    if (!(error instanceof GitNotInstalledError)) {
+      throw error;
     }
-    seen.add(file);
-    return true;
-  });
+    return [];
+  }
 };

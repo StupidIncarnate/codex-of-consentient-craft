@@ -1,3 +1,4 @@
+import { GitNotInstalledError } from '../git-run/git-not-installed.error';
 import { diffFiles } from './diff-files';
 import { diffFilesProxy } from './diff-files.proxy';
 
@@ -48,6 +49,36 @@ describe('diffFiles()', () => {
     const result = await diffFiles({ cwd: '/repo', baseRef: 'a1b2c3d4' });
 
     expect(result).toStrictEqual([]);
+  });
+
+  it('VALID: {excludeDeleted: true} => appends --diff-filter=d so removed paths are not listed', async () => {
+    const proxy = diffFilesProxy();
+    proxy.setupResult({
+      revisionArg: 'HEAD',
+      excludeDeleted: true,
+      exitCode: 0,
+      output: 'packages/a/kept.ts\n',
+    });
+
+    const result = await diffFiles({
+      cwd: '/repo',
+      baseRef: 'HEAD',
+      comparison: 'ref-to-working-tree',
+      excludeDeleted: true,
+    });
+
+    expect(result).toStrictEqual(['packages/a/kept.ts']);
+  });
+
+  it('ERROR: {setupNotFound} => rejects with GitNotInstalledError naming the full command', async () => {
+    const proxy = diffFilesProxy();
+    proxy.setupNotFound({ revisionArg: 'a1b2c3d4...HEAD' });
+
+    await expect(diffFiles({ cwd: '/repo', baseRef: 'a1b2c3d4' })).rejects.toStrictEqual(
+      new GitNotInstalledError(
+        'git diff a1b2c3d4...HEAD --name-only could not start in /repo: "git" never started: ENOENT: open \'git\'',
+      ),
+    );
   });
 
   describe('tolerant addressing', () => {

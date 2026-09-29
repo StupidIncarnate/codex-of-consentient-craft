@@ -1,18 +1,20 @@
-import { runProxy } from '#gateway/node/child_process/run/run.proxy';
-import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { diffFilesProxy } from '#gateway/bin/git/diff-files/diff-files.proxy';
+import { GitNotInstalledErrorProxy } from '#gateway/bin/git/git-run/git-not-installed.error.proxy';
+import { untrackedFilesProxy } from '#gateway/bin/git/untracked-files/untracked-files.proxy';
 
-// The `git diff` and the `git ls-files` are both spawned as bare `git`, so runProxy's own staging
-// (addressed by `{command, args}` since F25) tells the two calls apart — the broker awaits them
-// through Promise.all, so no ordering matters anyway.
+// The tracked reading is `git diff HEAD --name-only --diff-filter=d` and the untracked one is
+// `git ls-files --others --exclude-standard`, each staged by its exact args through the gateway's
+// own proxy.
 export const gitDiffUncommittedBrokerProxy = (): {
   setupWorkingTree: (params: { trackedOutput: string; untrackedOutput: string }) => void;
   setupGitNotFound: () => void;
-  getSpawnedArgs: () => readonly unknown[];
+  getDiffCalls: () => readonly unknown[][];
+  getUntrackedCalls: () => readonly unknown[][];
 } => {
-  const run = runProxy();
-  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
-  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
-  RunNotFoundErrorProxy();
+  const diffFiles = diffFilesProxy();
+  const untrackedFiles = untrackedFilesProxy();
+  // Created but unstaged: GitNotInstalledError is a plain class with nothing to mock.
+  GitNotInstalledErrorProxy();
 
   return {
     setupWorkingTree: ({
@@ -22,37 +24,24 @@ export const gitDiffUncommittedBrokerProxy = (): {
       trackedOutput: string;
       untrackedOutput: string;
     }): void => {
-      run.setupSuccess({
-        command: 'git',
-        args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
+      diffFiles.setupResult({
+        revisionArg: 'HEAD',
+        excludeDeleted: true,
         exitCode: 0,
-        stdout: trackedOutput,
-        stderr: '',
+        output: trackedOutput,
       });
-      run.setupSuccess({
-        command: 'git',
-        args: ['ls-files', '--others', '--exclude-standard'],
-        exitCode: 0,
-        stdout: untrackedOutput,
-        stderr: '',
-      });
+      untrackedFiles.setupResult({ exitCode: 0, output: untrackedOutput });
     },
 
-    // git itself is missing: both parallel calls reject with RunNotFoundError, which the broker's
-    // own catch folds into an empty reading for each.
+    // git itself is missing: the first reading fails to start, the second is never attempted, and
+    // the broker folds that into an empty reading.
     setupGitNotFound: (): void => {
-      run.setupError({
-        command: 'git',
-        args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
-        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
-      });
-      run.setupError({
-        command: 'git',
-        args: ['ls-files', '--others', '--exclude-standard'],
-        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
-      });
+      diffFiles.setupNotFound({ revisionArg: 'HEAD', excludeDeleted: true });
     },
 
-    getSpawnedArgs: (): readonly unknown[] => run.getCallsFor({ command: 'git' }),
+    getDiffCalls: (): readonly unknown[][] =>
+      diffFiles.getCallsFor({ revisionArg: 'HEAD', excludeDeleted: true }),
+
+    getUntrackedCalls: (): readonly unknown[][] => untrackedFiles.getCallsFor(),
   };
 };
