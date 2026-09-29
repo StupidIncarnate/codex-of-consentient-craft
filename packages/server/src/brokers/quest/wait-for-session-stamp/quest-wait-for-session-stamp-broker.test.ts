@@ -1,3 +1,4 @@
+import { NowMsStub } from '#gateway/node/Date/now/now-ms.stub';
 import {
   QuestIdStub,
   QuestStub,
@@ -12,6 +13,8 @@ describe('questWaitForSessionStampBroker', () => {
   describe('returns immediately when no chat workItem awaits its sessionId stamp', () => {
     it('VALID: {quest with no chaoswhisperer workItem} => returns the seed quest', async () => {
       const proxy = questWaitForSessionStampBrokerProxy();
+      const nowMs = NowMsStub();
+      proxy.setupNow({ ms: nowMs });
       const questId = QuestIdStub();
       const codeweaverItem = WorkItemStub({ role: 'codeweaver', status: 'pending' });
       const seed = QuestStub({ id: questId, workItems: [codeweaverItem] });
@@ -20,7 +23,7 @@ describe('questWaitForSessionStampBroker', () => {
       const result = await questWaitForSessionStampBroker({
         questId,
         current: seed,
-        deadline: Date.now() - 1,
+        deadline: nowMs - 1,
       });
 
       expect(result).toStrictEqual(seed);
@@ -28,6 +31,8 @@ describe('questWaitForSessionStampBroker', () => {
 
     it('VALID: {chaoswhisperer with sessionId already stamped} => returns the seed quest without polling', async () => {
       const proxy = questWaitForSessionStampBrokerProxy();
+      const nowMs = NowMsStub();
+      proxy.setupNow({ ms: nowMs });
       const questId = QuestIdStub();
       const sessionId = SessionIdStub();
       const stampedItem = WorkItemStub({
@@ -41,7 +46,7 @@ describe('questWaitForSessionStampBroker', () => {
       const result = await questWaitForSessionStampBroker({
         questId,
         current: seed,
-        deadline: Date.now() - 1,
+        deadline: nowMs - 1,
       });
 
       expect(result).toStrictEqual(seed);
@@ -51,6 +56,8 @@ describe('questWaitForSessionStampBroker', () => {
   describe('returns the un-stamped seed when budget is exhausted', () => {
     it('VALID: {pending chaoswhisperer with no sessionId, deadline already passed} => returns seed without retry', async () => {
       const proxy = questWaitForSessionStampBrokerProxy();
+      const nowMs = NowMsStub();
+      proxy.setupNow({ ms: nowMs });
       const questId = QuestIdStub();
       const unstampedItem = WorkItemStub({ role: 'chaoswhisperer', status: 'pending' });
       const seed = QuestStub({ id: questId, workItems: [unstampedItem] });
@@ -59,7 +66,7 @@ describe('questWaitForSessionStampBroker', () => {
       const result = await questWaitForSessionStampBroker({
         questId,
         current: seed,
-        deadline: Date.now() - 1,
+        deadline: nowMs - 1,
       });
 
       expect(result).toStrictEqual(seed);

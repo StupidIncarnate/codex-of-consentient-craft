@@ -16,6 +16,8 @@
  * pending) — there's nothing to wait for. Bail-out is automatic via the role+status check.
  */
 
+import { now } from '#gateway/node/Date';
+import { setTimeout } from '#gateway/node/setTimeout';
 import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import {
   isChatWorkItemRoleGuard,
@@ -38,7 +40,7 @@ export const questWaitForSessionStampBroker = async ({
   intervalMs?: number;
 }): Promise<Quest> => {
   const interval = intervalMs ?? DEFAULT_INTERVAL_MS;
-  const effectiveDeadline = deadline ?? Date.now() + DEFAULT_TOTAL_MS;
+  const effectiveDeadline = deadline ?? now() + DEFAULT_TOTAL_MS;
   const seed = current ?? (await StartOrchestrator.loadQuest({ questId }).catch(() => null));
   if (!seed) {
     throw new Error(`questWaitForSessionStampBroker: failed to load quest ${questId}`);
@@ -50,7 +52,7 @@ export const questWaitForSessionStampBroker = async ({
       wi.sessionId === undefined,
   );
   if (!stillUnstamped) return seed;
-  if (Date.now() >= effectiveDeadline) return seed;
+  if (now() >= effectiveDeadline) return seed;
   await new Promise<void>((resolve) => {
     setTimeout(resolve, interval);
   });

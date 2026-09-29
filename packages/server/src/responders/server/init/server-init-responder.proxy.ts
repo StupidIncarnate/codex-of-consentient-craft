@@ -30,12 +30,16 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
+import { NowMsStub } from '#gateway/node/Date/now/now-ms.stub';
 import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
 import { webBundleResponseBrokerProxy } from '../../../brokers/web-bundle/response/web-bundle-response-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { ServerInitResponder } from './server-init-responder';
+
+// Longer than the wait broker's whole poll budget.
+const PAST_DEADLINE_MS = 1000;
 
 // Module-level mock prevents @hono/node-server from loading and registering SIGTERM listeners.
 // Targets the RAW npm specifier, not the gateway barrel — this suppresses the real package's own
@@ -135,7 +139,7 @@ export const ServerInitResponderProxy = (): {
   // SAME shared join handle) plus `${wardResultId}.json`.
   const joinHandle = registerMock({ fn: join });
   wsEventRelayBroadcastBrokerProxy();
-  questWaitForSessionStampBrokerProxy();
+  const waitForStampProxy = questWaitForSessionStampBrokerProxy();
   const webBundleProxy = webBundleResponseBrokerProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
@@ -147,6 +151,14 @@ export const ServerInitResponderProxy = (): {
       // real broker. Staged here rather than at construction, where a child proxy's semantic method
       // may not be called.
       outboxWatchProxy.setupWatchCaptureOnly();
+      // The subscribe-quest replay reads the clock in questWaitForSessionStampBroker: once for its
+      // deadline, then once per poll check. The two ordered readings put that check past the
+      // deadline, so a quest carrying an unstamped chat item ends its poll at once instead of
+      // waiting on the real timer; a quest with nothing to wait for never reads past the first.
+      const startMs = NowMsStub();
+      waitForStampProxy.setupNow({ ms: startMs });
+      waitForStampProxy.setupNowOnce({ ms: startMs });
+      waitForStampProxy.setupNowOnce({ ms: startMs + PAST_DEADLINE_MS });
       // Clean up leftover signal handlers from previous tests to prevent listener leaks.
       // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
       process.removeAllListeners('SIGTERM');
