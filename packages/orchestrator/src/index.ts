@@ -84,12 +84,6 @@ export type { SlotCount } from '@dungeonmaster/shared/contracts';
 export { slotIndexContract } from '@dungeonmaster/shared/contracts';
 export type { SlotIndex } from '@dungeonmaster/shared/contracts';
 
-export { slotManagerResultContract } from './contracts/slot-manager-result/slot-manager-result-contract';
-export type { SlotManagerResult } from './contracts/slot-manager-result/slot-manager-result-contract';
-
-export { followupDepthContract } from './contracts/followup-depth/followup-depth-contract';
-export type { FollowupDepth } from './contracts/followup-depth/followup-depth-contract';
-
 export { workItemIdContract } from './contracts/work-item-id/work-item-id-contract';
 export type { WorkItemId } from './contracts/work-item-id/work-item-id-contract';
 
