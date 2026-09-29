@@ -109,135 +109,59 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### In flight — Phase 2 finish session (2026-09-28, late)
+### Phase 2 handoff (2026-09-29, early morning) — READ THIS FIRST
 
-The user asked to finish Phase 2 (A18 and A19) as fast as possible. This operator's plan:
+A18 is finished in code. A19 prep is committed. What is left for Phase 2 is one uncommitted diff, the A19
+switch-on, and the proving runs. The user stopped the session before the final ward, so every "Gate" below is still
+owed.
 
-1. Fresh three-rule census of every package: `node tmp/a18-census/run.mjs <pkg>` writes `tmp/a18-census/<pkg>.json`
-   (config `tmp/a18-census.config.js`). First run: 745 files with hits; hooks, ward and local-eslint at 0.
-2. A codemod agent writes `tmp/a18-codemod/` (import specifier swaps, same-named gateway imports for globals,
-   read-only `process.X` rewrites), trialled on session-forensics and tooling. Then the operator applies it package
-   by package, gated per package.
-3. A read-only gap census writes `tmp/a18-census/gaps.md`: every gateway proxy method the hand work needs, built
-   first in gateway units, and the hand batches per package (web and orchestrator split into two disjoint halves).
-4. A19's prep runs now (folder type removed, `platform-globals-ban` shorthand and `page.evaluate` carve-out); only
-   the rule switch-on waits for A18.
+**How A18 was finished (for the record).** A fresh three-rule census (`node tmp/a18-census/run.mjs <pkg>`, config
+`tmp/a18-census.config.js`, output `tmp/a18-census/<pkg>.json`); a read-only gap census (`tmp/a18-census/gaps.md`);
+gateway units built before any hand batch (GB4, U1, U2, U3, GN13, GN14, GN15, GBIN1, GNPM-vite); agents working
+queues (`a18-operator/queue-agent-prompt.txt`); and the codemod `tmp/a18-codemod/run.cjs <pkg> [--apply]` (see
+"Scripts used"), which cleared about three quarters of the hits by itself. Commits from a1d6abed6 to a86065b08.
 
-Gap census result (`tmp/a18-census/gaps.md`): gateway units U1 (node fs), U2 (node timers, argv, `createInterface`,
-spawn guard), U3 (npm `eslint-plugin-jest` rules proxy); then about 60 hand batches (web 6, orchestrator 9 starting
-with the one-pass O0-CRYPTO move of 58 files, siegelense 12, shared 8, server 3, testing 3, hydration-recipes 3,
-one each in eslint-plugin, mcp, session-forensics, tooling, cli). Operator decisions: `web/src/widgets/app/
-app-widget.integration.test.tsx` becomes a unit test so it may compose the `connect` proxy; concession 14 (testing's
-timer watcher). A19's final scan uses the repo `eslint.config.js`, whose ignores cover hydration's 32 compile-error
-fixtures.
+**Census now:** 0 in every package except `packages/web/src/main.ts` (three CSS imports, concession 9),
+`packages/testing/src/brokers/timers/watch/timers-watch-broker.ts` (concession 14, already off in `eslint.config.js`),
+and hydration's 32 compile-error fixtures (ignored by the repo `eslint.config.js`; only the census config lacks the
+ignore).
 
-Landed this session: `build:clean` green; GB4 (`@gateway/browser` `consoleError`/`consoleWarn`/`consoleLog`/
-`consoleInfo`/`consoleDebug` with recording proxies, `randomUuid` with `randomUuidProxy`, `#gateway/browser/Date`
-`now`/`nowIso` with `setupNow`). F77 part 1 (write-order test). Active: codemod, A19 prep, U1+U2 (`@gateway/node`, plus `writeFileProxy.succeedsOnce` and a stageable pid for F77), Siegelense final leftovers landed (census 0). Final leftovers landed for orchestrator (census 0), testing, shared, mcp, tooling, session-forensics, eslint-plugin and hydration (census 0 outside concession 14 and hydration's ignored fixtures): `bufferSchema` in `#gateway/node/buffer` (tooling's exec-error contract), testing's integration environment installs through `#gateway/bin/npm` `runScript`, concession 14's file-scoped `platform-globals-ban` off in `eslint.config.js`. Codemod on web (392 of 419), shared (25 of 29) and orchestrator (163 of 208) committed; web e2e 131 of 131 (run 1790663248977-eea6). Final leftovers dispatched from a fresh census (`tmp/a18-final/{orch-a,orch-b,siegelense,misc}.txt`, about 55 files; web 27 hits next). Orchestrator hand queue finished (OA-B1 to B3, O0-B1, timers, the five stderr implementations; `setIntervalProxy({ stageHandleFor })`, `readFileProxy` fallback one-shots (concession 15), `questDeleteBrokerProxy.getAllRmCallArgs`; the start responder's no-spawn check is the unit I/O trap). Orchestrator whole package green on all four checks (run 1790662916651-c157). Web hand queue landed (web-WA-B1 to B4, WB-B1, WB-B2: `consoleError`, `readItem`/`writeItem`/`removeItem` with logged failures, gateway timers; `app-widget.integration.test.tsx` folded into the unit test) with the bundle fix (shared's chat-entry stubs use fixed default uuids, so web's bundle no longer reaches `#gateway/node/crypto`) and GBIN1 (`#gateway/bin/git` `gitRunSync` with `env`; web's environment harness moved). Web e2e 130 of 131 under full load; `rate-limits-live-update.e2e.ts` failed once and passed alone (recheck in the full ward). Open for web: C3 (`vite.config.ts`). Codemod second run committed: cli 0, eslint-plugin 1 left, testing 18 left, siegelense 24 left; `CpNotInstalledErrorProxy` added. Codemod applied and committed: config, hydration-recipes, server to 0; hydration to its 32 ignored fixtures plus 1; mcp 2 left. GN13 `setStdin` (cli-H1 harness moved), `readFileSyncIfExistsProxy.implementsMatchingPath` (enforce-proxy-child-creation proxy moved), GN14 `setImmediate(resolve)` typechecks, testing-H1 straggler done. Codemod ready: `node tmp/a18-codemod/run.cjs <pkg> [--apply]` (TypeScript-checked swaps, per-file typecheck and lint before/after; details in "Scripts used"). Dry run cleared 738 of 1028 hits. Blockers it reports: the gateway `setImmediate` signature rejects `setImmediate(resolve)` (67 hits, orchestrator); 110 swaps need the sibling proxy to compose a gateway proxy (hand work). Shared H1 to H7 landed (architecture proxies on `implementsMatchingPath`/`implementsRawMatchingPath`), with eslint-plugin-H1's create-responder and tmp-environment files, session-forensics-H1, and the codemod's trial on session-forensics and tooling. Open: `rule-enforce-proxy-child-creation-broker.proxy.ts` needs `readFileSyncIfExistsProxy().implementsMatchingPath`; tooling-H1 landed with F78. Small packages landed: hydration-recipes H1 to H3, server H1 to H3, testing H2 and H3, mcp-H1; testing's open-handle `selfFrames` drops `@gateway/node/` and `@gateway/browser/` frames (a timer armed through the gateway otherwise names the wrapper, not the caller). Open: cli-H1 needs a `setStdin` export in `@gateway/node` (the harness rule refuses stdin proxies in a harness); testing-H1 straggler `network-record-capture-broker.proxy.ts` (raw `Request`, `process.stderr`). Orchestrator O0-B2 and OB-B1 to OB-B3 landed (stderr spies on the gateway `stderr`, harness env and fs through the gateway). Siegelense hand queue H1 to H12 landed with F77 part 2 and the production stdout/stderr/setTimeout swaps; siegelense census 28 files, 61 messages left for the codemod. Orchestrator O0-CRYPTO with shared-H8 landed (60 files plus two new transformer proxies: `crypto.randomUUID` becomes gateway `randomUUID`, spies become `registerMock({ fn: randomUUID })`; server, mcp, shared units green). U1+U2 landed (`@gateway/node`: `readFileSyncProxy.implementsMatchingPath`, `readdirEntriesSyncProxy.implementsRawMatchingPath` with `DirentStub`, `readFileProxy.returnsOnce`/`throwsOnce`, `writeFileProxy.succeedsOnce`, call-time `setInterval`/`clearInterval` with `setIntervalProxy.stageHandle`/`getCallsFor` and `clearIntervalProxy.getCallsFor`, `argvProxy.setupArgv`/`restore`, `getPid` with `getPidProxy.setupPid`, `lineReaderProxy.passesThroughFor`, `runProxy.getAllSpawnCalls`; `clearTimeoutProxy.getCallsFor` matches by identity), with testing-H1's two `randomBytes` proxy imports. A19 prep landed, and shared's `startupReferencesArgvGuard` now also sees `argv` imported from `#gateway/node/process` (cli was no longer detected as a cli-tool). U3 landed: `rulesProxy` at `#gateway/npm/eslint-plugin-jest/rules/rules.proxy` (the eslint-plugin create-responder proxy calls it first and drops its raw module mock).
+#### What is left, in order
 
-Last updated 2026-09-28 night, at the end of an operator session. The user asked the operator to launch no more
-agents and to leave this file ready for the next handoff. Read this section, then the status tables. Git history
-holds every earlier handoff.
-
-### Where things stand
-
-- **Phase 2 is complete.** No package has an `adapters/` folder (A13 done, 7cb5ff272). F76 is done.
-- **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
-  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01 to B03; server B01 to B03;
-    siegelense S01 to S05 (siegelense uses its own re-census, not the plan's section; see below).
-  - Hand batches left (all agents stopped at a batch boundary): web B31 onward (about 87), orchestrator B04
-    onward (51), server B04 onward (7), siegelense S06 onward (28), and every batch for shared (16), testing (12,
-    re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
-    config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
-- **Gateway additions this session, all committed and built:** GN5 to GN10 (`stream`/`http`/`zlib`; stdout/stderr
-  recording proxies with `getWrites`/`getWrittenText` and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow`
-  and `setupNowOnce`; fetch `getCallsFor` and `statusText`; unix-socket request/serve fakes; `spawnDetached` staged
-  by args; `rejectsOnce` on the write proxies; `kill` staged by tuple with recorded ESRCH/EPERM/EINVAL; `spawnPiped`;
-  `runSyncWithInput`), GN11 (`setTimeout`/`clearTimeout` proxies), `getPlatform`, `setupCwd`, `getStdin` (a call-time function: a `stdin` const opened a pipe at
-  import), C2's `tsxCliPath` and `tsxLoaderUrl` in `@gateway/npm`, and `@gateway/bin` npm and git not-installed
-  error proxies, `setupNotFound` and `diffFiles` `excludeDeleted`. `bin-program-spawn-ban` watches `spawnPiped` and
-  `runSyncWithInput`.
-- **Decisions made this session:** C2 is a resolver, not a concession. C4 is concession 9 (web's stylesheet imports
-  stay raw in `main.ts`). `calledWith([])`/`onceFor([])` is allowed on a function that takes no arguments
-  (`randomUUID`, `now`); the ban is for functions that take arguments. A `registerMock` on a pure passthrough
-  (`join`, `dirname`, `tmpdir`, `randomUUID`) is allowed; the ban is for wrappers with a real I/O body. A proxy that
-  records a void sink (stdout, stderr, exit) with a read-back is not a catch-all. Concession 13 (mock-staging's own
-  test and `ban-invented-failures`).
-- **Phase 5:** T05 scans 0 in web, testing (apart from concession 13) and all four `@gateway` packages, plus the
-  packages swept earlier; not yet swept: orchestrator, siegelense, hydration-recipes. T04: 2 hits in siegelense.
-  Both rule sets stay off in the shared config.
-- **Build and checks:** every package was built during the session as its source changed; `@gateway/node` needs a
-  build after GN11 lands. A full `npm run ward`, `check:consumer` and `check:published` have not run since the
-  morning of 2026-09-28. Every commit was gated by ward on its package plus the packages composing its proxies, and
-  web's full e2e (131 files) passed before every web commit group.
-
-### The last five agents (all reported and committed)
-
-The user said: launch no more agents. These five were mid-task at that point; each has since reported and been
-committed, and none was given a next batch. No agent is running and `packages/` has no uncommitted change.
-
-| Agent | Work | State |
+| Step | What | Runs with |
 |---|---|---|
-| web | B28 to B30 | done, committed |
-| orchestrator | B03, with `isSpawnedStdout`/`isSpawnedStderr` on the stream-json proxy | done, committed. One raw `readline` import stays in the unified-spawn proxy: tail-file's proxy stages `createInterface` on the raw module and both must share one mock; a gateway-owned `createInterface` proxy would clear it |
-| server | B03 plus `server-init-responder.proxy.ts` clock staging | done, committed |
-| GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` |
-| siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging) | done, committed; two tests were deleted to get there, recorded as F77 (restore them first) |
+| 1 | **Land the uncommitted A18 diff.** In the tree, ungated by the operator: GN15 (`@gateway/node`: `FsStat.inode` on `statSync`, `rm` `maxRetries`/`retryDelay`, `mkdtempSync`, `writeFileBytesSync`), GNPM-vite (`vite` moved to `@gateway/npm` `dependencies`; `#gateway/npm/vite` is TYPE-ONLY — `export type * from 'vite' with { 'resolution-mode': 'import' }` — because the gateway compiles as CommonJS and plain `vite` resolves to its `export = any` CJS entry; `vite.config.ts` uses `satisfies UserConfig` instead of `defineConfig`), web's last three harnesses and `vite.config.ts`, and web's dependency row. The agent gated `@gateway/node` and `@gateway/npm` on all four checks and the web files on lint and typecheck. Operator: `npm run build --workspace=@dungeonmaster/node --workspace=@dungeonmaster/npm` (Playwright and Vite load these from `dist`), `npm install --package-lock-only`, then ward `lint,typecheck,unit,integration` on `packages/@gateway/node packages/@gateway/npm packages/web` and web's full `e2e`, then commit. Record the type-only vite subpath as a concession. | alone (it touches web's e2e) |
+| 2 | **A19 switch-on.** In `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`, uncomment `raw-import-ban`, `platform-globals-ban` and `bin-program-spawn-ban`. Add concession 9's file-scoped `raw-import-ban` off for `packages/web/src/main.ts` in `eslint.config.js` (concession 14's entry is already there). Scan the whole repo with the repo config before switching (every package must read 0 outside the two concessions). Build `eslint-plugin`, `shared` and `hooks` after (hooks serves the pre-edit rules). Set A18 and A19 to `done`. | alone (rules go live for every package at once) |
+| 3 | **Proving runs, the follow-up the user named.** `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`, wait on it), then `npm run check:consumer` and `npm run check:published`. Fix every red (rule 4). Watch for: slow-test flags under load (hydration-recipes' three recipe tests at 1.0 to 1.3s, `execution-panel-widget.test.tsx` lint time), and `rate-limits-live-update.e2e.ts`, which failed once under five agents' load and passed alone. `check:consumer` must also cover the dependency removals (a86065b08) and cli's `bundle` script losing `--external:zod`. | alone |
+| 4 | Open follow-ups from this session: F79 (testing's network-record-capture `as unknown as Request`, and a type-only predicate in `integration-environment-create-broker.proxy.ts`), F77's remaining capacity and recipe-seed broker mocks, and the rule gap the web agent found (`enforce-harness-patterns` accepts `process.env` in a harness constructor but rejects `getEnv()` there). Older open ones: F10, F30, F47, F52, F53, F54, F63, F72. | in parallel with each other, after step 3; one agent per follow-up, disjoint packages |
 
-### How A18 MUST be run from here (user, 2026-09-28 night)
+**What can run in parallel.** Steps 1 to 3 cannot: each changes or grades the whole tree, and a full ward on a tree
+other agents are editing proves nothing. Step 4's follow-ups can run side by side (up to five agents), each on its
+own package, once step 3 is green. Phase 3 and 4 script-development (SD) items write only under `tmp/` and
+`phase34-scripts/`, so they may also run during steps 1 to 3.
 
-The last session ran A18 one 2-to-4-file batch per agent message, with the operator gating and committing between
-every batch. After a whole session only 73 of 294 batches were done. The user rejected that pace. Do not repeat it.
+**Decisions made this session** (also in Concessions and follow-ups): concession 14 (testing's timer watcher),
+concession 15 (`readFileProxy` fallback one-shots); `app-widget.integration.test.tsx` folded into the unit test; C3
+resolved without a concession (Vite's config loader resolves `#gateway/*`); shared's chat-entry stubs use fixed
+default uuids (a node-crypto import there broke web's bundle); the start responder's "spawns nothing" check is the
+unit I/O trap; F77 and F78 closed.
 
-**Step 1: script the mechanical part, before any agent touches a batch.**
-- Most remaining batch files are pure import swaps: `react`, `react-router-dom`, `@mantine/core`,
-  `@mantine/notifications`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test` and the other
-  npm names in the plan's "Replacement legend", each onto its `#gateway/npm/*` subpath, plus the one-line Node swaps
-  (`process.pid` becomes `pid`, `process.env.X` becomes `getEnv('X')`, `crypto.randomUUID()` becomes `randomUUID()`,
-  `Date.now()` becomes `now()`, `Buffer` from `#gateway/node/buffer`, browser globals from `#gateway/browser/*`).
-- Write one script, modelled on `tmp/a18-zod/rewrite.py` (dry run by default, `apply` to write, re-censuses every
-  run), that rewrites those imports and call sites in files where that is the ONLY change needed. It skips any file
-  whose proxy or test spies on the raw module or global, since those need real proxy work.
-- Run it package by package. Gate each package with `npm run ward -- --only lint,typecheck,unit,integration --
-  packages/<pkg>` (and web's e2e once per package run). Commit each package as one commit. Record the script in
-  "Scripts used" (concession 11 covers this; rule 16 allows it).
-- Expected result: most of web's remaining batches and a large share of every other package's go in minutes, not
-  hours. What the script skips is the real hand work.
+### After Phase 2
 
-**Step 2: census the hand work before dispatching, so gateway gaps are found up front, not one agent at a time.**
-- For what the script skipped, list every proxy that spies on a raw module or global and what gateway proxy
-  method it would need. Build every missing gateway method first, in one or two gateway units, then build and
-  commit. Last session each gap stopped an agent mid-batch; that is where most of the time went.
+1. Phases 3 and 4 run per "Phases 3 and 4 — the plan" under "The order of work". Its entry gate, P3-0, is steps 1
+   to 3 above. Rule F (fast lane first) replaces rule 18's per-commit gate there (concession 16).
+2. Phase 5 state: T05 scans 0 in every package except orchestrator, siegelense and hydration-recipes (not yet
+   swept); T04 has 2 hits in siegelense. Both rule sets stay off in the shared config. They run in the plan's
+   filler lane.
+3. Phase 6 last.
+4. Standing decisions that still apply: `calledWith([])`/`onceFor([])` is allowed on a function that takes no
+   arguments (`randomUUID`, `now`); the ban is for functions that take arguments. A `registerMock` on a pure
+   passthrough (`join`, `dirname`, `tmpdir`, `randomUUID`) is allowed; the ban is for wrappers with a real I/O
+   body. A proxy that records a void sink (stdout, stderr, exit) with a read-back is not a catch-all. C2 is a
+   resolver, not a concession. Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild
+   output line by line.
 
-**Step 3: hand batches, with agents working a queue, not one batch per message.**
-- Give each agent a queue of batches (still 2 to 4 files per batch, per rule 8). The agent does them in order,
-  gating each with ward, and reports once per four or five batches. It stops early only on a gateway gap or a red it
-  cannot fix inside its files. The operator commits the reported batches together, updating this file in that commit.
-- Split big packages across agents with disjoint folder lists: web (87 left) and orchestrator (51 left) get two
-  agents each; small packages share one agent between them. Keep five agents busy at all times.
-- Web: gate each batch with lint, typecheck, unit, and run the full web e2e once per report, not once per three
-  batches.
-- An agent past about 300k tokens hands off to a fresh one with a HANDOFF section (the conventions it settled on).
-
-**Files:** the batch prompt template is `scrolls/brands-gateways-epic/a18-operator/batch-agent-prompt.txt` (edit it
-for queue mode). Batch lists are the A18 plan's "#### `<pkg>`" sections; siegelense's is
-`a18-operator/siegelense-batches.md` (S06 to S33 left); re-census testing the same way before its batches.
-
-### First steps for the next operator
-
-1. Read "How to operate", then "How A18 MUST be run from here" above.
-2. Restore the two tests F77 lists (siegelense `instance-start`).
-3. `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`; wait on it), `npm run check:consumer`,
-   `npm run check:published`. Fix every red (rule 4). Refresh `package-lock.json` (`npm install --package-lock-only`)
-   for hydration-recipes' new `@dungeonmaster/npm` and `@gateway/npm`'s new `tsx` dependencies.
-4. A18 in the order above: the script, the gap census and gateway units, then queued hand batches with five agents
-   busy. Then A18's dependency removals.
-5. Then A19 (runs alone), the T04 and T05 sweeps and switch-on, the open follow-ups, and Phases 3, 4 and 6 using
-   `phase34-scripts/` (those were written for exactly this reason: script first).
-6. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser `console` and `crypto` proxies, a browser
-   clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub, a gateway-owned
-   `createInterface` proxy (orchestrator's unified-spawn proxy), orchestrator `timer-sleep-broker.proxy.ts` onto
-   GN11. Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild output line by line.
+Git history holds every earlier handoff.
 
 ### Lessons worth keeping
 
@@ -264,6 +188,17 @@ for queue mode). Batch lists are the A18 plan's "#### `<pkg>`" sections; siegele
   own test against a real one.
 - **The A18 lint rules are off, so lint does not catch a missed raw import** (a web agent skipped
   `react-router-dom`). Check each report's file list against the plan's reason for listing it.
+- **Script first, then census the gaps, then queue the hand work.** A18's last session went from 745 files to 0 this
+  way: a TypeScript-checked codemod (`tmp/a18-codemod/run.cjs`) cleared about three quarters, and a read-only gap
+  census built every missing gateway method before any hand batch started.
+- **A stub in a production barrel reaches the browser bundle.** Shared's contracts barrel re-exports stubs, so a
+  stub importing `#gateway/node/*` broke web's `vite build`. Web's e2e is the only check that builds the bundle;
+  run it after any shared change.
+- **A new gateway proxy makes every older proxy of that function's callers red.** `enforce-proxy-child-creation`
+  demands the child proxy once it exists (the `setTimeout`, `setInterval` and `CpNotInstalledError` cases). After
+  adding a gateway proxy, lint every package that imports the function.
+- **Two agents' edits to one package commit together**, and a "restore to HEAD" (`git show HEAD:<path> > <path>`)
+  by one agent wipes another's uncommitted work. Brief agents never to restore a file that way.
 - **Stopping `build:clean` part-way deletes every `dist`**, and lint then fails for every agent (eslint loads
   `shared` from `dist`). Let it finish, or run `npm run build` at once.
 
@@ -324,7 +259,8 @@ Each row is a script used for bulk edits or census. Output is always gated by wa
 | `adapter-census` | Census of remaining adapters per package (published command) | `@dungeonmaster/tooling` | S1 4130e9c6f |
 | `tmp/a18-zod/rewrite.py <pkg> [apply]` | A18 -Z sweep: re-censuses a package's files whose only raw import is `zod` and rewrites `from 'zod'` to `from '#gateway/npm/zod'` (dry run without `apply`; skips files with any other raw import) | `tmp/a18-zod/` (gitignored) | A18 -Z wave 1 (cli, config, hooks, hydration, mcp, session-forensics, tooling); wave 2 bd5242af3 |
 | `tmp/a18-codemod/run.cjs <pkg> [--apply] [--files a,b]` | A18 codemod: re-censuses the package, swaps raw imports and same-named globals onto `#gateway/*` exports checked against the gateway barrel by the TypeScript checker, rewrites read-only `process.X`, skips any construct a test or proxy mocks raw, and verifies each file by typecheck and full lint before and after | `tmp/a18-codemod/` (gitignored) | A18 codemod trial (91c4b3b4b) and package runs |
-| `tmp/phase34/*` (nine scripts; `tmp/phase34/README.md` holds run order, dry-run counts and proofs) | Phase 3 and 4 codemods, written before those phases on the user's request. Each re-censuses on every run, writes only with `apply`, and resolves through TypeScript fenced to this worktree (`lib/repo.cjs`). `b02-contract-index/{index,delete}.cjs` (index; deletes only contracts a fresh index still calls dead, from a reviewed list), `b03-exports-barrels/run.cjs` (three-key `exports`, barrels into `src/<ft>/<ft>.ts`), `b03-per-file-imports/rewrite.cjs` (stub and proxy imports to per-file specifiers: 1,670 files, 4,090 names on 2026-09-28), `b03-strip-barrels/run.cjs`, `b11-contract-merge/{census,move}.cjs`, `b15-as-never/run.cjs` (removes a stub-field `as never` only where typecheck stays identical: 2,970 of 3,717), `b15-stub-unwrap/run.cjs`, `b15-rename/rename.cjs` (language-service renames). Not scripted, by measurement: B04, B05, B12, B13, B14, B16, B17, B18(b). | `tmp/phase34/`; committed copy in `scrolls/brands-gateways-epic/phase34-scripts/` | not yet run |
+| `tmp/phase34/*` (nine scripts; `tmp/phase34/README.md` holds run order, dry-run counts and proofs) | Phase 3 and 4 codemods, written before those phases on the user's request. Each re-censuses on every run, writes only with `apply`, and resolves through TypeScript fenced to this worktree (`lib/repo.cjs`). `b02-contract-index/{index,delete}.cjs` (index; deletes only contracts a fresh index still calls dead, from a reviewed list), `b03-exports-barrels/run.cjs` (three-key `exports`, barrels into `src/<ft>/<ft>.ts`), `b03-per-file-imports/rewrite.cjs` (stub and proxy imports to per-file specifiers: 1,670 files, 4,090 names on 2026-09-28), `b03-strip-barrels/run.cjs`, `b11-contract-merge/{census,move}.cjs`, `b15-as-never/run.cjs` (removes a stub-field `as never` only where typecheck stays identical: 2,970 of 3,717), `b15-stub-unwrap/run.cjs`, `b15-rename/rename.cjs` (language-service renames). Re-measured 2026-09-29: see the next row. | `tmp/phase34/`; committed copy in `scrolls/brands-gateways-epic/phase34-scripts/` | not yet run |
+| `phase34-scripts/{feasibility,brand-census,libcopy-census}/` | Prototypes and censuses for the Phase 3 and 4 re-plan: B04 retype and `TsestreeStub` printer (48% of files clean, 76% of stub roots printed), B13 retype, B14 shape-to-contract generator (125 of 204 clean), B17 and B18(b) rewrites, the B15 plain-brand codemod and dead re-parse finder; the brand census (`standalone-brands.csv` and friends); the library-copy census and `stub-map.json`. `lib/repo.cjs` now resolves overlay files not yet on disk. Proven on copies only; no unit test was run. | committed in `scrolls/brands-gateways-epic/phase34-scripts/` | not yet run; the plan names which chunk promotes each |
 
 ## Machine-wide side effects
 
@@ -358,9 +294,12 @@ was planned. Add a row whenever execution forces another.
 | 10 | T05: no accept-all staging predicate (`() => true`, `typeof value === 'string'`) on a path argument. | A proxy's opt-in `setupImplementation` (a test-supplied function that answers per path, for a virtual file tree) may address `[anyPath]` where `anyPath` accepts any string. Exact `setupReturns`/`setupError` stages still outrank it, and no proxy stages it by default. Shared's architecture proxies (the T05 shared commit) and F32's `imports-in-folder-type-find` do this. | Staging the full `[path, 'utf8']` arity ties with exact addresses and the later staging wins, which broke 10 tests. The one-argument address keeps exact stages winning. A test opts in by calling `setupImplementation`, so nothing is answered silently. |
 | 11 | EPIC rule 8: 2 to 4 files per migration agent. | A18's `-Z` lists (files whose only change is `'zod'` becoming `'#gateway/npm/zod'`) run as one scripted agent per package: a `python3` substitution, then that package's lint, typecheck and unit. Each script is listed in "Scripts used". | A one-token edit per file; splitting into fours makes hundreds of agents. The user allowed scripts that cut work, provided they are notated (2026-09-28). |
 | 12 | Hydration's negative type-fixture tests compile a standalone TypeScript program with `Node10` module resolution. | `packages/hydration/test/type-fixtures/typescript-program-diagnostics.ts` uses `Bundler` resolution with `customConditions: ['source']` and `module: ESNext`. | `Node10` ignores `package.json` `imports`, so `#gateway/npm/zod` resolved to nothing and the fixtures saw `any` (about 25 failures); `Bundler` alone resolved `@dungeonmaster/hydration-recipes` to `dist`. A18's zod sweep. |
-| 15 | Concession 10 allows an accept-any-path address only for an opt-in `setupImplementation`. | `@gateway/node`'s `readFileProxy` gains `returnsOnceFallback`/`throwsOnceFallback`, one-shots addressed by the path alone, and orchestrator's `quest-load-broker.proxy.ts` stages them with an any-string predicate. Every exact `[path, 'utf8']` stage outranks them. | quest-load's path-less one-shot queue is composed by about 30 proxies that pass no path; the full-arity one-shot tied with exact stages and answered other files' reads (88 failures). A lower-ranked fallback keeps one place to change instead of 30 (A18 orchestrator gap agent, 2026-09-28). |
-| 14 | A18: every raw platform global goes through the gateway. | `packages/testing/src/brokers/timers/watch/timers-watch-broker.ts` (testing's open-handle timer watcher) keeps patching the raw global timers; the eslint config turns `platform-globals-ban` off for that file alone, by a file-scoped config entry, when A19 switches the rule on. | Its job is to replace the global timers so it can see every handle a test opens. No gateway export can patch a global for every caller (A18 gap census, 2026-09-28). |
 | 13 | T05: `ban-invented-failures` applies to every test and proxy file. | When T05 switches the rule on, the eslint config turns it off for `packages/testing/src/transformers/mock-staging-create/mock-staging-create-transformer.test.ts` alone, by a file-scoped config entry, not an inline disable. | That file tests the mock-staging API itself: its `new Error(...)` is an opaque value the test checks is passed through, not a faked outside failure. The rule matches any `new Error` under a `rejects`/`throws`/`implement` call and reads no message or `code`, so no rewrite of the test clears it (T05 testing agent, 2026-09-28). |
+| 14 | A18: every raw platform global goes through the gateway. | `packages/testing/src/brokers/timers/watch/timers-watch-broker.ts` (testing's open-handle timer watcher) keeps patching the raw global timers; the eslint config turns `platform-globals-ban` off for that file alone, by a file-scoped config entry, when A19 switches the rule on. | Its job is to replace the global timers so it can see every handle a test opens. No gateway export can patch a global for every caller (A18 gap census, 2026-09-28). |
+| 15 | Concession 10 allows an accept-any-path address only for an opt-in `setupImplementation`. | `@gateway/node`'s `readFileProxy` gains `returnsOnceFallback`/`throwsOnceFallback`, one-shots addressed by the path alone, and orchestrator's `quest-load-broker.proxy.ts` stages them with an any-string predicate. Every exact `[path, 'utf8']` stage outranks them. | quest-load's path-less one-shot queue is composed by about 30 proxies that pass no path; the full-arity one-shot tied with exact stages and answered other files' reads (88 failures). A lower-ranked fallback keeps one place to change instead of 30 (A18 orchestrator gap agent, 2026-09-28). |
+| 16 | EPIC rule 18: gate every commit with `lint,typecheck,unit,integration`. | Phases 3 and 4 use rule F in the Phase 3 and 4 plan ("The order of work"): each batch is gated and committed on `lint,typecheck,unit`; `integration` runs once at the end of each wave, then `e2e`, and their reds are fixed before the next wave. | The user's decision on 2026-09-29: cycles are faster. One commit per batch keeps an integration red bisectable. |
+| 17 | B04 and B05 are two items, covering nine named library-type copies. | One wave, 3.5 (chunks L0 to L5), covering all 33 copies the 2026-09-28 census found, with a stub-swap table (`phase34-scripts/libcopy-census/stub-map.json`). | 24 copies were missing from the items; the swaps share one mechanism and one set of gateway stubs. |
+| 18 | EPIC rule 5: agents share one checkout. | Chunk L2 runs in its own worktree and branch, merged back when eslint-plugin and local-eslint are green. | `eslint.config.js` loads the rules from eslint-plugin's source, and L2's script leaves 226 type errors before the hand queue fixes them; in the shared checkout that breaks lint for every agent. |
 
 ## Status key
 
@@ -468,34 +407,371 @@ Package items run side by side, one agent group per package. Each is split by th
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | done | 5f4dcd0af. Only `typescript/parse` was left (the rest went in 7751fb471); its AST walk is now `typescriptParseBroker`. `packages/tooling/src/adapters/` is gone. |
 | A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/ward/src/adapters/` is gone (7f79340c8). |
 | A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | done | `packages/web/src/adapters/` is gone (2d7f1d25f). Global stylesheets load from `src/main.ts` (concession 9). |
-| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | active | Plan written (`## Plan`). Done: wave 0, GN5 to GN10, C2, every package's `zod` sweep, ward and hooks hand batches, and the batches listed under START HERE "In flight". Next: the remaining hand batches per package, then dependency removals. |
-| A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | active | runs alone for the switch-on only. Prep landed (the A19-prep commit): `adapters` folder type gone from `folderConfigStatics` and every reader; `platform-globals-ban` catches `{ fetch }` shorthand and exempts `evaluate`/`evaluateAll`/`waitForFunction`/`addInitScript` callbacks (inline, or a named function passed to one); `raw-import-ban` refuses the scoped gateway name (`@dungeonmaster/node/fs`). Left: uncomment the three rules once A18 is at 0; concession 14's file-scoped off. Known leftovers for Z items: config's consumer preset keys (`architecture-folder-statics.ts`, `framework-preset-keys-statics.ts`) still list `'adapters'`; `adapter-imports-find-layer-broker.ts` is unused; `rule-enforce-import-dependencies-broker.test.ts`'s `adapters/` valid cases test nothing. |
+| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | review | Code finished; census 0 outside concessions 9 and 14. Last diff (GN15, `vite` subpath, web's last spots and dependency row) is uncommitted and awaits the operator's build, lockfile refresh and gate: START HERE "Phase 2 handoff" step 1. |
+| A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | active | runs alone for the switch-on only. Prep landed (the A19-prep commit): `adapters` folder type gone from `folderConfigStatics` and every reader; `platform-globals-ban` catches `{ fetch }` shorthand and exempts `evaluate`/`evaluateAll`/`waitForFunction`/`addInitScript` callbacks (inline, or a named function passed to one); `raw-import-ban` refuses the scoped gateway name (`@dungeonmaster/node/fs`). Concession 14's file-scoped off is in `eslint.config.js` (05c485afc). Left: the switch-on, START HERE "Phase 2 handoff" step 2. Known leftovers for Z items: config's consumer preset keys (`architecture-folder-statics.ts`, `framework-preset-keys-statics.ts`) still list `'adapters'`; `adapter-imports-find-layer-broker.ts` is unused; `rule-enforce-import-dependencies-broker.test.ts`'s `adapters/` valid cases test nothing. |
 
-### Phase 3 — brands foundation
+### Phases 3 and 4 — the plan (re-planned against the code, 2026-09-29)
 
-| ID | Item | Needs | Runs with | Status | Notes |
+This section is the Phase 3 and Phase 4 order of work. The item files under `items/` still hold
+each rule's specification: what it refuses, its message, its autofix, its traps. It decides how the work
+is cut, in what order, who does each chunk (a script, an eslint autofix, or an agent), and how each wave is
+gated. Where this section and an item file disagree about order, size or chunking, this section wins. Where they
+disagree about what a rule refuses, the item file wins.
+
+Every count below was measured on 2026-09-28 night against `gateway-pivot`, while A18 was still landing. Re-run
+the named census before each wave; the scripts re-census on every run anyway.
+
+#### Why Phase 2 took two days, and what this plan does differently
+
+| What happened in Phase 2 | What this plan does |
+|---|---|
+| Item files carried counts from a 2026-09-24 sample. A18 turned out to be 294 batches. | Every chunk below is sized from a census run on 2026-09-28 night. The census scripts are committed, so the operator re-runs them before each wave. |
+| One 2-to-4-file batch per agent message, with operator gating between every batch. 73 of 294 batches done in a session. | Scripts do the mechanical share, run by the operator per package group. Agents only get what a script's "leftovers" file lists, and they work it as a queue. |
+| A gateway gap stopped an agent mid-batch, one agent at a time. | Every gateway stub or proxy method a wave needs is built in one gateway unit BEFORE the wave. The library-copy census already lists them (chunk L0). |
+| Rules landed off, so lint did not catch a missed file. | Tooling chunk T2 makes the pre-edit hook enforce every `pre-edit` rule that is registered off, for new violations only. Chunk T1 gives `ward scan <rule>`. |
+| Integration ran on every commit, so every cycle was slow. | Fast lane first (below). |
+| Tests were deleted to get to green (F77). | A hand-queue agent may delete a test only when the test builds a value real code cannot produce, and it must list each one. The B04 census names these tests in advance (`libcopy-census/tsestree-hand-sites.txt`). |
+
+#### How every wave is run
+
+##### Rule F: fast lane first (user, 2026-09-29)
+
+This replaces EPIC rule 18's per-commit gate for Phases 3 and 4.
+
+1. Within a wave, the operator gates each script run or batch report on `lint,typecheck,unit` only. The gate
+   covers the touched packages and every package that composes their proxies. The operator commits on that green,
+   one commit per batch, so a later red can be bisected.
+2. Agents in a hand queue gate their own batches on `lint,typecheck,unit` the same way.
+3. When the wave's last batch is committed, the operator runs `integration` once over every package the wave
+   touched, and fixes every red before anything else starts.
+4. Then `e2e` once, for web and every other e2e-eligible package. Fix its reds.
+5. Only then does the next wave start.
+
+A wave is at most one script run across one package group, or one queue of hand batches. Keep waves narrow, so an
+integration red found at step 3 points at few commits.
+
+##### Rule S: script first
+
+- Every chunk marked **Script** is run by the operator: dry run, read the diff summary, `apply`, gate. No agent is
+  involved unless the gate goes red.
+- Every script writes a leftovers file. That file IS the file list for the chunk's hand queue (EPIC rule 14 is
+  satisfied by committing it into the item file as its `## Plan` before dispatch).
+- Record each run in "Scripts used" above.
+- The scripts live in `phase34-scripts/`. Copy them to `tmp/phase34/` before running (they write under `tmp/`).
+  `feasibility/` holds the prototypes measured on 2026-09-28 night; each chunk below names the one it grows from.
+  A prototype is promoted to a full script inside its chunk, proven on `--sample-out` with `lib/verify-sample.cjs`,
+  then applied.
+
+##### Rule Q: hand queues
+
+- An agent gets a queue of 2-to-4-file batches, in the order the leftovers file gives. It gates each batch on the
+  fast lane and reports every four or five batches. It stops early only on a gateway gap or a red outside its files.
+- Five agents busy, disjoint file lists, never two in one package unless the lists are named.
+- Big packages split by folder (orchestrator, web, eslint-plugin rule folders).
+
+##### Rule W: eslint-plugin work happens in its own worktree
+
+`eslint.config.js` loads this repo's rules from eslint-plugin's source. A half-converted eslint-plugin breaks lint
+for every agent at once. Chunk L2 (the syntax-tree retype) leaves 226 type errors after its script. So it runs in a
+worktree carved with `create-worktree`, on a branch, and merges back only when that package is green.
+
+#### The measured surface
+
+| Area | Measured | Source |
+|---|---|---|
+| Contracts nothing parses | 77 dead contracts | `b02-contract-index` dry run |
+| Library-type copies | 33, of which 14 are dead. B04 and B05 named only 9. | `libcopy-census/` |
+| `Tsestree` type references | 312 in 171 production files | `libcopy-census/retype.js` |
+| `TsestreeStub` calls | 916 outermost. 691 print to `{ code }` and verify against the parser. | `feasibility/b04/stubprint.cjs` |
+| `EslintContextStub` calls | 352. 344 map straight to `RuleContextStub`. | `libcopy-census/stub-map.json` |
+| B03 import rewrites | 1,665 files, 4,087 names. Orchestrator 592, web 269, siegelense 241. | `b03-per-file-imports` dry run |
+| Production files importing a stub | 43 imports in 34 files, mostly orchestrator quest-validation transformers | `b03-per-file-imports/out/leftovers.json` |
+| Removable `as never` in tests | 2,970, where typecheck stays identical | `b15-as-never` |
+| Contracts | 1,170 files, 692 object contracts, 41 already branded | `brand-census/per-package.csv` |
+| Enum contracts carrying a brand | 37 of 92. Enum stub calls: 1,348. | `brand-census/enum-stubs.csv` |
+| Standalone scalar brands | 349. 153 never an object field (they go plain), 196 are fields. | `brand-census/standalone-brands.csv` |
+| Fan-out of standalone brands | Plain class 3,761. Field class 22,030, of which shared holds 16,371. | same |
+| `z.unknown()` in contracts | 124 | `brand-census/per-package.csv` |
+| B14 shapes that become contracts | 219 in production (orchestrator 101). 144 print to zod mechanically. | `brand-census/b14-*.csv`, `feasibility/b14/` |
+| B13 parameters named like an owner's id, typed `string` | 55 in production, 288 with tests and harnesses | `brand-census/b13-*.csv` |
+| Dead re-parses | 1,821 found by the type checker (427 in production) | `feasibility/b15/dead-reparse.cjs` |
+| B17 `JSON.parse` sites | 166 in 134 files. 59 already direct, 24 scripted. | `feasibility/b17/` |
+| B18 split (b) | 156 candidate functions. 38 convert by script, covering 163 callers. | `feasibility/b18/` |
+
+#### Phase 3 — foundation
+
+##### P3-0 Entry gate (operator)
+
+A18's census at 0, A19's switch-on committed, `build:clean`, a full `npm run ward`, `check:consumer`,
+`check:published`, all green. Nothing below starts before this.
+
+##### Tooling (agents; run beside wave 3.1)
+
+| Chunk | Who | What | Files |
+|---|---|---|---|
+| T1 | 1 agent | `npm run ward -- scan <rule>`: runs one rule at error whatever the config says, and prints violations per package in 2-to-4-file batches as JSON. Every later rule chunk uses it. | `packages/ward` (a new responder and broker; the agent names them in its plan) |
+| T2 | 1 agent | The pre-edit hook runs every rule tagged `pre-edit` at error for NEW violations only, even when the host config registers it off. Today `eslint-config-filter-transformer.ts:43-46` copies the host's `'off'` through. | `packages/hooks/src/transformers/eslint-config-filter/`, its test, and the violations-analyze broker |
+
+##### Wave 3.1 Deletions (Script)
+
+1. One review agent reads the union of the 77 dead contracts (`b02-contract-index/out/delete-candidates.txt`) and
+   the 14 dead library copies (the "COPY, dead" rows in `libcopy-census`). It writes the reviewed list. It drops any
+   contract reached by a string, a dynamic import or a fixture.
+2. The operator runs `b02-contract-index/delete.cjs <list> --verify`, then `apply`, per package.
+
+##### Wave 3.2 Enum brands off (Script)
+
+B1 says an enum takes no brand. Drop `.brand` from the 37 branded enum contracts, then unwrap enum stub calls with
+`b15-stub-unwrap/run.cjs <pkg> --stubs=<the enum stubs>` (1,348 calls, e.g. `QuestStatusStub` 135,
+`ExecutionStepStatusStub` 129). Delete each enum stub once nothing calls it. The brand removal is a one-line edit
+per contract; a script does it too.
+
+##### Wave 3.3 B03 package exports and per-file stub and proxy imports
+
+| Step | Who | What |
+|---|---|---|
+| 3.3-D | 1 agent | Three decisions, written into `items/b03-*.md` before any script runs. (a) The 34 production files importing a stub (list in `b03-per-file-imports/out/leftovers.json`): redesign each so production builds its value without a stub. That is a hand queue of about 9 batches, mostly orchestrator's quest-validation transformers. (b) The one sanctioned home for a package's caller-facing proxy (F18's `config-resolve-caller.proxy.ts`, orchestrator's `startup/start-orchestrator.proxy.ts`). (c) Recommended: the `./*.stub` and `./*.proxy` export keys carry only the `source` condition in every package but `testing`, because `tsconfig.build.json` never emits stubs or proxies (concession 8 already does this for one key). Prove it with `check:consumer`. |
+| 3.3-S1 | Script | `b03-exports-barrels/run.cjs <pkg> apply`: three-key `exports`, barrels into `src/<ft>/<ft>.ts`. `shared` first and alone, then the other packages in three groups. |
+| 3.3-S2 | Script | `b03-per-file-imports/rewrite.cjs --importers=<pkg> apply`, one importing package per run. Run orchestrator, web and siegelense each alone. |
+| 3.3-S3 | Script | `b03-strip-barrels/run.cjs <pkg> apply`. It deletes each `testing.ts` once nothing imports it. |
+| 3.3-R | 1 agent | Extend `enforce-import-dependencies` to refuse stub and proxy imports outside test support; the barrel-honesty rules for workspace packages; `create-package` templates; `init`'s consumer scaffold; `packages/CLAUDE.md` and `packages/shared/CLAUDE.md`. Then the operator runs `build:clean` and `check:consumer`. |
+
+Order: 3.3-D, then S1, S2 and S3 for `shared`; then S1 to S3 per remaining group; then 3.3-R. Each group is one wave.
+
+##### Wave 3.4 `as never` sweep (Script)
+
+`b15-as-never/run.cjs <pkg> apply`, package by package, after B03 so the two never edit one file in one wave.
+2,970 removable casts. The 540 kept casts go into `out/<pkg>-kept.txt` and wait for Phase 4, where brand changes
+remove most of them.
+
+##### Wave 3.5 Library-type copies (B04 and B05 merged, chunk prefix L)
+
+B04 and B05 become one item: every copy of a library type goes, whichever item first named it. The census table
+in `libcopy-census/` is the full list, and its `stub-map.json` is the swap table.
+
+| Chunk | Who | What |
+|---|---|---|
+| L0 | 1 agent, `@gateway/npm` | Every stub the swaps need, built first, then built and committed: about 20 more `typescript-eslint__utils` node stubs taking `{ code }` (generate them from the existing 14 with one template; `feasibility/b04/` generated them in its sample); a `TSESLint.FlatConfig.Config` stub; a `ts.Program` stub; a hono `WSContext` stub; MCP SDK `JSONRPCRequest`/`JSONRPCResponse` and `CallToolResult`/`ListToolsResult` stubs. |
+| L1 | operator | Decisions for the ten rows the census left unclear. Written below; record them in `items/b05-*.md`. |
+| L2 | Script, then 2-3 agents, **in its own worktree (rule W)** | One atomic pass over `eslint-plugin` and `local-eslint`: retype visitor parameters from the selector key, helpers to `TSESTree.Node`, `EslintContext` to `TSESLint.RuleContext`, `tsestreeNodeTypeStatics` to `AST_NODE_TYPES`; strip the `?.` and `??` the real types make dead (310 and 179); print 691 `TsestreeStub` trees to `XStub({ code })`; swap 344 `EslintContextStub` calls. Measured: 82 of 172 production files end at 0 errors; 226 errors remain in about 90 files. Prototype: `feasibility/b04/run.cjs`. The hand queue then works by rule folder: narrowing before a field read (about 181), the about 158 dead conditions lint still reports, the 218 stub trees the printer cannot print (54 need `parent`, 44 build malformed nodes that test a dead branch: delete test and branch together, and list each). Delete the three copies last. Merge the branch back when both packages are green. |
+| L3 | Script | Every other MAP-class stub swap from `stub-map.json`: `TimerHandleStub`, `TypescriptSourceFileStub` (42 unwrap to the real source file), `TypescriptNodeFactoryStub`, `TypescriptStatementStub`, `EslintConfigStub`, `LinterConfigStub`, `EslintRulesStub`, `WsClientStub`, `JsonRpcRequestStub`. Type references per `stub-map.json` `_typeMap`. |
+| L4 | 2 agents | The HAND rows outside eslint-plugin. `testing`: the `ts.Program` stub callers and the 24 casts in `mock-calls-to-statements-transformer.ts` and its neighbours. `mcp`: the SDK copies (`json-rpc-*`, `tool-*`), the 27 `ToolCallResultStub` calls in `mcp-server-flow.integration.test.ts` that parse real responses. `hooks`: `linter-config`, `eslint-raw-message`, `is-node-error` onto `#gateway/node/fs` `isFsError`. `server` and `siegelense`: both `zod-issue-error` copies onto `z.ZodError`. `shared`: `process-signal` onto `NodeJS.Signals`. |
+| L5 | 1 agent | The teaching text that tells agents to write copies: `packages/eslint-plugin/CLAUDE.md:70` ("Pattern 1: Use Minimal Structural Interfaces"), `packages/eslint-plugin/src/brokers/rule/CLAUDE.md` lines 7, 41, 58, 118-143, `packages/mcp/src/statics/folder-constraints/contracts-constraints.md:85-89`, `adapters-constraints.md:171-174`. Ships in the same wave as L2, so no agent re-learns the old pattern mid-migration. |
+
+L1 decisions (operator may overturn, with a concession row):
+
+| Copy | Decision | Why |
+|---|---|---|
+| `eslint-plugin` `eslint-rule` (90 production users) | Copy. Retype to `TSESLint.RuleModule`; a script swaps the type. | Its `meta` parse checks only our own literals. |
+| `eslint-plugin` `tsconfig-options` | Our data. Keep. | It is a tsconfig JSON file read from disk, like ward's `tsconfig-json`. |
+| `mcp` `tool-response` | Copy. `CallToolResult`. | A text-only subset of the SDK type. |
+| `orchestrator` `spawn-options-snapshot` | Copy. `SpawnOptions`, picked. | A subset of Node's type recorded for a test read-back. |
+| `hooks` `eslint-raw-message` | Copy. `Linter.LintMessage`. | ESLint returns it in-process, already typed. |
+| `testing` `endpoint-control` | Copy for `HttpMethod` (msw `HttpMethods`); `EndpointResponseContract` becomes `z.ZodType`. | Both restate a library type. |
+| `eslint-plugin` and `shared` `node-builtin` statics | Replace with `builtinModules` from `#gateway/node/module`, unless the agent finds the 37-of-42 subset is deliberate; then keep and say why in the header. | A hand-picked list drifts with Node. |
+| `hooks/@types/error-cause.d.ts` | Delete if typecheck stays green. | The root target is ES2022, which has `ErrorOptions`. |
+| root `@types/@typescript-eslint__parser/index.d.ts` | Delete. | The package ships its own types. |
+| `mcp-server-client` | Delete (dead). | No production importer. |
+
+#### Phase 4 — brands
+
+##### 4.0 Decisions first (1 agent, read-only except the item files)
+
+Every judgement the migration needs is decided before any brand wave, and written into the item files as tables
+the scripts read. Inputs are the census CSVs.
+
+1. **B11 duplicates.** 39 names. For each: keeper package, or "goes away under B2" (scalar), or "needs a
+   dependency edge" (the 19 with no keeper; `b11-contract-merge/out/duplicates.json` lists the missing edges).
+   `FolderType` keeps shared's enum.
+2. **Standalone brand classes.** Split the 196 field-class brands into: an owned id (the brand is some owner's
+   `id`, like `questId`, `guildId`, `questWorkItemId`), an ownerless id (open decision 4: `sessionId`, `processId`,
+   `agentId`, `toolUseId`, `instanceId`, `runId`, plus any others found), and a value brand (`contentText`,
+   `absoluteFilePath`, `filePath`, `errorMessage`, `fileContents`, `identifier`, `pathSegment`, `packageName` ...).
+   For each ownerless id: its new owner contract, or "plain".
+3. **The 124 `z.unknown()` sites.** Per site: our data's contract (name it), `z.json()`, a gateway schema, or the
+   one recorded exception (`staged-call-contract.ts` `args`).
+4. **The hydration generic interfaces** (`Collection`, `RowVerbs`, `Op`), `JestSuiteName`, and every contract
+   file the B02 index says exports a type that is not `z.infer` (48 files).
+
+##### 4.1 Rules wave (agents in parallel; every rule lands off and is scanned with T1)
+
+Each rule's autofix is built from the prototype logic named, so the fixer and the proven script agree.
+
+| Chunk | Needs | Rule | Pre-edit? | Prototype |
+|---|---|---|---|---|
+| R1 | wave 3.1 | B02's contract index as a broker in `shared`, and `require-contract-parse`. Switch on at error when its scan is 0 (after 3.1 and 4.0 item 4). | no | `b02-contract-index/index.cjs` |
+| R2 | — | `require-object-contract-brands` (syntax half) with autofix. Remove `ban-primitives` and `require-zod-on-primitives` from config and enforce-on statics in the same commit. | yes | — |
+| R3 | — | `ban-type-aliases` (B5, and C2's alias of a library type), `ban-adhoc-types` B9 extension as an option that lands off. | yes | `brand-census` B14 scan |
+| R4 | — | `ban-join-id-beside-child` | yes | — |
+| R5 | wave 3.5 | `enforce-stub-usage` C5 extension: proxies and harnesses too, and object literals cast to a package type. | yes | — |
+| R6 | R1 | B10 owner index, extending R1's index | — | `feasibility/b13/index.cjs` |
+| R7 | R6 | `require-object-contract-brands-indexed` | no | — |
+| R8 | R6 | `enforce-owner-field-reuse` with autofix | no | `feasibility/b13/retype.cjs` |
+| R9 | R6 | `enforce-unique-contract-names` | no | `b11-contract-merge/census.cjs` |
+
+R2, R3, R4 and R5 run side by side (all in `eslint-plugin`, disjoint rule folders; each also edits the plugin's
+create responder and config broker, so the operator commits them one at a time). R6 follows R1; R7, R8, R9 follow R6.
+
+##### 4.2 Brand waves (Script, then hand queue, fast lane)
+
+Each wave: the script runs as an overlay trial first and prints new diagnostics per package; the operator reads
+that count, cuts the hand queue from it, then applies. Waves run in this order because each removes surface the
+next would otherwise touch.
+
+| Wave | What | Size | Who |
+|---|---|---|---|
+| W1 Plain brands | The 153 standalone brands that are never a field go plain: type references become `string`/`number`, parses drop, stub wraps become literals, then contract, stub, test and barrel lines go. Big ones run alone: `baseName` (406 stub calls), `relativePath`, `fileContent`, eslint-plugin `filePath`, `globPattern`, `cliArg`. The rest batch many per run. | fan-out 3,761 | Script: `feasibility/b15/codemod.cjs` (proven: 0 new diagnostics on `headerText`, 10 on `selector` across 22 users) |
+| W2 Merges | B11 object-contract merges per 4.0 item 1 | 14 object names | Script: `b11-contract-merge/move.cjs` after an agent reconciles each keeper |
+| W3 Owned ids | Each owned-id brand becomes its owner's `id` field. Other contracts' fields reuse `ownerContract.shape.id`; type references become `Owner['id']`; parameters get R8's autofix. The brand text stays the same (`QuestId`), so values flow unchanged. | e.g. `questId` 1,815 fan-out, `questWorkItemId` 825, `guildId` 749 | Script variant of the W1 codemod plus R8's autofix |
+| W4 Ownerless ids | Per 4.0 item 2: give the owner contract its `id`, then the W3 treatment; or plain (W1 treatment) | `sessionId` 605, `processId` 545, `agentId`, `toolUseId`, `instanceId` 426, `runId` | Script plus hand queue |
+| W5 Value brands | Each field of a value brand gets its own derived brand (`'QuestTitle'`); loose uses go plain. The fallout is values assigned into an owned field without going through the owner's parse: build through the root parse by hand. Run the top five alone, as trials, in this order: `errorMessage`, `filePath`, `fileContents`, `absoluteFilePath`, `contentText`. Cut the rest into batches from the trials' diagnostic counts. | fan-out about 19,000 | Script (W1 codemod extended to inline field brands), then hand queue |
+| W6 Object brands | R2's autofix adds `.brand<'Owner'>()` to the 651 unbranded object contracts and brands remaining leaves, per package in dependency order (`shared` first). Before applying, run it as an overlay trial and count errors where code builds a contract value as a plain object literal. Those sites are the hand queue. | 651 contracts | Autofix, then hand queue |
+| W7 Ad-hoc shapes (B14) | 125 of 204 shapes generate clean; the rest by hand. Generated contracts are branded per B1 at birth. Can run beside W1 to W5, since it touches return types in brokers, not contracts. Orchestrator (101) splits across two agents. | 219 shapes | Script: `feasibility/b14/batch.cjs`, then hand queue |
+| W8 `z.unknown()` | Per 4.0 item 3. Runs beside W7. | 124 sites | Hand queue |
+| W9 Clean-up | Dead re-parses (`feasibility/b15/dead-reparse.cjs`, 427 production sites; a removed parse drops a runtime check, so remove only where the value came from a parse, not a cast); re-run `b15-as-never` and `b15-stub-unwrap` for the brands that went plain. | 1,821 sites | Script |
+| W10 Switch on | R2, R4, R7, R8 on at error. Full bare `npm run ward`, `build:clean`, `check:consumer`. | — | Operator |
+
+##### 4.3 After the switch-on
+
+B16 (`require-real-owner`, `ban-id-rebrand`): census, rules, fixes, as its item file says, sized from `ward scan`
+once W10 is green.
+
+##### Filler lane (any free agent slot in any wave, never in a package a wave holds)
+
+| Chunk | What | Who |
+|---|---|---|
+| B17-rest | Re-plan B17-10 onward first: its B17-30/31 rows name web fetch adapters that no longer exist. Then 24 sites by script (`feasibility/b17/`), 83 by hand, the rule extension, and `require-gateway-unknown-parse`. | Script plus agent |
+| B18-b | 38 of 156 functions convert by script (`feasibility/b18/`, 109 files, 7 diagnostics to fix by hand); the other 118 by hand queue; then delete `adapterResultContract`. | Script plus agent |
+| F53-last | Two predicates left: `web/.../subagent-chain-widget.tsx:201`, `siegelense/.../instance-start-broker.ts:357`; plus `local-eslint`'s `element is Tsestree`, which L2 removes. Then switch `ban-contract-type-predicates` on. | Agent |
+| T04, T05 rest | Siegelense's 2 T04 hits; T05 sweeps in orchestrator, siegelense, hydration-recipes. Then switch both on. | Agent |
+
+#### Script-development lane (SD items)
+
+Where a prototype left real residue, or a hand queue looks patterned, a pre-worker turns it into a script BEFORE
+the wave that needs it. These items run in isolation, beside any wave:
+
+- The agent writes only under `tmp/` and `phase34-scripts/`, never `packages/`, so it collides with no one.
+- It proves its script on copies (`--sample-out` plus `lib/verify-sample.cjs`) against the current tree, and runs
+  the unit tests of a sample by staging it in a scratch worktree only if the item says so.
+- It delivers: the script, its dry-run counts per package, its leftovers file (the hand queue it could not
+  remove), and a one-paragraph "what it can get wrong" note for the README.
+- It must finish before the "Needed by" wave starts. If it is late, the wave runs on the prototype and the
+  leftovers go to the hand queue; the wave never waits.
+- It is judged by one number: how much of its wave's hand queue it removed. Stop when the next increment would
+  remove less than about 20 hand edits.
+
+| ID | Needed by | What to script | Starts from | Residue it targets |
+|---|---|---|---|---|
+| SD1 | L2 | Narrowing for the retype: after a field read fails on a union, insert the `AST_NODE_TYPES` check the loose copy let code skip, or retype the helper to the narrowest node its callers pass. Printer extension for the 218 unprinted stub trees: `parent` (build the parent from code, then select the child), trees built by helper functions, JSX, template literals. Rewrite the 44 malformed-node tests into a deletion list with the dead branch each one covers. | `feasibility/b04/` | 226 type errors, 218 stub trees, about 158 dead conditions |
+| SD2 | 3.3 | The 34 production files importing a stub: classify how each uses it (a default shape, a sample value, a builder), and script the common case (inline the stub's literal as a local contract parse). | `b03-per-file-imports/out/leftovers.json` | 43 imports in 34 files |
+| SD3 | W3, W4 | The id-brand codemod: a standalone id brand becomes its owner's `id` field; other contracts' fields become `ownerContract.shape.id` (or the annotated getter across an import cycle); type references become `Owner['id']`; stub wraps of an owned id stay. Reads 4.0's brand-class table. | `feasibility/b15/codemod.cjs`, `feasibility/b13/` | owned and ownerless id brands |
+| SD4 | W5 | The value-brand codemod: each field that uses a value brand gets its derived inline brand; loose type references become plain; then a "build through the root parse" rewriter for each object literal that now fails because a plain value goes into a branded field (wrap the literal in `ownerContract.parse(...)`, or move the parse up to where the object is built). Trial on `errorMessage`, then `filePath`. | `feasibility/b15/codemod.cjs` | the value-brand fallout, about 19,000 fan-out |
+| SD5 | W6 | The object-brand fallout: after R2's autofix, every `const x: Owner = { … }` and every function returning an object literal as a contract type fails. Script the same root-parse rewrite as SD4 for these, and report sites where the literal is partial (spread of another value), which need a person. | SD4's rewriter | the unknown share of 651 contracts' construction sites; SD5 measures it first |
+| SD6 | W7 | The B14 generator: fix the variable and type-argument bug; handle `Map`, `Set`, `Error` fields through gateway schemas; derive names that do not collide; emit branded contracts per B1; decide `Promise<boolean>` for one-fact shapes. | `feasibility/b14/` | 79 of 204 shapes not clean |
+| SD7 | W8 | `z.unknown()` replacement from 4.0's decisions table: `z.json()` sites, gateway-schema sites, and a generator for a responder's `data` contract from the TypeScript type of what the responder returns. | `brand-census` | 124 sites |
+| SD8 | W9 | Dead re-parse removal: trace provenance (a value from a parse can drop its re-parse; a value from a cast cannot) and fix the nested-edit syntax errors that broke 16 files. | `feasibility/b15/dead-reparse.cjs` | 1,821 sites, 16 failing files |
+| SD9 | B17 | The 83 hand sites: `as unknown` followed by a parse, and variable-then-use, into `contract.parse(JSON.parse(x))`. | `feasibility/b17/` | 83 sites |
+| SD10 | B18 | Callers that read `.success` off an `AdapterResult` (rewrite to a plain `await`), and proxy mocks resolving `undefined` against the old type. | `feasibility/b18/` | 118 functions, 7 diagnostics |
+| SD11 | T05 | Invented errors that carry a Node `code` (for example `Object.assign(new Error(..), { code: 'ENOENT' })`), staged on a gateway fs proxy, become that proxy's recorded-failure method. | `scripting-opportunities.md`, T05's scan | about a third of 223 invented errors |
+| SD12 | W3, B13 | The test-side fallout of R8's parameter retype: 1,480 of 1,823 diagnostics are in web's harnesses. Script harness parameter retyping and the call sites that pass literals. | `feasibility/b13/validate.cjs` | 1,823 diagnostics |
+
+Five agents at most still applies across both lanes; the operator fills free slots with SD items first, since each
+one shrinks a later hand queue.
+
+#### Order at a glance
+
+```text
+P3-0 gate
+  ├─ T1, T2 (tooling)                       ┐
+  ├─ 3.1 deletions → 3.2 enum brands off     │ side by side where packages differ
+  ├─ 3.3 B03 (shared, then groups)           │
+  └─ L0 gateway stubs                        ┘
+3.4 as-never sweep
+3.5 L1 → L2 (worktree) ∥ L3 → L4, L5
+4.0 decisions ∥ 4.1 rules (R2-R5, R1 → R6 → R7-R9)
+4.2 W1 → W2 → W3 → W4 → W5 → W6, with W7 ∥ W8 alongside, then W9 → W10
+4.3 B16
+filler lane throughout
+```
+
+#### What carries to the consumer repo
+
+The consumer repeats the brand and gateway work on its own code, so the scripts that do this repo's brand
+migration should ship once proven here. Promote them into `@dungeonmaster/tooling` (a `migrate` bin) in Phase 6,
+after they have run here: the W1/W3/W5 brand codemod, the B14 shape-to-contract generator, the dead re-parse
+remover, `b15-as-never`, and the B03 exports and per-file-imports scripts. The B04 retype and stub printer, the
+B17 and B18 rewrites, and the library-copy swaps are this repo only.
+
+#### Phase 3 and 4 status
+
+The tracker for the plan above. B04 and B05 are merged into wave 3.5 (chunks L0 to L5). B10 to B15 are no
+longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 migration is waves W1 to W10.
+
+##### Phase 3
+
+| ID | Chunk | Needs | Who | Status | Notes |
 |---|---|---|---|---|---|
-| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | done bf8e0d2f6 | Merged into gateway-pivot; `npm install` run, zod 4.6.5 resolves. The worktree `worktrees/gp-b01-zod4` and branch `gp-b01-zod4` still exist; delete them once the steps below are green. |
-| B02 | [The contract index, and unused contracts deleted](items/b02-contract-index-and-unused-contracts.md) | A19 | B01, B07 | todo | |
-| B03 | [Package `exports` serve barrels and per-file stubs and proxies; stubs and proxies out of production barrels](items/b03-package-exports-and-per-file-test-imports.md) | B02 | B04, B05 | todo | concessions 1 and 3; operator splits per package. Also: define one sanctioned home for a package's caller-facing proxy (F18's `config-resolve-caller.proxy.ts`, and orchestrator's `startup/start-orchestrator.proxy.ts`), and move A02's four `@dungeonmaster/orchestrator/testing` stub imports to per-file imports. |
-| B04 | [Lint rules use the real `TSESTree` and the gateway's AST stubs](items/b04-eslint-rules-on-real-tsestree.md) | G17, A06 | B05 | todo | operator splits per rule folder |
-| B05 | [Every other copied library type goes](items/b05-other-library-type-copies.md) | G16, A07, A14 | B04 | todo | |
-| B06 | [Contract fields of outside types use the gateway's schemas](items/b06-gateway-schema-fields-in-contracts.md) | G20, B01 | any | done | dd2d7332d; `shared` and `eslint-plugin` rebuilt. `enforce-gateway-schema-fields` reports a `z.custom<T>`/`z.instanceof(X)` field only when the type is imported from outside the repo; language globals and our own types pass. Scan: 0 of 1125 contract files. Not dead after all, so B02 must drop them from its list: `eslint-context-contract.ts` (every rule imports its type) and tooling `exec-error-contract.ts` (a harness uses its stub). |
-| B07 | [Layer files in four more folder types; regex allowed in statics](items/b07-layers-and-statics-regex.md) | P0-1 | any | done | 2a9e3537e. It missed two `enforce-project-structure` layer tests, which agent fix-b07-g07 is fixing. Build `shared` before lint outside ward, or the MCP server, sees the new folder config. |
+| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | — | done bf8e0d2f6 | Merged into gateway-pivot; zod 4.6.5 resolves. The worktree `worktrees/gp-b01-zod4` and branch `gp-b01-zod4` still exist; delete them. |
+| B06 | [Contract fields of outside types use the gateway's schemas](items/b06-gateway-schema-fields-in-contracts.md) | G20, B01 | — | done | dd2d7332d. |
+| B07 | [Layer files in four more folder types; regex allowed in statics](items/b07-layers-and-statics-regex.md) | P0-1 | — | done | 2a9e3537e. No `*-layer-contract.ts` file exists yet; the folder config allows them. |
+| P3-0 | Entry gate: A18 at 0, A19 on, `build:clean`, full ward, `check:consumer`, `check:published` | A18, A19 | operator | todo | |
+| T1 | `ward scan <rule>` | P3-0 | 1 agent | todo | Every later rule chunk scans with it. |
+| T2 | Pre-edit hook enforces `pre-edit` rules registered off, new violations only | P3-0 | 1 agent | todo | Today `eslint-config-filter-transformer.ts:43-46` passes `'off'` through. |
+| 3.1 | [Dead contracts and dead library copies deleted](items/b02-contract-index-and-unused-contracts.md) | P3-0 | review agent, then script | todo | 77 dead contracts plus 14 dead copies; `b02-contract-index/delete.cjs`. B02's index and rule move to R1. |
+| 3.2 | Enum brands off, enum stub wraps unwrapped | 3.1 | script | todo | 37 branded enums, 1,348 enum stub calls; `b15-stub-unwrap`. |
+| 3.3 | [B03 exports and per-file stub and proxy imports](items/b03-package-exports-and-per-file-test-imports.md) | 3.1 | 3.3-D agent, scripts, 3.3-R agent | todo | 1,665 files rewritten by script; 34 production files importing a stub are the hand queue. `shared` first and alone. |
+| 3.4 | `as never` sweep | 3.3 | script | todo | 2,970 removable casts; `b15-as-never`. |
+| L0 | Gateway stubs the copy swaps need | P3-0 | 1 agent | todo | About 20 AST node stubs, FlatConfig, `ts.Program`, hono `WSContext`, MCP SDK JSON-RPC and tool-result stubs. |
+| L1 | Decide the ten unclear copies | L0 | operator | todo | Proposed decisions in the plan. |
+| L2 | [`TSESTree` retype of eslint-plugin and local-eslint](items/b04-eslint-rules-on-real-tsestree.md) | L0, 3.3 | script, then 2-3 agents, **own worktree** | todo | Script leaves 226 errors in about 90 files; 218 stub trees and about 158 dead conditions by hand. |
+| L3 | [Other copy stubs and types swapped](items/b05-other-library-type-copies.md) | L0, L1 | script | todo | From `libcopy-census/stub-map.json`. |
+| L4 | Hand rows outside eslint-plugin | L3 | 2 agents | todo | testing `ts.*` casts, mcp SDK copies, hooks config copies, two `zod-issue-error` copies, `process-signal`. |
+| L5 | Teaching text that recommends copies | L2 | 1 agent | todo | Five places, listed in the plan. |
 
-### Phase 4 — brands
+##### Phase 4
 
-| ID | Item | Needs | Runs with | Status | Notes |
+| ID | Chunk | Needs | Who | Status | Notes |
 |---|---|---|---|---|---|
-| B10 | [The owner index for B4, C8 and the indexed brand checks](items/b10-owner-index.md) | B02 | B14, B17, B18 | todo | |
-| B11 | [A contract name is unique across packages](items/b11-unique-contract-names.md) | B10, B03 | B14, B17, B18 | todo | fixes the `FolderType` bug |
-| B12 | [`require-object-contract-brands` and its autofix](items/b12-require-object-contract-brands.md) | B01, B10 | B13, B14 | todo | |
-| B13 | [A field that holds another object's field reuses it](items/b13-owner-field-reuse.md) | B10 | B12, B14 | todo | |
-| B14 | [No field-type aliases; object types that leave a function are contracts](items/b14-type-alias-and-adhoc-type-rules.md) | A19 | any | todo | operator splits the shape fixes per package |
-| B15 | [Brand the repo](items/b15-brand-migration.md) | B06, B07, B11, B12, B13, B14 | — | todo | operator splits per package; the largest item in the epic |
-| B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | B15 | T-items | todo | |
-| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | any | active | Rule `ban-contract-type-predicates` written and off (B17-1, 668d77666); F53 lists its remaining violations. B17-2 to B17-9 done. B17-10 onward next. |
-| B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | any | active | Split (a) done (52686cc4a, 7af5d71a7). Split (b), the census of `{ success: true }` returns, runs after A19. Note: `@gateway/browser`'s `localStorage/clear` returns `{ success: true }`. |
+| 4.0 | Decisions: B11 keepers, brand classes (owned id, ownerless id, value), the 124 `z.unknown()` sites, hydration interfaces | Phase 3 | 1 agent | todo | Writes tables into B11, B15 item files. |
+| R1 | [Contract index in `shared`; `require-contract-parse`](items/b02-contract-index-and-unused-contracts.md) | 3.1 | 1 agent | todo | |
+| R2 | [`require-object-contract-brands` with autofix](items/b12-require-object-contract-brands.md); `ban-primitives`, `require-zod-on-primitives` removed | Phase 3 | 1 agent | todo | lands off |
+| R3 | [`ban-type-aliases`; `ban-adhoc-types` B9 extension](items/b14-type-alias-and-adhoc-type-rules.md) | Phase 3 | 1 agent | todo | lands off |
+| R4 | [`ban-join-id-beside-child`](items/b13-owner-field-reuse.md) | Phase 3 | 1 agent | todo | lands off |
+| R5 | `enforce-stub-usage` C5 extension | 3.5 | 1 agent | todo | |
+| R6 | [Owner index](items/b10-owner-index.md) | R1 | 1 agent | todo | |
+| R7 | `require-object-contract-brands-indexed` | R6 | 1 agent | todo | lands off |
+| R8 | [`enforce-owner-field-reuse` with autofix](items/b13-owner-field-reuse.md) | R6 | 1 agent | todo | lands off |
+| R9 | [`enforce-unique-contract-names`](items/b11-unique-contract-names.md) | R6 | 1 agent | todo | |
+| W1 | [Plain brands](items/b15-brand-migration.md): 153 never-a-field brands go plain | R2, 4.0 | script | todo | fan-out 3,761 |
+| W2 | B11 object-contract merges | R9, 4.0 | script plus agent | todo | 14 names |
+| W3 | Owned-id brands become their owner's `id` | W1, R8 | script plus R8 autofix | todo | |
+| W4 | Ownerless ids: new owner or plain | W3, 4.0 | script plus agents | todo | |
+| W5 | Value brands: per-field derived brands, loose uses plain | W4 | script, then hand queue | todo | fan-out about 19,000; top five run alone as trials |
+| W6 | Object brands by R2's autofix, dependency order | W5, R7 | autofix, then hand queue | todo | 651 contracts |
+| W7 | [Ad-hoc shapes become contracts](items/b14-type-alias-and-adhoc-type-rules.md) | R3 | script, then hand queue | todo | 219 shapes, 125 generate clean; beside W1 to W5 |
+| W8 | `z.unknown()` replacements | 4.0 | hand queue | todo | 124 sites; beside W7 |
+| W9 | Dead re-parses, `as never`, stub unwraps | W6 | script | todo | 427 production dead re-parses |
+| W10 | Brand rules on; full ward, `build:clean`, `check:consumer` | W9 | operator | todo | |
+| B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | W10 | agents | todo | |
+| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | filler lane | active | B17-2 to B17-9 done. Re-plan B17-10 onward first (B17-30/31 name deleted web adapters). 24 sites by script, 83 by hand. |
+| B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | filler lane | active | Split (a) done. Split (b): 38 of 156 functions by script, 118 by hand, then delete `adapterResultContract`. |
+
+##### Script-development lane
+
+| ID | Needed by | Scripts | Who | Status | Notes |
+|---|---|---|---|---|---|
+| SD1 | L2 | Retype narrowing; printer for the 218 unprinted stub trees; malformed-node test deletion list | 1 agent | todo | |
+| SD2 | 3.3 | The 34 production files importing a stub | 1 agent | todo | |
+| SD3 | W3, W4 | Id-brand codemod | 1 agent | todo | |
+| SD4 | W5 | Value-brand codemod and the build-through-root-parse rewriter | 1 agent | todo | |
+| SD5 | W6 | Object-brand construction-site fallout | 1 agent | todo | |
+| SD6 | W7 | B14 generator residue (79 of 204 shapes) | 1 agent | todo | |
+| SD7 | W8 | `z.unknown()` replacements from the decisions table | 1 agent | todo | |
+| SD8 | W9 | Dead re-parse provenance and the 16 failing files | 1 agent | todo | |
+| SD9 | B17 | The 83 `JSON.parse` hand sites | 1 agent | todo | |
+| SD10 | B18 | `.success` readers and proxy mock types | 1 agent | todo | |
+| SD11 | T05 | Invented errors with a Node `code` become recorded failures | 1 agent | todo | |
+| SD12 | W3 | Test-side fallout of the parameter retype (1,823 diagnostics) | 1 agent | todo | |
 
 ### Phase 5 — tests and mocking
 
@@ -632,3 +908,5 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-28 | Handoff: all agents committed; F56 fix-ups; consumer fix (jest base loads MSW from `dist`); shared project-map and `@gateway/npm` jest-mock integration reds fixed. `build:clean` green, full ward 1790620960022-58d3 green, `check:consumer` 87 of 89 (F59, F60 intermittent). Next: this file's top Handoff section. |
 | 2026-09-28 | Evening (new operator): Phase 2 finished in every package but siegelense's last chunk (A10, A14, A16, A17, A06, A12, A08 done); F35, F39, F40, F45, F47, F52, F58 to F62, F64 to F75 done; T04 and T05 swept most packages; S1 census command; A18 planned and started. User decisions: no mutation checks; scripts allowed and notated. Next: START HERE at the top. |
 | 2026-09-28 | Night (operator): master merged; Phase 2 finished (A13); A18 zod sweep everywhere; A18 hand batches ward, hooks, cli done, web to B27, orchestrator and server to B02, siegelense to S04; gateway units GN5 to GN10 and more; T05 swept in web, testing, `@gateway/*`; two web e2e races fixed; phase 3/4 scripts written; rule 19. User stopped new dispatch at the end. Next: START HERE. |
+| 2026-09-29 | Planning session (no code changed): Phase 3 and 4 re-planned against measured counts in `phase-3-4-plan.md` (since merged into "Phases 3 and 4 — the plan"); Phase 3/4 tables replaced; concessions 16 to 18; prototypes and censuses committed under `phase34-scripts/`. |
+| 2026-09-29 | Phase 2 finish session (operator): A18 finished in code — gateway units GB4, U1 to U3, GN13 to GN15, GBIN1, GNPM-vite; the A18 codemod; hand queues in every package; dependency removals (a1d6abed6 to a86065b08); A19 prep (0ba37e71e); F77, F78 closed; concessions 14, 15. The user stopped before the final ward. The last A18 diff (GN15, `vite` subpath, web's last spots) is uncommitted. Phase 3 and 4 plan merged into this file. Next: START HERE "Phase 2 handoff". |

@@ -1,5 +1,7 @@
 # B13: `enforce-owner-field-reuse` and `ban-join-id-beside-child` — landed OFF
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), chunks R4 and R8; W3 applies the autofix. That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 4 — brands |

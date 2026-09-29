@@ -1,5 +1,7 @@
 # B05: every remaining copied library type is deleted, and its callers switch to the gateway's stub
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), wave 3.5, chunks L0, L1, L3, L4 (all 33 copies, not only the ones below). That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 3 — brands foundation |

@@ -1,0 +1,17 @@
+key,dataImpl,methodSetImpl,dataTest,methodSetTest
+"orchestrator",101,13,5,13
+"web",29,1,7,37
+"siegelense",26,8,0,6
+"shared",15,1,0,1
+"eslint-plugin",12,0,1,2
+"ward",10,0,1,5
+"server",7,1,0,1
+"cli",4,0,1,5
+"mcp",4,0,0,1
+"hooks",3,0,0,4
+"hydration-recipes",2,0,0,5
+"session-forensics",2,0,0,1
+"testing",2,4,0,0
+"local-eslint",1,0,0,0
+"tooling",1,0,2,0
+"hydration",0,0,3,0

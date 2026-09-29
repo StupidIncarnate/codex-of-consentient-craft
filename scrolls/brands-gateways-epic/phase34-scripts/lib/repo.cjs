@@ -95,24 +95,37 @@ const inRoot = (p) => {
 // Overlay keys are real paths; resolution asks through the node_modules symlink path, so a path is
 // also looked up by its real directory.
 const canon = (p) => {
+  // realpath of the deepest existing ancestor + the rest, so a NEW file under a symlinked package resolves
   const a = path.resolve(p);
-  try {
-    return path.join(fs.realpathSync(path.dirname(a)), path.basename(a));
-  } catch {
-    return a;
+  const rest = [];
+  let cur = a;
+  for (;;) {
+    try {
+      return path.join(fs.realpathSync(cur), ...rest.reverse());
+    } catch {
+      const up = path.dirname(cur);
+      if (up === cur) return a;
+      rest.push(path.basename(cur));
+      cur = up;
+    }
   }
 };
 const overlayView = (overlay) => {
   const has = (p) => overlay.has(path.resolve(p)) || overlay.has(canon(p));
   const get = (p) => (overlay.has(path.resolve(p)) ? overlay.get(path.resolve(p)) : overlay.get(canon(p)));
-  return { has, get };
+  const hasDir = (p) => {
+    const ds = [path.resolve(p) + path.sep, canon(p) + path.sep];
+    for (const [k, v] of overlay) if (v !== null && ds.some((d) => k.startsWith(d))) return true;
+    return false;
+  };
+  return { has, get, hasDir };
 };
 const makeResolver = (overlay = new Map()) => {
-  const { has, get } = overlayView(overlay);
+  const { has, get, hasDir } = overlayView(overlay);
   const host = {
     fileExists: (p) => (has(p) ? get(p) !== null : inRoot(p) && ts.sys.fileExists(p)),
     readFile: (p) => (has(p) ? (get(p) ?? undefined) : ts.sys.readFile(p)),
-    directoryExists: (p) => inRoot(p) && ts.sys.directoryExists(p),
+    directoryExists: (p) => hasDir(p) || (inRoot(p) && ts.sys.directoryExists(p)),
     getDirectories: (p) => ts.sys.getDirectories(p),
     realpath: (p) => ts.sys.realpath(p),
     getCurrentDirectory: () => ROOT,
@@ -376,10 +389,10 @@ const diagnosticsWithOverlay = (files, overlay, options) => {
   const origRead = host.readFile.bind(host);
   const origExists = host.fileExists.bind(host);
   const origGetSf = host.getSourceFile.bind(host);
-  const { has, get } = overlayView(overlay);
+  const { has, get, hasDir } = overlayView(overlay);
   host.readFile = (p) => (has(p) ? (get(p) ?? undefined) : origRead(p));
   host.fileExists = (p) => (has(p) ? get(p) !== null : inRoot(p) && origExists(p));
-  host.directoryExists = (p) => inRoot(p) && ts.sys.directoryExists(p);
+  host.directoryExists = (p) => hasDir(p) || (inRoot(p) && ts.sys.directoryExists(p));
   host.getSourceFile = (p, lang, onErr, create) => {
     if (has(p) && get(p) !== null) return ts.createSourceFile(p, get(p), lang, true);
     return origGetSf(p, lang, onErr, create);

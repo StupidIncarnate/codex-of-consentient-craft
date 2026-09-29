@@ -1,0 +1,858 @@
+{
+ "EslintContextStub": {
+  "oldFile": "packages/eslint-plugin/src/contracts/eslint-context/eslint-context.stub.ts",
+  "newStub": "RuleContextStub",
+  "newImport": "#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "report": "report (same name; a jest mock is accepted as-is, the stub only builds one when omitted per its header)",
+   "filename": "filename",
+   "getFilename": "filename \u2014 only when the value is `() => '<literal>'`",
+   "getScope / getSourceCode / sourceCode / options": "no counterpart (no caller passes them); real stub delegates to the real sourceCode",
+   "(new) code": "RuleContextStub also takes code"
+  },
+  "classes": {
+   "MAP": 344,
+   "HAND": 1,
+   "DELETED_WITH_CONTRACT": 7
+  },
+  "keyCounts": {
+   "report": 344,
+   "filename": 2,
+   "getFilename": 1
+  },
+  "handSites": [
+   "packages/eslint-plugin/src/brokers/rule/no-bare-process-cwd/rule-no-bare-process-cwd-broker.test.ts:127  cast to never (invalid filename shape) / getFilename cast"
+  ],
+  "ownContractTestCalls": 7
+ },
+ "AstNodeStub": {
+  "oldFile": "packages/eslint-plugin/src/contracts/ast-node/ast-node.stub.ts",
+  "newStub": "IdentifierStub (or any per-node gateway stub)",
+  "newImport": "#gateway/npm/typescript-eslint__utils/identifier/identifier.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "type": "pick the per-node stub",
+   "range / loc": "real node positions come from the code string; a test passing specific loc/range needs code laid out to those positions or is HAND",
+   "parent": "real"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 7,
+   "MAP": 3,
+   "HAND": 1
+  },
+  "keyCounts": {
+   "type": 1,
+   "range": 1,
+   "loc": 1,
+   "parent": 1
+  },
+  "handSites": [
+   "packages/eslint-plugin/src/transformers/ast-to-violation/ast-to-violation-transformer.test.ts:59  key(s) without counterpart: type,range,loc,parent"
+  ],
+  "ownContractTestCalls": 7
+ },
+ "EslintConfigStub": {
+  "oldFile": "packages/eslint-plugin/src/contracts/eslint-config/eslint-config.stub.ts",
+  "newStub": "FlatConfig stub (does not exist)",
+  "newImport": "#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub (proposed)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "rules": "rules",
+   "plugins": "plugins",
+   "files": "files",
+   "ignores": "ignores",
+   "languageOptions": "languageOptions"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 5,
+   "MAP": 26
+  },
+  "keyCounts": {
+   "plugins": 22,
+   "rules": 22,
+   "files": 3,
+   "ignores": 3,
+   "languageOptions": 2
+  },
+  "handSites": [],
+  "ownContractTestCalls": 5
+ },
+ "EslintRulesStub": {
+  "oldFile": "packages/eslint-plugin/src/contracts/eslint-rules/eslint-rules.stub.ts",
+  "newStub": "none needed: a plain TSESLint.SharedConfig.RulesRecord literal, or a gateway stub",
+  "newImport": "n/a",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "<ruleName>": "same key, real RulesRecord"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 6,
+   "MAP": 14
+  },
+  "keyCounts": {
+   "'no-unused-vars'": 3,
+   "'no-console'": 6,
+   "'@typescript-eslint/no-unused-vars'": 4,
+   "'no-use-before-define'": 1,
+   "'dot-notation'": 1,
+   "'@typescript-eslint/no-use-before-define'": 1,
+   "'@typescript-eslint/dot-notation'": 1,
+   "'prefer-const'": 1,
+   "'@typescript-eslint/explicit-function-return-type'": 1,
+   "'@typescript-eslint/no-explicit-any'": 1,
+   "'standalone-rule'": 1
+  },
+  "handSites": [],
+  "ownContractTestCalls": 6
+ },
+ "LinterConfigStub": {
+  "oldFile": "packages/hooks/src/contracts/linter-config/linter-config.stub.ts",
+  "newStub": "FlatConfig stub (does not exist)",
+  "newImport": "#gateway/npm/eslint/... flat-config stub (proposed)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "rules": "rules"
+  },
+  "classes": {
+   "MAP": 38,
+   "DELETED_WITH_CONTRACT": 2
+  },
+  "keyCounts": {
+   "rules": 23
+  },
+  "handSites": [],
+  "ownContractTestCalls": 2
+ },
+ "ChildProcessStub (hooks copy)": {
+  "oldFile": "packages/hooks/src/contracts/child-process/child-process.stub.ts",
+  "newStub": "ChildProcessStub",
+  "newImport": "#gateway/node/child_process/child-process/child-process.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "pid": "no counterpart; gateway stub takes no args"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 2
+  },
+  "keyCounts": {},
+  "handSites": [],
+  "ownContractTestCalls": 2
+ },
+ "FileStatsStub": {
+  "oldFile": "packages/hooks/src/contracts/file-stats/file-stats.stub.ts",
+  "newStub": "StatsStub",
+  "newImport": "#gateway/node/fs/stats/stats.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "size": "sizeBytes",
+   "isFile/isDirectory": "kind: \"file\"|\"directory\""
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 2
+  },
+  "keyCounts": {},
+  "handSites": [],
+  "ownContractTestCalls": 2
+ },
+ "TimerHandleStub": {
+  "oldFile": "packages/testing/src/contracts/timer-handle/timer-handle.stub.ts",
+  "newStub": "TimeoutStub",
+  "newImport": "#gateway/node/setTimeout/timeout/timeout.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "hasRef: () => true": "TimeoutStub()",
+   "hasRef: () => false": "TimeoutStub({ unref: true })"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 3,
+   "MAP": 3
+  },
+  "keyCounts": {
+   "hasRef": 3
+  },
+  "handSites": [],
+  "ownContractTestCalls": 3
+ },
+ "TypescriptSourceFileStub": {
+  "oldFile": "packages/testing/src/contracts/typescript-source-file/typescript-source-file.stub.ts",
+  "newStub": "SourceFileStub",
+  "newImport": "#gateway/npm/typescript/source-file/source-file.stub",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "value: <real ts.SourceFile variable>": "drop the wrap and pass the real ts.SourceFile (or SourceFileStub({ code, fileName }))",
+   "value: { fileName }": "no counterpart (hand-built partial)"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 1,
+   "HAND": 1,
+   "MAP": 42
+  },
+  "keyCounts": {
+   "value": 43
+  },
+  "handSites": [
+   "packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts:13  hand-built partial source file `{ fileName }`"
+  ],
+  "ownContractTestCalls": 1
+ },
+ "TypescriptProgramStub": {
+  "oldFile": "packages/testing/src/contracts/typescript-program/typescript-program.stub.ts",
+  "newStub": "none \u2014 gateway needs a ts.Program stub (real program over one in-memory file)",
+  "newImport": "#gateway/npm/typescript/program/program.stub (proposed)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "value": "a real ts.Program"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 1,
+   "HAND": 10
+  },
+  "keyCounts": {
+   "value": 10
+  },
+  "handSites": [
+   "packages/testing/src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.test.ts:8  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.test.ts:17  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.test.ts:8  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts:14  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts:69  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts:169  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.test.ts:19  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.test.ts:37  hand-built partial ts.Program `{ getSourceFile }`",
+   "packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.test.ts:53  `value: undefined` (not a Program)",
+   "packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.test.ts:67  hand-built partial ts.Program `{ getSourceFile }`"
+  ],
+  "ownContractTestCalls": 1
+ },
+ "TypescriptNodeFactoryStub": {
+  "oldFile": "packages/testing/src/contracts/typescript-node-factory/typescript-node-factory.stub.ts",
+  "newStub": "ts.factory itself, imported through #gateway/npm/typescript (no stub needed)",
+  "newImport": "#gateway/npm/typescript",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "value: ts.factory": "ts.factory"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 1,
+   "HAND": 1,
+   "MAP": 21
+  },
+  "keyCounts": {
+   "value": 22
+  },
+  "handSites": [
+   "packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts:19  value is undefined/{} (not a NodeFactory)"
+  ],
+  "ownContractTestCalls": 1
+ },
+ "TypescriptStatementStub": {
+  "oldFile": "packages/testing/src/contracts/typescript-statement/typescript-statement.stub.ts",
+  "newStub": "the ts.factory-built ts.Statement itself",
+  "newImport": "#gateway/npm/typescript",
+  "gatewayHasStub": true,
+  "keyMap": {
+   "value: ts.factory.create\u2026": "the same expression, unwrapped"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 1,
+   "MAP": 3
+  },
+  "keyCounts": {
+   "value": 3
+  },
+  "handSites": [],
+  "ownContractTestCalls": 1
+ },
+ "JsonRpcRequestStub": {
+  "oldFile": "packages/mcp/src/contracts/json-rpc-request/json-rpc-request.stub.ts",
+  "newStub": "none \u2014 gateway has only CallToolRequest stub; needs JSONRPCRequest stub",
+  "newImport": "#gateway/npm/modelcontextprotocol__sdk__types (proposed subpaths)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "id": "id",
+   "method": "method",
+   "params": "params"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 5,
+   "MAP": 43
+  },
+  "keyCounts": {
+   "id": 40,
+   "method": 40,
+   "params": 40
+  },
+  "handSites": [],
+  "ownContractTestCalls": 5
+ },
+ "JsonRpcResponseStub": {
+  "oldFile": "packages/mcp/src/contracts/json-rpc-response/json-rpc-response.stub.ts",
+  "newStub": "none \u2014 needs JSONRPCResponse stub",
+  "newImport": "#gateway/npm/modelcontextprotocol__sdk__types (proposed subpaths)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "id": "id",
+   "result": "result",
+   "error": "error"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 7,
+   "MAP": 3,
+   "HAND": 1
+  },
+  "keyCounts": {
+   "id": 1
+  },
+  "handSites": [
+   "packages/mcp/test/harnesses/mcp-server/mcp-server.harness.ts:116  nonliteral/spread arg"
+  ],
+  "ownContractTestCalls": 7
+ },
+ "ToolCallResultStub": {
+  "oldFile": "packages/mcp/src/contracts/tool-call-result/tool-call-result.stub.ts",
+  "newStub": "none \u2014 needs CallToolResult stub",
+  "newImport": "#gateway/npm/modelcontextprotocol__sdk__types (proposed subpaths)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "content": "content",
+   "isError": "isError"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 5,
+   "HAND": 27
+  },
+  "keyCounts": {},
+  "handSites": [
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:131  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:153  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:177  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:205  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:230  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:256  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:315  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:367  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:386  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:422  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:451  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:490  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:578  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:640  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:701  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:767  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1098  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1144  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1191  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1236  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1314  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1501  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1531  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1554  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1637  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1671  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:1729  nonliteral/spread arg"
+  ],
+  "ownContractTestCalls": 5
+ },
+ "ToolListResultStub": {
+  "oldFile": "packages/mcp/src/contracts/tool-list-result/tool-list-result.stub.ts",
+  "newStub": "none \u2014 needs ListToolsResult stub",
+  "newImport": "#gateway/npm/modelcontextprotocol__sdk__types (proposed subpaths)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "tools": "tools"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 3,
+   "HAND": 4
+  },
+  "keyCounts": {},
+  "handSites": [
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:70  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:92  nonliteral/spread arg",
+   "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts:106  nonliteral/spread arg",
+   "packages/mcp/src/startup/start-mcp-server.integration.test.ts:33  nonliteral/spread arg"
+  ],
+  "ownContractTestCalls": 3
+ },
+ "WsClientStub": {
+  "oldFile": "packages/server/src/contracts/ws-client/ws-client.stub.ts",
+  "newStub": "none \u2014 gateway needs a WSContext stub (hono/ws)",
+  "newImport": "#gateway/npm/hono... (proposed)",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "send": "send (WSContext.send takes string|ArrayBuffer|Uint8Array)"
+  },
+  "classes": {
+   "MAP": 50,
+   "DELETED_WITH_CONTRACT": 3
+  },
+  "keyCounts": {
+   "send": 50
+  },
+  "handSites": [],
+  "ownContractTestCalls": 3
+ },
+ "ZodIssueErrorStub (server, siegelense)": {
+  "oldFile": "packages/{server,siegelense}/src/contracts/zod-issue-error/zod-issue-error.stub.ts",
+  "newStub": "none \u2014 a real z.ZodError built via #gateway/npm/zod",
+  "newImport": "#gateway/npm/zod",
+  "gatewayHasStub": false,
+  "keyMap": {
+   "issues": "new ZodError(issues)"
+  },
+  "classes": {
+   "DELETED_WITH_CONTRACT": 2,
+   "MAP": 2
+  },
+  "keyCounts": {
+   "issues": 2
+  },
+  "handSites": [],
+  "ownContractTestCalls": 2
+ },
+ "SpawnOptionsSnapshotStub": {
+  "oldFile": "packages/orchestrator/src/contracts/spawn-options-snapshot/spawn-options-snapshot.stub.ts",
+  "newStub": "UNCLEAR \u2014 copy of a SpawnOptions subset",
+  "newImport": "n/a",
+  "gatewayHasStub": false,
+  "keyMap": {},
+  "classes": {
+   "DELETED_WITH_CONTRACT": 1,
+   "MAP": 1
+  },
+  "keyCounts": {},
+  "handSites": [],
+  "ownContractTestCalls": 1
+ },
+ "TsestreeStub": {
+  "oldFile": "packages/eslint-plugin/src/contracts/tsestree/tsestree.stub.ts",
+  "newStub": "per-node gateway stubs (14 exist) or a { code }-printing stub",
+  "newImport": "#gateway/npm/typescript-eslint__utils/<kebab-node>/<kebab-node>.stub (Identifier, CallExpression, MemberExpression, Program, ArrowFunctionExpression, Literal, Property, ObjectExpression, BlockStatement, ExpressionStatement, VariableDeclaration, ReturnStatement, JSXElement, JSXFragment exist)",
+  "gatewayHasStub": "partial",
+  "keyMap": {
+   "type": "chooses the stub (or the printer template)",
+   "name/value/callee/arguments/object/property/body/params/... (all real TSESTree fields)": "expressed in the printed code string",
+   "parent: null": "ignore",
+   "parent: <node>": "HAND: real parent comes from parsing; the printer must be told which enclosing shape to print"
+  },
+  "classes": {
+   "MAP": 9,
+   "PRINT": 641,
+   "HAND": 259,
+   "DELETED_WITH_CONTRACT": 7
+  },
+  "outerCalls": 916,
+  "rootTypesWithoutGatewayStub": {
+   "FunctionDeclaration": 6,
+   "TSTypeAnnotation": 8,
+   "TSStringKeyword": 7,
+   "AssignmentPattern": 5,
+   "ObjectPattern": 14,
+   "TSPropertySignature": 2,
+   "ThrowStatement": 1,
+   "IfStatement": 1,
+   "UnaryExpression": 2,
+   "ArrayExpression": 21,
+   "VariableDeclarator": 12,
+   "ExportNamedDeclaration": 3,
+   "ImportDeclaration": 24,
+   "TemplateLiteral": 3,
+   "TSTypeLiteral": 8,
+   "MethodDefinition": 1,
+   "FunctionExpression": 4,
+   "ImportExpression": 1,
+   "TSTypeReference": 7,
+   "TSArrayType": 2,
+   "ExportDefaultDeclaration": 1,
+   "SpreadElement": 2,
+   "JSXExpressionContainer": 7,
+   "JSXText": 1,
+   "TSInterfaceBody": 1,
+   "TSBooleanKeyword": 1,
+   "ArrayPattern": 1
+  },
+  "callsWhoseRootHasGatewayStub": 770,
+  "printWithInventedDefaults": 95,
+  "handReasons": {
+   "flag parent-supplied": 84,
+   "missing CallExpression.callee": 41,
+   "missing Property.value": 36,
+   "missing VariableDeclarator.id": 22,
+   "missing MemberExpression.object": 17,
+   "missing ImportSpecifier.imported": 14,
+   "missing TSPropertySignature.key": 13,
+   "missing AssignmentPattern.right": 12,
+   "missing ImportDeclaration.source": 10,
+   "missing MemberExpression.property": 9,
+   "missing TSTypeAnnotation.typeAnnotation": 5,
+   "missing ExportNamedDeclaration.source": 5,
+   "missing Literal.value": 5,
+   "missing VariableDeclarator.init": 5,
+   "missing JSXElement.openingElement": 5,
+   "unknown key Identifier.id": 4,
+   "unknown key Identifier.init": 4,
+   "missing RestElement.argument": 4,
+   "missing SpreadElement.argument": 4,
+   "missing AssignmentPattern.left": 3,
+   "missing ExportDefaultDeclaration.declaration": 3,
+   "missing ExpressionStatement.expression": 3,
+   "missing ConditionalExpression.test": 3,
+   "missing ThrowStatement.argument": 2,
+   "missing AssignmentExpression.right": 2,
+   "missing ExportAllDeclaration.source": 2,
+   "missing MethodDefinition.value": 2,
+   "missing TSArrayType.elementType": 2,
+   "missing AssignmentExpression.left": 1,
+   "missing IfStatement.consequent": 1,
+   "missing IfStatement.test": 1,
+   "missing AwaitExpression.argument": 1,
+   "missing UpdateExpression.argument": 1,
+   "flag unknown-type:kind": 1,
+   "missing TSAsExpression.typeAnnotation": 1,
+   "missing TSTypePredicate.parameterName": 1,
+   "flag spread": 1,
+   "missing ImportExpression.source": 1,
+   "missing TSTypeReference.typeName": 1,
+   "missing TSQualifiedName.left": 1
+  },
+  "ownKeysByNodeType": {
+   "ArrayExpression": {
+    "parent": 16,
+    "elements": 7
+   },
+   "ArrowFunctionExpression": {
+    "body": 117,
+    "params": 42,
+    "returnType": 26,
+    "parent": 12
+   },
+   "AssignmentExpression": {
+    "left": 1
+   },
+   "AssignmentPattern": {
+    "left": 9,
+    "parent": 2,
+    "typeAnnotation": 1
+   },
+   "AwaitExpression": {
+    "argument": 3
+   },
+   "BlockStatement": {
+    "body": 104,
+    "parent": 8
+   },
+   "CallExpression": {
+    "callee": 165,
+    "arguments": 31,
+    "parent": 11,
+    "typeArguments": 3,
+    "property": 1
+   },
+   "ClassDeclaration": {
+    "id": 2
+   },
+   "ConditionalExpression": {
+    "consequent": 3,
+    "alternate": 3
+   },
+   "ExportNamedDeclaration": {
+    "source": 14,
+    "declaration": 13,
+    "exportKind": 11,
+    "specifiers": 2,
+    "parent": 1
+   },
+   "ExportSpecifier": {
+    "local": 2,
+    "exported": 2
+   },
+   "ExpressionStatement": {
+    "expression": 62,
+    "parent": 1
+   },
+   "FunctionDeclaration": {
+    "id": 5,
+    "parent": 5,
+    "params": 1,
+    "returnType": 1
+   },
+   "FunctionExpression": {
+    "body": 1,
+    "parent": 1
+   },
+   "Identifier": {
+    "name": 494,
+    "parent": 35,
+    "id": 4,
+    "init": 4,
+    "callee": 1
+   },
+   "ImportDeclaration": {
+    "source": 14,
+    "specifiers": 14
+   },
+   "ImportDefaultSpecifier": {
+    "local": 2
+   },
+   "ImportNamespaceSpecifier": {
+    "local": 1
+   },
+   "ImportSpecifier": {
+    "local": 15,
+    "imported": 1
+   },
+   "JSXExpressionContainer": {
+    "expression": 6
+   },
+   "Literal": {
+    "value": 91,
+    "parent": 6
+   },
+   "LogicalExpression": {
+    "right": 1
+   },
+   "MemberExpression": {
+    "property": 144,
+    "object": 136,
+    "computed": 10,
+    "parent": 4
+   },
+   "MethodDefinition": {
+    "key": 2
+   },
+   "NewExpression": {
+    "callee": 1
+   },
+   "ObjectExpression": {
+    "properties": 120
+   },
+   "ObjectPattern": {
+    "properties": 15,
+    "typeAnnotation": 12,
+    "parent": 1
+   },
+   "Program": {
+    "body": 23,
+    "parent": 1
+   },
+   "Property": {
+    "key": 52,
+    "value": 17,
+    "shorthand": 15,
+    "computed": 8
+   },
+   "ReturnStatement": {
+    "argument": 80
+   },
+   "SpreadElement": {
+    "argument": 13
+   },
+   "TSArrayType": {
+    "elementType": 1,
+    "typeAnnotation": 1
+   },
+   "TSAsExpression": {
+    "expression": 1
+   },
+   "TSIndexSignature": {
+    "optional": 1
+   },
+   "TSInterfaceBody": {
+    "body": 1
+   },
+   "TSPropertySignature": {
+    "optional": 12,
+    "key": 3,
+    "typeAnnotation": 2
+   },
+   "TSStringKeyword": {
+    "parent": 5
+   },
+   "TSTypeAnnotation": {
+    "typeAnnotation": 42,
+    "parent": 5
+   },
+   "TSTypeLiteral": {
+    "members": 9
+   },
+   "TSTypeParameterInstantiation": {
+    "params": 3
+   },
+   "TSTypeReference": {
+    "typeName": 22,
+    "typeArguments": 3
+   },
+   "TemplateElement": {
+    "value": 3
+   },
+   "TemplateLiteral": {
+    "quasis": 3,
+    "expressions": 3
+   },
+   "UnaryExpression": {
+    "argument": 1,
+    "operator": 1
+   },
+   "VariableDeclaration": {
+    "declarations": 33,
+    "kind": 13,
+    "parent": 4
+   },
+   "VariableDeclarator": {
+    "init": 32,
+    "id": 15,
+    "parent": 4
+   },
+   "kind": {
+    "imported": 1,
+    "local": 1
+   }
+  },
+  "handSitesFile": "tmp/libcopy-census/tsestree-hand-sites.txt",
+  "handSiteCount": 261
+ },
+ "_typeMap": {
+  "Tsestree": {
+   "copyFile": "packages/eslint-plugin/src/contracts/tsestree/tsestree-contract.ts",
+   "realType": "TSESTree.Node (generic) / TSESTree.<Key> in a visitor",
+   "importFrom": "#gateway/npm/typescript-eslint__utils  (import type { TSESTree })",
+   "rules": [
+    "parameter of an arrow that is a property value in the rule visitor object, key K: TSESTree.K (strip \":exit\"; for a compound selector \"A > B[x] > C\" use the rightmost type C; for \"A, B\" use TSESTree.A | TSESTree.B; attribute/pseudo selectors ([..], :not(..)) are dropped)",
+    "`{ node }: { node: Tsestree }` in guards/transformers: TSESTree.Node (narrow per function by hand when it first checks node.type)",
+    "`Tsestree | undefined` / `Tsestree | null` / `Tsestree[]`: same rule with the wrapper kept",
+    "return type Tsestree: TSESTree.Node"
+   ],
+   "refCounts": {
+    "prod:destructured-param": 91,
+    "prod:generic-arg": 2,
+    "prod:other": 40,
+    "prod:param-other": 3,
+    "prod:return-type": 9,
+    "prod:type-literal-field": 1,
+    "prod:visitor-key": 138,
+    "prod:visitor-selector": 26,
+    "stub:generic-arg": 1,
+    "stub:return-type": 1
+   },
+   "visitorKeyHistogram": {
+    "CallExpression": 48,
+    "ImportDeclaration": 21,
+    "Program": 10,
+    "VariableDeclarator": 9,
+    "ExportNamedDeclaration": 5,
+    "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression": 4,
+    "CallExpression:exit": 4,
+    "Literal": 3,
+    "ArrowFunctionExpression": 3,
+    "FunctionDeclaration": 3,
+    "FunctionExpression": 3,
+    "VariableDeclaration": 3,
+    "ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression": 3,
+    "MemberExpression": 2,
+    "NewExpression": 2,
+    "SwitchStatement": 2,
+    "Program:exit": 2,
+    "ReturnStatement": 2,
+    "Identifier": 2,
+    "ArrayExpression": 2,
+    "TSInterfaceDeclaration": 1,
+    "TSAsExpression": 1,
+    "TSTypePredicate": 1,
+    "JSXElement, JSXFragment": 1,
+    "TSIndexedAccessType": 1
+   },
+   "prodFilesWhereEveryRefIsVisitorKeyed": 71,
+   "prodFilesWithRefs": 171
+  },
+  "TsestreeNodeType (test alias from tsestree.stub)": {
+   "realType": "AST_NODE_TYPES",
+   "importFrom": "#gateway/npm/typescript-eslint__utils",
+   "files": "58 test files + 7 prod (tsestreeNodeTypeStatics)"
+  },
+  "EslintContext": {
+   "realType": "TSESLint.RuleContext<string, unknown[]>  (rules typed via TSESLint.RuleModule<MessageIds, Options>; helpers taking a context use Readonly<TSESLint.RuleContext<MessageIds, Options>>)",
+   "importFrom": "#gateway/npm/typescript-eslint__utils"
+  },
+  "EslintSourceCode": {
+   "realType": "TSESLint.SourceCode"
+  },
+  "EslintScope": {
+   "realType": "TSESLint.Scope.Scope"
+  },
+  "EslintComment": {
+   "realType": "TSESTree.Comment"
+  },
+  "EslintRuleFixer": {
+   "realType": "TSESLint.RuleFixer"
+  },
+  "EslintRule": {
+   "realType": "TSESLint.RuleModule<string, unknown[]> (meta: TSESLint.RuleMetaData<string>)"
+  },
+  "AstNode": {
+   "realType": "TSESTree.Node"
+  },
+  "EslintConfig / LinterConfig": {
+   "realType": "TSESLint.FlatConfig.Config"
+  },
+  "EslintRules": {
+   "realType": "TSESLint.SharedConfigurationSettings / Linter.RulesRecord (rules record)"
+  },
+  "EslintPlugin": {
+   "realType": "TSESLint.FlatConfig.Plugin"
+  },
+  "TimerHandle": {
+   "realType": "NodeJS.Timeout",
+   "importFrom": "global (no import)"
+  },
+  "ChildProcess (hooks)": {
+   "realType": "ChildProcess from #gateway/node/child_process"
+  },
+  "FileStats": {
+   "realType": "Stats from #gateway/node/fs"
+  },
+  "TypescriptSourceFile": {
+   "realType": "ts.SourceFile",
+   "importFrom": "#gateway/npm/typescript"
+  },
+  "TypescriptProgram": {
+   "realType": "ts.Program"
+  },
+  "TypescriptNodeFactory": {
+   "realType": "ts.NodeFactory"
+  },
+  "TypescriptStatement": {
+   "realType": "ts.Statement"
+  },
+  "McpServerClient": {
+   "realType": "none (dead)"
+  },
+  "JsonRpcRequest/Response/Error": {
+   "realType": "JSONRPCRequest / JSONRPCResponse / JSONRPCError from #gateway/npm/modelcontextprotocol__sdk__types"
+  },
+  "ToolCallResult/ToolCallContent": {
+   "realType": "CallToolResult (content item: TextContent)"
+  },
+  "ToolListResult": {
+   "realType": "ListToolsResult"
+  },
+  "Tool": {
+   "realType": "Tool (SDK)"
+  },
+  "WsClient": {
+   "realType": "WSContext (hono/ws)"
+  },
+  "ZodIssueError": {
+   "realType": "z.ZodError (z.core.$ZodIssue[])"
+  },
+  "ProcessSignal": {
+   "realType": "NodeJS.Signals"
+  },
+  "ExecError": {
+   "realType": "child_process ExecException / SpawnSyncReturns error"
+  },
+  "is-node-error guard": {
+   "realType": "NodeJS.ErrnoException via the gateway fs error guard (#gateway/node/fs is-fs-error)"
+  }
+ }
+}

@@ -1,5 +1,7 @@
 # B15: brand the repo — the largest item
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), chunk 4.0 and waves W1 to W10. That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 4 — brands |

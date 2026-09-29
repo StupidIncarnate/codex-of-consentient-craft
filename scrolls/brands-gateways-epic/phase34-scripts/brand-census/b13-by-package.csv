@@ -1,0 +1,8 @@
+pkg,prod,test,other,total
+"hooks",2,0,0,2
+"hydration-recipes",0,3,0,3
+"mcp",0,0,4,4
+"orchestrator",39,14,5,58
+"server",0,0,14,14
+"siegelense",10,0,0,10
+"web",4,0,193,197

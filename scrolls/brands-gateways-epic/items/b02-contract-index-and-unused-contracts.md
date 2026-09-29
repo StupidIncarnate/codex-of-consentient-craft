@@ -1,5 +1,7 @@
 # B02: the parse index is built, and every contract nothing parses is deleted
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), chunks 3.1 (deletions) and R1 (index and rule). That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 3 — brands foundation |

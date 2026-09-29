@@ -1,5 +1,7 @@
 # B04: every lint rule uses the real `TSESTree` and `TSESLint.RuleContext`, and the copies are deleted
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), wave 3.5, chunks L0 and L2. That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 3 — brands foundation |

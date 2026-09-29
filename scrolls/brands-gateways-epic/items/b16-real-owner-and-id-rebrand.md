@@ -1,5 +1,7 @@
 # B16: an owner must be a real, parsed object; an id may never be re-branded into another field
 
+> **Re-planned 2026-09-29.** Order, chunking and sizes for this item are in [`EPIC.md`, "Phases 3 and 4 — the plan"](../EPIC.md), section 4.3. That plan wins on order and size; this file still specifies the rules. Counts below are from 2026-09-26 unless marked.
+
 | | |
 |---|---|
 | Phase | Phase 4 — brands |

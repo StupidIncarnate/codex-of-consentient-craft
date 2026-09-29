@@ -2,6 +2,10 @@
 > write their output under it, so run them from there: `cp -a scrolls/brands-gateways-epic/phase34-scripts tmp/phase34`
 > when `tmp/phase34/` is missing. The `out/` and `sample-out/` folders are not copied here.
 
+> `feasibility/`, `brand-census/` and `libcopy-census/` were added on 2026-09-29 for the re-plan in
+> `../EPIC.md` ("Phases 3 and 4 — the plan"), which names the chunk that promotes each prototype. Their outputs are not copied, apart
+> from the CSVs, `stub-map.json` and `tsestree-hand-sites.txt`; re-run a census to regenerate the rest.
+
 # Phase 3 and 4 migration scripts
 
 Scripts for the mechanical parts of the brands-and-gateways epic's Phases 3 and 4. Every script
