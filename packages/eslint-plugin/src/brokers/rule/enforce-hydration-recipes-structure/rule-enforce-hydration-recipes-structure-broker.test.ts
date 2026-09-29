@@ -48,7 +48,7 @@ ruleTester.run(
         filename: '/project/packages/siegelense/src/index.ts',
       },
       {
-        code: "import { recipeManifestContract } from '@dungeonmaster/hydration-recipes/contracts';",
+        code: "import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';",
         filename: '/project/packages/siegelense/src/index.ts',
       },
       {

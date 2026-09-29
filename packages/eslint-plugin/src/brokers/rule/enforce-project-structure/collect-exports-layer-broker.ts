@@ -5,10 +5,10 @@
  * const exports = collectExportsLayerBroker({node, context, filename, firstFolder});
  * // Returns array of collected exports, or null if a fatal forbidden pattern was reported
  */
+import { collectedExportContract } from '../../../contracts/collected-export/collected-export-contract';
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
@@ -60,11 +60,13 @@ export const collectExportsLayerBroker = ({
         (declaration.type === AST_NODE_TYPES.TSTypeAliasDeclaration ||
           declaration.type === AST_NODE_TYPES.TSInterfaceDeclaration)
       ) {
-        exports.push({
-          type: declaration.type as CollectedExport['type'],
-          name: identifierContract.parse(declaration.id.name),
-          isTypeOnly: true,
-        });
+        exports.push(
+          collectedExportContract.parse({
+            type: declaration.type,
+            name: declaration.id.name,
+            isTypeOnly: true,
+          }),
+        );
       }
 
       if (!isTypeOnly && declaration) {
@@ -89,11 +91,13 @@ export const collectExportsLayerBroker = ({
                 return null;
               }
 
-              exports.push({
-                type: 'VariableDeclaration' as CollectedExport['type'],
-                name: identifierContract.parse(declarator.id.name),
-                isTypeOnly: false,
-              });
+              exports.push(
+                collectedExportContract.parse({
+                  type: 'VariableDeclaration',
+                  name: declarator.id.name,
+                  isTypeOnly: false,
+                }),
+              );
             }
           }
         }
@@ -107,11 +111,13 @@ export const collectExportsLayerBroker = ({
             });
             return null;
           }
-          exports.push({
-            type: 'FunctionDeclaration' as CollectedExport['type'],
-            name: identifierContract.parse(declaration.id.name),
-            isTypeOnly: false,
-          });
+          exports.push(
+            collectedExportContract.parse({
+              type: 'FunctionDeclaration',
+              name: declaration.id.name,
+              isTypeOnly: false,
+            }),
+          );
         }
 
         if (declaration.type === AST_NODE_TYPES.ClassDeclaration && declaration.id?.name) {
@@ -123,11 +129,13 @@ export const collectExportsLayerBroker = ({
             });
             return null;
           }
-          exports.push({
-            type: 'ClassDeclaration' as CollectedExport['type'],
-            name: identifierContract.parse(declaration.id.name),
-            isTypeOnly: false,
-          });
+          exports.push(
+            collectedExportContract.parse({
+              type: 'ClassDeclaration',
+              name: declaration.id.name,
+              isTypeOnly: false,
+            }),
+          );
         }
       }
     }

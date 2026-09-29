@@ -54,12 +54,12 @@ export const FilePathStub = ({ value }: { value: string } = { value: '/test/file
     // Branded string stub with single 'value' property on multiple lines - exception allowed
     {
       code: `
-import { allowedImportContract } from './allowed-import-contract';
-export const AllowedImportStub = (
-  { value }: { value: string } = { value: 'contracts' },
-): AllowedImport => allowedImportContract.parse(value);
+import { orderStatusContract } from './order-status-contract';
+export const OrderStatusStub = (
+  { value }: { value: string } = { value: 'shipped' },
+): OrderStatus => orderStatusContract.parse(value);
       `,
-      filename: '/test/allowed-import.stub.ts',
+      filename: '/test/order-status.stub.ts',
     },
 
     // Stub with no parameters - should be ignored by rule

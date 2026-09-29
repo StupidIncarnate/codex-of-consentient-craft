@@ -1,9 +1,8 @@
 /**
  * PURPOSE: The recipe-fidelity vocabulary — the three markers in the spec's own order, the one
  * marker that obliges a `mirrors:` pointer, the risk each one declares, and which of them costs a
- * booted instance to prove. Reach for this over retyping the three names anywhere:
- * `recipeFidelityContract` derives its enum from `markers.all`, and `recipeManifestContract` reads
- * `markers.mirrorsRequired` rather than a second `'direct'` literal. `instanceCost` lives HERE and
+ * booted instance to prove. Reach for this over retyping the three names anywhere.
+ * `instanceCost` lives HERE and
  * not on each manifest because it is a property of the FIDELITY — a `direct` recipe is pure `fs`
  * and a `production` one calls a real route — so a per-recipe copy would be a second place for the
  * two to disagree.

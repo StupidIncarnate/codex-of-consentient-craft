@@ -177,18 +177,18 @@ describe('isEntryFileGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('EDGE: other-file.ts in allowed-import folder is NOT entry file', () => {
+    it('EDGE: other-file.ts in order-status folder is NOT entry file', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/contracts/allowed-import/other-file.ts',
+        filePath: '/project/src/contracts/order-status/other-file.ts',
         folderType: 'contracts',
       });
 
       expect(result).toBe(false);
     });
 
-    it('EDGE: allowed-import-contract.ts in allowed-import folder IS entry file', () => {
+    it('EDGE: order-status-contract.ts in order-status folder IS entry file', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/contracts/allowed-import/allowed-import-contract.ts',
+        filePath: '/project/src/contracts/order-status/order-status-contract.ts',
         folderType: 'contracts',
       });
 
