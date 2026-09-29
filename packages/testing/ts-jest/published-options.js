@@ -21,6 +21,17 @@
  * `getSemanticDiagnostics`; the program and `getEmitOutput` this file's own header already commits
  * to keeping (for the AST transformers below) stay exactly as they were. Jest resolves modules
  * itself at test RUN time regardless, so nothing here changes what actually executes.
+ *
+ * `moduleResolution: 'node16'` does NOT let diagnostics come back on (ts-jest 29.4.0, TypeScript 5.8.3).
+ * Outside `isolatedModules`, ts-jest's `fixupCompilerOptionsForModuleKind` rewrites the options its
+ * language service compiles with to `module: commonjs` / `moduleResolution: node10` on every file,
+ * whatever the tsconfig says (read back off the compiler instance: initial `Node16`, effective
+ * `Node10`, and it warns "hybrid module kind ... only supported in isolatedModules"). Node10 ignores
+ * `package.json` `imports`, so with `diagnostics: true` every test file that imports a gateway
+ * (`#gateway/node/fetch`, ...) fails TS2307 — measured on `packages/testing` with `node16`, with and
+ * without `customConditions: ['source']`. Inside `isolatedModules` `node16` is accepted but type
+ * errors are not reported at all (only syntax errors), so it buys nothing. The consumer's own `tsc`
+ * is what type-checks.
  */
 'use strict';
 
