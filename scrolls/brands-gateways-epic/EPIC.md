@@ -214,6 +214,7 @@ Git history holds every earlier handoff.
 - **Two agents' edits to one package commit together**, and a "restore to HEAD" (`git show HEAD:<path> > <path>`)
   by one agent wipes another's uncommitted work. Brief agents never to restore a file that way.
 - **Gate a whole folder, and read the exit code, not a piped `tail`.** Two agents each added a layer broker to one rule folder and gated only their own files; the rule broker's `.proxy.ts` then failed `enforce-proxy-child-creation`, and an operator lint piped through `tail` hid the red and committed it (60958a2f8, fixed after).
+- **A 3.3-S1 step on a package ward loads breaks ward for everyone until that package is built.** Shared's S1 moved its barrels to `src/<ft>/<ft>.ts`; ward's binary loads `@dungeonmaster/shared/contracts` from `dist`, which had no file at the new path, so every ward run died with `MODULE_NOT_FOUND`. Build the package right after its S1 apply, before any gate.
 - **Watch the disk.** Jest's `/tmp/jest_rt` cache and leaked consumer-check prefixes filled the 458G disk mid-wave; every agent then failed with ENOSPC. `df -h /` at each heartbeat.
 - **Stopping `build:clean` part-way deletes every `dist`**, and lint then fails for every agent (eslint loads
   `shared` from `dist`). Let it finish, or run `npm run build` at once.
