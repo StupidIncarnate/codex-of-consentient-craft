@@ -1,3 +1,4 @@
+import { Buffer } from '#gateway/node/buffer';
 import { readFileBytesSyncProxy } from '#gateway/node/fs/read-file-bytes-sync/read-file-bytes-sync.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
