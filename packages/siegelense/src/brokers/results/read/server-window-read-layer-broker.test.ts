@@ -46,6 +46,7 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: null,
       where: null,
@@ -60,6 +61,7 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: StepIndexStub({ value: 99 }),
       where: null,
@@ -74,6 +76,7 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: null,
       where: ResultWhereStub({ steps: '6-8', level: 'error' }),
@@ -88,6 +91,7 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: StepIndexStub({ value: 7 }),
       where: null,
@@ -102,6 +106,7 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: null,
       where: null,
@@ -120,11 +125,75 @@ describe('serverWindowReadLayerBroker', () => {
 
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
+      sinceBoot: false,
       readings: readingsFixture,
       step: StepIndexStub({ value: 8 }),
       where: ResultWhereStub({ level: 'warn' }),
     });
 
     expect(result).toStrictEqual([LINE_STEP_8.trimEnd()]);
+  });
+
+  describe('sinceBoot', () => {
+    it('VALID: {sinceBoot: true, no readings} => every line in the log, boot lines outside any window included', async () => {
+      const proxy = serverWindowReadLayerBrokerProxy();
+      proxy.setupServerLog({
+        evidencePath: EVIDENCE_PATH,
+        content: `Server listening on http://dungeonmaster.localhost:39887\n${FULL_LOG}`,
+      });
+
+      const result = await serverWindowReadLayerBroker({
+        evidencePath: EVIDENCE_PATH,
+        sinceBoot: true,
+        readings: [],
+        step: null,
+        where: null,
+      });
+
+      expect(result).toStrictEqual([
+        'Server listening on http://dungeonmaster.localhost:39887',
+        LINE_OUTSIDE.trimEnd(),
+        LINE_STEP_6.trimEnd(),
+        LINE_STEP_7.trimEnd(),
+        LINE_STEP_8.trimEnd(),
+      ]);
+    });
+
+    it('VALID: {sinceBoot: true, where: {level: error}} => every error line in the whole log', async () => {
+      const proxy = serverWindowReadLayerBrokerProxy();
+      proxy.setupServerLog({
+        evidencePath: EVIDENCE_PATH,
+        content: `${FULL_LOG}[http] info GET /api/guilds 200 3ms\n[http] error GET /api/guilds 500 4ms: {"error":"boom"}\n`,
+      });
+
+      const result = await serverWindowReadLayerBroker({
+        evidencePath: EVIDENCE_PATH,
+        sinceBoot: true,
+        readings: [],
+        step: null,
+        where: ResultWhereStub({ level: 'error' }),
+      });
+
+      expect(result).toStrictEqual([
+        LINE_OUTSIDE.trimEnd(),
+        LINE_STEP_7.trimEnd(),
+        '[http] error GET /api/guilds 500 4ms: {"error":"boom"}',
+      ]);
+    });
+
+    it('EMPTY: {sinceBoot: true, no api-server.log} => returns an empty array', async () => {
+      const proxy = serverWindowReadLayerBrokerProxy();
+      proxy.setupMissingServerLog({ evidencePath: EVIDENCE_PATH });
+
+      const result = await serverWindowReadLayerBroker({
+        evidencePath: EVIDENCE_PATH,
+        sinceBoot: true,
+        readings: [],
+        step: null,
+        where: null,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
   });
 });

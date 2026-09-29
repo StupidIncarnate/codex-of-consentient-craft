@@ -37,7 +37,8 @@
             "FAKE_CLAUDE_QUEUE_DIR": "{claudeQueueDir}",
             "FAKE_WARD_QUEUE_DIR": "{wardQueueDir}",
             "E2E_SIGNAL_BACK_HTTP": "1",
-            "DUNGEONMASTER_RATE_LIMITS_POLL_MS": "500"
+            "DUNGEONMASTER_RATE_LIMITS_POLL_MS": "500",
+            "DUNGEONMASTER_REQUEST_LOG": "1"
           }
         },
         {

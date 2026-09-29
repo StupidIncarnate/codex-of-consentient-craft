@@ -27,6 +27,8 @@
  * recorded" or "wrong run": an empty console/network/ws read for one run carries
  * `latestRunWithRows` (the latest run on this instance holding lines of that kind), and an empty
  * server read carries `serverWindow` (the `api-server.log` byte range the queried steps covered).
+ * `kind: 'server'` with `since: 'boot'` reads the WHOLE `api-server.log` — boot lines, per-request
+ * `[http]` lines and crashes alike — since that file already spans every run.
  * `compareReadBroker` drives this same broker through console/server/network for
  * runs its OWN read already proved exist, so that lazy probe there finds a file already present on
  * the first try and never re-litigates a question compare already answered.
@@ -122,7 +124,7 @@ export const resultsReadBroker = async ({
       `results against instance ${query.instanceId} with since: 'boot' and no kind cannot ` +
         `answer: boot spans every run, and only ${resultsStatics.kinds.sinceBootEligible.join(', ')} ` +
         `hold lines for the whole timeline. Name one with --kind <kind>, or drop --since boot to ` +
-        `read a single run's steps, server or screenshots.`,
+        `read a single run's steps or screenshots.`,
     );
   }
 
@@ -194,6 +196,36 @@ export const resultsReadBroker = async ({
       rows: projectedRows,
       storedReturn: null,
       ...(latestRunWithRows === undefined ? {} : { latestRunWithRows }),
+    });
+  }
+
+  if (query.kind === SERVER_KIND && effectiveRunId === null) {
+    const rows = await serverWindowReadLayerBroker({
+      evidencePath,
+      readings: [],
+      step: query.step,
+      where: query.where,
+      sinceBoot: true,
+    });
+    const capped = rows.slice(0, resultsStatics.limits.maxRows);
+    const projectedRows = capped.map((row) =>
+      resultRowProjectTransformer({ row, fields: query.fields }),
+    );
+
+    return resultsAnswerContract.parse({
+      instanceId: query.instanceId,
+      instanceState: state,
+      runId: null,
+      kind: 'server',
+      step: query.step,
+      verb: null,
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: readingCountContract.parse(rows.length),
+      returned: readingCountContract.parse(capped.length),
+      truncated: rows.length > capped.length,
+      rows: projectedRows,
+      storedReturn: null,
     });
   }
 
@@ -339,6 +371,7 @@ export const resultsReadBroker = async ({
       readings,
       step: query.step,
       where: query.where,
+      sinceBoot: false,
     });
 
     if (rows.length === 0) {

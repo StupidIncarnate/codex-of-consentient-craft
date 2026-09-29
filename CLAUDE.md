@@ -80,6 +80,9 @@ All runtime knobs (port, devCommand, buildCommand) live in `.dungeonmaster.json`
   where Playwright waits on one port and Vite binds another dies on
   `Timed out waiting 60000ms from config.webServer`.
 - `VERBOSE=1` — gates `[dev]` orchestration event logging. Set inline by this repo's `dev` and `prod` npm scripts.
+- `DUNGEONMASTER_REQUEST_LOG=1` — gates the API server's one `[http]` line per request (method, path, status,
+  duration, error detail). Set only in the lane's api env in `.dungeonmaster.json`, so `npm run prod` output is
+  unchanged and siegelense's `results --kind server` shows what the server did.
 
 **Config file surface:** `.dungeonmaster.json` at repo root — ports, `devCommand`, `buildCommand`, framework, schema.
 Validated by `dungeonmasterConfigContract`. A `zod.refine` rejects `dungeonmaster.port === devServer.port` (siege would
