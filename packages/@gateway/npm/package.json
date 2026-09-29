@@ -115,6 +115,7 @@
     }
   },
   "devDependencies": {
+    "@dungeonmaster/node": "*",
     "@dungeonmaster/testing": "*",
     "@types/node": "^24.0.15",
     "@types/react": "^19.0.0",
