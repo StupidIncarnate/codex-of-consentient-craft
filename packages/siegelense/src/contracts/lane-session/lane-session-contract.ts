@@ -1,11 +1,9 @@
 /**
  * PURPOSE: One booted lane's whole surface — its spec name, its claimed ports, its throwaway home and
  * repo-local evidence paths, the process groups `kill` signals, and (optionally) a live
- * `BrowserSession` — described the same structural way as `browserSessionContract` and for the same
- * reason: whatever broker closes over the child processes and the Playwright browser a lane owns
- * cannot hand back an npm-package type, and contracts/ cannot import one to describe it either. The
- * data half stays an empty `z.object({})` and every field is added through a TypeScript intersection.
- * `browser` is what makes a browserless spec REPRESENTABLE rather than a bug waiting in an adapter: a
+ * `BrowserSession`. The data members are a schema, `laneBootBroker` parses them where it builds the
+ * lane, and the two log-reader functions Zod cannot check are added through a TypeScript
+ * intersection. `browser` is what makes a browserless spec REPRESENTABLE rather than a bug waiting in an adapter: a
  * `dungeonmaster-api` instance boots its servers and no Chromium, so its `LaneSession.browser` is
  * `null` by construction rather than a `BrowserSession` some caller forgot to close, and the guard that
  * rejects a browser step against it reads this field instead of probing a live page for one
@@ -25,29 +23,35 @@
 
 import { z } from '#gateway/npm/zod';
 
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../browser-session/browser-session-contract';
-import type { FileDescriptor } from '../file-descriptor/file-descriptor-contract';
-import type { PortPair } from '../port-pair/port-pair-contract';
-import type { ProcessGroupId } from '../process-group-id/process-group-id-contract';
+import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
+import { portPairContract } from '../port-pair/port-pair-contract';
+import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
-import type { SpecName } from '../spec-name/spec-name-contract';
+import { specNameContract } from '../spec-name/spec-name-contract';
 
-// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
-// v4), which the field-carrying intersection below could never satisfy.
-export const laneSessionContract = z.object({}).loose();
+export const laneSessionContract = z
+  .object({
+    specName: specNameContract,
+    ports: portPairContract,
+    homePath: absoluteFilePathContract,
+    evidencePath: absoluteFilePathContract,
+    baseUrl: contentTextContract,
+    apiBaseUrl: contentTextContract,
+    pgids: z.array(processGroupIdContract).readonly(),
+    // `z.custom`, not a nested schema: the value is a live session closed over a browser, and the
+    // check passes the same reference through so its functions survive the parse.
+    browser: z.custom<BrowserSession | null>(
+      (value: unknown) => value === null || typeof value === 'object',
+    ),
+    logFds: z.array(fileDescriptorContract).readonly(),
+  })
+  .brand<'LaneSession'>();
 
 export type LaneSession = z.infer<typeof laneSessionContract> & {
-  specName: SpecName;
-  ports: PortPair;
-  homePath: AbsoluteFilePath;
-  evidencePath: AbsoluteFilePath;
-  baseUrl: ContentText;
-  apiBaseUrl: ContentText;
-  pgids: readonly ProcessGroupId[];
-  browser: BrowserSession | null;
-  logFds: readonly FileDescriptor[];
   readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly ContentText[];
   serverLogLength: () => ServerLogByteCount;
 };

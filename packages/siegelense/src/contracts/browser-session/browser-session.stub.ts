@@ -1,10 +1,11 @@
-import { z } from '#gateway/npm/zod';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { browserSessionContract } from './browser-session-contract';
-import type { BrowserSession, BufferLengths } from './browser-session-contract';
+import type { BrowserSession } from './browser-session-contract';
+import { BufferLengthsStub } from '../buffer-lengths/buffer-lengths.stub';
+import type { BufferLengths } from '../buffer-lengths/buffer-lengths-contract';
+import { MatchCountStub } from '../match-count/match-count.stub';
 import type { MatchCount } from '../match-count/match-count-contract';
 import { BoxReadingStub } from '../box-reading/box-reading.stub';
 import type { BoxReading } from '../box-reading/box-reading-contract';
@@ -26,9 +27,6 @@ import { VideoResultStub } from '../video-result/video-result.stub';
 
 type VideoAction = ReturnType<typeof VideoActionStub>;
 type VideoResult = ReturnType<typeof VideoResultStub>;
-
-const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
-const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
 
 export const BrowserSessionStub = ({
   ...props
@@ -66,18 +64,15 @@ export const BrowserSessionStub = ({
     videoAction,
     bufferLengths,
     close,
-    ...dataProps
   } = props;
 
   return {
-    ...browserSessionContract.parse({ ...dataProps }),
     goto: goto ?? (async (): Promise<void> => Promise.resolve()),
     look: look ?? (async (): Promise<KeyListing> => Promise.resolve(KeyListingStub())),
     refState:
       refState ?? (async (): Promise<RefResolution> => Promise.resolve(RefResolutionStub())),
     countMatches:
-      countMatches ??
-      (async (): Promise<MatchCount> => Promise.resolve(matchCountContract.parse(0))),
+      countMatches ?? (async (): Promise<MatchCount> => Promise.resolve(MatchCountStub())),
     describeMatches:
       describeMatches ?? (async (): Promise<readonly StepCandidate[]> => Promise.resolve([])),
     nearestNames:
@@ -118,13 +113,7 @@ export const BrowserSessionStub = ({
             path: action === 'start' ? null : 'evidence/video',
           }),
         )),
-    bufferLengths:
-      bufferLengths ??
-      ((): BufferLengths => ({
-        consoleLines: bufferLineCountContract.parse(0),
-        networkLines: bufferLineCountContract.parse(0),
-        websocketLines: bufferLineCountContract.parse(0),
-      })),
+    bufferLengths: bufferLengths ?? ((): BufferLengths => BufferLengthsStub()),
     close: close ?? (async (): Promise<void> => Promise.resolve()),
   };
 };

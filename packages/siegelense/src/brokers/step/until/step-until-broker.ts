@@ -27,7 +27,7 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { UntilConsolePattern } from '../../../contracts/until-console-pattern/until-console-pattern-contract';
 import type { UntilFilePath } from '../../../contracts/until-file-path/until-file-path-contract';

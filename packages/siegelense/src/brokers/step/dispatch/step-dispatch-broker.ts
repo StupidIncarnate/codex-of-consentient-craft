@@ -62,7 +62,7 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 import { isNativeError } from '#gateway/node/util__types';
 import { stderr } from '#gateway/node/process';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
-import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';

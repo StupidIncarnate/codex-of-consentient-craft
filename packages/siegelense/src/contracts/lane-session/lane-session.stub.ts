@@ -36,29 +36,30 @@ export const LaneSessionStub = ({
   };
 
   return {
-    ...laneSessionContract.parse({}),
-    specName:
-      dataProps.specName === undefined
-        ? SpecNameStub()
-        : SpecNameStub({ value: dataProps.specName }),
-    ports: PortPairStub(dataProps.ports),
-    homePath: absoluteFilePathContract.parse(dataProps.homePath ?? '/tmp/dm-siege-stub'),
-    evidencePath: absoluteFilePathContract.parse(
-      dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
-    ),
-    baseUrl: contentTextContract.parse(dataProps.baseUrl ?? 'http://127.0.0.1:0'),
-    apiBaseUrl: contentTextContract.parse(
-      dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
-    ),
-    pgids:
-      dataProps.pgids === undefined
-        ? [ProcessGroupIdStub()]
-        : dataProps.pgids.map((value) => processGroupIdContract.parse(value)),
-    browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
-    logFds:
-      dataProps.logFds === undefined
-        ? []
-        : dataProps.logFds.map((value) => fileDescriptorContract.parse(value)),
+    ...laneSessionContract.parse({
+      specName:
+        dataProps.specName === undefined
+          ? SpecNameStub()
+          : SpecNameStub({ value: dataProps.specName }),
+      ports: PortPairStub(dataProps.ports),
+      homePath: absoluteFilePathContract.parse(dataProps.homePath ?? '/tmp/dm-siege-stub'),
+      evidencePath: absoluteFilePathContract.parse(
+        dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
+      ),
+      baseUrl: contentTextContract.parse(dataProps.baseUrl ?? 'http://127.0.0.1:0'),
+      apiBaseUrl: contentTextContract.parse(
+        dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
+      ),
+      pgids:
+        dataProps.pgids === undefined
+          ? [ProcessGroupIdStub()]
+          : dataProps.pgids.map((value) => processGroupIdContract.parse(value)),
+      browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
+      logFds:
+        dataProps.logFds === undefined
+          ? []
+          : dataProps.logFds.map((value) => fileDescriptorContract.parse(value)),
+    }),
     readServerLogSince: readServerLogSince ?? ((): readonly ContentText[] => []),
     serverLogLength:
       serverLogLength ??

@@ -48,11 +48,9 @@ import type { StepCandidate } from '../../../contracts/step-candidate/step-candi
 import type { DomField } from '../../../contracts/dom-field/dom-field-contract';
 import type { DomReading } from '../../../contracts/dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode-contract';
-import { bufferLineCountContract } from '../../../contracts/buffer-line-count/buffer-line-count-contract';
-import type {
-  BrowserSession,
-  BufferLengths,
-} from '../../../contracts/browser-session/browser-session-contract';
+import { bufferLengthsContract } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
+import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import type { MatchCount } from '../../../contracts/match-count/match-count-contract';
 import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
@@ -649,11 +647,12 @@ export const browserSessionLaunchBroker = async ({
       });
     },
 
-    bufferLengths: (): BufferLengths => ({
-      consoleLines: bufferLineCountContract.parse(consoleLines.length),
-      networkLines: bufferLineCountContract.parse(networkLines.length),
-      websocketLines: bufferLineCountContract.parse(websocketLines.length),
-    }),
+    bufferLengths: (): BufferLengths =>
+      bufferLengthsContract.parse({
+        consoleLines: consoleLines.length,
+        networkLines: networkLines.length,
+        websocketLines: websocketLines.length,
+      }),
 
     close: async (): Promise<void> => {
       await browser.close();

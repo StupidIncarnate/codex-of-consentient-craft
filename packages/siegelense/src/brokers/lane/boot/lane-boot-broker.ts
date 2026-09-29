@@ -59,6 +59,7 @@ import { laneEnvSubstituteTransformer } from '../../../transformers/lane-env-sub
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { laneSessionContract } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
@@ -262,20 +263,20 @@ export const laneBootBroker = async ({
     logPath: firstProcess.logPath,
   });
 
+  const apiBaseUrl = `http://${environmentStatics.hostname}:${String(ports.api)}`;
+
   return {
-    specName: spec.name,
-    ports,
-    homePath,
-    evidencePath,
-    baseUrl: contentTextContract.parse(
-      `http://${environmentStatics.hostname}:${String(ports.api)}`,
-    ),
-    apiBaseUrl: contentTextContract.parse(
-      `http://${environmentStatics.hostname}:${String(ports.api)}`,
-    ),
-    pgids: booted.map((entry) => entry.pgid),
-    browser,
-    logFds: booted.map((entry) => entry.fd),
+    ...laneSessionContract.parse({
+      specName: spec.name,
+      ports,
+      homePath,
+      evidencePath,
+      baseUrl: apiBaseUrl,
+      apiBaseUrl,
+      pgids: booted.map((entry) => entry.pgid),
+      browser,
+      logFds: booted.map((entry) => entry.fd),
+    }),
     readServerLogSince,
     serverLogLength,
   };

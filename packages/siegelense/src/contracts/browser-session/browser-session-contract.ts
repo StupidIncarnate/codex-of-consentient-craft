@@ -2,11 +2,8 @@
  * PURPOSE: The operations a walk drives against a live page, described structurally so a broker can
  * hand one back without this contract ever naming Playwright — contracts/ may import only `statics`,
  * `errors`, `contracts` and `zod`, never an npm package, so the `Page`/`Browser` types
- * `brokers/browser-session/launch/` closes over never leave that folder. A Zod object schema cannot
- * express a function, so the data half stays an empty `z.object({})` and every operation is added
- * through a TypeScript intersection instead — the same shape `eslintContextContract`
- * (`packages/eslint-plugin/src/contracts/eslint-context/`) already uses for ESLint's own
- * `RuleContext`, and the sanctioned pattern here for a behavioural type rather than a payload one.
+ * `brokers/browser-session/launch/` closes over never leave that folder. Every member is a function,
+ * which Zod cannot check, so this file holds a method-set type and no schema.
  * `LaneSession.browser` holds this type or `null`: a browserless spec boots no Chromium at all, so its
  * lane session carries no `BrowserSession` rather than one backed by nothing, and the browser-step
  * guard reads that `null` to reject a `look`/`click`/`hold` by naming the spec instead of returning an
@@ -19,12 +16,10 @@
  * // touches a Playwright Page
  */
 
-import { z } from '#gateway/npm/zod';
-
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BoxReading } from '../box-reading/box-reading-contract';
-import type { BufferLineCount } from '../buffer-line-count/buffer-line-count-contract';
+import type { BufferLengths } from '../buffer-lengths/buffer-lengths-contract';
 import type { DomField } from '../dom-field/dom-field-contract';
 import type { DomReading } from '../dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../dom-text-mode/dom-text-mode-contract';
@@ -38,17 +33,7 @@ import type { StorageReading } from '../storage-reading/storage-reading-contract
 import type { VideoAction } from '../video-action/video-action-contract';
 import type { VideoResult } from '../video-result/video-result-contract';
 
-// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
-// v4), which the field-carrying intersection below could never satisfy.
-export const browserSessionContract = z.object({}).loose();
-
-export interface BufferLengths {
-  consoleLines: BufferLineCount;
-  networkLines: BufferLineCount;
-  websocketLines: BufferLineCount;
-}
-
-export type BrowserSession = z.infer<typeof browserSessionContract> & {
+export interface BrowserSession {
   goto: ({ url }: { url: string }) => Promise<void>;
   // The KEY — a listing rather than a selector, and the only operation here that answers "what is
   // on this screen" rather than "is this one thing where I said it was". `within` scopes it to one
@@ -168,4 +153,4 @@ export type BrowserSession = z.infer<typeof browserSessionContract> & {
   videoAction: ({ action }: { action: VideoAction }) => Promise<VideoResult>;
   bufferLengths: () => BufferLengths;
   close: () => Promise<void>;
-};
+}

@@ -53,7 +53,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
-import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';

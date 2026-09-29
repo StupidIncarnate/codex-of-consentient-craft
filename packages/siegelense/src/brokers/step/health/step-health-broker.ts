@@ -18,10 +18,8 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
-import type {
-  BufferLengths,
-  BrowserSession,
-} from '../../../contracts/browser-session/browser-session-contract';
+import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { HexColour } from '../../../contracts/hex-colour/hex-colour-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';

@@ -25,7 +25,7 @@
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import {
   seedBindingNameContract,

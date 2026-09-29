@@ -4,22 +4,17 @@
 // boundary (fs.stat). Stages Date.now ONLY when a test needs a controlled "waited Xms" figure.
 // USAGE: const proxy = stepUntilBrokerProxy(); const { lane } = proxy.laneVisibleResolving();
 
-import { z } from '#gateway/npm/zod';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
-import type {
-  BrowserSession,
-  BufferLengths,
-} from '../../../contracts/browser-session/browser-session-contract';
+import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
+import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { untilBufferMatchLayerBrokerProxy } from './until-buffer-match-layer-broker.proxy';
 import { untilFileWaitLayerBrokerProxy } from './until-file-wait-layer-broker.proxy';
 
-// Re-declared locally rather than imported: browser-session-contract.ts keeps its own parsing
-// contract private, the same reason run-execute-broker.proxy.ts re-declares this identical brand.
-const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
 // Offset from the real run-start count, staged as `bufferLengths()`'s own decoy return — a caller
 // that wrongly reads a fresh `session.bufferLengths()` instead of the `browserWindowStart` it was
 // handed asks `readConsoleSince`/`readNetworkSince` for THIS index, which resolves to no lines below,
@@ -146,11 +141,7 @@ export const stepUntilBrokerProxy = (): {
             ),
         }),
       ).lane,
-      browserWindowStart: {
-        consoleLines: bufferLineCountContract.parse(consoleLinesAtStart),
-        networkLines: bufferLineCountContract.parse(0),
-        websocketLines: bufferLineCountContract.parse(0),
-      },
+      browserWindowStart: BufferLengthsStub({ consoleLines: consoleLinesAtStart }),
     }),
 
     laneResponseAnswering: ({
@@ -174,11 +165,7 @@ export const stepUntilBrokerProxy = (): {
             ),
         }),
       ).lane,
-      browserWindowStart: {
-        consoleLines: bufferLineCountContract.parse(0),
-        networkLines: bufferLineCountContract.parse(networkLinesAtStart),
-        websocketLines: bufferLineCountContract.parse(0),
-      },
+      browserWindowStart: BufferLengthsStub({ networkLines: networkLinesAtStart }),
     }),
 
     laneWithoutBrowser: (): { lane: LaneSession } => ({

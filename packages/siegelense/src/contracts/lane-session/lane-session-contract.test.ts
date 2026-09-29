@@ -1,10 +1,88 @@
 import { laneSessionContract } from './lane-session-contract';
 import { LaneSessionStub } from './lane-session.stub';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
+import { FileDescriptorStub } from '../file-descriptor/file-descriptor.stub';
+import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 
 describe('laneSessionContract', () => {
-  it('VALID: {} => the data half parses to an empty object', () => {
-    expect(laneSessionContract.parse({})).toStrictEqual({});
+  describe('data half', () => {
+    it('VALID: {a browserless lane} => parses to exactly the data members with browser null', () => {
+      const pgid = ProcessGroupIdStub({ value: 4242 });
+      const logFd = FileDescriptorStub({ value: 7 });
+
+      const result = laneSessionContract.parse({
+        specName: 'dungeonmaster-api',
+        ports: { api: 4100, web: 4101 },
+        homePath: '/tmp/dm-siege-inst_1',
+        evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+        baseUrl: 'http://127.0.0.1:4100',
+        apiBaseUrl: 'http://127.0.0.1:4100',
+        pgids: [pgid],
+        browser: null,
+        logFds: [logFd],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-api',
+        ports: { api: 4100, web: 4101 },
+        homePath: '/tmp/dm-siege-inst_1',
+        evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+        baseUrl: 'http://127.0.0.1:4100',
+        apiBaseUrl: 'http://127.0.0.1:4100',
+        pgids: [pgid],
+        browser: null,
+        logFds: [logFd],
+      });
+    });
+
+    it('VALID: {browser: a live session} => the parse hands back the same session reference', () => {
+      const browserSession = BrowserSessionStub();
+
+      const result = laneSessionContract.parse({
+        specName: 'dungeonmaster-stack',
+        ports: { api: 4200, web: 4201 },
+        homePath: '/tmp/dm-siege-inst_2',
+        evidencePath: '/tmp/dm-siege-inst_2-evidence',
+        baseUrl: 'http://127.0.0.1:4200',
+        apiBaseUrl: 'http://127.0.0.1:4200',
+        pgids: [ProcessGroupIdStub({ value: 4243 }), ProcessGroupIdStub({ value: 4244 })],
+        browser: browserSession,
+        logFds: [FileDescriptorStub({ value: 8 }), FileDescriptorStub({ value: 9 })],
+      });
+
+      expect(result.browser).toBe(browserSession);
+    });
+
+    it('INVALID: {browser: "chromium"} => throws because browser is neither null nor a session', () => {
+      expect(() =>
+        laneSessionContract.parse({
+          specName: 'dungeonmaster-api',
+          ports: { api: 4100, web: 4101 },
+          homePath: '/tmp/dm-siege-inst_1',
+          evidencePath: '/tmp/dm-siege-inst_1-evidence',
+          baseUrl: 'http://127.0.0.1:4100',
+          apiBaseUrl: 'http://127.0.0.1:4100',
+          pgids: [ProcessGroupIdStub({ value: 4242 })],
+          browser: 'chromium',
+          logFds: [FileDescriptorStub({ value: 7 })],
+        }),
+      ).toThrow(/Invalid input/u);
+    });
+
+    it('INVALID: {specName missing} => throws naming the missing member', () => {
+      expect(() =>
+        laneSessionContract.parse({
+          ports: { api: 4100, web: 4101 },
+          homePath: '/tmp/dm-siege-inst_1',
+          evidencePath: '/tmp/dm-siege-inst_1-evidence',
+          baseUrl: 'http://127.0.0.1:4100',
+          apiBaseUrl: 'http://127.0.0.1:4100',
+          pgids: [ProcessGroupIdStub({ value: 4242 })],
+          browser: null,
+          logFds: [FileDescriptorStub({ value: 7 })],
+        }),
+      ).toThrow(/specName/u);
+    });
   });
 
   describe('LaneSessionStub', () => {
