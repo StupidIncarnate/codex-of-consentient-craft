@@ -1,4 +1,4 @@
-import { matchPath } from 'react-router-dom';
+import { matchPath } from '#gateway/npm/react-router-dom';
 
 import { AppQuestChatResponder } from '../../responders/app/quest-chat/app-quest-chat-responder';
 import { QuestChatFlow } from './quest-chat-flow';

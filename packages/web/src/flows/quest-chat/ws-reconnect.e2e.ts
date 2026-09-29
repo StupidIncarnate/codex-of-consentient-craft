@@ -1,3 +1,4 @@
+import { now } from '#gateway/node/Date';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import {
   claudeMockHarness,
@@ -96,7 +97,7 @@ test.describe('WS Reconnect', () => {
     const guildId = guildHarness({ request }).extractGuildId({ guild });
     const guildSlug = guildHarness({ request }).extractUrlSlug({ guild });
 
-    const sessionId = `e2e-ws-reconnect-${Date.now()}`;
+    const sessionId = `e2e-ws-reconnect-${now()}`;
     await sessions.createSessionFile({ sessionId, userMessage: 'First message' });
 
     const quests = questHarness({ request });

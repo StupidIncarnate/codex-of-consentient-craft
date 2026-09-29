@@ -6,7 +6,7 @@
  * // Returns <Route path="/" element={<AppHomeResponder />} />
  */
 
-import { Route } from 'react-router-dom';
+import { Route } from '#gateway/npm/react-router-dom';
 
 import { AppHomeResponder } from '../../responders/app/home/app-home-responder';
 

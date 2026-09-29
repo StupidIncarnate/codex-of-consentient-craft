@@ -6,7 +6,7 @@
  * // Returns Route elements for /:guildSlug/quest and /:guildSlug/quest/:questId
  */
 
-import { Route } from 'react-router-dom';
+import { Route } from '#gateway/npm/react-router-dom';
 
 import { AppQuestChatResponder } from '../../responders/app/quest-chat/app-quest-chat-responder';
 

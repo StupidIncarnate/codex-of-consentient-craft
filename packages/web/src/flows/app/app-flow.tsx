@@ -6,7 +6,7 @@
  * // Renders Routes with AppLayoutResponder wrapping HomeFlow, QueueFlow, QuestChatFlow, and SessionViewFlow
  */
 
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';
 import { HomeFlow } from '../home/home-flow';

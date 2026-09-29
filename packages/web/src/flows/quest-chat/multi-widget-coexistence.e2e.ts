@@ -1,3 +1,4 @@
+import { now } from '#gateway/node/Date';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import {
   claudeMockHarness,
@@ -73,7 +74,7 @@ test.describe('Multi-widget coexistence', () => {
     //    b) The server's startup-recovery loop does NOT re-enqueue it
     //       (isRecoverable is false for review_flows), so the only queue entry
     //       is the queued quest explicitly started below.
-    const sessionId1 = `e2e-session-mwc-primary-${Date.now()}`;
+    const sessionId1 = `e2e-session-mwc-primary-${now()}`;
     await sessions.createSessionFile({ sessionId: sessionId1, userMessage: 'Build the feature' });
 
     const primary = await quests.createQuest({
@@ -101,7 +102,7 @@ test.describe('Multi-widget coexistence', () => {
     // 4. Create a second quest and start it so the queue bar becomes visible.
     //    The queue bar (QUEST_QUEUE_BAR_COLLAPSED_LABEL) only renders when there
     //    is at least one entry in the execution queue — POST /start enqueues it.
-    const sessionId2 = `e2e-session-mwc-queued-${Date.now()}`;
+    const sessionId2 = `e2e-session-mwc-queued-${now()}`;
     await sessions.createSessionFile({ sessionId: sessionId2, userMessage: 'Add second feature' });
 
     const queued = await quests.createQuest({

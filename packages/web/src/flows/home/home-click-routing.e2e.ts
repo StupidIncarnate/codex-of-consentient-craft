@@ -1,4 +1,6 @@
-import * as crypto from 'crypto';
+import { now } from '#gateway/node/Date';
+import { randomUUID } from '#gateway/node/crypto';
+
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -33,7 +35,7 @@ test.describe('Home page session click routing', () => {
     // A quest-linked session: chaoswhisperer work item references this sessionId,
     // so the server's session list correlation populates `questId`/`questTitle`
     // on the SessionListItem the row is rendered from.
-    const sessionId = `e2e-quest-row-${Date.now()}`;
+    const sessionId = `e2e-quest-row-${now()}`;
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the quest feature' });
 
     const created = await quests.createQuest({
@@ -49,7 +51,7 @@ test.describe('Home page session click routing', () => {
       status: 'review_flows',
       workItems: [
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           role: 'chaoswhisperer',
           sessionId,
           status: 'complete',
@@ -95,7 +97,7 @@ test.describe('Home page session click routing', () => {
     const urlSlug = guilds.extractUrlSlug({ guild });
 
     // No quest references this session — it stays an orphan session row, no QUEST badge.
-    const sessionId = `e2e-orphan-row-${Date.now()}`;
+    const sessionId = `e2e-orphan-row-${now()}`;
     await sessions.createSessionFile({ sessionId, userMessage: 'Just a chat, no quest' });
 
     await page.goto('/');

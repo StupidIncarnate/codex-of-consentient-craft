@@ -1,4 +1,5 @@
-import * as crypto from 'crypto';
+import { now } from '#gateway/node/Date';
+import { randomUUID } from '#gateway/node/crypto';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -31,7 +32,7 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
 
     // Three sessions on disk, each with a UNIQUE first user message — that's the
     // session-specific summary the All-mode list must render per row.
-    const stamp = Date.now();
+    const stamp = now();
     const sessionA = `e2e-distinct-a-${stamp}`;
     const sessionB = `e2e-distinct-b-${stamp}`;
     const sessionC = `e2e-distinct-c-${stamp}`;
@@ -62,19 +63,19 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
       userRequest: 'Same quest userRequest used across sessions',
       workItems: [
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           role: 'chaoswhisperer',
           sessionId: sessionA,
           status: 'complete',
         },
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           role: 'chaoswhisperer',
           sessionId: sessionB,
           status: 'complete',
         },
         {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           role: 'chaoswhisperer',
           sessionId: sessionC,
           status: 'complete',

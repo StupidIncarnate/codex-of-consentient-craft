@@ -1,3 +1,5 @@
+import { getEnv } from '#gateway/node/process';
+
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
@@ -66,7 +68,7 @@ test.describe('Guild Creation Flow', () => {
     // Default path must be the real OS user home directory, not DUNGEONMASTER_HOME.
     // When DUNGEONMASTER_HOME is set (worktree isolation), the directory browser
     // must still show the actual filesystem home so users can pick project paths.
-    const userHome = process.env.E2E_SERVER_HOME;
+    const userHome = getEnv('E2E_SERVER_HOME');
 
     await expect(page.getByTestId('CURRENT_PATH_DISPLAY')).toHaveText(String(userHome));
 

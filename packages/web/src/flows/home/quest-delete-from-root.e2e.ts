@@ -1,4 +1,5 @@
-import * as crypto from 'crypto';
+import { now } from '#gateway/node/Date';
+import { randomUUID } from '#gateway/node/crypto';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
@@ -34,7 +35,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
     // A session JSONL on disk, tied to the quest. It lives under
     // ~/.claude/projects/<guild>/ — outside the dungeonmaster home where the quest
     // folder lives — so the delete must not touch it.
-    const stamp = Date.now();
+    const stamp = now();
     const sessionId = `e2e-delete-session-${stamp}`;
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the deletable quest' });
 
@@ -55,9 +56,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
       title: questTitle,
       status: 'paused',
       userRequest: 'Build the deletable quest',
-      workItems: [
-        { id: crypto.randomUUID(), role: 'chaoswhisperer', sessionId, status: 'complete' },
-      ],
+      workItems: [{ id: randomUUID(), role: 'chaoswhisperer', sessionId, status: 'complete' }],
     });
 
     // Preconditions hold on disk before any UI action.

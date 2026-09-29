@@ -6,7 +6,7 @@
  * // Returns <Route path="/queue" element={<AppQueueResponder />} />
  */
 
-import { Route } from 'react-router-dom';
+import { Route } from '#gateway/npm/react-router-dom';
 
 import { AppQueueResponder } from '../../responders/app/queue/app-queue-responder';
 
