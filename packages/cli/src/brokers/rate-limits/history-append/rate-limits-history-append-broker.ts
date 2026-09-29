@@ -13,6 +13,7 @@ import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import {
   fileContentsContract,
   filePathContract,
+  rateLimitsHistoryLineContract,
   type RateLimitsHistoryLine,
 } from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsHistoryPathFindBroker } from '@dungeonmaster/shared/brokers';
@@ -27,7 +28,9 @@ export const rateLimitsHistoryAppendBroker = async ({
 
   await ensureDir(homeDir);
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(line)}\n`);
+  const contents = fileContentsContract.parse(
+    `${JSON.stringify(rateLimitsHistoryLineContract.parse(line))}\n`,
+  );
   await appendFile(historyPath, contents);
 
   return { appended: true };

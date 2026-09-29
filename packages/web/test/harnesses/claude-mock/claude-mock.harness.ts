@@ -23,6 +23,7 @@ import {
 import * as path from '#gateway/node/path';
 import { z } from '#gateway/npm/zod';
 
+import { claudeQueueResponseContract } from '@dungeonmaster/shared/contracts';
 import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
@@ -103,7 +104,7 @@ const queueClaudeResponse = ({
   ensureDirSync(queueDir);
   const counter = getCounter({ queueDir });
   const filePath = path.join(queueDir, `${String(counter).padStart(PAD_LENGTH, '0')}.json`);
-  writeFileSync(filePath, JSON.stringify(response));
+  writeFileSync(filePath, JSON.stringify(claudeQueueResponseContract.parse(response)));
   setCounter({ queueDir, counter: counter + 1 });
 };
 
