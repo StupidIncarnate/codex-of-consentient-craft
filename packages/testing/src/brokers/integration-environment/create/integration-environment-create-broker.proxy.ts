@@ -1,11 +1,12 @@
 /**
  * PURPOSE: Proxy for integration-environment-create-broker — every fs gateway call the broker
  * makes is staged: a path answers "does not exist" until a test says otherwise, writes and
- * directory creation succeed, and each scenario method reads back what the broker asked the
- * gateway to do.
+ * directory creation succeed beneath the root `setupWritableUnder` names, and each scenario
+ * method reads back what the broker asked the gateway to do.
  *
  * USAGE:
  * const proxy = integrationEnvironmentCreateBrokerProxy();
+ * proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
  * const guild = integrationEnvironmentCreateBroker({ baseName });
  * proxy.setupPathExists({ path: `${guild.guildPath}/notes.txt` });
  * proxy.setupUnlinkSucceeds({ path: `${guild.guildPath}/notes.txt` });
@@ -44,6 +45,7 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
     stderr: string;
   }) => void;
   setupCommandNotFound: ({ command, code }: { command: string; code: string }) => void;
+  setupWritableUnder: ({ root }: { root: string }) => void;
   setupPathExists: ({ path }: { path: string }) => void;
   setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
   setupDirEntries: ({ path, names }: { path: string; names: string[] }) => void;
@@ -53,7 +55,7 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
   getUnlinkCalls: ({ path }: { path: string }) => unknown[][];
   getRemoveCalls: ({ path }: { path: string }) => unknown[][];
 } => {
-  ensureDirSyncProxy();
+  const ensureDirProxy = ensureDirSyncProxy();
   const writeFileProxy = writeFileSyncProxy();
   const readFileProxy = readFileSyncProxy();
   const readdirProxy = readdirSyncProxy();
@@ -92,6 +94,10 @@ export const integrationEnvironmentCreateBrokerProxy = (): {
     },
     setupCommandNotFound: ({ command, code }: { command: string; code: string }): void => {
       commandProxy.setupNotFound({ command, code, message: `spawn ${command} ${code}` });
+    },
+    setupWritableUnder: ({ root }: { root: string }): void => {
+      ensureDirProxy.succeedsUnder({ root });
+      writeFileProxy.succeedsUnder({ root });
     },
     setupPathExists: ({ path }: { path: string }): void => {
       existsProxy.returns({ path, exists: true });

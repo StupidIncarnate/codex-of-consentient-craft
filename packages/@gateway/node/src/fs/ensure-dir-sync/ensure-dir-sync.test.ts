@@ -33,4 +33,25 @@ describe('ensureDirSync', () => {
       ensureDirSync('/tmp/afile/child');
     }).toThrow(error);
   });
+
+  it('VALID: {succeedsUnder a root} => the root and a nested path succeed, a sibling path hits the trap', () => {
+    const proxy = ensureDirSyncProxy();
+    proxy.succeedsUnder({ root: '/tmp/project' });
+
+    ensureDirSync('/tmp/project');
+    ensureDirSync('/tmp/project/a/b');
+
+    expect({
+      rootCalls: proxy.calls({ path: '/tmp/project' }),
+      nestedCalls: proxy.calls({ path: '/tmp/project/a/b' }),
+    }).toStrictEqual({
+      rootCalls: [['/tmp/project', { recursive: true }]],
+      nestedCalls: [['/tmp/project/a/b', { recursive: true }]],
+    });
+    expect(() => {
+      ensureDirSync('/tmp/project-other');
+    }).toThrow(
+      /^registerMock: nothing set up for the call mockConstructor\("\/tmp\/project-other"/u,
+    );
+  });
 });

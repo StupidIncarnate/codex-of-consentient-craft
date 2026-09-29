@@ -1,10 +1,12 @@
 /**
  * PURPOSE: Proxy for install-testbed-create-broker — every fs gateway call the broker makes is
  * staged: a path answers "does not exist" until a test says otherwise, writes and directory creation
- * succeed, and each scenario method reads back what the broker asked the gateway to do.
+ * succeed beneath the root `setupWritableUnder` names, and each scenario method reads back what
+ * the broker asked the gateway to do.
  *
  * USAGE:
  * const proxy = installTestbedCreateBrokerProxy();
+ * proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
  * const testbed = installTestbedCreateBroker({ baseName });
  * proxy.setupPathExists({ path: testbed.guildPath });
  * proxy.setupRemoveSucceeds({ path: testbed.guildPath });
@@ -41,6 +43,7 @@ export const installTestbedCreateBrokerProxy = (): {
     stderr: string;
   }) => void;
   setupCommandNotFound: ({ command, code }: { command: string; code: string }) => void;
+  setupWritableUnder: ({ root }: { root: string }) => void;
   setupPathExists: ({ path }: { path: string }) => void;
   setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
   setupDirEntries: ({ path, names }: { path: string; names: string[] }) => void;
@@ -87,6 +90,10 @@ export const installTestbedCreateBrokerProxy = (): {
     },
     setupCommandNotFound: ({ command, code }: { command: string; code: string }): void => {
       commandProxy.setupNotFound({ command, code, message: `spawn ${command} ${code}` });
+    },
+    setupWritableUnder: ({ root }: { root: string }): void => {
+      ensureDirProxy.succeedsUnder({ root });
+      writeFileProxy.succeedsUnder({ root });
     },
     setupPathExists: ({ path }: { path: string }): void => {
       existsProxy.returns({ path, exists: true });

@@ -1,6 +1,12 @@
 import { createInterface } from 'node:readline/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+class QuestionNotStagedError extends Error {
+  public constructor({ prompt }: { prompt: string }) {
+    super(`questionProxy: no answer staged for prompt "${prompt}"`);
+  }
+}
+
 export const questionProxy = (): {
   answers: (params: { prompt: string; answer: string }) => void;
   getPromptsAsked: () => readonly string[];
@@ -23,7 +29,7 @@ export const questionProxy = (): {
         promptsAsked.push(prompt);
         const answer = answersByPrompt.get(prompt);
         if (answer === undefined) {
-          throw new Error(`questionProxy: no answer staged for prompt "${prompt}"`);
+          throw new QuestionNotStagedError({ prompt });
         }
         return Promise.resolve(answer);
       },

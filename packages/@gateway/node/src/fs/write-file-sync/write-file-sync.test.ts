@@ -63,4 +63,18 @@ describe('writeFileSync', () => {
       ['/tmp/config.json', '{"a":2}', 'utf8'],
     ]);
   });
+
+  it('VALID: {succeedsUnder a root} => a file beneath it is written, a sibling path hits the trap', () => {
+    const proxy = writeFileSyncProxy();
+    proxy.succeedsUnder({ root: '/tmp/project' });
+
+    writeFileSync('/tmp/project/a/b.json', '{}');
+
+    expect(proxy.writtenContents({ path: '/tmp/project/a/b.json' })).toBe('{}');
+    expect(() => {
+      writeFileSync('/tmp/project-other/b.json', '{}');
+    }).toThrow(
+      /^registerMock: nothing set up for the call mockConstructor\("\/tmp\/project-other\/b.json"/u,
+    );
+  });
 });
