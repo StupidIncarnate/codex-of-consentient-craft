@@ -17,6 +17,17 @@ const flushPromises = async (): Promise<void> => {
   await flushOnce();
 };
 
+// The failure reaches `onError` as a real error carrying the fs `code` a caller branches on.
+const reportedFailure = ({
+  onError,
+}: {
+  onError: jest.Mock;
+}): { message: string; code: unknown; path: unknown } => {
+  const [firstCall] = onError.mock.calls;
+  const [{ error }] = firstCall;
+  return { message: error.message, code: error.code, path: error.path };
+};
+
 const TEST_PATH = '/tmp/test.jsonl';
 const XML_FAILURE_PREFIX = `[tail-file] onLine failed for ${TEST_PATH}: `;
 const CONSUMER_FAILURE_LINE = `${XML_FAILURE_PREFIX}Error: consumer blew up\n`;
@@ -286,8 +297,13 @@ describe('tailFile: error handling', () => {
     handle.stop();
 
     expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenNthCalledWith(1, {
-      error: new Error('ENOENT: file does not exist: /tmp/missing.jsonl'),
+
+    const missing = FileMissingErrorStub({ path: '/tmp/missing.jsonl' });
+
+    expect(reportedFailure({ onError })).toStrictEqual({
+      message: 'ENOENT: file does not exist: /tmp/missing.jsonl',
+      code: missing.code,
+      path: missing.path,
     });
     expect(onLine).toHaveBeenCalledTimes(0);
   });
@@ -352,8 +368,13 @@ describe('tailFile: awaitCreate parameter', () => {
     handle.stop();
 
     expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenNthCalledWith(1, {
-      error: new Error('ENOENT: file does not exist: /tmp/missing-no-await.jsonl'),
+
+    const missing = FileMissingErrorStub({ path: '/tmp/missing-no-await.jsonl' });
+
+    expect(reportedFailure({ onError })).toStrictEqual({
+      message: 'ENOENT: file does not exist: /tmp/missing-no-await.jsonl',
+      code: missing.code,
+      path: missing.path,
     });
     expect(onLine).toHaveBeenCalledTimes(0);
   });
@@ -415,8 +436,12 @@ describe('tailFile: initialDrain', () => {
 
     await expect(handle.initialDrain).resolves.toBe(undefined);
 
-    expect(onError).toHaveBeenNthCalledWith(1, {
-      error: new Error('ENOENT: file does not exist: /tmp/missing-drain.jsonl'),
+    const missing = FileMissingErrorStub({ path: '/tmp/missing-drain.jsonl' });
+
+    expect(reportedFailure({ onError })).toStrictEqual({
+      message: 'ENOENT: file does not exist: /tmp/missing-drain.jsonl',
+      code: missing.code,
+      path: missing.path,
     });
   });
 

@@ -53,7 +53,12 @@ export const tailFile = ({
   // the seconds-to-minutes a genuinely missing file stays missing.
   if (!existsSync(path)) {
     if (awaitCreate !== true) {
-      onError({ error: new Error(`ENOENT: file does not exist: ${path}`) });
+      onError({
+        error: Object.assign(new Error(`ENOENT: file does not exist: ${path}`), {
+          code: 'ENOENT',
+          path,
+        }),
+      });
       resolveInitialDrainRef.current?.();
       return {
         stop: (): void => {
@@ -122,7 +127,12 @@ export const tailFile = ({
       if (awaitState.stopped || awaitState.inner !== null) {
         return;
       }
-      onError({ error: new Error(`ENOENT: file did not appear within timeout: ${path}`) });
+      onError({
+        error: Object.assign(new Error(`ENOENT: file did not appear within timeout: ${path}`), {
+          code: 'ENOENT',
+          path,
+        }),
+      });
       resolveInitialDrainRef.current?.();
       if (dirWatcher !== null) {
         dirWatcher.close();
