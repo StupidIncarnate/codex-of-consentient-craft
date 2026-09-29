@@ -59,7 +59,7 @@ export const QuestHandleResponderProxy = (): {
   setupStartQuestReturns: (params: { questId: QuestId; processId: ProcessId }) => void;
   setupStartQuestThrows: (params: { questId: QuestId; error: Error }) => void;
   setupGetQuestStatusReturns: (params: { processId: string; status: OrchestrationStatus }) => void;
-  setupGetQuestStatusThrows: (params: { processId: string; error: Error }) => void;
+  setupGetQuestStatusServerError: (params: { processId: string; message: string }) => void;
   setupListQuestsReturns: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
   setupListQuestsThrows: (params: { guildId: GuildId; error: Error }) => void;
   setupListGuildsThrows: (params: { error: Error }) => void;
@@ -168,14 +168,17 @@ export const QuestHandleResponderProxy = (): {
       getQuestStatusProxy.returns({ processId: ProcessIdStub({ value: processId }), status });
     },
 
-    setupGetQuestStatusThrows: ({
+    setupGetQuestStatusServerError: ({
       processId,
-      error,
+      message,
     }: {
       processId: string;
-      error: Error;
+      message: string;
     }): void => {
-      getQuestStatusProxy.throws({ processId: ProcessIdStub({ value: processId }), error });
+      getQuestStatusProxy.setupServerError({
+        processId: ProcessIdStub({ value: processId }),
+        message,
+      });
     },
 
     setupListQuestsReturns: ({

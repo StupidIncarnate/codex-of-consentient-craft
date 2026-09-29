@@ -884,9 +884,9 @@ describe('QuestHandleResponder', () => {
 
     it('ERROR: {process not found} => returns Process not found error', async () => {
       const proxy = QuestHandleResponderProxy();
-      proxy.setupGetQuestStatusThrows({
+      proxy.setupGetQuestStatusServerError({
         processId: 'proc-12345',
-        error: new Error('Process not found: proc-12345'),
+        message: 'Process not found: proc-12345',
       });
 
       const result = await proxy.callResponder({

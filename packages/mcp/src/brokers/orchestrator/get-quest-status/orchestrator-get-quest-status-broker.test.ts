@@ -27,7 +27,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
       const processId = ProcessIdStub({ value: 'proc-missing' });
 
-      proxy.throws({ processId, error: new Error('Process not found: proc-missing') });
+      proxy.setupServerError({ processId, message: 'Process not found: proc-missing' });
 
       await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
         /Process not found: proc-missing/u,
@@ -38,7 +38,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
       const processId = ProcessIdStub({ value: 'proc-456' });
 
-      proxy.throws({ processId, error: new Error('Internal server error') });
+      proxy.setupServerError({ processId, message: 'Internal server error' });
 
       await expect(orchestratorGetQuestStatusBroker({ processId })).rejects.toThrow(
         /Internal server error/u,

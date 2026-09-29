@@ -12,7 +12,7 @@ const PORT = '4750';
 
 export const orchestratorGetQuestStatusBrokerProxy = (): {
   returns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
-  throws: (params: { processId: ProcessId; error: Error }) => void;
+  setupServerError: (params: { processId: ProcessId; message: string }) => void;
 } => {
   const fetchProxy = fetchJsonProxy();
   const portProxy = portResolveBrokerProxy();
@@ -31,12 +31,12 @@ export const orchestratorGetQuestStatusBrokerProxy = (): {
       const url = `http://${environmentStatics.hostname}:${PORT}/api/process/${processId}`;
       fetchProxy.setupSuccess({ url, body: status });
     },
-    throws: ({ processId, error }: { processId: ProcessId; error: Error }): void => {
+    setupServerError: ({ processId, message }: { processId: ProcessId; message: string }): void => {
       const url = `http://${environmentStatics.hostname}:${PORT}/api/process/${processId}`;
       fetchProxy.setupNotOk({
         url,
         status: 500,
-        bodyText: JSON.stringify({ error: error.message }),
+        bodyText: JSON.stringify({ error: message }),
       });
     },
   };

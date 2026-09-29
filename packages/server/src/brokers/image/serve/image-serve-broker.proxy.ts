@@ -27,7 +27,12 @@ export const imageServeBrokerProxy = (): {
     module: 'path',
   });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  dirnameHandle.calledWith([]).implement((path: string) => realPath.dirname(path));
+  const stageDirnames = ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    const containingDir = realPath.dirname(filePath);
+    for (const path of [filePath, containingDir]) {
+      dirnameHandle.calledWith([path]).implement((given: string) => realPath.dirname(given));
+    }
+  };
   locationsQuestImagesPathFindBrokerProxy();
 
   return {
@@ -37,6 +42,7 @@ export const imageServeBrokerProxy = (): {
     // only ever proves the mock — that case belongs in images-flow.integration.test.ts, against a
     // real link on a real filesystem.
     setupFileBytes: ({ filePath, bytes }): void => {
+      stageDirnames({ filePath });
       realpathHandleProxy.returns({ path: filePath, resolved: filePath });
       readProxy.returns({ path: filePath, bytes });
       existsProxy.returns({
@@ -50,6 +56,7 @@ export const imageServeBrokerProxy = (): {
     // Same file on disk, but the directory two levels up is nobody's quest folder — the shape of
     // any `images` directory that happens to exist on the host.
     setupFileBytesWithoutQuestFile: ({ filePath, bytes }): void => {
+      stageDirnames({ filePath });
       realpathHandleProxy.returns({ path: filePath, resolved: filePath });
       readProxy.returns({ path: filePath, bytes });
       existsProxy.returns({
@@ -61,6 +68,7 @@ export const imageServeBrokerProxy = (): {
       });
     },
     setupReadFailure: ({ filePath, error }): void => {
+      stageDirnames({ filePath });
       realpathHandleProxy.returns({ path: filePath, resolved: filePath });
       // readFileBytesProxy's throwsMatchingPath demands an FsError (a coded, recorded failure —
       // G19 bans a catch-all Error), so the caller-supplied Error is stamped with a code parsed

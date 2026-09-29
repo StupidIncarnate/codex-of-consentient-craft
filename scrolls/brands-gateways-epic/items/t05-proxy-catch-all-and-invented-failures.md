@@ -181,3 +181,18 @@ drops its constructor-time staging and exposes `setupGatewayCopy` instead. `dirn
 because `setupTargetMissing` already stages each exact path. Both responder proxies stage `basename` by
 the exact project root their setup method is handed. The hooks proxy stages `FileMissingErrorStub`.
 Rescanned: 0 violations across the three rules in all three packages.
+
+## Plan — T05 server, mcp, tooling
+
+Scanned each package alone with all three rules on. Violations before any edit (three in all):
+
+- `packages/server/src/brokers/image/serve/image-serve-broker.proxy.ts:30`
+  `ban-proxy-empty-called-with` — `dirnameHandle.calledWith([])` on `dirname`, which takes a path.
+- `packages/mcp/src/brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker.test.ts:30` and `:41`
+  `ban-invented-failures` — `new Error(...)` handed to the proxy's `throws`.
+- `packages/tooling`: none.
+
+Fixes: the image-serve proxy stages `dirname` by the exact path each setup method is handed and by that
+path's parent, the two calls the broker makes. The get-quest-status proxy's `throws({ processId, error })`
+becomes `setupServerError({ processId, message })`, since what it stages is the server's HTTP 500 body and
+never a thrown error; both tests pass the message.
