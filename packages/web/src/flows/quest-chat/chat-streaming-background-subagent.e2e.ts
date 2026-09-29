@@ -1,10 +1,8 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
-import {
-  claudeMockHarness,
-  ClaudeQueueResponseStub,
-} from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';

@@ -25,7 +25,7 @@ import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
 import type { sessionHarness } from '../session/session.harness';
 import type { claudeMockHarness } from '../claude-mock/claude-mock.harness';
-import { SimpleTextResponseStub } from '../claude-mock/claude-mock.harness';
+import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 
 const PANEL_TIMEOUT = 5_000;
 const CANVAS_TIMEOUT = 10_000;

@@ -1,9 +1,7 @@
 import { now } from '#gateway/node/Date';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import {
-  claudeMockHarness,
-  SimpleTextResponseStub,
-} from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
+import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
