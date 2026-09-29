@@ -4,19 +4,123 @@
  * this one file and reaches every caller.
  *
  * typescript's own root declaration is `export = ts;`, and TypeScript hard-refuses `export *`
- * AND `export type *` against any `export =`-typed module (`TS2498`, unconditional). Unlike this
- * gateway's other `export =`-typed pass-throughs, this one keeps the `import x = require(...);
- * export = x;` form rather than switching to a named list: `typescript`'s surface is hundreds of
- * functions, enums and interfaces (`ts.SyntaxKind`, `ts.createSourceFile`, …), and this package is
- * never imported by `packages/web` — nothing here ever crosses web's ESM-target typecheck or a
- * Vite/Rollup bundle, so there is no bundler/ESM-target constraint to satisfy, and hand-listing
- * hundreds of names for a constraint that never applies would only add drift risk on every
- * TypeScript upgrade. `import * as ts from '#gateway/npm/typescript'` (ward's own usage) already
- * gets the full namespace through this form, both at the type level and at runtime.
+ * against any `export =`-typed module (`TS2498`, unconditional). A consumer's tsc program (web's
+ * `module: ESNext`) reaches this file's SOURCE directly, where `import mod = require(...);
+ * export = mod;` is TS1202/TS1203 under that target, so this lists by name every member a caller
+ * uses, the way `node/src/path/path.ts` does; plain `export {} from` syntax has no such
+ * restriction. A caller that reaches for a member missing here fails typecheck (TS2339) — add the
+ * name to the matching list below.
  *
  * USAGE:
- * import { someExport } from '#gateway/npm/typescript';
+ * import * as ts from '#gateway/npm/typescript';
+ * import ts from '#gateway/npm/typescript'; // typescript.test.ts pins this to `require('typescript')`
  */
 
-import mod = require('typescript');
-export = mod;
+export { default } from 'typescript';
+export {
+  EmitHint,
+  ModuleKind,
+  ModuleResolutionKind,
+  ScriptKind,
+  ScriptTarget,
+  SyntaxKind,
+  TypeFlags,
+  addSyntheticLeadingComment,
+  canHaveModifiers,
+  createCompilerHost,
+  createPrinter,
+  createProgram,
+  createSourceFile,
+  factory,
+  flattenDiagnosticMessageText,
+  forEachChild,
+  getModifiers,
+  getParsedCommandLineOfConfigFile,
+  isArrayLiteralExpression,
+  isArrowFunction,
+  isAwaitExpression,
+  isBinaryExpression,
+  isBindingElement,
+  isBlock,
+  isCallExpression,
+  isClassDeclaration,
+  isConditionalExpression,
+  isDoStatement,
+  isElementAccessExpression,
+  isEnumDeclaration,
+  isExportAssignment,
+  isExportDeclaration,
+  isExpressionStatement,
+  isForInStatement,
+  isForOfStatement,
+  isForStatement,
+  isFunctionDeclaration,
+  isFunctionExpression,
+  isFunctionTypeNode,
+  isIdentifier,
+  isIfStatement,
+  isImportDeclaration,
+  isInterfaceDeclaration,
+  isIntersectionTypeNode,
+  isMethodSignature,
+  isNamedExports,
+  isNamedImports,
+  isNamespaceExport,
+  isNamespaceImport,
+  isNewExpression,
+  isNonNullExpression,
+  isNumericLiteral,
+  isObjectLiteralExpression,
+  isParameter,
+  isParenthesizedExpression,
+  isParenthesizedTypeNode,
+  isPropertyAccessExpression,
+  isPropertyAssignment,
+  isPropertySignature,
+  isQualifiedName,
+  isRegularExpressionLiteral,
+  isReturnStatement,
+  isShorthandPropertyAssignment,
+  isSourceFile,
+  isSpreadAssignment,
+  isStringLiteral,
+  isSwitchStatement,
+  isTryStatement,
+  isTypeAliasDeclaration,
+  isTypeLiteralNode,
+  isTypeNode,
+  isTypeParameterDeclaration,
+  isTypeQueryNode,
+  isTypeReferenceNode,
+  isVariableDeclaration,
+  isVariableStatement,
+  isWhileStatement,
+  parseJsonText,
+  resolveModuleName,
+  sys,
+} from 'typescript';
+export type {
+  BindingName,
+  CompilerOptions,
+  ConciseBody,
+  Diagnostic,
+  ExportDeclaration,
+  Expression,
+  Identifier,
+  ImportDeclaration,
+  InterfaceDeclaration,
+  MemberName,
+  Node,
+  NodeFactory,
+  ObjectLiteralElementLike,
+  ParameterDeclaration,
+  ParseConfigFileHost,
+  Program,
+  PropertyName,
+  SourceFile,
+  Statement,
+  Type,
+  TypeAliasDeclaration,
+  TypeReference,
+  VariableStatement,
+} from 'typescript';
