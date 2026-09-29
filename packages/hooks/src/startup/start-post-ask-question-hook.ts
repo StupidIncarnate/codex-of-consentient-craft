@@ -7,6 +7,7 @@
  * // Delegates payload to the flow, exits with the flow's exitCode
  */
 
+import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPostAskQuestionFlow } from '../flows/hook-post-ask-question/hook-post-ask-question-flow';
@@ -18,17 +19,13 @@ export const StartPostAskQuestionHook = async ({
   inputData: string;
 }): Promise<AdapterResult> => {
   const result = await HookPostAskQuestionFlow({ inputData });
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartPostAskQuestionHook({ inputData: inputBuffer.data }).catch((error: unknown) => {
-    process.stderr.write(`[post-ask-question] startup error: ${String(error)}\n`);
-    process.exit(hookExitCodeStatics.blockingFailure);
+readStdinToEnd()
+  .then(async (inputData) => StartPostAskQuestionHook({ inputData }))
+  .catch((error: unknown) => {
+    stderr.write(`[post-ask-question] startup error: ${String(error)}\n`);
+    exit(hookExitCodeStatics.blockingFailure);
   });
-});
