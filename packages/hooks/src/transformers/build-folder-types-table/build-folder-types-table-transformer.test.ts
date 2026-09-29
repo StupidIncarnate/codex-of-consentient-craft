@@ -1,3 +1,5 @@
+import { Buffer } from '#gateway/node/buffer';
+
 import { buildFolderTypesTableTransformer } from './build-folder-types-table-transformer';
 
 describe('buildFolderTypesTableTransformer', () => {

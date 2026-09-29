@@ -13,9 +13,10 @@
  * const settings = project.readSettings({ projectPath });
  * project.cleanup();
  */
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import { readJsonFileSyncIfExists, rmSync } from '#gateway/node/fs';
+import { mkdtemp, writeFile } from '#gateway/node/fs__promises';
+import { tmpdir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
@@ -30,10 +31,10 @@ export const freshProjectHarness = (): {
   return {
     create: async (): Promise<FilePath> => {
       const projectPath = FilePathStub({
-        value: await fs.promises.mkdtemp(path.join(os.tmpdir(), 'dm-fresh-project-')),
+        value: await mkdtemp(join(tmpdir(), 'dm-fresh-project-')),
       });
-      await fs.promises.writeFile(
-        path.join(projectPath, 'package.json'),
+      await writeFile(
+        join(projectPath, 'package.json'),
         JSON.stringify({ name: 'fresh-project', version: '1.0.0' }, null, 2),
       );
       createdDirs.push(projectPath);
@@ -41,15 +42,12 @@ export const freshProjectHarness = (): {
     },
 
     readSettings: ({ projectPath }: { projectPath: FilePath }): unknown => {
-      const settingsPath = path.join(projectPath, '.claude', 'settings.json');
-      return fs.existsSync(settingsPath)
-        ? (JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as unknown)
-        : null;
+      return readJsonFileSyncIfExists(join(projectPath, '.claude', 'settings.json'));
     },
 
     cleanup: (): void => {
       createdDirs.forEach((dir) => {
-        fs.rmSync(dir, { recursive: true, force: true });
+        rmSync(dir, { recursive: true, force: true });
       });
       createdDirs.length = 0;
     },

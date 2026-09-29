@@ -5,7 +5,8 @@
  * echo '{"hookData":{...}}' | npx tsx hook-persistent-worker.ts /path/to/flow
  * // Reads {hookData?, rawInput?, args?} envelopes per line, processes through the flow, outputs results as NDJSON
  */
-import * as readline from 'readline';
+import { argv, exit, stderr, stdin, stdout } from '#gateway/node/process';
+import { lineReader } from '#gateway/node/readline';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
@@ -31,7 +32,7 @@ interface FlowModule {
 }
 
 const writeResult = (result: ExecResult): void => {
-  process.stdout.write(
+  stdout.write(
     `${JSON.stringify({
       exitCode: result.exitCode,
       stdout: result.stdout,
@@ -77,36 +78,41 @@ const processEnvelope = async (params: {
     return;
   }
 
-  process.stderr.write('No flow function found in module\n');
-  process.exit(1);
+  stderr.write('No flow function found in module\n');
+  exit(1);
 };
 
 const main = async (): Promise<void> => {
-  const flowModule = (await import(filePathContract.parse(process.argv[2]))) as FlowModule;
+  const flowModule = (await import(filePathContract.parse(argv[2]))) as FlowModule;
 
-  process.stdout.write('READY\n');
+  stdout.write('READY\n');
 
-  const rl = readline.createInterface({ input: process.stdin, terminal: false });
+  const reader = lineReader({ input: stdin });
+  // Envelopes are answered strictly in arrival order: each line chains onto the previous one's
+  // completion, because a caller pairs every response with the request it sent by position.
+  const queue: { tail: Promise<void> } = { tail: Promise.resolve() };
 
-  for await (const line of rl) {
-    try {
-      const envelope = JSON.parse(line) as Parameters<typeof processEnvelope>[0]['envelope'];
-      await processEnvelope({ envelope, flowModule });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      process.stdout.write(
-        `${JSON.stringify({
-          exitCode: 1,
-          stdout: '',
-          stderr: message,
-        })}\n`,
-      );
-    }
-  }
+  reader.onLine((line) => {
+    queue.tail = queue.tail.then(async () => {
+      try {
+        const envelope = JSON.parse(line) as Parameters<typeof processEnvelope>[0]['envelope'];
+        await processEnvelope({ envelope, flowModule });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        stdout.write(
+          `${JSON.stringify({
+            exitCode: 1,
+            stdout: '',
+            stderr: message,
+          })}\n`,
+        );
+      }
+    });
+  });
 };
 
 main().catch((err: unknown) => {
   const message = err instanceof Error ? err.message : String(err);
-  process.stderr.write(`Worker fatal: ${message}\n`);
-  process.exit(1);
+  stderr.write(`Worker fatal: ${message}\n`);
+  exit(1);
 });
