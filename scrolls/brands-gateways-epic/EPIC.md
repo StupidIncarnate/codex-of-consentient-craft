@@ -133,7 +133,7 @@ fixtures.
 
 Landed this session: `build:clean` green; GB4 (`@gateway/browser` `consoleError`/`consoleWarn`/`consoleLog`/
 `consoleInfo`/`consoleDebug` with recording proxies, `randomUuid` with `randomUuidProxy`, `#gateway/browser/Date`
-`now`/`nowIso` with `setupNow`). F77 part 1 (write-order test). Active: codemod, A19 prep, U1+U2 (`@gateway/node`, plus `writeFileProxy.succeedsOnce` and a stageable pid for F77), U3 (`@gateway/npm` `eslint-plugin-jest` rules proxy).
+`now`/`nowIso` with `setupNow`). F77 part 1 (write-order test). Active: codemod, A19 prep, U1+U2 (`@gateway/node`, plus `writeFileProxy.succeedsOnce` and a stageable pid for F77), U3 landed: `rulesProxy` at `#gateway/npm/eslint-plugin-jest/rules/rules.proxy` (the eslint-plugin create-responder proxy calls it first and drops its raw module mock).
 
 Last updated 2026-09-28 night, at the end of an operator session. The user asked the operator to launch no more
 agents and to leave this file ready for the next handoff. Read this section, then the status tables. Git history

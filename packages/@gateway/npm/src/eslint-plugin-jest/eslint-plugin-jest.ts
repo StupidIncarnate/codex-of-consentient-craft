@@ -13,4 +13,5 @@
  */
 
 export { default } from 'eslint-plugin-jest';
-export { configs, environments, meta, rules } from 'eslint-plugin-jest';
+export { configs, environments, meta } from 'eslint-plugin-jest';
+export { rules } from './rules/rules';
