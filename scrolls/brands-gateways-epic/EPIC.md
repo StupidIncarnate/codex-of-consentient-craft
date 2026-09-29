@@ -114,18 +114,18 @@ A18 `zod` wave 2 bd5242af3 (only siegelense left). Built since: npm, server, cli
 eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonmaster/npm` dependency.
 
 Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
-operator gates, commits, then messages the next batch; owners in `tmp/op-agents.txt`): A13 SL-LAST (Opus);
-cli (B03 next); hooks (GN7: a clock wrapper, `getCallsFor` on the fetch proxies, a socket-free
-`setupConnectionRefused`); ward (B03).
+operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
+agent past about 300k tokens hands off to a fresh one): A13 SL-A (siegelense net, spawn-detached, lock brokers) and
+SL-B (stat, the other write-file callers, http-request with a fetch statusText gap); ward (B11, B12); web (B10,
+B11; web batches commit in groups after a full web e2e run); a fresh agent on hooks-B08 to B10, C2 and cli-B04.
 
-Landed since: hooks-B01 to B04 (8c3b3a8ab, f79eea299, 9d3f12c61) and hooks' post-ask-question proxy cleanup
-(fef9a2d1b); ward-B01 with `@gateway/bin`'s `NpmNotInstalledErrorProxy` and `runScriptProxy().setupNotFound`
-(f0fc85a2f), ward-B02 (cdbd76225); GN6, the `@gateway/node` stdout and stderr proxies that record every write
-(`getWrites`, `getWrittenText`) plus `stdinIsTty`, with cli-B02 (ea3436ad6); web e2e races fixed in
-bughunt-begin-transition (b1b9c23cc) and quest-begin-transition (8f09703db); full web e2e 131 of 131
-(1790648506112-d52e).
-
-A18 still open: decisions C2 (a `tsx` resolver, for cli-B04 and hooks-B10) and C3 (web's vite config).
+A18 done so far: cli B01 to B03; hooks B01 to B07; ward B01 to B10; web B01 to B09. Gateway units added this
+session, all built: GN6 (stdout/stderr recording proxies, `stdinIsTty`), GN7 (`#gateway/node/Date` `now`, fetch
+`getCallsFor`), GN8 (unix socket request/serve fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple),
+`getPlatform`, `setupCwd`, `stdin`, and `@gateway/bin` npm and git not-installed error proxies and `setupNotFound`.
+C2 decided: a `tsx` resolver in `@gateway/npm`. Still open: C3 (web's vite config). Queued gateway gaps: GB4
+(browser console and crypto proxies, a browser clock), `dynamicImport` staging by module path (cli serve), a
+recorded ESLint failure stub.
 
 Earlier notes from this session, kept for the record:
 
@@ -411,7 +411,7 @@ Package items run side by side, one agent group per package. Each is split by th
 | A10 | [Adapters: `orchestrator`](items/a10-adapters-orchestrator.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/orchestrator/src/adapters/` is gone (last: 299278ad5, watch-tail). |
 | A11 | [Adapters: `server`](items/a11-adapters-server.md) | A02, G05, G15, G19, G21 | other A items | done | G-C fc74b4ea9, G-D 39daffdbf, F44 callers (the A11-done commit). `packages/server/src/adapters/` is gone. F49 (hono proxies) and F51 (quest-new's direct `rm` mock) remain. |
 | A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | done | `packages/shared/src/adapters/`, `adapters.ts` and the `./adapters` export are gone (d743fa187). |
-| A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | active | 13 adapters left (list in START HERE). Partial SL-LAST work saved as `tmp/agy/sl-last-partial.patch`; plans SL-FS1 to SL-LAST in the item. |
+| A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | active | SL-LAST part 1 0a7d99398 (6 adapters, `adapters.ts`); GN8 c19106922 unblocked the rest. 7 left, with agents SL-A and SL-B. |
 | A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | done | `packages/testing/src/adapters/` is gone (last: f7eabaf73). `registerMock` and friends are middleware; the Mantine render is `@dungeonmaster/testing/middleware/mantine-render`. |
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | done | 5f4dcd0af. Only `typescript/parse` was left (the rest went in 7751fb471); its AST walk is now `typescriptParseBroker`. `packages/tooling/src/adapters/` is gone. |
 | A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/ward/src/adapters/` is gone (7f79340c8). |
