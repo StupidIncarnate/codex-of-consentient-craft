@@ -83,7 +83,7 @@ describe('statusAnswerRenderTransformer', () => {
       const result = statusAnswerRenderTransformer({ answer, instanceId });
 
       expect(result).toBe(
-        'No record of the instance id "inst_deadbeef". Check the id dungeonmaster siegelense start returned.\n',
+        'No record of the instance id "inst_deadbeef". Check the id that `dungeonmaster siegelense start` returned.\n',
       );
     });
   });

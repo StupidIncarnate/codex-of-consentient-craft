@@ -144,7 +144,18 @@ describe('runArgsParseTransformer', () => {
           ],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'$/u);
+      ).toThrow(/^--steps: steps\.0: goto has no key "bogus"\. It takes: path, node, expect$/u);
+    });
+
+    it('INVALID: {step: scroll} => throws naming the typed step and every known step, without the word discriminator', () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps', JSON.stringify([{ step: 'scroll' }])],
+          stepsFileContent: null,
+        }),
+      ).toThrow(
+        /^--steps: steps\.0: Unknown step "scroll"\. Known steps: goto, waitFor, click, type, screenshot, eval, look, box, dom, seed, until, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, reset$/u,
+      );
     });
   });
 
@@ -168,7 +179,7 @@ describe('runArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--steps', '[]', '--stop-on', 'maybe'],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--stop-on: Invalid enum value\. Expected 'error' \| 'never', received 'maybe'$/u);
+      ).toThrow(/^--stop-on must be one of error, never; got "maybe"$/u);
     });
   });
 
@@ -188,7 +199,7 @@ describe('runArgsParseTransformer', () => {
           stepsFileContent: null,
         }),
       ).toThrow(
-        /^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'; steps\.1: Unrecognized key\(s\) in object: 'evil'$/u,
+        /^--steps: steps\.0: goto has no key "bogus"\. It takes: path, node, expect; steps\.1: goto has no key "evil"\. It takes: path, node, expect$/u,
       );
     });
   });

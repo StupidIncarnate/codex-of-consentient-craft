@@ -30,6 +30,36 @@ describe('zodIssueErrorContract', () => {
     });
   });
 
+  describe('an enum refusal', () => {
+    it('VALID: {issue carrying code, received and options} => keeps all three', () => {
+      const value = ZodIssueErrorStub({
+        issues: [
+          {
+            message: "Invalid enum value. Expected 'error' | 'warn', received 'fatal'",
+            path: [],
+            code: 'invalid_enum_value',
+            received: 'fatal',
+            options: ['error', 'warn'],
+          },
+        ],
+      });
+
+      const result = zodIssueErrorContract.parse(value);
+
+      expect(result).toStrictEqual({
+        issues: [
+          {
+            message: "Invalid enum value. Expected 'error' | 'warn', received 'fatal'",
+            path: [],
+            code: 'invalid_enum_value',
+            received: 'fatal',
+            options: ['error', 'warn'],
+          },
+        ],
+      });
+    });
+  });
+
   describe('invalid input', () => {
     it('INVALID: {issues: []} => throws on the empty array', () => {
       expect(() => zodIssueErrorContract.parse({ issues: [] })).toThrow(

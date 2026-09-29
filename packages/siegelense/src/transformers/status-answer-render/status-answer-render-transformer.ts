@@ -35,12 +35,13 @@
  * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since beginning.\n'
  *
  * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: InstanceIdStub() });
- * // Returns 'No record of the instance id "<id>". Check the id dungeonmaster siegelense start returned.\n'
+ * // Returns 'No record of the instance id "<id>". Check the id that `dungeonmaster siegelense start` returned.\n'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import type { InstanceId } from '../../contracts/instance-id/instance-id-contract';
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
 import { statusTableStatics } from '../../statics/status-table/status-table-statics';
@@ -61,9 +62,7 @@ export const statusAnswerRenderTransformer = ({
 
   if (answer.instances.length === 0) {
     if (instanceId !== null) {
-      return contentTextContract.parse(
-        `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.\n`,
-      );
+      return contentTextContract.parse(`${new InstanceUnknownError({ instanceId }).message}\n`);
     }
 
     const { widest, display: sinceDisplay } = statusTableStatics.sinceWindows;

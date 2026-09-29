@@ -433,7 +433,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   describe('the refusal for a flag status does not accept', () => {
     it('INVALID: {callArgs: [--human]} => rejects --human as an unknown flag, naming every accepted flag', async () => {
       await expect(SiegelenseStatusLayerFlow({ callArgs: ['--human'] })).rejects.toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1hr\|6hr\|1day\|beginning>\] \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|beginning>\] \[--json\]$/u,
       );
     });
   });
