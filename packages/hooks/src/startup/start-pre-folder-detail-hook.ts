@@ -10,6 +10,7 @@
  * // Reads JSON from stdin, exits 2 only when the folder type was never loaded this session
  */
 
+import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreFolderDetailFlow } from '../flows/hook-pre-folder-detail/hook-pre-folder-detail-flow';
@@ -20,15 +21,11 @@ export const StartPreFolderDetailHook = async ({
   inputData: string;
 }): Promise<AdapterResult> => {
   const result = await HookPreFolderDetailFlow({ inputData });
-  process.stderr.write(result.stderr);
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stderr.write(result.stderr);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartPreFolderDetailHook({ inputData: inputBuffer.data }).catch(() => process.exit(1));
-});
+readStdinToEnd()
+  .then(async (inputData) => StartPreFolderDetailHook({ inputData }))
+  .catch(() => exit(1));

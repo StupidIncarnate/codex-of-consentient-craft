@@ -6,6 +6,7 @@ import {
 } from '@dungeonmaster/testing';
 import type { ExecResultStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { resolve } from '#gateway/node/path';
 import {
   EditToolHookStub,
   MultiEditToolHookStub,
@@ -15,10 +16,12 @@ import {
 import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
+const PACKAGE_DIR = resolve(__dirname, '../..');
+
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using packages/hooks/src/.test-tmp to ensure ESLint config discovery works
 const BASE_DIR = FilePathStub({
-  value: `${process.cwd()}/src/.test-tmp/pre-edit-lint-tests`,
+  value: `${PACKAGE_DIR}/src/.test-tmp/pre-edit-lint-tests`,
 });
 
 const CLEAN_SOURCE = `export function add({ a, b }: { a: boolean; b: boolean }): boolean {
@@ -215,7 +218,7 @@ describe('pre-edit-lint', () => {
         const filePath = `${testbed.guildPath}/example.ts`;
 
         const hookData = WriteToolHookStub({
-          cwd: `${process.cwd()}/../..`, // Use monorepo root so ESLint can find eslint.config.js
+          cwd: `${PACKAGE_DIR}/../..`, // Use monorepo root so ESLint can find eslint.config.js
           tool_input: {
             file_path: filePath,
             content: `export function test({ param }: { param: any }): void {}`,
