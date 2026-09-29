@@ -9,7 +9,9 @@
  * to the value repoScopeResolveBroker reads from the repo root package.json at module load,
  * and can be overridden per-rule-instance via the `scope` option — the override exists so a
  * RuleTester case can prove the rule works for a consumer repo scoped differently than this one,
- * without touching the filesystem. `scope` only gates which imports count as "workspace"; the
+ * without touching the filesystem. Dungeonmaster's own published packages (`@dungeonmaster/shared`,
+ * `@dungeonmaster/testing`, ...) are never flagged in any repo, its four gateway packages
+ * excepted — see isDungeonmasterToolkitImportGuard for why. `scope` only gates which imports count as "workspace"; the
  * suggested gateway path is always the `#gateway/...` alias text, identical in every consumer repo.
  *
  * USAGE:
@@ -26,6 +28,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { minimatch } from '#gateway/npm/minimatch';
+import { isDungeonmasterToolkitImportGuard } from '../../../guards/is-dungeonmaster-toolkit-import/is-dungeonmaster-toolkit-import-guard';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
 // Resolved lazily, on the first file linted with no `scope` option, and cached from then on.
@@ -129,7 +132,11 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
           importSource === gatewayLocationsStatics.importPrefix ||
           importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
-        if (isRelative || isWorkspacePackage) {
+        if (
+          isRelative ||
+          isWorkspacePackage ||
+          isDungeonmasterToolkitImportGuard({ importSource })
+        ) {
           return;
         }
 
@@ -193,7 +200,11 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
           importSource === gatewayLocationsStatics.importPrefix ||
           importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
-        if (isRelative || isWorkspacePackage) {
+        if (
+          isRelative ||
+          isWorkspacePackage ||
+          isDungeonmasterToolkitImportGuard({ importSource })
+        ) {
           return;
         }
 

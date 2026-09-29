@@ -11,6 +11,7 @@ describe('packageSeedFrontendStatics', () => {
           exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
         },
         dependencies: {
+          '__SCOPE__/node': '*',
           react: '^19.0.0',
           'react-dom': '^19.0.0',
           '@types/react': '^19.0.0',
@@ -52,7 +53,7 @@ describe('packageSeedFrontendStatics', () => {
           fileName: 'widgets.ts',
           exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
         },
-        dependencies: { ink: '^5.0.0', react: '^19.0.0' },
+        dependencies: { '__SCOPE__/node': '*', ink: '^5.0.0', react: '^19.0.0' },
         devDependencies: {},
         bin: {},
         compilerOptions: { jsx: 'react-jsx' },

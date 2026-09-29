@@ -491,14 +491,14 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageType: "frontend-react"} => dependencies carry @types/react and @types/react-dom, so the seed typechecks and builds', () => {
+    it('VALID: {packageType: "frontend-react"} => dependencies carry the scoped node gateway, react, @types/react and @types/react-dom, so the seed lints, typechecks and builds', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({ packageType: 'frontend-react' }),
       });
       const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
 
       expect(packageJsonFile!.contents).toMatch(
-        /^ {2}"dependencies": \{$\n^ {4}"react": "\^19\.0\.0",$\n^ {4}"react-dom": "\^19\.0\.0",$\n^ {4}"@types\/react": "\^19\.0\.0",$\n^ {4}"@types\/react-dom": "\^19\.2\.3"$\n^ {2}\},$/mu,
+        /^ {2}"dependencies": \{$\n^ {4}"@acme\/node": "\*",$\n^ {4}"react": "\^19\.0\.0",$\n^ {4}"react-dom": "\^19\.0\.0",$\n^ {4}"@types\/react": "\^19\.0\.0",$\n^ {4}"@types\/react-dom": "\^19\.2\.3"$\n^ {2}\},$/mu,
       );
     });
 

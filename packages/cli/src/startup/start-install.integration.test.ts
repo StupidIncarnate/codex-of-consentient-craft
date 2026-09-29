@@ -117,7 +117,7 @@ describe('StartInstall', () => {
       // The child starts before the in-process typecheck, so the two overlap: the typecheck
       // blocks this thread while the spawned tsx compiles on another core.
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
-      runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+      runHarness.installGatewayNodeStub({ dirPath: testbed.guildPath });
       const runResult = runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
@@ -210,7 +210,7 @@ describe('StartInstall', () => {
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
-      runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+      runHarness.installGatewayNodeStub({ dirPath: testbed.guildPath });
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
@@ -256,7 +256,7 @@ describe('StartInstall', () => {
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
-      runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+      runHarness.installGatewayNodeStub({ dirPath: testbed.guildPath });
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
@@ -317,7 +317,7 @@ describe('StartInstall', () => {
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
-      runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+      runHarness.installGatewayNodeStub({ dirPath: testbed.guildPath });
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
@@ -373,7 +373,7 @@ describe('StartInstall', () => {
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
-      runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+      runHarness.installGatewayNodeStub({ dirPath: testbed.guildPath });
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,

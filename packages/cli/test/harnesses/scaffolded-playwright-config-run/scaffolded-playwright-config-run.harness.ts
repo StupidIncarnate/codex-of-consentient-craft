@@ -7,52 +7,85 @@
  * itself already running inside one vm context, and executing more code through `vm.Script`/
  * `vm.compileFunction` from inside it resolves globals against a DIFFERENT context — measured: a
  * `process.env` write made from the test is invisible there, and a plain object literal built
- * inside compares unequal to one built outside). `installPlaywrightTestStub` writes a fake
- * `node_modules/@playwright/test` beside the config so the spawned process needs no real
- * Playwright install — its `defineConfig` returns its argument unchanged, exactly like Playwright's
- * own single-argument call does.
+ * inside compares unequal to one built outside). `installGatewayNodeStub` writes a fake `node_modules/<scope>/node` beside the config,
+ * named for the gateway package `StartInstall` scaffolded, so the config's `#gateway/node/{fs,path,
+ * process}` imports resolve through the `imports` map `init` wrote without any workspace being
+ * linked or built.
  *
  * USAGE:
  * const harness = scaffoldedPlaywrightConfigRunHarness();
- * harness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
+ * harness.installGatewayNodeStub({ dirPath: testbed.guildPath });
  * const { exitCode, stdout, stderr } = await harness.run({
  *   configPath: `${testbed.guildPath}/playwright.config.ts`,
  *   cwd: testbed.guildPath,
  *   env: { DUNGEONMASTER_PORT: '4001' },
  * });
- * // stdout is the JSON-stringified argument defineConfig() was called with, when exitCode is 0
+ * // stdout is the JSON-stringified default export of the config, when exitCode is 0
  */
 
 import { spawnPiped } from '#gateway/node/child_process';
 import { clearTimeout } from '#gateway/node/clearTimeout';
-import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
+import { ensureDirSync, readJsonFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
-import { errorMessageContract, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import {
+  errorMessageContract,
+  ExitCodeStub,
+  packageJsonContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const RUN_TIMEOUT_MS = 20_000;
 
 export const scaffoldedPlaywrightConfigRunHarness = (): {
-  installPlaywrightTestStub: (params: { dirPath: string }) => void;
+  installGatewayNodeStub: (params: { dirPath: string }) => void;
   run: (params: { configPath: string; cwd: string; env: Record<string, string> }) => Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
     stdout: ErrorMessage;
     stderr: ErrorMessage;
   }>;
 } => ({
-  installPlaywrightTestStub: ({ dirPath }: { dirPath: string }): void => {
-    const packageDir = join(dirPath, 'node_modules', '@playwright', 'test');
+  installGatewayNodeStub: ({ dirPath }: { dirPath: string }): void => {
+    const gatewayNodePackageJson = packageJsonContract.parse(
+      readJsonFileSync(join(dirPath, 'packages', '@gateway', 'node', 'package.json')),
+    );
+    const packageDir = join(
+      dirPath,
+      'node_modules',
+      ...String(gatewayNodePackageJson.name).split('/'),
+    );
+    // A testbed's config sits beside its ROOT package.json, which `init` never gives an `imports`
+    // map (only the packages under packages/* get one), so the harness adds the one entry the
+    // config needs.
+    const rootPackageJsonPath = join(dirPath, 'package.json');
+    writeFileSync(
+      rootPackageJsonPath,
+      JSON.stringify({
+        ...packageJsonContract.parse(readJsonFileSync(rootPackageJsonPath)),
+        imports: {
+          '#gateway/node/*': `${String(gatewayNodePackageJson.name).split('/')[0]}/node/*`,
+        },
+      }),
+    );
     ensureDirSync(packageDir);
     writeFileSync(
       join(packageDir, 'package.json'),
-      JSON.stringify({ name: '@playwright/test', version: '0.0.0', main: 'index.js' }),
+      JSON.stringify({
+        name: gatewayNodePackageJson.name,
+        version: '0.0.0',
+        exports: { './fs': './fs.js', './path': './path.js', './process': './process.js' },
+      }),
     );
     writeFileSync(
-      join(packageDir, 'index.js'),
-      'module.exports = { defineConfig: (config) => config };\n',
+      join(packageDir, 'fs.js'),
+      "const nodeFs = require('node:fs');\nmodule.exports = { readFileSync: (path) => nodeFs.readFileSync(path, 'utf8') };\n",
+    );
+    writeFileSync(join(packageDir, 'path.js'), "module.exports = require('node:path');\n");
+    writeFileSync(
+      join(packageDir, 'process.js'),
+      'module.exports = { getEnv: (name) => process.env[name] };\n',
     );
   },
 

@@ -3,7 +3,8 @@
  * create-package` — never a hand-written package.json/tsconfig/jest.config (packages/CLAUDE.md's
  * own "do not hand-copy configs off a sibling"): `lib` (packageType `library`) proves the NODE
  * gateway platform end to end — a broker importing a gateway proxy from its own file, proving
- * `registerMock` hoists, and an adapter making a raw unstaged `fs` call, proving the I/O trap fires —
+ * `registerMock` hoists, and (in `probe`) a broker making a raw unstaged `fs` call through the node
+ * gateway's passthrough, proving the I/O trap fires —
  * `app` (packageType `frontend-react`) proves the BROWSER gateway platform and `init`'s own
  * e2e-eligibility detection sees a real frontend-react package in this fixture, and `probe`
  * (packageType `library`) holds ONLY the deliberate `ban-primitives` violation `assertLint` and
@@ -12,14 +13,15 @@
  * real package's own tsconfig `include`, where lint and the pre-edit hook genuinely apply to it.
  *
  * Every sample below follows THIS repo's own architecture exactly (get-architecture,
- * get-testing-patterns, get-folder-detail: brokers, adapters) — the 2-level
+ * get-testing-patterns, get-folder-detail: brokers) — the 2-level
  * `<folderType>/<domain-or-package>/<action>/` depth `create-package`'s own seed uses, a
  * PURPOSE/USAGE header on every implementation file, and a colocated `.proxy.ts` + `.test.ts`
  * beside each one — the same rules a real consumer's own lint enforces on its own code, so the
- * fixture never trips a violation THIS suite does not intend. A raw `fs` import and a `void` return
- * are both banned inside `brokers/` (confirmed against the pre-edit hook), so the one sample that
- * needs a real unwrapped `fs` call is an ADAPTER instead — the folder type node_modules imports are
- * legal in.
+ * fixture never trips a violation THIS suite does not intend. Every outside package, Node module
+ * and platform global a sample touches goes through `#gateway/...` (`raw-import-ban` and
+ * `platform-globals-ban` apply to a consumer exactly as they do here), and a npm package the
+ * consumer's npm gateway has no wrapper for gets one written into that gateway first, the way the
+ * `consumerGatewayWrapper` session snippet tells a consumer to.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -141,46 +143,47 @@ describe('configReadOrDefaultBroker', () => {
 // The unstaged \`fs\` call lives in the IMPLEMENTATION file, never directly in the \`.test.ts\` below —
 // the trap's own \`jest.setup-io-trap.js\` explicitly EXEMPTS a call whose nearest repo frame is
 // itself a \`.test.*.ts\` file (its \`TEST_INFRASTRUCTURE_FRAME\` regex — "a proxy's data is recorded
-// from the real thing"), so \`readFileSync\` called directly in the test file never trips it at all
-// (confirmed against a real run of this suite: "Received function did not throw"). Routing it
-// through a plain function is what makes the caller's frame an ordinary implementation file, which
-// is the shape the trap actually polices. A raw \`fs\` import is banned inside \`brokers/\` (confirmed
-// against the pre-edit hook: "brokers/ cannot import external package \\"fs\\"") and a broker may not
-// return \`void\` either — \`adapters/\` is the one folder type node_modules imports are legal in, so
-// this sample is an adapter, returning a branded \`ContentText\`, never a raw string or void.
+// from the real thing"), so \`accessSync\` called directly in the test file never trips it at all.
+// Routing it through a plain function is what makes the caller's frame an ordinary implementation
+// file, which is the shape the trap actually polices. The call goes through \`#gateway/node/fs\`, and
+// \`accessSync\` is one of that subpath's RAW passthrough exports (\`export * from 'fs'\`): a WRAPPED
+// export (\`readFileSync\`, \`existsSync\`) obliges the broker's proxy to construct the wrapper's own
+// proxy, which stages a mock and would keep the call from ever reaching the trap. The return is the
+// string LITERAL \`'accessible'\`, never a raw \`string\` or \`void\`.
 const IO_TRAP_PROOF_SOURCE = `/**
- * PURPOSE: Reads a real file with fs.readFileSync, wrapped as an adapter so a raw node fs call is
- * legal here — adapters/ is the one folder type allowed to import node_modules directly. Exists
- * only to prove the consumer's I/O trap fires on a native fs call no test proxy ever staged.
+ * PURPOSE: Checks a real path with fs.accessSync through the node gateway's raw passthrough, so no
+ * wrapper proxy stages it. Exists only to prove the consumer's I/O trap fires on a native fs call no
+ * test proxy ever staged.
  *
  * USAGE:
- * fsIoTrapProbeAdapter();
- * // Returns the branded ContentText of /etc/hostname when a test HAS staged this call; throws
- * // '[io-trap] unstaged fs.readFileSync ...' when nothing staged it
+ * ioTrapProbeBroker();
+ * // Returns 'accessible' when nothing traps the call; throws '[io-trap] unstaged fs.accessSync ...'
+ * // when a unit test reaches it with nothing staged
  */
 
-import { readFileSync } from 'fs';
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
+import { accessSync } from '#gateway/node/fs';
 
-export const fsIoTrapProbeAdapter = (): ContentText =>
-  contentTextContract.parse(readFileSync('/etc/hostname', 'utf8'));
+export const ioTrapProbeBroker = (): 'accessible' => {
+  accessSync('/etc/hostname');
+  return 'accessible';
+};
 `;
 
-// Empty Proxy Pattern: this adapter needs REAL, unmocked execution for the I/O trap proof to mean
-// anything — mocking fs.readFileSync here would stage the call and the trap would never fire.
+// Empty Proxy Pattern: this broker needs REAL, unmocked execution for the I/O trap proof to mean
+// anything — mocking fs.accessSync here would stage the call and the trap would never fire.
 // enforce-test-creation-of-proxy still requires SOME \`...Proxy()\` call inside the test block before
-// an \`...Adapter\` call, so the test below still constructs this proxy even though it stages nothing.
-const IO_TRAP_PROOF_PROXY = `export const fsIoTrapProbeAdapterProxy = (): Record<PropertyKey, never> => ({});
+// a broker call, so the test below still constructs this proxy even though it stages nothing.
+const IO_TRAP_PROOF_PROXY = `export const ioTrapProbeBrokerProxy = (): Record<PropertyKey, never> => ({});
 `;
 
-const IO_TRAP_PROOF_TEST = `import { fsIoTrapProbeAdapter } from './fs-io-trap-probe-adapter';
-import { fsIoTrapProbeAdapterProxy } from './fs-io-trap-probe-adapter.proxy';
+const IO_TRAP_PROOF_TEST = `import { ioTrapProbeBroker } from './io-trap-probe-broker';
+import { ioTrapProbeBrokerProxy } from './io-trap-probe-broker.proxy';
 
-describe('fsIoTrapProbeAdapter', () => {
-  it('ERROR: {call: unstaged fs.readFileSync inside it} => throws the [io-trap] message', () => {
-    fsIoTrapProbeAdapterProxy();
+describe('ioTrapProbeBroker', () => {
+  it('ERROR: {call: unstaged fs.accessSync inside it} => throws the [io-trap] message', () => {
+    ioTrapProbeBrokerProxy();
 
-    expect(() => fsIoTrapProbeAdapter()).toThrow(/^\\[io-trap\\] unstaged fs\\.readFileSync/u);
+    expect(() => ioTrapProbeBroker()).toThrow(/^\\[io-trap\\] unstaged fs\\.accessSync/u);
   });
 });
 `;
@@ -194,18 +197,23 @@ describe('fsIoTrapProbeAdapter', () => {
 // which is the actual behaviour this sample proves, not merely the rejection. The return type is the
 // string LITERAL \`'caught'\`, never the raw \`string\` keyword, so ban-primitives never sees it.
 const MSW_TRAP_PROOF_SOURCE = `/**
- * PURPOSE: Calls the global fetch() directly, staging nothing, to prove the consumer's MSW setup
- * fails a test on an unhandled request instead of letting it silently pass through.
+ * PURPOSE: Requests a URL through the node gateway's http passthrough, staging nothing, to prove the
+ * consumer's MSW setup fails a test on an unhandled request instead of letting it silently pass
+ * through. \`http.get\` is a raw passthrough export, so no wrapper proxy stands between the call and MSW.
  *
  * USAGE:
  * await mswTrapProbeBroker();
  * // Rejects, and separately fails the test via MSW's own unhandled-request afterEach
  */
 
-export const mswTrapProbeBroker = async (): Promise<'caught'> => {
-  await fetch('http://consumer-check.invalid/msw-trap-probe');
-  return 'caught';
-};
+import { get } from '#gateway/node/http';
+
+export const mswTrapProbeBroker = async (): Promise<'caught'> =>
+  new Promise((resolve, reject) => {
+    get('http://consumer-check.invalid/msw-trap-probe', (): void => {
+      resolve('caught');
+    }).on('error', reject);
+  });
 `;
 
 const MSW_TRAP_PROOF_PROXY = `export const mswTrapProbeBrokerProxy = (): Record<PropertyKey, never> => ({});
@@ -232,26 +240,37 @@ describe('mswTrapProbeBroker', () => {
 // It therefore lives in `lib`, not `probe` — `assertWardCleanFixture` sweeps `lib`/`app` and expects
 // exit 0, which this file satisfies same as the hoisting proof does.
 const CONTRACT_CHECK_PROOF_SOURCE = `/**
- * PURPOSE: Fetches a mocked endpoint and returns its parsed body. Exists only to prove
- * StartEndpointMock.listen's optional contract param really rejects a mismatched staged response,
- * from a real installed @dungeonmaster/testing package, not just from source resolution in this
- * repo's own checkout.
+ * PURPOSE: Requests a mocked endpoint through the node gateway's http passthrough and returns its
+ * parsed body. Exists only to prove StartEndpointMock.listen's optional contract param really rejects
+ * a mismatched staged response, from a real installed @dungeonmaster/testing package, not just from
+ * source resolution in this repo's own checkout.
  *
  * USAGE:
  * await contractCheckProbeBroker();
  * // Returns whatever JSON body the test staged through StartEndpointMock.listen
  */
 
-export const contractCheckProbeBroker = async (): Promise<unknown> => {
-  const response = await fetch('http://consumer-check.invalid/contract-check-probe');
-  return response.json();
-};
+import { get } from '#gateway/node/http';
+
+export const contractCheckProbeBroker = async (): Promise<unknown> =>
+  new Promise((resolve, reject) => {
+    get('http://consumer-check.invalid/contract-check-probe', (response): void => {
+      const parts: unknown[] = [];
+      response.setEncoding('utf8');
+      response.on('data', (chunk): void => {
+        parts.push(chunk);
+      });
+      response.on('end', (): void => {
+        resolve(JSON.parse(parts.join('')) as unknown);
+      });
+    }).on('error', reject);
+  });
 `;
 
 // StartEndpointMock.listen is constructed in the CONSTRUCTOR, before the return statement, the same
 // shape packages/web's own quest-comment-batch-broker.proxy.ts already uses for the identical call.
 const CONTRACT_CHECK_PROOF_PROXY = `import { StartEndpointMock } from '@dungeonmaster/testing';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const contractCheckProbeBrokerProxy = (): {
   stageValidResponse: () => void;
@@ -297,21 +316,83 @@ describe('contractCheckProbeBroker', () => {
 });
 `;
 
-// A broker this function writes into `lib` (below) imports `#gateway/node/...` directly, the same
-// way a real developer's own code would — and `gateway-dependency-declared` requires the IMPORTING
-// package.json to list the real gateway package name in `dependencies`, exactly as it would for a
-// human-authored file (repo `packages/CLAUDE.md`'s own dependency rule, enforced here by lint).
-// `create-package` has no way to know in advance which gateway subpath a package will end up
-// importing, so this fixture — like a real developer would — adds the entry itself once the import
-// exists.
-const addGatewayNodeDependency = ({ consumerRoot, scope }) => {
-  const packageJsonPath = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'package.json');
+// A sample this function writes imports `#gateway/...` directly, the same way a real developer's own
+// code would — and `gateway-dependency-declared` requires the IMPORTING package.json to list the real
+// gateway package name in `dependencies`, exactly as it would for a human-authored file (repo
+// `packages/CLAUDE.md`'s own dependency rule, enforced here by lint). `create-package` has no way to
+// know in advance which gateway a package will end up importing, so this fixture — like a real
+// developer would — adds the entry itself once the import exists.
+const addGatewayDependencies = ({ consumerRoot, packageName, gateways, scope }) => {
+  const packageJsonPath = join(consumerRoot, 'packages', packageName, 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   packageJson.dependencies = {
     ...packageJson.dependencies,
-    [`${scope}/node`]: '*',
+    ...Object.fromEntries(gateways.map((gateway) => [`${scope}/${gateway}`, '*'])),
   };
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+};
+
+// The consumer's npm gateway starts with no wrapper, so the one npm package a sample needs (zod, for
+// the contract-check proxy's schema) gets its own here, in the four-file shape the
+// `consumerGatewayWrapper` session snippet names: the wrapper, its export-shape test, and a stub
+// folder holding a stub plus that stub's own test — `gateway-colocation` refuses a subpath with any
+// of them missing. Copied from this repo's own `packages/@gateway/npm/src/zod` shape.
+const ZOD_WRAPPER_SOURCE = `/**
+ * PURPOSE: Gateway entry for the npm package 'zod'. Every raw export passes through unchanged.
+ *
+ * USAGE:
+ * import { z } from '#gateway/npm/zod';
+ */
+
+export * from 'zod';
+export { default } from 'zod';
+`;
+
+const ZOD_WRAPPER_TEST = `import * as ourModule from './zod';
+// A raw \`require\`, not \`import * as\`: TS's importStar helper synthesizes a .default onto any CJS
+// module that lacks __esModule, so comparing against that synthetic shape would fail a pass-through.
+import pkgModule = require('zod');
+
+describe('#gateway/npm/zod', () => {
+  it('VALID: {module} => re-exports the same runtime bindings as zod', () => {
+    expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
+  });
+});
+`;
+
+const ZOD_STRING_SCHEMA_STUB = `/**
+ * PURPOSE: A real, branded Zod schema, built through the real \`z.string()\`.
+ *
+ * USAGE:
+ * const schema = ZodStringSchemaStub();
+ * schema.parse('gateway-stub'); // real, branded GatewayStubValue
+ */
+import { z } from 'zod';
+
+export const ZodStringSchemaStub = (): z.ZodType<string> => z.string().brand<'GatewayStubValue'>();
+`;
+
+const ZOD_STRING_SCHEMA_STUB_TEST = `import { ZodStringSchemaStub } from './zod-string-schema.stub';
+
+describe('ZodStringSchemaStub', () => {
+  it('VALID: {} => a real schema that parses a real string', () => {
+    expect(ZodStringSchemaStub().parse('gateway-stub')).toBe('gateway-stub');
+  });
+
+  it('INVALID: {} => a real schema that throws for a non-string', () => {
+    expect(() => ZodStringSchemaStub().parse(123)).toThrow(/expected string, received number/u);
+  });
+});
+`;
+
+const writeZodGatewayWrapper = ({ consumerRoot }) => {
+  const zodDir = join(consumerRoot, 'packages', '@gateway', 'npm', 'src', 'zod');
+  const stubDir = join(zodDir, 'zod-string-schema');
+  mkdirSync(stubDir, { recursive: true });
+  writeFileSync(join(zodDir, 'zod.ts'), ZOD_WRAPPER_SOURCE);
+  writeFileSync(join(zodDir, 'zod.test.ts'), ZOD_WRAPPER_TEST);
+  writeFileSync(join(stubDir, 'zod-string-schema.stub.ts'), ZOD_STRING_SCHEMA_STUB);
+  writeFileSync(join(stubDir, 'zod-string-schema.stub.test.ts'), ZOD_STRING_SCHEMA_STUB_TEST);
 };
 
 // `create-package`'s own gateway-scope detection (`works.mjs`'s `assertScopeDetection`, F5) and its
@@ -323,7 +404,19 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   await runCreatePackage({ consumerRoot, cliBin, name: WEB_PACKAGE_NAME, type: 'frontend-react' });
   await runCreatePackage({ consumerRoot, cliBin, name: PROBE_PACKAGE_NAME, type: 'library' });
 
-  addGatewayNodeDependency({ consumerRoot, scope });
+  addGatewayDependencies({
+    consumerRoot,
+    packageName: LIB_PACKAGE_NAME,
+    gateways: ['node', 'npm'],
+    scope,
+  });
+  addGatewayDependencies({
+    consumerRoot,
+    packageName: PROBE_PACKAGE_NAME,
+    gateways: ['node'],
+    scope,
+  });
+  writeZodGatewayWrapper({ consumerRoot });
 
   const libSrcDir = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'src');
   const probeSrcDir = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME, 'src');
@@ -356,11 +449,11 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   // whole point is proving unstaged I/O trips the trap), so a general ward sweep of whatever
   // package holds them fails by design — exactly the same reason `probe`'s own ban-primitives
   // violation lives outside `lib`/`app`'s scope (see the lintViolationFile comment below).
-  const ioTrapDomainDir = join(probeSrcDir, 'adapters', 'fs', 'io-trap-probe');
+  const ioTrapDomainDir = join(probeSrcDir, 'brokers', 'io-trap', 'probe');
   mkdirSync(ioTrapDomainDir, { recursive: true });
-  writeFileSync(join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.ts'), IO_TRAP_PROOF_SOURCE);
-  writeFileSync(join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.proxy.ts'), IO_TRAP_PROOF_PROXY);
-  const ioTrapTestFile = join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.test.ts');
+  writeFileSync(join(ioTrapDomainDir, 'io-trap-probe-broker.ts'), IO_TRAP_PROOF_SOURCE);
+  writeFileSync(join(ioTrapDomainDir, 'io-trap-probe-broker.proxy.ts'), IO_TRAP_PROOF_PROXY);
+  const ioTrapTestFile = join(ioTrapDomainDir, 'io-trap-probe-broker.test.ts');
   writeFileSync(ioTrapTestFile, IO_TRAP_PROOF_TEST);
 
   const mswTrapDomainDir = join(probeSrcDir, 'brokers', 'msw-trap', 'probe');

@@ -64,6 +64,23 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       filename: '/repo/packages/@gateway/bin/src/git/git-current-branch.ts',
     },
 
+    // --- dungeonmaster's own toolkit is first-party in a consumer repo scoped differently ---
+    {
+      code: "import { contentTextContract } from '@dungeonmaster/shared/contracts';",
+      filename: '/repo/packages/app/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@acme' }],
+    },
+    {
+      code: "import { registerMock } from '@dungeonmaster/testing/register-mock';",
+      filename: '/repo/packages/app/src/brokers/x/x-broker.proxy.ts',
+      options: [{ scope: '@acme' }],
+    },
+    {
+      code: "const { userContract } = require('@dungeonmaster/shared/contracts');",
+      filename: '/repo/packages/app/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@acme' }],
+    },
+
     // --- consumer scope other than @dungeonmaster: its own workspace imports are allowed ---
     {
       code: "import { widget } from '@acme/shared/widgets';",
@@ -307,6 +324,21 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
         {
           messageId: 'rawImport',
           data: { importSource: 'fs', gatewayPath: '#gateway/node/fs' },
+        },
+      ],
+    },
+    // --- dungeonmaster's OWN gateway is never a consumer's: it is refused even in a consumer scope ---
+    {
+      code: "import { readFileSync } from '@dungeonmaster/node/fs';",
+      filename: '/repo/packages/app/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@acme' }],
+      errors: [
+        {
+          messageId: 'rawImport',
+          data: {
+            importSource: '@dungeonmaster/node/fs',
+            gatewayPath: '#gateway/npm/dungeonmaster__node__fs',
+          },
         },
       ],
     },

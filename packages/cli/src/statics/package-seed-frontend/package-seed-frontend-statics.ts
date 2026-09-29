@@ -18,7 +18,11 @@ export const packageSeedFrontendStatics = {
     // `@types/react` and `@types/react-dom` are runtime-shaped devDependencies but declared here in
     // `dependencies` anyway: without them a scaffolded package neither typechecks (no
     // `React.JSX.Element` global) nor builds (`tsc` reports the same gap in `dist`).
+    // `__SCOPE__/node` is the gateway package the scaffolded playwright.config.ts imports
+    // (`#gateway/node/fs`, ...): `gateway-dependency-declared` requires the importing package.json
+    // to list it.
     dependencies: {
+      '__SCOPE__/node': '*',
       react: '^19.0.0',
       'react-dom': '^19.0.0',
       '@types/react': '^19.0.0',
@@ -92,6 +96,7 @@ describe('__PASCAL__PanelWidget', () => {
       exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
     },
     dependencies: {
+      '__SCOPE__/node': '*',
       ink: '^5.0.0',
       react: '^19.0.0',
     },

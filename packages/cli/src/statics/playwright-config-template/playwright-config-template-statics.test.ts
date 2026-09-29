@@ -3,9 +3,9 @@ import { playwrightConfigTemplateStatics } from './playwright-config-template-st
 describe('playwrightConfigTemplateStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(playwrightConfigTemplateStatics).toStrictEqual({
-      content: `import { defineConfig } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+      content: `import { readFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
+import { getEnv } from '#gateway/node/process';
 import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
 import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
@@ -16,8 +16,8 @@ const DEFAULT_API_PORT = 3737;
 // both. So the two numbers must never be guessed apart: Playwright waits on the port below and the
 // dev server has to bind that same one. A run where they disagree dies on
 // "Timed out waiting 60000ms from config.webServer" and says nothing else about why.
-const API_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_API_PORT;
-const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || API_PORT + 1;
+const API_PORT = Number(getEnv('DUNGEONMASTER_PORT')) || DEFAULT_API_PORT;
+const WEB_PORT = Number(getEnv('DUNGEONMASTER_WEB_PORT')) || API_PORT + 1;
 const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
   api: networkPortContract.parse(API_PORT),
   web: networkPortContract.parse(WEB_PORT),
@@ -45,7 +45,7 @@ const CONFIG_PATH = join(__dirname, '.dungeonmaster.json');
 
 const readRawConfig = (): unknown => {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+    return JSON.parse(readFileSync(CONFIG_PATH));
   } catch (error) {
     throw new Error(
       \`playwright.config.ts could not read or parse .dungeonmaster.json at \${CONFIG_PATH}: \${String(error)}\`,
@@ -93,7 +93,7 @@ const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
 
 // {apiWorkspace}/{webWorkspace} need this repo's own package-type detection, and {claudeQueueDir}/
 // {wardQueueDir} need siegelense's own per-instance mkdir — neither exists in a scaffolded file
-// that imports nothing beyond node:fs/node:path, so a value using one of these fails loudly here
+// that imports nothing beyond the node gateway, so a value using one of these fails loudly here
 // instead of spawning a command that still carries the literal, unexpanded token text.
 const substituteTokens = (value: string): ContentText =>
   contentTextContract.parse(
@@ -169,7 +169,7 @@ const webServer = processes.map((entry) => {
   };
 });
 
-export default defineConfig({
+export default {
   testMatch: '**/*.e2e.ts',
   timeout: 30_000,
 
@@ -192,7 +192,7 @@ export default defineConfig({
   outputDir: \`test-results/\${String(API_PORT)}\`,
 
   webServer,
-});
+};
 `,
       unresolvableTokenStaticsContent: `/**
  * PURPOSE: The \`devServer.e2e.processes[].command\`/\`.env\` placeholder tokens this scaffolded

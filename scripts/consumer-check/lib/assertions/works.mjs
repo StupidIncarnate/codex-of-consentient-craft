@@ -193,7 +193,7 @@ const assertIoTrap = async ({ report, consumerRoot, ioTrapTestFile }) => {
   const output = `${result.stdout}\n${result.stderr}`;
   report.check(
     'a sample unit test making an unstaged fs call fails via the [io-trap] afterEach',
-    result.code !== 0 && output.includes('[io-trap] unstaged fs.readFileSync'),
+    result.code !== 0 && output.includes('[io-trap] unstaged fs.accessSync'),
     output.slice(-2000),
   );
 };
