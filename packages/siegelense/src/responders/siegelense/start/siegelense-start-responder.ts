@@ -4,7 +4,7 @@
  * §3.A of `scrolls/seigelense/plans/chunk-04-cli-surface.md`: every one of the seven calls writes
  * exactly one document to stdout, or nothing at all. `start` prints a human summary by default,
  * through `startAnswerRenderTransformer`, same as `status`/`cleanup`, and the raw `InstanceManifest`
- * as JSON with `--json` (`isJson: true`) — a failure from `instanceStartBroker` propagates unchanged
+ * as JSON with `--json` (`isJson: true`), plus the effective `idleTimeoutMs` (the `InstanceManifest` does not carry it; the responder is what knows the flag) — a failure from `instanceStartBroker` propagates unchanged
  * rather than being caught into a `{success:false}` document here; the CLI entry point turns an
  * uncaught throw into stderr text and exit 1.
  *
@@ -50,6 +50,7 @@ import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-br
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
 
@@ -99,8 +100,12 @@ export const SiegelenseStartResponder = async ({
   );
   process.stdout.write(
     isJson
-      ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
-      : startAnswerRenderTransformer({ manifest }),
+      ? `${JSON.stringify(
+          { ...manifest, idleTimeoutMs: idleTimeoutMs ?? driverStatics.idle.timeoutMs },
+          null,
+          siegelenseOutputStatics.json.indentSpaces,
+        )}\n`
+      : startAnswerRenderTransformer({ manifest, idleTimeoutMs }),
   );
   return adapterResultContract.parse({ success: true });
 };
