@@ -1,4 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { ConnectionRefusedRecordedErrorStub } from '../../net/connection-refused-recorded-error/connection-refused-recorded-error.stub';
+import { AbortErrorStub } from '../abort-error/abort-error.stub';
 
 export const fetchOkProxy = (): {
   setupReachable: (params: { url: string }) => void;
@@ -23,12 +25,18 @@ export const fetchOkProxy = (): {
       handle.calledWith([url]).resolves({ ok: false, status: 404 } as Response);
     },
     setupUnreachable: ({ url }: { url: string }): void => {
-      handle.calledWith([url]).rejects(new Error('connect ECONNREFUSED'));
-    },
-    setupAborted: ({ url }: { url: string }): void => {
+      // `fetch` wraps the socket error as the `.cause` of `TypeError: fetch failed`. The cause is the
+      // recorded-as-data stub: the capturing one opens a socket, which a composer's I/O trap stops.
       handle
         .calledWith([url])
-        .rejects(Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }));
+        .implement(async () =>
+          Promise.reject(
+            new TypeError('fetch failed', { cause: ConnectionRefusedRecordedErrorStub() }),
+          ),
+        );
+    },
+    setupAborted: ({ url }: { url: string }): void => {
+      handle.calledWith([url]).implement(async () => Promise.reject(AbortErrorStub()));
     },
     setupUnexpectedError: ({ url, error }: { url: string; error: Error }): void => {
       handle.calledWith([url]).rejects(error);

@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { AbortErrorStub } from '../abort-error/abort-error.stub';
 import { ConnectionRefusedErrorStub } from '../../net/connection-refused-error/connection-refused-error.stub';
 
 const buildResponse = ({
@@ -55,9 +56,7 @@ export const fetchJsonProxy = (): {
       handle.calledWith([url]).rejects(await ConnectionRefusedErrorStub());
     },
     setupAborted: ({ url }: { url: string }): void => {
-      handle
-        .calledWith([url])
-        .rejects(Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }));
+      handle.calledWith([url]).implement(async () => Promise.reject(AbortErrorStub()));
     },
   };
 };

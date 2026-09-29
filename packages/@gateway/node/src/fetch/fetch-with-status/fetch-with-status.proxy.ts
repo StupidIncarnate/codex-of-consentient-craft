@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { AbortErrorStub } from '../abort-error/abort-error.stub';
 
 const HTTP_OK_STATUS_MIN = 200;
 const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;
@@ -52,9 +53,7 @@ export const fetchWithStatusProxy = (): {
       handle.calledWith([url]).rejects(new TypeError('fetch failed', { cause }));
     },
     setupAbortImmediate: ({ url }: { url: string }): void => {
-      handle
-        .calledWith([url])
-        .rejects(Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }));
+      handle.calledWith([url]).implement(async () => Promise.reject(AbortErrorStub()));
     },
     // Only rejects once the real `AbortController` this adapter builds actually fires its signal —
     // proves the internal timer is wired to the fetch call rather than merely swallowing an
@@ -64,9 +63,7 @@ export const fetchWithStatusProxy = (): {
         async (_url: string, init: RequestInit) =>
           new Promise<Response>((_resolve, reject) => {
             init.signal?.addEventListener('abort', () => {
-              reject(
-                Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }),
-              );
+              reject(AbortErrorStub());
             });
           }),
       );

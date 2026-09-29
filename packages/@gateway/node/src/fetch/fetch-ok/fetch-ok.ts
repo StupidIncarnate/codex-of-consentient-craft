@@ -33,10 +33,11 @@ export const fetchOk = async ({
     // inside — `instanceof Error` reads false against either one even though they genuinely are
     // Errors. `isNativeError` checks the V8-internal error slot instead, answering correctly
     // whichever realm constructed the value.
+    // An aborted fetch rejects with `signal.reason`, a `DOMException` — not a native `Error`, so
+    // the abort check reads `.name` alone.
     if (
       error !== null &&
       typeof error === 'object' &&
-      isNativeError(error) &&
       'name' in error &&
       error.name === 'AbortError'
     ) {
