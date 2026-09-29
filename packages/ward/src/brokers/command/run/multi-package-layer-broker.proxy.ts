@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import {
@@ -52,10 +53,7 @@ export const multiPackageLayerBrokerProxy = (): {
   registerSpyOn({ object: Math, method: 'random' })
     .calledWith([])
     .returns(runIdMockStatics.randomValue);
-  // write()'s return value never varies by content — what was written is read back via
-  // callsMatching below, so the catch-all stays unaddressed.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   const stream = streamProxy();
   RunNotFoundErrorProxy();
@@ -212,7 +210,7 @@ export const multiPackageLayerBrokerProxy = (): {
       stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub({ ward: { concurrency } }) });
     },
 
-    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStderrCalls: (): unknown[] => [...stderr.getWrites()],
     getAllSpawnedArgs: (): unknown[] => [
       ...stream.getCallsFor({ command: String(resolvedCommandRef.value) }),
     ],

@@ -7,6 +7,7 @@
  */
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
+import { stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -143,7 +144,7 @@ export const multiPackageLayerBroker = async ({
         args: spawnArgs,
         cwd,
         onStderr: (line: string) => {
-          process.stderr.write(line);
+          stderr.write(line);
         },
       }).catch((error: unknown) => {
         if (!(error instanceof RunNotFoundError)) {

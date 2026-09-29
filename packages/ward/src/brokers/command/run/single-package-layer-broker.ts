@@ -6,6 +6,7 @@
  * // Returns WardResult with one ProjectResult per check type
  */
 
+import { stderr } from '#gateway/node/process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -70,7 +71,7 @@ export const singlePackageLayerBroker = async ({
       const acc = await accPromise;
       const runner = CHECK_RUNNERS[checkType];
 
-      process.stderr.write(
+      stderr.write(
         `${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} running...\r`,
       );
 
@@ -85,7 +86,7 @@ export const singlePackageLayerBroker = async ({
       const formattedDuration = ` (${(checkDurationMs / msPerSecondStatics.value).toFixed(1)}s)`;
 
       if (projectResult.status === 'skip') {
-        process.stderr.write(
+        stderr.write(
           `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} skip${formattedDuration}\n`,
         );
       } else {
@@ -102,7 +103,7 @@ export const singlePackageLayerBroker = async ({
             ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors, ${String(projectResult.discoveredCount)} discovered${mismatch}`
             : `${String(projectResult.filesCount)} files, ${String(projectResult.discoveredCount)} discovered${mismatch}`;
 
-        process.stderr.write(
+        stderr.write(
           `\x1b[K${checkType.padEnd(CHECK_PAD)}${projectFolder.name.padEnd(NAME_PAD)} ${statusLabel}  ${detail}${formattedDuration}\n`,
         );
 
@@ -113,13 +114,13 @@ export const singlePackageLayerBroker = async ({
             const shown = projectResult.onlyProcessed.slice(0, MAX_DIFF_DISPLAY);
             const remaining = projectResult.onlyProcessed.length - shown.length;
             const suffix = remaining > 0 ? `\n${indent}  ... and ${String(remaining)} more` : '';
-            process.stderr.write(`${indent}only processed: ${shown.join(`, `)}${suffix}\n`);
+            stderr.write(`${indent}only processed: ${shown.join(`, `)}${suffix}\n`);
           }
           if (projectResult.onlyDiscovered.length > 0) {
             const shown = projectResult.onlyDiscovered.slice(0, MAX_DIFF_DISPLAY);
             const remaining = projectResult.onlyDiscovered.length - shown.length;
             const suffix = remaining > 0 ? `\n${indent}  ... and ${String(remaining)} more` : '';
-            process.stderr.write(`${indent}only discovered: ${shown.join(`, `)}${suffix}\n`);
+            stderr.write(`${indent}only discovered: ${shown.join(`, `)}${suffix}\n`);
           }
         }
       }

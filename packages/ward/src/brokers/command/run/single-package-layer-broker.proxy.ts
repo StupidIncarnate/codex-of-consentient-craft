@@ -1,3 +1,4 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
@@ -29,10 +30,7 @@ export const singlePackageLayerBrokerProxy = (): {
   registerSpyOn({ object: Math, method: 'random' })
     .calledWith([])
     .returns(runIdMockStatics.randomValue);
-  // write()'s return value never varies by content — what was written is read back via
-  // callsMatching below, so the catch-all stays unaddressed.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   const lintProxy = checkRunLintBrokerProxy();
   const typecheckProxy = checkRunTypecheckBrokerProxy();
@@ -96,6 +94,6 @@ export const singlePackageLayerBrokerProxy = (): {
     }): void => {
       unitProxy.setupPathExists({ projectFolder, relativePath, exists: false });
     },
-    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStderrCalls: (): unknown[] => [...stderr.getWrites()],
   };
 };
