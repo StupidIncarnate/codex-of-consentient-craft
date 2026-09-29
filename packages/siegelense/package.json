@@ -33,12 +33,6 @@
       "import": "./dist/guards.js",
       "require": "./dist/guards.js"
     },
-    "./adapters": {
-      "source": "./adapters.ts",
-      "types": "./dist/adapters.d.ts",
-      "import": "./dist/adapters.js",
-      "require": "./dist/adapters.js"
-    },
     "./brokers": {
       "source": "./brokers.ts",
       "types": "./dist/brokers.d.ts",

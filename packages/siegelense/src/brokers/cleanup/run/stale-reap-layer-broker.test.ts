@@ -42,21 +42,10 @@ describe('staleReapLayerBroker', () => {
         reaped: { id: INSTANCE_ID, staleFor: '9h', killed: [pgidOne, pgidTwo], homeRemoved: true },
         portsReleased: [entry.ports.api, entry.ports.web],
       });
-      // Probed alive before EITHER signal (0), SIGTERM, probed alive again before SIGKILL (0),
-      // SIGKILL — the escalation `instanceKillBroker`'s orphan-reap path runs against a genuinely
+      // SIGTERM, then SIGKILL once the grace probe still sees it alive — the escalation `instanceKillBroker`'s orphan-reap path runs against a genuinely
       // live group it found through the registry row, never a separate heartbeat file.
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual([
-        0,
-        'SIGTERM',
-        0,
-        'SIGKILL',
-      ]);
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual([
-        0,
-        'SIGTERM',
-        0,
-        'SIGKILL',
-      ]);
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual(['SIGTERM', 'SIGKILL']);
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual(['SIGTERM', 'SIGKILL']);
       // status's likelyCause reads this file verbatim when it exists — naming the CAUSE (cleanup's
       // own staleness detection) rather than the instance-kill-broker's generic orphan-reap wording,
       // so a reader of `status` sees what actually ended the instance.

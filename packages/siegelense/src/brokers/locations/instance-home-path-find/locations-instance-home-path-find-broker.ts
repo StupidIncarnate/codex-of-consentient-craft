@@ -12,7 +12,7 @@
  * // Returns AbsoluteFilePath '<os.tmpdir()>/dm-siege-inst_7f3a9c21'
  */
 
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -23,7 +23,7 @@ export const locationsInstanceHomePathFindBroker = ({
 }: {
   instanceId: InstanceId;
 }): AbsoluteFilePath => {
-  const tmpDir = osTmpdirAdapter();
+  const tmpDir = tmpdir();
 
   const joined = join(tmpDir, `${driverStatics.boot.homePrefix}${instanceId}`);
 

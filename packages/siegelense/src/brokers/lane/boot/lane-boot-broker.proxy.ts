@@ -16,8 +16,8 @@ import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/sh
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { browserSessionLaunchBrokerProxy } from '../../browser-session/launch/browser-session-launch-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
@@ -104,8 +104,11 @@ export const laneBootBrokerProxy = (): {
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const openFdProxy = openForAppendSyncProxy();
   const closeFdProxy = closeSyncProxy();
-  const rmProxy = fsRmAdapterProxy();
-  const killProxy = processKillGroupAdapterProxy();
+  const removeProxy = rmProxy();
+  const killProxy = processKillGroupBrokerProxy();
+  // Read-back addresses only the paths and fds this test staged; an unstaged call already throws.
+  const stagedHomePaths: AbsoluteFilePath[] = [];
+  const stagedFds: FileDescriptor[] = [];
   const browserProxy = browserSessionLaunchBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
   const workspaceProxy = laneWorkspaceResolveBrokerProxy();
@@ -140,6 +143,7 @@ export const laneBootBrokerProxy = (): {
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,
       // not just the ones a given test expects to fail.
       killProxy.setupSent({ pgid: ProcessGroupIdStub({ value: pid }), signal: 'SIGKILL' });
+      stagedFds.push(fd);
       closeFdProxy.succeeds({ fd });
     },
 
@@ -158,11 +162,12 @@ export const laneBootBrokerProxy = (): {
       });
     },
 
-    // The failure path removes ONLY this home — never evidencePath, which fsRmAdapterProxy is never
+    // The failure path removes ONLY this home — never evidencePath, which `rm` is never
     // staged for, so an accidental rm(evidencePath) call throws "nothing set up" instead of quietly
     // succeeding.
     setupHomeRemoved: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
-      rmProxy.succeeds({ dirPath: homePath });
+      stagedHomePaths.push(homePath);
+      removeProxy.succeeds({ path: homePath });
     },
 
     setupWorkspacesResolved: ({
@@ -209,14 +214,18 @@ export const laneBootBrokerProxy = (): {
     getKillSignalsFor: ({ pgid }: { pgid: ProcessGroupId }): readonly unknown[] =>
       killProxy.getCallsFor({ pgid }),
 
-    // Every descriptor closed, in call order. The predicate reads back any fd, because which ones a
-    // boot opens is what the test asserts.
+    // Every staged descriptor closed, in call order.
     getClosedFds: (): readonly unknown[] =>
       closeFdProxy
-        .calls({ fd: (value: unknown): boolean => typeof value === 'number' })
+        .calls({ fd: (value: unknown): boolean => stagedFds.some((fd) => fd === value) })
         .map((call) => call[0]),
 
-    getRemovedHomePaths: (): readonly unknown[] => rmProxy.getRemovedPaths(),
+    getRemovedHomePaths: (): readonly unknown[] =>
+      removeProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => stagedHomePaths.some((path) => path === value),
+        })
+        .map((call) => call[0]),
 
     getBrowserLaunchCallCount: (): ReadingCount =>
       ReadingCountStub({ value: browserProxy.getLaunchCalls().length }),

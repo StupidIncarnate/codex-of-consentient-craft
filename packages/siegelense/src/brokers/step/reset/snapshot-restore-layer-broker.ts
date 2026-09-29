@@ -20,14 +20,13 @@
 
 import { createHash } from '#gateway/node/crypto';
 import { readdirEntriesSync } from '#gateway/node/fs';
-import { copyDirContents, readFile } from '#gateway/node/fs__promises';
+import { copyDirContents, readFile, rm } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   relativeFilePathContract,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
@@ -117,7 +116,9 @@ export const snapshotRestoreLayerBroker = async ({
     return !payloadFiles.has(relPath);
   });
 
-  await Promise.all(addedPaths.map(async (dirPath) => fsRmAdapter({ dirPath })));
+  await Promise.all(
+    addedPaths.map(async (dirPath) => rm(dirPath, { recursive: true, force: true })),
+  );
 
   let modifiedCount = 0;
   let removedCount = 0;

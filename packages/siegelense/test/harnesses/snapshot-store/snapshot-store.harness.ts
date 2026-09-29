@@ -25,7 +25,7 @@ import { mkdir, writeFile } from 'fs/promises';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../src/adapters/fs/rm/fs-rm-adapter';
+import { rm } from '#gateway/node/fs__promises';
 import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { locationsSnapshotPathsFindBroker } from '../../../src/brokers/locations/snapshot-paths-find/locations-snapshot-paths-find-broker';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
@@ -89,7 +89,9 @@ export const snapshotStoreHarness = (): {
 
   const cleanup = async (): Promise<void> => {
     const homesToRemove = mintedHomePaths.splice(0, mintedHomePaths.length);
-    await Promise.all(homesToRemove.map(async (home) => fsRmAdapter({ dirPath: home })));
+    await Promise.all(
+      homesToRemove.map(async (home) => rm(home, { recursive: true, force: true })),
+    );
   };
 
   return { mintInstanceId, homePath, payloadPath, writeIndex, cleanup };

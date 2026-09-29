@@ -63,7 +63,7 @@ export const driverStatics = {
     // it. 5s is generous for one HTTP round trip against localhost.
     readyProbeTimeoutMs: 5_000,
     // The throwaway home prefix `lane-boot-broker`'s own USAGE example already assumes
-    // (`/tmp/dm-siege-inst_1`) — joined onto `osTmpdirAdapter()` plus the instance id by
+    // (`/tmp/dm-siege-inst_1`) — joined onto `tmpdir()` plus the instance id by
     // `locationsInstanceHomePathFindBroker`.
     homePrefix: 'dm-siege-',
   },

@@ -96,20 +96,10 @@ describe('instanceKillBroker', () => {
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
       expect(result.reapedPgids).toStrictEqual([pgidOne, pgidTwo]);
-      // Probed alive before EITHER signal (0), SIGTERM, probed alive again before SIGKILL (0),
-      // SIGKILL — the same escalation `laneTeardownBroker` runs against a genuinely live group.
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual([
-        0,
-        'SIGTERM',
-        0,
-        'SIGKILL',
-      ]);
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual([
-        0,
-        'SIGTERM',
-        0,
-        'SIGKILL',
-      ]);
+      // SIGTERM, then SIGKILL once the grace probe still sees it alive — the same escalation
+      // `laneTeardownBroker` runs against a genuinely live group.
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual(['SIGTERM', 'SIGKILL']);
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual(['SIGTERM', 'SIGKILL']);
     });
 
     it('VALID: {kill, socket refused, two live pgids reaped} => overwrites shutdown-reason.json so status shows the explicit kill, not a stale idle-reap reason', async () => {
@@ -209,7 +199,7 @@ describe('instanceKillBroker', () => {
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
       expect(result.reapedPgids).toStrictEqual([livePgid]);
-      expect(proxy.getKillGroupCallsFor({ pgid: alreadyGonePgid })).toStrictEqual([0]);
+      expect(proxy.getKillGroupCallsFor({ pgid: alreadyGonePgid })).toStrictEqual([]);
     });
   });
 

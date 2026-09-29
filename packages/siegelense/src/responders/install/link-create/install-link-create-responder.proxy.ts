@@ -8,7 +8,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { mkdir, readlink, symlink } from 'fs/promises';
 
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
 import { InstallLinkCreateResponder } from './install-link-create-responder';
 
@@ -57,7 +57,7 @@ export const InstallLinkCreateResponderProxy = (): {
   const existsProxy = existsSyncProxy();
   const linkProxy = symlinkProxy();
   const linkReadlink = readlinkProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const deleteProxy = unlinkProxy();
 
   // The responder resolves targetDir first (locationsRootPathFindBroker's own join, staged inside
   // rootPathProxy.setupRootPath at a SPECIFIC address that outranks a bare one-shot), then assetsDir
@@ -123,7 +123,7 @@ export const InstallLinkCreateResponderProxy = (): {
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       linkReadlink.returns({ path: LINK_PATH_VALUE, target: wrongTarget });
-      unlinkProxy.succeeds({ filePath: linkPathAbs });
+      deleteProxy.succeeds({ path: linkPathAbs });
       linkProxy.succeeds({ target: TARGET_DIR_VALUE, path: LINK_PATH_VALUE });
       setupLegacyAbsent();
     },
@@ -138,7 +138,7 @@ export const InstallLinkCreateResponderProxy = (): {
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       linkReadlink.returns({ path: LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
       linkReadlink.returns({ path: LEGACY_LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
-      unlinkProxy.succeeds({ filePath: legacyLinkPathAbs });
+      deleteProxy.succeeds({ path: legacyLinkPathAbs });
     },
 
     // Layered onto setupCorrectLink's base — the flat legacy path exists but is a real directory or
@@ -161,7 +161,12 @@ export const InstallLinkCreateResponderProxy = (): {
     getReadlinkCalls: (): readonly unknown[] =>
       (readlink as jest.MockedFunction<typeof readlink>).mock.calls.map(([path]) => path),
 
-    getUnlinkedPaths: (): readonly unknown[] => unlinkProxy.getDeletedPaths(),
+    getUnlinkedPaths: (): readonly unknown[] =>
+      deleteProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => value === linkPathAbs || value === legacyLinkPathAbs,
+        })
+        .map((call) => call[0]),
 
     // Reads jest's own recorded calls off the real 'fs/promises' mkdir directly, in real
     // invocation order — ensureDirProxy's own getCallsFor is addressed per-path, and combining two

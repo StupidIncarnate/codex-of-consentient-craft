@@ -23,9 +23,9 @@
  * // Same shape, describing what WOULD be removed; no file on disk is touched
  */
 
+import { unlink } from '#gateway/node/fs__promises';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -125,7 +125,7 @@ export const pruneInstanceReclaimBroker = async ({
   // is still computed from `selected`, so the answer describes exactly what this step would have
   // done.
   if (!dryRun) {
-    await Promise.all(selected.map(async (asset) => fsUnlinkAdapter({ filePath: asset.path })));
+    await Promise.all(selected.map(async (asset) => unlink(asset.path)));
   }
 
   const freedBytes = selected.reduce((total, asset) => total + Number(asset.sizeBytes), 0);

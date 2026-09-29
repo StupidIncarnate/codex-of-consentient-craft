@@ -14,12 +14,14 @@
  * // Removes registry.lock, returns { success: true }
  */
 
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
+import { unlink } from '#gateway/node/fs__promises';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const registryLockReleaseBroker = async (): Promise<AdapterResult> => {
   const lockPath = locationsRegistryLockPathFindBroker();
 
-  return fsUnlinkAdapter({ filePath: lockPath });
+  await unlink(lockPath);
+
+  return { success: true };
 };

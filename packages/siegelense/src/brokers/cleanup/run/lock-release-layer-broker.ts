@@ -15,8 +15,7 @@
  * // Either past its own TTL: unlinks it, { lockReleased: true }.
  */
 
-import { readFileIfExists } from '#gateway/node/fs__promises';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
+import { readFileIfExists, unlink } from '#gateway/node/fs__promises';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -37,7 +36,7 @@ export const lockReleaseLayerBroker = async ({
     const { acquiredAtMs } = bootLockContract.parse(JSON.parse(bootLockContents));
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.bootLock.ttlMs) {
-      await fsUnlinkAdapter({ filePath: bootLockPath });
+      await unlink(bootLockPath);
       bootLockReleased = true;
     }
   }
@@ -52,7 +51,7 @@ export const lockReleaseLayerBroker = async ({
     const acquiredAtMs = epochMsContract.parse(Number(registryLockContents));
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.registryLock.ttlMs) {
-      await fsUnlinkAdapter({ filePath: registryLockPath });
+      await unlink(registryLockPath);
       registryLockReleased = true;
     }
   }

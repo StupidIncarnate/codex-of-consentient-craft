@@ -1,5 +1,6 @@
+import type { FsError } from '#gateway/node/fs';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 const HOME_DIR = '/home/user';
@@ -8,7 +9,7 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 export const registryLockReleaseBrokerProxy = (): {
   lockPath: ReturnType<typeof AbsoluteFilePathStub>;
   setupReleaseSucceeds: () => void;
-  setupReleaseFails: (params: { error: Error }) => void;
+  setupReleaseFails: (params: { error: FsError }) => void;
   getDeletedPaths: () => unknown[];
 } => {
   const lockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
@@ -27,21 +28,22 @@ export const registryLockReleaseBrokerProxy = (): {
     });
   };
 
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const deleteProxy = unlinkProxy();
 
   return {
     lockPath,
 
     setupReleaseSucceeds: (): void => {
       stagePathResolution();
-      unlinkProxy.succeeds({ filePath: lockPath });
+      deleteProxy.succeeds({ path: lockPath });
     },
 
-    setupReleaseFails: ({ error }: { error: Error }): void => {
+    setupReleaseFails: ({ error }: { error: FsError }): void => {
       stagePathResolution();
-      unlinkProxy.throws({ filePath: lockPath, error });
+      deleteProxy.rejects({ path: lockPath, error });
     },
 
-    getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
+    getDeletedPaths: (): unknown[] =>
+      deleteProxy.getCallsFor({ path: lockPath }).map((call) => call[0]),
   };
 };

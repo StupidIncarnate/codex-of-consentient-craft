@@ -4,7 +4,7 @@ import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-conten
 import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
@@ -42,7 +42,9 @@ export const snapshotRestoreLayerBrokerProxy = (): {
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
   const statProxy = fsStatAdapterProxy();
-  const rmProxy = fsRmAdapterProxy();
+  const removeProxy = rmProxy();
+  // Read-back addresses only the paths this test staged; an unstaged rm already throws.
+  const stagedRmPaths: AbsoluteFilePath[] = [];
   const cpProxy = copyDirContentsProxy();
   const readProxy = readFileProxy();
 
@@ -67,7 +69,8 @@ export const snapshotRestoreLayerBrokerProxy = (): {
 
     setupRmSucceeds: ({ filePaths }): void => {
       filePaths.forEach((dirPath) => {
-        rmProxy.succeeds({ dirPath });
+        stagedRmPaths.push(dirPath);
+        removeProxy.succeeds({ path: dirPath });
       });
     },
 
@@ -85,7 +88,12 @@ export const snapshotRestoreLayerBrokerProxy = (): {
       });
     },
 
-    getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
+    getRemovedPaths: (): unknown[] =>
+      removeProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => stagedRmPaths.some((path) => path === value),
+        })
+        .map((call) => call[0]),
 
     getCopiedFor: ({ sourcePath, entry }): unknown =>
       cpProxy.cpCallsFor({ source: `${String(sourcePath)}/${String(entry)}` }),

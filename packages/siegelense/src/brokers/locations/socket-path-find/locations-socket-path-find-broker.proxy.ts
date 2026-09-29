@@ -1,14 +1,15 @@
 import { join } from '#gateway/node/path';
+import { tmpdir } from '#gateway/node/os';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
-
 export const locationsSocketPathFindBrokerProxy = (): {
   setupSocketPath: (params: { tmpDir: string; socketPath: FilePath }) => void;
 } => {
-  const tmpdirProxy = osTmpdirAdapterProxy();
+  const tmpdirHandle = registerMock({ fn: tmpdir });
+  tmpdirHandle.calledWith([]).returns('/tmp');
+
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier the broker imports. Sticky real-passthrough default: instanceId is often chosen by
@@ -26,7 +27,7 @@ export const locationsSocketPathFindBrokerProxy = (): {
     // off socketPath — the same technique locationsProfilesPathFindBrokerProxy (shared) uses to
     // recover `specHash`.
     setupSocketPath: ({ tmpDir, socketPath }: { tmpDir: string; socketPath: FilePath }): void => {
-      tmpdirProxy.returns({ path: tmpDir });
+      tmpdirHandle.calledWith([]).returns(tmpDir);
       const prefixLength =
         tmpDir.length + 1 + locationsStatics.siegelense.socketsDirName.length + 1;
       const instanceIdWithExt = socketPath.slice(prefixLength);

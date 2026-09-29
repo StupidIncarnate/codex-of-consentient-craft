@@ -37,7 +37,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir, readlink, symlink } from '#gateway/node/fs__promises';
+import { ensureDir, readlink, symlink, unlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
 import {
@@ -49,7 +49,6 @@ import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contra
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { locationsRootPathFindBroker } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const ASSETS_DIR_ENTRY = locationsStatics.repoRoot.dungeonmasterAssets;
@@ -87,7 +86,7 @@ export const InstallLinkCreateResponder = async ({
 
   try {
     await readlink(legacyLinkPath);
-    await fsUnlinkAdapter({ filePath: legacyLinkPath });
+    await unlink(legacyLinkPath);
     legacySuffix = `; removed legacy ${LEGACY_LINK_ENTRY} symlink`;
   } catch (legacyReadError) {
     // ENOENT (never there) and EINVAL (readlink's own answer for "this path exists and is not a
@@ -139,7 +138,7 @@ export const InstallLinkCreateResponder = async ({
     };
   }
 
-  await fsUnlinkAdapter({ filePath: linkPath });
+  await unlink(linkPath);
   await symlink({ target: targetDir, path: linkPath, type: 'dir' });
 
   return {

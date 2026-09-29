@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { laneTeardownBroker } from './lane-teardown-broker';
@@ -109,7 +110,7 @@ describe('laneTeardownBroker', () => {
   });
 
   describe('the throwaway home versus the evidence directory', () => {
-    it('VALID: {teardown} => the home is removed and the evidence path is never passed to fsRmAdapter', async () => {
+    it('VALID: {teardown} => the home is removed and the evidence path is never passed to rm', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
       const { homePath } = LaneSessionStub();
@@ -311,7 +312,10 @@ describe('laneTeardownBroker', () => {
       const okFd = FileDescriptorStub({ value: 14 });
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
-      proxy.setupFdCloseFails({ fd: failingFd, error: new Error('EBADF: bad file descriptor') });
+      proxy.setupFdCloseFails({
+        fd: failingFd,
+        error: FsErrorStub({ code: 'EBADF', syscall: 'close' }),
+      });
       proxy.setupFdCloseSucceeds({ fd: okFd });
       const { homePath } = LaneSessionStub();
       proxy.setupHomeRemoved({ homePath });
@@ -333,7 +337,7 @@ describe('laneTeardownBroker', () => {
       const stderrCalls = [...stderrSpy.callsMatching([])];
 
       expect(stderrCalls.at(-1)?.[0]).toBe(
-        `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(failingFd)}: Error: EBADF: bad file descriptor\n`,
+        `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(failingFd)}: Error: EBADF: close ''\n`,
       );
       expect(proxy.getClosedFds()).toStrictEqual([failingFd, okFd]);
       expect(proxy.getRemovedPaths()).toStrictEqual([homePath]);

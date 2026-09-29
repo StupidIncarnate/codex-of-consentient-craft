@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Reads what a heartbeat's recorded pgids still are — alive or gone (`processIsAliveAdapter`)
+ * PURPOSE: Reads what a heartbeat's recorded pgids still are — alive or gone (`processIsAliveBroker`)
  * and the command line of whichever `/proc/<pid>` still carries that pgrp — for the `orphans` list of
  * a `status` answer (chunk-03-read-path-and-perception.md §3.D: "carries pgids and whether each is
  * still alive, because that is what a session needs to decide whether to reap"). `cmd` is `null`
@@ -21,7 +21,7 @@ import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
+import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
@@ -79,7 +79,7 @@ export const orphanReadBroker = async ({
 
   return Promise.all(
     pgids.map(async (pgid) => {
-      const alive = processIsAliveAdapter({ pgid });
+      const alive = processIsAliveBroker({ pgid });
       // .find() naturally returns the FIRST array entry that matches — readdir order — so this
       // is "the first matching /proc/<pid>/cmdline" without any extra bookkeeping.
       const match = statResults.find((result) => result !== null && result.pgrp === Number(pgid));

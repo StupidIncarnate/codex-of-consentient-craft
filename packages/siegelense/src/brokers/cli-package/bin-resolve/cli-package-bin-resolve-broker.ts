@@ -7,39 +7,39 @@
  * finds the SAME sibling package this process is itself installed alongside — the technique
  * `CliServeResponder`/`CliSiegelenseResponder` already use in reverse to load
  * `@dungeonmaster/server`/`@dungeonmaster/siegelense` — so a workspace symlink and a flat consumer
- * `node_modules` both resolve correctly with no PATH lookup at all. `packageRootFindLayerAdapter`
+ * `node_modules` both resolve correctly with no PATH lookup at all. `packageRootFindLayerBroker`
  * walks up from wherever that specifier lands (a different depth under `--conditions=source` than
  * under plain `require` — see its own PURPOSE) to the package root, and the bin script's relative
  * location is read from that root's own `package.json` `bin` field rather than duplicated here as
  * a literal.
  *
  * USAGE:
- * const binPath = cliPackageBinResolveAdapter();
+ * const binPath = cliPackageBinResolveBroker();
  * // Returns the AbsoluteFilePath to @dungeonmaster/cli's compiled bin script
  */
 
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { readFileSync } from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
 import { absoluteFilePathContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { packageRootFindLayerAdapter } from './package-root-find-layer-adapter';
+import { packageRootFindLayerBroker } from './package-root-find-layer-broker';
 
 const CLI_PACKAGE_NAME = '@dungeonmaster/cli';
 const CLI_BIN_NAME = 'dungeonmaster';
 
-export const cliPackageBinResolveAdapter = (): AbsoluteFilePath => {
+export const cliPackageBinResolveBroker = (): AbsoluteFilePath => {
   const entryPath = require.resolve(CLI_PACKAGE_NAME);
-  const packageRoot = packageRootFindLayerAdapter({ startDir: dirname(entryPath) });
+  const packageRoot = packageRootFindLayerBroker({ startDir: dirname(entryPath) });
 
   if (packageRoot === null) {
     throw new Error(
-      `cliPackageBinResolveAdapter: no ancestor package.json found walking up from ` +
+      `cliPackageBinResolveBroker: no ancestor package.json found walking up from ` +
         `${dirname(entryPath)} — is ${CLI_PACKAGE_NAME} installed?`,
     );
   }
 
-  const rawManifest: unknown = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
+  const rawManifest: unknown = JSON.parse(readFileSync(join(packageRoot, 'package.json')));
   const manifest = packageJsonContract.parse(rawManifest);
   const { bin } = manifest;
   const binEntries = typeof bin === 'object' ? Object.entries(bin) : [];
@@ -47,7 +47,7 @@ export const cliPackageBinResolveAdapter = (): AbsoluteFilePath => {
 
   if (binRelative === undefined) {
     throw new Error(
-      `cliPackageBinResolveAdapter: ${CLI_PACKAGE_NAME}'s package.json has no "bin.${CLI_BIN_NAME}" entry`,
+      `cliPackageBinResolveBroker: ${CLI_PACKAGE_NAME}'s package.json has no "bin.${CLI_BIN_NAME}" entry`,
     );
   }
 

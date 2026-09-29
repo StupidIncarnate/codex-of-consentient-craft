@@ -1,25 +1,16 @@
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
-import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
-
-// Every proxy above mocks its builtin off the BARE specifier — `'process'`, `'fs'` — which is what
-// lets two proxies that touch one module compose instead of overwriting each other. The repo's
-// proxy-mock transformer keys its dedup on the specifier STRING, so a `node:`-prefixed import of
-// the same module becomes a second, competing partial `jest.mock` factory and one of the two
-// silently loses to the real syscall. `no-restricted-imports` holds the rule for this package.
-// The `kill` and `closeSync` imports below are read-only: they cast the already-mocked functions
-// to `jest.MockedFunction` to read `.mock.invocationCallOrder`, and never register a mock.
-import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
-import { closeSync } from 'fs';
-import { kill } from 'process';
+import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
+import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
+import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
@@ -49,16 +40,30 @@ export const laneTeardownBrokerProxy = (): {
   getKillCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getRemovedPaths: () => unknown[];
   setupFdCloseSucceeds: (params: { fd: FileDescriptor }) => void;
-  setupFdCloseFails: (params: { fd: FileDescriptor; error: Error }) => void;
+  setupFdCloseFails: (params: { fd: FileDescriptor; error: NodeJS.ErrnoException }) => void;
   getClosedFds: () => unknown[];
   assertFdCloseHappensAfterKillSignals: () => boolean;
 } => {
   const evidenceProxy = locationsRepoLinkPathFindBrokerProxy();
-  const rmProxy = fsRmAdapterProxy();
-  const aliveProxy = processIsAliveAdapterProxy();
-  const killProxy = processKillGroupAdapterProxy();
-  const closeFdProxy = fsCloseFdAdapterProxy();
+  const removeProxy = rmProxy();
+  const aliveProxy = processIsAliveBrokerProxy();
+  const killProxy = processKillGroupBrokerProxy();
+  const closeFdProxy = closeSyncProxy();
   const dateNowHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
+  // Read-back addresses only the paths and fds this test staged, so a read never widens to calls
+  // the test did not describe (an unstaged call already throws).
+  const stagedHomePaths: AbsoluteFilePath[] = [];
+  const stagedFds: FileDescriptor[] = [];
+  // How many staged fds had been closed at the moment each kill signal landed — every entry must
+  // be 0 for the teardown's kill-then-close order to hold.
+  const closedCountAtEachSignal: ReturnType<typeof ReadingCountStub>[] = [];
+  const readClosedFds = (): unknown[] =>
+    closeFdProxy
+      .calls({ fd: (value: unknown): boolean => stagedFds.some((fd) => fd === value) })
+      .map((call) => call[0]);
+  const recordSignal = (): void => {
+    closedCountAtEachSignal.push(ReadingCountStub({ value: readClosedFds().length }));
+  };
 
   return {
     getEvidencePath: (): AbsoluteFilePath => EVIDENCE_PATH,
@@ -66,8 +71,8 @@ export const laneTeardownBrokerProxy = (): {
 
     setupLiveGroup: ({ pgid }: { pgid: ProcessGroupId }): void => {
       aliveProxy.setupAlive({ pgid });
-      killProxy.setupSent({ pgid, signal: 'SIGTERM' });
-      killProxy.setupSent({ pgid, signal: 'SIGKILL' });
+      killProxy.setupSent({ pgid, signal: 'SIGTERM', onSent: recordSignal });
+      killProxy.setupSent({ pgid, signal: 'SIGKILL', onSent: recordSignal });
     },
 
     setupAlreadyGoneGroup: ({ pgid }: { pgid: ProcessGroupId }): void => {
@@ -75,23 +80,14 @@ export const laneTeardownBrokerProxy = (): {
     },
 
     // `setupLiveGroup`/`setupAlreadyGoneGroup` stage ONE constant answer for the whole test, so
-    // neither can tell "checked once" from "checked twice". This stages the liveness PROBE
-    // (`kill(-pgid, 0)`) to answer `true` on its first call and ESRCH on its second — the SIGTERM
-    // pass sees it alive, the grace window is where it "exits", and a second liveness check right
-    // before SIGKILL must see it gone. `onceFor` records are consumed in registration order (first
-    // staged, first consumed — `mock-staged-best-match-transformer.ts`'s header), so the first real
-    // probe call gets `true` and the second gets the ESRCH throw. SIGKILL is deliberately NOT staged
-    // for this pgid: a broker that still sends it hits an unstaged `kill(-pgid, 'SIGKILL')` call,
-    // which throws loudly instead of silently succeeding.
+    // neither can tell "checked once" from "checked twice". This stages the liveness PROBE to answer
+    // alive on its first call and ESRCH on its second — the SIGTERM pass sees it alive, the grace
+    // window is where it "exits", and the second check right before SIGKILL must see it gone.
+    // SIGKILL is deliberately NOT staged for this pgid: a broker that still sends it hits an
+    // unstaged `kill(-pgid, 'SIGKILL')` call, which throws loudly instead of silently succeeding.
     setupGroupThatExitsDuringGrace: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      const killHandle: MockHandle = registerMock({ fn: kill });
-      killHandle.onceFor([-Number(pgid), 0]).implement(() => true);
-      killHandle.onceFor([-Number(pgid), 0]).implement(() => {
-        const error = new Error('kill ESRCH') as NodeJS.ErrnoException;
-        error.code = 'ESRCH';
-        throw error;
-      });
-      killProxy.setupSent({ pgid, signal: 'SIGTERM' });
+      aliveProxy.setupAliveThenGone({ pgid });
+      killProxy.setupSent({ pgid, signal: 'SIGTERM', onSent: recordSignal });
     },
 
     // Stages Date.now() for the two reads the broker takes bracketing its own SIGTERM loop, the
@@ -103,7 +99,8 @@ export const laneTeardownBrokerProxy = (): {
     },
 
     setupHomeRemoved: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
-      rmProxy.succeeds({ dirPath: homePath });
+      stagedHomePaths.push(homePath);
+      removeProxy.succeeds({ path: homePath });
     },
 
     setupEvidenceResolved: (): void => {
@@ -116,46 +113,37 @@ export const laneTeardownBrokerProxy = (): {
       });
     },
 
-    // `processIsAliveAdapterProxy` and `processKillGroupAdapterProxy` both mock `process.kill`, so
-    // this pgid's liveness PROBE (signal `0`, from `processIsAliveAdapter`) lands in the same call
-    // list `killProxy.getCallsFor` reads — filtering to strings keeps this a read of the SIGNALS
-    // actually sent, not the probe that decided whether to send them.
     getKillCallsFor: ({ pgid }: { pgid: ProcessGroupId }): unknown[] =>
-      killProxy.getCallsFor({ pgid }).filter((signal) => typeof signal === 'string'),
+      killProxy.getCallsFor({ pgid }),
 
-    getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
+    getRemovedPaths: (): unknown[] =>
+      removeProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => stagedHomePaths.some((path) => path === value),
+        })
+        .map((call) => call[0]),
 
     setupFdCloseSucceeds: ({ fd }: { fd: FileDescriptor }): void => {
+      stagedFds.push(fd);
       closeFdProxy.succeeds({ fd });
     },
 
-    setupFdCloseFails: ({ fd, error }: { fd: FileDescriptor; error: Error }): void => {
+    setupFdCloseFails: ({
+      fd,
+      error,
+    }: {
+      fd: FileDescriptor;
+      error: NodeJS.ErrnoException;
+    }): void => {
+      stagedFds.push(fd);
       closeFdProxy.throws({ fd, error });
     },
 
-    getClosedFds: (): unknown[] => closeFdProxy.getClosedFds(),
+    getClosedFds: (): unknown[] => readClosedFds(),
 
-    // `kill` and `closeSync` are two different mocked functions, so ordering them needs the raw
-    // `invocationCallOrder` Jest stamps on each mock call — MockHandle's own `callsMatching` only
-    // orders calls WITHIN one function. Filtering to `typeof signal === 'string'` excludes
-    // `processIsAliveAdapter`'s liveness probe (signal `0`), matching `getKillCallsFor` above, so
-    // this reads the SIGTERM/SIGKILL signals only, not the probe that precedes them.
-    assertFdCloseHappensAfterKillSignals: (): boolean => {
-      const killFn = kill as jest.MockedFunction<typeof kill>;
-      const closeFn = closeSync as jest.MockedFunction<typeof closeSync>;
-
-      const signalOrders = killFn.mock.calls
-        .map((call, index) =>
-          typeof call[1] === 'string' ? killFn.mock.invocationCallOrder[index] : undefined,
-        )
-        .filter((order): order is NonNullable<typeof order> => order !== undefined);
-      const closeOrders = closeFn.mock.invocationCallOrder;
-
-      if (signalOrders.length === 0 || closeOrders.length === 0) {
-        return false;
-      }
-
-      return Math.min(...closeOrders) > Math.max(...signalOrders);
-    },
+    assertFdCloseHappensAfterKillSignals: (): boolean =>
+      closedCountAtEachSignal.length > 0 &&
+      readClosedFds().length > 0 &&
+      closedCountAtEachSignal.every((closedCount) => Number(closedCount) === 0),
   };
 };

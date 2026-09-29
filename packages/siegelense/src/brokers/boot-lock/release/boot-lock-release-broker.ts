@@ -12,8 +12,7 @@
  * // No lock, or another instance's lock: leaves the file alone, returns { success: true }.
  */
 
-import { readFileIfExists } from '#gateway/node/fs__promises';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
+import { readFileIfExists, unlink } from '#gateway/node/fs__promises';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -38,5 +37,7 @@ export const bootLockReleaseBroker = async ({
     return { success: true };
   }
 
-  return fsUnlinkAdapter({ filePath: bootLockPath });
+  await unlink(bootLockPath);
+
+  return { success: true };
 };

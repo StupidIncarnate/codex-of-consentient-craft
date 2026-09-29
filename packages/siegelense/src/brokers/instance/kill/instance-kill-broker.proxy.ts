@@ -1,6 +1,8 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { createConnection } from 'net';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -12,10 +14,8 @@ import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/in
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
 import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
-import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
-import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
+import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
+import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
@@ -102,10 +102,14 @@ export const instanceKillBrokerProxy = (): {
   const releaseProxy = instanceReleaseBrokerProxy();
   const shutdownReasonProxy = shutdownReasonWriteBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();
-  const rmProxy = fsRmAdapterProxy();
-  const tmpdirProxy = osTmpdirAdapterProxy();
-  const killGroupProxy = processKillGroupAdapterProxy();
-  const isAliveProxy = processIsAliveAdapterProxy();
+  const removeProxy = rmProxy();
+  const killGroupProxy = processKillGroupBrokerProxy();
+  const isAliveProxy = processIsAliveBrokerProxy();
+  // #gateway/node/os is a raw passthrough of the Node 'os' module (no per-function wrapper, so no
+  // gateway proxy to compose); `tmpdir` takes no argument, so the empty address is the honest one.
+  const tmpdirHandle: MockHandle = registerMock({ fn: tmpdir });
+  // Read-back addresses only the homes this test staged.
+  const stagedHomePaths: unknown[] = [];
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
   // the broker imports. The one join this broker makes (the throwaway home) needs no substitution
@@ -139,7 +143,7 @@ export const instanceKillBrokerProxy = (): {
       callback();
       return 0;
     }) as never);
-  tmpdirProxy.returns({ path: TMP_DIR_VALUE });
+  tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
 
   existsHandle.calledWith([REGISTRY_PATH_FILE]).returns(true);
@@ -218,7 +222,8 @@ export const instanceKillBrokerProxy = (): {
         killGroupProxy.setupSent({ pgid, signal: 'SIGTERM' });
         killGroupProxy.setupSent({ pgid, signal: 'SIGKILL' });
       });
-      rmProxy.succeeds({ dirPath: homePath });
+      stagedHomePaths.push(homePath);
+      removeProxy.succeeds({ path: homePath });
     },
 
     // A mix: some of the registry row's recorded pgids answer gone at the very first probe (a prior
@@ -247,7 +252,8 @@ export const instanceKillBrokerProxy = (): {
         killGroupProxy.setupSent({ pgid, signal: 'SIGTERM' });
         killGroupProxy.setupSent({ pgid, signal: 'SIGKILL' });
       });
-      rmProxy.succeeds({ dirPath: homePath });
+      stagedHomePaths.push(homePath);
+      removeProxy.succeeds({ path: homePath });
     },
 
     // The registry row names no pgids at all (a fresh reservation, or one already cleared by a
@@ -263,7 +269,8 @@ export const instanceKillBrokerProxy = (): {
         socketPath,
         error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
       });
-      rmProxy.succeeds({ dirPath: homePath });
+      stagedHomePaths.push(homePath);
+      removeProxy.succeeds({ path: homePath });
     },
 
     // Delegates to shutdownReasonWriteBrokerProxy's own `writeFile` mock — the SAME shared mock
@@ -287,7 +294,12 @@ export const instanceKillBrokerProxy = (): {
       return typeof written === 'string' ? JSON.parse(written) : null;
     },
 
-    getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
+    getRemovedPaths: (): unknown[] =>
+      removeProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => stagedHomePaths.some((path) => path === value),
+        })
+        .map((call) => call[0]),
 
     getKillGroupCallsFor: ({ pgid }: { pgid: ProcessGroupId }): unknown[] =>
       killGroupProxy.getCallsFor({ pgid }),

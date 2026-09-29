@@ -2,10 +2,10 @@
  * PURPOSE: Tears down one booted lane. `kill` removes the throwaway STATE and never the evidence —
  * `session.homePath` is a `/tmp` scratch dir with nothing a fixer needs, so it goes; `session.evidencePath`
  * holds the logs, captures and transcript that were the whole point of the walk, so this broker never
- * passes it to `fsRmAdapter` and never even resolves it for removal — only for the repo-local `Read`
+ * passes it to `rm` and never even resolves it for removal — only for the repo-local `Read`
  * path a fixer opens once the instance is gone (siegelense-tooling.md lines 1107-1109, 1680;
  * packages/siegelense/CLAUDE.md). The kill escalation is SIGTERM, `driverStatics.teardown.graceMs`,
- * then SIGKILL, and a process group `processIsAliveAdapter` already reports dead gets NEITHER signal —
+ * then SIGKILL, and a process group `processIsAliveBroker` already reports dead gets NEITHER signal —
  * liveness is checked once up front (gating SIGTERM) and again per pgid right before SIGKILL, so a
  * clean teardown never asks `kill` to hit a pid that is already gone, and a group that exits DURING
  * the grace wait never receives a real SIGKILL either — that pgid can already be recycled to an
@@ -34,10 +34,10 @@
  */
 
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
-import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
-import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { closeSync } from '#gateway/node/fs';
+import { rm } from '#gateway/node/fs__promises';
+import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
+import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { killResultContract } from '../../../contracts/kill-result/kill-result-contract';
 import type { KillResult } from '../../../contracts/kill-result/kill-result-contract';
@@ -60,12 +60,12 @@ export const laneTeardownBroker = async ({
   }
 
   // This liveness check decides who gets the SIGTERM pass — a group already reported dead never
-  // attempts a signal `processKillGroupAdapter` would otherwise have to swallow. It does NOT decide
+  // attempts a signal `processKillGroupBroker` would otherwise have to swallow. It does NOT decide
   // who gets SIGKILL: a group can exit anywhere during the grace wait below, and a pgid can be
   // recycled by the OS to an unrelated process the instant its owner exits, so SIGKILL re-checks
   // liveness per pgid immediately before sending (siegelense-tooling.md line 1097: "SIGKILL the
   // survivors").
-  const liveTargets = session.pgids.filter((pgid) => processIsAliveAdapter({ pgid }));
+  const liveTargets = session.pgids.filter((pgid) => processIsAliveBroker({ pgid }));
 
   // Nothing to escalate against — skip the SIGTERM send and the grace wait entirely rather than
   // pausing a headless teardown for no live group. When there IS at least one target,
@@ -76,7 +76,7 @@ export const laneTeardownBroker = async ({
     const sigtermSentAtMs = Date.now();
 
     liveTargets.forEach((pgid) => {
-      processKillGroupAdapter({ pgid, signal: 'SIGTERM' });
+      processKillGroupBroker({ pgid, signal: 'SIGTERM' });
     });
 
     const elapsedSinceSigtermMs = Date.now() - sigtermSentAtMs;
@@ -91,8 +91,8 @@ export const laneTeardownBroker = async ({
   // own reap loop. A group that exited during the grace wait above must not receive a SIGKILL: its
   // pgid can already belong to an unrelated process by the time this runs.
   liveTargets.forEach((pgid) => {
-    if (processIsAliveAdapter({ pgid })) {
-      processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+    if (processIsAliveBroker({ pgid })) {
+      processKillGroupBroker({ pgid, signal: 'SIGKILL' });
     }
   });
 
@@ -103,7 +103,7 @@ export const laneTeardownBroker = async ({
   // than thrown, so one bad descriptor neither skips the remaining fds nor the home removal below.
   session.logFds.forEach((fd) => {
     try {
-      fsCloseFdAdapter({ fd });
+      closeSync(fd);
     } catch (error) {
       process.stderr.write(
         `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(fd)}: ${String(error)}\n`,
@@ -112,7 +112,7 @@ export const laneTeardownBroker = async ({
   });
 
   const [, evidenceKept] = await Promise.all([
-    fsRmAdapter({ dirPath: session.homePath }),
+    rm(session.homePath, { recursive: true, force: true }),
     locationsRepoLinkPathFindBroker({ homePath: session.evidencePath }),
   ]);
 

@@ -4,14 +4,14 @@
  * `SiegelenseFlow`'s `driver` route and the spawn `instanceStartBroker` launches both converge on
  * `SiegelenseDriverResponder`, so nothing at the entry point tells a legitimate boot apart from a
  * hand-typed `driver --instance <id>` racing an already-running one — only the registry row can).
- * `entry.pid` is checked with `processIsAliveAdapter` rather than a dedicated pid probe: the driver
+ * `entry.pid` is checked with `processIsAliveBroker` rather than a dedicated pid probe: the driver
  * is spawned via `childProcessSpawnDetachedAdapter` with `detached: true` (see
  * `instanceStartBroker`), which makes it its own process-GROUP LEADER, so its pid and its pgid are
  * the same number and the existing `process.kill(-pgid, 0)` probe applies unchanged. A pid equal to
  * THIS process's own (`process.pid`) is never treated as live — a dead driver's pid can be recycled
  * by the OS to the very process now trying to boot that same instance, and refusing a spawn because
  * it collided with its own reused pid would be a false hijack report, not a caught one. The socket
- * ping is the fallback, not the primary check: `processIsAliveAdapter` costs one syscall and no
+ * ping is the fallback, not the primary check: `processIsAliveBroker` costs one syscall and no
  * timeout, while `netUnixRequestAdapter` needs a live socket file and a round trip, so it only runs
  * once the pid check alone could not already prove the driver live.
  *
@@ -26,7 +26,7 @@
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
-import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
+import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -41,7 +41,7 @@ export const driverLiveCheckBroker = async ({
     return false;
   }
 
-  if (processIsAliveAdapter({ pgid: processGroupIdContract.parse(Number(entry.pid)) })) {
+  if (processIsAliveBroker({ pgid: processGroupIdContract.parse(Number(entry.pid)) })) {
     return true;
   }
 

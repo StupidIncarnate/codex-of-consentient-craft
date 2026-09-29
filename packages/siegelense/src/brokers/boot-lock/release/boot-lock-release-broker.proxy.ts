@@ -1,7 +1,7 @@
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -36,7 +36,7 @@ export const bootLockReleaseBrokerProxy = (): {
   });
 
   const readProxy = readFileIfExistsProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const deleteProxy = unlinkProxy();
 
   return {
     bootLockPath,
@@ -63,7 +63,7 @@ export const bootLockReleaseBrokerProxy = (): {
       });
       // Staged unconditionally: the "held by another instance" scenario never reaches this call,
       // and the "held by this instance" scenario needs it staged to succeed.
-      unlinkProxy.succeeds({ filePath: bootLockPath });
+      deleteProxy.succeeds({ path: bootLockPath });
     },
 
     // This instance is itself mid-boot — spinning up an API server, a Vite server, Chromium — so
@@ -79,6 +79,7 @@ export const bootLockReleaseBrokerProxy = (): {
       });
     },
 
-    getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
+    getDeletedPaths: (): unknown[] =>
+      deleteProxy.getCallsFor({ path: bootLockPath }).map((call) => call[0]),
   };
 };

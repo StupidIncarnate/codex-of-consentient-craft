@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
+import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
@@ -39,8 +40,7 @@ import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-bro
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
-import { cliPackageBinResolveAdapterProxy } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.proxy';
-import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
+import { cliPackageBinResolveBrokerProxy } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
@@ -83,8 +83,8 @@ const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
 // scope anywhere else in this file. `locationsStatics` itself is a plain object, never mocked.
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/${locationsStatics.repoRoot.dungeonmasterAssets}/${locationsStatics.repoRoot.siegelenseLink}`;
 const TMP_DIR_VALUE = '/tmp';
-// cliPackageBinResolveAdapter resolves @dungeonmaster/cli's package root through a REAL
-// require.resolve() call (never mocked — see cliPackageBinResolveAdapterProxy's own comment).
+// cliPackageBinResolveBroker resolves @dungeonmaster/cli's package root through a REAL
+// require.resolve() call (never mocked — see cliPackageBinResolveBrokerProxy's own comment).
 const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
 // The minted instance's evidence directory when reserved with no owning quest or guild
@@ -240,9 +240,11 @@ export const instanceStartBrokerProxy = (): {
 
   const openFdProxy = openForAppendSyncProxy();
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
-  const cliBinProxy = cliPackageBinResolveAdapterProxy();
+  const cliBinProxy = cliPackageBinResolveBrokerProxy();
   cliBinProxy.manifestDeclaresBin({ binRelative: CLI_BIN_RELATIVE_VALUE });
-  const tmpdirProxy = osTmpdirAdapterProxy();
+  // #gateway/node/os is a raw passthrough of the Node 'os' module (no per-function wrapper, so no
+  // gateway proxy to compose); `tmpdir` takes no argument, so the empty address is the honest one.
+  const tmpdirHandle: MockHandle = registerMock({ fn: tmpdir });
   const pollProxy = instanceStartBootPollLayerBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
   cwdProxy(); // gateway proxy import — inert, satisfies enforce-proxy-child-creation
@@ -277,7 +279,7 @@ export const instanceStartBrokerProxy = (): {
   const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
   dateNowHandle.calledWith([]).returns(EpochMsStub().valueOf());
 
-  tmpdirProxy.returns({ path: TMP_DIR_VALUE });
+  tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
   cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
   // Record-and-swallow: no test cares what stderr does with the write, only what was written —
@@ -377,7 +379,7 @@ export const instanceStartBrokerProxy = (): {
     // '#gateway/node/path') is globally mocked as a one-shot QUEUE by other composed proxies, and
     // a call made before the queue is drained steals an entry staged for an unrelated caller
     // instead of reaching the sticky real-passthrough default. Must mirror the real
-    // cliPackageBinResolveAdapter's own require.resolve('@dungeonmaster/cli') +
+    // cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +
     // join(dirname(...), ...) exactly.
     // dirname is mocked by shared proxies composed above; the one path this scenario walks is
     // staged as an exact-address real passthrough, which serves this call and the adapter's.

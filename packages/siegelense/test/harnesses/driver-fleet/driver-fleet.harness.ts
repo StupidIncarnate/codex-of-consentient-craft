@@ -40,8 +40,8 @@ import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locati
 import { registryReadBroker } from '../../../src/brokers/registry/read/registry-read-broker';
 import { shutdownReasonReadBroker } from '../../../src/brokers/shutdown-reason/read/shutdown-reason-read-broker';
 import { netUnixRequestAdapter } from '../../../src/adapters/net/unix-request/net-unix-request-adapter';
-import { processIsAliveAdapter } from '../../../src/adapters/process/is-alive/process-is-alive-adapter';
-import { processKillGroupAdapter } from '../../../src/adapters/process/kill-group/process-kill-group-adapter';
+import { processIsAliveBroker } from '../../../src/brokers/process/is-alive/process-is-alive-broker';
+import { processKillGroupBroker } from '../../../src/brokers/process/kill-group/process-kill-group-broker';
 import { DriverRequestStub } from '../../../src/contracts/driver-request/driver-request.stub';
 import type { InstanceId } from '../../../src/contracts/instance-id/instance-id-contract';
 import type { InstanceManifest } from '../../../src/contracts/instance-manifest/instance-manifest-contract';
@@ -234,7 +234,7 @@ export const driverFleetHarness = (): {
   };
 
   const isGroupAlive = ({ pgid }: { pgid: ProcessGroupId }): boolean =>
-    processIsAliveAdapter({ pgid });
+    processIsAliveBroker({ pgid });
 
   const isPortFree = async ({ port }: { port: NetworkPort }): Promise<boolean> =>
     new Promise((resolve) => {
@@ -307,7 +307,7 @@ export const driverFleetHarness = (): {
     pgids: readonly ProcessGroupId[];
     deadlineMs: number;
   }): Promise<boolean> => {
-    if (pgids.every((pgid) => !processIsAliveAdapter({ pgid }))) {
+    if (pgids.every((pgid) => !processIsAliveBroker({ pgid }))) {
       return true;
     }
 
@@ -324,7 +324,7 @@ export const driverFleetHarness = (): {
 
   // The driver's own OS process is spawned via childProcessSpawnDetachedAdapter — the same
   // `detached: true` spawn every lane process uses — so its pgid numerically equals its own pid
-  // (that adapter's own header), and `processIsAliveAdapter`'s `kill(-pgid, 0)` probe reads it
+  // (that adapter's own header), and `processIsAliveBroker`'s `kill(-pgid, 0)` probe reads it
   // exactly like any other lane process group.
   const waitForDriverProcessExit = async ({
     pid,
@@ -333,7 +333,7 @@ export const driverFleetHarness = (): {
     pid: ProcessId;
     deadlineMs: number;
   }): Promise<boolean> => {
-    if (!processIsAliveAdapter({ pgid: ProcessGroupIdStub({ value: Number(pid) }) })) {
+    if (!processIsAliveBroker({ pgid: ProcessGroupIdStub({ value: Number(pid) }) })) {
       return true;
     }
 
@@ -393,8 +393,8 @@ export const driverFleetHarness = (): {
     });
 
     entry?.pgids.forEach((pgid) => {
-      if (processIsAliveAdapter({ pgid })) {
-        processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+      if (processIsAliveBroker({ pgid })) {
+        processKillGroupBroker({ pgid, signal: 'SIGKILL' });
       }
     });
 

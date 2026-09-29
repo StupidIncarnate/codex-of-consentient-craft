@@ -1,3 +1,5 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+
 import { registryLockReleaseBroker } from './registry-lock-release-broker';
 import { registryLockReleaseBrokerProxy } from './registry-lock-release-broker.proxy';
 
@@ -25,7 +27,7 @@ describe('registryLockReleaseBroker', () => {
   describe('unlink failure', () => {
     it('ERROR: {unlink rejects} => propagates the error', async () => {
       const proxy = registryLockReleaseBrokerProxy();
-      const error = new Error('EACCES: permission denied');
+      const error = FsErrorStub({ code: 'EACCES', syscall: 'unlink' });
       proxy.setupReleaseFails({ error });
 
       await expect(registryLockReleaseBroker()).rejects.toThrow(/EACCES/u);

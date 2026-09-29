@@ -1,13 +1,13 @@
 import { join } from '#gateway/node/path';
+import { tmpdir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-
-import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 
 export const locationsInstanceHomePathFindBrokerProxy = (): {
   setupHomePath: (params: { tmpDir: string; homePath: FilePath }) => void;
 } => {
-  const tmpdirProxy = osTmpdirAdapterProxy();
+  const tmpdirHandle = registerMock({ fn: tmpdir });
+  tmpdirHandle.calledWith([]).returns('/tmp');
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier the broker imports.
@@ -19,7 +19,7 @@ export const locationsInstanceHomePathFindBrokerProxy = (): {
     // by slicing tmpDir's own known length off homePath — the same technique
     // locationsQuestFolderPathFindBrokerProxy (shared) uses to recover `questId`.
     setupHomePath: ({ tmpDir, homePath }: { tmpDir: string; homePath: FilePath }): void => {
-      tmpdirProxy.returns({ path: tmpDir });
+      tmpdirHandle.calledWith([]).returns(tmpDir);
       const suffix = homePath.slice(tmpDir.length + 1);
       joinHandle.calledWith([tmpDir, suffix]).returns(homePath);
     },

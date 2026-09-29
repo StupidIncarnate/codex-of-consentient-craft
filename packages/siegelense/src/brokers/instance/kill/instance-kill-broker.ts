@@ -11,7 +11,7 @@
  * `instanceReleaseBroker` clears `pgids` to `[]` the moment ANY kill (this path or the driver's own)
  * finishes, so a row already at rest here answers with nothing left to reap by construction, and
  * this broker short-circuits on `entry.state !== 'alive'` before it ever asks the OS about a pgid.
- * A candidate that IS still eligible gets ONE more check before either signal: `processIsAliveAdapter`
+ * A candidate that IS still eligible gets ONE more check before either signal: `processIsAliveBroker`
  * — the same gate `laneTeardownBroker` uses — so a pgid the OS already recycled to an unrelated
  * process never receives a signal this broker did not verify was still this lane's own group.
  * Either path removes ONLY the throwaway home and never the evidence directory (logs, captures and
@@ -41,15 +41,15 @@
  * // rather than the generic "reaped N orphaned process groups" wording
  */
 
+import { rm } from '#gateway/node/fs__promises';
+import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
-import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
-import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
+import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
+import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { killResultContract } from '../../../contracts/kill-result/kill-result-contract';
@@ -132,16 +132,16 @@ export const instanceKillBroker = async ({
       // The registry row's OWN pgids, never `heartbeat.json` — see this broker's PURPOSE for why.
       // A candidate must also still be ALIVE to be signalled at all: the row can be minutes old by
       // the time a socket ever refuses, and a dead pgid needs neither signal.
-      const candidatePgids = (entry?.pgids ?? []).filter((pgid) => processIsAliveAdapter({ pgid }));
+      const candidatePgids = (entry?.pgids ?? []).filter((pgid) => processIsAliveBroker({ pgid }));
 
       await Promise.all(
         candidatePgids.map(async (pgid) => {
-          processKillGroupAdapter({ pgid, signal: 'SIGTERM' });
+          processKillGroupBroker({ pgid, signal: 'SIGTERM' });
           await new Promise<void>((resolve) => {
             setTimeout(resolve, driverStatics.teardown.graceMs);
           });
-          if (processIsAliveAdapter({ pgid })) {
-            processKillGroupAdapter({ pgid, signal: 'SIGKILL' });
+          if (processIsAliveBroker({ pgid })) {
+            processKillGroupBroker({ pgid, signal: 'SIGKILL' });
           }
         }),
       );
@@ -165,10 +165,8 @@ export const instanceKillBroker = async ({
         });
       }
 
-      const homePath = absoluteFilePathContract.parse(
-        join(osTmpdirAdapter(), `dm-siege-${instanceId}`),
-      );
-      await fsRmAdapter({ dirPath: homePath });
+      const homePath = absoluteFilePathContract.parse(join(tmpdir(), `dm-siege-${instanceId}`));
+      await rm(homePath, { recursive: true, force: true });
       await instanceReleaseBroker({ instanceId });
 
       return killResultContract.parse({

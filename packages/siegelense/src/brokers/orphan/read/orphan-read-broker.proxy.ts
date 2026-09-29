@@ -6,7 +6,7 @@ import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
+import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
@@ -34,7 +34,7 @@ export const orphanReadBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
   const readdirProxy = readdirIfExistsProxy();
   const readFileProxy = readFileIfExistsProxy();
-  const aliveProxy = processIsAliveAdapterProxy();
+  const aliveProxy = processIsAliveBrokerProxy();
 
   return {
     setupProcListing: ({ pids }: { pids: readonly string[] }): void => {

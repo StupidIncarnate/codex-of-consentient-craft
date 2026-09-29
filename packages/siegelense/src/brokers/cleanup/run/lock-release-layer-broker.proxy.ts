@@ -2,7 +2,7 @@ import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contra
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
@@ -40,7 +40,7 @@ export const lockReleaseLayerBrokerProxy = (): {
   locationsRegistryLockPathFindBrokerProxy();
 
   const readProxy = readFileIfExistsProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const deleteProxy = unlinkProxy();
 
   return {
     bootLockPath,
@@ -69,7 +69,7 @@ export const lockReleaseLayerBrokerProxy = (): {
         path: bootLockPath,
         contents: JSON.stringify(lock),
       });
-      unlinkProxy.succeeds({ filePath: bootLockPath });
+      deleteProxy.succeeds({ path: bootLockPath });
       readProxy.missing({ path: registryLockPath });
     },
 
@@ -99,9 +99,14 @@ export const lockReleaseLayerBrokerProxy = (): {
         path: registryLockPath,
         contents: String(acquiredAtMs),
       });
-      unlinkProxy.succeeds({ filePath: registryLockPath });
+      deleteProxy.succeeds({ path: registryLockPath });
     },
 
-    getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
+    getDeletedPaths: (): unknown[] =>
+      deleteProxy
+        .getCallsFor({
+          path: (value: unknown): boolean => value === bootLockPath || value === registryLockPath,
+        })
+        .map((call) => call[0]),
   };
 };

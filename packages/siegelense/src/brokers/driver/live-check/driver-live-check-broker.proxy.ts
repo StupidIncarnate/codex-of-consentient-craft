@@ -1,7 +1,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
-import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
+import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
@@ -13,7 +13,7 @@ export const driverLiveCheckBrokerProxy = (): {
   setupSocketAnswers: (params: { socketPath: AbsoluteFilePath }) => void;
   setupSocketUnreachable: (params: { socketPath: AbsoluteFilePath }) => void;
 } => {
-  const isAliveProxy = processIsAliveAdapterProxy();
+  const isAliveProxy = processIsAliveBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();
 
   return {

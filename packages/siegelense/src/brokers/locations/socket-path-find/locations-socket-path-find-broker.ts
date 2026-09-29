@@ -11,7 +11,7 @@
  * // Returns AbsoluteFilePath '<os.tmpdir()>/dm-siege-sockets/inst_7f3a9c21.sock'
  */
 
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -23,7 +23,7 @@ export const locationsSocketPathFindBroker = ({
 }: {
   instanceId: InstanceId;
 }): AbsoluteFilePath => {
-  const tmpDir = osTmpdirAdapter();
+  const tmpDir = tmpdir();
 
   const joined = join(
     tmpDir,

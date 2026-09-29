@@ -91,9 +91,9 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
-import { cliPackageBinResolveAdapter } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter';
+import { tmpdir } from '#gateway/node/os';
+import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
 import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
 import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
@@ -252,8 +252,8 @@ export const instanceStartBroker = async ({
     // bare command 'dungeonmaster' — PATH can resolve that name to an unrelated checkout (a
     // global npm link, a second session's worktree, an older consumer install), and the wrong
     // binary boots quietly, reading back as a boot timeout rather than as the wrong process. See
-    // cliPackageBinResolveAdapter's own PURPOSE for how it locates the right one everywhere.
-    const driverBinPath = cliPackageBinResolveAdapter();
+    // cliPackageBinResolveBroker's own PURPOSE for how it locates the right one everywhere.
+    const driverBinPath = cliPackageBinResolveBroker();
 
     // `env` must be passed explicitly, never omitted. Leaving it undefined asks Node to default to
     // `process.env`, and from inside a live Jest worker that default resolves against a STALE
@@ -388,9 +388,7 @@ export const instanceStartBroker = async ({
       );
     }
 
-    const homePath = absoluteFilePathContract.parse(
-      join(osTmpdirAdapter(), `dm-siege-${reservedEntry.id}`),
-    );
+    const homePath = absoluteFilePathContract.parse(join(tmpdir(), `dm-siege-${reservedEntry.id}`));
     const apiLogPath = absoluteFilePathContract.parse(
       join(evidencePath, locationsStatics.siegelense.apiLog),
     );

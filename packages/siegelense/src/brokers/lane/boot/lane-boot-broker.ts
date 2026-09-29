@@ -36,7 +36,7 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { closeSync, openForAppendSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
@@ -48,9 +48,8 @@ import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contra
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
-import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
+import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { laneReadyWaitBroker } from '../ready-wait/lane-ready-wait-broker';
 import { laneWorkspaceResolveBroker } from '../workspace-resolve/lane-workspace-resolve-broker';
@@ -221,14 +220,14 @@ export const laneBootBroker = async ({
 
   if (unready.length > 0) {
     booted.forEach((entry) => {
-      processKillGroupAdapter({ pgid: entry.pgid, signal: 'SIGKILL' });
+      processKillGroupBroker({ pgid: entry.pgid, signal: 'SIGKILL' });
     });
     booted.forEach((entry) => {
       closeSync(entry.fd);
     });
     // homePath only — never evidencePath. Evidence (the logs `unready` names) is the one record of
     // why this boot failed, and outlives the instance; see packages/siegelense/CLAUDE.md.
-    await fsRmAdapter({ dirPath: homePath });
+    await rm(homePath, { recursive: true, force: true });
 
     throw new LaneBootFailedError({
       specName: spec.name,
