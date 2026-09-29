@@ -13,8 +13,6 @@ import { isValidArchitectureFolderGuard } from './src/guards/is-valid-architectu
 import { dungeonmasterConfigContract } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { architectureFolderStatics } from './src/statics/architecture-folder/architecture-folder-statics';
-import type { Framework } from './src/contracts/framework/framework-contract';
-import type { SchemaLibrary } from './src/contracts/schema-library/schema-library-contract';
 import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
@@ -54,11 +52,4 @@ export const checkArchitectureFolder = (folder: string): folder is ArchitectureF
   isValidArchitectureFolderGuard({ folder });
 
 // Re-export types for consumers
-export type {
-  Framework,
-  SchemaLibrary,
-  DungeonmasterConfig,
-  DevServerE2eProcess,
-  AllowedExternalImports,
-  FrameworkPreset,
-};
+export type { DungeonmasterConfig, DevServerE2eProcess, AllowedExternalImports, FrameworkPreset };

@@ -126,23 +126,17 @@ MCP tool callers send **bare repo-relative** paths (`packages/mcp/src/foo.ts`). 
 and the relative branch requires a `./` or `../` prefix — a bare path matches neither branch and is
 rejected. So this package routes caller paths through `pathSegmentContract` from
 `@dungeonmaster/shared/contracts` — `z.string().brand<'PathSegment'>()`, whose PURPOSE explicitly
-makes no prefix commitment. It is the `filepath` input type of every `adapters/fs/*` adapter that
-takes one (`read-file`, `write-file`, `readdir`, `readdir-if-exists`, `stat`, `mkdir`), and the
-dominant path type in the package. The two exceptions are `fs-glob-adapter`, whose optional `cwd`
-is the local `AbsolutePath` brand, and `adapters/path/*`, which take raw `string[]`.
+makes no prefix commitment. It is the path type of the brokers, responders and path transformers here
+(`file-scanner`, `mcp-discover`, `path-to-relative`, `path-to-tree-relative`, and the rest), and of the
+`path` and `relatedFiles` fields on `file-metadata`, `discover-result-item` and `tree-item`. The
+architecture responder is the exception: it parses the repo root through `absoluteFilePathContract`.
 
 **The tradeoff:** `PathSegment` validates nothing — it accepts the empty string. It is the bottom of
 the path lattice: the brand is a compile-time domain marker carrying no runtime guarantee. A value
 that must be genuinely absolute has to be parsed through `absoluteFilePathContract`; never infer
 absoluteness from a `PathSegment` brand.
 
-**Two local contracts a dedup pass *should* collapse** (named follow-ups, not drive-by work):
-
-- `contracts/import-path/import-path-contract.ts` — byte-identical to
-  `packages/shared/src/contracts/import-path/import-path-contract.ts`. Its only consumer here is
-  `contracts/folder-dependency-tree/`.
-- `contracts/folder-type/folder-type-contract.ts` — `z.string().brand<'FolderType'>()`, while
-  shared's contract of the **same brand string** is `z.enum([...folderConfigStatics keys])`. Every
-  production consumer in this package imports shared's; the local one is reachable only from its own
-  stub and test. The brand collision means the two are mutually assignable while validating
-  differently, so collapsing it needs a deliberate pass.
+**One local contract a dedup pass *should* remove** (a named follow-up, not drive-by work):
+`contracts/import-path/import-path-contract.ts` is byte-identical to
+`packages/shared/src/contracts/import-path/import-path-contract.ts`, and nothing in this package
+imports it outside its own stub and test.
