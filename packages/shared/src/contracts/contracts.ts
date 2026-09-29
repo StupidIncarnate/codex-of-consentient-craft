@@ -290,9 +290,6 @@ export * from './ward-run-id/ward-run-id-contract';
 export * from './agent-id/agent-id-contract';
 export * from './mcp-caller-context/mcp-caller-context-contract';
 
-// Adapter Result Contracts
-export * from './adapter-result/adapter-result-contract';
-
 // Glob Pattern Contracts
 export * from './glob-pattern/glob-pattern-contract';
 

@@ -28,7 +28,7 @@ describe('hookFlowImportExtractTransformer', () => {
     it('VALID: {shared import then flow import} => returns the first flow import', () => {
       const source = ContentTextStub({
         value: [
-          `import type { AdapterResult } from '@dungeonmaster/shared/contracts';`,
+          `import type { FilePath } from '@dungeonmaster/shared/contracts';`,
           `import { HookPreBashFlow } from '../flows/hook-pre-bash/hook-pre-bash-flow';`,
         ].join('\n'),
       });
@@ -42,7 +42,7 @@ describe('hookFlowImportExtractTransformer', () => {
   describe('source without flows or responders import', () => {
     it('EMPTY: {only shared imports} => returns undefined', () => {
       const source = ContentTextStub({
-        value: `import type { AdapterResult } from '@dungeonmaster/shared/contracts';`,
+        value: `import type { FilePath } from '@dungeonmaster/shared/contracts';`,
       });
 
       const result = hookFlowImportExtractTransformer({ source });
