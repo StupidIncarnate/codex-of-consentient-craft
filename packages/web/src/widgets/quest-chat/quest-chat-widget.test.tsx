@@ -28,7 +28,7 @@ describe('QuestChatWidget', () => {
   describe('routing delegation', () => {
     it('VALID: {/:guildSlug/quest/:questId, guild matches, no quest yet} => delegates to content layer (QUEST_CHAT awaiting surface)', async () => {
       const proxy = QuestChatWidgetProxy();
-      const guild = GuildListItemStub({ urlSlug: 'my-guild' as never });
+      const guild = GuildListItemStub({ urlSlug: 'my-guild' });
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupMode({ mode: 'claude' });
 
@@ -49,7 +49,7 @@ describe('QuestChatWidget', () => {
 
     it('VALID: {/:guildSlug/quest, guild matches, no questId} => delegates to routing layer (CHAT_PANEL/QUEST_CHAT)', async () => {
       const proxy = QuestChatWidgetProxy();
-      const guild = GuildListItemStub({ urlSlug: 'my-guild' as never });
+      const guild = GuildListItemStub({ urlSlug: 'my-guild' });
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupMode({ mode: 'claude' });
 

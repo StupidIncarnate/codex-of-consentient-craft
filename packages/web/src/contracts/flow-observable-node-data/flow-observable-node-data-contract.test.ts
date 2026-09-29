@@ -42,19 +42,15 @@ describe('flowObservableNodeDataContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {observableId: "Bad Id"} => throws for non-kebab observableId', () => {
-      expect(() => FlowObservableNodeDataStub({ observableId: 'Bad Id' as never })).toThrow(
-        /Invalid/u,
-      );
+      expect(() => FlowObservableNodeDataStub({ observableId: 'Bad Id' })).toThrow(/Invalid/u);
     });
 
     it('INVALID: {outcomeType: bogus} => throws for invalid outcomeType', () => {
-      expect(() => FlowObservableNodeDataStub({ outcomeType: 'bogus' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => FlowObservableNodeDataStub({ outcomeType: 'bogus' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
-      expect(() => FlowObservableNodeDataStub({ commentCount: -1 as never })).toThrow(
+      expect(() => FlowObservableNodeDataStub({ commentCount: -1 })).toThrow(
         /expected number to be >=0/u,
       );
     });
@@ -125,17 +121,17 @@ describe('flowObservableNodeDataContract', () => {
     });
 
     it('INVALID: {questId: ""} => throws for empty questId', () => {
-      expect(() => FlowObservableNodeDataStub({ questId: '' as never })).toThrow(
+      expect(() => FlowObservableNodeDataStub({ questId: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {flowId: "Bad Flow"} => throws for non-kebab-case flowId', () => {
-      expect(() => FlowObservableNodeDataStub({ flowId: 'Bad Flow' as never })).toThrow(/Invalid/u);
+      expect(() => FlowObservableNodeDataStub({ flowId: 'Bad Flow' })).toThrow(/Invalid/u);
     });
 
     it('INVALID: {nodeId: "Bad Node"} => throws for non-kebab-case nodeId', () => {
-      expect(() => FlowObservableNodeDataStub({ nodeId: 'Bad Node' as never })).toThrow(/Invalid/u);
+      expect(() => FlowObservableNodeDataStub({ nodeId: 'Bad Node' })).toThrow(/Invalid/u);
     });
   });
 });

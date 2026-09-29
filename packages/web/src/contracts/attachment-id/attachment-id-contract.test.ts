@@ -16,7 +16,7 @@ describe('attachmentIdContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => attachmentIdContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => attachmentIdContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

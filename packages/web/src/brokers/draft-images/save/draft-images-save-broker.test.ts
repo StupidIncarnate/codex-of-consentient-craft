@@ -82,7 +82,7 @@ describe('draftImagesSaveBroker', () => {
           PastedImageDraftStub({
             attachmentId: '11111111-1111-4111-8111-111111111111',
             dataBase64: 'QUFBQQ==',
-            scopeKey: 'quest-a' as never,
+            scopeKey: 'quest-a',
           }),
         ],
       });
@@ -102,12 +102,12 @@ describe('draftImagesSaveBroker', () => {
           PastedImageDraftStub({
             attachmentId: '11111111-1111-4111-8111-111111111111',
             dataBase64: 'QUFBQQ==',
-            scopeKey: 'quest-a' as never,
+            scopeKey: 'quest-a',
           }),
           PastedImageDraftStub({
             attachmentId: '22222222-2222-4222-8222-222222222222',
             dataBase64: 'QkJCQg==',
-            scopeKey: 'quest-a' as never,
+            scopeKey: 'quest-a',
           }),
         ],
       });
@@ -137,7 +137,7 @@ describe('draftImagesSaveBroker', () => {
         drafts: [
           PastedImageDraftStub({
             attachmentId: '11111111-1111-4111-8111-111111111111',
-            scopeKey: 'quest-b' as never,
+            scopeKey: 'quest-b',
           }),
         ],
       });
@@ -154,7 +154,7 @@ describe('draftImagesSaveBroker', () => {
       expect(proxy.getStoredDrafts()).toStrictEqual([
         PastedImageDraftStub({
           attachmentId: '11111111-1111-4111-8111-111111111111',
-          scopeKey: 'quest-b' as never,
+          scopeKey: 'quest-b',
         }),
         {
           attachmentId: '22222222-2222-4222-8222-222222222222',

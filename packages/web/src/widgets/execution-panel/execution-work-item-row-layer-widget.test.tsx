@@ -331,7 +331,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         status: 'failed',
         relatedDataItems: [`wardResults/${WARD_RESULT_ID}`],
       });
-      const wardResult = WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 as never });
+      const wardResult = WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 });
 
       mantineRenderMiddleware({
         ui: (
@@ -378,7 +378,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       });
       const riftcarverResult = RiftcarverResultStub({
         id: RIFTCARVER_RESULT_ID,
-        exitCode: 1 as never,
+        exitCode: 1,
         outcome: 'repairable',
       });
 

@@ -85,7 +85,7 @@ describe('markdownSpanContract', () => {
     });
 
     it('VALID: {code stub with custom text} => creates a code span carrying that text', () => {
-      const result = MarkdownCodeSpanStub({ text: 'toolRowSummaryTransformer' } as never);
+      const result = MarkdownCodeSpanStub({ text: 'toolRowSummaryTransformer' });
 
       expect(result).toStrictEqual({ kind: 'code', text: 'toolRowSummaryTransformer' });
     });

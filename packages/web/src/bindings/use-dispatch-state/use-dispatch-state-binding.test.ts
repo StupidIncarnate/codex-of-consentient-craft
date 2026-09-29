@@ -76,7 +76,7 @@ describe('useDispatchStateBinding', () => {
 
       const updated = DispatchStateStub({
         mode: 'node-playing',
-        updatedAt: '2024-01-15T10:10:00.000Z' as never,
+        updatedAt: '2024-01-15T10:10:00.000Z',
       });
       proxy.setupState({ state: updated });
 
@@ -116,7 +116,7 @@ describe('useDispatchStateBinding', () => {
 
       const other = DispatchStateStub({
         mode: 'node-playing',
-        updatedAt: '2024-01-15T10:10:00.000Z' as never,
+        updatedAt: '2024-01-15T10:10:00.000Z',
       });
       proxy.setupState({ state: other });
 

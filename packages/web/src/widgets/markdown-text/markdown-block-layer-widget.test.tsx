@@ -26,7 +26,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 1 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 1 })} />,
       });
 
       const heading = screen.getByTestId('MARKDOWN_HEADING');
@@ -41,7 +41,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 })} />,
       });
 
       expect(screen.getByTestId('MARKDOWN_HEADING').style.fontSize).toBe('13px');
@@ -51,7 +51,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 6 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 6 })} />,
       });
 
       expect(screen.getByTestId('MARKDOWN_HEADING').style.fontSize).toBe('12px');
@@ -65,7 +65,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 2 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 2 })} />,
       });
 
       const heading = screen.getByTestId('MARKDOWN_HEADING');
@@ -85,7 +85,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 3 })} />,
       });
 
       const heading = screen.getByTestId('MARKDOWN_HEADING');
@@ -103,10 +103,7 @@ describe('MarkdownBlockLayerWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <MarkdownBlockLayerWidget
-            block={MarkdownHeadingBlockStub({ level: 1 } as never)}
-            isFirst={true}
-          />
+          <MarkdownBlockLayerWidget block={MarkdownHeadingBlockStub({ level: 1 })} isFirst={true} />
         ),
       });
 
@@ -141,7 +138,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownListItemBlockStub({ depth: 2 } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownListItemBlockStub({ depth: 2 })} />,
       });
 
       expect(screen.getByTestId('MARKDOWN_LIST_ITEM').style.paddingLeft).toBe('24px');
@@ -155,7 +152,7 @@ describe('MarkdownBlockLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownBlockLayerWidget
-            block={MarkdownCodeBlockStub({ content: 'line one\nline two' } as never)}
+            block={MarkdownCodeBlockStub({ content: 'line one\nline two' })}
           />
         ),
       });
@@ -184,7 +181,7 @@ describe('MarkdownBlockLayerWidget', () => {
             block={MarkdownBlockStub({
               kind: 'quote',
               spans: [{ kind: 'text', text: 'quoted' }],
-            } as never)}
+            })}
           />
         ),
       });
@@ -201,7 +198,7 @@ describe('MarkdownBlockLayerWidget', () => {
       MarkdownBlockLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownBlockLayerWidget block={MarkdownBlockStub({ kind: 'rule' } as never)} />,
+        ui: <MarkdownBlockLayerWidget block={MarkdownBlockStub({ kind: 'rule' })} />,
       });
 
       const rule = screen.getByTestId('MARKDOWN_RULE');

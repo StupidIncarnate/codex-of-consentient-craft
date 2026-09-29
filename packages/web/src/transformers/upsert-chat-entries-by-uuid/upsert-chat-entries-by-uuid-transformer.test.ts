@@ -23,7 +23,7 @@ const innerToArray = <K>(result: Map<K, Map<unknown, unknown>>, key: K): unknown
 
 describe('upsertChatEntriesByUuidTransformer', () => {
   it('VALID: {empty prev, single entry} => returns map with inner uuid map containing the entry', () => {
-    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
+    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
 
     const result = upsertChatEntriesByUuidTransformer({
       prev: new Map(),
@@ -35,8 +35,8 @@ describe('upsertChatEntriesByUuidTransformer', () => {
   });
 
   it('VALID: {prev has key with one entry, add another entry} => merges into the same inner map', () => {
-    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE } as never);
+    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE });
     const prev = new Map([['session-1', new Map([[entryA.uuid, entryA]])]]);
 
     const result = upsertChatEntriesByUuidTransformer({
@@ -53,12 +53,12 @@ describe('upsertChatEntriesByUuidTransformer', () => {
       content: 'first',
       uuid: UUID_A,
       timestamp: TS_EARLY,
-    } as never);
+    });
     const replacement = AssistantTextChatEntryStub({
       content: 'second',
       uuid: UUID_A,
       timestamp: TS_EARLY,
-    } as never);
+    });
 
     const result = upsertChatEntriesByUuidTransformer({
       prev: new Map([['session-1', new Map([[original.uuid, original]])]]),
@@ -70,7 +70,7 @@ describe('upsertChatEntriesByUuidTransformer', () => {
   });
 
   it('VALID: {upsert} => returns NEW outer map (input untouched)', () => {
-    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
+    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
     const prev = new Map();
 
     upsertChatEntriesByUuidTransformer({
@@ -83,8 +83,8 @@ describe('upsertChatEntriesByUuidTransformer', () => {
   });
 
   it('VALID: {upsert} => returns NEW inner map (existing inner map untouched)', () => {
-    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE } as never);
+    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE });
     const originalInner = new Map([[entryA.uuid, entryA]]);
     const prev = new Map([['session-1', originalInner]]);
 

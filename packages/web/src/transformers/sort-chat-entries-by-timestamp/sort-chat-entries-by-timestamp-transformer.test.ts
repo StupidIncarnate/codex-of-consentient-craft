@@ -15,9 +15,9 @@ const UUID_C = '00000000-0000-4000-8000-00000000000c';
 
 describe('sortChatEntriesByTimestampTransformer', () => {
   it('VALID: {entries arriving out of timestamp order} => returns entries sorted ascending by timestamp', () => {
-    const late = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE } as never);
-    const early = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const mid = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID } as never);
+    const late = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE });
+    const early = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const mid = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID });
 
     const result = sortChatEntriesByTimestampTransformer({ entries: [late, early, mid] });
 
@@ -25,9 +25,9 @@ describe('sortChatEntriesByTimestampTransformer', () => {
   });
 
   it('VALID: {entries with identical timestamps} => preserves arrival order via stable sort', () => {
-    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_EARLY } as never);
-    const c = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_EARLY } as never);
+    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_EARLY });
+    const c = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_EARLY });
 
     // Sub-agent chain grouping is positional — Task tool_use, sub-agent text, and the
     // completion tool_result must stay in arrival order so the chain can collect adjacent
@@ -45,7 +45,7 @@ describe('sortChatEntriesByTimestampTransformer', () => {
   });
 
   it('VALID: {single entry} => returns array with that entry', () => {
-    const entry = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
+    const entry = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
 
     const result = sortChatEntriesByTimestampTransformer({ entries: [entry] });
 
@@ -53,9 +53,9 @@ describe('sortChatEntriesByTimestampTransformer', () => {
   });
 
   it('VALID: {mixed-variant entries out of order} => sorts across types by timestamp', () => {
-    const lateText = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE } as never);
-    const midToolUse = AssistantToolUseChatEntryStub({ uuid: UUID_B, timestamp: TS_MID } as never);
-    const earlyUser = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
+    const lateText = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE });
+    const midToolUse = AssistantToolUseChatEntryStub({ uuid: UUID_B, timestamp: TS_MID });
+    const earlyUser = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
 
     const result = sortChatEntriesByTimestampTransformer({
       entries: [lateText, midToolUse, earlyUser],
@@ -65,9 +65,9 @@ describe('sortChatEntriesByTimestampTransformer', () => {
   });
 
   it('VALID: {pre-sorted entries} => returns same order', () => {
-    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID } as never);
-    const c = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE } as never);
+    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID });
+    const c = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE });
 
     const result = sortChatEntriesByTimestampTransformer({ entries: [a, b, c] });
 
@@ -75,8 +75,8 @@ describe('sortChatEntriesByTimestampTransformer', () => {
   });
 
   it('VALID: {input array} => returns NEW array (does not mutate input)', () => {
-    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_LATE } as never);
-    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_EARLY } as never);
+    const a = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_LATE });
+    const b = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_EARLY });
     const original = [a, b];
     const result = sortChatEntriesByTimestampTransformer({ entries: original });
 

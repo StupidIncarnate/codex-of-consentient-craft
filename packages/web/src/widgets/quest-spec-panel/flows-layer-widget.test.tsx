@@ -24,7 +24,7 @@ const FILLED_BUBBLE = 'IconMessageCircleFilled';
 // positional label for it. FlowStub calls flowContract.parse() which enforces min(1), so the empty
 // name is applied after the stub call via Object.assign.
 const EmptyNameFlowStub = ({ id }: { id: string }): Flow =>
-  Object.assign(FlowStub({ id: id as never }), { name: '' }) as Flow;
+  Object.assign(FlowStub({ id }), { name: '' }) as Flow;
 
 describe('FlowsLayerWidget', () => {
   describe('read mode', () => {
@@ -65,7 +65,7 @@ describe('FlowsLayerWidget', () => {
 
     it('VALID: {flows: [flow with scope]} => renders flow scope in dim text', () => {
       FlowsLayerWidgetProxy();
-      const flow = FlowStub({ scope: 'packages/web' as never });
+      const flow = FlowStub({ scope: 'packages/web' });
 
       mantineRenderMiddleware({
         ui: <FlowsLayerWidget flows={[flow]} />,
@@ -111,12 +111,12 @@ describe('FlowsLayerWidget', () => {
       FlowsLayerWidgetProxy();
       const user = userEvent.setup();
       const runtimeFlow = FlowStub({
-        id: 'runtime-flow' as never,
+        id: 'runtime-flow',
         name: 'Runtime Flow',
         flowType: 'runtime',
       });
       const operationalFlow = FlowStub({
-        id: 'operational-flow' as never,
+        id: 'operational-flow',
         name: 'Operational Flow',
         flowType: 'operational',
       });
@@ -153,7 +153,7 @@ describe('FlowsLayerWidget', () => {
     it('EDGE: {flows: [flow with empty name]} => tab label falls back to "Flow 1"', () => {
       FlowsLayerWidgetProxy();
       const flowA = EmptyNameFlowStub({ id: 'flow-a' });
-      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+      const flowB = FlowStub({ id: 'flow-b', name: 'Other' });
 
       mantineRenderMiddleware({
         ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
@@ -168,8 +168,8 @@ describe('FlowsLayerWidget', () => {
     it('VALID: {flows: [flow with name > 28 chars]} => tab label is truncated with ellipsis', () => {
       FlowsLayerWidgetProxy();
       const longName = 'A'.repeat(30);
-      const flowA = FlowStub({ id: 'flow-a' as never, name: longName });
-      const flowB = FlowStub({ id: 'flow-b' as never, name: 'Other' });
+      const flowA = FlowStub({ id: 'flow-a', name: longName });
+      const flowB = FlowStub({ id: 'flow-b', name: 'Other' });
 
       mantineRenderMiddleware({
         ui: <FlowsLayerWidget flows={[flowA, flowB]} />,
@@ -254,7 +254,7 @@ describe('FlowsLayerWidget', () => {
       });
       const contract = QuestContractEntryStub({
         name: 'LoginCredentials',
-        nodeId: 'login-page' as never,
+        nodeId: 'login-page',
       });
 
       mantineRenderMiddleware({
@@ -402,9 +402,9 @@ describe('FlowsLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
       });
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'Checkout Flow',
         nodes: [],
       });
@@ -425,9 +425,9 @@ describe('FlowsLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
       });
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'Checkout Flow',
         nodes: [],
       });
@@ -449,9 +449,9 @@ describe('FlowsLayerWidget', () => {
           CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' }),
         ],
       });
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'Checkout Flow',
         nodes: [],
       });
@@ -468,9 +468,9 @@ describe('FlowsLayerWidget', () => {
     it('EMPTY: {nothing queued} => no tab carries a mark', () => {
       const proxy = FlowsLayerWidgetProxy();
       proxy.setupEmptyQueue();
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'Checkout Flow',
         nodes: [],
       });
@@ -492,9 +492,9 @@ describe('FlowsLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
       });
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'Checkout Flow',
         nodes: [],
       });
@@ -516,9 +516,9 @@ describe('FlowsLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
       });
-      const loginFlow = FlowStub({ id: 'login-flow' as never, name: 'Login Flow', nodes: [] });
+      const loginFlow = FlowStub({ id: 'login-flow', name: 'Login Flow', nodes: [] });
       const checkoutFlow = FlowStub({
-        id: 'checkout-flow' as never,
+        id: 'checkout-flow',
         name: 'C'.repeat(30),
         nodes: [],
       });

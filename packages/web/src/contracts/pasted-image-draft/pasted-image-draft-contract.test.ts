@@ -24,19 +24,15 @@ describe('pastedImageDraftContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {attachmentId: "not-a-uuid"} => throws for non-uuid attachmentId', () => {
-      expect(() => PastedImageDraftStub({ attachmentId: 'not-a-uuid' as never })).toThrow(
-        /Invalid UUID/u,
-      );
+      expect(() => PastedImageDraftStub({ attachmentId: 'not-a-uuid' })).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {mediaType: "image/bmp"} => throws for unsupported mediaType', () => {
-      expect(() => PastedImageDraftStub({ mediaType: 'image/bmp' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => PastedImageDraftStub({ mediaType: 'image/bmp' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {dataBase64: "not base64!"} => throws for malformed dataBase64', () => {
-      expect(() => PastedImageDraftStub({ dataBase64: 'not base64!' as never })).toThrow(
+      expect(() => PastedImageDraftStub({ dataBase64: 'not base64!' })).toThrow(
         /Invalid base64 image data/u,
       );
     });
@@ -47,13 +43,13 @@ describe('pastedImageDraftContract', () => {
       const oversizedLength = Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3);
       const oversizedBase64 = 'A'.repeat(oversizedLength);
 
-      expect(() => PastedImageDraftStub({ dataBase64: oversizedBase64 as never })).toThrow(
+      expect(() => PastedImageDraftStub({ dataBase64: oversizedBase64 })).toThrow(
         `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
       );
     });
 
     it('INVALID: {scopeKey: ""} => throws for empty scopeKey', () => {
-      expect(() => PastedImageDraftStub({ scopeKey: '' as never })).toThrow(
+      expect(() => PastedImageDraftStub({ scopeKey: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
@@ -83,7 +79,7 @@ describe('pastedImageDraftContract', () => {
     });
 
     it('VALID: {scopeKey: "quest-a"} => creates a draft scoped to the overridden quest', () => {
-      const result = PastedImageDraftStub({ scopeKey: 'quest-a' as never });
+      const result = PastedImageDraftStub({ scopeKey: 'quest-a' });
 
       expect(result).toStrictEqual({
         attachmentId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',

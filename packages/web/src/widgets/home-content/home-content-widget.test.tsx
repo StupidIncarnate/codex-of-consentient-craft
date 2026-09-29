@@ -432,7 +432,7 @@ describe('HomeContentWidget', () => {
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'b1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
         name: 'Nav Guild',
-        urlSlug: 'nav-guild' as never,
+        urlSlug: 'nav-guild',
       });
 
       proxy.setupGuilds({ guilds: [guild] });
@@ -495,14 +495,14 @@ describe('HomeContentWidget', () => {
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
         name: 'Session Guild',
-        urlSlug: 'session-guild' as never,
+        urlSlug: 'session-guild',
       });
       const sessionId = SessionIdStub({ value: 'd1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const questId = QuestIdStub({ value: 'e1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const session = SessionListItemStub({
         sessionId,
         questId,
-        questTitle: 'A Quest' as never,
+        questTitle: 'A Quest',
       });
 
       proxy.setupGuilds({ guilds: [guild] });
@@ -579,7 +579,7 @@ describe('HomeContentWidget', () => {
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567891' }),
         name: 'Orphan Session Guild',
-        urlSlug: 'orphan-session-guild' as never,
+        urlSlug: 'orphan-session-guild',
       });
       const sessionId = SessionIdStub({ value: 'd1b2c3d4-e5f6-7890-abcd-ef1234567891' });
       const session = SessionListItemStub({ sessionId });
@@ -720,8 +720,8 @@ describe('HomeContentWidget', () => {
       const questId = QuestIdStub({ value: 'delete-me-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'Delete Me' as never,
-        status: 'complete' as never,
+        title: 'Delete Me',
+        status: 'complete',
       });
       writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
@@ -776,8 +776,8 @@ describe('HomeContentWidget', () => {
       const questId = QuestIdStub({ value: 'running-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'Running Quest' as never,
-        status: 'complete' as never,
+        title: 'Running Quest',
+        status: 'complete',
       });
       writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
@@ -840,8 +840,8 @@ describe('HomeContentWidget', () => {
       const questId = QuestIdStub({ value: 'fallback-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'Fallback Quest' as never,
-        status: 'complete' as never,
+        title: 'Fallback Quest',
+        status: 'complete',
       });
       writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
@@ -905,8 +905,8 @@ describe('HomeContentWidget', () => {
         quests: [QuestListItemStub({ id: QuestIdStub({ value: 'readable-quest' }) })],
         skipped: [
           SkippedQuestFileStub({
-            questFolder: '4226b8d1' as never,
-            reason: "workItems.1.role: received 'pathseeker'" as never,
+            questFolder: '4226b8d1',
+            reason: "workItems.1.role: received 'pathseeker'",
           }),
         ],
       });

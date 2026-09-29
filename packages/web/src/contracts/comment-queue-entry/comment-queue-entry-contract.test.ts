@@ -34,13 +34,13 @@ describe('commentQueueEntryContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {text: ""} => throws for empty text', () => {
-      expect(() => CommentQueueEntryStub({ text: '' as never })).toThrow(
+      expect(() => CommentQueueEntryStub({ text: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {createdAt: "not-a-date"} => throws for non-ISO createdAt', () => {
-      expect(() => CommentQueueEntryStub({ createdAt: 'not-a-date' as never })).toThrow(
+      expect(() => CommentQueueEntryStub({ createdAt: 'not-a-date' })).toThrow(
         /Invalid ISO datetime/u,
       );
     });
@@ -49,7 +49,7 @@ describe('commentQueueEntryContract', () => {
     // already proven at the commentAnchorContract level this contract extends); observableId is the
     // third anchor field and has no dedicated coverage of its own anywhere, so it is proven here.
     it('INVALID: {observableId: "Bad Observable"} => throws for non-kebab observableId', () => {
-      expect(() => CommentQueueEntryStub({ observableId: 'Bad Observable' as never })).toThrow(
+      expect(() => CommentQueueEntryStub({ observableId: 'Bad Observable' })).toThrow(
         /invalid_format/u,
       );
     });

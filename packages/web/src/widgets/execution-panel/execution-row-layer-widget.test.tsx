@@ -1080,7 +1080,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="complete"
-            wardResults={[WardResultStub({ exitCode: 0 as never })]}
+            wardResults={[WardResultStub({ exitCode: 0 })]}
           />
         ),
       });
@@ -1101,7 +1101,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="failed"
-            wardResults={[WardResultStub({ exitCode: 1 as never, wardMode: 'committed' })]}
+            wardResults={[WardResultStub({ exitCode: 1, wardMode: 'committed' })]}
           />
         ),
       });
@@ -1122,7 +1122,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="complete"
-            wardResults={[WardResultStub({ exitCode: 0 as never, wardMode: 'full' })]}
+            wardResults={[WardResultStub({ exitCode: 0, wardMode: 'full' })]}
           />
         ),
       });
@@ -1158,7 +1158,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="complete"
-            riftcarverResults={[RiftcarverResultStub({ exitCode: 0 as never, outcome: 'green' })]}
+            riftcarverResults={[RiftcarverResultStub({ exitCode: 0, outcome: 'green' })]}
           />
         ),
       });
@@ -1179,9 +1179,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="failed"
-            riftcarverResults={[
-              RiftcarverResultStub({ exitCode: 1 as never, outcome: 'repairable' }),
-            ]}
+            riftcarverResults={[RiftcarverResultStub({ exitCode: 1, outcome: 'repairable' })]}
           />
         ),
       });
@@ -1351,7 +1349,7 @@ describe('ExecutionRowLayerWidget', () => {
             workItem={WorkItemStub({
               observations: [
                 UnitObservationStub({
-                  unitId: 'send-flow:terminal:review-passes' as never,
+                  unitId: 'send-flow:terminal:review-passes',
                   mark: 'met',
                   evidence: 'review-passes-test.ts:12 — flips red on a bad review',
                 }),

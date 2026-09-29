@@ -17,13 +17,13 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       const second = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       proxy.storeHolds({ drafts: [first, second] });
       proxy.measures({
@@ -65,7 +65,7 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/jpeg',
         dataBase64: 'iVBORw0KGgo=',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       proxy.storeHolds({ drafts: [draft] });
       proxy.measures({
@@ -83,11 +83,11 @@ describe('draftImagesLoadBroker', () => {
       const proxy = draftImagesLoadBrokerProxy();
       const questA = PastedImageDraftStub({
         attachmentId: '11111111-1111-4111-8111-111111111111',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       const questB = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
-        scopeKey: 'quest-b' as never,
+        scopeKey: 'quest-b',
       });
       proxy.storeHolds({ drafts: [questA, questB] });
       proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
@@ -129,19 +129,19 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '11111111-1111-4111-8111-111111111111',
         mediaType: 'image/png',
         dataBase64: 'iVBORw0KGgo=',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       const bad = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUJDREVG',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       const good2 = PastedImageDraftStub({
         attachmentId: '33333333-3333-4333-8333-333333333333',
         mediaType: 'image/png',
         dataBase64: 'YWJjZA==',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       proxy.storeHolds({ drafts: [good1, bad, good2] });
       proxy.measures({
@@ -197,7 +197,7 @@ describe('draftImagesLoadBroker', () => {
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
         dataBase64: 'QUFBQQ==',
-        scopeKey: 'quest-a' as never,
+        scopeKey: 'quest-a',
       });
       proxy.storeHoldsRaw({
         records: [

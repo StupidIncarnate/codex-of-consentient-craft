@@ -27,13 +27,11 @@ describe('flowPortalNodeDataContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {reference: ""} => throws for empty cross-flow reference', () => {
-      expect(() => FlowPortalNodeDataStub({ reference: '' as never })).toThrow(
-        /too_small|at least/u,
-      );
+      expect(() => FlowPortalNodeDataStub({ reference: '' })).toThrow(/too_small|at least/u);
     });
 
     it('INVALID: {label: ""} => throws for empty label', () => {
-      expect(() => FlowPortalNodeDataStub({ label: '' as never })).toThrow(/too_small|at least/u);
+      expect(() => FlowPortalNodeDataStub({ label: '' })).toThrow(/too_small|at least/u);
     });
   });
 });

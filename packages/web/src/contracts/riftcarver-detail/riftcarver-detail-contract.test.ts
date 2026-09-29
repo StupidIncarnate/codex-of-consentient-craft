@@ -24,9 +24,7 @@ describe('riftcarverDetailContract', () => {
     });
 
     it('INVALID: {log: number} => throws', () => {
-      expect(() => riftcarverDetailContract.parse({ log: 123 as never })).toThrow(
-        /expected string/u,
-      );
+      expect(() => riftcarverDetailContract.parse({ log: 123 })).toThrow(/expected string/u);
     });
   });
 });

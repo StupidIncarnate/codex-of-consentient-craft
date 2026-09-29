@@ -14,9 +14,9 @@ const TS_LATE = '2026-01-03T00:00:00.000Z';
 
 describe('deriveSortedChatEntriesMapTransformer', () => {
   it('VALID: {one session with three entries inserted out of order} => returns Map with sorted ChatEntry[] for that session', () => {
-    const late = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE } as never);
-    const early = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const mid = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID } as never);
+    const late = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_LATE });
+    const early = UserChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const mid = AssistantTextChatEntryStub({ uuid: UUID_B, timestamp: TS_MID });
     const inner = new Map([
       [late.uuid, late],
       [early.uuid, early],
@@ -30,9 +30,9 @@ describe('deriveSortedChatEntriesMapTransformer', () => {
   });
 
   it('VALID: {multiple sessions, each independently sorted} => returns Map with each session sorted', () => {
-    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY } as never);
-    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE } as never);
-    const entryC = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_MID } as never);
+    const entryA = AssistantTextChatEntryStub({ uuid: UUID_A, timestamp: TS_EARLY });
+    const entryB = UserChatEntryStub({ uuid: UUID_B, timestamp: TS_LATE });
+    const entryC = AssistantTextChatEntryStub({ uuid: UUID_C, timestamp: TS_MID });
     const source = new Map([
       [
         'session-1',

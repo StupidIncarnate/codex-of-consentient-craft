@@ -16,8 +16,8 @@ describe('QueueRowLayerWidget', () => {
       const entry = QuestQueueEntryStub({
         questId: 'q-a',
         questTitle: 'Alpha Quest',
-        guildSlug: 'guild-one' as never,
-        status: 'in_progress' as never,
+        guildSlug: 'guild-one',
+        status: 'in_progress',
       });
 
       mantineRenderMiddleware({
@@ -44,7 +44,7 @@ describe('QueueRowLayerWidget', () => {
       const entry = QuestQueueEntryStub({
         questId: 'q-b',
         questTitle: 'Beta Quest',
-        guildSlug: 'guild-two' as never,
+        guildSlug: 'guild-two',
       });
 
       mantineRenderMiddleware({
@@ -135,7 +135,7 @@ describe('QueueRowLayerWidget', () => {
       const entry = QuestQueueEntryStub({
         questId: 'q-err',
         questTitle: 'Errored',
-        error: { message: 'boom' as never, at: '2024-01-15T10:06:00.000Z' as never },
+        error: { message: 'boom', at: '2024-01-15T10:06:00.000Z' },
       });
 
       mantineRenderMiddleware({

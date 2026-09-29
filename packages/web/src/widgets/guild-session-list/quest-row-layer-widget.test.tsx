@@ -41,8 +41,8 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'render-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'Deploy Feature' as never,
-        status: 'in_progress' as never,
+        title: 'Deploy Feature',
+        status: 'in_progress',
       });
 
       mantineRenderMiddleware({
@@ -67,7 +67,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {click row} => calls onSelectQuest with the quest id', async () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'click-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'in_progress' });
       const onSelectQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -94,7 +94,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {quest status complete} => skull delete button present', () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'complete-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -119,7 +119,7 @@ describe('QuestRowLayerWidget', () => {
     it('EMPTY: {quest status in_progress} => no skull delete button', () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'in-progress-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'in_progress' });
 
       mantineRenderMiddleware({
         ui: (
@@ -144,8 +144,8 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'confirm-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'My Quest' as never,
-        status: 'complete' as never,
+        title: 'My Quest',
+        status: 'complete',
       });
       const onSelectQuest = jest.fn();
 
@@ -172,7 +172,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {open popover, click Spare} => popover closes and onDeleteQuest not called', async () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'spare-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
       const onDeleteQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -196,7 +196,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {open popover, click Banish} => onDeleteQuest called once with the quest id', async () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'banish-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
       const onDeleteQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -220,7 +220,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {deletingQuestId equals row quest} => Banish button disabled', async () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'inflight-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -243,7 +243,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {quest status abandoned} => row opacity fades to 0.5', () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'abandoned-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'abandoned' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'abandoned' });
 
       mantineRenderMiddleware({
         ui: (
@@ -264,7 +264,7 @@ describe('QuestRowLayerWidget', () => {
     it('VALID: {quest status in_progress} => row opacity stays at full strength', () => {
       const proxy = QuestRowLayerWidgetProxy();
       const questId = QuestIdStub({ value: 'active-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'in_progress' });
 
       mantineRenderMiddleware({
         ui: (

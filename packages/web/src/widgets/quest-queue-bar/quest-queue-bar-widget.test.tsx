@@ -108,8 +108,8 @@ describe('QuestQueueBarWidget', () => {
           questId: 'q-err',
           questTitle: 'Errored',
           error: {
-            message: 'runner threw' as never,
-            at: '2024-01-15T10:06:00.000Z' as never,
+            message: 'runner threw',
+            at: '2024-01-15T10:06:00.000Z',
           },
         }),
       ];
@@ -177,7 +177,7 @@ describe('QuestQueueBarWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-open',
         questTitle: 'Quest: Signals',
-        guildSlug: 'open-guild' as never,
+        guildSlug: 'open-guild',
         activeSessionId: SessionIdStub({ value: 'sess-open' }),
       });
       proxy.setupDispatchState({ state: DispatchStateStub() });
@@ -201,7 +201,7 @@ describe('QuestQueueBarWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-pending',
         questTitle: 'Planning',
-        guildSlug: 'guild-x' as never,
+        guildSlug: 'guild-x',
       });
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
@@ -291,8 +291,8 @@ describe('QuestQueueBarWidget', () => {
             questId: 'q-err',
             questTitle: 'Errored',
             error: {
-              message: 'runner threw' as never,
-              at: '2024-01-15T10:06:00.000Z' as never,
+              message: 'runner threw',
+              at: '2024-01-15T10:06:00.000Z',
             },
           }),
         ],
@@ -320,13 +320,13 @@ describe('QuestQueueBarWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-a',
         questTitle: 'Alpha',
-        guildSlug: 'guild-one' as never,
+        guildSlug: 'guild-one',
         activeSessionId: SessionIdStub({ value: 'sess-a' }),
       });
       const tail = QuestQueueEntryStub({
         questId: 'q-b',
         questTitle: 'Beta',
-        guildSlug: 'guild-two' as never,
+        guildSlug: 'guild-two',
         activeSessionId: SessionIdStub({ value: 'sess-b' }),
       });
       proxy.setupDispatchState({ state: DispatchStateStub() });
@@ -355,7 +355,7 @@ describe('QuestQueueBarWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-no-session',
         questTitle: 'Planning',
-        guildSlug: 'guild-foo' as never,
+        guildSlug: 'guild-foo',
       });
       proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
@@ -405,8 +405,8 @@ describe('QuestQueueBarWidget', () => {
           questId: 'q-err',
           questTitle: 'Errored',
           error: {
-            message: 'boom' as never,
-            at: '2024-01-15T10:06:00.000Z' as never,
+            message: 'boom',
+            at: '2024-01-15T10:06:00.000Z',
           },
         }),
       ];

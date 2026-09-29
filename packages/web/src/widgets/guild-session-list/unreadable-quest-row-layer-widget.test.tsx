@@ -9,8 +9,8 @@ describe('UnreadableQuestRowLayerWidget', () => {
     it('VALID: {skippedQuestFile} => renders the quest folder path and the load failure reason', () => {
       const proxy = UnreadableQuestRowLayerWidgetProxy();
       const skippedQuestFile = SkippedQuestFileStub({
-        questFolder: '4226b8d1' as never,
-        reason: "workItems.1.role: received 'pathseeker'" as never,
+        questFolder: '4226b8d1',
+        reason: "workItems.1.role: received 'pathseeker'",
       });
 
       mantineRenderMiddleware({

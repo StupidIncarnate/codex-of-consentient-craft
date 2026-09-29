@@ -21,7 +21,7 @@ const FILLED_BUBBLE = 'IconMessageCircleFilled';
 // fallback label this widget owns) is applied after the stub call via Object.assign — same shape
 // flows-layer-widget.test.tsx uses for the same reason.
 const EmptyNameFlowStub = ({ id }: { id: string }): Flow =>
-  Object.assign(FlowStub({ id: id as never }), { name: '' }) as Flow;
+  Object.assign(FlowStub({ id }), { name: '' }) as Flow;
 
 describe('FlowTabLayerWidget', () => {
   it('VALID: {flow with a short name} => renders the full name as the tab label', () => {
@@ -161,7 +161,7 @@ describe('FlowTabLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
       });
-      const flow = FlowStub({ id: 'login-flow' as never });
+      const flow = FlowStub({ id: 'login-flow' });
 
       mantineRenderMiddleware({
         ui: (
@@ -186,7 +186,7 @@ describe('FlowTabLayerWidget', () => {
         questId: QUEST_ID,
         entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
       });
-      const flow = FlowStub({ id: 'login-flow' as never });
+      const flow = FlowStub({ id: 'login-flow' });
 
       mantineRenderMiddleware({
         ui: (
@@ -206,7 +206,7 @@ describe('FlowTabLayerWidget', () => {
     it('EMPTY: {commentQuestId set, no comment queued on this flow} => renders no queue mark', () => {
       const proxy = FlowTabLayerWidgetProxy();
       proxy.setupEmptyQueue();
-      const flow = FlowStub({ id: 'login-flow' as never });
+      const flow = FlowStub({ id: 'login-flow' });
 
       mantineRenderMiddleware({
         ui: (

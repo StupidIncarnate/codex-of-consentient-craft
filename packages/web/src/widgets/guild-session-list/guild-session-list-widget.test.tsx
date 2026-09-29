@@ -109,8 +109,8 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {quests-only mode with one skipped file} => renders one unreadable row per skipped file naming the folder and the reason', () => {
       const proxy = GuildSessionListWidgetProxy();
       const skipped = SkippedQuestFileStub({
-        questFolder: '4226b8d1' as never,
-        reason: "workItems.1.role: received 'pathseeker'" as never,
+        questFolder: '4226b8d1',
+        reason: "workItems.1.role: received 'pathseeker'",
       });
 
       mantineRenderMiddleware({
@@ -142,8 +142,8 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {all-sessions mode with one skipped file} => renders the same unreadable row so a quest-less session is explained', () => {
       const proxy = GuildSessionListWidgetProxy();
       const skipped = SkippedQuestFileStub({
-        questFolder: '4226b8d1' as never,
-        reason: "workItems.1.role: received 'pathseeker'" as never,
+        questFolder: '4226b8d1',
+        reason: "workItems.1.role: received 'pathseeker'",
       });
 
       mantineRenderMiddleware({
@@ -260,8 +260,8 @@ describe('GuildSessionListWidget', () => {
       const sessionId = SessionIdStub({ value: 'quest-session' });
       const session = SessionListItemStub({
         sessionId,
-        questTitle: 'Deploy Feature' as never,
-        questId: 'quest-abc' as never,
+        questTitle: 'Deploy Feature',
+        questId: 'quest-abc',
       });
       const filter = SessionFilterStub();
 
@@ -325,8 +325,8 @@ describe('GuildSessionListWidget', () => {
       const sessionId = SessionIdStub({ value: 'quest-status-session' });
       const session = SessionListItemStub({
         sessionId,
-        questStatus: 'complete' as never,
-        questId: 'quest-xyz' as never,
+        questStatus: 'complete',
+        questId: 'quest-xyz',
       });
       const filter = SessionFilterStub();
 
@@ -361,8 +361,8 @@ describe('GuildSessionListWidget', () => {
       const sessionId = SessionIdStub({ value: 'in-progress-session' });
       const session = SessionListItemStub({
         sessionId,
-        questStatus: 'in_progress' as never,
-        questId: 'quest-ip' as never,
+        questStatus: 'in_progress',
+        questId: 'quest-ip',
       });
       const filter = SessionFilterStub();
 
@@ -514,11 +514,11 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {filter: quests-only, with quests + sessions} => renders quest rows, not session rows', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'quest-row-1' });
-      const quest = QuestListItemStub({ id: questId, title: 'Quest One' as never });
+      const quest = QuestListItemStub({ id: questId, title: 'Quest One' });
       const sessionId = SessionIdStub({ value: 'session-1' });
       const session = SessionListItemStub({
         sessionId,
-        questId: 'quest-row-1' as never,
+        questId: 'quest-row-1',
         summary: 'Session 1',
       });
       const filter = 'quests-only';
@@ -553,7 +553,7 @@ describe('GuildSessionListWidget', () => {
       const nonQuestSessionId = SessionIdStub({ value: 'non-quest-session-all' });
       const questSession = SessionListItemStub({
         sessionId: questSessionId,
-        questId: 'quest-abc' as never,
+        questId: 'quest-abc',
         summary: 'Quest session',
       });
       const nonQuestSession = SessionListItemStub({
@@ -688,9 +688,9 @@ describe('GuildSessionListWidget', () => {
       const sessionId = SessionIdStub({ value: 'quest-display' });
       const session = SessionListItemStub({
         sessionId,
-        summary: 'Fix the login bug' as never,
-        questTitle: 'Deploy Feature' as never,
-        questId: 'quest-abc' as never,
+        summary: 'Fix the login bug',
+        questTitle: 'Deploy Feature',
+        questId: 'quest-abc',
       });
       const filter = SessionFilterStub();
 
@@ -724,7 +724,7 @@ describe('GuildSessionListWidget', () => {
       const sessionId = SessionIdStub({ value: 'no-quest-display' });
       const session = SessionListItemStub({
         sessionId,
-        summary: 'Fix the login bug' as never,
+        summary: 'Fix the login bug',
       });
       const filter = SessionFilterStub();
 
@@ -789,7 +789,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {quest status complete} => skull delete button present in the row', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'complete-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -807,7 +807,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {quest status paused} => skull delete button present in the row', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'paused-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'paused' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'paused' });
 
       mantineRenderMiddleware({
         ui: (
@@ -825,7 +825,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {quest status created (pre-execution)} => skull delete button present in the row', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'created-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'created' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'created' });
 
       mantineRenderMiddleware({
         ui: (
@@ -845,7 +845,7 @@ describe('GuildSessionListWidget', () => {
     it('EMPTY: {quest status in_progress} => no skull delete button for that row', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'in-progress-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'in_progress' });
 
       mantineRenderMiddleware({
         ui: (
@@ -863,7 +863,7 @@ describe('GuildSessionListWidget', () => {
     it('EMPTY: {quest status blocked} => no skull delete button for that row', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'blocked-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'blocked' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'blocked' });
 
       mantineRenderMiddleware({
         ui: (
@@ -883,7 +883,7 @@ describe('GuildSessionListWidget', () => {
     it("VALID: {deletable quest} => skull button has aria-label 'Delete quest'", () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'aria-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -903,7 +903,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {deletable quest} => skull button renders an svg glyph and no text label', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'icon-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -924,7 +924,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {click skull} => onSelectQuest not fired (no row navigation)', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'no-nav-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
       const onSelectQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -955,7 +955,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {click skull} => confirm popover becomes visible', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'popover-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -977,8 +977,8 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'text-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'My Quest' as never,
-        status: 'complete' as never,
+        title: 'My Quest',
+        status: 'complete',
       });
 
       mantineRenderMiddleware({
@@ -1003,8 +1003,8 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'banish-quest' });
       const quest = QuestListItemStub({
         id: questId,
-        title: 'My Quest' as never,
-        status: 'complete' as never,
+        title: 'My Quest',
+        status: 'complete',
       });
 
       mantineRenderMiddleware({
@@ -1028,7 +1028,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {open popover, click Spare} => popover no longer visible', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'spare-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -1052,11 +1052,11 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const questA = QuestListItemStub({
         id: QuestIdStub({ value: 'quest-a' }),
-        status: 'complete' as never,
+        status: 'complete',
       });
       const questB = QuestListItemStub({
         id: QuestIdStub({ value: 'quest-b' }),
-        status: 'complete' as never,
+        status: 'complete',
       });
 
       mantineRenderMiddleware({
@@ -1080,7 +1080,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {open popover then Spare} => popover hidden, onDeleteQuest not called, row still present', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'cancel-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
       const onDeleteQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -1104,7 +1104,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {click Banish} => onDeleteQuest called once with questId', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'banish-fire-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
       const onDeleteQuest = jest.fn();
 
       mantineRenderMiddleware({
@@ -1129,7 +1129,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {deletingQuestId equals row quest} => Banish button disabled', async () => {
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'inflight-quest' });
-      const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'complete' });
 
       mantineRenderMiddleware({
         ui: (
@@ -1173,7 +1173,7 @@ describe('GuildSessionListWidget', () => {
       (status) => {
         const proxy = GuildSessionListWidgetProxy();
         const questId = QuestIdStub({ value: `status-coverage-${status}` });
-        const quest = QuestListItemStub({ id: questId, status: status as never });
+        const quest = QuestListItemStub({ id: questId, status });
 
         mantineRenderMiddleware({
           ui: (
@@ -1207,7 +1207,7 @@ describe('GuildSessionListWidget', () => {
 
       const proxy = GuildSessionListWidgetProxy();
       const questId = QuestIdStub({ value: 'status-coverage-abandoned' });
-      const quest = QuestListItemStub({ id: questId, status: 'abandoned' as never });
+      const quest = QuestListItemStub({ id: questId, status: 'abandoned' });
 
       mantineRenderMiddleware({
         ui: (
@@ -1246,9 +1246,9 @@ describe('GuildSessionListWidget', () => {
       const pausedQuestId = QuestIdStub({ value: 'lifecycle-color-paused' });
       const mergingQuestId = QuestIdStub({ value: 'lifecycle-color-merging' });
       const mergedQuestId = QuestIdStub({ value: 'lifecycle-color-merged' });
-      const pausedQuest = QuestListItemStub({ id: pausedQuestId, status: 'paused' as never });
-      const mergingQuest = QuestListItemStub({ id: mergingQuestId, status: 'merging' as never });
-      const mergedQuest = QuestListItemStub({ id: mergedQuestId, status: 'merged' as never });
+      const pausedQuest = QuestListItemStub({ id: pausedQuestId, status: 'paused' });
+      const mergingQuest = QuestListItemStub({ id: mergingQuestId, status: 'merging' });
+      const mergedQuest = QuestListItemStub({ id: mergedQuestId, status: 'merged' });
 
       mantineRenderMiddleware({
         ui: (

@@ -10,11 +10,11 @@ describe('draftImagesReadBroker', () => {
     const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
     const first = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     const second = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     proxy.seed({ drafts: [first, second] });
 
@@ -38,11 +38,11 @@ describe('draftImagesReadBroker', () => {
     const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
     const first = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     const second = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     proxy.seed({
       drafts: [
@@ -67,7 +67,7 @@ describe('draftImagesReadBroker', () => {
     const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
     const good = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     proxy.seed({
       drafts: [
@@ -91,11 +91,11 @@ describe('draftImagesReadBroker', () => {
     const scopeKey = ComposerScopeKeyStub({ value: 'quest-a' });
     const good1 = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     const good2 = PastedImageDraftStub({
       attachmentId: '33333333-3333-4333-8333-333333333333',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     proxy.seed({
       drafts: [
@@ -119,11 +119,11 @@ describe('draftImagesReadBroker', () => {
     const proxy = draftImagesReadBrokerProxy();
     const questA = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     const questB = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
-      scopeKey: 'quest-b' as never,
+      scopeKey: 'quest-b',
     });
     proxy.seed({ drafts: [questA, questB] });
 
@@ -138,11 +138,11 @@ describe('draftImagesReadBroker', () => {
     const proxy = draftImagesReadBrokerProxy();
     const questA = PastedImageDraftStub({
       attachmentId: '11111111-1111-4111-8111-111111111111',
-      scopeKey: 'quest-a' as never,
+      scopeKey: 'quest-a',
     });
     const questB = PastedImageDraftStub({
       attachmentId: '22222222-2222-4222-8222-222222222222',
-      scopeKey: 'quest-b' as never,
+      scopeKey: 'quest-b',
     });
     proxy.seed({ drafts: [questA, questB] });
 

@@ -13,7 +13,7 @@ describe('WardResultRowLayerWidget', () => {
   describe('exit code line', () => {
     it('VALID: {exitCode: 0, no wardMode} => renders exit code with no mode suffix', () => {
       WardResultRowLayerWidgetProxy();
-      const wardResult = WardResultStub({ exitCode: 0 as never });
+      const wardResult = WardResultStub({ exitCode: 0 });
 
       mantineRenderMiddleware({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
@@ -24,7 +24,7 @@ describe('WardResultRowLayerWidget', () => {
 
     it('VALID: {exitCode: 1, wardMode: "committed"} => renders exit code and mode', () => {
       WardResultRowLayerWidgetProxy();
-      const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
+      const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
       mantineRenderMiddleware({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
@@ -39,7 +39,7 @@ describe('WardResultRowLayerWidget', () => {
   describe('detail fetch gating', () => {
     it('EMPTY: {no questId} => renders no ward detail element and fetches nothing', () => {
       const proxy = WardResultRowLayerWidgetProxy();
-      const wardResult = WardResultStub({ exitCode: 1 as never });
+      const wardResult = WardResultStub({ exitCode: 1 });
 
       mantineRenderMiddleware({
         ui: <WardResultRowLayerWidget wardResult={wardResult} />,
@@ -53,7 +53,7 @@ describe('WardResultRowLayerWidget', () => {
       const proxy = WardResultRowLayerWidgetProxy();
       proxy.setupDetail({ detail: WardDetailStub() });
       const questId = QuestIdStub({ value: 'test-quest' });
-      const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
+      const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
       mantineRenderMiddleware({
         ui: <WardResultRowLayerWidget wardResult={wardResult} questId={questId} />,
@@ -70,7 +70,7 @@ describe('WardResultRowLayerWidget', () => {
       const proxy = WardResultRowLayerWidgetProxy();
       proxy.setupNotFound();
       const questId = QuestIdStub({ value: 'test-quest' });
-      const wardResult = WardResultStub({ exitCode: 1 as never });
+      const wardResult = WardResultStub({ exitCode: 1 });
 
       mantineRenderMiddleware({
         ui: <WardResultRowLayerWidget wardResult={wardResult} questId={questId} />,

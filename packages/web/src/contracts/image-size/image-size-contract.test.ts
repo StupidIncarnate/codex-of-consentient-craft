@@ -18,21 +18,19 @@ describe('imageSizeContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {widthPx: 0} => throws for a zero width', () => {
-      expect(() => ImageSizeStub({ widthPx: 0 as never })).toThrow(/expected number to be >0/u);
+      expect(() => ImageSizeStub({ widthPx: 0 })).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {heightPx: -1} => throws for a negative height', () => {
-      expect(() => ImageSizeStub({ heightPx: -1 as never })).toThrow(/expected number to be >0/u);
+      expect(() => ImageSizeStub({ heightPx: -1 })).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {widthPx: 1.5} => throws for a non-integer width', () => {
-      expect(() => ImageSizeStub({ widthPx: 1.5 as never })).toThrow(/expected int/u);
+      expect(() => ImageSizeStub({ widthPx: 1.5 })).toThrow(/expected int/u);
     });
 
     it('INVALID: {heightPx missing} => throws for a missing heightPx', () => {
-      expect(() => imageSizeContract.parse({ widthPx: 2000 } as never)).toThrow(
-        /received undefined/u,
-      );
+      expect(() => imageSizeContract.parse({ widthPx: 2000 })).toThrow(/received undefined/u);
     });
   });
 

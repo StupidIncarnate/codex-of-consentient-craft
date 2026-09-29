@@ -71,8 +71,8 @@ describe('useQuestQueueBinding', () => {
         questId: 'q-err',
         questTitle: 'Errored',
         error: {
-          message: 'runner threw' as never,
-          at: '2024-01-15T10:06:00.000Z' as never,
+          message: 'runner threw',
+          at: '2024-01-15T10:06:00.000Z',
         },
       });
       const second = QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Next' });
@@ -102,8 +102,8 @@ describe('useQuestQueueBinding', () => {
         questId: 'q-err',
         questTitle: 'Tail',
         error: {
-          message: 'runner threw' as never,
-          at: '2024-01-15T10:06:00.000Z' as never,
+          message: 'runner threw',
+          at: '2024-01-15T10:06:00.000Z',
         },
       });
       proxy.setupEntries({ entries: [head, tailErr] });
@@ -186,8 +186,8 @@ describe('useQuestQueueBinding', () => {
         questId: 'q-1',
         questTitle: 'First',
         error: {
-          message: 'runner threw' as never,
-          at: '2024-01-15T10:06:00.000Z' as never,
+          message: 'runner threw',
+          at: '2024-01-15T10:06:00.000Z',
         },
       });
       proxy.setupEntries({ entries: [failed] });

@@ -70,7 +70,7 @@ describe('MarkdownSpanLayerWidget', () => {
       MarkdownSpanLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: <MarkdownSpanLayerWidget span={MarkdownSpanStub({ kind: 'italic' } as never)} />,
+        ui: <MarkdownSpanLayerWidget span={MarkdownSpanStub({ kind: 'italic' })} />,
       });
 
       const span = screen.getByTestId('MARKDOWN_ITALIC');

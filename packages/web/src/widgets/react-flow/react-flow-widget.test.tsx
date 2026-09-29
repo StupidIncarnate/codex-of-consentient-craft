@@ -64,7 +64,7 @@ describe('ReactFlowWidget', () => {
             },
           ],
           edges: [],
-          nodeTypes: { flowNode: FlowNode as never },
+          nodeTypes: { flowNode: FlowNode },
         }),
       });
 

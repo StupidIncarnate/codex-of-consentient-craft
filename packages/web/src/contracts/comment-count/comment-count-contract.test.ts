@@ -24,13 +24,11 @@ describe('commentCountContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -1} => throws for negative count', () => {
-      expect(() => CommentCountStub({ value: -1 as never })).toThrow(/expected number to be >=0/u);
+      expect(() => CommentCountStub({ value: -1 })).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => CommentCountStub({ value: 1.5 as never })).toThrow(
-        /expected int, received number/u,
-      );
+      expect(() => CommentCountStub({ value: 1.5 })).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {value: "x"} => throws for non-number', () => {

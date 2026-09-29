@@ -13,7 +13,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
   describe('exit code line', () => {
     it('VALID: {exitCode: 0, outcome: "green"} => renders exit code and outcome', () => {
       RiftcarverResultRowLayerWidgetProxy();
-      const riftcarverResult = RiftcarverResultStub({ exitCode: 0 as never, outcome: 'green' });
+      const riftcarverResult = RiftcarverResultStub({ exitCode: 0, outcome: 'green' });
 
       mantineRenderMiddleware({
         ui: <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} />,
@@ -27,7 +27,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
     it('VALID: {exitCode: 1, outcome: "repairable"} => renders exit code and outcome', () => {
       RiftcarverResultRowLayerWidgetProxy();
       const riftcarverResult = RiftcarverResultStub({
-        exitCode: 1 as never,
+        exitCode: 1,
         outcome: 'repairable',
       });
 
@@ -44,7 +44,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
   describe('detail fetch gating', () => {
     it('EMPTY: {no questId} => renders no riftcarver detail element and fetches nothing', () => {
       const proxy = RiftcarverResultRowLayerWidgetProxy();
-      const riftcarverResult = RiftcarverResultStub({ exitCode: 1 as never });
+      const riftcarverResult = RiftcarverResultStub({ exitCode: 1 });
 
       mantineRenderMiddleware({
         ui: <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} />,

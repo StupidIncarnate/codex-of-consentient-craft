@@ -42,8 +42,8 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'quest-session' });
       const session = SessionListItemStub({
         sessionId,
-        questTitle: 'Deploy Feature' as never,
-        questId: 'quest-abc' as never,
+        questTitle: 'Deploy Feature',
+        questId: 'quest-abc',
       });
 
       mantineRenderMiddleware({
@@ -73,8 +73,8 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'complete-session' });
       const session = SessionListItemStub({
         sessionId,
-        questStatus: 'complete' as never,
-        questId: 'quest-xyz' as never,
+        questStatus: 'complete',
+        questId: 'quest-xyz',
       });
 
       mantineRenderMiddleware({
@@ -94,8 +94,8 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'abandoned-session' });
       const session = SessionListItemStub({
         sessionId,
-        questStatus: 'abandoned' as never,
-        questId: 'quest-abandoned' as never,
+        questStatus: 'abandoned',
+        questId: 'quest-abandoned',
       });
 
       mantineRenderMiddleware({

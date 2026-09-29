@@ -39,7 +39,7 @@ describe('ExecutionRowUnmetListLayerWidget', () => {
           workItem={WorkItemStub({
             observations: [
               UnitObservationStub({
-                unitId: 'send-flow:terminal:review-passes' as never,
+                unitId: 'send-flow:terminal:review-passes',
                 mark: 'met',
                 evidence: 'review-passes-test.ts:12 — flips red on a bad review',
               }),

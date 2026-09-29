@@ -4,7 +4,7 @@ import { ErrorBodyStub } from './error-body.stub';
 describe('errorBodyContract', () => {
   describe('valid bodies', () => {
     it('VALID: {error: message} => parses successfully', () => {
-      const body = ErrorBodyStub({ error: 'Quest is currently running' as never });
+      const body = ErrorBodyStub({ error: 'Quest is currently running' });
 
       const result = errorBodyContract.parse(body);
 

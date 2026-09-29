@@ -38,14 +38,14 @@ describe('QueuePageWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-a',
         questTitle: 'Alpha Quest',
-        guildSlug: 'guild-one' as never,
-        status: 'in_progress' as never,
+        guildSlug: 'guild-one',
+        status: 'in_progress',
       });
       const tail = QuestQueueEntryStub({
         questId: 'q-b',
         questTitle: 'Beta Quest',
-        guildSlug: 'guild-two' as never,
-        status: 'approved' as never,
+        guildSlug: 'guild-two',
+        status: 'approved',
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
@@ -75,14 +75,14 @@ describe('QueuePageWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-a',
         questTitle: 'Alpha Quest',
-        guildSlug: 'guild-one' as never,
-        status: 'in_progress' as never,
+        guildSlug: 'guild-one',
+        status: 'in_progress',
       });
       const tail = QuestQueueEntryStub({
         questId: 'q-b',
         questTitle: 'Beta Quest',
-        guildSlug: 'guild-two' as never,
-        status: 'approved' as never,
+        guildSlug: 'guild-two',
+        status: 'approved',
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
@@ -112,12 +112,12 @@ describe('QueuePageWidget', () => {
       const head = QuestQueueEntryStub({
         questId: 'q-a',
         questTitle: 'Alpha Quest',
-        guildSlug: 'guild-one' as never,
+        guildSlug: 'guild-one',
       });
       const tail = QuestQueueEntryStub({
         questId: 'q-b',
         questTitle: 'Beta Quest',
-        guildSlug: 'guild-two' as never,
+        guildSlug: 'guild-two',
       });
       proxy.setupEntries({ entries: [head, tail] });
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
@@ -145,8 +145,8 @@ describe('QueuePageWidget', () => {
           questId: 'q-err',
           questTitle: 'Errored',
           error: {
-            message: 'runner threw' as never,
-            at: '2024-01-15T10:06:00.000Z' as never,
+            message: 'runner threw',
+            at: '2024-01-15T10:06:00.000Z',
           },
         }),
       ];
@@ -176,8 +176,8 @@ describe('QueuePageWidget', () => {
           questId: 'q-err',
           questTitle: 'Errored',
           error: {
-            message: 'runner threw' as never,
-            at: '2024-01-15T10:06:00.000Z' as never,
+            message: 'runner threw',
+            at: '2024-01-15T10:06:00.000Z',
           },
         }),
       ];

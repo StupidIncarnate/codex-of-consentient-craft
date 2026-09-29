@@ -15,7 +15,7 @@ describe('WardResultDetailLayerWidget', () => {
       const proxy = WardResultDetailLayerWidgetProxy();
       proxy.setupDetail({ detail: WardDetailStub() });
       const questId = QuestIdStub({ value: 'test-quest' });
-      const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
+      const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
       mantineRenderMiddleware({
         ui: <WardResultDetailLayerWidget questId={questId} wardResult={wardResult} />,
@@ -32,7 +32,7 @@ describe('WardResultDetailLayerWidget', () => {
       const proxy = WardResultDetailLayerWidgetProxy();
       proxy.setupNotFound();
       const questId = QuestIdStub({ value: 'test-quest' });
-      const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
+      const wardResult = WardResultStub({ exitCode: 1, wardMode: 'committed' });
 
       mantineRenderMiddleware({
         ui: <WardResultDetailLayerWidget questId={questId} wardResult={wardResult} />,

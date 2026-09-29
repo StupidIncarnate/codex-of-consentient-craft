@@ -30,9 +30,9 @@ describe('elapsedPartsContract', () => {
     });
 
     it('INVALID: {hours: 1.5} => throws "Expected integer, received float"', () => {
-      expect(() =>
-        elapsedPartsContract.parse({ hours: 1.5 as never, minutes: 0, seconds: 0 }),
-      ).toThrow('Invalid input: expected int, received number');
+      expect(() => elapsedPartsContract.parse({ hours: 1.5, minutes: 0, seconds: 0 })).toThrow(
+        'Invalid input: expected int, received number',
+      );
     });
   });
 

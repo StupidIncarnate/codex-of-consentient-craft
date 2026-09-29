@@ -43,27 +43,23 @@ describe('composerAttachmentContract', () => {
     it('INVALID: {byteLength: maxBytesPerImage + 1} => throws for exceeding the byte ceiling', () => {
       expect(() =>
         ComposerAttachmentStub({
-          byteLength: (pastedImageStatics.maxBytesPerImage + 1) as never,
+          byteLength: pastedImageStatics.maxBytesPerImage + 1,
         }),
       ).toThrow(`Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`);
     });
 
     it('INVALID: {mediaType: "image/bmp"} => throws for a media type outside the allowed set', () => {
-      expect(() => ComposerAttachmentStub({ mediaType: 'image/bmp' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => ComposerAttachmentStub({ mediaType: 'image/bmp' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {dataUrl: "https://example.com/a.png"} => throws for a non-data-url', () => {
-      expect(() =>
-        ComposerAttachmentStub({ dataUrl: 'https://example.com/a.png' as never }),
-      ).toThrow(/Invalid image data URL/u);
+      expect(() => ComposerAttachmentStub({ dataUrl: 'https://example.com/a.png' })).toThrow(
+        /Invalid image data URL/u,
+      );
     });
 
     it('INVALID: {widthPx: 0} => throws for a non-positive width', () => {
-      expect(() => ComposerAttachmentStub({ widthPx: 0 as never })).toThrow(
-        /expected number to be >0/u,
-      );
+      expect(() => ComposerAttachmentStub({ widthPx: 0 })).toThrow(/expected number to be >0/u);
     });
   });
 

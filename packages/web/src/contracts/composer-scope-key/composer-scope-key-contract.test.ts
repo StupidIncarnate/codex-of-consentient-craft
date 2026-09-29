@@ -32,7 +32,7 @@ describe('composerScopeKeyContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => composerScopeKeyContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => composerScopeKeyContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

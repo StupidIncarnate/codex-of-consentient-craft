@@ -27,8 +27,8 @@ describe('extractAskUserQuestionTransformer', () => {
         entries: [
           UserChatEntryStub(),
           AssistantToolUseChatEntryStub({
-            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
-            toolInput: VALID_TOOL_INPUT as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question',
+            toolInput: VALID_TOOL_INPUT,
           }),
         ],
       });
@@ -53,8 +53,8 @@ describe('extractAskUserQuestionTransformer', () => {
         entries: [
           UserChatEntryStub(),
           AssistantToolUseChatEntryStub({
-            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
-            toolInput: VALID_TOOL_INPUT as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question',
+            toolInput: VALID_TOOL_INPUT,
           }),
           AssistantTextChatEntryStub(),
         ],
@@ -90,12 +90,12 @@ describe('extractAskUserQuestionTransformer', () => {
       const result = extractAskUserQuestionTransformer({
         entries: [
           AssistantToolUseChatEntryStub({
-            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
-            toolInput: VALID_TOOL_INPUT as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question',
+            toolInput: VALID_TOOL_INPUT,
           }),
           AssistantToolUseChatEntryStub({
-            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
-            toolInput: secondInput as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question',
+            toolInput: secondInput,
           }),
         ],
       });
@@ -122,8 +122,8 @@ describe('extractAskUserQuestionTransformer', () => {
       const result = extractAskUserQuestionTransformer({
         entries: [
           AssistantToolUseChatEntryStub({
-            toolName: 'mcp__dungeonmaster__ask-user-question' as never,
-            toolInput: invalidInput as never,
+            toolName: 'mcp__dungeonmaster__ask-user-question',
+            toolInput: invalidInput,
           }),
         ],
       });

@@ -42,19 +42,17 @@ describe('reactFlowNodeDataContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {contractCount: -1} => throws for negative contractCount', () => {
-      expect(() => ReactFlowNodeDataStub({ contractCount: -1 as never })).toThrow(
+      expect(() => ReactFlowNodeDataStub({ contractCount: -1 })).toThrow(
         /expected number to be >=0/u,
       );
     });
 
     it('INVALID: {nodeType: bogus} => throws for invalid nodeType', () => {
-      expect(() => ReactFlowNodeDataStub({ nodeType: 'bogus' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => ReactFlowNodeDataStub({ nodeType: 'bogus' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
-      expect(() => ReactFlowNodeDataStub({ commentCount: -1 as never })).toThrow(
+      expect(() => ReactFlowNodeDataStub({ commentCount: -1 })).toThrow(
         /expected number to be >=0/u,
       );
     });
@@ -154,13 +152,13 @@ describe('reactFlowNodeDataContract', () => {
     });
 
     it('INVALID: {questId: ""} => throws for empty questId', () => {
-      expect(() => ReactFlowNodeDataStub({ questId: '' as never })).toThrow(
+      expect(() => ReactFlowNodeDataStub({ questId: '' })).toThrow(
         /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {flowId: "Bad Flow"} => throws for non-kebab-case flowId', () => {
-      expect(() => ReactFlowNodeDataStub({ flowId: 'Bad Flow' as never })).toThrow(/Invalid/u);
+      expect(() => ReactFlowNodeDataStub({ flowId: 'Bad Flow' })).toThrow(/Invalid/u);
     });
   });
 });

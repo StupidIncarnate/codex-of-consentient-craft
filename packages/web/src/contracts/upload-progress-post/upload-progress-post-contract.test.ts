@@ -22,7 +22,7 @@ describe('uploadProgressPostContract', () => {
         uploadProgressPostContract.parse({
           url: '/api/quests/abc/messages',
           body: {},
-          onProgress: 'nope' as never,
+          onProgress: 'nope',
         }),
       ).toThrow(/Invalid input/u);
     });

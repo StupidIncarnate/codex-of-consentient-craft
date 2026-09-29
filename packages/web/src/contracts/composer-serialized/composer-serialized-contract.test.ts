@@ -52,7 +52,7 @@ describe('composerSerializedContract', () => {
         composerSerializedContract.parse({
           text: 'A[Pasted Image 1]B',
           attachmentIds: ['not-a-uuid'],
-        } as never),
+        }),
       ).toThrow(/Invalid UUID/u);
     });
 
@@ -61,7 +61,7 @@ describe('composerSerializedContract', () => {
         composerSerializedContract.parse({
           text: 'A[Pasted Image 1]B',
           attachmentIds: 'not-an-array',
-        } as never),
+        }),
       ).toThrow(/expected array/u);
     });
   });

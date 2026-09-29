@@ -45,7 +45,7 @@ describe('composerSendPayloadContract', () => {
       expect(() =>
         composerSendPayloadContract.parse({
           message: '[Pasted Image 1]',
-          attachments: [{ ...ComposerAttachmentStub(), widthPx: 0 } as never],
+          attachments: [{ ...ComposerAttachmentStub(), widthPx: 0 }],
         }),
       ).toThrow(/expected number to be >0/u);
     });

@@ -10,7 +10,7 @@ describe('QuestTitleBarWidget', () => {
   describe('title rendering', () => {
     it('VALID: {title provided} => renders title text', () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} /> });
 
@@ -23,7 +23,7 @@ describe('QuestTitleBarWidget', () => {
   describe('abandon button', () => {
     it('VALID: {onAbandon provided} => renders ABANDON QUEST button', () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={jest.fn()} /> });
 
@@ -32,7 +32,7 @@ describe('QuestTitleBarWidget', () => {
 
     it('VALID: {no onAbandon} => does not render ABANDON QUEST button', () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} /> });
 
@@ -41,7 +41,7 @@ describe('QuestTitleBarWidget', () => {
 
     it('VALID: {click ABANDON QUEST} => shows CONFIRM ABANDON and CANCEL buttons', async () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
@@ -56,7 +56,7 @@ describe('QuestTitleBarWidget', () => {
 
     it('VALID: {click CONFIRM ABANDON} => calls onAbandon once', async () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });
@@ -69,7 +69,7 @@ describe('QuestTitleBarWidget', () => {
 
     it('VALID: {click CANCEL after ABANDON} => returns to ABANDON QUEST button, does not call onAbandon', async () => {
       const proxy = QuestTitleBarWidgetProxy();
-      const { title } = QuestStub({ title: 'Add Authentication' as never });
+      const { title } = QuestStub({ title: 'Add Authentication' });
       const onAbandon = jest.fn();
 
       mantineRenderMiddleware({ ui: <QuestTitleBarWidget title={title} onAbandon={onAbandon} /> });

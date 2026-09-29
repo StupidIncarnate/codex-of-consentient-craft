@@ -24,7 +24,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -55,7 +55,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -133,7 +133,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: guildId,
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -179,7 +179,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -254,7 +254,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -334,7 +334,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -389,7 +389,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -466,7 +466,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -549,7 +549,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });
@@ -632,7 +632,7 @@ describe('SessionViewWidget', () => {
         guilds: [
           GuildListItemStub({
             id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-            urlSlug: 'my-guild' as never,
+            urlSlug: 'my-guild',
           }),
         ],
       });

@@ -145,7 +145,7 @@ describe('markdownBlockContract', () => {
     });
 
     it('VALID: {list-item stub with custom depth} => creates a nested item', () => {
-      const result = MarkdownListItemBlockStub({ depth: 2 } as never);
+      const result = MarkdownListItemBlockStub({ depth: 2 });
 
       expect(result).toStrictEqual({
         kind: 'list-item',
