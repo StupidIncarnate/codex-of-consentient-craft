@@ -28,9 +28,9 @@ const sessions = wireHarnessLifecycle({
 // out of it. Start plays the dispatcher (QuestStartResponder, mirroring resume) as part of the same
 // request, so the loop wakes on the enqueue inside it — and `POST /api/orchestration/dispatch/play`
 // never refuses, so nothing can hold the queue shut for the whole test. Instead, each `startQuest`
-// call below is followed immediately by a real pause: the earliest point guaranteed to land after
-// the dispatcher woke, ahead of its slower steps, so it never gets far enough to spawn an agent
-// against the empty mock queue this spec never populates.
+// call below is followed immediately by a real pause. It may land before or after the dispatcher
+// claims its next step; this spec wants nothing dispatched and asserts only on the queue bar, so
+// either order is fine — the pause just stops the loop going further.
 test.describe('Execution Queue Streaming', () => {
   test.beforeEach(async ({ request }) => {
     await guildHarness({ request }).cleanGuilds();
@@ -95,8 +95,8 @@ test.describe('Execution Queue Streaming', () => {
     //    server relays as a global WS broadcast; useQuestQueueBinding re-fetches
     //    GET /api/quests/queue and updates the DOM.
     await quests.startQuest({ questId: questId1 });
-    // The response only lands after its own play() call has resolved server-side, so pausing here
-    // is the earliest point guaranteed to run after the dispatcher woke, ahead of its slower steps.
+    // Stop the dispatcher this Start just played. The pause may land before or after the dispatcher
+    // claims a step; this spec wants nothing dispatched, and nothing below depends on which.
     await dispatchPauseHarness({ request }).pause();
 
     // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
@@ -169,7 +169,8 @@ test.describe('Execution Queue Streaming', () => {
     });
 
     await quests.startQuest({ questId: questId2 });
-    // Same reasoning as quest 1's own start: pause the instant this response lands.
+    // Same reasoning as quest 1's own start: stop the dispatcher, whichever side of its next claim
+    // the pause lands on.
     await dispatchPauseHarness({ request }).pause();
 
     // 7. Label updates to 1/2 — active entry is still quest-one (head of queue)

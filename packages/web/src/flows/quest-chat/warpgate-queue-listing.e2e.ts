@@ -121,9 +121,9 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     await dispatchHarness({ request, guildPath: GUILD_PATH }).startQuestViaStartRoute({
       questId: questIdB,
     });
-    // The response only lands after its own play() call has resolved server-side, so pausing here
-    // is the earliest point guaranteed to run after the dispatcher woke, before the rewrite to
-    // `blocked` below races a real spawn against the empty mock queue.
+    // Stop the dispatcher this Start just played, before the rewrite to `blocked` below. The pause
+    // may land before or after the dispatcher claims a step; this spec wants nothing dispatched, and
+    // nothing below depends on which.
     await dispatchPauseHarness({ request }).pause();
 
     await quests.writeQuestFile({
