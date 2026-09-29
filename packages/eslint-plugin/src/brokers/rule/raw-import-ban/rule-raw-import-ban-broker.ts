@@ -23,6 +23,7 @@ import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
 import { importPathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
+import { builtinModules } from '#gateway/node/module';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
@@ -148,6 +149,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
           importSource: importPathContract.parse(importSource),
+          builtinModules,
         });
 
         ctx.report({
@@ -217,6 +219,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
           importSource: importPathContract.parse(importSource),
+          builtinModules,
         });
 
         ctx.report({

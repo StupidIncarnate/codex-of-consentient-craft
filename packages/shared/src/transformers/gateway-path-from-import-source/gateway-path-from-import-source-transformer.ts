@@ -2,15 +2,17 @@
  * PURPOSE: Maps a raw import specifier to the gateway path that replaces it — the mechanical rule
  * a caller-facing lint rule (banning a raw `fs`/`zod`/`@playwright/test` import outside the
  * gateway) and a future migration script both need to agree on byte-for-byte. Strips a leading
- * `node:`; a Node built-in (per Node's own `builtinModules`) maps under `#gateway/node/`, anything else
- * under `#gateway/npm/`. The subpath is the gateway's folder name for the module: the leading `@`
+ * `node:`; a Node built-in (per the `builtinModules` list the caller passes) maps under `#gateway/node/`,
+ * anything else under `#gateway/npm/`. The list is a parameter, never an import: this file sits in
+ * shared's transformers barrel, which web's browser bundle reaches, and `#gateway/node/module`
+ * drags Node-only siblings into that bundle. Node-side callers pass `builtinModules` from there. The subpath is the gateway's folder name for the module: the leading `@`
  * dropped, every `/` written as `__`, and a trailing `.js` dropped from each segment
  * (`fs/promises` becomes `fs__promises`, `@playwright/test` becomes `playwright__test`). Built from `gatewayLocationsStatics.importPrefix`, never a repo's own `@scope` — the
  * `#gateway/...` text a lint message suggests must read identically in every consumer repo,
  * whatever that repo names its gateway packages.
  *
  * USAGE:
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'fs' }) });
+ * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'fs' }), builtinModules });
  * // Returns '#gateway/node/fs' as branded PackageName
  * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'zod' }) });
  * // Returns '#gateway/npm/zod' as branded PackageName
@@ -20,7 +22,6 @@
 import { packageNameContract } from '../../contracts/package-name/package-name-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
-import { builtinModules } from '#gateway/node/module';
 import { gatewayLocationsStatics } from '../../statics/gateway-locations/gateway-locations-statics';
 
 const NODE_PREFIX = 'node:';
@@ -29,8 +30,10 @@ const SEGMENT_JOIN = '__';
 
 export const gatewayPathFromImportSourceTransformer = ({
   importSource,
+  builtinModules,
 }: {
   importSource: ImportPath;
+  builtinModules: readonly string[];
 }): PackageName => {
   const bareModule = importSource.startsWith(NODE_PREFIX)
     ? importSource.slice(NODE_PREFIX.length)
