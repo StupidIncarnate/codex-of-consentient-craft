@@ -5,7 +5,7 @@
  * const filePath = absoluteFilePathContract.parse('/absolute/path/to/file.ts');
  * // Returns: AbsoluteFilePath (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const absoluteFilePathContract = z.string().brand<'AbsoluteFilePath'>();
 

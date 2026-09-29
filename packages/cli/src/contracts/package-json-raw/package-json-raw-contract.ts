@@ -8,7 +8,7 @@
  * // Returns a record of package.json keys → unknown values, in their original file order
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const packageJsonRawContract = z.record(
   z.string().brand<'PackageJsonRawKey'>(),

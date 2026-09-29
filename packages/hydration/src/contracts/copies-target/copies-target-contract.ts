@@ -11,7 +11,7 @@
  * copiesTargetContract.parse('external:claude-cli');
  * // Returns a branded CopiesTarget naming a producer outside this repo
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const copiesTargetContract = z
   .string()

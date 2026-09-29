@@ -10,7 +10,7 @@
  * // Returns branded CallerRepoRootSource
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const callerRepoRootSourceContract = z
   .enum(['caller-cwd', 'server-cwd-fallback'])

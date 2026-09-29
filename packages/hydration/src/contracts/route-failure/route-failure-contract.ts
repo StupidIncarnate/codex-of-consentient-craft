@@ -8,7 +8,7 @@
  * routeFailureContract.parse({ url: null, status: null, responseBody: null });
  * // Returns a RouteFailure — the refused-connection shape
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // The protocol's own bounds, not a value that grows.
 const HTTP_STATUS_MIN = 100;

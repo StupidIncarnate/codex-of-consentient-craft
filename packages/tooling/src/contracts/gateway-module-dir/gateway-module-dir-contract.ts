@@ -5,7 +5,7 @@
  * gatewayModuleDirContract.parse('fs__promises');
  * // Returns: GatewayModuleDir (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gatewayModuleDirContract = z.string().min(1).brand<'GatewayModuleDir'>();
 

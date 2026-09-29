@@ -5,7 +5,7 @@
  * const result = hookPreEditResponderResultContract.parse({ shouldBlock: false });
  * // Returns validated HookPreEditResponderResult
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const hookPreEditResponderResultContract = z.object({
   shouldBlock: z.boolean(),

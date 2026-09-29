@@ -5,7 +5,7 @@
  * const parsed = grepToolInputContract.safeParse(toolInput);
  * // Returns validated GrepToolInput with pattern, output_mode, context flags, etc.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const grepToolInputContract = z.object({
   pattern: z.string().min(1).brand<'GrepPattern'>(),

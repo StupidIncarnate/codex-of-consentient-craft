@@ -7,7 +7,7 @@
  * gatewayImplementationContract.parse({ importPath: '#gateway/node/fs__promises', name: 'readFile', moduleDir: 'fs__promises', outsideCalls: [] });
  * // Returns: GatewayImplementation
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleSpecifierContract } from '../module-specifier/module-specifier-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 import { gatewayModuleDirContract } from '../gateway-module-dir/gateway-module-dir-contract';

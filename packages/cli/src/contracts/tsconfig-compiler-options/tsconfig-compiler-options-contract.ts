@@ -8,7 +8,7 @@
  * // Returns validated TsconfigCompilerOptions with branded keys and values
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const tsconfigCompilerOptionValueContract = z.string().brand<'TsconfigCompilerOptionValue'>();
 

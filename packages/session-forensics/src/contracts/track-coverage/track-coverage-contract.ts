@@ -16,7 +16,7 @@
  *   owed: 58, signed: 58, met: 54, cantMeet: 3, unmet: 1, unsigned: 0,
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const trackCoverageContract = z
   .object({

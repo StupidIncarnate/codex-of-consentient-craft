@@ -5,7 +5,7 @@
  * const guildName = testGuildNameContract.parse('my-test-guild');
  * // Returns: TestGuildName (branded non-empty string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testGuildNameContract = z.string().min(1).brand<'TestGuildName'>();
 

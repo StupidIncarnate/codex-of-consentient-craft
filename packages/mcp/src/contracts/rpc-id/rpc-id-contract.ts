@@ -5,7 +5,7 @@
  * const id: RpcId = rpcIdContract.parse(1);
  * // Returns a branded RpcId that can be number or string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rpcIdContract = z.union([z.number(), z.string()]).brand<'RpcId'>();
 

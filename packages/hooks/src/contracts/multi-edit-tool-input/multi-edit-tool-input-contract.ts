@@ -5,7 +5,7 @@
  * const multiEdit = multiEditToolInputContract.parse(input);
  * // Returns validated MultiEditToolInput with file_path and edits array
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const multiEditToolInputContract = z.object({
   file_path: z.string().min(1).brand<'FilePath'>(),

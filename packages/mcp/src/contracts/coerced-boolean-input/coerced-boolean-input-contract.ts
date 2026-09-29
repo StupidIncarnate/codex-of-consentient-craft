@@ -8,7 +8,7 @@
  * verbose: coercedBooleanInputContract.brand<'Verbose'>().describe('...').optional();
  * // Accepts true, false, "true", "false"; rejects everything else (other strings, numbers, null).
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const coercedBooleanInputContract = z.preprocess((value) => {
   if (value === 'true') return true;

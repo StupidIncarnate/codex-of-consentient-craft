@@ -8,7 +8,7 @@
  * httpResponseContract.parse({ url: 'http://localhost:3737/api/guilds', status: 201, body: '{"id":"g1"}' });
  * // Returns an HttpResponse
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // The protocol's own bounds, not a value that grows — the smallest and largest status codes HTTP
 // itself defines.

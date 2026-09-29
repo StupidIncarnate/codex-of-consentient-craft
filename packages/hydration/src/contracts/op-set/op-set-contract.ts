@@ -16,7 +16,7 @@
  * });
  * // Returns an OpSet
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { fieldNameContract } from '../field-name/field-name-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';

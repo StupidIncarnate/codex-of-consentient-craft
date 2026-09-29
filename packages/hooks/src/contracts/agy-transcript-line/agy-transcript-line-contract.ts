@@ -6,7 +6,7 @@
  * // Returns validated AgyTranscriptLine
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agyTranscriptLineContract = z
   .object({

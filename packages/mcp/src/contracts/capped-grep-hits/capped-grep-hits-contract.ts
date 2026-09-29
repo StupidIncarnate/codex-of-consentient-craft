@@ -7,7 +7,7 @@
  * cappedGrepHitsContract.parse({ labelSuffix: '', lines: [':14  if (a) {'] });
  * // Returns a validated CappedGrepHits
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { treeOutputContract } from '../tree-output/tree-output-contract';
 
 export const cappedGrepHitsContract = z.object({

@@ -5,7 +5,7 @@
  * const dirPath = testDirectoryPathContract.parse('/path/to/tests');
  * // Returns: TestDirectoryPath (branded non-empty string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testDirectoryPathContract = z.string().min(1).brand<'TestDirectoryPath'>();
 

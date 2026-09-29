@@ -5,7 +5,7 @@
  * adapterLogicReasonContract.parse('try-catch');
  * // Returns: AdapterLogicReason
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const adapterLogicReasonContract = z.enum([
   'no-outside-call',

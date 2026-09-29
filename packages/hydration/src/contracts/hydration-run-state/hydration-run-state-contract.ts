@@ -12,7 +12,7 @@
  * hydrationRunStateContract.parse({ recipeName: 'guild-mid-execution' });
  * // Returns { recipeName: RecipeName } — a caller's own literal adds `records` and `saved`
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import type { RowRef } from '../row-ref/row-ref-contract';
 import type { SavedRecordName } from '../saved-record-name/saved-record-name-contract';

@@ -5,7 +5,7 @@
  * const type: FileType = fileTypeContract.parse('broker');
  * // Returns a branded FileType string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileTypeContract = z.string().brand<'FileType'>();
 

@@ -5,7 +5,7 @@
  * const count: ResultCount = resultCountContract.parse(5);
  * // Returns a branded ResultCount integer (0 or positive)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const resultCountContract = z.number().int().nonnegative().brand<'ResultCount'>();
 

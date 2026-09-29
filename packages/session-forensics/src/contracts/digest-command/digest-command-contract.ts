@@ -7,7 +7,7 @@
  * digestCommandContract.parse('summary');
  * // Returns: 'summary' as DigestCommand
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const digestCommandContract = z
   .enum(['summary', 'buckets', 'gaps', 'coverage', 'quest'])

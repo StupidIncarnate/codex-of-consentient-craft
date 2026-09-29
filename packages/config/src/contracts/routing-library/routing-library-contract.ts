@@ -7,7 +7,7 @@
  * // Returns validated RoutingLibrary type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
 
 export const routingLibraryContract = z.enum(routingLibraryStatics.libraries.all);

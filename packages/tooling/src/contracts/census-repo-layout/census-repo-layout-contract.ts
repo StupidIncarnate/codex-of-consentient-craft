@@ -7,7 +7,7 @@
  * censusRepoLayoutContract.parse({ scope: '@acme', packages: [{ name: '@acme/app', dir: 'packages/app' }] });
  * // Returns: CensusRepoLayout
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPackageContract } from '../census-package/census-package-contract';
 
 export const censusRepoLayoutContract = z.object({

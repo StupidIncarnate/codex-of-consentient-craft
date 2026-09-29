@@ -9,7 +9,7 @@
  * savedRefContract.parse({ __savedRef: true, name: 'origin', field: 'sessionId' });
  * // Returns a SavedRef
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { savedRecordNameContract } from '../saved-record-name/saved-record-name-contract';
 import { fieldNameContract } from '../field-name/field-name-contract';
 

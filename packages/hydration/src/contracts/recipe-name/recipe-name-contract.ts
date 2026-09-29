@@ -7,7 +7,7 @@
  * recipeNameContract.parse('guild-mid-execution');
  * // Returns a branded RecipeName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const recipeNameContract = z.string().min(1).brand<'RecipeName'>();
 

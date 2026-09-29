@@ -5,7 +5,7 @@
  * statuslineInputContract.parse(JSON.parse(stdinString));
  * // Returns the parsed shape; rate_limits and its sub-fields are all optional (Claude Code may omit them on free-tier accounts)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const rateLimitWindowShape = z
   .object({

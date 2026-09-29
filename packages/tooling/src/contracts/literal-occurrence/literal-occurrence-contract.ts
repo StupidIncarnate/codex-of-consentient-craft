@@ -5,7 +5,7 @@
  * const occurrence = literalOccurrenceContract.parse({ filePath: '/path/file.ts', line: 10, column: 5 });
  * // Returns: LiteralOccurrence (object with filePath, line, column)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const literalOccurrenceContract = z.object({

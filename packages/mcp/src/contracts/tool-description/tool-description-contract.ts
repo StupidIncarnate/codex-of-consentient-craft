@@ -5,7 +5,7 @@
  * const description: ToolDescription = toolDescriptionContract.parse('Discover utilities, brokers, standards across the codebase');
  * // Returns a branded ToolDescription string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolDescriptionContract = z.string().brand<'ToolDescription'>();
 

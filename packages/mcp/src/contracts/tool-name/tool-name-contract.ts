@@ -5,7 +5,7 @@
  * const name: ToolName = toolNameContract.parse('discover');
  * // Returns a branded ToolName string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolNameContract = z.string().brand<'ToolName'>();
 

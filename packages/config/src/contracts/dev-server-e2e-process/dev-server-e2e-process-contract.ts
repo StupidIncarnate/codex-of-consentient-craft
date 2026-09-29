@@ -12,7 +12,7 @@
  * // Returns a branded DevServerE2eProcess
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const devServerE2eProcessContract = z.object({
   // 'api' | 'web' by convention — an open string so a single-server app's spec still validates

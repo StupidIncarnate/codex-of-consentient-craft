@@ -5,7 +5,7 @@
  * const error = execErrorContract.parse({ status: 1, stdout: buffer, stderr: buffer, message: 'Failed', name: 'ExecError' });
  * // Returns: ExecError (Error object with status, stdout, stderr properties)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 
 // Contract defines only data properties (functions in Error cause Zod type inference issues)

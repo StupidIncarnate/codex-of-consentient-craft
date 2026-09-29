@@ -5,7 +5,7 @@
  * const result: DiscoverResult = discoverResultContract.parse({ results: [...], count: 5 });
  * // Returns validated array of discovered files with metadata and total count
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { discoverResultItemContract } from '../discover-result-item/discover-result-item-contract';
 
 export const discoverResultContract = z.object({

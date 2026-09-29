@@ -5,7 +5,7 @@
  * const comparison = violationComparisonContract.parse(comparisonData);
  * // Returns validated ViolationComparison with hasNewViolations flag, newViolations array, optional message
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { violationCountContract } from '../violation-count/violation-count-contract';
 
 export const violationComparisonContract = z.object({

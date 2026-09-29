@@ -7,7 +7,7 @@
  * hydrationPlanContract.parse({ recipeName: 'guild-mid-execution', ops: [] });
  * // Returns HydrationPlan
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { hydrationOpContract } from '../hydration-op/hydration-op-contract';
 

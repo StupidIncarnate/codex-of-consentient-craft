@@ -5,7 +5,7 @@
  * censusPathContract.parse('packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.ts');
  * // Returns: CensusPath (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const censusPathContract = z.string().min(1).brand<'CensusPath'>();
 

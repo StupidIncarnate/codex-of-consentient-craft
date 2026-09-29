@@ -5,7 +5,7 @@
  * const tool: Tool = toolContract.parse({ name: 'discover', description: 'Discover utilities...', inputSchema: {...} });
  * // Returns validated MCP tool definition
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolContract = z.object({
   name: z.string().brand<'ToolName'>(),

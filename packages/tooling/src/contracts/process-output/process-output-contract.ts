@@ -5,7 +5,7 @@
  * const output = processOutputContract.parse('command output');
  * // Returns: ProcessOutput (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processOutputContract = z.string().brand<'ProcessOutput'>();
 

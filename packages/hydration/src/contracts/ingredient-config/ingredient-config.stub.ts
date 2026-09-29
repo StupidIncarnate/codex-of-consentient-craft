@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientConfigContract } from './ingredient-config-contract';
 import type { IngredientConfigData } from './ingredient-config-contract';
 

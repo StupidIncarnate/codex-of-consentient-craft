@@ -5,7 +5,7 @@
  * const input: DiscoverInput = discoverInputContract.parse({ glob: 'src/brokers/**' });
  * // Returns validated DiscoverInput with optional filters (glob, grep, verbose, context)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { coercedBooleanInputContract } from '../coerced-boolean-input/coerced-boolean-input-contract';
 

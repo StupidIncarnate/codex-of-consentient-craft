@@ -13,7 +13,7 @@
  * hydrationTargetContract.parse({ baseUrl: 'http://localhost:3737' });
  * // Returns HydrationTarget
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type {
   IngredientConfig,
   IngredientConfigInferenceAnchor,

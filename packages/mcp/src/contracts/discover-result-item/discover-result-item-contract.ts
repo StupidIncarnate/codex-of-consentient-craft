@@ -6,7 +6,7 @@
  * // Returns validated DiscoverResultItem with signature string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 

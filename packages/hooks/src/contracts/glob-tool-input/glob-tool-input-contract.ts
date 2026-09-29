@@ -5,7 +5,7 @@
  * const parsed = globToolInputContract.safeParse(toolInput);
  * // Returns validated GlobToolInput with pattern and optional path
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const globToolInputContract = z.object({
   pattern: z.string().min(1).brand<'GlobPattern'>(),

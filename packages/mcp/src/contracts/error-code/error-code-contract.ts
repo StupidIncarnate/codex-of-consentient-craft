@@ -5,7 +5,7 @@
  * const code: ErrorCode = errorCodeContract.parse(-32600);
  * // Returns a branded ErrorCode integer type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const errorCodeContract = z.number().int().brand<'ErrorCode'>();
 

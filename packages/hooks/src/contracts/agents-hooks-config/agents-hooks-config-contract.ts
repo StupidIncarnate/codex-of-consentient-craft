@@ -6,7 +6,7 @@
  * // Returns validated AgentsHooksConfig
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agentsHooksConfigContract = z
   .object({

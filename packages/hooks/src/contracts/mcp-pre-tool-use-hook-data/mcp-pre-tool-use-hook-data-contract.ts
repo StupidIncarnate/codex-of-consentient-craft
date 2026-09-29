@@ -9,7 +9,7 @@
  * const hookData = mcpPreToolUseHookDataContract.parse(data);
  * // Returns McpPreToolUseHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import {
   absoluteFilePathContract,
   agentIdContract,

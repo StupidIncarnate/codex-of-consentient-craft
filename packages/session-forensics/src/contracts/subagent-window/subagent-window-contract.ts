@@ -12,7 +12,7 @@
  *   endedAt: '2026-09-01T19:12:00.000Z',
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentIdContract } from '@dungeonmaster/shared/contracts';
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';

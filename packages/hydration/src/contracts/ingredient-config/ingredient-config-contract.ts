@@ -22,7 +22,7 @@
  * });
  * // Returns IngredientConfigData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { copiesTargetContract } from '../copies-target/copies-target-contract';
 import { linkSpecContract } from '../link-spec/link-spec-contract';

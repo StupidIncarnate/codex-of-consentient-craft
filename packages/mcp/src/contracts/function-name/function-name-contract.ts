@@ -5,7 +5,7 @@
  * const name: FunctionName = functionNameContract.parse('myBroker');
  * // Returns a branded FunctionName string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const functionNameContract = z.string().brand<'FunctionName'>();
 

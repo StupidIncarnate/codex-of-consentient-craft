@@ -5,7 +5,7 @@
  * const config = rawEslintConfigContract.parse(rawConfig);
  * // Returns validated RawEslintConfig with all ESLint v9 fields
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 

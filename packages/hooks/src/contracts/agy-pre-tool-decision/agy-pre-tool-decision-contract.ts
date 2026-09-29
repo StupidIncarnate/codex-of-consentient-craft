@@ -6,7 +6,7 @@
  * // Returns validated AgyPreToolDecision
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agyPreToolDecisionContract = z
   .object({

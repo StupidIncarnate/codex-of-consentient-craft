@@ -5,7 +5,7 @@
  * const input: GetProjectInventoryInput = getProjectInventoryInputContract.parse({ packageName: 'web' });
  * // Returns validated GetProjectInventoryInput with branded packageName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { packageNameContract } from '@dungeonmaster/shared/contracts';
 
 export const getProjectInventoryInputContract = z

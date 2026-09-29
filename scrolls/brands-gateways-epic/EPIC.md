@@ -137,7 +137,7 @@ The operator stopped here because the user moved sessions. Read this section fir
 | a18-r1c1 (sonnet) | A18 wave 0: R1, C1 | `eslint-plugin` rules | running |
 | a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | running |
 | a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | done (the GB commit). For B18: `localStorage/clear` returns `{ success: true }`. Web batches must move timer callers and their proxies together (proxies only see calls made through the wrapper) |
-| a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | running |
+| a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | done (the zod sweep commit): 271 files; `@dungeonmaster/npm` added to config's and session-forensics' dependencies and moved in hydration; concession 12 |
 | web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | done (the web slow-tests commit): the shared guild form proxy pastes instead of typing |
 
 If an agent's result never arrived before the session ended, its files are uncommitted in the tree: run `git status`, send a sonnet sub-agent to review them against the chunk's item section, and commit what is green.
@@ -328,6 +328,7 @@ Each row is a script used for bulk edits or census. Output is always gated by wa
 | `tmp/t04-scan.config.js` | ESLint config that switches `ban-workspace-export-mocks` on; run as `node_modules/.bin/eslint -c tmp/t04-scan.config.js -f json -o <out> <paths>` | `tmp/` | T04 82713ea0c to 0bd6040d1 |
 | python import-path rewrites | One-off `python3` rewrites of import lines (rule-tester harness, testing-library, mantine render paths), output checked by the agent and gated by ward | agents' scratch | 235a64368, cdd59573b, 2d7f1d25f, f7eabaf73 |
 | `adapter-census` | Census of remaining adapters per package (published command) | `@dungeonmaster/tooling` | S1 4130e9c6f |
+| `tmp/a18-zod/rewrite.py <pkg> [apply]` | A18 -Z sweep: re-censuses a package's files whose only raw import is `zod` and rewrites `from 'zod'` to `from '#gateway/npm/zod'` (dry run without `apply`; skips files with any other raw import) | `tmp/a18-zod/` (gitignored) | A18 -Z wave 1 (cli, config, hooks, hydration, mcp, session-forensics, tooling) |
 
 ## Machine-wide side effects
 
@@ -387,6 +388,7 @@ was planned. Add a row whenever execution forces another.
 | 9 | Folder types hold all code; external package imports go through `#gateway/*` and are refused in `widgets/`, `startup/`, `responders/`, and `assets/` may not import npm packages. | Web's global stylesheet imports (`@mantine/core/styles.css`, `@mantine/notifications/styles.css`, `@xyflow/react/dist/style.css`) live in `packages/web/src/main.ts`, the Vite entry `index.html` loads. | CSS side-effect imports are not code a gateway can wrap, and no folder type allows them; the Vite entry is the one file outside the folder types that the bundler loads first. F71, commit pending with W-LAST. |
 | 10 | T05: no accept-all staging predicate (`() => true`, `typeof value === 'string'`) on a path argument. | A proxy's opt-in `setupImplementation` (a test-supplied function that answers per path, for a virtual file tree) may address `[anyPath]` where `anyPath` accepts any string. Exact `setupReturns`/`setupError` stages still outrank it, and no proxy stages it by default. Shared's architecture proxies (the T05 shared commit) and F32's `imports-in-folder-type-find` do this. | Staging the full `[path, 'utf8']` arity ties with exact addresses and the later staging wins, which broke 10 tests. The one-argument address keeps exact stages winning. A test opts in by calling `setupImplementation`, so nothing is answered silently. |
 | 11 | EPIC rule 8: 2 to 4 files per migration agent. | A18's `-Z` lists (files whose only change is `'zod'` becoming `'#gateway/npm/zod'`) run as one scripted agent per package: a `python3` substitution, then that package's lint, typecheck and unit. Each script is listed in "Scripts used". | A one-token edit per file; splitting into fours makes hundreds of agents. The user allowed scripts that cut work, provided they are notated (2026-09-28). |
+| 12 | Hydration's negative type-fixture tests compile a standalone TypeScript program with `Node10` module resolution. | `packages/hydration/test/type-fixtures/typescript-program-diagnostics.ts` uses `Bundler` resolution with `customConditions: ['source']` and `module: ESNext`. | `Node10` ignores `package.json` `imports`, so `#gateway/npm/zod` resolved to nothing and the fixtures saw `any` (about 25 failures); `Bundler` alone resolved `@dungeonmaster/hydration-recipes` to `dist`. A18's zod sweep. |
 
 ## Status key
 

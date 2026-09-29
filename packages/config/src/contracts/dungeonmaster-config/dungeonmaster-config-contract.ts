@@ -10,7 +10,7 @@
  * // Returns validated DungeonmasterConfig type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import {
   gatewayLintConfigContract,
   networkPortContract,

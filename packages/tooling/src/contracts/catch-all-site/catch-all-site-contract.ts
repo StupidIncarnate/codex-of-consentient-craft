@@ -6,7 +6,7 @@
  * catchAllSiteContract.parse({ line: 12, kind: 'empty-address', snippet: 'handle.calledWith([])' });
  * // Returns: CatchAllSite (1-based line, the kind of catch-all, the call's text)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const catchAllSiteContract = z.object({
   line: z.number().int().positive().brand<'SourceLine'>(),

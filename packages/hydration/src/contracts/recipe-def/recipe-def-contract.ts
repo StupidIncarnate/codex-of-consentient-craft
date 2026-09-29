@@ -8,7 +8,7 @@
  * recipeDefContract.parse({ recipeName: 'guild-mid-execution', description: 'one guild' });
  * // Returns RecipeDefData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import type { Plan } from '../hydration-plan/hydration-plan-contract';
 

@@ -7,7 +7,7 @@
  * // Returns validated Framework type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { frameworkStatics } from '../../statics/framework/framework-statics';
 
 export const frameworkContract = z.enum(frameworkStatics.frameworks.all);

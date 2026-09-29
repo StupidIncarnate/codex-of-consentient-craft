@@ -6,7 +6,7 @@
  * // Returns: Uuid branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const uuidContract = z.uuid().brand<'Uuid'>();
 

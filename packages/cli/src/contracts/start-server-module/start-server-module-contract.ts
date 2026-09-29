@@ -9,7 +9,7 @@
  * const { StartServer } = startServerModuleContract.parse(await dynamicImport({ path: serverPath }));
  * StartServer({ serveWebBundle: true });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export type StartServerFn = (args?: { serveWebBundle?: boolean }) => AdapterResult;

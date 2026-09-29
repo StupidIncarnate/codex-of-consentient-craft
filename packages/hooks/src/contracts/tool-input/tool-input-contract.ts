@@ -5,7 +5,7 @@
  * const toolInput = toolInputContract.parse(input);
  * // Returns validated ToolInput (Write, Edit, MultiEdit, or Bash)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { writeToolInputContract } from '../write-tool-input/write-tool-input-contract';
 import { editToolInputContract } from '../edit-tool-input/edit-tool-input-contract';
 import { multiEditToolInputContract } from '../multi-edit-tool-input/multi-edit-tool-input-contract';

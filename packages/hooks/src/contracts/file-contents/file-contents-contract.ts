@@ -5,7 +5,7 @@
  * const contents = fileContentsContract.parse(rawContent);
  * // Returns branded FileContents string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileContentsContract = z.string().brand<'FileContents'>();
 export type FileContents = z.infer<typeof fileContentsContract>;

@@ -7,7 +7,7 @@
  * extraVerbNameContract.parse('withNestedChain');
  * // Returns a branded ExtraVerbName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { reservedVerbStatics } from '../../statics/reserved-verb/reserved-verb-statics';
 
 const RESERVED_VERBS: readonly string[] = reservedVerbStatics.verbs;

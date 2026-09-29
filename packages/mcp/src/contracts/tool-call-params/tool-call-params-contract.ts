@@ -6,7 +6,7 @@
  * toolCallParamsContract.parse({ args: { glob: 'x' }, meta: { 'claudecode/toolUseId': 'toolu_1' } });
  * // Returns ToolCallParams
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolCallParamsContract = z.object({
   args: z.record(z.string().brand<'ToolCallArgKey'>(), z.unknown()),

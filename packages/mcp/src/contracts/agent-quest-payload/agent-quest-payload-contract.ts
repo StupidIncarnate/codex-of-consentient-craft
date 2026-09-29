@@ -7,7 +7,7 @@
  * // Returns validated AgentQuestPayload; quest carries no `comments` key at all, not even an
  * // empty array, because the target shape has no such key for zod to populate
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
 

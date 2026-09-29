@@ -15,7 +15,7 @@
  * });
  * // Returns an OpCreate
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { rowIndexContract } from '../row-index/row-index-contract';

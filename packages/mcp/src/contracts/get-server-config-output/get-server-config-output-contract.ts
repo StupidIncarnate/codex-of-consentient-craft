@@ -5,7 +5,7 @@
  * getServerConfigOutputContract.parse({ baseUrl: 'http://localhost:3737', port: 3737 });
  * // Returns: validated GetServerConfigOutput
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 

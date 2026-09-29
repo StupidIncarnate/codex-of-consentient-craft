@@ -8,7 +8,7 @@
  * folderDetailCallLookupContract.parse('not-called');
  * // Returns: FolderDetailCallLookup enum value
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderDetailCallLookupContract = z.enum(['called', 'not-called', 'undetermined']);
 

@@ -5,7 +5,7 @@
  * censusFileKindContract.parse('production');
  * // Returns: CensusFileKind
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const censusFileKindContract = z.enum([
   'production',

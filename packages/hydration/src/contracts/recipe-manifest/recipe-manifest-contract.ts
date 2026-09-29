@@ -8,7 +8,7 @@
  * recipeManifestContract.parse([{ recipeName: 'guild-mid-execution', description: 'one guild' }]);
  * // Returns RecipeManifest — an empty array means no recipes yet, not an installation problem
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeDefContract } from '../recipe-def/recipe-def-contract';
 
 export const recipeManifestContract = z.array(recipeDefContract).superRefine((entries, ctx) => {

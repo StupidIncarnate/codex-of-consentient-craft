@@ -5,7 +5,7 @@
  * const hookData = preToolUseHookDataContract.parse(data);
  * // Returns validated PreToolUseHookData with tool_name and tool_input
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { toolInputContract } from '../tool-input/tool-input-contract';
 
 export const preToolUseHookDataContract = z.object({

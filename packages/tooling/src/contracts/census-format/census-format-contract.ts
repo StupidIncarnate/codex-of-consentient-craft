@@ -5,7 +5,7 @@
  * censusFormatContract.parse('table');
  * // Returns: CensusFormat
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const censusFormatContract = z.enum(['table', 'json']);
 

@@ -5,7 +5,7 @@
  * censusSourceEntryContract.parse({ file: 'packages/a/src/x.ts', text: 'export const x = 1;' });
  * // Returns: CensusSourceEntry
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPathContract } from '../census-path/census-path-contract';
 import { sourceCodeContract } from '../source-code/source-code-contract';
 

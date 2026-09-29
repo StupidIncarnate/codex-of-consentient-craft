@@ -5,7 +5,7 @@
  * const message: ErrorMessage = errorMessageContract.parse('Invalid request');
  * // Returns a branded ErrorMessage string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const errorMessageContract = z.string().brand<'ErrorMessage'>();
 

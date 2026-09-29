@@ -5,7 +5,7 @@
  * const item: DiscoverListItem = discoverListItemContract.parse({ name: 'guard', type: 'guard', purpose: 'Checks permission' });
  * // Returns validated list item for compact tree view
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const discoverListItemContract = z.object({
   name: z.string().brand<'FunctionName'>(),

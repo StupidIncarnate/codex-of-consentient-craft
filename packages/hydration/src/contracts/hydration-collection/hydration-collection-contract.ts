@@ -13,7 +13,7 @@
  * hydrationCollectionContract.parse({ ingredient: 'quest' });
  * // Returns HydrationCollectionData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import type { FilterExpect } from '../filter-expect/filter-expect-contract';
 import type { FieldValuesFor } from '../field-values/field-values-contract';

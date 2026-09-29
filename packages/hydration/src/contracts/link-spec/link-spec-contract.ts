@@ -16,7 +16,7 @@
  * linkSpecContract.parse({ of: 'session', as: 'sessionId', from: 'sessionId' });
  * // Returns { of: IngredientName, as: FieldName, from?: FieldName }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { fieldNameContract } from '../field-name/field-name-contract';
 

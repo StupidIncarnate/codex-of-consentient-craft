@@ -7,7 +7,7 @@
  * adapterCensusContract.parse({ scope: '@acme', packages: [], totals: { adapters: 0, passThrough: 0, logic: 0, productionCallers: 0, composingProxies: 0, catchAllProxies: 0 } });
  * // Returns: AdapterCensus
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { packageCensusContract } from '../package-census/package-census-contract';
 import { censusCountContract } from '../census-count/census-count-contract';
 

@@ -5,7 +5,7 @@
  * const process = childProcessContract.parse({ pid: 1234 });
  * // Returns validated ChildProcess object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const childProcessContract = z.object({
   pid: z.number().int().brand<'ProcessId'>().optional(),

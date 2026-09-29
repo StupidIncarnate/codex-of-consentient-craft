@@ -8,7 +8,7 @@
  * eslintRuleNameContract.parse('@typescript-eslint/no-explicit-any');
  * // Returns a branded EslintRuleName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const eslintRuleNameContract = z.string().brand<'EslintRuleName'>();
 

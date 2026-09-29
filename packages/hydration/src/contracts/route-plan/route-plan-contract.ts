@@ -8,7 +8,7 @@
  * routePlanContract.parse({ guild: 'write', quest: 'api' });
  * // Returns a RoutePlan
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { hydrationRouteContract } from '../hydration-route/hydration-route-contract';
 

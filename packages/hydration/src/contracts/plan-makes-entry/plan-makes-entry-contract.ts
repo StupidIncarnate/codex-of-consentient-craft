@@ -9,7 +9,7 @@
  * planMakesEntryContract.parse({ ingredient: 'operation', count: 'varies' });
  * // Returns PlanMakesEntry
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 
 const planMakesCountContract = z.number().int().positive().brand<'PlanMakesCount'>();

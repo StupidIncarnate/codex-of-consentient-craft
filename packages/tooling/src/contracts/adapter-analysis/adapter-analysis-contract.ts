@@ -8,7 +8,7 @@
  * adapterAnalysisContract.parse({ outsideCalls: [], reasons: ['no-outside-call'] });
  * // Returns: AdapterAnalysis
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
 import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logic-reason-contract';
 

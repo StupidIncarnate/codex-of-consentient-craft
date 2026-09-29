@@ -10,7 +10,7 @@
  * without reading anything, and the caller never gets to choose a path outside `worktrees/`.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const createWorktreeInputContract = z
   .object({

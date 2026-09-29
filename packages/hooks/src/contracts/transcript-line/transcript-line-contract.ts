@@ -5,7 +5,7 @@
  * const result = transcriptLineContract.safeParse(JSON.parse(line));
  * // On success: result.data.message.content is a string (user turns) or an array of content items (assistant turns)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { toolInputParamNameContract } from '../tool-input-param-name/tool-input-param-name-contract';
 

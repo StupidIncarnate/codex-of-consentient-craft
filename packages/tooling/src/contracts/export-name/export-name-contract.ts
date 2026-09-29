@@ -5,7 +5,7 @@
  * exportNameContract.parse('readFile');
  * // Returns: ExportName (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const exportNameContract = z.string().min(1).brand<'ExportName'>();
 

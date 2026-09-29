@@ -7,7 +7,7 @@
  * const result = folderDetailHookDataContract.safeParse(JSON.parse(input));
  * // On success: result.data.tool_input.file_path is present; unknown keys survive via passthrough
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderDetailHookDataContract = z
   .object({

@@ -5,7 +5,7 @@
  * const result: ListQuestsResult = listQuestsResultContract.parse({ success: true, quests: [...] });
  * // Returns validated ListQuestsResult with success status and quests array or error
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questListItemContract } from '@dungeonmaster/shared/contracts';
 

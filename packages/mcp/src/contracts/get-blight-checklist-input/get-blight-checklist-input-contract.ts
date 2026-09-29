@@ -28,7 +28,7 @@
  * checklist that looks green with not a line of the new code in it.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getBlightChecklistInputContract = z
   .object({

@@ -11,7 +11,7 @@
  * hydrationRouteContract.parse('api');
  * // Returns 'api' | 'write'
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const hydrationRouteContract = z.enum(['api', 'write']);
 

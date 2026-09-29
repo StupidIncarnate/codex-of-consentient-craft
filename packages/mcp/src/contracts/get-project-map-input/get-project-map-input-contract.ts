@@ -5,7 +5,7 @@
  * const input: GetProjectMapInput = getProjectMapInputContract.parse({ packages: ['mcp', 'shared'] });
  * // Returns validated GetProjectMapInput with branded packageName values; min 1 entry, additional keys rejected
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { packageNameContract } from '@dungeonmaster/shared/contracts';
 
 export const getProjectMapInputContract = z

@@ -5,7 +5,7 @@
  * const baseData = baseHookDataContract.parse(data);
  * // Returns validated BaseHookData with session_id, transcript_path, cwd, hook_event_name
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const baseHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),

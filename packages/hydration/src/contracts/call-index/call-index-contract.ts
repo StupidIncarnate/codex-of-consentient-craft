@@ -10,7 +10,7 @@
  * callIndexContract.parse(0);
  * // Returns a branded CallIndex
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const callIndexContract = z.number().int().nonnegative().brand<'CallIndex'>();
 

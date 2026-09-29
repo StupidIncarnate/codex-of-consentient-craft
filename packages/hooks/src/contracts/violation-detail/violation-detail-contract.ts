@@ -5,7 +5,7 @@
  * const detail = violationDetailContract.parse(detailData);
  * // Returns validated ViolationDetail with ruleId, line, column, message
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const violationDetailContract = z.object({
   ruleId: z.string().min(1).brand<'RuleId'>(),

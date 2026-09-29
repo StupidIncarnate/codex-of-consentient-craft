@@ -9,7 +9,7 @@
  * buildSequenceContract.parse(0);
  * // Returns a branded BuildSequence
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const buildSequenceContract = z.number().int().nonnegative().brand<'BuildSequence'>();
 

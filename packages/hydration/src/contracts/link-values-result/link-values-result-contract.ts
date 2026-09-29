@@ -11,7 +11,7 @@
  * linkValuesResultContract.parse({ ok: false, missingParentName: 'guild' });
  * // Returns LinkValuesResult
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 

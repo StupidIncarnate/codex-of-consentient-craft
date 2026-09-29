@@ -6,7 +6,7 @@
  * adapterRecordContract.parse({ file: 'packages/a/src/adapters/x/x-adapter.ts', exportNames: ['xAdapter'], shape: 'logic', reasons: [], outsideCalls: [], gateway: [], productionCallers: [], testFiles: [], proxyFiles: [], adapterProxy: null });
  * // Returns: AdapterRecord
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPathContract } from '../census-path/census-path-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logic-reason-contract';

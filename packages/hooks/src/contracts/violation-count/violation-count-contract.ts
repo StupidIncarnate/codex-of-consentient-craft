@@ -5,7 +5,7 @@
  * const violationCount = violationCountContract.parse(countData);
  * // Returns validated ViolationCount with ruleId, count, and details array
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { violationDetailContract } from '../violation-detail/violation-detail-contract';
 
 export const violationCountContract = z.object({

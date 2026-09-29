@@ -6,7 +6,7 @@
  * // Returns validated AgentsSkillsConfig
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agentsSkillsConfigContract = z
   .object({

@@ -7,7 +7,7 @@
  * // tool_input is kept as unknown so any tool's input shape passes — downstream code parses
  * // the specific shape it needs (e.g. askUserQuestionContract, toolInputContract).
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { toolResponseContract } from '../tool-response/tool-response-contract';
 
 export const postToolUseHookDataContract = z.object({

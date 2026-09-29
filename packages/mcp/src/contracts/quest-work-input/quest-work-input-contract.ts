@@ -17,7 +17,7 @@
  * // Returns: QuestWorkInput
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const planPayloadContract = z
   .object({

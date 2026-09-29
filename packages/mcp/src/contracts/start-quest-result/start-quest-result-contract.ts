@@ -5,7 +5,7 @@
  * const result: StartQuestResult = startQuestResultContract.parse({ success: true, processId: 'proc-123' });
  * // Returns validated StartQuestResult with success status and processId or error
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const startQuestResultContract = z
   .object({

@@ -16,7 +16,7 @@
  */
 import { getQuestInputContract as sharedGetQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputConflictsStatics } from '@dungeonmaster/shared/statics';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getQuestInputContract = sharedGetQuestInputContract
   .extend({

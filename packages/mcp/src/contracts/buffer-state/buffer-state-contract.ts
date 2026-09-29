@@ -5,7 +5,7 @@
  * const buffer: BufferState = bufferStateContract.parse({ value: '' });
  * buffer.value += chunk.toString();
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const bufferStateContract = z.object({
   value: z.string().brand<'BufferValue'>(),

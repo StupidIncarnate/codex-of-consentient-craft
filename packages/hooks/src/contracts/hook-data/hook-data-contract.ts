@@ -5,7 +5,7 @@
  * const hookData = hookDataContract.parse(data);
  * // Returns validated HookData (pre-tool, post-tool, user-prompt, or base)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { preToolUseHookDataContract } from '../pre-tool-use-hook-data/pre-tool-use-hook-data-contract';
 import { postToolUseHookDataContract } from '../post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { userPromptSubmitHookDataContract } from '../user-prompt-submit-hook-data/user-prompt-submit-hook-data-contract';

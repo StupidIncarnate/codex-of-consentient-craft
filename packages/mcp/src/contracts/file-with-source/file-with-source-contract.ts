@@ -5,7 +5,7 @@
  * const file = fileWithSourceContract.parse({ filepath: '/path/to/file.ts', source: 'project', basePath: '/base' });
  * // Returns validated FileWithSource
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const fileWithSourceContract = z.object({

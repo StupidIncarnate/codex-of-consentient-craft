@@ -5,7 +5,7 @@
  * const message = lintMessageContract.parse(msgData);
  * // Returns validated LintMessage with line, column, message, severity (1=warn, 2=error), optional ruleId
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const LINT_SEVERITY_MIN = 1;
 const LINT_SEVERITY_MAX = 2;

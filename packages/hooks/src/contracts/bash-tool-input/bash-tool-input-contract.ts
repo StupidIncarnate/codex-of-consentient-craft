@@ -5,7 +5,7 @@
  * const bashInput = bashToolInputContract.parse(input);
  * // Returns validated BashToolInput with command string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const bashToolInputContract = z.object({
   command: z.string().min(1).brand<'BashCommand'>(),

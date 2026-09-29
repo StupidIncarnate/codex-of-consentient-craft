@@ -7,7 +7,7 @@
  * sourceFactsContract.parse({ imports: [], reExports: [], exportNames: ['x'], catchAllSites: [] });
  * // Returns: SourceFacts
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleSpecifierContract } from '../module-specifier/module-specifier-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';

@@ -9,7 +9,7 @@
  * });
  * // Returns validated TreeNode
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { folderNameContract } from '../folder-name/folder-name-contract';
 import type { FolderName } from '../folder-name/folder-name-contract';
 import { treeItemContract } from '../tree-item/tree-item-contract';

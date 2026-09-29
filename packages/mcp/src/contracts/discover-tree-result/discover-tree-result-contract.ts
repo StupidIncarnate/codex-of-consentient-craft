@@ -5,7 +5,7 @@
  * const result: DiscoverTreeResult = discoverTreeResultContract.parse({ results: 'guards/\n  ...', count: 5 });
  * // Returns validated tree format string with count
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { treeOutputContract } from '../tree-output/tree-output-contract';
 import { resultCountContract } from '../result-count/result-count-contract';
 

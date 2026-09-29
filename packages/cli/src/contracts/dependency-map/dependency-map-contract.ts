@@ -6,7 +6,7 @@
  * // Returns validated DependencyMap with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const dependencyMapContract = z.record(
   z.string().brand<'DependencyKey'>(),

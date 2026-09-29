@@ -5,7 +5,7 @@
  * const exitCode = exitCodeContract.parse(0);
  * // Returns: ExitCode (branded number between 0 and 255)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { exitCodeStatics } from '../../statics/exit-code/exit-code-statics';
 
 export const exitCodeContract = z

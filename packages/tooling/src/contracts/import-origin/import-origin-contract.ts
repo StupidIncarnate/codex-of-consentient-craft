@@ -7,7 +7,7 @@
  * importOriginContract.parse('gateway');
  * // Returns: ImportOrigin
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const importOriginContract = z.enum(['outside', 'gateway', 'repo']);
 

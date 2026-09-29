@@ -5,7 +5,7 @@
  * const folder = folderNameContract.parse('guards');
  * // Returns branded FolderName string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderNameContract = z.string().brand<'FolderName'>();
 

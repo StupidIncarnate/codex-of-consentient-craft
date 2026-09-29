@@ -5,7 +5,7 @@
  * const input: ListQuestsInput = listQuestsInputContract.parse({ guildId: 'f47ac10b-...' });
  * // Returns validated ListQuestsInput with guildId
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const listQuestsInputContract = z
   .object({

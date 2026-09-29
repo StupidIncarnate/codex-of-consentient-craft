@@ -7,7 +7,7 @@
  * toolInputParamNameContract.parse('folderType');
  * // Returns a branded ToolInputParamName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolInputParamNameContract = z.string().brand<'ToolInputParamName'>();
 

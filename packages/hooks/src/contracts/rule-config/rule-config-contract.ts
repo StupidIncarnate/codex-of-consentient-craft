@@ -5,7 +5,7 @@
  * const ruleConfig = ruleConfigContract.parse({ rule: 'no-console', displayName: 'No Console' });
  * // Returns validated RuleConfig with rule, optional displayName, optional message
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { Message } from '../message/message-contract';
 
 // `message` may be a function taking the hook's own data and returning a message — zod cannot

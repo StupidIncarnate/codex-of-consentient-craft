@@ -5,7 +5,7 @@
  * const input: StartQuestInput = startQuestInputContract.parse({ questId: 'add-auth' });
  * // Returns validated StartQuestInput with questId
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const startQuestInputContract = z
   .object({

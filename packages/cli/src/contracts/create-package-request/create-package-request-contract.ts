@@ -15,7 +15,7 @@
  * // Returns: CreatePackageRequest object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import {
   packageNameContract,
   packageTypeContract,

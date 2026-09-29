@@ -6,7 +6,7 @@
  * censusArgsContract.parse({ format: 'json', packageFilter: 'siegelense' });
  * // Returns: CensusArgs
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { censusFormatContract } from '../census-format/census-format-contract';
 

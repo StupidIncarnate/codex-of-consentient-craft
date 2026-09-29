@@ -7,7 +7,7 @@
  * rowIndexContract.parse(0);
  * // Returns a branded RowIndex
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rowIndexContract = z.number().int().nonnegative().brand<'RowIndex'>();
 

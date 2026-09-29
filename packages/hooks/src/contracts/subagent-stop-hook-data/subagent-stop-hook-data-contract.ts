@@ -6,7 +6,7 @@
  * // Returns validated SubagentStopHookData. NOTE: `transcript_path` is the PARENT session transcript;
  * //   the stopping sub-agent's OWN transcript is `agent_transcript_path` — read that one.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { hookBackgroundTaskContract } from '../hook-background-task/hook-background-task-contract';
 
 export const subagentStopHookDataContract = z.object({

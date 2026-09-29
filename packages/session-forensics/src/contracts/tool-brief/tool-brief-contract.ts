@@ -10,7 +10,7 @@
  * toolBriefContract.parse({ name: 'Read', brief: 'file_path=/tmp/x.ts' });
  * // Returns the branded ToolBrief
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolBriefContract = z
   .object({

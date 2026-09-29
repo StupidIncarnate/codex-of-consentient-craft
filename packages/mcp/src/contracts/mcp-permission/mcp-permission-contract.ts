@@ -6,7 +6,7 @@
  * // Returns branded McpPermission type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const mcpPermissionContract = z.string().brand<'McpPermission'>();
 

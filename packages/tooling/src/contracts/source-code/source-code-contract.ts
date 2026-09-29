@@ -5,7 +5,7 @@
  * const sourceCode = sourceCodeContract.parse('const x = 1;');
  * // Returns: SourceCode (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const sourceCodeContract = z.string().brand<'SourceCode'>();
 

@@ -5,7 +5,7 @@
  * const data = worktreeCreateHookDataContract.parse({ session_id: 'abc', cwd: '/repo', name: 'my-worktree', ... });
  * // Returns validated WorktreeCreateHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const worktreeCreateHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),

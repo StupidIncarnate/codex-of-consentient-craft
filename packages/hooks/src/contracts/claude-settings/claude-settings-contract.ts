@@ -13,7 +13,7 @@
  * // Returns typed ClaudeSettings object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const hookTypeContract = z.string().brand<'HookType'>();
 const hookCommandContract = z.string().brand<'HookCommand'>();

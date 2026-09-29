@@ -5,7 +5,7 @@
  * const metadata: FileMetadata = fileMetadataContract.parse({ name: 'myBroker', path: '/path/to/file', fileType: 'broker', purpose: '...', signature: {...} });
  * // Returns validated file metadata with name, path, type, optional purpose, signature, and usage
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 

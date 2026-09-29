@@ -7,7 +7,7 @@
  * mcpToolInputContract.parse({ glob: 'packages/*' });
  * // Returns McpToolInput with every key kept
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const mcpToolInputContract = z.record(z.string().brand<'McpToolInputKey'>(), z.unknown());
 

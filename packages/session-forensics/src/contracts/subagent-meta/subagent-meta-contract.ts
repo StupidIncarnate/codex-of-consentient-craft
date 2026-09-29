@@ -10,7 +10,7 @@
  *   toolUseId: 'toolu_013MwHATQFcXS5tJjdhV8YMP', spawnDepth: 1, model: 'sonnet',
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const subagentMetaContract = z
   .object({

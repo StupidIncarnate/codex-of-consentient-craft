@@ -5,7 +5,7 @@
  * const response = toolResponseContract.parse(responseData);
  * // Returns validated ToolResponse with optional filePath and success, allows extra fields
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolResponseContract = z
   .object({

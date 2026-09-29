@@ -8,7 +8,7 @@
  * USAGE:
  * isoTimestampContract.parse('2026-09-01T19:09:06.542Z');
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const isoTimestampContract = z.iso.datetime().brand<'IsoTimestamp'>();
 

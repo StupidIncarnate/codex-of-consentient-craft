@@ -5,7 +5,7 @@
  * transcriptRecordToolInputKeyContract.parse('file_path');
  * // Returns the branded TranscriptRecordToolInputKey
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const transcriptRecordToolInputKeyContract = z
   .string()

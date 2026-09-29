@@ -9,7 +9,7 @@
  * // Returns a validated TsconfigCompilerOptionsLocateResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const tsconfigTextPositionContract = z.number().int().nonnegative().brand<'TsconfigTextPosition'>();
 

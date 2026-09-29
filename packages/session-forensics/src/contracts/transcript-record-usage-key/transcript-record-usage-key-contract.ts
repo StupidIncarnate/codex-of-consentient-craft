@@ -8,7 +8,7 @@
  * transcriptRecordUsageKeyContract.parse('input_tokens');
  * // Returns a branded TranscriptRecordUsageKey
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const transcriptRecordUsageKeyContract = z.string().brand<'TranscriptRecordUsageKey'>();
 

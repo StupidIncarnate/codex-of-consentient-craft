@@ -5,7 +5,7 @@
  * const output = commandOutputContract.parse('command output');
  * // Returns branded CommandOutput string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const commandOutputContract = z.string().brand<'CommandOutput'>();
 export type CommandOutput = z.infer<typeof commandOutputContract>;

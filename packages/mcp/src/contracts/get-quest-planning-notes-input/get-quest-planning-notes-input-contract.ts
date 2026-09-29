@@ -6,7 +6,7 @@
  * // Returns: GetQuestPlanningNotesInput branded object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getQuestPlanningNotesInputContract = z
   .object({

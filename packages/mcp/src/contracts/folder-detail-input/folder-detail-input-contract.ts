@@ -5,7 +5,7 @@
  * const input: FolderDetailInput = folderDetailInputContract.parse({ folderType: 'brokers' });
  * // Returns validated FolderDetailInput with folderType
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { folderTypeContract } from '@dungeonmaster/shared/contracts';
 
 export const folderDetailInputContract = z

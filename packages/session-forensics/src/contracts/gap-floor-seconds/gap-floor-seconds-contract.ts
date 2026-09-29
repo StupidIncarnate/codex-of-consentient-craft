@@ -9,7 +9,7 @@
  * gapFloorSecondsContract.parse('30');
  * // Returns: 30 as GapFloorSeconds
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gapFloorSecondsContract = z.coerce
   .number()

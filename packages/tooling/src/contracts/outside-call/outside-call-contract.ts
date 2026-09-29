@@ -7,7 +7,7 @@
  * outsideCallContract.parse({ module: 'fs/promises', name: 'readFile' });
  * // Returns: OutsideCall
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleSpecifierContract } from '../module-specifier/module-specifier-contract';
 import { exportNameContract } from '../export-name/export-name-contract';
 

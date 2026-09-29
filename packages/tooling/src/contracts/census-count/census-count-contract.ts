@@ -6,7 +6,7 @@
  * censusCountContract.parse(3);
  * // Returns: CensusCount (branded number)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const censusCountContract = z.number().int().min(0).brand<'CensusCount'>();
 

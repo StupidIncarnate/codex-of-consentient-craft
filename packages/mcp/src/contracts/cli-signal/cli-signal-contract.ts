@@ -5,7 +5,7 @@
  * const signal = cliSignalContract.parse({ action: 'return', screen: 'list', timestamp: '2024-01-01T00:00:00.000Z' });
  * // Returns a validated CliSignal object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cliSignalContract = z.object({
   action: z.literal('return').brand<'CliSignalAction'>(),

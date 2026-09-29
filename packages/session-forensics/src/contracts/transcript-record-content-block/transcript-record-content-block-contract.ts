@@ -10,7 +10,7 @@
  * // Returns the branded TranscriptRecordContentBlock.
  * // Every field but `type` is optional.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { transcriptRecordToolInputKeyContract } from '../transcript-record-tool-input-key/transcript-record-tool-input-key-contract';
 
 export const transcriptRecordContentBlockContract = z.object({

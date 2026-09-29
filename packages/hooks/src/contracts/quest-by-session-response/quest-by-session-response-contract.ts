@@ -6,7 +6,7 @@
  * // Returns { questId } where questId is a non-empty branded string.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questBySessionResponseContract = z.object({
   questId: z.string().min(1).brand<'QuestBySessionQuestId'>(),

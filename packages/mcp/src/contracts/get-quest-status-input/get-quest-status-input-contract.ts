@@ -5,7 +5,7 @@
  * const input: GetQuestStatusInput = getQuestStatusInputContract.parse({ processId: 'proc-123' });
  * // Returns validated GetQuestStatusInput with processId
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getQuestStatusInputContract = z
   .object({

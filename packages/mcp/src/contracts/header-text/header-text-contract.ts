@@ -5,7 +5,7 @@
  * const header: HeaderText = headerTextContract.parse('## Standards');
  * // Returns a branded HeaderText string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const headerTextContract = z.string().brand<'HeaderText'>();
 

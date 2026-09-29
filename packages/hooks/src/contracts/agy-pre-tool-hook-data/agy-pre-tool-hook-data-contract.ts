@@ -5,7 +5,7 @@
  * const hookData = agyPreToolHookDataContract.parse(input);
  * // Returns validated AgyPreToolHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agyPreToolHookDataContract = z
   .object({

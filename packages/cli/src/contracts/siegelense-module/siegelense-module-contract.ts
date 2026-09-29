@@ -9,7 +9,7 @@
  * const { StartSiegelense } = siegelenseModuleContract.parse(await dynamicImport({ path: siegelensePath }));
  * await StartSiegelense({ args: ['status'] });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export type StartSiegelenseFn = (params: { args: readonly string[] }) => Promise<AdapterResult>;

@@ -13,7 +13,7 @@
  *   wallClockSeconds: 300, blockedSeconds: 0, idleSeconds: 300,
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { turnGapContract } from '../turn-gap/turn-gap-contract';
 

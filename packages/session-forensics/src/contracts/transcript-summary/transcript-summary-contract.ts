@@ -15,7 +15,7 @@
  *   usage: { inputTokens: 2, outputTokens: 239, cacheReadTokens: 0, cacheCreationTokens: 32_335, thinkingTokens: 0 },
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { tokenUsageContract } from '../token-usage/token-usage-contract';
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';

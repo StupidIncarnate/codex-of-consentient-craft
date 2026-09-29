@@ -5,7 +5,7 @@
  * const change = contentChangeContract.parse({ oldContent, newContent });
  * // Returns validated ContentChange with branded FileContents
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { fileContentsContract } from '../file-contents/file-contents-contract';
 
 export const contentChangeContract = z.object({

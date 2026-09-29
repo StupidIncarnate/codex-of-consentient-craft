@@ -6,7 +6,7 @@
  * // Returns branded FolderType string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderTypeContract = z.string().brand<'FolderType'>();
 

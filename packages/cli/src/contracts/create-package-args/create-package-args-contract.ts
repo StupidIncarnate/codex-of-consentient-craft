@@ -8,7 +8,7 @@
  * // Returns validated CreatePackageArgs with every field but dryRun optional
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   packageNameContract,

@@ -12,7 +12,7 @@
  * remove — `get-quest-work` is the narrowable per-item surface.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getQuestSummaryInputContract = z
   .object({

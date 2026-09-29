@@ -5,7 +5,7 @@
  * const options = eslintOptionsContract.parse({ overrideConfigFile: true });
  * // Returns validated EslintOptions object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const eslintOptionsContract = z.object({
   overrideConfigFile: z.boolean().optional(),

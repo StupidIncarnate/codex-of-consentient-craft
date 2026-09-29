@@ -5,7 +5,7 @@
  * const msg = eslintRawMessageContract.safeParse(rawMsg);
  * // Returns validated EslintRawMessage with line, column, message, severity, optional ruleId
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const eslintRawMessageContract = z.object({
   line: z.number().int().brand<'EslintLine'>(),

@@ -5,7 +5,7 @@
  * const message = violationComparisonMessageContract.parse("🛑 New violations detected...");
  * // Returns branded ViolationComparisonMessage string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const violationComparisonMessageContract = z.string().brand<'ViolationComparisonMessage'>();
 

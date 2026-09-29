@@ -9,7 +9,7 @@
  * writeFailureContract.parse({ path: null });
  * // Returns a WriteFailure
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const writeFailureContract = z.object({

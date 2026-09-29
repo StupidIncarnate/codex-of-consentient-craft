@@ -5,7 +5,7 @@
  * const method: RpcMethod = rpcMethodContract.parse('tools/call');
  * // Returns a branded RpcMethod string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rpcMethodContract = z.string().brand<'RpcMethod'>();
 

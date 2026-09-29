@@ -7,7 +7,7 @@
  * // Returns branded FilePath type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const filePathContract = z.string().min(1).brand<'FilePath'>();
 export type FilePath = z.infer<typeof filePathContract>;

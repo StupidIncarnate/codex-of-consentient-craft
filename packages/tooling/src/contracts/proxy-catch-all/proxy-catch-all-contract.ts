@@ -6,7 +6,7 @@
  * proxyCatchAllContract.parse({ file: 'packages/a/src/x.proxy.ts', sites: [] });
  * // Returns: ProxyCatchAll
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPathContract } from '../census-path/census-path-contract';
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';
 

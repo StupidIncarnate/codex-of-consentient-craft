@@ -7,7 +7,7 @@
  * seedStepContract.parse({ step: 'seed', recipe: 'guild-mid-execution', as: 'g' });
  * // Returns SeedStepData, with no `params` key when the recipe takes none
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 
 const seedStepParamKeyContract = z.string().min(1).brand<'SeedStepParamKey'>();

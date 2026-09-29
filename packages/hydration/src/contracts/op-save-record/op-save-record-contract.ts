@@ -7,7 +7,7 @@
  * opSaveRecordContract.parse({ op: 'saveRecord', ref: 'guild[0:0]/quest[0:2]', name: 'third' });
  * // Returns an OpSaveRecord
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { savedRecordNameContract } from '../saved-record-name/saved-record-name-contract';
 

@@ -5,7 +5,7 @@
  * const editInput = editToolInputContract.parse(input);
  * // Returns validated EditToolInput with file_path, old_string, new_string, optional replace_all
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const editToolInputContract = z.object({
   file_path: z.string().min(1).brand<'FilePath'>(),

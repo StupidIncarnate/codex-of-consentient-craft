@@ -5,7 +5,7 @@
  * const output = treeOutputContract.parse('guards/\n  has-permission-guard (guard)');
  * // Returns branded TreeOutput string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const treeOutputContract = z.string().brand<'TreeOutput'>();
 

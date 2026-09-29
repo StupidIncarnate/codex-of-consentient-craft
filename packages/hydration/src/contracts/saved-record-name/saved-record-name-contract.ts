@@ -6,7 +6,7 @@
  * savedRecordNameContract.parse('origin');
  * // Returns a branded SavedRecordName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const savedRecordNameContract = z.string().min(1).brand<'SavedRecordName'>();
 

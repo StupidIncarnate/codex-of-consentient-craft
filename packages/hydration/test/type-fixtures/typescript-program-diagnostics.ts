@@ -37,8 +37,9 @@ const compilerOptions: ts.CompilerOptions = {
   noUncheckedIndexedAccess: true,
   noEmit: true,
   target: ts.ScriptTarget.ES2022,
-  module: ts.ModuleKind.CommonJS,
-  moduleResolution: ts.ModuleResolutionKind.Node10,
+  module: ts.ModuleKind.ESNext,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  customConditions: ['source'],
   skipLibCheck: true,
   lib: ['lib.es2022.d.ts'],
 };

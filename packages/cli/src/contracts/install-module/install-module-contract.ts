@@ -9,7 +9,7 @@
  * const parsed = installModuleContract.safeParse(await dynamicImport({ path: installPath }));
  * if (parsed.success) await parsed.data.StartInstall({ context });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 
 export type StartInstallFn = (params: { context: InstallContext }) => Promise<InstallResult>;

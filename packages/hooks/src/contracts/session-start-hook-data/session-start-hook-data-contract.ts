@@ -5,7 +5,7 @@
  * const data = sessionStartHookDataContract.parse({ session_id: 'abc', transcript_path: '/path', cwd: '/cwd', hook_event_name: 'SessionStart' });
  * // Returns validated SessionStartHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const sessionStartHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),

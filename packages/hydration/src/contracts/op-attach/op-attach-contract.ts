@@ -17,7 +17,7 @@
  * });
  * // Returns an OpAttach
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';

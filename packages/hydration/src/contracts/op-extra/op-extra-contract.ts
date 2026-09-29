@@ -9,7 +9,7 @@
  * opExtraContract.parse({ op: 'extra', ref: 'session[0:0]', verb: 'withNestedChain', args: { depth: 2 } });
  * // Returns an OpExtra
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import { extraVerbNameContract } from '../extra-verb-name/extra-verb-name-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';

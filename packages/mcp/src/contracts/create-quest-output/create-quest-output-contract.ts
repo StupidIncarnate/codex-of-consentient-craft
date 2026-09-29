@@ -5,7 +5,7 @@
  * createQuestOutputContract.parse({ questId, guildSlug });
  * // Returns: validated CreateQuestOutput with the newly-created quest id + guild slug for URL routing
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 

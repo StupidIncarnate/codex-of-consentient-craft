@@ -8,7 +8,7 @@
  * opRemoveContract.parse({ op: 'remove', ref: 'guild[0:0]/quest[0:1]' });
  * // Returns an OpRemove
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 
 export const opRemoveContract = z.object({

@@ -5,7 +5,7 @@
  * const result = hookPostEditResponderResultContract.parse({ violations: [], message: 'No violations' });
  * // Returns validated HookPostEditResponderResult
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { lintResultContract } from '../lint-result/lint-result-contract';
 import { messageContract } from '../message/message-contract';
 

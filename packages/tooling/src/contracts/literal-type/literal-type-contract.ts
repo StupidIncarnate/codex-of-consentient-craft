@@ -5,7 +5,7 @@
  * const type = literalTypeContract.parse('string');
  * // Returns: LiteralType ('string' or 'regex')
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const literalTypeContract = z.enum(['string', 'regex']).brand<'LiteralType'>();
 

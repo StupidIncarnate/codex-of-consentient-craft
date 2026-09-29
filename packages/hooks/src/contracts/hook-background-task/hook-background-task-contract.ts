@@ -13,7 +13,7 @@
  * hookBackgroundTaskContract.parse({ id: 'bcibjy15w', type: 'shell', status: 'running' });
  * // Returns a HookBackgroundTask
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `status` and `type` are open branded strings rather than enums, deliberately. The event shape is
 // undocumented; a value an enum did not list would be REJECTED, and a rejected parse reads

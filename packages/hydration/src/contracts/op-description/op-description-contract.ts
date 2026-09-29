@@ -8,7 +8,7 @@
  * opDescriptionContract.parse('create quest[0:1]');
  * // Returns a branded OpDescription
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const opDescriptionContract = z.string().min(1).brand<'OpDescription'>();
 

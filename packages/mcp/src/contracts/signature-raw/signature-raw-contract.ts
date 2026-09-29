@@ -5,7 +5,7 @@
  * const signature: SignatureRaw = signatureRawContract.parse('export const foo = (input: string): boolean =>');
  * // Returns a branded SignatureRaw string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const signatureRawContract = z.string().brand<'SignatureRaw'>();
 

@@ -5,7 +5,7 @@
  * const invocation = transcriptToolInvocationContract.parse({ name: 'mcp__dungeonmaster__get-agent-prompt', workItemId: 'work-1' });
  * // Returns a TranscriptToolInvocation; workItemId is null when the tool call carried no workItemId argument
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const transcriptToolInvocationContract = z.object({
   name: z.string().min(1).brand<'TranscriptToolName'>(),

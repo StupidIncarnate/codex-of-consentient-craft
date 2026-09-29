@@ -16,7 +16,7 @@
  * ingredientHandleContract.parse({ ingredient: 'quest', ref: 'guild[0:0]/quest[0:2]' });
  * // Returns IngredientHandleData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 import type { FieldValuesFor } from '../field-values/field-values-contract';

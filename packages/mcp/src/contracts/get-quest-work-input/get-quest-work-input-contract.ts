@@ -17,7 +17,7 @@
  * to guess one.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const getQuestWorkInputContract = z
   .object({

@@ -12,7 +12,7 @@
  *   toolResultBytes: 34_000, topTools: [{ name: 'Read', count: 5 }],
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 

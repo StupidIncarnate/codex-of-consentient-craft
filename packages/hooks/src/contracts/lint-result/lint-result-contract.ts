@@ -5,7 +5,7 @@
  * const result = lintResultContract.parse(resultData);
  * // Returns validated LintResult with filePath, messages array, errorCount, warningCount
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { lintMessageContract } from '../lint-message/lint-message-contract';
 
 export const lintResultContract = z.object({

@@ -5,7 +5,7 @@
  * const data = subagentStartHookDataContract.parse({ session_id: 'abc', transcript_path: '/path', cwd: '/cwd', hook_event_name: 'SubagentStart', agent_id: 'agent-123', agent_type: 'Explore' });
  * // Returns validated SubagentStartHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const subagentStartHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),

@@ -5,7 +5,7 @@
  * const result = signalBackResultContract.parse({ success: true, signal: {...} });
  * // Returns validated result from the signal-back broker
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { signalBackInputContract } from '../signal-back-input/signal-back-input-contract';
 
 export const signalBackResultContract = z.object({

@@ -10,7 +10,7 @@
  * hydrationOpContract.parse({ op: 'remove', ref: 'guild[0:0]/quest[0:1]' });
  * // Returns one of the seven HydrationOp members
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { opCreateContract } from '../op-create/op-create-contract';
 import { opSetContract } from '../op-set/op-set-contract';
 import { opRemoveContract } from '../op-remove/op-remove-contract';

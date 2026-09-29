@@ -5,7 +5,7 @@
  * const instance = eslintInstanceContract.parse({ calculateConfigForFile: async () => ({}) });
  * // Returns validated EslintInstance object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `calculateConfigForFile` and `isPathIgnored` are functions — a Zod object schema cannot check
 // callability, so both stay out of the parse and are attached only through the type intersection

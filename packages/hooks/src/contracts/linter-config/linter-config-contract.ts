@@ -5,7 +5,7 @@
  * const config = linterConfigContract.parse({ rules: { 'no-console': 'error' } });
  * // Returns validated LinterConfig object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 

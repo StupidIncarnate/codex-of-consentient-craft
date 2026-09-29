@@ -7,7 +7,7 @@
  * // Returns validated FrameworkPreset type with branded strings
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const packageNameArrayContract = z.array(z.string().brand<'PackageName'>());
 const nullablePackageNameArrayContract = packageNameArrayContract.nullable();

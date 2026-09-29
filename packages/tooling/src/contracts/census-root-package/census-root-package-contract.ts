@@ -7,7 +7,7 @@
  * censusRootPackageContract.parse({ name: '@acme/app', version: '1.0.0' });
  * // Returns: { name: '@acme/app' }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const censusRootPackageContract = z.object({
   name: z.string().min(1).brand<'CensusPackageName'>().optional(),

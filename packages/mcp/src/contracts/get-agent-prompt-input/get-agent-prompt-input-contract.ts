@@ -16,7 +16,7 @@
  * THERE IS NO `discipline` ARGUMENT. Every prompt is one file named for whose it is —
  * `codeweaver-reviewer`, `siegemaster-walker`, and so on — so the agent name alone selects the text.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
 

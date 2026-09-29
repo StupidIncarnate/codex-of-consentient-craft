@@ -5,7 +5,7 @@
  * const threshold = occurrenceThresholdContract.parse(3);
  * // Returns: OccurrenceThreshold (branded number >= 2)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { occurrenceCountStatics } from '../../statics/occurrence-count/occurrence-count-statics';
 
 export const occurrenceThresholdContract = z

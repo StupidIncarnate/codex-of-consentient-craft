@@ -6,7 +6,7 @@
  * censusPackageContract.parse({ name: '@acme/api', dir: 'packages/api' });
  * // Returns: CensusPackage
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPathContract } from '../census-path/census-path-contract';
 
 export const censusPackageContract = z.object({

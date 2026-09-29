@@ -13,7 +13,7 @@
  * // Returns a branded TypeDiagnostic
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { repoRelativePathContract, lineCountContract } from '@dungeonmaster/shared/contracts';
 
 export const typeDiagnosticContract = z.object({

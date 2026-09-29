@@ -11,7 +11,7 @@
  *   cacheCreationTokens: 32_335, thinkingTokens: 0,
  * });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const tokenUsageContract = z
   .object({

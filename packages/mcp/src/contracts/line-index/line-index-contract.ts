@@ -5,7 +5,7 @@
  * const index: LineIndex = lineIndexContract.parse(0);
  * // Returns a branded LineIndex integer (0 or positive)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const lineIndexContract = z.number().int().min(0).brand<'LineIndex'>();
 

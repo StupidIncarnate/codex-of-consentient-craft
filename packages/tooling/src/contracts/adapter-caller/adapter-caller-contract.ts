@@ -7,7 +7,7 @@
  * adapterCallerContract.parse({ file: 'packages/a/src/x.ts', proxyFile: null, composedBy: [], catchAll: [] });
  * // Returns: AdapterCaller
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { censusPathContract } from '../census-path/census-path-contract';
 import { proxyCatchAllContract } from '../proxy-catch-all/proxy-catch-all-contract';
 

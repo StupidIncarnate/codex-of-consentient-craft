@@ -7,7 +7,7 @@
  * // Returns a validated PackageJson shape with optional devDependencies map and workspaces list
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const packageJsonKeyContract = z.string().brand<'PackageJsonKey'>();
 

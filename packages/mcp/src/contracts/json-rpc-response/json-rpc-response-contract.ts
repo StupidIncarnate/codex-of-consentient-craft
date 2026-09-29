@@ -5,7 +5,7 @@
  * const response: JsonRpcResponse = jsonRpcResponseContract.parse({ jsonrpc: '2.0', id: 1, result: {...} });
  * // Returns validated JSON-RPC response with jsonrpc version, id, and either result or error
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const jsonRpcErrorContract = z.object({
   code: z.number().int().brand<'ErrorCode'>(),

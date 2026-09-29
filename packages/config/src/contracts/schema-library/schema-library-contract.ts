@@ -7,7 +7,7 @@
  * // Returns validated SchemaLibrary type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 
 export const schemaLibraryContract = z.enum(schemaLibraryStatics.libraries.all);

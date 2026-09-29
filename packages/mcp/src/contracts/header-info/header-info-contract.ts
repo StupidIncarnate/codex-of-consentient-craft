@@ -5,7 +5,7 @@
  * const headerInfo = HeaderInfoStub({ lineIndex: LineIndexStub({ value: 10 }), headerText: HeaderTextStub({ value: '## Section Title' }) });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { lineIndexContract } from '../line-index/line-index-contract';
 import { headerTextContract } from '../header-text/header-text-contract';
 

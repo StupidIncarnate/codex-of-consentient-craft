@@ -5,7 +5,7 @@
  * const config = preEditLintConfigContract.parse(configData);
  * // Returns validated PreEditLintConfig with rules array (strings or RuleConfig objects)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ruleConfigContract } from '../rule-config/rule-config-contract';
 import type { RuleConfig } from '../rule-config/rule-config-contract';
 

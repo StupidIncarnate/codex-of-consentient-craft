@@ -5,7 +5,7 @@
  * const hookData = userPromptSubmitHookDataContract.parse(data);
  * // Returns validated UserPromptSubmitHookData with user_prompt
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const userPromptSubmitHookDataContract = z.object({
   session_id: z.string().min(1).brand<'SessionId'>(),

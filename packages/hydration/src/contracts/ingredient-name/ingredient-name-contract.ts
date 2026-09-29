@@ -10,7 +10,7 @@
  * ingredientNameContract.parse('quest');
  * // Returns a branded IngredientName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const ingredientNameContract = z
   .string()

@@ -5,7 +5,7 @@
  * const config = partialEslintConfigContract.parse({ rules: { 'no-console': 'error' } });
  * // Returns validated PartialEslintConfig with rules only
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 

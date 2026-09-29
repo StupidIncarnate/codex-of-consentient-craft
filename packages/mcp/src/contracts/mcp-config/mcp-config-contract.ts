@@ -14,7 +14,7 @@
  * // Returns typed McpConfig object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const mcpServerTypeContract = z.string().brand<'McpServerType'>();
 const mcpCommandContract = z.string().brand<'McpCommand'>();

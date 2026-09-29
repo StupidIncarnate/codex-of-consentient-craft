@@ -9,7 +9,7 @@
  * bucketMinutesContract.parse('5');
  * // Returns: 5 as BucketMinutes
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const bucketMinutesContract = z.coerce.number().int().positive().brand<'BucketMinutes'>();
 

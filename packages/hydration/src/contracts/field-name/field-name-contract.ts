@@ -7,7 +7,7 @@
  * fieldNameContract.parse('status');
  * // Returns a branded FieldName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fieldNameContract = z.string().min(1).brand<'FieldName'>();
 

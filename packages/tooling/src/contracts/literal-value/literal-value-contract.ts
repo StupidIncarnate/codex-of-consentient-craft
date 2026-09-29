@@ -5,7 +5,7 @@
  * const value = literalValueContract.parse('some string');
  * // Returns: LiteralValue (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const literalValueContract = z.string().brand<'LiteralValue'>();
 

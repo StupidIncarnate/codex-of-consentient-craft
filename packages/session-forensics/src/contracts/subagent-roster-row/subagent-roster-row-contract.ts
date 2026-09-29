@@ -11,7 +11,7 @@
  * // Returns the branded SubagentRosterRow. startedAt and endedAt are optional here — where
  * // SubagentWindow requires both — because the transcript may hold no timestamped record at all.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentIdContract } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../subagent-meta/subagent-meta-contract';

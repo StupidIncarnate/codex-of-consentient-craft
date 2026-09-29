@@ -5,7 +5,7 @@
  * const param: ParameterName = parameterNameContract.parse('input');
  * // Returns a branded ParameterName string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const parameterNameContract = z.string().brand<'ParameterName'>();
 

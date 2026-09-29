@@ -5,7 +5,7 @@
  * const client: McpServerClient = { process, sendRequest: async (req) => {...}, close: async () => {...} };
  * // Returns a client object with process, sendRequest, and close methods
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { JsonRpcRequest } from '../json-rpc-request/json-rpc-request-contract';
 import type { JsonRpcResponse } from '../json-rpc-response/json-rpc-response-contract';
 

@@ -4,7 +4,7 @@
  * `scrolls/seigelense/siegelense-recipes.md`'s "the ten malformed declarations" table, row 6, "an
  * extra named `remove`".
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { dmIngredient, sampleFields, sampleRecordContract, write } from './_shared';
 
 export const extraNamedRemove = dmIngredient({

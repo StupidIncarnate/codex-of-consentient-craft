@@ -22,7 +22,7 @@
  * });
  * // Returns { field: FieldName, to: unknown[], reach: ReachFn<unknown, unknown> }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { fieldNameContract } from '../field-name/field-name-contract';
 
 /**

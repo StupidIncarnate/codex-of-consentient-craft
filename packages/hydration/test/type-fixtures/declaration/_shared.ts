@@ -14,7 +14,7 @@
  * USAGE:
  * import { dmIngredient, sampleFields, sampleRecordContract, write, walk } from './_shared';
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientDeclareBroker } from '../../../src/brokers/ingredient/declare/ingredient-declare-broker';
 import type {
   IngredientConfig,

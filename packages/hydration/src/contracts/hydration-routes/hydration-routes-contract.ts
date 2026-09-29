@@ -15,7 +15,7 @@
  * hydrationRoutesContract.parse({ write: ({ target, fields }) => hydrate({ target, fields }) });
  * // Returns HydrationRoutes
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { hydrationRouteContract } from '../hydration-route/hydration-route-contract';
 
 export type RouteFn<TTarget> = (args: {

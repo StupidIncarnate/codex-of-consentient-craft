@@ -5,7 +5,7 @@
  * const result = hookSessionStartResponderResultContract.parse({ shouldOutput: true, content: "..." });
  * // Returns validated HookSessionStartResponderResult
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const hookSessionStartResponderResultContract = z.object({
   shouldOutput: z.boolean(),

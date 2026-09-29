@@ -5,7 +5,7 @@
  * const result: GetQuestStatusResult = getQuestStatusResultContract.parse({ success: true, status: {...} });
  * // Returns validated GetQuestStatusResult with success status and orchestration status or error
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { orchestrationStatusContract } from '@dungeonmaster/shared/contracts';
 

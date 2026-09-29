@@ -5,7 +5,7 @@
  * const returnType: ReturnType = returnTypeContract.parse('Promise<void>');
  * // Returns a branded ReturnType string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const returnTypeContract = z.string().brand<'ReturnType'>();
 

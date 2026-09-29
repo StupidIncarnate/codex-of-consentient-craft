@@ -5,7 +5,7 @@
  * moduleSpecifierContract.parse('fs/promises');
  * // Returns: ModuleSpecifier (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const moduleSpecifierContract = z.string().min(1).brand<'ModuleSpecifier'>();
 

@@ -12,7 +12,7 @@
  * fieldValuesContract.parse({ userRequest: { __savedRef: true, name: 'origin' } });
  * // Returns FieldValues
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { fieldNameContract } from '../field-name/field-name-contract';
 import { savedRefContract } from '../saved-ref/saved-ref-contract';
 import type { SavedRef } from '../saved-ref/saved-ref-contract';

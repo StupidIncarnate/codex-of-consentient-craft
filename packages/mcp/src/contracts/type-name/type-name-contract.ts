@@ -5,7 +5,7 @@
  * const typeName: TypeName = typeNameContract.parse('string');
  * // Returns a branded TypeName string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const typeNameContract = z.string().brand<'TypeName'>();
 

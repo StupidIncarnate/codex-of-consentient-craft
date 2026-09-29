@@ -5,7 +5,7 @@
  * const result = commandResultContract.parse({ exitCode: 0, stdout: 'output', stderr: '' });
  * // Returns: CommandResult (object with exitCode, stdout, stderr)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { processOutputContract } from '../process-output/process-output-contract';
 

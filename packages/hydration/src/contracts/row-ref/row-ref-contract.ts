@@ -14,7 +14,7 @@
  * rowRefContract.parse('guild[0:0]/quest[0:2]');
  * // Returns a branded RowRef
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
 
 const { separator, matchWord } = rowRefStatics.slot;

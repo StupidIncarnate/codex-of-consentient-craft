@@ -5,7 +5,7 @@
  * const result: ToolListResult = toolListResultContract.parse({ tools: [{ name: 'discover', description: '...', inputSchema: {...} }] });
  * // Returns validated array of available MCP tools
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const jsonSchemaContract = z.object({
   type: z.string().brand<'JsonSchemaType'>(),

@@ -5,7 +5,7 @@
  * createQuestInputContract.parse({ userRequest: 'Build the login flow' });
  * // Returns: validated CreateQuestInput with the user's original request text
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questTypeContract } from '@dungeonmaster/shared/contracts';
 
 export const createQuestInputContract = z

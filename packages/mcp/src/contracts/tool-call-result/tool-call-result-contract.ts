@@ -5,7 +5,7 @@
  * const result: ToolCallResult = toolCallResultContract.parse({ content: [{ type: 'text', text: 'Result...' }] });
  * // Returns validated tool call result with array of content items
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const toolCallContentContract = z.object({
   type: z.string().brand<'ContentType'>(),

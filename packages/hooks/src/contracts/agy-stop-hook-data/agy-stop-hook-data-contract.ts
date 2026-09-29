@@ -5,7 +5,7 @@
  * const hookData = agyStopHookDataContract.parse(input);
  * // Returns validated AgyStopHookData
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agyStopHookDataContract = z
   .object({

@@ -13,7 +13,7 @@
  * filterExpectContract.parse('some');
  * // Returns 'one' | 'some' | 'any'
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const filterExpectContract = z.enum(['one', 'some', 'any']);
 

@@ -10,7 +10,7 @@
  * planRunsResultContract.parse({ serverless: false, needsServerFor: 'guild' });
  * // Returns PlanRunsResult
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ingredientNameContract } from '../ingredient-name/ingredient-name-contract';
 
 export const planRunsResultContract = z.discriminatedUnion('serverless', [
