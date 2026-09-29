@@ -8,7 +8,8 @@ import { ViolationDetailStub } from '../../../contracts/violation-detail/violati
 describe('violationsCheckNewBroker', () => {
   describe('input validation', () => {
     it('VALID: {toolInput: valid file_path} => returns no new violations when no changes', async () => {
-      violationsCheckNewBrokerProxy();
+      const proxy = violationsCheckNewBrokerProxy();
+      proxy.setupFileMissing({ filePath: FilePathStub({ value: '/test/file.ts' }) });
       const toolInput = WriteToolInputStub({
         content: 'test',
         file_path: FilePathStub({ value: '/test/file.ts' }),
@@ -52,7 +53,10 @@ describe('violationsCheckNewBroker', () => {
       const proxy = violationsCheckNewBrokerProxy();
       proxy.setLintIgnoredPaths({ enabled: true });
       proxy.setPathIgnored({ ignored: true });
-      proxy.setupViolationCheck({ hasViolations: true });
+      proxy.setupViolationCheck({
+        hasViolations: true,
+        filePath: FilePathStub({ value: '/test/project/smoke-repo/fixture.ts' }),
+      });
 
       const toolInput = WriteToolInputStub({
         content: 'const x = new;',

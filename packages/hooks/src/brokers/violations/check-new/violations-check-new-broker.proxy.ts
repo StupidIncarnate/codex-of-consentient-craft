@@ -9,9 +9,11 @@ import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { getEnv } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const violationsCheckNewBrokerProxy = (): {
-  setupViolationCheck: (params?: { hasViolations?: boolean }) => void;
+  setupViolationCheck: (params?: { hasViolations?: boolean; filePath?: FilePath }) => void;
+  setupFileMissing: (params: { filePath: FilePath }) => void;
   setPathIgnored: (params: { ignored: boolean }) => void;
   setLintIgnoredPaths: (params: { enabled: boolean }) => void;
 } => {
@@ -54,13 +56,19 @@ export const violationsCheckNewBrokerProxy = (): {
         ignored,
       });
     },
-    setupViolationCheck: ({ hasViolations = false }: { hasViolations?: boolean } = {}): void => {
+    setupFileMissing: ({ filePath }: { filePath: FilePath }): void => {
+      contentChangesProxy.setupReadFileNotFound({ filePath });
+    },
+    setupViolationCheck: ({
+      hasViolations = false,
+      filePath = FilePathStub({ value: '/test/file.ts' }),
+    }: { hasViolations?: boolean; filePath?: FilePath } = {}): void => {
       // Setup content changes with actual content to avoid early returns in lint broker
       // For Edit tool: content contains 'old' which gets replaced with 'new' by the edit
-      // This ensures old and new content are different. The filePath is never asserted on:
-      // callers reach this staging only when they intend the lint step to actually run.
+      // This ensures old and new content are different. The filePath is the file the caller's
+      // toolInput edits, since the broker reads that exact path for the old content.
       contentChangesProxy.setupReadFileSuccess({
-        filePath: FilePathStub({ value: '/test/file.ts' }),
+        filePath,
         content: oldContent,
       });
 

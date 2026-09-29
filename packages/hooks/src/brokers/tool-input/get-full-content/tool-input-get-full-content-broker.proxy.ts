@@ -1,4 +1,5 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -14,6 +15,7 @@ export const toolInputGetFullContentBrokerProxy = (): {
   setupReadFileError: ({ filePath, error }: { filePath: FilePath; error: Error }) => void;
 } => {
   const fsProxy = readFileProxy();
+  isFsErrorProxy();
 
   return {
     setupReadFileSuccess: ({ filePath, contents }): void => {

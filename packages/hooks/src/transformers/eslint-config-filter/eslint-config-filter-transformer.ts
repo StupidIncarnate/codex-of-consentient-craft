@@ -3,14 +3,13 @@
  *
  * USAGE:
  * const filtered = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
- * // Returns LinterConfig with only allowed rules enabled; a rule tagged 'pre-edit' that the host
+ * // Returns a Linter.Config with only allowed rules enabled; a rule tagged 'pre-edit' that the host
  * // registers 'off' runs at 'error' with the host's options kept
  */
+import type { Linter } from '#gateway/npm/eslint';
 import { isOffRuleSeverityGuard } from '../../guards/is-off-rule-severity/is-off-rule-severity-guard';
 import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import type { LinterConfig } from '../../contracts/linter-config/linter-config-contract';
-import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
 import { eslintRuleNameContract } from '../../contracts/eslint-rule-name/eslint-rule-name-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 import { rawEslintConfigToPartialTransformer } from '../raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer';
@@ -22,7 +21,7 @@ export const eslintConfigFilterTransformer = ({
 }: {
   eslintConfig: unknown;
   hookConfig: PreEditLintConfig;
-}): LinterConfig => {
+}): Linter.Config => {
   // Transform raw ESLint config to partial config (strips language field)
   const partialConfig = rawEslintConfigToPartialTransformer({ rawConfig: eslintConfig });
 
@@ -34,7 +33,7 @@ export const eslintConfigFilterTransformer = ({
     : undefined;
 
   // Create new config with filtered rules
-  const filteredRules: Record<PropertyKey, unknown> = {};
+  const filteredRules: Linter.RulesRecord = {};
 
   // Only keep allowed rules, set others to 'off'
   const eslintRules = partialConfig.rules;
@@ -56,16 +55,21 @@ export const eslintConfigFilterTransformer = ({
           filteredRules[rule] = options.length > 0 ? ['error', ...options] : 'error';
           return;
         }
-        filteredRules[rule] = ruleValue;
+        filteredRules[rule] = ruleValue as Linter.RuleEntry;
       }
     });
   }
 
-  // Return new validated config with filtered rules and required ESLint fields
-  return linterConfigContract.parse({
+  // Return new config with filtered rules and required ESLint fields
+  const config: Linter.Config = {
     files: ['**/*.ts', '**/*.tsx'], // Ensure files pattern is set
     rules: filteredRules,
-    ...(plugins !== undefined && { plugins }),
-    ...(languageOptions !== undefined && { languageOptions }),
-  });
+  };
+  if (plugins !== undefined) {
+    config.plugins = plugins as NonNullable<Linter.Config['plugins']>;
+  }
+  if (languageOptions !== undefined) {
+    config.languageOptions = languageOptions as NonNullable<Linter.Config['languageOptions']>;
+  }
+  return config;
 };

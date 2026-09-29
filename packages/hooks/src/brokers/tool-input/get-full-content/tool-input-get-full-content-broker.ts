@@ -8,7 +8,7 @@
 import { readFile } from '#gateway/node/fs__promises';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';
-import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
+import { isFsError } from '#gateway/node/fs';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
@@ -33,12 +33,8 @@ export const toolInputGetFullContentBroker = async ({
   const readResult = await readFile(filePath)
     .then((contents) => fileContentsContract.parse(contents))
     .catch((error: unknown) => {
-      const isNodeError = isNodeErrorContract({ error });
-      if (isNodeError) {
-        const nodeError = error as NodeJS.ErrnoException;
-        if (nodeError.code === 'ENOENT') {
-          return null;
-        }
+      if (isFsError({ error, code: 'ENOENT' })) {
+        return null;
       }
       throw error;
     });

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = eslintLoadConfigBrokerProxy();
- * proxy.returnsConfig({ filePath: 'src/file.ts', config: LinterConfigStub() });
+ * proxy.returnsConfig({ filePath: 'src/file.ts', config: { rules: { 'no-console': 'error' } } });
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
  */
 

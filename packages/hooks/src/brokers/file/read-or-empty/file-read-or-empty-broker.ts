@@ -6,7 +6,7 @@
  * // Returns file content or empty string on ENOENT
  */
 import { readFile } from '#gateway/node/fs__promises';
-import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
+import { isFsError } from '#gateway/node/fs';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
@@ -20,12 +20,8 @@ export const fileReadOrEmptyBroker = async ({
     const contents = await readFile(filePath);
     return fileContentsContract.parse(contents);
   } catch (error: unknown) {
-    const isNodeError = isNodeErrorContract({ error });
-    if (isNodeError) {
-      const nodeError = error as NodeJS.ErrnoException;
-      if (nodeError.code !== 'ENOENT') {
-        throw error;
-      }
+    if (!isFsError({ error, code: 'ENOENT' })) {
+      throw error;
     }
     return fileContentsContract.parse('');
   }

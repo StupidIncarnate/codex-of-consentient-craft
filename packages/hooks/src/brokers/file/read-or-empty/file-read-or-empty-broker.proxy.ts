@@ -1,4 +1,5 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const fileReadOrEmptyBrokerProxy = (): {
@@ -7,6 +8,7 @@ export const fileReadOrEmptyBrokerProxy = (): {
   setupFileError: ({ filePath, error }: { filePath: FilePath; error: Error }) => void;
 } => {
   const fsProxy = readFileProxy();
+  isFsErrorProxy();
 
   return {
     setupFileExists: ({ filePath, content }: { filePath: FilePath; content: string }): void => {

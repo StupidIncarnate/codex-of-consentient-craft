@@ -5,10 +5,10 @@
  * const lintResult = eslintResultToLintResultTransformer({ eslintResult });
  * // Returns validated LintResult with simplified structure
  */
+import type { Linter } from '#gateway/npm/eslint';
 import type { LintResult } from '../../contracts/lint-result/lint-result-contract';
 import { lintMessageContract } from '../../contracts/lint-message/lint-message-contract';
 import { lintResultContract } from '../../contracts/lint-result/lint-result-contract';
-import { eslintRawMessageContract } from '../../contracts/eslint-raw-message/eslint-raw-message-contract';
 
 /**
  * Transforms an ESLint result to the internal LintResult format.
@@ -24,25 +24,18 @@ export const eslintResultToLintResultTransformer = ({
 }: {
   eslintResult: {
     filePath: string;
-    messages: unknown[];
+    messages: Linter.LintMessage[];
     errorCount: number;
     warningCount: number;
   };
 }): LintResult => {
-  // Filter and validate messages
+  // A message with no source location (line 0) is not a violation the hooks can point at
   const validMessages = eslintResult.messages
-    .map((msg) => eslintRawMessageContract.safeParse(msg))
-    .filter(
-      (
-        parsed,
-      ): parsed is ReturnType<typeof eslintRawMessageContract.safeParse> & { success: true } =>
-        parsed.success && parsed.data.line > 0 && parsed.data.column >= 0,
-    )
-    .map((parsed) => {
-      const { line, column, message, severity, ruleId } = parsed.data;
+    .filter((msg) => msg.line > 0 && msg.column >= 0)
+    .map(({ line, column, message, severity, ruleId }) => {
       const messageData = { line, column, message, severity };
 
-      if (ruleId !== null && ruleId !== undefined && ruleId !== '') {
+      if (ruleId !== null && ruleId !== '') {
         return lintMessageContract.parse({ ...messageData, ruleId });
       }
 
