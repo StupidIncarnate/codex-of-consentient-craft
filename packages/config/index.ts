@@ -17,8 +17,6 @@ import type { AllowedExternalImports } from './src/contracts/folder-config/folde
 import type { FrameworkPreset } from './src/contracts/framework-presets/framework-presets-contract';
 
 export { configResolveBroker };
-export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/dungeonmaster-config.stub';
-export { DevServerE2eProcessStub } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
 export { e2eProcessPlaceholderStatics } from './src/statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 
