@@ -122,58 +122,32 @@ describe('keyStatics', () => {
       expect(pattern.test('guild-alpha')).toBe(false);
     });
 
-    it('VALID: {a Mantine per-mount id} => matches the generated-id pattern, because it differs between two readings of the same state', () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
+    it.each([
+      ['gwrqe5vg6', true],
+      ['oxhnuns51', true],
+      ['nsg303p87', true],
+      ['0abcdef1', true],
+      ['mantine', false],
+      ['EXECUTION', false],
+      ['2', false],
+      ['row', false],
+      ['content', false],
+      ['root', false],
+      ['123456789', false],
+    ])(
+      'VALID: {segment: %s} => generated-id segment pattern answers %s, whichever end of the segment the digit sits on',
+      (segment, expected) => {
+        const pattern = new RegExp(
+          keyStatics.attrs.generatedIdSegmentPattern.source,
+          keyStatics.attrs.generatedIdSegmentPattern.flags,
+        );
 
-      expect(pattern.test('mantine-gwrqe5vg6-label')).toBe(true);
-    });
+        expect(pattern.test(segment)).toBe(expected);
+      },
+    );
 
-    it('VALID: {a second Mantine per-mount id} => matches too, with digits interleaved differently', () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
-
-      expect(pattern.test('mantine-nsg303p87-label')).toBe(true);
-    });
-
-    it("VALID: {an app's own indexed id} => does NOT match, because a trailing counter is stable", () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
-
-      expect(pattern.test('EXECUTION_ROW_0')).toBe(false);
-    });
-
-    it('VALID: {a hyphenated row id} => does NOT match', () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
-
-      expect(pattern.test('quest-row-2')).toBe(false);
-    });
-
-    it('VALID: {a plain word id} => does NOT match', () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
-
-      expect(pattern.test('main-content')).toBe(false);
-    });
-
-    it('VALID: {root} => does NOT match, so a stable app id still reaches the element column', () => {
-      const pattern = new RegExp(
-        keyStatics.attrs.generatedIdPattern.source,
-        keyStatics.attrs.generatedIdPattern.flags,
-      );
-
-      expect(pattern.test('root')).toBe(false);
+    it('VALID: {generatedIdMask} => is the single character a minted segment prints as', () => {
+      expect(keyStatics.attrs.generatedIdMask).toBe('*');
     });
   });
 
