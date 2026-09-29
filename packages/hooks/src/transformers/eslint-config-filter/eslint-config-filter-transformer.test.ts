@@ -134,4 +134,90 @@ describe('eslintConfigFilterTransformer', () => {
       });
     });
   });
+
+  describe('pre-edit rules registered off by the host', () => {
+    it("VALID: {pre-edit rule 'off'} => runs at 'error'", () => {
+      const eslintConfig = LinterConfigStub({
+        rules: { '@dungeonmaster/ban-primitives': 'off' },
+      });
+      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/ban-primitives': 'error' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it('VALID: {pre-edit rule severity 0} => runs at error', () => {
+      const eslintConfig = LinterConfigStub({
+        rules: { '@dungeonmaster/ban-primitives': 0 },
+      });
+      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/ban-primitives': 'error' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it("VALID: {pre-edit rule ['off', options]} => runs at 'error' with the options kept", () => {
+      const eslintConfig = LinterConfigStub({
+        rules: {
+          '@dungeonmaster/ban-primitives': ['off', { workspacePackageNames: ['shared', 'hooks'] }],
+        },
+      });
+      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({
+        rules: {
+          '@dungeonmaster/ban-primitives': [
+            'error',
+            { workspacePackageNames: ['shared', 'hooks'] },
+          ],
+        },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it("VALID: {pre-edit rule ['warn', options]} => host severity and options pass through", () => {
+      const eslintConfig = LinterConfigStub({
+        rules: { '@dungeonmaster/ban-primitives': ['warn', { a: 1 }] },
+      });
+      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({
+        rules: { '@dungeonmaster/ban-primitives': ['warn', { a: 1 }] },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it("VALID: {rule not tagged pre-edit, host 'off'} => stays 'off'", () => {
+      const eslintConfig = LinterConfigStub({ rules: { 'no-console': 'off' } });
+      const hookConfig = PreEditLintConfigStub({ rules: ['no-console'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({
+        rules: { 'no-console': 'off' },
+        files: ['**/*.ts', '**/*.tsx'],
+      });
+    });
+
+    it('EMPTY: {pre-edit rule the host does not register} => omitted', () => {
+      const eslintConfig = LinterConfigStub({ rules: { 'no-console': 'error' } });
+      const hookConfig = PreEditLintConfigStub({ rules: ['@dungeonmaster/ban-primitives'] });
+
+      const result = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
+
+      expect(result).toStrictEqual({ rules: {}, files: ['**/*.ts', '**/*.tsx'] });
+    });
+  });
 });

@@ -3,8 +3,11 @@
  *
  * USAGE:
  * const filtered = eslintConfigFilterTransformer({ eslintConfig, hookConfig });
- * // Returns LinterConfig with only allowed rules enabled
+ * // Returns LinterConfig with only allowed rules enabled; a rule tagged 'pre-edit' that the host
+ * // registers 'off' runs at 'error' with the host's options kept
  */
+import { isOffRuleSeverityGuard } from '../../guards/is-off-rule-severity/is-off-rule-severity-guard';
+import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import type { LinterConfig } from '../../contracts/linter-config/linter-config-contract';
 import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
@@ -41,9 +44,19 @@ export const eslintConfigFilterTransformer = ({
       // ESLint rules are always strings, filter out symbols
       if (typeof rule === 'string') {
         const ruleValue = eslintRules[eslintRuleNameContract.parse(rule)];
-        if (ruleValue !== undefined) {
-          filteredRules[rule] = ruleValue;
+        const isPreEditRule = Object.entries(dungeonmasterRuleEnforceOnStatics).some(
+          ([name, enforceOn]) => name === rule && enforceOn === 'pre-edit',
+        );
+        const isForcedOn = isPreEditRule && isOffRuleSeverityGuard({ ruleValue });
+        if (ruleValue === undefined) {
+          return;
         }
+        if (isForcedOn) {
+          const options: unknown[] = Array.isArray(ruleValue) ? ruleValue.slice(1) : [];
+          filteredRules[rule] = options.length > 0 ? ['error', ...options] : 'error';
+          return;
+        }
+        filteredRules[rule] = ruleValue;
       }
     });
   }
