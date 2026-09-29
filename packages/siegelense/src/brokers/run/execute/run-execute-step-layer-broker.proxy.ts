@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type {
   AbsoluteFilePath,
   ContentText,
@@ -14,7 +15,7 @@ import { stepDispatchBrokerProxy } from '../../step/dispatch/step-dispatch-broke
 // Re-declared locally rather than imported: browser-session-contract.ts keeps its own parsing
 // contract private, the same reason step-dispatch-broker.proxy.ts re-declares matchCountContract.
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
-const ONE_MATCH_COUNT = 1;
+const ZERO_MATCH_COUNT = 0;
 
 // stepDispatchBrokerProxy() itself stages Date.now to a fixed value (1_700_000_000_000) — this
 // proxy relies on that staging rather than repeating it, since a second registerSpyOn on the same
@@ -48,6 +49,7 @@ export const runExecuteStepLayerBrokerProxy = (): {
   }) => { getCallArgs: () => readonly unknown[] };
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  clockAdvancing: (params: { startMs: number; stepMs: number }) => void;
 } => {
   const dispatchProxy = stepDispatchBrokerProxy();
   errorIsNativeErrorAdapterProxy();
@@ -57,6 +59,19 @@ export const runExecuteStepLayerBrokerProxy = (): {
     setLastShotPath: dispatchProxy.setLastShotPath,
     seedBookPresentAt: dispatchProxy.seedBookPresentAt,
     seedLaneAnswers: dispatchProxy.seedLaneAnswers,
+
+    // A later, equally specific `Date.now` registration than `stepDispatchBrokerProxy`'s fixed one,
+    // so it wins for every call: each read returns `stepMs` more than the last, starting at
+    // `startMs + stepMs`.
+    clockAdvancing: ({ startMs, stepMs }: { startMs: number; stepMs: number }): void => {
+      const clock = { now: startMs };
+      registerSpyOn({ object: Date, method: 'now' })
+        .calledWith([])
+        .implement(() => {
+          clock.now += stepMs;
+          return clock.now;
+        });
+    },
 
     laneGotoSucceeds: (): LaneSession =>
       LaneSessionStub({
@@ -103,18 +118,18 @@ export const runExecuteStepLayerBrokerProxy = (): {
         browser: { goto: jest.fn().mockRejectedValue(error) },
       }),
 
+    // Zero matches staged: `waitFor` never pre-resolves, so a target absent for the whole wait must
+    // still reach `waitForMatch` and end as a ceiling hit, never an immediate NO MATCH.
     laneWaitForHitsCeiling: ({ error }: { error: Error }): LaneSession =>
       LaneSessionStub({
         browser: {
-          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
+          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ZERO_MATCH_COUNT)),
           waitForMatch: jest.fn().mockRejectedValue(error),
         },
       }),
 
-    // No `countMatches` staged, unlike `laneWaitForHitsCeiling` above: `until { visible }` never
-    // goes through `stepTargetResolveBroker` at all — pre-resolving is the whole reason `waitFor`
-    // cannot wait for an element to appear, and `runVerbLayerBroker` routes `until` to
-    // `session.waitForMatch` directly. `candidates` (default `[]`, matching `BrowserSessionStub`'s
+    // `until { visible }` never goes through `stepTargetResolveBroker` either;
+    // `runVerbLayerBroker` routes it to `session.waitForMatch` directly. `candidates` (default `[]`, matching `BrowserSessionStub`'s
     // own default) only matters for a strict-mode-violation `error` — DEF-92's own repro — since
     // `stepUntilBroker` calls `describeMatches` ONLY on that path, never on a genuine ceiling.
     laneUntilHitsCeiling: ({

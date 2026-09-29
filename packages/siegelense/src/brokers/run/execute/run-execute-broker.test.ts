@@ -141,10 +141,14 @@ describe('runExecuteBroker', () => {
         status: result.status,
         stepsRun: result.stepsRun,
         stoppedAt: result.stoppedAt,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
       }).toStrictEqual({
         status: 'failed',
         stepsRun: 5,
         stoppedAt: { step: 3, verb: 'goto', error: 'boom', candidates: [] },
+        stopOn: 'never',
+        failedSteps: 1,
       });
       expect(gotoCallCount()).toBe(5);
     });
@@ -290,9 +294,13 @@ describe('runExecuteBroker', () => {
         status: result.status,
         stepsRun: result.stepsRun,
         stoppedAt: result.stoppedAt,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
       }).toStrictEqual({
         status: 'timeout',
         stepsRun: 2,
+        stopOn: 'error',
+        failedSteps: 1,
         stoppedAt: {
           step: 2,
           verb: 'waitFor',
@@ -348,6 +356,55 @@ describe('runExecuteBroker', () => {
             'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
           candidates: [],
         },
+      });
+      expect(gotoCallCount()).toBe(2);
+    });
+
+    it('VALID: {steps 2 and 3 both waitFor and never resolve, stopOn never} => failedSteps 2, stoppedAt still names step 2, and step 4 DOES run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-4' }) }),
+        ],
+        stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAtStep: result.stoppedAt?.step,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 4,
+        stoppedAtStep: 2,
+        stopOn: 'never',
+        failedSteps: 2,
       });
       expect(gotoCallCount()).toBe(2);
     });
@@ -1405,6 +1462,40 @@ describe('runExecuteBroker', () => {
       });
 
       expect(result.durationMs).toBe(1);
+    });
+
+    it('VALID: {one waitFor that hits its ceiling, clock advancing 1000ms per read} => a stopped run reports the time its failing step waited, never 0', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 2000ms exceeded'),
+      });
+      proxy.clockAdvancing({ startMs: 1_700_000_000_000, stepMs: 1000 });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({
+            step: 'waitFor',
+            target: SelectorStub(),
+            state: LocatorStateStub({ value: 'visible' }),
+            timeoutMs: 2000,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, durationMs: result.durationMs }).toStrictEqual({
+        status: 'timeout',
+        durationMs: 2000,
+      });
     });
   });
 });

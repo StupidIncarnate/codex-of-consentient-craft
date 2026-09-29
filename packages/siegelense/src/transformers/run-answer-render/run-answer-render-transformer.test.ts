@@ -1,10 +1,12 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
 import { RunStatusStub } from '../../contracts/run-status/run-status.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
+import { StopOnStub } from '../../contracts/stop-on/stop-on.stub';
 import { StoppedAtStub } from '../../contracts/stopped-at/stopped-at.stub';
 import { runAnswerRenderTransformer } from './run-answer-render-transformer';
 
@@ -62,6 +64,81 @@ describe('runAnswerRenderTransformer', () => {
       expect(output).toBe(
         'RUN: run_3 (status: failed, steps: 3, duration: 120ms)\n' +
           'STOPPED AT: step 4 (click) — AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]\n',
+      );
+    });
+
+    it('VALID: {stoppedAt, stopOn error, failedSteps 1} => renders STOPPED AT with no continuation note', () => {
+      const result = RunResultStub({
+        runId: RunIdStub({ value: 'run_7' }),
+        status: RunStatusStub({ value: 'timeout' }),
+        stepsRun: StepIndexStub({ value: 1 }),
+        stoppedAt: StoppedAtStub({
+          step: StepIndexStub({ value: 1 }),
+          verb: 'waitFor',
+          error: 'visible [data-testid="NOPE"] never resolved in 2000ms',
+          candidates: [],
+        }),
+        shots: [],
+        durationMs: 2004,
+        stopOn: StopOnStub({ value: 'error' }),
+        failedSteps: ReadingCountStub({ value: 1 }),
+      });
+
+      const output = runAnswerRenderTransformer({ result });
+
+      expect(output).toBe(
+        'RUN: run_7 (status: timeout, steps: 1, duration: 2004ms)\n' +
+          'STOPPED AT: step 1 (waitFor) — visible [data-testid="NOPE"] never resolved in 2000ms\n',
+      );
+    });
+
+    it('VALID: {stoppedAt, stopOn never, failedSteps 1} => renders FIRST FAILURE with the continuation note, never STOPPED AT', () => {
+      const result = RunResultStub({
+        runId: RunIdStub({ value: 'run_26' }),
+        status: RunStatusStub({ value: 'failed' }),
+        stepsRun: StepIndexStub({ value: 3 }),
+        stoppedAt: StoppedAtStub({
+          step: StepIndexStub({ value: 2 }),
+          verb: 'click',
+          error: 'NO MATCH: 0 elements match target [data-testid="NOPE"]',
+          candidates: [],
+        }),
+        shots: [],
+        durationMs: 310,
+        stopOn: StopOnStub({ value: 'never' }),
+        failedSteps: ReadingCountStub({ value: 1 }),
+      });
+
+      const output = runAnswerRenderTransformer({ result });
+
+      expect(output).toBe(
+        'RUN: run_26 (status: failed, steps: 3, duration: 310ms)\n' +
+          'FIRST FAILURE: step 2 (click) — NO MATCH: 0 elements match target [data-testid="NOPE"] (continued: --stop-on never)\n',
+      );
+    });
+
+    it('VALID: {stoppedAt, stopOn never, failedSteps 3} => renders FIRST FAILURE with the continuation note and the failed-step count', () => {
+      const result = RunResultStub({
+        runId: RunIdStub({ value: 'run_27' }),
+        status: RunStatusStub({ value: 'failed' }),
+        stepsRun: StepIndexStub({ value: 5 }),
+        stoppedAt: StoppedAtStub({
+          step: StepIndexStub({ value: 2 }),
+          verb: 'click',
+          error: 'boom',
+          candidates: [],
+        }),
+        shots: [],
+        durationMs: 500,
+        stopOn: StopOnStub({ value: 'never' }),
+        failedSteps: ReadingCountStub({ value: 3 }),
+      });
+
+      const output = runAnswerRenderTransformer({ result });
+
+      expect(output).toBe(
+        'RUN: run_27 (status: failed, steps: 5, duration: 500ms)\n' +
+          'FIRST FAILURE: step 2 (click) — boom (continued: --stop-on never; 3 steps failed)\n',
       );
     });
   });

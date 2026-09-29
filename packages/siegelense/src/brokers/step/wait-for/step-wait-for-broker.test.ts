@@ -1,3 +1,4 @@
+import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepWaitForBroker } from './step-wait-for-broker';
 import { stepWaitForBrokerProxy } from './step-wait-for-broker.proxy';
@@ -107,6 +108,45 @@ describe('stepWaitForBroker', () => {
         (caught: unknown): Error => caught as Error,
       );
 
+      expect(getWaitForSettleCalls()).toStrictEqual([]);
+    });
+  });
+
+  describe('the target matches twice', () => {
+    it('INVALID: {strict-mode violation} => throws StepAmbiguousError listing the candidates, not a ceiling hit, and never settles', async () => {
+      const proxy = stepWaitForBrokerProxy();
+      const { session, getDescribeMatchesCalls, getWaitForSettleCalls } =
+        proxy.sessionMatchingTwice({
+          candidates: [
+            StepCandidateStub({ index: 0, ref: 16, text: 'Open' }),
+            StepCandidateStub({ index: 1, ref: 17, text: 'Open' }),
+          ],
+        });
+
+      const error = await stepWaitForBroker({
+        session,
+        target: '[data-testid="MODAL"]',
+        within: '[data-testid="GUILD_LIST"]',
+        state: 'visible',
+        timeoutMs: 2000,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepWaitForBroker to reject');
+        },
+        (caught: unknown): Error => caught as Error,
+      );
+
+      expect({ name: error.name, message: error.message }).toStrictEqual({
+        name: 'StepAmbiguousError',
+        message:
+          'AMBIGUOUS: 2 elements match target [data-testid="MODAL"] within=[data-testid="GUILD_LIST"].\n' +
+          '  [0] ref=16 within=[data-testid="GUILD_LIST"] text="Open" rect=(444,348) 27x25\n' +
+          '  [1] ref=17 within=[data-testid="GUILD_LIST"] text="Open" rect=(444,348) 27x25\n' +
+          'Pick one by ref — { "step": "click", "ref": N } — or narrow with `within`. Two candidates sharing a `within` can only be told apart by ref; run `look` for the current key.',
+      });
+      expect(getDescribeMatchesCalls()).toStrictEqual([
+        [{ target: '[data-testid="MODAL"]', within: '[data-testid="GUILD_LIST"]' }],
+      ]);
       expect(getWaitForSettleCalls()).toStrictEqual([]);
     });
   });
