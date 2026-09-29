@@ -117,10 +117,10 @@ holds every earlier handoff.
 
 - **Phase 2 is complete.** No package has an `adapters/` folder (A13 done, 7cb5ff272). F76 is done.
 - **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
-  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01, B02; server B01, B02;
+  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01 to B03; server B01 to B03;
     siegelense S01 to S04 (siegelense uses its own re-census, not the plan's section; see below).
-  - Hand batches left: web B31 onward (about 87), orchestrator B03
-    onward (52), server B03 onward (8), siegelense S05 onward (29), and every batch for shared (16), testing (12,
+  - Hand batches left: web B31 onward (about 87), orchestrator B04
+    onward (51), server B04 onward (7), siegelense S05 onward (29), and every batch for shared (16), testing (12,
     re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
     config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
 - **Gateway additions this session, all committed and built:** GN5 to GN10 (`stream`/`http`/`zlib`; stdout/stderr
@@ -153,10 +153,10 @@ last report; uncommitted work in that area is that agent's.
 
 | Agent | Work | State |
 |---|---|---|
-| web | B28 to B30 | done, committed ||
-| orchestrator | B03, widened: `isSpawnedStdout` accessor in B02's stream-json proxy | running |
-| server | B03 plus `server-init-responder.proxy.ts` clock staging | running |
-| GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` ||
+| web | B28 to B30 | done, committed |
+| orchestrator | B03, with `isSpawnedStdout`/`isSpawnedStderr` on the stream-json proxy | done, committed. One raw `readline` import stays in the unified-spawn proxy: tail-file's proxy stages `createInterface` on the raw module and both must share one mock; a gateway-owned `createInterface` proxy would clear it |
+| server | B03 plus `server-init-responder.proxy.ts` clock staging | done, committed |
+| GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` |
 | siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging); S05's other files are uncommitted | running |
 
 ### How A18 was run (copy this)
