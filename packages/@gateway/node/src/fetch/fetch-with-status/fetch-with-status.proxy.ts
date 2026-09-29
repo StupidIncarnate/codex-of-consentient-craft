@@ -24,6 +24,7 @@ export const fetchWithStatusProxy = (): {
   setupRefused: (params: { url: string; cause: Error }) => void;
   setupAbortImmediate: (params: { url: string }) => void;
   setupAbortsOnSignal: (params: { url: string }) => void;
+  getCallsFor: (params: { url: string }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -68,5 +69,7 @@ export const fetchWithStatusProxy = (): {
           }),
       );
     },
+    // The full `(url, init)` tuple of every fetch call to that url, in call order.
+    getCallsFor: ({ url }: { url: string }): readonly unknown[][] => handle.callsMatching([url]),
   };
 };

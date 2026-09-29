@@ -1,6 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { AbortErrorStub } from '../abort-error/abort-error.stub';
-import { ConnectionRefusedErrorStub } from '../../net/connection-refused-error/connection-refused-error.stub';
+import { ConnectionRefusedRecordedErrorStub } from '../../net/connection-refused-recorded-error/connection-refused-recorded-error.stub';
 
 const buildResponse = ({
   ok,
@@ -22,8 +22,9 @@ export const fetchJsonProxy = (): {
   setupNotOk: (params: { url: string; status: number; bodyText: string }) => void;
   setupInvalidJson: (params: { url: string; bodyText: string }) => void;
   setupEmptyBody: (params: { url: string }) => void;
-  setupConnectionRefused: (params: { url: string }) => Promise<void>;
+  setupConnectionRefused: (params: { url: string }) => void;
   setupAborted: (params: { url: string }) => void;
+  getCallsFor: (params: { url: string }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -52,11 +53,14 @@ export const fetchJsonProxy = (): {
     setupEmptyBody: ({ url }: { url: string }): void => {
       handle.calledWith([url]).resolves(buildResponse({ ok: true, status: 200, bodyText: '' }));
     },
-    setupConnectionRefused: async ({ url }: { url: string }): Promise<void> => {
-      handle.calledWith([url]).rejects(await ConnectionRefusedErrorStub());
+    // The recorded-as-data stub: the capturing one opens a socket, which a composer's I/O trap stops.
+    setupConnectionRefused: ({ url }: { url: string }): void => {
+      handle.calledWith([url]).rejects(ConnectionRefusedRecordedErrorStub());
     },
     setupAborted: ({ url }: { url: string }): void => {
       handle.calledWith([url]).implement(async () => Promise.reject(AbortErrorStub()));
     },
+    // The full `(url, init)` tuple of every fetch call to that url, in call order.
+    getCallsFor: ({ url }: { url: string }): readonly unknown[][] => handle.callsMatching([url]),
   };
 };

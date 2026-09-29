@@ -23,6 +23,7 @@ import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contr
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { questBySessionResponseContract } from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
 import { fetchJson, fetchWithStatus } from '#gateway/node/fetch';
+import { now } from '#gateway/node/Date';
 import { stderr } from '#gateway/node/process';
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -116,7 +117,7 @@ export const HookPostAskQuestionResponder = async ({
   const designDecisions = askQuestionToDesignDecisionsTransformer({
     toolInput: hookData.tool_input,
     answers,
-    nowMs: Date.now(),
+    nowMs: now(),
   });
 
   if (designDecisions.length === 0) {

@@ -277,6 +277,9 @@ describe('HookPostAskQuestionResponder', () => {
           'quest lookup failed at http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server: status 500',
         exitCode: 2,
       });
+      expect(proxy.getStderrText()).toBe(
+        '[post-ask-question] quest lookup failed at http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server: status 500\n',
+      );
       expect(proxy.getLookupUrls({ sessionId: 'session-broken-server' })).toStrictEqual([
         `http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server`,
       ]);
@@ -318,7 +321,8 @@ describe('HookPostAskQuestionResponder', () => {
   describe('PATCH fails', () => {
     it('ERROR: {PATCH network error} => returns exitCode 2 with PATCH failure message', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      await proxy.setupPatchFails({ sessionId: 'session-patch-fail', questId: 'q-1' });
+      proxy.setNowMs({ value: 5 });
+      proxy.setupPatchFails({ sessionId: 'session-patch-fail', questId: 'q-1' });
 
       const questionInput = AskUserQuestionStub();
 
@@ -336,11 +340,12 @@ describe('HookPostAskQuestionResponder', () => {
 
       expect(result).toStrictEqual({
         stdout: '',
-        stderr: expect.stringMatching(
-          /^PATCH \/api\/quests\/q-1 failed: Error: connect ECONNREFUSED 127\.0\.0\.1:\d+$/u,
-        ),
+        stderr: 'PATCH /api/quests/q-1 failed: connect ECONNREFUSED 127.0.0.1:4000',
         exitCode: 2,
       });
+      expect(proxy.getStderrText()).toBe(
+        '[post-ask-question] PATCH /api/quests/q-1 failed: connect ECONNREFUSED 127.0.0.1:4000\n',
+      );
     });
   });
 

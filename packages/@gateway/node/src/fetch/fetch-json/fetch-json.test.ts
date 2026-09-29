@@ -40,7 +40,7 @@ describe('fetchJson', () => {
 
   it('ERROR: {connection refused} => propagates the real fetch failure unchanged', async () => {
     const proxy = fetchJsonProxy();
-    await proxy.setupConnectionRefused({ url: 'http://localhost/api/guilds' });
+    proxy.setupConnectionRefused({ url: 'http://localhost/api/guilds' });
 
     const caught: unknown = await fetchJson({ url: 'http://localhost/api/guilds' }).catch(
       (rejection: unknown) => rejection,
@@ -64,5 +64,39 @@ describe('fetchJson', () => {
     const error = caught as Error;
 
     expect(error.name).toBe('AbortError');
+  });
+
+  it('VALID: {POST with an object body} => fetch receives the url, method, json content-type and serialized body', async () => {
+    const proxy = fetchJsonProxy();
+    proxy.setupSuccess({ url: 'http://localhost/api/guilds', body: { id: 'g1' } });
+
+    await fetchJson({
+      url: 'http://localhost/api/guilds',
+      method: 'POST',
+      body: { name: 'guild-1' },
+    });
+
+    expect(
+      proxy.getCallsFor({ url: 'http://localhost/api/guilds' }).map(([calledUrl, init]) => ({
+        calledUrl,
+        method: (init as RequestInit).method,
+        headers: (init as RequestInit).headers,
+        body: (init as RequestInit).body,
+      })),
+    ).toStrictEqual([
+      {
+        calledUrl: 'http://localhost/api/guilds',
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{"name":"guild-1"}',
+      },
+    ]);
+  });
+
+  it('EMPTY: {no call made} => getCallsFor answers an empty list', () => {
+    const proxy = fetchJsonProxy();
+    proxy.setupSuccess({ url: 'http://localhost/api/guilds', body: {} });
+
+    expect(proxy.getCallsFor({ url: 'http://localhost/api/guilds' })).toStrictEqual([]);
   });
 });

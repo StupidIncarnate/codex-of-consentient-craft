@@ -9,6 +9,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        cwd: '/home/test',
         filePath: 'test.ts',
         results: [
           {
@@ -64,6 +65,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        cwd: '/home/test',
         filePath: 'test.ts',
         results: [
           {
@@ -105,7 +107,7 @@ describe('eslintLintRunWithFixBroker()', () => {
     it('VALID: {filePath, config} => returns empty results array', async () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
-      proxy.returnsLintResults({
+      proxy.returnsLintResultsForDefaultCwd({
         filePath: 'test.ts',
         results: [
           {
@@ -142,7 +144,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         filePath: 'marker.ts',
         results: [
           {
-            filePath: '/default/cwd/resolved/marker.ts',
+            filePath: '/default/cwd/marker.ts',
             messages: [],
             errorCount: 0,
             warningCount: 0,
@@ -158,7 +160,7 @@ describe('eslintLintRunWithFixBroker()', () => {
 
       expect(results).toStrictEqual([
         {
-          filePath: '/default/cwd/resolved/marker.ts',
+          filePath: '/default/cwd/marker.ts',
           messages: [],
           errorCount: 0,
           warningCount: 0,
@@ -172,6 +174,7 @@ describe('eslintLintRunWithFixBroker()', () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
 
       proxy.returnsLintResults({
+        cwd: '/home/test',
         filePath: 'test.ts',
         results: [
           {
@@ -235,6 +238,7 @@ describe('eslintLintRunWithFixBroker()', () => {
     it('VALID: {filePath, cwd} => lints the resolved path and writes the fixes back', async () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
       proxy.returnsLintResults({
+        cwd: '/home/test',
         filePath: 'fixed.ts',
         results: [
           { filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 },
@@ -248,14 +252,14 @@ describe('eslintLintRunWithFixBroker()', () => {
       });
 
       expect({
-        linted: proxy.getLintedFilesFor({ files: ['fixed.ts'] }),
+        linted: proxy.getLintedFilesFor({ files: ['/home/test/fixed.ts'] }),
         written: proxy.getFixesWrittenFor({
           results: [
             { filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 },
           ],
         }),
       }).toStrictEqual({
-        linted: [[['fixed.ts']]],
+        linted: [[['/home/test/fixed.ts']]],
         written: [
           [[{ filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 }]],
         ],

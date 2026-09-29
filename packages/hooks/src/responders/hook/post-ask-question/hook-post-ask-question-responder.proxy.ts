@@ -1,6 +1,7 @@
 /**
- * PURPOSE: Proxy for hook-post-ask-question-responder that mocks fetch calls, port resolution,
- * and Date.now so tests can assert design decision extraction and HTTP dispatch
+ * PURPOSE: Proxy for hook-post-ask-question-responder that stages the gateway fetch, clock and
+ * stderr proxies plus port resolution, so tests can assert design decision extraction and HTTP
+ * dispatch
  *
  * USAGE:
  * const proxy = HookPostAskQuestionResponderProxy();
@@ -10,14 +11,13 @@
  */
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { fetchWithStatusProxy } from '#gateway/node/fetch/fetch-with-status/fetch-with-status.proxy';
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
 import { ConnectionRefusedRecordedErrorStub } from '#gateway/node/net/connection-refused-recorded-error/connection-refused-recorded-error.stub';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
-const DEFAULT_NOW_MS = 0;
 const MOCK_PORT = '3737';
 const MOCK_BASE_URL = `http://${environmentStatics.hostname}:${MOCK_PORT}`;
 
@@ -27,10 +27,11 @@ export const HookPostAskQuestionResponderProxy = (): {
   setupServerUnreachable: (params: { sessionId: string }) => void;
   setupServer5xx: (params: { sessionId: string; status: number; bodyText: string }) => void;
   setupInvalidResponseShape: (params: { sessionId: string }) => void;
-  setupPatchFails: (params: { sessionId: string; questId: string }) => Promise<void>;
+  setupPatchFails: (params: { sessionId: string; questId: string }) => void;
   getPatchedBody: (params: { questId: string }) => unknown;
   getPatchUrl: (params: { questId: string }) => unknown;
   getLookupUrls: (params: { sessionId: string }) => readonly unknown[];
+  getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
   setNowMs: (params: { value: number }) => void;
 } => {
   const portProxy = portResolveBrokerProxy();
@@ -40,14 +41,8 @@ export const HookPostAskQuestionResponderProxy = (): {
   // GET lookup and the PATCH that follows it are answered independently of call order.
   const fetchWithStatus = fetchWithStatusProxy();
   const fetchJson = fetchJsonProxy();
-  stderrProxy();
-
-  // Read-back only: the gateway's fetchJson and fetchWithStatus proxies record no calls, so this
-  // spy shares their stubbing and reads what the responder actually sent.
-  const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
-
-  const nowHandle = registerSpyOn({ object: Date, method: 'now' });
-  nowHandle.calledWith([]).returns(DEFAULT_NOW_MS);
+  const stderrGateway = stderrProxy();
+  const clock = nowProxy();
 
   return {
     setupHappyPath: ({ sessionId, questId }: { sessionId: string; questId: string }): void => {
@@ -93,36 +88,31 @@ export const HookPostAskQuestionResponderProxy = (): {
         bodyText: JSON.stringify({ wrongField: 'no questId here' }),
       });
     },
-    setupPatchFails: async ({
-      sessionId,
-      questId,
-    }: {
-      sessionId: string;
-      questId: string;
-    }): Promise<void> => {
+    setupPatchFails: ({ sessionId, questId }: { sessionId: string; questId: string }): void => {
       fetchWithStatus.setupResponse({
         url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
         status: 200,
         bodyText: JSON.stringify({ questId }),
       });
-      await fetchJson.setupConnectionRefused({ url: `${MOCK_BASE_URL}/api/quests/${questId}` });
+      fetchJson.setupConnectionRefused({ url: `${MOCK_BASE_URL}/api/quests/${questId}` });
     },
     getPatchedBody: ({ questId }: { questId: string }): unknown => {
-      const lastPatchCall = fetchHandle
-        .callsMatching([`${MOCK_BASE_URL}/api/quests/${questId}`])
+      const lastPatchCall = fetchJson
+        .getCallsFor({ url: `${MOCK_BASE_URL}/api/quests/${questId}` })
         .at(-1);
       const init = lastPatchCall?.[1] as { body?: unknown } | undefined;
       if (typeof init?.body !== 'string') return init?.body;
       return JSON.parse(init.body) as unknown;
     },
     getPatchUrl: ({ questId }: { questId: string }): unknown =>
-      fetchHandle.callsMatching([`${MOCK_BASE_URL}/api/quests/${questId}`]).at(-1)?.[0],
+      fetchJson.getCallsFor({ url: `${MOCK_BASE_URL}/api/quests/${questId}` }).at(-1)?.[0],
     getLookupUrls: ({ sessionId }: { sessionId: string }): readonly unknown[] =>
-      fetchHandle
-        .callsMatching([`${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`])
+      fetchWithStatus
+        .getCallsFor({ url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}` })
         .map((call) => call[0]),
+    getStderrText: stderrGateway.getWrittenText,
     setNowMs: ({ value }: { value: number }): void => {
-      nowHandle.calledWith([]).returns(value);
+      clock.setupNow({ ms: value });
     },
   };
 };

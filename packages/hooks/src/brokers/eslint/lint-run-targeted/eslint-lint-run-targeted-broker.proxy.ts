@@ -11,6 +11,7 @@ import type { ESLint } from '#gateway/npm/eslint';
 import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -32,18 +33,15 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   throwsOnConstruction: (params: { cwd: string; error: Error }) => void;
   throwsOnLint: (params: { content: string; error: Error }) => void;
   getLintTextCallsFor: (params: { content: string }) => readonly unknown[][];
+  getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
 } => {
   cwdProxy();
+  const stderrGateway = stderrProxy();
   // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
   // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const resolveHandle = registerMock({ fn: resolve });
-
-  // The resolved absolute path only reaches the already-mocked lintText call, which
-  // this proxy addresses by content, not by filePath — so any non-throwing placeholder is fine.
-  resolveHandle.calledWith([]).returns('/resolved/path');
 
   const eslint = ESLintProxy();
 
@@ -65,12 +63,11 @@ export const eslintLintRunTargetedBrokerProxy = (): {
       eslint.lintTextReturns({ text: content, results });
     },
 
-    // Addressed by the staged '/default/cwd' (via the resolved absolute path) rather than by
-    // content alone — this is what a caller that omits `cwd` actually resolves and lints against,
-    // so a broker that stops calling cwd() on that branch fails whatever test stages this.
+    // Addressed by the staged '/default/cwd' (via the real resolve of it and the file path) rather
+    // than by content alone — this is what a caller that omits `cwd` actually resolves and lints
+    // against, so a broker that stops calling cwd() on that branch fails whatever test stages this.
     returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
-      const absolutePath = `/default/cwd/resolved/${filePath}`;
-      resolveHandle.calledWith(['/default/cwd', filePath]).returns(absolutePath);
+      const absolutePath = resolve('/default/cwd', filePath);
       eslint.lintTextReturns({ text: content, filePath: absolutePath, results });
     },
 
@@ -86,5 +83,7 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     // a test sees which path the broker handed ESLint and how many lint passes it made.
     getLintTextCallsFor: ({ content }): readonly unknown[][] =>
       eslint.getLintTextCallsFor({ text: content }),
+
+    getStderrText: stderrGateway.getWrittenText,
   };
 };

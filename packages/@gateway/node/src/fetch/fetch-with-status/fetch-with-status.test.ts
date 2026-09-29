@@ -86,4 +86,39 @@ describe('fetchWithStatus', () => {
       code: undefined,
     });
   });
+
+  it('VALID: {two calls to one url} => getCallsFor returns each call in order with method, headers and body', async () => {
+    const proxy = fetchWithStatusProxy();
+    proxy.setupResponse({ url: 'http://localhost/api/guilds', status: 200, bodyText: '{}' });
+
+    await fetchWithStatus({ url: 'http://localhost/api/guilds' });
+    await fetchWithStatus({
+      url: 'http://localhost/api/guilds',
+      method: 'PUT',
+      headers: { 'x-trace': 'abc' },
+      body: { name: 'guild-2' },
+    });
+
+    expect(
+      proxy.getCallsFor({ url: 'http://localhost/api/guilds' }).map(([calledUrl, init]) => ({
+        calledUrl,
+        method: (init as RequestInit).method,
+        headers: (init as RequestInit).headers,
+        body: (init as RequestInit).body,
+      })),
+    ).toStrictEqual([
+      {
+        calledUrl: 'http://localhost/api/guilds',
+        method: 'GET',
+        headers: undefined,
+        body: undefined,
+      },
+      {
+        calledUrl: 'http://localhost/api/guilds',
+        method: 'PUT',
+        headers: { 'x-trace': 'abc' },
+        body: '{"name":"guild-2"}',
+      },
+    ]);
+  });
 });

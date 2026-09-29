@@ -95,7 +95,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         filePath: 'marker.ts',
         results: [
           {
-            filePath: '/default/cwd/resolved/marker.ts',
+            filePath: '/default/cwd/marker.ts',
             messages: [],
             errorCount: 0,
             warningCount: 0,
@@ -112,7 +112,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
       expect(results).toStrictEqual([
         {
-          filePath: '/default/cwd/resolved/marker.ts',
+          filePath: '/default/cwd/marker.ts',
           messages: [],
           errorCount: 0,
           warningCount: 0,
@@ -399,7 +399,10 @@ describe('eslintLintRunTargetedBroker()', () => {
         cwd: '/broken',
       });
 
-      expect(results).toStrictEqual([]);
+      expect({ results, stderr: proxy.getStderrText() }).toStrictEqual({
+        results: [],
+        stderr: 'ESLint error: ESLint config invalid\n',
+      });
     });
 
     it('ERROR: {lintText rejects} => logs error and returns empty array', async () => {
@@ -413,7 +416,10 @@ describe('eslintLintRunTargetedBroker()', () => {
         cwd: '/custom',
       });
 
-      expect(results).toStrictEqual([]);
+      expect({ results, stderr: proxy.getStderrText() }).toStrictEqual({
+        results: [],
+        stderr: 'ESLint error: ESLint config invalid\n',
+      });
     });
   });
 
@@ -430,7 +436,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       });
 
       expect(proxy.getLintTextCallsFor({ content: 'const seen = 1;' })).toStrictEqual([
-        ['const seen = 1;', { filePath: '/resolved/path' }],
+        ['const seen = 1;', { filePath: '/custom/seen.ts' }],
       ]);
     });
 
@@ -464,8 +470,8 @@ describe('eslintLintRunTargetedBroker()', () => {
       });
 
       expect(proxy.getLintTextCallsFor({ content: 'const retry = 1;' })).toStrictEqual([
-        ['const retry = 1;', { filePath: '/resolved/path' }],
-        ['const retry = 1;', { filePath: '/resolved/path' }],
+        ['const retry = 1;', { filePath: '/custom/retry.ts' }],
+        ['const retry = 1;', { filePath: '/custom/retry.ts' }],
       ]);
     });
   });
