@@ -167,3 +167,7 @@ export * from './owner-index-owners-reachable/owner-index-owners-reachable-trans
 export * from './owner-index-name-match/owner-index-name-match-transformer';
 export * from './owner-index-brand-declarers/owner-index-brand-declarers-transformer';
 export * from './owner-index-field-usages/owner-index-field-usages-transformer';
+export * from './owner-index-object-copy-match/owner-index-object-copy-match-transformer';
+export * from './owner-index-enum-copy-match/owner-index-enum-copy-match-transformer';
+export * from './schema-object-entries-read/schema-object-entries-read-transformer';
+export * from './enum-values-read/enum-values-read-transformer';

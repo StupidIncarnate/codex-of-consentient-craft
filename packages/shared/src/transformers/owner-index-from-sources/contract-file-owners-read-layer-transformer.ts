@@ -1,19 +1,21 @@
 /**
  * PURPOSE: Reads one `-contract.ts` file for the owner index: each exported object contract with its
  * owner name, inferred type, schema text and top-level keys, and each exported standalone branded
- * contract with its brand text. A key is classified by how it gets its value: own brand, reuse of
- * `owner.shape.key`, a reference to another contract, or plain. A getter key is read through its
- * returned expression.
+ * contract with its brand text, and each exported `z.enum([...])` contract with its sorted values.
+ * A key is classified by how it gets its value: own brand, reuse of `owner.shape.key`, a reference
+ * to another contract, or plain. A getter key is read through its returned expression.
  *
  * USAGE:
  * contractFileOwnersReadLayerTransformer({ sourceFile, filePath, packageName });
- * // Returns { owners: OwnerIndexOwner[], standaloneBrands: OwnerIndexStandaloneBrand[] }
+ * // Returns { owners, standaloneBrands, enums }: OwnerIndexOwner[], OwnerIndexStandaloneBrand[], OwnerIndexEnum[]
  */
 import * as ts from '#gateway/npm/typescript';
 
 import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import { identifierContract } from '../../contracts/identifier/identifier-contract';
+import { ownerIndexEnumContract } from '../../contracts/owner-index-enum/owner-index-enum-contract';
+import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexField } from '../../contracts/owner-index-field/owner-index-field-contract';
 import { ownerIndexFieldContract } from '../../contracts/owner-index-field/owner-index-field-contract';
 import { ownerIndexOwnerContract } from '../../contracts/owner-index-owner/owner-index-owner-contract';
@@ -22,6 +24,7 @@ import { ownerIndexStandaloneBrandContract } from '../../contracts/owner-index-s
 import type { OwnerIndexStandaloneBrand } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
+import { enumValuesReadTransformer } from '../enum-values-read/enum-values-read-transformer';
 import { contractChainReadLayerTransformer } from './contract-chain-read-layer-transformer';
 
 const CONTRACT_SUFFIX = 'Contract';
@@ -34,7 +37,11 @@ export const contractFileOwnersReadLayerTransformer = ({
   sourceFile: ts.SourceFile;
   filePath: AbsoluteFilePath;
   packageName: PackageName;
-}): { owners: OwnerIndexOwner[]; standaloneBrands: OwnerIndexStandaloneBrand[] } => {
+}): {
+  owners: OwnerIndexOwner[];
+  standaloneBrands: OwnerIndexStandaloneBrand[];
+  enums: OwnerIndexEnum[];
+} => {
   const inferredTypeNames = new Map(
     sourceFile.statements
       .filter((statement): statement is ts.TypeAliasDeclaration =>
@@ -162,5 +169,23 @@ export const contractFileOwnersReadLayerTransformer = ({
       : [],
   );
 
-  return { owners, standaloneBrands };
+  const enums = declarations.flatMap(({ name, initializer }) => {
+    const values = enumValuesReadTransformer({
+      text: contentTextContract.parse(initializer.getText(sourceFile)),
+    });
+    return values === undefined
+      ? []
+      : [
+          ownerIndexEnumContract.parse({
+            ownerName:
+              name.slice(0, 1).toUpperCase() + name.slice(0, -CONTRACT_SUFFIX.length).slice(1),
+            contractName: name,
+            filePath,
+            packageName,
+            values,
+          }),
+        ];
+  });
+
+  return { owners, standaloneBrands, enums };
 };

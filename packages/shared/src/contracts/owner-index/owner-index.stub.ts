@@ -7,6 +7,7 @@ export const OwnerIndexStub = ({ ...props }: StubArgument<OwnerIndex> = {}): Own
   ownerIndexContract.parse({
     owners: [],
     standaloneBrands: [],
+    enums: [],
     packages: [],
     ...props,
   });

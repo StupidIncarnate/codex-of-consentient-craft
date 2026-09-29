@@ -1,19 +1,21 @@
 /**
  * PURPOSE: Builds the owner index from source text already read: every exported object contract in
  * a non-layer `-contract.ts` file with its owner name, package, schema text and how each key gets its
- * value, every standalone brand contract, and each package's dependencies. A `-layer-contract.ts`
+ * value, every standalone brand contract, every `z.enum([...])` contract with its sorted values, and
+ * each package's dependencies. A `-layer-contract.ts`
  * file records nothing, so a layer never claims an owner name. A key that points at a standalone
  * brand contract by a name with one brand text becomes a brand-ref carrying that text. Reach for
  * this over contractIndexFromSourcesTransformer when the question is who owns a name or a key.
  *
  * USAGE:
  * ownerIndexFromSourcesTransformer({ rootDir, packages, sources });
- * // Returns OwnerIndex — owners, standaloneBrands and packages
+ * // Returns OwnerIndex — owners, standaloneBrands, enums and packages
  */
 import * as ts from '#gateway/npm/typescript';
 
 import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
+import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import type { OwnerIndexPackage } from '../../contracts/owner-index-package/owner-index-package-contract';
 import type { OwnerIndexStandaloneBrand } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
@@ -84,5 +86,7 @@ export const ownerIndexFromSourcesTransformer = ({
       }),
     }));
 
-  return ownerIndexContract.parse({ owners, standaloneBrands, packages });
+  const enums: OwnerIndexEnum[] = reads.flatMap((read) => read.enums);
+
+  return ownerIndexContract.parse({ owners, standaloneBrands, enums, packages });
 };

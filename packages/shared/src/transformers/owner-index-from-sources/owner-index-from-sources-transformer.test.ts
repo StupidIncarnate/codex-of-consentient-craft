@@ -195,7 +195,56 @@ describe('ownerIndexFromSourcesTransformer', () => {
         sources: [],
       });
 
-      expect(result).toStrictEqual({ owners: [], standaloneBrands: [], packages: [alphaPackage] });
+      expect(result).toStrictEqual({
+        owners: [],
+        standaloneBrands: [],
+        enums: [],
+        packages: [alphaPackage],
+      });
+    });
+  });
+
+  describe('enums', () => {
+    it('VALID: {enum contracts in two packages} => merges them, each attributed to its package', () => {
+      const result = ownerIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, sharedPackage],
+        sources: [
+          {
+            filePath: AbsoluteFilePathStub({
+              value: '/repo/packages/shared/src/contracts/role/role-contract.ts',
+            }),
+            text: ContentTextStub({
+              value: "export const roleContract = z.enum(['worker', 'admin']);",
+            }),
+          },
+          {
+            filePath: AbsoluteFilePathStub({
+              value: '/repo/packages/alpha/src/contracts/mode/mode-contract.ts',
+            }),
+            text: ContentTextStub({
+              value: "export const modeContract = z.enum(['fast', 'slow']).brand<'Mode'>();",
+            }),
+          },
+        ],
+      });
+
+      expect(result.enums).toStrictEqual([
+        {
+          ownerName: 'Role',
+          contractName: 'roleContract',
+          filePath: '/repo/packages/shared/src/contracts/role/role-contract.ts',
+          packageName: '@repo/shared',
+          values: ['admin', 'worker'],
+        },
+        {
+          ownerName: 'Mode',
+          contractName: 'modeContract',
+          filePath: '/repo/packages/alpha/src/contracts/mode/mode-contract.ts',
+          packageName: '@repo/alpha',
+          values: ['fast', 'slow'],
+        },
+      ]);
     });
   });
 });

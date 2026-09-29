@@ -19,6 +19,12 @@ const OTHER_TEXT = [
   '',
 ].join('\n');
 
+const KIND_TEXT = [
+  "import { z } from 'zod';",
+  "export const kindContract = z.enum(['small', 'large']).brand<'Kind'>();",
+  '',
+].join('\n');
+
 describe('ownerIndexBuildBroker', () => {
   describe('valid input', () => {
     it('VALID: {alpha depends on beta} => indexes both owners with their keys and the direct dependency', () => {
@@ -66,7 +72,7 @@ describe('ownerIndexBuildBroker', () => {
       });
       proxy.setupWalkedFolder({
         dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts` }),
-        folders: ['other'],
+        folders: ['other', 'kind'],
         files: [],
       });
       proxy.setupWalkedFolder({
@@ -74,6 +80,15 @@ describe('ownerIndexBuildBroker', () => {
         folders: [],
         files: ['other-contract.ts'],
       });
+      const kindFile = AbsoluteFilePathStub({
+        value: `${betaDir}/src/contracts/kind/kind-contract.ts`,
+      });
+      proxy.setupWalkedFolder({
+        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts/kind` }),
+        folders: [],
+        files: ['kind-contract.ts'],
+      });
+      proxy.setupSourceText({ filePath: kindFile, text: KIND_TEXT });
       proxy.setupSourceText({ filePath: thingFile, text: THING_TEXT });
       proxy.setupSourceText({ filePath: otherFile, text: OTHER_TEXT });
 
@@ -86,6 +101,7 @@ describe('ownerIndexBuildBroker', () => {
           typeName,
           fields,
         })),
+        enums: result.enums,
         packages: result.packages,
       }).toStrictEqual({
         owners: [
@@ -110,6 +126,15 @@ describe('ownerIndexBuildBroker', () => {
             fields: [{ key: 'id', kind: 'own-brand', brandText: 'OtherId' }],
           },
         ],
+        enums: [
+          {
+            ownerName: 'Kind',
+            contractName: 'kindContract',
+            filePath: kindFile,
+            packageName: '@repo/beta',
+            values: ['large', 'small'],
+          },
+        ],
         packages: [
           { name: '@repo/alpha', dir: alphaDir, dependencies: ['@repo/beta'] },
           { name: '@repo/beta', dir: betaDir, dependencies: [] },
@@ -129,7 +154,12 @@ describe('ownerIndexBuildBroker', () => {
       const second = ownerIndexBuildBroker({ rootDir });
 
       expect(second).toBe(first);
-      expect(first).toStrictEqual({ owners: [], standaloneBrands: [], packages: [] });
+      expect(first).toStrictEqual({
+        owners: [],
+        standaloneBrands: [],
+        enums: [],
+        packages: [],
+      });
     });
   });
 });

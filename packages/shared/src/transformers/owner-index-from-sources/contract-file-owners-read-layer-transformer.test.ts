@@ -100,7 +100,58 @@ describe('contractFileOwnersReadLayerTransformer', () => {
             packageName: '@repo/alpha',
           },
         ],
+        enums: [],
       });
+    });
+  });
+
+  describe('enum contracts', () => {
+    it('VALID: {a branded z.enum and a bare z.enum} => one enum per const with sorted values and no owner', () => {
+      const result = readText({
+        text: [
+          "export const questStatusContract = z.enum(['open', 'done']).brand<'QuestStatus'>();",
+          "export const roleContract = z.enum(['worker', 'admin']);",
+        ].join('\n'),
+      });
+
+      expect(result).toStrictEqual({
+        owners: [],
+        standaloneBrands: [
+          {
+            contractName: 'questStatusContract',
+            brandText: 'QuestStatus',
+            filePath: '/repo/packages/alpha/src/contracts/quest/quest-contract.ts',
+            packageName: '@repo/alpha',
+          },
+        ],
+        enums: [
+          {
+            ownerName: 'QuestStatus',
+            contractName: 'questStatusContract',
+            filePath: '/repo/packages/alpha/src/contracts/quest/quest-contract.ts',
+            packageName: '@repo/alpha',
+            values: ['done', 'open'],
+          },
+          {
+            ownerName: 'Role',
+            contractName: 'roleContract',
+            filePath: '/repo/packages/alpha/src/contracts/quest/quest-contract.ts',
+            packageName: '@repo/alpha',
+            values: ['admin', 'worker'],
+          },
+        ],
+      });
+    });
+
+    it('EMPTY: {an enum over an identifier and a non-exported enum} => records no enum', () => {
+      const result = readText({
+        text: [
+          'export const kindContract = z.enum(kindValues);',
+          "const hiddenContract = z.enum(['a', 'b']);",
+        ].join('\n'),
+      });
+
+      expect(result).toStrictEqual({ owners: [], standaloneBrands: [], enums: [] });
     });
   });
 
@@ -113,7 +164,7 @@ describe('contractFileOwnersReadLayerTransformer', () => {
         ].join('\n'),
       });
 
-      expect(result).toStrictEqual({ owners: [], standaloneBrands: [] });
+      expect(result).toStrictEqual({ owners: [], standaloneBrands: [], enums: [] });
     });
   });
 });
