@@ -3,10 +3,8 @@ import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brok
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { BaseBranchNameStub } from '@dungeonmaster/shared/contracts/base-branch-name/base-branch-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 
 import { gitDetectBaseBranchBrokerProxy } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../../brokers/worktree/prepare/worktree-prepare-broker.proxy';
@@ -30,8 +28,7 @@ export const WorktreeCreateResponderProxy = (): {
   }) => void;
   getGitArgsList: () => readonly unknown[];
 } => {
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
+  const cwdSetup = cwdProxy();
   const cwdResolveProxy = cwdResolveBrokerProxy();
   const isAccessibleProxy = pathExistsProxy();
   const detectBaseBranchProxy = gitDetectBaseBranchBrokerProxy();
@@ -42,7 +39,7 @@ export const WorktreeCreateResponderProxy = (): {
   locationsWorktreePathFindBrokerProxy();
 
   const stageRepoRoot = ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
-    cwdHandle.calledWith([]).returns(String(repoRoot));
+    cwdSetup.setupCwd({ value: String(repoRoot) });
     cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: String(repoRoot) });
   };
 

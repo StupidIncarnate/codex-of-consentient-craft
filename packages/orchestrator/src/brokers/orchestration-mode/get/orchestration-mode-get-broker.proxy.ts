@@ -4,7 +4,6 @@ import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -24,11 +23,7 @@ export const orchestrationModeGetBrokerProxy = (): {
   setupConfigNotFound: () => void;
   setupConfigError: (params: { error: Error }) => void;
 } => {
-  // Wired to satisfy enforce-proxy-child-creation (the implementation imports `cwd`) — never
-  // staged: `cwd.proxy.ts` is an empty proxy, and the real staging is the registerMock below.
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(CWD_VALUE);
+  const cwdSetup = cwdProxy();
   const joinHandle = registerMock({ fn: join });
   joinHandle
     .calledWith([CWD_VALUE, dungeonmasterHomeStatics.paths.projectConfigFile])
@@ -46,15 +41,18 @@ export const orchestrationModeGetBrokerProxy = (): {
 
   return {
     setupMode: ({ mode }: { mode: OrchestrationMode }): void => {
+      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupResolves({
         filePath: CONFIG_START_PATH,
         config: DungeonmasterConfigStub({ orchestrationMode: mode }),
       });
     },
     setupConfigNotFound: (): void => {
+      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupConfigNotFound({ filePath: CONFIG_START_PATH });
     },
     setupConfigError: ({ error }: { error: Error }): void => {
+      cwdSetup.setupCwd({ value: CWD_VALUE });
       configProxy.setupConfigMalformed({ filePath: CONFIG_START_PATH, message: error.message });
     },
   };

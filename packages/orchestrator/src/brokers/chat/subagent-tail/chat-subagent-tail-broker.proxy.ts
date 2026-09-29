@@ -1,4 +1,4 @@
-import { appendFile, ensureDir } from '#gateway/node/fs__promises';
+import { appendFile } from '#gateway/node/fs__promises';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
@@ -20,15 +20,9 @@ export const chatSubagentTailBrokerProxy = (): {
   stderrProxy();
   const homedirHandle = registerMock({ fn: homedir });
   const tailProxy = tailFileProxy();
-  // Wired to satisfy enforce-proxy-child-creation; ensureDirProxy mocks the underlying `mkdir`
-  // this composes, which this broker never reaches — it mocks `ensureDir` itself (below) instead,
-  // since the exact prefix (home + cwd + sessionId) varies per test but the broker's own
-  // subagents-dir is ALWAYS suffixed `/subagents` by construction, and a predicate on that suffix
-  // addresses every call this broker ever makes without each test recomputing the full path —
-  // ensureDirProxy's own `succeeds`/`rejects` take only an exact path.
-  ensureDirProxy();
-  const ensureDirHandle = registerMock({ fn: ensureDir });
-  ensureDirHandle.calledWith([(path: string) => path.endsWith('/subagents')]).resolves(undefined);
+  // The broker's own subagents-dir is ALWAYS suffixed `/subagents` by construction, while the
+  // prefix (home + cwd + sessionId) varies per test, so the suffix is the address.
+  const ensureDirSetup = ensureDirProxy();
   // The touch's path is built inside the broker from session + cwd + agent, so it is addressed by
   // its shape — a `.jsonl` directly under a `subagents/` directory — rather than by value.
   appendFileProxy();
@@ -39,6 +33,9 @@ export const chatSubagentTailBrokerProxy = (): {
   return {
     setupHomeDir: ({ homeDir }: { homeDir: string }): void => {
       homedirHandle.calledWith([]).returns(homeDir);
+      ensureDirSetup.succeedsMatchingPath({
+        path: (path: unknown) => String(path).endsWith('/subagents'),
+      });
     },
     setupFile: ({ path }: { path: string }): void => {
       tailProxy.setupFile({ path });

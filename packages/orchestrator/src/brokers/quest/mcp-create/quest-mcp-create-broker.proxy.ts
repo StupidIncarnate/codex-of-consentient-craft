@@ -1,5 +1,4 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import type {
   AddQuestInput,
@@ -54,11 +53,10 @@ export const questMcpCreateBrokerProxy = (): {
   // The repo-root walk runs for real over the staged fs; guildAddBroker is module-mocked so its
   // internals never run.
   const cwdResolveProxy = cwdResolveBrokerProxy();
-  cwdProxy();
+  const cwdSetup = cwdProxy();
   guildAddBrokerProxy();
   questUserAddBrokerProxy();
 
-  const cwdHandle: MockHandle = registerMock({ fn: cwd });
   const joinHandle: MockHandle = registerMock({ fn: join });
   const listMock: MockHandle = registerMock({ fn: guildListBroker });
   const addGuildMock: MockHandle = registerMock({ fn: guildAddBroker });
@@ -76,7 +74,7 @@ export const questMcpCreateBrokerProxy = (): {
       cwd: string;
       repoRoot: string;
     }): void => {
-      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
+      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       if (repoRoot === currentWorkingDirectory) {
         cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: currentWorkingDirectory });
         return;
@@ -88,7 +86,7 @@ export const questMcpCreateBrokerProxy = (): {
     },
 
     setupResolveFallback: ({ cwd: currentWorkingDirectory }: { cwd: string }): void => {
-      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
+      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       cwdResolveProxy.setupRepoRootNotFound({ startPath: currentWorkingDirectory });
     },
 
@@ -101,7 +99,7 @@ export const questMcpCreateBrokerProxy = (): {
       cwd: string;
       error: Error;
     }): void => {
-      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
+      cwdSetup.setupCwd({ value: currentWorkingDirectory });
       joinHandle
         .calledWith([currentWorkingDirectory, dungeonmasterHomeStatics.paths.projectConfigFile])
         .throws(error);
