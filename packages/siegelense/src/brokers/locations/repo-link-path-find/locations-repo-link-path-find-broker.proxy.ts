@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
@@ -43,11 +42,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   // full setupLinkResolvesToRoot/setupLinkAbsent/setupLinkPointsElsewhere scenario staged too.
   setupCwd: (params: { cwdPath: string }) => void;
 } => {
-  // #gateway/node/process/cwd/cwd.proxy has nothing to stage (a real read with nothing to fake),
-  // but enforce-proxy-child-creation still requires composing it since the broker imports `cwd`.
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  // cwd() takes no arguments — there is no call-site value to key on, so [] is the honest address.
+  const cwdStage = cwdProxy();
   // No default: every caller composing this proxy stages it explicitly, via `setupCwd` or a
   // scenario method (`setupLinkResolvesToRoot`/`setupLinkAbsent`/`setupLinkPointsElsewhere`, via
   // `stageOuterJoin` below) — instanceReserveBroker's own git-branch lookup shares this same cwd()
@@ -65,7 +60,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   const linkRealpath = realpathProxy();
 
   const stageOuterJoin = ({ cwdPath, linkPath }: { cwdPath: string; linkPath: FilePath }): void => {
-    cwdHandle.calledWith([]).returns(cwdPath);
+    cwdStage.setupCwd({ value: cwdPath });
     resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
     joinHandle
       .calledWith([
@@ -132,7 +127,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
     },
 
     setupCwd: ({ cwdPath }: { cwdPath: string }): void => {
-      cwdHandle.calledWith([]).returns(cwdPath);
+      cwdStage.setupCwd({ value: cwdPath });
     },
   };
 };

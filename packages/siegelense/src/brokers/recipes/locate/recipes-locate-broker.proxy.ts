@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -25,11 +24,10 @@ export const recipesLocateBrokerProxy = (): {
     entryPath: FilePath;
   }) => void;
 } => {
-  cwdProxy(); // inert, satisfies enforce-proxy-child-creation
-  const cwdHandle = registerMock({ fn: cwd });
-  // cwd() takes no arguments — there is no call-site value to key on, so [] is the honest
-  // address, not a shortcut. Sticky default; each setup method's own one-shot below outranks it.
-  cwdHandle.calledWith([]).returns(DEFAULT_CWD_VALUE);
+  // cwd() takes no arguments, so the one staged value answers every read until the next setupCwd
+  // replaces it: a default here, replaced by each scenario method below.
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: DEFAULT_CWD_VALUE });
 
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
   // packagePath/entryPath a scenario below names is exactly what a real join over cwdPath (or the
@@ -52,7 +50,7 @@ export const recipesLocateBrokerProxy = (): {
       packagePath: FilePath;
       entryPath: FilePath;
     }): void => {
-      cwdHandle.onceFor([]).returns(cwdPath);
+      cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       existsProxy.returns({ path: packagePath, exists: true });
       existsProxy.returns({ path: entryPath, exists: true });
@@ -76,7 +74,7 @@ export const recipesLocateBrokerProxy = (): {
       cwdPath: string;
       packagePath: FilePath;
     }): void => {
-      cwdHandle.onceFor([]).returns(cwdPath);
+      cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       existsProxy.returns({ path: packagePath, exists: false });
     },
@@ -90,7 +88,7 @@ export const recipesLocateBrokerProxy = (): {
       packagePath: FilePath;
       entryPath: FilePath;
     }): void => {
-      cwdHandle.onceFor([]).returns(cwdPath);
+      cwdStagingProxy.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       existsProxy.returns({ path: packagePath, exists: true });
       existsProxy.returns({ path: entryPath, exists: false });

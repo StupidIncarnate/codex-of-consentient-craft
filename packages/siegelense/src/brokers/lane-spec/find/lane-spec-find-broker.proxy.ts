@@ -1,6 +1,4 @@
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -8,10 +6,9 @@ import type { DevServerE2eProcess } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
 
 // The broker builds startPath as a template string, `${cwd()}/${projectConfigFile}` — never
-// `join`. `cwdProxy()` is an empty gateway proxy (`cwd()` takes no argument to fake), so the fixed
-// value this file's every resolution needs to agree on is staged directly on the shared `cwd`
-// mock, addressed by `[]` (no args to key on — the honest catch-all) — and this proxy computes
-// `startPath` from that SAME literal directly, never by calling the (mocked) `cwd()` a second time.
+// `join`. `cwdProxy().setupCwd` stages the fixed value this file's every resolution needs to agree
+// on, and this proxy computes `startPath` from that SAME literal directly, never by calling `cwd()`
+// a second time.
 //
 // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
 // directly here, and rather than composing config's colocated config-resolve-broker.proxy: that
@@ -27,10 +24,9 @@ export const laneSpecFindBrokerProxy = (): {
   setupE2eAbsent: () => void;
   setupDevServerAbsent: () => void;
 } => {
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
   const CWD_PATH_VALUE = '/default/cwd';
-  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_PATH_VALUE });
   const configProxy = configResolveBrokerProxy();
 
   const startPath = filePathContract.parse(

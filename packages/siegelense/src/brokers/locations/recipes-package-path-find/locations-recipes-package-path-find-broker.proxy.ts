@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
@@ -15,10 +14,7 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
     packagePath: FilePath;
   }) => void;
 } => {
-  // #gateway/node/process/cwd/cwd.proxy has nothing to stage (a real read with nothing to fake),
-  // but enforce-proxy-child-creation still requires composing it since the broker imports `cwd`.
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
+  const cwdStage = cwdProxy();
   const resolveProxy = cwdResolveBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
@@ -33,7 +29,7 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
       cwdPath: string;
       packagePath: FilePath;
     }): void => {
-      cwdHandle.calledWith([]).returns(cwdPath);
+      cwdStage.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       joinHandle
         .calledWith([cwdPath, ...recipeLocationStatics.packageDir.segments])
@@ -49,7 +45,7 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
       repoRoot: string;
       packagePath: FilePath;
     }): void => {
-      cwdHandle.calledWith([]).returns(cwdPath);
+      cwdStage.setupCwd({ value: cwdPath });
       resolveProxy.setupRepoRootFoundInParent({ startPath: cwdPath, repoRoot });
       joinHandle
         .calledWith([repoRoot, ...recipeLocationStatics.packageDir.segments])

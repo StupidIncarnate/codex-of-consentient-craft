@@ -98,11 +98,10 @@ export const laneBootBrokerProxy = (): {
   const mkdirProxy = ensureDirProxy();
   mkdirProxy.succeeds({ path: HOME_PATH_VALUE });
   mkdirProxy.succeeds({ path: EVIDENCE_PATH_VALUE });
-  // gateway proxy imports — inert, satisfy enforce-proxy-child-creation.
-  cwdProxy();
+  // envSnapshotProxy is inert, composed to satisfy enforce-proxy-child-creation.
   envSnapshotProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
+  const cwdStagingProxy = cwdProxy();
+  cwdStagingProxy.setupCwd({ value: CWD_PATH_VALUE });
   const spawnProxy = spawnDetachedProxy();
   const openFdProxy = openForAppendSyncProxy();
   const closeFdProxy = closeSyncProxy();

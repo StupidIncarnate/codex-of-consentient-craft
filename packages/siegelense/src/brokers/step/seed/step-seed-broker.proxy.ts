@@ -14,12 +14,10 @@
  * // seedRun.getCallArgs() reads back what the recipe's own seed export was called with
  */
 
-import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
@@ -38,14 +36,11 @@ export const stepSeedBrokerProxy = (): {
   bookPresentAt: (params: { packagePath: FilePath }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
-  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
-  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
-  // below addresses dynamicImport itself directly, keyed on the module specifier. It also
-  // covers stepSeedBroker's own import of recipesReadBroker, the same shared mock
-  // recipesReadBrokerProxy composes, so constructing that proxy here only satisfies
-  // enforce-proxy-child-creation for that composition.
-  dynamicImportProxy();
-  const importHandle = registerMock({ fn: dynamicImport });
+  // Staged through dynamicImportProxy, keyed on the module specifier. It also covers
+  // stepSeedBroker's own import of recipesReadBroker, the same shared mock recipesReadBrokerProxy
+  // composes, so constructing that proxy here only satisfies enforce-proxy-child-creation for
+  // that composition.
+  const importProxy = dynamicImportProxy();
   recipesReadBrokerProxy();
   const moduleExports: Record<PropertyKey, unknown> = {};
   const state: { packagePath: FilePath | null } = { packagePath: null };
@@ -60,7 +55,7 @@ export const stepSeedBrokerProxy = (): {
         packagePath: pkgPath,
         entryPath,
       });
-      importHandle.calledWith([{ path: entryPath }]).resolves(moduleExports);
+      importProxy.returns({ path: entryPath, module: moduleExports });
       return;
     }
     Array.from({ length: LOCATE_REPEAT_COUNT }).forEach(() => {
@@ -70,7 +65,7 @@ export const stepSeedBrokerProxy = (): {
         entryPath: ENTRY_PATH,
       });
     });
-    importHandle.calledWith([{ path: ENTRY_PATH }]).resolves(moduleExports);
+    importProxy.returns({ path: ENTRY_PATH, module: moduleExports });
   };
 
   return {

@@ -8,12 +8,10 @@
  * proxy.guildWithThreeQuestsAnswers({ guild, quests });
  */
 
-import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
@@ -39,12 +37,7 @@ export const recipeSeedRunBrokerProxy = (): {
   bookMissingUnder: (params: { repoRoot: string }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
-  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
-  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
-  // below addresses dynamicImport itself directly, keyed on the module specifier, the same way
-  // the pre-gateway runtimeDynamicImportAdapter's own proxy self-mocked for the same reason.
-  dynamicImportProxy();
-  const importHandle = registerMock({ fn: dynamicImport });
+  const importProxy = dynamicImportProxy();
   const moduleExports: Record<PropertyKey, unknown> = {};
 
   const stageEntry = (): void => {
@@ -58,7 +51,7 @@ export const recipeSeedRunBrokerProxy = (): {
       packagePath: PACKAGE_PATH,
       entryPath: ENTRY_PATH,
     });
-    importHandle.calledWith([{ path: ENTRY_PATH }]).resolves(moduleExports);
+    importProxy.returns({ path: ENTRY_PATH, module: moduleExports });
   };
 
   return {
