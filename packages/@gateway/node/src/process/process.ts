@@ -20,6 +20,7 @@ export { execPath } from './exec-path/exec-path';
 export { exit } from './exit/exit';
 export { getEnv } from './get-env/get-env';
 export { getExitCode } from './get-exit-code/get-exit-code';
+export { getPlatform } from './get-platform/get-platform';
 export { kill } from './kill/kill';
 export { nextTick } from './next-tick/next-tick';
 export { on } from './on/on';

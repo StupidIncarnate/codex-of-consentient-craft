@@ -1,6 +1,8 @@
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
-import { registerSpyOn, registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { getPlatformProxy } from '#gateway/node/process/get-platform/get-platform.proxy';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import { runFireAndForgetProxy } from '#gateway/node/child_process/run-fire-and-forget/run-fire-and-forget.proxy';
@@ -44,19 +46,14 @@ export const CliServeResponderProxy = ({
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: PORT });
 
-  // The spy's only job is to record calls: getStdoutOutput() reads them back with
-  // callsMatching([]) and the test asserts the full ordered output with toStrictEqual, so the
-  // written text is verified there, not by this staging description. calledWith([]) is a
-  // deliberate catch-all — every write matches and resolves — so nothing forwards to real
-  // stdout and no write throws for going undescribed.
-  const stdoutWrite = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutWrite.calledWith([]).returns(true);
+  const platformStage = getPlatformProxy();
+  const stdout = stdoutProxy();
 
   return {
     callResponder: CliServeResponder,
 
     setupPlatform: ({ platform }: { platform: NodeJS.Platform }): void => {
-      Object.defineProperty(process, 'platform', { value: platform, configurable: true });
+      platformStage.setupPlatform({ value: platform });
       // Mirrors the responder's own platform ternary so the exec mock is described with the
       // exact command that platform produces.
       const cmd =
@@ -68,7 +65,7 @@ export const CliServeResponderProxy = ({
       execProxy.setupSuccess({ command: cmd });
     },
 
-    getStdoutOutput: (): readonly unknown[] => stdoutWrite.callsMatching([]).map((call) => call[0]),
+    getStdoutOutput: (): readonly unknown[] => stdout.getWrites(),
 
     getBrowserOpenCalls: ({
       command,

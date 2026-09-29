@@ -10,6 +10,7 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 import { runFireAndForget } from '#gateway/node/child_process';
+import { getPlatform, stdout } from '#gateway/node/process';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
@@ -26,12 +27,13 @@ export const CliServeResponder = async (): Promise<AdapterResult> => {
   serverModule.StartServer({ serveWebBundle: true });
   const port = Number(portResolveBroker());
   const serverUrl = `http://${environmentStatics.hostname}:${port}`;
-  process.stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
+  stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
 
+  const platform = getPlatform();
   const cmd =
-    process.platform === 'darwin'
+    platform === 'darwin'
       ? `open ${serverUrl}`
-      : process.platform === 'win32'
+      : platform === 'win32'
         ? `start ${serverUrl}`
         : `xdg-open ${serverUrl}`;
   runFireAndForget({ command: cmd });
