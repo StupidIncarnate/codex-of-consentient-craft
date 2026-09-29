@@ -790,7 +790,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | SD8 | W9 | Dead re-parse provenance and the 16 failing files | 1 agent | todo | |
 | SD9 | B17 | The 83 `JSON.parse` hand sites | 1 agent | done | `phase34-scripts/b17-json-parse/run.cjs` (+ `sites.cjs`): re-census 166 sites, 68 direct, 98 not; 25 scripted (19 single-use, 3 multi-parse, 3 cast-contract), 0 new diagnostics on 22 copies. Hand queue 73 in `b17-json-parse/leftovers.txt` (21 server `c.req.json()` into responders, 9 hooks flows, 6 testing endpoint-mock, 7 web try/catch fallbacks, rest small). Cast-contract rewrites add validation: run unit tests, not only typecheck. |
 | SD10 | B18 | `.success` readers and proxy mock types | 1 agent | active | agent SD10 (2026-09-29) |
-| SD11 | T05 | Invented errors with a Node `code` become recorded failures | 1 agent | todo | |
+| SD11 | T05 | Invented errors with a Node `code` become recorded failures | 1 agent | done | `phase34-scripts/t05-recorded-failures/run.cjs`: the pattern is 33 sites, not the estimated third of 223; 24 scripted (hooks 3, server 2 onto named proxy failures; orchestrator 5, siegelense 14 onto `FsErrorStub`/`FileMissingErrorStub`), 0 new diagnostics on 20 copies. 9 hand sites in `leftovers.txt` (errors handed to code under test). Recorded stubs change error messages: run unit tests after applying. |
 | SD12 | W3 | Test-side fallout of the parameter retype (1,823 diagnostics) | 1 agent | todo | |
 
 ### Phase 5 — tests and mocking
