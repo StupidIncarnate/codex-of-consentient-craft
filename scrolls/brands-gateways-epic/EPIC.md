@@ -103,7 +103,8 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | a14-last (opus) | A14 testing's last chunk: `jest/*`, `child-process/mocker`, `mantine/render` (+ web import paths), stale `eslint.config.js` entry, F67 `setupHeld` simplification | `testing`, web import lines, `@gateway/browser` fetch-with-status proxy | running |
 | agy SL-LAST | A13 siegelense's last 13 adapters and `adapters.ts` (`tmp/agy/sl-last.md`) | `siegelense` | running |
 | t04-orch2 (sonnet) | T04: orchestrator's own 5; census | `orchestrator` tests | running |
-| t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | running |
+| t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | done a477ddd82; T05 now at 0 in ward, cli, config, hooks, server, mcp, tooling |
+| s1-slow (sonnet) | Fix: S1's adapter-census integration test takes 12 to 30s (slow-test gate) | `tooling` tests | running |
 
 After these land: A18 (raw calls and dependency cleanup), then A19 (`adapters` stops being a folder type; runs alone). A whole-repo `build:clean`, `check:consumer`, `check:published` and a full `npm run ward` are due at the first quiet point.
 
