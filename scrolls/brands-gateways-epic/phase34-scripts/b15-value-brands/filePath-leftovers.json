@@ -1,0 +1,299 @@
+{
+ "brand": "filePathContract",
+ "stats": {
+  "userFiles": 834,
+  "typeRefs": 1231,
+  "parseCalls": 418,
+  "stubValue": 2261,
+  "stubDefault": 0,
+  "fieldInline": 16,
+  "siblingBrands": 8
+ },
+ "overlayOnly": {
+  "total": 284,
+  "per": {
+   "cli": 93,
+   "config": 36,
+   "eslint-plugin": 16,
+   "hooks": 29,
+   "hydration": 0,
+   "hydration-recipes": 2,
+   "local-eslint": 0,
+   "mcp": 16,
+   "orchestrator": 24,
+   "server": 1,
+   "session-forensics": 0,
+   "shared": 0,
+   "siegelense": 34,
+   "testing": 6,
+   "tooling": 0,
+   "ward": 27,
+   "web": 0
+  },
+  "kinds": [
+   [
+    "TS2322 Type X is not assignable to type '((string & $brand<\"AbsoluteFi",
+    145
+   ],
+   [
+    "TS2322 Type X is not assignable to type '((strin",
+    67
+   ],
+   [
+    "TS2322 Type X is not assignable to type ",
+    50
+   ],
+   [
+    "TS2724 X has no exported member named 'file",
+    8
+   ],
+   [
+    "TS2322 Type X is not assignable to type 'string & $brand<\"ProxyMockQue",
+    5
+   ],
+   [
+    "TS2345 Argument of type X is not assignable to parameter of type 'str",
+    2
+   ],
+   [
+    "TS2322 Type X is not assign",
+    2
+   ],
+   [
+    "TS2322 Type X is not assignable to ",
+    1
+   ]
+  ]
+ },
+ "withRewriter": {
+  "total": 15,
+  "per": {
+   "cli": 1,
+   "config": 0,
+   "eslint-plugin": 2,
+   "hooks": 1,
+   "hydration": 0,
+   "hydration-recipes": 2,
+   "local-eslint": 0,
+   "mcp": 0,
+   "orchestrator": 5,
+   "server": 1,
+   "session-forensics": 0,
+   "shared": 0,
+   "siegelense": 0,
+   "testing": 0,
+   "tooling": 0,
+   "ward": 3,
+   "web": 0
+  },
+  "kinds": [
+   [
+    "TS2724 X has no exported member named 'file",
+    8
+   ],
+   [
+    "TS2345 Argument of type X is not assignable to parameter of type 'str",
+    2
+   ],
+   [
+    "TS2322 Type X is not assign",
+    2
+   ],
+   [
+    "TS2322 Type X is not assignable to ",
+    1
+   ],
+   [
+    "TS7036 Dynamic importXstring', but here has type",
+    1
+   ],
+   [
+    "TS2305 Module X has no exported member 'Fil",
+    1
+   ]
+  ]
+ },
+ "leftovers": {
+  "fieldNotInObject": [
+   "packages/eslint-plugin/src/brokers/rule/require-contract-validation/rule-require-contract-validation-broker.ts:69",
+   "packages/eslint-plugin/src/brokers/rule/require-contract-validation/rule-require-contract-validation-broker.ts:123",
+   "packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:107",
+   "packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:103",
+   "packages/orchestrator/src/brokers/worktree/populate-node-modules/populate-one-root-layer-broker.ts:168",
+   "packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:55",
+   "packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:55",
+   "packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts:17",
+   "packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts:17",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:63",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:74",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:63",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:74",
+   "packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts:21",
+   "packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts:21"
+  ],
+  "notInlineable": [],
+  "remainingRefs": [
+   "packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:103 filePathContract filePathContract.safeParse",
+   "packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:50 filePathContract filePathContract.safeParse",
+   "packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts:17 filePathContract filePathContract.parse",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:63 filePathContract filePathContract.parse",
+   "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:74 filePathContract filePathContract.parse",
+   "packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts:21 filePathContract filePathContract.parse"
+  ],
+  "stubOther": [],
+  "rewriter": [
+   {
+    "where": "packages/cli/bin/cli-entry.ts:12",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:96",
+    "why": "target is not one of this brand's fields",
+    "msg": "Type '(string & $brand<\"Filename\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+   },
+   {
+    "where": "packages/eslint-plugin/src/brokers/rule/require-contract-validation/rule-require-contract-validation-broker.ts:15",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/hooks/test/harnesses/hook-runner/hook-persistent-worker.ts:85",
+    "why": "code TS7036",
+    "msg": "Dynamic import's specifier must be of type 'string', but here has type 'string | undefined'."
+   },
+   {
+    "where": "packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.ts:20",
+    "why": "target is not one of this brand's fields",
+    "msg": "Argument of type 'unknown' is not assignable to parameter of type 'string'."
+   },
+   {
+    "where": "packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.ts:20",
+    "why": "target is not one of this brand's fields",
+    "msg": "Argument of type 'unknown' is not assignable to parameter of type 'string'."
+   },
+   {
+    "where": "packages/orchestrator/src/brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy.ts:26",
+    "why": "target is not one of this brand's fields",
+    "msg": "Type '(string & $brand<\"AbsoluteFilePath\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+   },
+   {
+    "where": "packages/orchestrator/src/brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy.ts:31",
+    "why": "target is not one of this brand's fields",
+    "msg": "Type '(string & $brand<\"AbsoluteFilePath\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+   },
+   {
+    "where": "packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:31",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/orchestrator/src/brokers/worktree/populate-node-modules/populate-one-root-layer-broker.ts:49",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:20",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/server/src/responders/quest/ward-detail/quest-ward-detail-responder.proxy.ts:5",
+    "why": "code TS2305",
+    "msg": "Module '\"@dungeonmaster/shared/contracts\"' has no exported member 'FilePathStub'."
+   },
+   {
+    "where": "packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts:2",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:6",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   },
+   {
+    "where": "packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts:3",
+    "why": "code TS2724",
+    "msg": "'\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+   }
+  ]
+ },
+ "standing": [
+  {
+   "pkg": "cli",
+   "where": "packages/cli/bin/cli-entry.ts:12",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:96",
+   "text": "TS2322 Type '(string & $brand<\"Filename\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-contract-validation/rule-require-contract-validation-broker.ts:15",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "hooks",
+   "where": "packages/hooks/test/harnesses/hook-runner/hook-persistent-worker.ts:85",
+   "text": "TS7036 Dynamic import's specifier must be of type 'string', but here has type 'string | undefined'."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.ts:20",
+   "text": "TS2345 Argument of type 'unknown' is not assignable to parameter of type 'string'."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.ts:20",
+   "text": "TS2345 Argument of type 'unknown' is not assignable to parameter of type 'string'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy.ts:26",
+   "text": "TS2322 Type '(string & $brand<\"AbsoluteFilePath\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy.ts:31",
+   "text": "TS2322 Type '(string & $brand<\"AbsoluteFilePath\">) | undefined' is not assignable to type 'string'.   Type 'undefined' is not assignable to type 'string'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:31",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/worktree/populate-node-modules/populate-one-root-layer-broker.ts:49",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:20",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "server",
+   "where": "packages/server/src/responders/quest/ward-detail/quest-ward-detail-responder.proxy.ts:5",
+   "text": "TS2305 Module '\"@dungeonmaster/shared/contracts\"' has no exported member 'FilePathStub'."
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts:2",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts:6",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts:3",
+   "text": "TS2724 '\"@dungeonmaster/shared/contracts\"' has no exported member named 'filePathContract'. Did you mean 'guildPathContract'?"
+  }
+ ]
+}

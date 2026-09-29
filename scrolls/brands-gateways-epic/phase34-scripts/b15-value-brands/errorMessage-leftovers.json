@@ -1,0 +1,99 @@
+{
+ "brand": "errorMessageContract",
+ "stats": {
+  "userFiles": 146,
+  "typeRefs": 160,
+  "parseCalls": 151,
+  "stubValue": 211,
+  "stubDefault": 0,
+  "fieldInline": 3,
+  "siblingBrands": 16
+ },
+ "overlayOnly": {
+  "total": 9,
+  "per": {
+   "cli": 0,
+   "config": 1,
+   "eslint-plugin": 0,
+   "hooks": 0,
+   "hydration": 0,
+   "hydration-recipes": 0,
+   "local-eslint": 0,
+   "mcp": 0,
+   "orchestrator": 1,
+   "server": 0,
+   "session-forensics": 0,
+   "shared": 0,
+   "siegelense": 0,
+   "testing": 0,
+   "tooling": 0,
+   "ward": 7,
+   "web": 0
+  },
+  "kinds": [
+   [
+    "TS2345 Argument of type X is not assignable to parameter of type 'stri",
+    7
+   ],
+   [
+    "TS2322 Type X is not assignable to type 'string & $brand<\"InstallResul",
+    1
+   ],
+   [
+    "TS2322 Type X is not assignable to type X.   Type X",
+    1
+   ]
+  ]
+ },
+ "withRewriter": {
+  "total": 1,
+  "per": {
+   "cli": 0,
+   "config": 0,
+   "eslint-plugin": 0,
+   "hooks": 0,
+   "hydration": 0,
+   "hydration-recipes": 0,
+   "local-eslint": 0,
+   "mcp": 0,
+   "orchestrator": 1,
+   "server": 0,
+   "session-forensics": 0,
+   "shared": 0,
+   "siegelense": 0,
+   "testing": 0,
+   "tooling": 0,
+   "ward": 0,
+   "web": 0
+  },
+  "kinds": [
+   [
+    "TS2322 Type X is not assignable to type X.   Type X",
+    1
+   ]
+  ]
+ },
+ "leftovers": {
+  "fieldNotInObject": [],
+  "notInlineable": [],
+  "remainingRefs": [
+   "packages/web/src/flows/app/smoke.e2e.ts:19 ErrorMessage type ErrorMessage = string;",
+   "packages/web/src/flows/app/smoke.e2e.ts:20 ErrorMessage ErrorMessage"
+  ],
+  "stubOther": [],
+  "rewriter": [
+   {
+    "where": "packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.ts:67",
+    "why": "target is not one of this brand's fields",
+    "msg": "Type 'string | null' is not assignable to type 'string'.   Type 'null' is not assignable to type 'string'."
+   }
+  ]
+ },
+ "standing": [
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.ts:67",
+   "text": "TS2322 Type 'string | null' is not assignable to type 'string'.   Type 'null' is not assignable to type 'string'."
+  }
+ ]
+}
