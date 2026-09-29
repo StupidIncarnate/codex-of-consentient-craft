@@ -5,18 +5,18 @@
  * `flows/` or `startup/`, because it reads and writes `driverSessionState` (only `bindings/`,
  * `responders/` and `widgets/` may import `state/`) and calls brokers directly (`flows/` and
  * `startup/` cannot import `brokers/` at all — see `get-architecture`'s layer table). The socket
- * still opens CONCURRENTLY with the first beat — `netUnixServeAdapter` is invoked synchronously,
+ * still opens CONCURRENTLY with the first beat — `unixSocketServe` is invoked synchronously,
  * unblocked by `firstBeat`, so a unix-socket bind (a direct, near-instant OS call) is never held
  * up by `heartbeatWriteBroker` -> `machineRssByPgidBroker`'s whole-`/proc` walk, which is
  * threadpool-bound and stretches under load (measured: ~1ms to bind versus ~50-300ms for that walk
  * once the machine carries hundreds of processes — see that broker's own header on scheduler
- * contention). What is NOT concurrent is ANSWERING: `onRequest` below `await firstBeat`s
- * immediately before it returns its response, on every branch, so `netUnixServeAdapter` never
+ * contention). What is NOT concurrent is ANSWERING: `onRequestLine` below `await firstBeat`s
+ * immediately before it returns its response, on every branch, so `unixSocketServe` never
  * writes a reply frame back to a real client until `heartbeat.json` is already on disk — a client
  * can be CONNECTED to an unanswered socket the instant it is bound, but it cannot observe a
  * successful `ping` (or any other response) any earlier than that. Gating the reply rather than the
- * bind is deliberate: gating the bind instead would have delayed `netUnixServeAdapter`'s own
- * invocation behind `firstBeat`, moving `driverSessionState`'s reads inside `onRequest` behind an
+ * bind is deliberate: gating the bind instead would have delayed `unixSocketServe`'s own
+ * invocation behind `firstBeat`, moving `driverSessionState`'s reads inside `onRequestLine` behind an
  * await too and reopening a race against this same file's mocked, near-instant idle-wait-then-
  * teardown path — gating only the OUTGOING reply keeps every state read exactly where it was,
  * synchronous with the request arriving. The heartbeat TICKER's `setInterval`
@@ -26,7 +26,7 @@
  * that let one bad write kill the loop would take down the ONLY recorded defence against a SIGKILLed
  * driver with it. SIGINT/SIGTERM are installed here for the identical reason the state import is
  * here — a signal handler that tears the lane down needs the live lane and the kill-signal resolver
- * this closure holds. Closes the socket server, via the `close` `netUnixServeAdapter` hands back,
+ * this closure holds. Closes the socket server, via the `close` `unixSocketServe` hands back,
  * as the LAST step on every path out — the listening handle is what keeps this OS process's event
  * loop alive, and this package never calls `process.exit()` on a success path, so a driver that
  * never closes its own socket never exits, killed OR idled out. Placed after every teardown step
@@ -37,7 +37,11 @@
  * deliberate self-reap the tool scheduled, not a memory-pressure death, and `status`'s
  * `likelyCauseLayerBroker` reads that recorded reason back instead of inventing an RSS/OOM narrative
  * for a death nobody forced (siegelense-tooling.md's "the crash a walker must NOT mistake for a
- * defect"). A `kill` needs no such marker: the CALLER already knows why the lane stopped.
+ * defect"). A `kill` needs no such marker: the CALLER already knows why the lane stopped. Every
+ * request line is parsed here, through `driverRequestContract.safeParse`: a line that is not JSON, or
+ * JSON missing a required field, never reaches `driverHandleRequestBroker`, and the client gets a real
+ * `{ok:false,...}` frame back instead of a connection that never answers. A handler that rejects is
+ * answered the same way, so no reply ever leaves as `unixSocketServe`'s own bare `ERROR:` line.
  *
  * USAGE:
  * await DriverServeLayerResponder({ instanceId, guildId: null, lane });
@@ -48,10 +52,10 @@
  * // Same, but reaps itself after 1_800_000ms of no traffic instead of driverStatics.idle.timeoutMs
  */
 
+import { unixSocketServe } from '#gateway/node/net';
 import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
-import { netUnixServeAdapter } from '../../../adapters/net/unix-serve/net-unix-serve-adapter';
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHeartbeatTickBroker } from '../../../brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker';
 import { instanceReleaseBroker } from '../../../brokers/instance/release/instance-release-broker';
@@ -59,6 +63,7 @@ import { laneTeardownBroker } from '../../../brokers/lane/teardown/lane-teardown
 import { locationsInstanceEvidencePathFindBroker } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker';
+import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -141,41 +146,67 @@ export const DriverServeLayerResponder = async ({
 
   const socketPath = locationsSocketPathFindBroker({ instanceId });
 
-  const serveResult = await netUnixServeAdapter({
+  const serveResult = await unixSocketServe({
     socketPath,
-    onRequest: async ({ request }) => {
+    onRequestLine: async (line) => {
+      const requestUnknown = ((): unknown => {
+        try {
+          return JSON.parse(line);
+        } catch (parseError) {
+          return parseError;
+        }
+      })();
+      const parsedRequest = driverRequestContract.safeParse(requestUnknown);
+
+      if (!parsedRequest.success) {
+        return JSON.stringify({
+          ok: false,
+          payload: '',
+          error: `Malformed request frame: ${
+            requestUnknown instanceof Error ? String(requestUnknown) : parsedRequest.error.message
+          }`,
+        });
+      }
+
+      const { data: request } = parsedRequest;
       driverSessionState.touch();
       const currentLane = driverSessionState.lane();
 
       if (currentLane === null) {
         await firstBeat;
-        return driverResponseContract.parse({
-          ok: false,
-          payload: '',
-          error: `Instance ${instanceId} has no active lane`,
+        return JSON.stringify(
+          driverResponseContract.parse({
+            ok: false,
+            payload: '',
+            error: `Instance ${instanceId} has no active lane`,
+          }),
+        );
+      }
+
+      try {
+        const response = await driverHandleRequestBroker({
+          request,
+          instanceId,
+          lane: currentLane,
+          mintRunId: driverSessionState.nextRunId,
+          flushCursor: driverSessionState.flushCursor,
+          advanceFlushCursor: driverSessionState.advanceFlushCursor,
+          lastShotPath: driverSessionState.lastShotPath,
+          setLastShotPath: driverSessionState.setLastShotPath,
         });
+
+        if (request.kind === 'kill' && response.ok) {
+          driverSessionState.clear();
+          resolveKillSignal?.(true);
+        }
+
+        // Gates the OUTGOING reply, never the state reads above — see this file's own header.
+        await firstBeat;
+
+        return JSON.stringify(response);
+      } catch (handleError) {
+        return JSON.stringify({ ok: false, payload: '', error: String(handleError) });
       }
-
-      const response = await driverHandleRequestBroker({
-        request,
-        instanceId,
-        lane: currentLane,
-        mintRunId: driverSessionState.nextRunId,
-        flushCursor: driverSessionState.flushCursor,
-        advanceFlushCursor: driverSessionState.advanceFlushCursor,
-        lastShotPath: driverSessionState.lastShotPath,
-        setLastShotPath: driverSessionState.setLastShotPath,
-      });
-
-      if (request.kind === 'kill' && response.ok) {
-        driverSessionState.clear();
-        resolveKillSignal?.(true);
-      }
-
-      // Gates the OUTGOING reply, never the state reads above — see this file's own header.
-      await firstBeat;
-
-      return response;
     },
   });
 

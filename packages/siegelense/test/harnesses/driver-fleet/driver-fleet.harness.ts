@@ -39,7 +39,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/lo
 import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { registryReadBroker } from '../../../src/brokers/registry/read/registry-read-broker';
 import { shutdownReasonReadBroker } from '../../../src/brokers/shutdown-reason/read/shutdown-reason-read-broker';
-import { netUnixRequestAdapter } from '../../../src/adapters/net/unix-request/net-unix-request-adapter';
+import { driverSocketRequestBroker } from '../../../src/brokers/driver/socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../../src/brokers/process/is-alive/process-is-alive-broker';
 import { processKillGroupBroker } from '../../../src/brokers/process/kill-group/process-kill-group-broker';
 import { DriverRequestStub } from '../../../src/contracts/driver-request/driver-request.stub';
@@ -224,7 +224,7 @@ export const driverFleetHarness = (): {
       return false;
     }
 
-    return netUnixRequestAdapter({
+    return driverSocketRequestBroker({
       socketPath,
       request: DriverRequestStub({ kind: 'ping' }),
       timeoutMs: driverStatics.socket.requestTimeoutMs,
@@ -322,7 +322,7 @@ export const driverFleetHarness = (): {
     return waitForGroupsDead({ pgids, deadlineMs });
   };
 
-  // The driver's own OS process is spawned via childProcessSpawnDetachedAdapter — the same
+  // The driver's own OS process is spawned via `spawnDetached` — the same
   // `detached: true` spawn every lane process uses — so its pgid numerically equals its own pid
   // (that adapter's own header), and `processIsAliveBroker`'s `kill(-pgid, 0)` probe reads it
   // exactly like any other lane process group.

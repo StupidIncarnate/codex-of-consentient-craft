@@ -1,6 +1,5 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
-import { createConnection } from 'net';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
@@ -13,14 +12,14 @@ import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.p
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
-import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
+import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driver-socket-request-broker.proxy';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
+import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -101,7 +100,7 @@ export const instanceKillBrokerProxy = (): {
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
   const shutdownReasonProxy = shutdownReasonWriteBrokerProxy();
-  const socketProxy = netUnixRequestAdapterProxy();
+  const socketProxy = driverSocketRequestBrokerProxy();
   const removeProxy = rmProxy();
   const killGroupProxy = processKillGroupBrokerProxy();
   const isAliveProxy = processIsAliveBrokerProxy();
@@ -118,7 +117,6 @@ export const instanceKillBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const connectionHandle: MockHandle = registerMock({ fn: createConnection });
 
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
   const readHandle: MockHandle = registerMock({ fn: readFile });
@@ -131,7 +129,7 @@ export const instanceKillBrokerProxy = (): {
   // The SIGTERM-then-check-SIGKILL escalation always waits driverStatics.teardown.graceMs (3s)
   // before probing aliveness. Addressed on the delay specifically (a predicate for the callback,
   // since that reference differs per call) — global and unaddressed would ALSO catch
-  // netUnixRequestAdapter's own request-timeout setTimeout, firing it immediately and rejecting
+  // unixSocketRequest's own request-timeout setTimeout, firing it immediately and rejecting
   // every socket call before its mocked 'connect'/'data' events (scheduled via process.nextTick)
   // ever get a turn.
   registerSpyOn({ object: globalThis, method: 'setTimeout', passthrough: true })
@@ -139,10 +137,10 @@ export const instanceKillBrokerProxy = (): {
       (candidate: unknown) => typeof candidate === 'function',
       driverStatics.teardown.graceMs,
     ])
-    .implement(((callback: () => void) => {
+    .implement((callback: () => void) => {
       callback();
       return 0;
-    }) as never);
+    });
   tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
 
@@ -213,10 +211,7 @@ export const instanceKillBrokerProxy = (): {
       pgids: readonly ProcessGroupId[];
       homePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
       pgids.forEach((pgid) => {
         isAliveProxy.setupAlive({ pgid });
         killGroupProxy.setupSent({ pgid, signal: 'SIGTERM' });
@@ -240,10 +235,7 @@ export const instanceKillBrokerProxy = (): {
       alreadyGonePgids: readonly ProcessGroupId[];
       homePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
       alreadyGonePgids.forEach((pgid) => {
         isAliveProxy.setupGone({ pgid });
       });
@@ -265,10 +257,7 @@ export const instanceKillBrokerProxy = (): {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
       homePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
       stagedHomePaths.push(homePath);
       removeProxy.succeeds({ path: homePath });
     },
@@ -313,9 +302,6 @@ export const instanceKillBrokerProxy = (): {
       socketPath,
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    }): ReturnType<typeof ReadingCountStub> =>
-      ReadingCountStub({
-        value: connectionHandle.callsMatching([{ path: socketPath }]).length,
-      }),
+    }): ReturnType<typeof ReadingCountStub> => socketProxy.getConnectionCountFor({ socketPath }),
   };
 };

@@ -1,5 +1,8 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
+import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
@@ -39,7 +42,7 @@ import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
-import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
+import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/spawn-detached.proxy';
 import { cliPackageBinResolveBrokerProxy } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
@@ -154,7 +157,7 @@ export const instanceStartBrokerProxy = (): {
     driverMessage: string;
   }) => void;
   stageInstanceReleaseWriteFails: (params: { error: Error }) => void;
-  stageBootLockAcquireFailsWithReadError: (params: { registry: Registry; error: Error }) => void;
+  stageBootLockAcquireFailsWithReadError: (params: { registry: Registry }) => void;
   stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
   getWriteOrder: () => readonly FilePath[];
   getBootLockReleasedPaths: () => unknown[];
@@ -239,7 +242,7 @@ export const instanceStartBrokerProxy = (): {
   const killProxy = instanceKillBrokerProxy();
 
   const openFdProxy = openForAppendSyncProxy();
-  const spawnProxy = childProcessSpawnDetachedAdapterProxy();
+  const spawnProxy = spawnDetachedProxy();
   const cliBinProxy = cliPackageBinResolveBrokerProxy();
   cliBinProxy.manifestDeclaresBin({ binRelative: CLI_BIN_RELATIVE_VALUE });
   // #gateway/node/os is a raw passthrough of the Node 'os' module (no per-function wrapper, so no
@@ -397,12 +400,12 @@ export const instanceStartBrokerProxy = (): {
     // time in a happy-boot test finds no lock left to release, exactly as a real released lock reads.
     readHandle
       .calledWith([BOOT_LOCK_PATH_ABS])
-      .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
+      .rejects(FileMissingErrorStub({ path: BOOT_LOCK_PATH_VALUE }));
 
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
     openFdProxy.returns({ path: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
 
-    spawnProxy.succeeds({
+    spawnProxy.setupSuccess({
       command: process.execPath,
       args: [
         expectedDriverBinPath,
@@ -412,6 +415,9 @@ export const instanceStartBrokerProxy = (): {
         instanceId,
         ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
       ],
+      // The repo root cwdResolveBroker walks to: the `.dungeonmaster.json` staged on `access` sits
+      // directly in the staged cwd.
+      cwd: CWD_PATH_VALUE,
       pid: 4821,
     });
   };
@@ -618,13 +624,7 @@ export const instanceStartBrokerProxy = (): {
     // loses to a file already there (EEXIST, the broker's own first move on every call), and the
     // read that classifies that failure fails for a reason that has nothing to do with absence —
     // the ONE branch that throws immediately, with no retry and no Date.now() sequencing to stage.
-    stageBootLockAcquireFailsWithReadError: ({
-      registry,
-      error,
-    }: {
-      registry: Registry;
-      error: Error;
-    }): void => {
+    stageBootLockAcquireFailsWithReadError: ({ registry }: { registry: Registry }): void => {
       // Staged explicitly, as `stageBoot` does: this scenario reaches registryReadBroker's
       // homedir() fallback with no other setup method having pinned it.
       repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
@@ -650,8 +650,12 @@ export const instanceStartBrokerProxy = (): {
       readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
       writeHandle
         .calledWith([BOOT_LOCK_PATH_ABS])
-        .rejects(Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' }));
-      readHandle.calledWith([BOOT_LOCK_PATH_ABS]).rejects(error);
+        .rejects(FileExistsRecordedErrorStub({ path: BOOT_LOCK_PATH_VALUE }));
+      // EMFILE, not ENOENT: a read that fails for a reason other than absence, which the acquire
+      // must throw rather than read as a released lock.
+      readHandle
+        .calledWith([BOOT_LOCK_PATH_ABS])
+        .rejects(FsErrorStub({ code: 'EMFILE', path: BOOT_LOCK_PATH_VALUE, syscall: 'open' }));
     },
 
     // Addressed on the `recipe` field alone — a prefix match, so the real apiBaseUrl/homePath/

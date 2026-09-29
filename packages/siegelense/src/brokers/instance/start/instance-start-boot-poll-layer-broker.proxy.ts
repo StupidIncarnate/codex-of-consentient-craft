@@ -2,7 +2,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
+import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driver-socket-request-broker.proxy';
 import { bootFailureMarkerReadBrokerProxy } from '../../boot-failure-marker/read/boot-failure-marker-read-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
@@ -23,7 +23,7 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
     marker: BootFailureMarker;
   }) => void;
 } => {
-  const socketProxy = netUnixRequestAdapterProxy();
+  const socketProxy = driverSocketRequestBrokerProxy();
   const markerProxy = bootFailureMarkerReadBrokerProxy();
   const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
@@ -46,10 +46,7 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
       nowMs: number;
       deadlineMs: number;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
       markerProxy.setupMarkerMissing({ evidencePath });
       dateHandle.onceFor([]).returns(deadlineMs >= nowMs ? deadlineMs : nowMs);
     },
@@ -65,10 +62,7 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
       evidencePath: AbsoluteFilePath;
       marker: BootFailureMarker;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
       markerProxy.setupMarkerFound({ evidencePath, marker });
     },
   };

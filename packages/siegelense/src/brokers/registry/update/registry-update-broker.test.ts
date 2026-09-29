@@ -34,7 +34,7 @@ describe('registryUpdateBroker', () => {
 
       await registryUpdateBroker({ mutate: (registry) => registry });
 
-      expect(proxy.getLockWriteFlag()).toBe('wx');
+      expect(proxy.getLockWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
       expect(proxy.getLockDeletedPaths()).toStrictEqual([proxy.lockPath]);
     });
 

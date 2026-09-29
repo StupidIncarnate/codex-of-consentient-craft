@@ -5,14 +5,14 @@
  * `SiegelenseDriverResponder`, so nothing at the entry point tells a legitimate boot apart from a
  * hand-typed `driver --instance <id>` racing an already-running one — only the registry row can).
  * `entry.pid` is checked with `processIsAliveBroker` rather than a dedicated pid probe: the driver
- * is spawned via `childProcessSpawnDetachedAdapter` with `detached: true` (see
+ * is spawned via `spawnDetached` with `detached: true` (see
  * `instanceStartBroker`), which makes it its own process-GROUP LEADER, so its pid and its pgid are
  * the same number and the existing `process.kill(-pgid, 0)` probe applies unchanged. A pid equal to
  * THIS process's own (`process.pid`) is never treated as live — a dead driver's pid can be recycled
  * by the OS to the very process now trying to boot that same instance, and refusing a spawn because
  * it collided with its own reused pid would be a false hijack report, not a caught one. The socket
  * ping is the fallback, not the primary check: `processIsAliveBroker` costs one syscall and no
- * timeout, while `netUnixRequestAdapter` needs a live socket file and a round trip, so it only runs
+ * timeout, while `driverSocketRequestBroker` needs a live socket file and a round trip, so it only runs
  * once the pid check alone could not already prove the driver live.
  *
  * USAGE:
@@ -25,7 +25,7 @@
 
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
-import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
+import { driverSocketRequestBroker } from '../socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
@@ -49,7 +49,7 @@ export const driverLiveCheckBroker = async ({
     return false;
   }
 
-  return netUnixRequestAdapter({
+  return driverSocketRequestBroker({
     socketPath: entry.socketPath,
     request: driverRequestContract.parse({ kind: 'ping', payload: contentTextContract.parse('') }),
     timeoutMs: driverStatics.socket.requestTimeoutMs,

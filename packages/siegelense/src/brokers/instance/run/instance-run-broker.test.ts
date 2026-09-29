@@ -1,3 +1,4 @@
+import { UnixSocketRecordedErrorStub } from '#gateway/node/net/unix-socket-recorded-error/unix-socket-recorded-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceRunBroker } from './instance-run-broker';
@@ -75,7 +76,10 @@ describe('instanceRunBroker', () => {
         new DriverUnreachableError({
           instanceId: INSTANCE_ID,
           socketPath: SOCKET_PATH_VALUE,
-          cause: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
+          cause: UnixSocketRecordedErrorStub({
+            code: 'ECONNREFUSED',
+            socketPath: SOCKET_PATH_VALUE,
+          }),
         }),
       );
     });

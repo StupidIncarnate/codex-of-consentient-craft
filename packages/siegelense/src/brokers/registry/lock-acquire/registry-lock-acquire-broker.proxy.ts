@@ -1,13 +1,14 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import type { FsError } from '#gateway/node/fs';
+import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
+import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -19,37 +20,9 @@ const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
 const ROOT_PATH_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense`;
 const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock`;
 
-// These stage a SAME-REALM `Error` deliberately, not the cross-realm shape a real `fs/promises`
-// rejection actually has under Jest (Node's own internals construct that error outside the vm
-// context a test file runs inside, which is what made `registryLockAcquireBroker`'s own
-// `instanceof Error` check reject a genuine EEXIST — see `isNativeError` and its own
-// test, which reproduces that exact shape via `vm.runInNewContext`). A cross-realm error cannot be
-// staged faithfully at THIS level: `@dungeonmaster/testing`'s `mockStagingCreateTransformer` (the
-// shared `rejects`/`throws` implementation every `registerMock` proxy in this repo shares) itself
-// does `val instanceof Error ? val : new Error(String(val))` — the identical bug, one level up —
-// so a cross-realm error handed to `.rejects()`/`.throws()` here is silently rebuilt into a
-// same-realm one with its `code` dropped before this broker ever sees it. These tests stay honest
-// about what they prove at this level: the broker's CLASSIFICATION LOGIC on an Error-shaped,
-// `code`-carrying object. The realm-safety MECHANISM is proven by `isNativeError`'s own
-// test, and the real, cross-process failure mode by `driver-flow.integration.test.ts`.
-const eexistError = (): Error =>
-  Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' });
-
-// ENOENT on the read that follows a failed create is the one code the broker treats as absence —
-// the holder released the file in the instant between the create and this read.
-const enoentError = (): Error =>
-  Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
-
-// An instance mid-spin-up of an API server, a Vite server and Chromium is exactly what starves
-// file descriptors, so EMFILE is the realistic non-absence code the read can fail with.
-const emfileError = (): Error =>
-  Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' });
-
-// A real permission failure on the stale-lock unlink itself — never absence-shaped, so it must
-// stay a real thrown error rather than being classified alongside a competitor's ENOENT.
-const eaccesError = (): Error =>
-  Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
-
+// Every failure staged here is a gateway stub addressed by this file's own registry.lock path: the
+// recorded EEXIST for a lost exclusive create, and `FsErrorStub` for the read and unlink codes
+// (EMFILE, EACCES) no recorded stub covers.
 export const registryLockAcquireBrokerProxy = (): {
   lockPath: ReturnType<typeof AbsoluteFilePathStub>;
   rootPath: ReturnType<typeof FilePathStub>;
@@ -61,7 +34,7 @@ export const registryLockAcquireBrokerProxy = (): {
   setupFreshHeldByAnotherPastCeiling: () => { startedAtMs: EpochMs; nowMs: EpochMs };
   setupLockReadFailsForNonAbsenceReason: () => void;
   setupLockVanishesBeforeRetryRead: () => void;
-  getLastWriteFlag: () => unknown;
+  getLastWriteOptions: () => unknown;
   getDeletedPaths: () => unknown[];
   getCreatedDirs: () => readonly unknown[];
 } => {
@@ -96,10 +69,11 @@ export const registryLockAcquireBrokerProxy = (): {
     });
   };
 
-  isNativeErrorProxy();
+  isFsErrorProxy();
   const readProxy = readFileIfExistsProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const writeProxy = writeFileExclusiveProxy();
+  const unlinkProxy = unlinkIfExistsProxy();
+  const eexistError = FileExistsRecordedErrorStub({ path: REGISTRY_LOCK_VALUE });
   const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -113,7 +87,7 @@ export const registryLockAcquireBrokerProxy = (): {
     // One real invocation: the exclusive create wins immediately.
     setupAvailable: (): void => {
       stagePathResolution();
-      writeProxy.succeeds({ filePath: lockPath });
+      writeProxy.succeeds({ path: lockPath });
     },
 
     // One real invocation: the exclusive create loses to a stale file, which this stages as
@@ -127,12 +101,12 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.ttlMs -
           instanceLifecycleStatics.registryLock.pollMs,
       });
-      writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
         contents: String(acquiredAtMs),
       });
-      unlinkProxy.succeeds({ filePath: lockPath });
+      unlinkProxy.succeeds({ path: lockPath });
     },
 
     // Two contenders agree the lock is stale; this one loses the race to remove it — its unlink
@@ -146,12 +120,12 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.ttlMs -
           instanceLifecycleStatics.registryLock.pollMs,
       });
-      writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
         contents: String(acquiredAtMs),
       });
-      unlinkProxy.throws({ filePath: lockPath, error: enoentError() });
+      unlinkProxy.missing({ path: lockPath });
     },
 
     // The stale-lock unlink fails for a reason that has nothing to do with a competitor's cleanup
@@ -164,12 +138,15 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.ttlMs -
           instanceLifecycleStatics.registryLock.pollMs,
       });
-      writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
         contents: String(acquiredAtMs),
       });
-      unlinkProxy.throws({ filePath: lockPath, error: eaccesError() });
+      unlinkProxy.rejects({
+        path: lockPath,
+        error: FsErrorStub({ code: 'EACCES', path: REGISTRY_LOCK_VALUE, syscall: 'unlink' }),
+      });
     },
 
     // One real invocation: puts the caller's own elapsed wait (startedAtMs -> nowMs) exactly at
@@ -183,7 +160,7 @@ export const registryLockAcquireBrokerProxy = (): {
       const heldAcquiredAtMs = EpochMsStub({ value: nowMs - pollMs });
 
       // The exclusive create loses to this already-fresh file before the read ever runs.
-      writeProxy.throws({ filePath: lockPath, error: eexistError() });
+      writeProxy.rejects({ path: lockPath, error: eexistError });
 
       readProxy.returns({
         path: lockPath,
@@ -203,8 +180,11 @@ export const registryLockAcquireBrokerProxy = (): {
     // this into "absent" keeps failing the same way on every subsequent attempt too.
     setupLockReadFailsForNonAbsenceReason: (): void => {
       stagePathResolution();
-      writeProxy.throws({ filePath: lockPath, error: eexistError() });
-      readProxy.throwsMatchingPath({ path: lockPath, error: emfileError() as unknown as FsError });
+      writeProxy.rejects({ path: lockPath, error: eexistError });
+      readProxy.throwsMatchingPath({
+        path: lockPath,
+        error: FsErrorStub({ code: 'EMFILE', path: REGISTRY_LOCK_VALUE, syscall: 'open' }),
+      });
     },
 
     // FIRST exclusive create fails (a competitor's file was there) → the read that classifies it
@@ -212,13 +192,15 @@ export const registryLockAcquireBrokerProxy = (): {
     // (staged separately via setupAvailable) takes the now-genuinely-absent path.
     setupLockVanishesBeforeRetryRead: (): void => {
       stagePathResolution();
-      writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.missing({ path: lockPath });
     },
 
-    getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: lockPath }),
+    // The options (3rd argument) of the LAST write to registry.lock — the `wx` flag lives there.
+    getLastWriteOptions: (): unknown => writeProxy.getCallsFor({ path: lockPath }).at(-1)?.[2],
 
-    getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
+    getDeletedPaths: (): unknown[] =>
+      unlinkProxy.getCallsFor({ path: lockPath }).map((call) => call[0]),
 
     getCreatedDirs: (): readonly unknown[] =>
       mkdirProxy.getCallsFor({ path: rootPath }).map((call) => call[0]),

@@ -1,6 +1,6 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
+import { driverSocketRequestBrokerProxy } from '../socket-request/driver-socket-request-broker.proxy';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
@@ -14,7 +14,7 @@ export const driverLiveCheckBrokerProxy = (): {
   setupSocketUnreachable: (params: { socketPath: AbsoluteFilePath }) => void;
 } => {
   const isAliveProxy = processIsAliveBrokerProxy();
-  const socketProxy = netUnixRequestAdapterProxy();
+  const socketProxy = driverSocketRequestBrokerProxy();
 
   return {
     setupPidAlive: ({ pgid }: { pgid: ProcessGroupId }): void => {
@@ -30,10 +30,7 @@ export const driverLiveCheckBrokerProxy = (): {
     },
 
     setupSocketUnreachable: ({ socketPath }: { socketPath: AbsoluteFilePath }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ENOENT'), { code: 'ENOENT' }),
-      });
+      socketProxy.connectFailsNoSocket({ socketPath });
     },
   };
 };

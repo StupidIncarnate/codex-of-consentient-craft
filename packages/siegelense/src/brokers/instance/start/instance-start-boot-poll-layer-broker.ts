@@ -21,7 +21,7 @@
  * // Resolves { status: 'timeout' } once deadlineMs passes with no answer and no marker
  */
 
-import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
+import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { bootFailureMarkerReadBroker } from '../../boot-failure-marker/read/boot-failure-marker-read-broker';
 import { bootPollOutcomeContract } from '../../../contracts/boot-poll-outcome/boot-poll-outcome-contract';
 import type { BootPollOutcome } from '../../../contracts/boot-poll-outcome/boot-poll-outcome-contract';
@@ -41,7 +41,7 @@ export const instanceStartBootPollLayerBroker = async ({
   evidencePath: AbsoluteFilePath;
 }): Promise<BootPollOutcome> => {
   try {
-    const response = await netUnixRequestAdapter({
+    const response = await driverSocketRequestBroker({
       socketPath,
       request: driverRequestContract.parse({
         kind: 'ping',

@@ -47,7 +47,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
+import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
@@ -98,7 +98,7 @@ export const instanceKillBroker = async ({
     payload: contentTextContract.parse(''),
   });
 
-  return netUnixRequestAdapter({
+  return driverSocketRequestBroker({
     socketPath,
     request,
     timeoutMs: driverStatics.socket.requestTimeoutMs,

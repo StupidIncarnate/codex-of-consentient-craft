@@ -33,6 +33,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { spawnDetached } from '#gateway/node/child_process';
 import { closeSync, openForAppendSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
@@ -46,8 +47,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
+import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
@@ -180,7 +181,7 @@ export const laneBootBroker = async ({
       ),
     };
 
-    const { pid, pgid } = childProcessSpawnDetachedAdapter({
+    const { pgid } = spawnDetached({
       command: laneProcess.command,
       args: substitutedArgs,
       cwd: spawnCwd,
@@ -205,7 +206,13 @@ export const laneBootBroker = async ({
             },
           )}`;
 
-    return { name: laneProcess.name, fd, pid, pgid, logPath, readyUrl };
+    return {
+      name: laneProcess.name,
+      fd,
+      pgid: processGroupIdContract.parse(pgid),
+      logPath,
+      readyUrl,
+    };
   });
 
   const deadlineMs = Date.now() + spec.bootTimeoutMs;

@@ -685,17 +685,13 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const specName = SpecNameStub({ value: 'api' });
-      const readError = Object.assign(new Error('EMFILE: too many open files'), {
-        code: 'EMFILE',
-      });
       proxy.stageBootLockAcquireFailsWithReadError({
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
-        error: readError,
       });
 
       await expect(
         instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
-      ).rejects.toThrow('EMFILE: too many open files');
+      ).rejects.toThrow(/^EMFILE: open '\/home\/user\/\.dungeonmaster\/siegelense\/boot\.lock'$/u);
 
       const expectedRegistry = RegistryStub({
         instances: [

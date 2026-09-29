@@ -73,6 +73,7 @@
  * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
  */
 
+import { spawnDetached } from '#gateway/node/child_process';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd } from '#gateway/node/process';
@@ -90,7 +91,6 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
-import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { tmpdir } from '#gateway/node/os';
 import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
 import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
@@ -271,7 +271,7 @@ export const instanceStartBroker = async ({
         .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
     );
 
-    childProcessSpawnDetachedAdapter({
+    spawnDetached({
       command: process.execPath,
       // `locationsStatics.siegelense.dir` doubles as the CLI subcommand name here — both are the
       // literal string 'siegelense', and `no-bare-location-literals` bans typing it a second time.

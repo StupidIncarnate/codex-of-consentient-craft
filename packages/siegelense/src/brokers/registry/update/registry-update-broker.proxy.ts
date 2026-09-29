@@ -13,7 +13,7 @@ export const registryUpdateBrokerProxy = (): {
   setupCurrentRegistryWithStaleLock: (params: { json: string; nowMs: EpochMs }) => void;
   setupLockHeldFreshByAnotherProcess: () => void;
   getWrittenContent: () => unknown;
-  getLockWriteFlag: () => unknown;
+  getLockWriteOptions: () => unknown;
   getLockDeletedPaths: () => unknown[];
 } => {
   // registryUpdateBroker acquires the lock, reads, mutates, writes, then releases — the four
@@ -73,7 +73,7 @@ export const registryUpdateBrokerProxy = (): {
 
     getWrittenContent: (): unknown => writeProxy.getWrittenContent(),
 
-    getLockWriteFlag: (): unknown => lockAcquireProxy.getLastWriteFlag(),
+    getLockWriteOptions: (): unknown => lockAcquireProxy.getLastWriteOptions(),
 
     getLockDeletedPaths: (): unknown[] => lockReleaseProxy.getDeletedPaths(),
   };

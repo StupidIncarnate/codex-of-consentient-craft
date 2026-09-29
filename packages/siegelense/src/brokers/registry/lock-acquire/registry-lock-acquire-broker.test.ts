@@ -21,7 +21,7 @@ describe('registryLockAcquireBroker', () => {
 
       await registryLockAcquireBroker({});
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
   });
 
@@ -73,7 +73,9 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupStaleUnlinkFailsForNonAbsenceReason({ nowMs });
       proxy.setupNow({ nowMs });
 
-      await expect(registryLockAcquireBroker({})).rejects.toThrow(/EACCES/u);
+      await expect(registryLockAcquireBroker({})).rejects.toThrow(
+        /^EACCES: unlink '\/home\/user\/\.dungeonmaster\/siegelense\/registry\.lock'$/u,
+      );
     });
   });
 
@@ -94,7 +96,9 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupNow({ nowMs: EpochMsStub() });
       proxy.setupLockReadFailsForNonAbsenceReason();
 
-      await expect(registryLockAcquireBroker({})).rejects.toThrow('EMFILE: too many open files');
+      await expect(registryLockAcquireBroker({})).rejects.toThrow(
+        /^EMFILE: open '\/home\/user\/\.dungeonmaster\/siegelense\/registry\.lock'$/u,
+      );
     }, 1000);
   });
 
@@ -129,7 +133,7 @@ describe('registryLockAcquireBroker', () => {
 
       await registryLockAcquireBroker({});
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
 
     it('VALID: {siegelense root already has files in it} => mkdir leaves them alone', async () => {
@@ -150,7 +154,7 @@ describe('registryLockAcquireBroker', () => {
 
       await registryLockAcquireBroker({}).catch((error: unknown) => error);
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
   });
 });

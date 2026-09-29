@@ -49,7 +49,7 @@ describe('bootLockAcquireBroker', () => {
 
       await bootLockAcquireBroker({ instanceId });
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
   });
 
@@ -76,7 +76,7 @@ describe('bootLockAcquireBroker', () => {
       });
 
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(expectedError.message);
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
   });
 
@@ -89,7 +89,7 @@ describe('bootLockAcquireBroker', () => {
       proxy.setupLockReadFailsForNonAbsenceReason();
 
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(
-        'EMFILE: too many open files',
+        /^EMFILE: open '\/home\/user\/\.dungeonmaster\/siegelense\/boot\.lock'$/u,
       );
     }, 1000);
   });
@@ -178,7 +178,7 @@ describe('bootLockAcquireBroker', () => {
       const { expectedError } = proxy.setupStaleTakeoverLosesRetryRace({ otherInstanceId });
 
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(expectedError.message);
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
 
     // Reproduces the row driver-flow.integration.test.ts's parallel-boot case measured under real
@@ -217,7 +217,9 @@ describe('bootLockAcquireBroker', () => {
       proxy.setupStaleUnlinkFailsForNonAbsenceReason({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
 
-      await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(/EACCES/u);
+      await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(
+        /^EACCES: unlink '\/home\/user\/\.dungeonmaster\/siegelense\/boot\.lock'$/u,
+      );
     });
   });
 
@@ -245,7 +247,7 @@ describe('bootLockAcquireBroker', () => {
 
       await bootLockAcquireBroker({ instanceId });
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
   });
 
@@ -259,7 +261,7 @@ describe('bootLockAcquireBroker', () => {
 
       await bootLockAcquireBroker({ instanceId }).catch((error: unknown) => error);
 
-      expect(proxy.getLastWriteFlag()).toBe('wx');
+      expect(proxy.getLastWriteOptions()).toStrictEqual({ encoding: 'utf8', flag: 'wx' });
     });
 
     it('ERROR: {boot.lock already held by another instance} => a second acquire against the held lock still throws', async () => {

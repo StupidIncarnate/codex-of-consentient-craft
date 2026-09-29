@@ -1,13 +1,14 @@
-import type { FsError } from '#gateway/node/fs';
+import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
-import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
+import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
+import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
 import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -24,34 +25,11 @@ const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
 const ROOT_PATH_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense`;
 const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
 
-// These stage a SAME-REALM `Error` deliberately, not the cross-realm shape a real `fs/promises`
-// rejection actually has under Jest — see `registryLockAcquireBrokerProxy`'s identical comment for
-// why (`@dungeonmaster/testing`'s own `mockStagingCreateTransformer` shares the same instanceof
-// gap, so `.throws()`/`.rejects()` cannot relay a cross-realm error faithfully at this level).
-// `isNativeError` proves the realm-safety mechanism against a genuine
-// `vm`-realm error; `driver-flow.integration.test.ts` proves it against the real failure mode.
-//
 // A failed exclusive create is what every scenario but the plain-absent one stages FIRST — the
-// broker always tries `wx` before it ever reads, so an EEXIST rejection is the trigger for the
-// read-and-decide logic every other setup method below exercises.
-const eexistError = (): Error =>
-  Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' });
-
-// ENOENT on the read that follows a failed create is the one code the broker treats as absence —
-// the holder released the file in the instant between the create and this read.
-const enoentError = (): Error =>
-  Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
-
-// This instance is itself mid-boot — spinning up an API server, a Vite server, Chromium — so
-// EMFILE (file descriptor exhaustion) is the realistic non-absence code the read can fail with.
-const emfileError = (): Error =>
-  Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' });
-
-// A real permission failure on the stale-lock unlink itself — never absence-shaped, so it must
-// stay a real thrown error rather than being classified alongside a competitor's ENOENT.
-const eaccesError = (): Error =>
-  Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
-
+// broker always tries `wx` before it ever reads, so the recorded EEXIST is the trigger for the
+// read-and-decide logic every other setup method below exercises. Every failure staged here is a
+// gateway stub addressed by this file's own boot.lock path: the recorded EEXIST for the create, and
+// `FsErrorStub` for the read and unlink codes (EMFILE, EACCES) no recorded stub covers.
 export const bootLockAcquireBrokerProxy = (): {
   bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
   rootPath: ReturnType<typeof FilePathStub>;
@@ -81,7 +59,7 @@ export const bootLockAcquireBrokerProxy = (): {
   setupLockReadFailsForNonAbsenceReason: () => void;
   setupLockVanishesBeforeRetryRead: () => void;
   getWrittenLock: () => unknown;
-  getLastWriteFlag: () => unknown;
+  getLastWriteOptions: () => unknown;
   getCreatedDirs: () => readonly unknown[];
 } => {
   const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
@@ -115,10 +93,11 @@ export const bootLockAcquireBrokerProxy = (): {
   stageBootLockPathResolution();
   stageBootLockPathResolution();
 
-  isNativeErrorProxy();
+  isFsErrorProxy();
   const readProxy = readFileIfExistsProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
+  const writeProxy = writeFileExclusiveProxy();
+  const unlinkProxy = unlinkIfExistsProxy();
+  const eexistError = FileExistsRecordedErrorStub({ path: BOOT_LOCK_VALUE });
   const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -140,7 +119,7 @@ export const bootLockAcquireBrokerProxy = (): {
     }): void => {
       // The exclusive create is tried before any read, so its failure (this instance's own file
       // already sits there) is what the idempotent-return branch reads to recognise its own lock.
-      writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejects({ path: bootLockPath, error: eexistError });
       const lock = BootLockStub({ heldBy, heldByPid, acquiredAtMs });
       readProxy.returns({
         path: bootLockPath,
@@ -168,12 +147,12 @@ export const bootLockAcquireBrokerProxy = (): {
       });
       // FIRST exclusive create fails (the stale file is there) → read → stale → unlink → the
       // RETRY exclusive create (also staged below via setupWriteSucceeds) takes it over.
-      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
       readProxy.returns({
         path: bootLockPath,
         contents: JSON.stringify(lock),
       });
-      unlinkProxy.succeeds({ filePath: bootLockPath });
+      unlinkProxy.succeeds({ path: bootLockPath });
     },
 
     // Two contenders agree the lock is stale; this one loses the race to remove it — its unlink
@@ -197,12 +176,12 @@ export const bootLockAcquireBrokerProxy = (): {
         heldByPid: ProcessIdStub(),
         acquiredAtMs,
       });
-      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
       readProxy.returns({
         path: bootLockPath,
         contents: JSON.stringify(lock),
       });
-      unlinkProxy.throws({ filePath: bootLockPath, error: enoentError() });
+      unlinkProxy.missing({ path: bootLockPath });
     },
 
     // The stale-lock unlink fails for a reason that has nothing to do with a competitor's cleanup
@@ -225,16 +204,19 @@ export const bootLockAcquireBrokerProxy = (): {
         heldByPid: ProcessIdStub(),
         acquiredAtMs,
       });
-      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
       readProxy.returns({
         path: bootLockPath,
         contents: JSON.stringify(lock),
       });
-      unlinkProxy.throws({ filePath: bootLockPath, error: eaccesError() });
+      unlinkProxy.rejects({
+        path: bootLockPath,
+        error: FsErrorStub({ code: 'EACCES', path: BOOT_LOCK_VALUE, syscall: 'unlink' }),
+      });
     },
 
     setupWriteSucceeds: (): void => {
-      writeProxy.succeeds({ filePath: bootLockPath });
+      writeProxy.succeeds({ path: bootLockPath });
     },
 
     // The read that classifies a failed exclusive create fails for a reason that has nothing to
@@ -242,15 +224,18 @@ export const bootLockAcquireBrokerProxy = (): {
     // the FIRST occurrence rather than retrying, so a regression that goes back to swallowing
     // this into "absent" keeps failing the same way on every subsequent attempt too.
     setupLockReadFailsForNonAbsenceReason: (): void => {
-      writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
-      readProxy.throwsMatchingPath({ path: bootLockPath, error: emfileError() as FsError });
+      writeProxy.rejects({ path: bootLockPath, error: eexistError });
+      readProxy.throwsMatchingPath({
+        path: bootLockPath,
+        error: FsErrorStub({ code: 'EMFILE', path: BOOT_LOCK_VALUE, syscall: 'open' }),
+      });
     },
 
     // FIRST exclusive create fails (a competitor's file was there) → the read that classifies it
     // finds nothing (ENOENT) — its holder released it in between → RETRY exclusive create
     // (staged to succeed via setupWriteSucceeds) takes the now-genuinely-absent path.
     setupLockVanishesBeforeRetryRead: (): void => {
-      writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
       readProxy.missing({ path: bootLockPath });
     },
 
@@ -274,7 +259,7 @@ export const bootLockAcquireBrokerProxy = (): {
       });
 
       // The exclusive create loses to this already-fresh file before the read ever runs.
-      writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
+      writeProxy.rejects({ path: bootLockPath, error: eexistError });
 
       readProxy.returns({
         path: bootLockPath,
@@ -320,8 +305,8 @@ export const bootLockAcquireBrokerProxy = (): {
 
       // Every exclusive create this test drives loses — the first to the stale file, the retry to
       // the competitor that beat this call back to the path.
-      writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
-      unlinkProxy.succeeds({ filePath: bootLockPath });
+      writeProxy.rejects({ path: bootLockPath, error: eexistError });
+      unlinkProxy.succeeds({ path: bootLockPath });
 
       readProxy.returnsMatchingPath({
         path: (p: unknown) =>
@@ -349,11 +334,12 @@ export const bootLockAcquireBrokerProxy = (): {
     },
 
     getWrittenLock: (): unknown => {
-      const written = writeProxy.getWrittenFor({ filePath: bootLockPath });
+      const written = writeProxy.getCallsFor({ path: bootLockPath }).at(-1)?.[1];
       return typeof written === 'string' ? JSON.parse(written) : undefined;
     },
 
-    getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: bootLockPath }),
+    // The options (3rd argument) of the LAST write to boot.lock — the `wx` flag lives there.
+    getLastWriteOptions: (): unknown => writeProxy.getCallsFor({ path: bootLockPath }).at(-1)?.[2],
 
     // Every call this broker ever makes is against the SAME rootPath, so the count of calls
     // matching it, each mapped back to that one path, is the created-dirs list a test compares

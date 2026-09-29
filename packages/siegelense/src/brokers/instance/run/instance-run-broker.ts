@@ -4,7 +4,7 @@
  * at an instance the registry never recorded still gets a real connection attempt rather than a
  * silent no-op), sends one `run` request down the socket, and parses the driver's response back
  * into a `RunResult`. A bare connection error cannot tell a crash from a kill from an instance
- * that never existed (spec lines 245-252), so any failure `netUnixRequestAdapter` throws is
+ * that never existed (spec lines 245-252), so any failure `driverSocketRequestBroker` throws is
  * wrapped in `DriverUnreachableError` naming this instance before it reaches the caller.
  *
  * A row already read `unusable` is refused before the socket is ever touched —
@@ -31,7 +31,7 @@
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
+import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -77,7 +77,7 @@ export const instanceRunBroker = async ({
     ),
   });
 
-  const response = await netUnixRequestAdapter({
+  const response = await driverSocketRequestBroker({
     socketPath,
     request,
     timeoutMs: driverStatics.socket.requestTimeoutMs,

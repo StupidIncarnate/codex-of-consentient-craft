@@ -6,6 +6,7 @@
 
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
+import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/spawn-detached.proxy';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
@@ -15,7 +16,6 @@ import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { browserSessionLaunchBrokerProxy } from '../../browser-session/launch/browser-session-launch-broker.proxy';
@@ -101,7 +101,7 @@ export const laneBootBrokerProxy = (): {
   cwdProxy();
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
-  const spawnProxy = childProcessSpawnDetachedAdapterProxy();
+  const spawnProxy = spawnDetachedProxy();
   const openFdProxy = openForAppendSyncProxy();
   const closeFdProxy = closeSyncProxy();
   const removeProxy = rmProxy();
@@ -138,7 +138,7 @@ export const laneBootBrokerProxy = (): {
       pid: number;
     }): void => {
       openFdProxy.returns({ path: logPath, fd });
-      spawnProxy.succeeds({ command, args: [...args], pid });
+      spawnProxy.setupSuccess({ command, args: [...args], cwd: CWD_PATH_VALUE, pid });
       // A boot-failure path SIGKILLs and closes every group it spawned, regardless of which
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,
       // not just the ones a given test expects to fail.
@@ -209,7 +209,8 @@ export const laneBootBrokerProxy = (): {
     }: {
       command: string;
       args: readonly string[];
-    }): unknown => spawnProxy.getOptionsFor({ command, args: [...args] }),
+    }): unknown =>
+      spawnProxy.getSpawnedOptions({ command, args: [...args], cwd: CWD_PATH_VALUE }).at(-1),
 
     getKillSignalsFor: ({ pgid }: { pgid: ProcessGroupId }): readonly unknown[] =>
       killProxy.getCallsFor({ pgid }),

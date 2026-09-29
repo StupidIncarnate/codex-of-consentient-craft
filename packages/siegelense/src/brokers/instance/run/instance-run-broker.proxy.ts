@@ -7,7 +7,7 @@ import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contra
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
-import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
+import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driver-socket-request-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -77,7 +77,7 @@ export const instanceRunBrokerProxy = (): {
   // constructor stages a permissive `calledWith([]).resolves(...)` default that covers
   // registryLockAcquireBroker's `mkdir -p` too, since both share the same underlying mock.
   registryUpdateBrokerProxy();
-  const socketProxy = netUnixRequestAdapterProxy();
+  const socketProxy = driverSocketRequestBrokerProxy();
 
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
   const readHandle: MockHandle = registerMock({ fn: readFile });
@@ -125,10 +125,7 @@ export const instanceRunBrokerProxy = (): {
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
+      socketProxy.connectFailsRefused({ socketPath });
     },
 
     setupDriverReportsFailure: ({
@@ -148,7 +145,7 @@ export const instanceRunBrokerProxy = (): {
       socketPath,
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    }): unknown => socketProxy.getWrittenFor({ socketPath }),
+    }): unknown => socketProxy.getRequestLinesFor({ socketPath }).at(-1),
 
     getWrittenRegistry: (): unknown => {
       const calls = writeHandle.callsMatching([REGISTRY_TMP_PATH_ABS]);

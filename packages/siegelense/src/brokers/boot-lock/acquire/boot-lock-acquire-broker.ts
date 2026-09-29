@@ -7,7 +7,7 @@
  * neither instance actually has" (spec line 1755) — every later `capacity` answer is then derived
  * from a number true of no real condition.
  *
- * The mechanism is an EXCLUSIVE CREATE (`fsWriteFileAdapter`'s `exclusive: true`, the `wx` flag),
+ * The mechanism is an EXCLUSIVE CREATE (`writeFileExclusive`, the `wx` flag),
  * tried FIRST, always — never a read that decides the lock is absent followed by a separate write.
  * Two processes reading "absent" in the same instant would both then write and both believe they
  * hold the lock; the OS performs an exclusive create's existence check and its create as ONE
@@ -29,10 +29,13 @@
  * // Fresh lock held by another instance: polls until it frees or throws BootLockHeldError.
  */
 
-import { ensureDir, readFileIfExists } from '#gateway/node/fs__promises';
-import { isNativeError } from '#gateway/node/util__types';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { isFsError } from '#gateway/node/fs';
+import {
+  ensureDir,
+  readFileIfExists,
+  unlinkIfExists,
+  writeFileExclusive,
+} from '#gateway/node/fs__promises';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
@@ -42,7 +45,7 @@ import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
-import { processIdContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 export const bootLockAcquireBroker = async ({
   instanceId,
@@ -68,27 +71,15 @@ export const bootLockAcquireBroker = async ({
   await ensureDir(rootPath);
 
   try {
-    await fsWriteFileAdapter({
-      filePath: bootLockPath,
-      contents: fileContentsContract.parse(JSON.stringify(newLock)),
-      exclusive: true,
-    });
+    await writeFileExclusive(bootLockPath, JSON.stringify(newLock));
 
     return { lock: newLock, tookOverStale };
   } catch (createError) {
     // Anything but "the file is already there" is a real failure (permissions, disk) — propagate
-    // it rather than reading a file whose absence has nothing to do with this error. This is a
-    // REAL `fs/promises` rejection, built by Node's own internals outside Jest's vm realm, so
-    // `createError instanceof Error` reads false even when it genuinely is one —
-    // `isNativeError` checks the V8-internal error slot instead, which answers
-    // correctly whichever realm constructed the value.
-    if (
-      createError === null ||
-      typeof createError !== 'object' ||
-      !isNativeError(createError) ||
-      !('code' in createError) ||
-      createError.code !== 'EEXIST'
-    ) {
+    // it rather than reading a file whose absence has nothing to do with this error. `isFsError`
+    // reads only `.code`, never `instanceof Error`, so a REAL `fs/promises` rejection — built by
+    // Node's own internals outside Jest's vm realm — classifies the same as one from this realm.
+    if (!isFsError({ error: createError, code: 'EEXIST' })) {
       throw createError;
     }
   }
@@ -116,20 +107,9 @@ export const bootLockAcquireBroker = async ({
     // parallel instances this is not rare, it is the row driver-flow.integration.test.ts's
     // parallel-boot case measured: the loser's unlink finds nothing there and fails ENOENT. That
     // ENOENT means exactly what a genuinely-absent lock means below — a competitor already
-    // cleared it — so it is classified and swallowed HERE rather than left to escape unwrapped
-    // (fsUnlinkAdapter, unlike fsReadFileAdapter, never wraps its rejection in a `{cause}` Error).
-    // Anything else (EACCES, EBUSY, ESTALE) is a real failure and still propagates.
-    await fsUnlinkAdapter({ filePath: bootLockPath }).catch((unlinkError: unknown) => {
-      if (
-        unlinkError === null ||
-        typeof unlinkError !== 'object' ||
-        !isNativeError(unlinkError) ||
-        !('code' in unlinkError) ||
-        unlinkError.code !== 'ENOENT'
-      ) {
-        throw unlinkError;
-      }
-    });
+    // cleared it — so `unlinkIfExists` resolves on it rather than letting it escape. Anything else
+    // (EACCES, EBUSY, ESTALE) is a real failure and still propagates.
+    await unlinkIfExists(bootLockPath);
 
     // Removing the stale file and retrying the create are two more operations, so a competitor
     // can still win the re-create in between — that failure falls back through the SAME

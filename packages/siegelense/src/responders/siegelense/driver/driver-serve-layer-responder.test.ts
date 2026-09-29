@@ -15,24 +15,114 @@ const flush = async (): Promise<void> => {
 
 describe('DriverServeLayerResponder', () => {
   describe('a request arrives over the socket', () => {
-    it('VALID: {ping} => writes the handled response back over the socket', async () => {
+    it('VALID: {ping} => writes the handled response back as one JSON line', async () => {
       const proxy = DriverServeLayerResponderProxy();
       proxy.stageHandleRequestResponds({
         response: DriverResponseStub({ ok: true, payload: '{"alive":true}', error: null }),
       });
-      proxy.stageIdleWaitResolves({ killed: false });
+      // Killed, so the lane stays set after the serve returns and the request reaches the handler.
+      proxy.stageIdleWaitResolves({ killed: true });
 
-      const resultPromise = DriverServeLayerResponder({
+      await DriverServeLayerResponder({
         instanceId: InstanceIdStub(),
         guildId: null,
         lane: LaneSessionStub(),
       });
-      const writes = proxy.sendSocketFrame({ frame: '{"kind":"ping","payload":""}\n' });
-      await flush();
-      await resultPromise;
+      const client = proxy.sendSocketLine({ line: '{"kind":"ping","payload":""}' });
       await flush();
 
-      expect(writes).toStrictEqual(['{"ok":true,"payload":"{\\"alive\\":true}","error":null}\n']);
+      expect(client.getWrittenLines()).toStrictEqual([
+        '{"ok":true,"payload":"{\\"alive\\":true}","error":null}',
+      ]);
+    });
+
+    it('INVALID: {line: not JSON} => answers a malformed-frame response and never reaches the handler', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+      const client = proxy.sendSocketLine({ line: 'not-json' });
+      await flush();
+
+      const [written] = client.getWrittenLines();
+
+      expect(JSON.parse(String(written))).toStrictEqual({
+        ok: false,
+        payload: '',
+        error: expect.stringMatching(/^Malformed request frame: SyntaxError: .+$/u),
+      });
+      expect(proxy.getHandleRequestCallCount()).toBe(0);
+    });
+
+    it('INVALID: {line: JSON missing kind} => answers a malformed-frame response and never reaches the handler', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+      const client = proxy.sendSocketLine({ line: '{"payload":""}' });
+      await flush();
+      const [written] = client.getWrittenLines();
+
+      expect(JSON.parse(String(written))).toStrictEqual({
+        ok: false,
+        payload: '',
+        error: `Malformed request frame: ${JSON.stringify(
+          [
+            {
+              code: 'invalid_value',
+              values: ['ping', 'run', 'kill'],
+              path: ['kind'],
+              message: 'Invalid option: expected one of "ping"|"run"|"kill"',
+            },
+          ],
+          null,
+          2,
+        )}`,
+      });
+      expect(proxy.getHandleRequestCallCount()).toBe(0);
+    });
+
+    it('ERROR: {handler rejects} => answers an ok:false frame carrying the error', async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageHandleRequestFails({ error: new Error('browser crashed') });
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+      const client = proxy.sendSocketLine({ line: '{"kind":"ping","payload":""}' });
+      await flush();
+
+      expect(client.getWrittenLines()).toStrictEqual([
+        '{"ok":false,"payload":"","error":"Error: browser crashed"}',
+      ]);
+    });
+  });
+
+  describe('binding the socket', () => {
+    it("VALID: {instanceId} => creates the socket's parent directory before binding", async () => {
+      const proxy = DriverServeLayerResponderProxy();
+      proxy.stageIdleWaitResolves({ killed: true });
+
+      await DriverServeLayerResponder({
+        instanceId: InstanceIdStub(),
+        guildId: null,
+        lane: LaneSessionStub(),
+      });
+
+      expect(proxy.getSocketDirCreateCalls()).toStrictEqual([
+        ['/tmp/dm-siege-sockets', { recursive: true }],
+      ]);
     });
   });
 
