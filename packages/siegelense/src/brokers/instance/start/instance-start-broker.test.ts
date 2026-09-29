@@ -2,7 +2,7 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-pat
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';

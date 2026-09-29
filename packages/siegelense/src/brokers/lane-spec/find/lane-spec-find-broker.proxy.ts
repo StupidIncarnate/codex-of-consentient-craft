@@ -3,7 +3,7 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { DungeonmasterConfigStub } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
 

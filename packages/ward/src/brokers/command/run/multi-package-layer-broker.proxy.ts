@@ -7,7 +7,7 @@ import {
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { DungeonmasterConfigStub } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';

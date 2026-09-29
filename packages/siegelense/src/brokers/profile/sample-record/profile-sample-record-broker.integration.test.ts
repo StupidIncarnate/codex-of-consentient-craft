@@ -12,8 +12,9 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { configDefaultsStatics } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';

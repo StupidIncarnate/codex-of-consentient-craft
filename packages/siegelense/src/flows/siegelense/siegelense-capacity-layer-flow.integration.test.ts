@@ -31,8 +31,9 @@ import {
   RelativePathStub,
 } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { configDefaultsStatics } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { SiegelenseCapacityLayerFlow } from './siegelense-capacity-layer-flow';
 

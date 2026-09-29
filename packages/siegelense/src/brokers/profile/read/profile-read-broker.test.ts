@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';

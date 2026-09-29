@@ -31,8 +31,9 @@ import type {
   TimeoutMs,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { configDefaultsStatics } from '@dungeonmaster/config';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { instanceKillBroker } from '../../../src/brokers/instance/kill/instance-kill-broker';
 import { instanceStartBroker } from '../../../src/brokers/instance/start/instance-start-broker';

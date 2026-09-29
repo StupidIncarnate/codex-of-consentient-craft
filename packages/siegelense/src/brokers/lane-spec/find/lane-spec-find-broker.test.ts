@@ -3,7 +3,7 @@ import { laneSpecFindBrokerProxy } from './lane-spec-find-broker.proxy';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
 import { e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
-import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
+import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 describe('laneSpecFindBroker', () => {
   describe('a configured repo', () => {
