@@ -9,8 +9,9 @@
  * one died.
  *
  * A profile read that fails (an unknown spec name, an unconfigured `.dungeonmaster.json`) answers
- * `null` rather than throwing: a post-mortem reading for an instance whose spec has since moved on
- * is still worth showing without a profile line, not a crashed `status` call.
+ * `null` rather than throwing, and says nothing: a retired spec is the normal state of an old
+ * registry row, and `status --since beginning` reads one row per instance, so a line per failure
+ * would bury the table. The row shows no profile line instead of a crashed `status` call.
  *
  * USAGE:
  * await profileSoloReadLayerBroker({ specName: SpecNameStub({ value: 'stack' }) });
@@ -31,12 +32,7 @@ export const profileSoloReadLayerBroker = async ({
 }: {
   specName: SpecName;
 }): Promise<CapacityProfile | null> => {
-  const profile = await profileReadBroker({ specName }).catch((error: unknown) => {
-    process.stderr.write(
-      `[profile-solo-read] could not read the profile for spec ${specName}: ${String(error)}\n`,
-    );
-    return null;
-  });
+  const profile = await profileReadBroker({ specName }).catch((): null => null);
 
   if (profile === null) {
     return null;

@@ -11,6 +11,9 @@
  * stale-process watchdog at module scope — fatal for a short-lived `siegelense start` invocation,
  * which would otherwise never exit.
  *
+ * The listing is `quiet`: a quest file another subsystem wrote in a shape this build rejects is not
+ * siegelense's to report, and `start` prints its own result only.
+ *
  * USAGE:
  * await questOwningGuildFindBroker({ questId });
  * // Returns the GuildId of the guild whose quest list contains this questId; throws if none does
@@ -28,7 +31,7 @@ export const questOwningGuildFindBroker = async ({
   const perGuildQuests = await Promise.all(
     guilds.map(async (guild) => ({
       guildId: guild.id,
-      quests: await questListBroker({ guildId: guild.id }),
+      quests: await questListBroker({ guildId: guild.id, quiet: true }),
     })),
   );
 
