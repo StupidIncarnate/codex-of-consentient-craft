@@ -30,6 +30,8 @@
  */
 
 import { isFsError } from '#gateway/node/fs';
+import { pid } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 import {
   ensureDir,
   readFileIfExists,
@@ -64,7 +66,7 @@ export const bootLockAcquireBroker = async ({
 
   const newLock = bootLockContract.parse({
     heldBy: instanceId,
-    heldByPid: processIdContract.parse(String(process.pid)),
+    heldByPid: processIdContract.parse(String(pid)),
     acquiredAtMs: nowMs,
   });
 

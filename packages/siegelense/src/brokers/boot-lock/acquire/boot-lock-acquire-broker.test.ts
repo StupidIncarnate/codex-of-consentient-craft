@@ -1,3 +1,5 @@
+import { pid } from '#gateway/node/process';
+
 import { bootLockAcquireBroker } from './boot-lock-acquire-broker';
 import { bootLockAcquireBrokerProxy } from './boot-lock-acquire-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -19,7 +21,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(process.pid) }),
+          heldByPid: ProcessIdStub({ value: String(pid) }),
           acquiredAtMs: nowMs,
         },
         tookOverStale: false,
@@ -109,7 +111,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(process.pid) }),
+          heldByPid: ProcessIdStub({ value: String(pid) }),
           acquiredAtMs: nowMs,
         },
         tookOverStale: false,
@@ -133,7 +135,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(process.pid) }),
+          heldByPid: ProcessIdStub({ value: String(pid) }),
           acquiredAtMs: nowMs,
         },
         tookOverStale: true,
@@ -201,7 +203,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(process.pid) }),
+          heldByPid: ProcessIdStub({ value: String(pid) }),
           acquiredAtMs: nowMs,
         },
         tookOverStale: true,

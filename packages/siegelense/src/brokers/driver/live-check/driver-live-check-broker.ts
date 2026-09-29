@@ -23,6 +23,7 @@
  * // Returns true when pid 108019 answers process.kill(pid, 0), or its socket answers ping
  */
 
+import { pid } from '#gateway/node/process';
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../socket-request/driver-socket-request-broker';
@@ -37,7 +38,7 @@ export const driverLiveCheckBroker = async ({
 }: {
   entry: RegistryEntry;
 }): Promise<boolean> => {
-  if (entry.pid === null || entry.pid === processIdContract.parse(String(process.pid))) {
+  if (entry.pid === null || entry.pid === processIdContract.parse(String(pid))) {
     return false;
   }
 

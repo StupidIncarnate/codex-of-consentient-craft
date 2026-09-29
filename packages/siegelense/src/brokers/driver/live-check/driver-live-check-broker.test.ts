@@ -1,3 +1,4 @@
+import { pid } from '#gateway/node/process';
 import { AbsoluteFilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { driverLiveCheckBroker } from './driver-live-check-broker';
@@ -5,7 +6,7 @@ import { driverLiveCheckBrokerProxy } from './driver-live-check-broker.proxy';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 
-const DIFFERENT_PID = ProcessIdStub({ value: String(process.pid + 1) });
+const DIFFERENT_PID = ProcessIdStub({ value: String(pid + 1) });
 const SOCKET_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_live0001.sock' });
 
 describe('driverLiveCheckBroker', () => {
@@ -23,7 +24,7 @@ describe('driverLiveCheckBroker', () => {
   describe('the row already names this same process', () => {
     it("VALID: {entry.pid: this process's own pid} => returns false", async () => {
       driverLiveCheckBrokerProxy();
-      const selfPid = ProcessIdStub({ value: String(process.pid) });
+      const selfPid = ProcessIdStub({ value: String(pid) });
       const entry = RegistryEntryStub({ pid: selfPid, socketPath: SOCKET_PATH });
 
       const result = await driverLiveCheckBroker({ entry });
