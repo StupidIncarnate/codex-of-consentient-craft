@@ -14,7 +14,7 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import { readStdinToEnd } from '#gateway/node/process';
+import { readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 
 import { rateLimitsHistoryAppendBroker } from '../../../brokers/rate-limits/history-append/rate-limits-history-append-broker';
 import { rateLimitsSnapshotWriteBroker } from '../../../brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker';
@@ -23,7 +23,7 @@ import { statuslineToSnapshotTransformer } from '../../../transformers/statuslin
 
 export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
   const inputData = await readStdinToEnd();
-  process.stdout.write(inputData);
+  stdout.write(inputData);
 
   try {
     const parsed = JSON.parse(inputData) as unknown;
@@ -41,9 +41,7 @@ export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
       });
     }
   } catch (error: unknown) {
-    process.stderr.write(
-      `statusline-tap: ${error instanceof Error ? error.message : String(error)}\n`,
-    );
+    stderr.write(`statusline-tap: ${error instanceof Error ? error.message : String(error)}\n`);
   }
 
   return adapterResultContract.parse({ success: true });
