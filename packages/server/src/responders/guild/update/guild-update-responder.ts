@@ -3,9 +3,11 @@
  *
  * USAGE:
  * const result = await GuildUpdateResponder({ params: { guildId: 'abc' }, body: { name: 'New' } });
- * // Returns { status: 200, data: guild } or { status: 400/409/500, data: { error } } — 409 when
- * // the new path is already registered to another guild
+ * // Returns { status: 200, data: guild } or { status: 400/409/500, data: { error } } — 400 names
+ * // `path` when it is not absolute, 409 when the new path is already registered to another guild
  */
+
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorUpdateGuildAdapter } from '../../../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
@@ -48,6 +50,13 @@ export const GuildUpdateResponder = async ({
     const parsedBody = guildUpdateBodyContract.safeParse(body);
     const name = parsedBody.success ? parsedBody.data.name : undefined;
     const path = parsedBody.success ? parsedBody.data.path : undefined;
+
+    if (path !== undefined && !absoluteFilePathContract.safeParse(path).success) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+    }
 
     const guild = await orchestratorUpdateGuildAdapter({
       guildId,

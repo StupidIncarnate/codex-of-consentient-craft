@@ -30,6 +30,30 @@ describe('pathIsAccessibleBroker', () => {
     });
   });
 
+  describe('relative paths', () => {
+    it('INVALID: {path: "jo"} => returns false instead of throwing, even where the fs would answer true', async () => {
+      const proxy = pathIsAccessibleBrokerProxy();
+      const path = GuildPathStub({ value: 'jo' });
+
+      proxy.setupResult({ result: true });
+
+      const result = await pathIsAccessibleBroker({ path });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {path: "./jo"} => returns false because a guild path must be absolute', async () => {
+      const proxy = pathIsAccessibleBrokerProxy();
+      const path = GuildPathStub({ value: './jo' });
+
+      proxy.setupResult({ result: true });
+
+      const result = await pathIsAccessibleBroker({ path });
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('empty inputs', () => {
     it('EMPTY: {path: undefined} => returns false', async () => {
       pathIsAccessibleBrokerProxy();

@@ -16,6 +16,22 @@ describe('GuildRowLayerWidget', () => {
       });
 
       expect(proxy.getItemName({ testId: `GUILD_ITEM_${guildId}` })).toBe('Test Guild');
+      expect(proxy.getInvalidMarkerText({ testId: `GUILD_ITEM_INVALID_${guildId}` })).toBe(null);
+    });
+
+    it('VALID: {guild with valid false} => renders the name followed by an invalid path marker', () => {
+      const proxy = GuildRowLayerWidgetProxy();
+      const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
+      const guild = GuildListItemStub({ id: guildId, name: 'jod', path: 'jo', valid: false });
+
+      mantineRenderAdapter({
+        ui: <GuildRowLayerWidget guild={guild} selectedGuildId={null} onSelect={jest.fn()} />,
+      });
+
+      expect(proxy.getItemName({ testId: `GUILD_ITEM_${guildId}` })).toBe('jod(invalid path)');
+      expect(proxy.getInvalidMarkerText({ testId: `GUILD_ITEM_INVALID_${guildId}` })).toBe(
+        '(invalid path)',
+      );
     });
   });
 

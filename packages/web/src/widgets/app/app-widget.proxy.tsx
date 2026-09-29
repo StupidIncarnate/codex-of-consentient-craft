@@ -50,6 +50,7 @@ export const AppWidgetProxy = (): {
   isGuildItemSelected: (params: { testId: string }) => boolean;
   clickAddGuild: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
+  getGuildsErrorText: () => HTMLElement['textContent'];
   isSessionEmptyStateVisible: () => boolean;
   isSelectGuildMessageVisible: () => boolean;
   typeGuildName: (params: { value: string }) => Promise<void>;
@@ -103,6 +104,7 @@ export const AppWidgetProxy = (): {
       await homeProxy.clickAddGuild();
     },
     isNewGuildTitleVisible: (): boolean => homeProxy.isNewGuildTitleVisible(),
+    getGuildsErrorText: (): HTMLElement['textContent'] => homeProxy.getGuildsErrorText(),
     isSessionEmptyStateVisible: (): boolean => homeProxy.isSessionEmptyStateVisible(),
     isSelectGuildMessageVisible: (): boolean => homeProxy.isSelectGuildMessageVisible(),
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {

@@ -65,6 +65,38 @@ describe('GuildAddResponder', () => {
     });
   });
 
+  describe('relative path', () => {
+    it('INVALID: {path: "jo"} => returns 400 naming path and never calls the orchestrator', async () => {
+      const proxy = GuildAddResponderProxy();
+      const name = GuildNameStub({ value: 'jod' });
+      const path = GuildPathStub({ value: 'jo' });
+      proxy.setupAddGuild({ name, path, guild: GuildStub({ name, path }) });
+
+      const result = await proxy.callResponder({ body: { name: 'jod', path: 'jo' } });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+      expect(proxy.getAddGuildCalls()).toStrictEqual([]);
+    });
+
+    it('INVALID: {path: "./jo"} => returns 400 naming path and never calls the orchestrator', async () => {
+      const proxy = GuildAddResponderProxy();
+      const name = GuildNameStub({ value: 'jod' });
+      const path = GuildPathStub({ value: './jo' });
+      proxy.setupAddGuild({ name, path, guild: GuildStub({ name, path }) });
+
+      const result = await proxy.callResponder({ body: { name: 'jod', path: './jo' } });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+      expect(proxy.getAddGuildCalls()).toStrictEqual([]);
+    });
+  });
+
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', async () => {
       const proxy = GuildAddResponderProxy();

@@ -97,6 +97,56 @@ describe('GuildEmptyStateWidget', () => {
 
       expect(onCancel).toHaveBeenCalledTimes(1);
     });
+
+    it('VALID: {name, absolute path, click CREATE} => calls onAddGuild with both and shows no path error', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+      const onAddGuild = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <GuildEmptyStateWidget onAddGuild={onAddGuild} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: '/home/user/jo' });
+      await proxy.clickCreate();
+
+      expect(onAddGuild).toHaveBeenCalledTimes(1);
+      expect(onAddGuild).toHaveBeenCalledWith({ name: 'jod', path: '/home/user/jo' });
+      expect(proxy.getGuildPathError()).toBe(null);
+    });
+
+    it('INVALID: {relative path "jo", click CREATE} => shows the path error and never calls onAddGuild', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+      const onAddGuild = jest.fn();
+
+      mantineRenderAdapter({
+        ui: <GuildEmptyStateWidget onAddGuild={onAddGuild} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: 'jo' });
+      await proxy.clickCreate();
+
+      expect(proxy.getGuildPathError()).toBe(
+        'Path must be absolute (start with / or C:\\ on Windows)',
+      );
+      expect(onAddGuild).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {path error shown, then path edited} => clears the path error', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: 'jo' });
+      await proxy.clickCreate();
+      await proxy.typeGuildPath({ value: 'x' });
+
+      expect(proxy.getGuildPathError()).toBe(null);
+    });
   });
 
   describe('button test ids', () => {

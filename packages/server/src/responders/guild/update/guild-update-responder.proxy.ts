@@ -1,3 +1,4 @@
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { orchestratorUpdateGuildAdapterProxy } from '../../../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter.proxy';
 import type { GuildId, GuildStub } from '@dungeonmaster/shared/contracts';
 import { GuildUpdateResponder } from './guild-update-responder';
@@ -7,6 +8,7 @@ type Guild = ReturnType<typeof GuildStub>;
 export const GuildUpdateResponderProxy = (): {
   setupUpdateGuild: (params: { guild: Guild }) => void;
   setupUpdateGuildError: (params: { guildId: GuildId; message: string }) => void;
+  getUpdateGuildCalls: () => RecordedCalls;
   callResponder: typeof GuildUpdateResponder;
 } => {
   const adapterProxy = orchestratorUpdateGuildAdapterProxy();
@@ -18,6 +20,7 @@ export const GuildUpdateResponderProxy = (): {
     setupUpdateGuildError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
       adapterProxy.throws({ guildId, error: new Error(message) });
     },
+    getUpdateGuildCalls: (): RecordedCalls => adapterProxy.getCalls(),
     callResponder: GuildUpdateResponder,
   };
 };

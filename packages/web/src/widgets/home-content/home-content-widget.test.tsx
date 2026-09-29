@@ -52,6 +52,33 @@ describe('HomeContentWidget', () => {
 
       expect(proxy.isNewGuildTitleVisible()).toBe(true);
     });
+
+    it('ERROR: {guild list request fails} => shows the load error and the guild list, not the first-run NEW GUILD form', async () => {
+      const proxy = HomeContentWidgetProxy();
+
+      proxy.setupGuildsError();
+
+      await testingLibraryActAsyncAdapter({
+        callback: async () => {
+          mantineRenderAdapter({
+            ui: (
+              <MemoryRouter>
+                <HomeContentWidget />
+              </MemoryRouter>
+            ),
+          });
+          await Promise.resolve();
+        },
+      });
+
+      await waitFor(() => {
+        expect(proxy.getGuildsErrorText()).toBe('Could not load guilds: Failed to fetch');
+      });
+
+      expect(proxy.getGuildsErrorText()).toBe('Could not load guilds: Failed to fetch');
+      expect(proxy.isNewGuildTitleVisible()).toBe(false);
+      expect(screen.getByTestId('GUILD_ADD_BUTTON').textContent).toBe('+ ');
+    });
   });
 
   describe('guild list view', () => {
