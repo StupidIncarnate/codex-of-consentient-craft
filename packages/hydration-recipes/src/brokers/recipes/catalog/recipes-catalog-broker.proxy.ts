@@ -13,15 +13,15 @@ import { recipeListingProbeStatics } from '../../../statics/recipe-listing-probe
 export const recipesCatalogBrokerProxy = (): {
   corruptQuestAdvancesOneStepProbe: () => void;
 } => {
-  dmRegistryBrokerProxy();
-  recipesGuildEmptyBrokerProxy();
-  recipesGuildWithThreeQuestsBrokerProxy();
-  recipesGuildMidExecutionBrokerProxy();
-  recipesQuestAdvancesOneStepBrokerProxy();
-  recipesQuestCompletedBrokerProxy();
-  recipesSessionSingleTurnBrokerProxy();
-  recipesSessionWithNestedChainBrokerProxy();
-  recipesGuildActiveSuiteBrokerProxy();
+  const registry = dmRegistryBrokerProxy();
+  recipesGuildEmptyBrokerProxy({ registry });
+  recipesGuildWithThreeQuestsBrokerProxy({ registry });
+  recipesGuildMidExecutionBrokerProxy({ registry });
+  recipesQuestAdvancesOneStepBrokerProxy({ registry });
+  recipesQuestCompletedBrokerProxy({ registry });
+  recipesSessionSingleTurnBrokerProxy({ registry });
+  recipesSessionWithNestedChainBrokerProxy({ registry });
+  recipesGuildActiveSuiteBrokerProxy({ registry });
   recipesSessionWithNestedSubagentBrokerProxy();
 
   return {

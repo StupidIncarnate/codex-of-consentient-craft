@@ -1,8 +1,14 @@
 import { recipesHydrationCreateBrokerProxy } from '../../recipes-hydration/create/recipes-hydration-create-broker.proxy';
 import { dmRegistryBrokerProxy } from '../../dm/registry/dm-registry-broker.proxy';
 
-export const recipesGuildActiveSuiteBrokerProxy = (): Record<PropertyKey, never> => {
+export const recipesGuildActiveSuiteBrokerProxy = ({
+  registry,
+}: {
+  registry?: ReturnType<typeof dmRegistryBrokerProxy>;
+} = {}): Record<PropertyKey, never> => {
   recipesHydrationCreateBrokerProxy();
-  dmRegistryBrokerProxy();
+  if (registry === undefined) {
+    dmRegistryBrokerProxy();
+  }
   return {};
 };
