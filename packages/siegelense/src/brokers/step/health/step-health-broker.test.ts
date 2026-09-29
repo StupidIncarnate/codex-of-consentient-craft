@@ -21,7 +21,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -57,7 +57,7 @@ describe('stepHealthBroker', () => {
 
     expect(captureMock).toHaveBeenCalledWith({ filePath: shotPath });
     expect(result).toBe(
-      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -76,7 +76,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DOWN      root absent · not blank · console clean · no 5xx · server log clean',
+      'DOWN      root absent · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -106,7 +106,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+      'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -131,7 +131,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DEGRADED  root present · not blank · console: 1 error "Uncaught TypeError: cannot read properties of undefined" · no 5xx · server log clean',
+      'DEGRADED  root present · not blank · console: 1 error "Uncaught TypeError: cannot read properties of undefined" · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -151,7 +151,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DEGRADED  root present · not blank · console: 1 error "{"kind":"pageerror"}" · no 5xx · server log clean',
+      'DEGRADED  root present · not blank · console: 1 error "{"kind":"pageerror"}" · no 5xx · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -175,7 +175,7 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/guilds" · server log clean',
+      'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/guilds" · server log clean — judged this run only (no page load recorded)',
     );
   });
 
@@ -196,31 +196,145 @@ describe('stepHealthBroker', () => {
     });
 
     expect(result).toBe(
-      'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error',
+      'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error — judged this run only (no page load recorded)',
     );
   });
 
-  it('VALID: {browserWindowStart supplied} => offsets console and network line reading', async () => {
+  it('VALID: {standalone health, page loaded in an earlier run, /api/guilds 500} => DEGRADED judged since that load', async () => {
     const proxy = stepHealthBrokerProxy();
     const lane = LaneSessionStub();
-    const readConsoleSince = jest.fn().mockReturnValue([]);
-    const readNetworkSince = jest.fn().mockReturnValue([]);
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
-      readConsoleSince,
-      readNetworkSince,
+      readConsoleSince: () => [
+        ContentTextStub({
+          value: '{"at":120,"kind":"console","type":"error","text":"Failed to load resource: 500"}',
+        }),
+      ],
+      readNetworkSince: () => [
+        ContentTextStub({
+          value:
+            '{"at":100,"method":"GET","url":"http://localhost:5173/","resourceType":"document","status":200}',
+        }),
+        ContentTextStub({
+          value:
+            '{"at":105,"method":"GET","url":"http://localhost:5173/assets/index.css","resourceType":"stylesheet","status":304}',
+        }),
+        ContentTextStub({
+          value:
+            '{"at":110,"method":"GET","url":"http://localhost:5173/api/guilds","resourceType":"fetch","status":500}',
+        }),
+      ],
     });
 
-    const browserWindowStart = proxy.windowStart({ consoleLines: 5, networkLines: 10 });
-
-    await stepHealthBroker({
+    const result = await stepHealthBroker({
       lane,
       session,
       shotPath: null,
-      browserWindowStart,
+      browserWindowStart: proxy.windowStart({ consoleLines: 1, networkLines: 3 }),
     });
 
-    expect(readConsoleSince).toHaveBeenCalledWith({ fromIndex: 5 });
-    expect(readNetworkSince).toHaveBeenCalledWith({ fromIndex: 10 });
+    expect(result).toBe(
+      'DEGRADED  root present · not blank · console: 1 error "Failed to load resource: 500" · network: 1 5xx "GET http://localhost:5173/api/guilds" · server log clean — judged since page load of / (an earlier run)',
+    );
+  });
+
+  it('VALID: {page reloaded this run after an earlier 500} => judges only since the latest load', async () => {
+    const proxy = stepHealthBrokerProxy();
+    const lane = LaneSessionStub();
+    const session = BrowserSessionStub({
+      checkRootPresent: jest.fn().mockResolvedValue(true),
+      readConsoleSince: () => [
+        ContentTextStub({
+          value: '{"at":110,"kind":"console","type":"error","text":"old page error"}',
+        }),
+      ],
+      readNetworkSince: () => [
+        ContentTextStub({
+          value:
+            '{"at":100,"method":"GET","url":"http://localhost:5173/","resourceType":"document","status":200}',
+        }),
+        ContentTextStub({
+          value:
+            '{"at":110,"method":"GET","url":"http://localhost:5173/api/guilds","resourceType":"fetch","status":500}',
+        }),
+        ContentTextStub({
+          value:
+            '{"at":200,"method":"GET","url":"http://localhost:5173/guilds?tab=1","resourceType":"document","status":200}',
+        }),
+        ContentTextStub({
+          value:
+            '{"at":210,"method":"GET","url":"http://localhost:5173/api/guilds","resourceType":"fetch","status":200}',
+        }),
+      ],
+    });
+
+    const result = await stepHealthBroker({
+      lane,
+      session,
+      shotPath: null,
+      browserWindowStart: proxy.windowStart({ consoleLines: 1, networkLines: 2 }),
+    });
+
+    expect(result).toBe(
+      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged since page load of /guilds?tab=1 (this run)',
+    );
+  });
+
+  it('VALID: {no page load in the buffer, run window starts past an old 500} => judges this run only', async () => {
+    const proxy = stepHealthBrokerProxy();
+    const lane = LaneSessionStub();
+    const session = BrowserSessionStub({
+      checkRootPresent: jest.fn().mockResolvedValue(true),
+      readConsoleSince: () => [
+        ContentTextStub({
+          value: '{"at":1,"kind":"console","type":"error","text":"before this run"}',
+        }),
+      ],
+      readNetworkSince: () => [
+        ContentTextStub({
+          value: '{"at":1,"method":"GET","url":"/api/guilds","resourceType":"fetch","status":500}',
+        }),
+        ContentTextStub({
+          value: '{"at":2,"method":"GET","url":"/api/guilds","resourceType":"fetch","status":200}',
+        }),
+      ],
+    });
+
+    const result = await stepHealthBroker({
+      lane,
+      session,
+      shotPath: null,
+      browserWindowStart: proxy.windowStart({ consoleLines: 1, networkLines: 1 }),
+    });
+
+    expect(result).toBe(
+      'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
+    );
+  });
+
+  it('EDGE: {console line with no at, after a page load} => kept in the window', async () => {
+    stepHealthBrokerProxy();
+    const lane = LaneSessionStub();
+    const session = BrowserSessionStub({
+      checkRootPresent: jest.fn().mockResolvedValue(true),
+      readConsoleSince: () => [ContentTextStub({ value: '{"kind":"pageerror"}' })],
+      readNetworkSince: () => [
+        ContentTextStub({
+          value:
+            '{"at":100,"method":"GET","url":"http://localhost:5173","resourceType":"document","status":200}',
+        }),
+      ],
+    });
+
+    const result = await stepHealthBroker({
+      lane,
+      session,
+      shotPath: null,
+      browserWindowStart: null,
+    });
+
+    expect(result).toBe(
+      'DEGRADED  root present · not blank · console: 1 error "{"kind":"pageerror"}" · no 5xx · server log clean — judged since page load of / (this run)',
+    );
   });
 });

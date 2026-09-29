@@ -8,6 +8,6 @@ export const RunIndexStub = ({ ...props }: StubArgument<RunIndex> = {}): RunInde
   runIndexContract.parse({
     console: { errors: ReadingCountStub({ value: 0 }), warnings: ReadingCountStub({ value: 2 }) },
     server: { errors: ReadingCountStub({ value: 0 }) },
-    network: { exchanges: ReadingCountStub({ value: 14 }), non2xx: ReadingCountStub({ value: 0 }) },
+    network: { exchanges: ReadingCountStub({ value: 14 }), failed: ReadingCountStub({ value: 0 }) },
     ...props,
   });

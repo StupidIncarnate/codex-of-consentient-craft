@@ -17,7 +17,7 @@
  * runResultContract.parse({
  *   instanceId: 'inst_7f3a9c21', runId: 'run_2', status: 'done', stepsRun: 5, stoppedAt: null,
  *   index: { console: { errors: 0, warnings: 2 }, server: { errors: 0 },
- *            network: { exchanges: 14, non2xx: 0 } },
+ *            network: { exchanges: 14, failed: 0 } },
  *   shots: [],
  * });
  * // Returns a validated RunResult

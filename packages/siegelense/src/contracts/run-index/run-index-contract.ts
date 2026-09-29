@@ -6,13 +6,14 @@
  * ShotListing whenever the value is the COUNTS that tell a session what is worth querying; a
  * ShotListing is one screenshot, while a RunIndex is the pointer that says how many of each kind of
  * reading exist before anyone queries a single one (siegelense-tooling.md line 59: "It must say
- * where it stopped, why, and what is worth querying").
+ * where it stopped, why, and what is worth querying"). `network.failed` counts 4xx/5xx and
+ * no-response exchanges only (`isNetworkLineFailedGuard`); a redirect or a 304 is not a failure.
  *
  * USAGE:
  * runIndexContract.parse({
  *   console: { errors: 0, warnings: 2 },
  *   server: { errors: 0 },
- *   network: { exchanges: 14, non2xx: 0 },
+ *   network: { exchanges: 14, failed: 0 },
  * });
  * // Returns a validated RunIndex
  */
@@ -31,7 +32,7 @@ export const runIndexContract = z.object({
   }),
   network: z.object({
     exchanges: readingCountContract,
-    non2xx: readingCountContract,
+    failed: readingCountContract,
   }),
 });
 

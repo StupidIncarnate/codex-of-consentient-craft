@@ -333,4 +333,28 @@ describe('healthReadingRenderTransformer', () => {
       }),
     );
   });
+
+  it('VALID: {healthy state, windowNote} => trails the window note after an em dash', () => {
+    const reading = healthReadingRenderTransformer({
+      rootPresent: true,
+      blank: false,
+      blankColour: null,
+      consoleErrors: ReadingCountStub({ value: 0 }),
+      firstConsoleError: null,
+      network5xxCount: ReadingCountStub({ value: 0 }),
+      first5xx: null,
+      serverErrors: ReadingCountStub({ value: 0 }),
+      firstServerError: null,
+      windowNote: ContentTextStub({ value: 'judged since page load of / (this run)' }),
+    });
+
+    expect(reading).toStrictEqual(
+      HealthReadingStub({
+        rendered: ContentTextStub({
+          value:
+            'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged since page load of / (this run)',
+        }),
+      }),
+    );
+  });
 });

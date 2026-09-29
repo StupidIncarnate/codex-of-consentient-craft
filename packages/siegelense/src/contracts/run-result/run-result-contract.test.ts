@@ -13,7 +13,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 2 },
           server: { errors: 0 },
-          network: { exchanges: 14, non2xx: 0 },
+          network: { exchanges: 14, failed: 0 },
         },
         shots: [
           {
@@ -38,7 +38,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 2 },
           server: { errors: 0 },
-          network: { exchanges: 14, non2xx: 0 },
+          network: { exchanges: 14, failed: 0 },
         },
         shots: [
           {
@@ -65,7 +65,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 2 },
           server: { errors: 0 },
-          network: { exchanges: 14, non2xx: 0 },
+          network: { exchanges: 14, failed: 0 },
         },
         shots: [],
         durationMs: 450,
@@ -97,7 +97,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 0 },
           server: { errors: 0 },
-          network: { exchanges: 3, non2xx: 0 },
+          network: { exchanges: 3, failed: 0 },
         },
         shots: [],
       });
@@ -135,7 +135,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 1, warnings: 0 },
           server: { errors: 1 },
-          network: { exchanges: 0, non2xx: 0 },
+          network: { exchanges: 0, failed: 0 },
         },
         shots: [],
       });
@@ -157,7 +157,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 0 },
           server: { errors: 0 },
-          network: { exchanges: 0, non2xx: 0 },
+          network: { exchanges: 0, failed: 0 },
         },
         shots: [],
       });
@@ -177,7 +177,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 0 },
           server: { errors: 0 },
-          network: { exchanges: 0, non2xx: 0 },
+          network: { exchanges: 0, failed: 0 },
         },
         shots: [],
         stopOn: 'never',
@@ -201,7 +201,7 @@ describe('runResultContract', () => {
           index: {
             console: { errors: 0, warnings: 0 },
             server: { errors: 0 },
-            network: { exchanges: 0, non2xx: 0 },
+            network: { exchanges: 0, failed: 0 },
           },
           shots: [],
           stopOn: 'sometimes',
@@ -221,7 +221,7 @@ describe('runResultContract', () => {
           index: {
             console: { errors: 0, warnings: 0 },
             server: { errors: 0 },
-            network: { exchanges: 0, non2xx: 0 },
+            network: { exchanges: 0, failed: 0 },
           },
           shots: [],
         }),
@@ -242,7 +242,7 @@ describe('runResultContract', () => {
         index: {
           console: { errors: 0, warnings: 2 },
           server: { errors: 0 },
-          network: { exchanges: 14, non2xx: 0 },
+          network: { exchanges: 14, failed: 0 },
         },
         shots: [
           {
