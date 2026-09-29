@@ -158,35 +158,60 @@ committed, and none was given a next batch. No agent is running and `packages/` 
 | GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` |
 | siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging) | done, committed; two tests were deleted to get there, recorded as F77 (restore them first) |
 
-### How A18 was run (copy this)
+### How A18 MUST be run from here (user, 2026-09-28 night)
 
-- One long-lived Sonnet agent per package, one plan batch (2 to 4 files) per message; the operator gates the
-  report, commits the batch's paths, updates this file in the same commit (rule 19), then messages the next batch.
-  Packages run side by side, never two agents in one package. An agent past about 300k tokens writes a HANDOFF and
-  a fresh agent takes over with it.
-- The prompt template is `scrolls/brands-gateways-epic/a18-operator/batch-agent-prompt.txt` (fill `{PKG}`,
-  `{BATCH}`, `{FILES}`). Batch file lists come from the A18 plan's "#### `<pkg>`" sections (`**<pkg>-B<n>**`
-  headings); `tmp/op-a18-batches.json` was a parsed copy.
-- siegelense's batches are its re-census, `scrolls/brands-gateways-epic/a18-operator/siegelense-batches.md`
-  (S01 to S33); re-run with `a18-siegelense-census.mjs` beside it. Re-census testing the same way before its batches.
-- Web batches change runtime code: gate each with lint, typecheck, unit, then commit groups of about three batches
-  after one full `npm run ward -- --only e2e -- packages/web` (about 6 minutes).
-- When a batch breaks a file outside it (a composer, a sibling batch's proxy), pull that file into the batch.
-- When a gateway proxy cannot say what a caller needs, the agent stops; the operator names a gateway unit (GN<n>)
-  and usually gives it to the same agent, then builds that gateway.
+The last session ran A18 one 2-to-4-file batch per agent message, with the operator gating and committing between
+every batch. After a whole session only 73 of 294 batches were done. The user rejected that pace. Do not repeat it.
+
+**Step 1: script the mechanical part, before any agent touches a batch.**
+- Most remaining batch files are pure import swaps: `react`, `react-router-dom`, `@mantine/core`,
+  `@mantine/notifications`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test` and the other
+  npm names in the plan's "Replacement legend", each onto its `#gateway/npm/*` subpath, plus the one-line Node swaps
+  (`process.pid` becomes `pid`, `process.env.X` becomes `getEnv('X')`, `crypto.randomUUID()` becomes `randomUUID()`,
+  `Date.now()` becomes `now()`, `Buffer` from `#gateway/node/buffer`, browser globals from `#gateway/browser/*`).
+- Write one script, modelled on `tmp/a18-zod/rewrite.py` (dry run by default, `apply` to write, re-censuses every
+  run), that rewrites those imports and call sites in files where that is the ONLY change needed. It skips any file
+  whose proxy or test spies on the raw module or global, since those need real proxy work.
+- Run it package by package. Gate each package with `npm run ward -- --only lint,typecheck,unit,integration --
+  packages/<pkg>` (and web's e2e once per package run). Commit each package as one commit. Record the script in
+  "Scripts used" (concession 11 covers this; rule 16 allows it).
+- Expected result: most of web's remaining batches and a large share of every other package's go in minutes, not
+  hours. What the script skips is the real hand work.
+
+**Step 2: census the hand work before dispatching, so gateway gaps are found up front, not one agent at a time.**
+- For what the script skipped, list every proxy that spies on a raw module or global and what gateway proxy
+  method it would need. Build every missing gateway method first, in one or two gateway units, then build and
+  commit. Last session each gap stopped an agent mid-batch; that is where most of the time went.
+
+**Step 3: hand batches, with agents working a queue, not one batch per message.**
+- Give each agent a queue of batches (still 2 to 4 files per batch, per rule 8). The agent does them in order,
+  gating each with ward, and reports once per four or five batches. It stops early only on a gateway gap or a red it
+  cannot fix inside its files. The operator commits the reported batches together, updating this file in that commit.
+- Split big packages across agents with disjoint folder lists: web (87 left) and orchestrator (51 left) get two
+  agents each; small packages share one agent between them. Keep five agents busy at all times.
+- Web: gate each batch with lint, typecheck, unit, and run the full web e2e once per report, not once per three
+  batches.
+- An agent past about 300k tokens hands off to a fresh one with a HANDOFF section (the conventions it settled on).
+
+**Files:** the batch prompt template is `scrolls/brands-gateways-epic/a18-operator/batch-agent-prompt.txt` (edit it
+for queue mode). Batch lists are the A18 plan's "#### `<pkg>`" sections; siegelense's is
+`a18-operator/siegelense-batches.md` (S06 to S33 left); re-census testing the same way before its batches.
 
 ### First steps for the next operator
 
-1. Read "How to operate". Set the heartbeat cron (rule 2) only if the user wants agents dispatched again.
-2. Restore the two tests F77 lists (siegelense `instance-start`) before any new A18 batch.
+1. Read "How to operate", then "How A18 MUST be run from here" above.
+2. Restore the two tests F77 lists (siegelense `instance-start`).
 3. `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`; wait on it), `npm run check:consumer`,
    `npm run check:published`. Fix every red (rule 4). Refresh `package-lock.json` (`npm install --package-lock-only`)
    for hydration-recipes' new `@dungeonmaster/npm` and `@gateway/npm`'s new `tsx` dependencies.
-4. Continue A18's hand batches as above, then its dependency removals. Then A19 (runs alone), T04 and T05 sweeps
-   and switch-on, the open follow-ups, and Phases 3, 4 and 6 using `phase34-scripts/`.
-5. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser `console` and `crypto` proxies, a browser
-   clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Known approximation:
-   `spawnPiped` exposes lines only, so cli's bin harnesses rebuild captured output line by line.
+4. A18 in the order above: the script, the gap census and gateway units, then queued hand batches with five agents
+   busy. Then A18's dependency removals.
+5. Then A19 (runs alone), the T04 and T05 sweeps and switch-on, the open follow-ups, and Phases 3, 4 and 6 using
+   `phase34-scripts/` (those were written for exactly this reason: script first).
+6. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser `console` and `crypto` proxies, a browser
+   clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub, a gateway-owned
+   `createInterface` proxy (orchestrator's unified-spawn proxy), orchestrator `timer-sleep-broker.proxy.ts` onto
+   GN11. Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild output line by line.
 
 ### Lessons worth keeping
 
