@@ -1,0 +1,44 @@
+dead copies after the swap of eslint-plugin+hooks+mcp+server+testing (DRY RUN); nothing deleted
+ALIVE  packages/testing/src/contracts/timer-handle  (timerHandleContract, TimerHandleStub, TimerHandle)  users outside the folder: 3
+        packages/testing/src/brokers/timers/watch/timers-watch-broker.ts
+        packages/testing/src/guards/is-timer-holding-loop/is-timer-holding-loop-guard.test.ts
+        packages/testing/src/guards/is-timer-holding-loop/is-timer-holding-loop-guard.ts
+ALIVE  packages/testing/src/contracts/typescript-source-file  (typescriptSourceFileContract, TypescriptSourceFileStub, TypescriptSourceFile)  users outside the folder: 13
+        packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts
+        packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts
+        packages/testing/src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.ts
+        packages/testing/src/transformers/ast-local-export-names/ast-local-export-names-transformer.test.ts
+        packages/testing/src/transformers/ast-local-export-names/ast-local-export-names-transformer.ts
+        packages/testing/src/transformers/ast-mock-calls/ast-mock-calls-transformer.test.ts
+        packages/testing/src/transformers/ast-mock-calls/ast-mock-calls-transformer.ts
+        packages/testing/src/transformers/ast-module-mock-calls/ast-module-mock-calls-transformer.test.ts
+        ... 5 more
+ALIVE  packages/testing/src/contracts/typescript-node-factory  (typescriptNodeFactoryContract, TypescriptNodeFactoryStub, TypescriptNodeFactory)  users outside the folder: 6
+        packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts
+        packages/testing/src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts
+        packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.test.ts
+        packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts
+        packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.test.ts
+        packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.ts
+ALIVE  packages/testing/src/contracts/typescript-statement  (typescriptStatementContract, TypescriptStatementStub, TypescriptStatement)  users outside the folder: 3
+        packages/testing/src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts
+        packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.test.ts
+        packages/testing/src/transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.ts
+ALIVE  packages/eslint-plugin/src/contracts/eslint-config  (eslintConfigContract, EslintConfigStub, EslintConfig)  users outside the folder: 5; barrel re-export lines to remove: packages/eslint-plugin/src/index.ts (re-export)
+        packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts
+        packages/eslint-plugin/src/transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer.test.ts
+        packages/eslint-plugin/src/transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer.ts
+        packages/eslint-plugin/src/transformers/merge-configs/merge-configs-transformer.test.ts
+        packages/eslint-plugin/src/transformers/merge-configs/merge-configs-transformer.ts
+ALIVE  packages/hooks/src/contracts/linter-config  (linterConfigContract, LinterConfigStub, LinterConfig)  users outside the folder: 2
+        packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.test.ts
+        packages/hooks/src/transformers/eslint-config-filter/eslint-config-filter-transformer.ts
+ALIVE  packages/eslint-plugin/src/contracts/eslint-rules  (eslintRulesContract, EslintRulesStub, EslintRules)  users outside the folder: 1
+        packages/eslint-plugin/src/transformers/eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer.ts
+ALIVE  packages/server/src/contracts/ws-client  (wsClientContract, WsClientStub, WsClient)  users outside the folder: 3
+        packages/server/src/brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy.ts
+        packages/server/src/brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.test.ts
+        packages/server/src/brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.ts
+ALIVE  packages/mcp/src/contracts/json-rpc-request  (jsonRpcRequestContract, JsonRpcRequestStub, JsonRpcRequest)  users outside the folder: 2
+        packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts
+        packages/mcp/test/harnesses/mcp-server/mcp-server.harness.ts
