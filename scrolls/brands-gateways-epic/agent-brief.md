@@ -14,7 +14,7 @@ The operator owns these. Doing any of them breaks another agent's work:
 1. Never build: no `npm run build`, no `build:clean`, no `tsc -b`. If something you must run needs
    compiled output, stop and report "build needed" with the package name.
 2. Never create a branch, commit, `git add`, `git mv`, `git stash`, `git checkout -- <file>` or `git reset`. The git index
-   is shared. Move a file by writing the new file and deleting the old one.
+   is shared. Move a file by writing the new file and listing the old one under DELETIONS (rule 8).
 3. Never run a bare `npm run ward`. Scope it to your files: `npm run ward -- -- <paths>`, or narrow with
    `--only`. See the `<dungeonmaster-ward>` snippet.
 4. Never `npm install`, `npm ci`, `npm link` or `npm rebuild`. If a dependency is missing, report it.
@@ -22,6 +22,11 @@ The operator owns these. Doing any of them breaks another agent's work:
 6. Never dispatch sub-agents or forks of your own. A fork edits the same checkout in parallel with you, and SL7's forks re-did its whole migration beside it. Do every step yourself.
 7. Never edit files outside your item's scope. When you find a problem outside it, report it under LEFT
    STANDING. Do not fix it yourself.
+8. Never delete a file: no `rm`, `git rm`, `unlink`, and no script that deletes. Deletion needs the user's
+   approval, and waiting for it stalls everyone (EPIC rule 20). Leave the file in place, make sure nothing imports
+   it, and list it under DELETIONS in your report with the reason. Temporary files your own test or script creates
+   under `tmp/` or the OS `/tmp` are the one exception. Never restore a file with `git show HEAD:<path> > <path>`
+   either: another agent's uncommitted work may be in it.
 
 ## Before you write code
 
@@ -60,4 +65,5 @@ WARD — the exact ward command you ran last, its run id, and its result.
 LEFT STANDING — every failure or problem you saw and did not fix, with path and reason. "None" if none.
 DECISIONS — every place you departed from the item file, and why. "None" if none.
 BUILD NEEDED — the packages whose compiled output must be rebuilt before the next step. "None" if none.
+DELETIONS — every file that should be deleted, one per line: path, then why. You did not delete them. "None" if none.
 ```

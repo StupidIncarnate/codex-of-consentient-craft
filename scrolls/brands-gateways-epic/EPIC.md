@@ -106,6 +106,18 @@ More rules for the operator:
     gateway gap, and a Log line when a session ends. Not "at the next heartbeat", not "once a few batches are in".
     A fresh session must be able to pick up from this file alone at any moment, and a report that sits unrecorded
     until later is lost if the session dies.
+20. **Every file deletion waits for the end, in one approved pass** (user, 2026-09-29). Deleting a file (`rm`,
+    `git rm`, `unlink`, a script's delete step) needs the user's approval, and a pending approval stalls the operator
+    and every agent waiting on it. So all other work is finished first, without clearing anything out:
+    - No agent and no script deletes a file during a wave. A script that deletes runs every other step, and writes the
+      paths it would delete to `tmp/deletions/<wave-or-item>.txt` instead, one path per line with its reason. An agent
+      lists them under DELETIONS in its report, and the operator appends them to that file.
+    - A file waiting for deletion stays in place. Its importers are moved already, so it is dead code and breaks no
+      check. Moving a file means writing the new file and listing the old one.
+    - When every other step of the phase, or the session, is committed, the operator asks the user once, runs every
+      deletion list in one pass, gates the result, and commits it.
+    - If a gate cannot pass while a listed file still exists, ask the user then, for that file only, and say why.
+    - Not covered: temporary files a test or a script creates and removes under `tmp/` or the OS `/tmp`.
 
 ## START HERE — where the epic stands and what to do next
 
@@ -457,6 +469,11 @@ integration red found at step 3 points at few commits.
 - Every script writes a leftovers file. That file IS the file list for the chunk's hand queue (EPIC rule 14 is
   satisfied by committing it into the item file as its `## Plan` before dispatch).
 - Record each run in "Scripts used" above.
+- **A delete step runs last (rule 20).** Every chunk that deletes files runs its other steps in its wave and writes
+  its deletions to `tmp/deletions/<chunk>.txt`: 3.1 (dead contracts and copies; `delete.cjs` writes its list, it does
+  not delete), 3.2 (enum stubs nothing calls), 3.3-S3 (`testing.ts` barrels), L2 (the three copies), W1 (the plain
+  brands' contract, stub and test files), W2 (merged-away contracts) and W9. The operator runs every list in one
+  approved pass at the end of the phase.
 - The scripts live in `phase34-scripts/`. Copy them to `tmp/phase34/` before running (they write under `tmp/`).
   `feasibility/` holds the prototypes measured on 2026-09-28 night; each chunk below names the one it grows from.
   A prototype is promoted to a full script inside its chunk, proven on `--sample-out` with `lib/verify-sample.cjs`,

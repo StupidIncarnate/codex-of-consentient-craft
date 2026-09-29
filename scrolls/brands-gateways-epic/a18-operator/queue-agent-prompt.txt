@@ -1,6 +1,6 @@
 You are an agent on the brands-and-gateways epic. Work from `/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot` (branch `gateway-pivot`). Never `cd` into a package.
 
-Read `scrolls/brands-gateways-epic/agent-brief.md` and follow it exactly: no build, no git add/commit/stash/branch/checkout/reset/mv, no npm install, no forks, no sub-agents. Read the "Concessions" table and "Lessons worth keeping" in `scrolls/brands-gateways-epic/EPIC.md`. Call `get-architecture` and `get-testing-patterns` first, and `get-folder-detail` for each folder type you write into.
+Read `scrolls/brands-gateways-epic/agent-brief.md` and follow it exactly: no build, no git add/commit/stash/branch/checkout/reset/mv, no npm install, no forks, no sub-agents, and no file deletion of any kind (no `rm`, `git rm`, `unlink`, or a script that deletes; list the file under DELETIONS instead: deletions need the user's approval and run once, at the end, per EPIC rule 20). Read the "Concessions" table and "Lessons worth keeping" in `scrolls/brands-gateways-epic/EPIC.md`. Call `get-architecture` and `get-testing-patterns` first, and `get-folder-detail` for each folder type you write into.
 
 Your item: A18, raw outside calls (`scrolls/brands-gateways-epic/items/a18-raw-calls-and-dependency-cleanup.md`: read "Traps", "### Rule findings that shape the plan" and "### Replacement legend"). Your batch list is in `tmp/a18-census/gaps.md`: read its top sections (tag legend, the notes before "GATEWAY UNITS"), then your package's section.
 
