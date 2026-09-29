@@ -30,12 +30,12 @@ describe('processIsAliveBroker', () => {
   });
 
   describe('unreadable failure', () => {
-    it('ERROR: {probe raises an unrecognised error} => rethrows it', () => {
+    it('ERROR: {probe raises EINVAL, neither ESRCH nor EPERM} => rethrows it', () => {
       const proxy = processIsAliveBrokerProxy();
       const pid = ProcessPidStub({ value: 812326 });
-      proxy.setupUnknownError({ pid, error: new Error('kernel call failed') });
+      proxy.setupUnrecognisedFailure({ pid });
 
-      expect(() => processIsAliveBroker({ pid })).toThrow(/^kernel call failed$/u);
+      expect(() => processIsAliveBroker({ pid })).toThrow(/^kill EINVAL$/u);
     });
   });
 });

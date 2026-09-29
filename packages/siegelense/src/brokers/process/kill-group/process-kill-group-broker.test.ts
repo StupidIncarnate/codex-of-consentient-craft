@@ -1,5 +1,3 @@
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processKillGroupBroker } from './process-kill-group-broker';
 import { processKillGroupBrokerProxy } from './process-kill-group-broker.proxy';
@@ -57,12 +55,9 @@ describe('processKillGroupBroker', () => {
     it('ERROR: {EPERM} => rethrows rather than reporting signalSent:false', () => {
       const proxy = processKillGroupBrokerProxy();
       const pgid = ProcessGroupIdStub({ value: 4821 });
-      const error = FsErrorStub({ code: 'EPERM', syscall: 'kill' });
-      proxy.setupUnknownError({ pgid, signal: 'SIGTERM', error });
+      proxy.setupPermissionDenied({ pgid, signal: 'SIGTERM' });
 
-      expect(() => processKillGroupBroker({ pgid, signal: 'SIGTERM' })).toThrow(
-        /^EPERM: kill ''$/u,
-      );
+      expect(() => processKillGroupBroker({ pgid, signal: 'SIGTERM' })).toThrow(/^kill EPERM$/u);
     });
   });
 });

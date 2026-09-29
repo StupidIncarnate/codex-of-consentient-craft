@@ -6,6 +6,8 @@ import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 export const writeFileExclusiveProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  // Fails the NEXT write to this path only; a retry falls through to whatever `succeeds` staged.
+  rejectsOnce: ({ path, error }: { path: string; error: FsError }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: writeFile });
@@ -19,6 +21,12 @@ export const writeFileExclusiveProxy = (): {
     // prototype-less shape. `.implement()` rejects with the staged value untouched.
     rejects: ({ path, error }: { path: string; error: FsError }): void => {
       handle.calledWith([path]).implement(async (): Promise<never> => {
+        await Promise.resolve();
+        return Promise.reject(error);
+      });
+    },
+    rejectsOnce: ({ path, error }: { path: string; error: FsError }): void => {
+      handle.onceFor([path]).implement(async (): Promise<never> => {
         await Promise.resolve();
         return Promise.reject(error);
       });

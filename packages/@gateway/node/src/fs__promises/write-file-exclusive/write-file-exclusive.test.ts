@@ -1,6 +1,7 @@
 import { writeFileExclusive } from './write-file-exclusive';
 import { writeFileExclusiveProxy } from './write-file-exclusive.proxy';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
+import { FileExistsRecordedErrorStub } from '../../fs/file-exists-recorded-error/file-exists-recorded-error.stub';
 
 describe('writeFileExclusive', () => {
   it('VALID: {path does not exist yet} => creates the file and resolves', async () => {
@@ -35,6 +36,26 @@ describe('writeFileExclusive', () => {
     await writeFileExclusive('/repo/.dungeonmaster/boot.lock', '111');
     await writeFileExclusive('/repo/.dungeonmaster/boot.lock', '222');
 
+    expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/boot.lock' })).toStrictEqual([
+      ['/repo/.dungeonmaster/boot.lock', '111', { encoding: 'utf8', flag: 'wx' }],
+      ['/repo/.dungeonmaster/boot.lock', '222', { encoding: 'utf8', flag: 'wx' }],
+    ]);
+  });
+
+  it('VALID: {rejectsOnce EEXIST, then succeeds} => the first create rejects, the retry creates', async () => {
+    const proxy = writeFileExclusiveProxy();
+    const error = FileExistsRecordedErrorStub({ path: '/repo/.dungeonmaster/boot.lock' });
+    proxy.succeeds({ path: '/repo/.dungeonmaster/boot.lock' });
+    proxy.rejectsOnce({ path: '/repo/.dungeonmaster/boot.lock', error });
+
+    const first: unknown = await writeFileExclusive('/repo/.dungeonmaster/boot.lock', '111').catch(
+      (caught: unknown) => caught,
+    );
+
+    await expect(writeFileExclusive('/repo/.dungeonmaster/boot.lock', '222')).resolves.toBe(
+      undefined,
+    );
+    expect(first).toBe(error);
     expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/boot.lock' })).toStrictEqual([
       ['/repo/.dungeonmaster/boot.lock', '111', { encoding: 'utf8', flag: 'wx' }],
       ['/repo/.dungeonmaster/boot.lock', '222', { encoding: 'utf8', flag: 'wx' }],

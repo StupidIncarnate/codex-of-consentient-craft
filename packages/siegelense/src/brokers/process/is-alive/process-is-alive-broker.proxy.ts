@@ -1,7 +1,5 @@
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { killProxy } from '#gateway/node/process/kill/kill.proxy';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
@@ -9,47 +7,41 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 
 const PROBE_SIGNAL = 0;
 
-// `kill` is a near-passthrough over `process.kill`, so the probe is staged on the global it calls
-// — the same spy `killProxy` owns — addressed by the negated pgid and the probe signal.
+// Every probe is staged through `killProxy`, addressed by the negated pgid and the probe signal —
+// the exact `[pid, signal]` tuple `kill` forwards — so a real signal to the same group stages apart.
 export const processIsAliveBrokerProxy = (): {
   setupAlive: (params: { pgid: ProcessGroupId }) => void;
   setupGone: (params: { pgid: ProcessGroupId }) => void;
   // Alive at the first probe, gone (ESRCH) at the second — a group that exits between two checks.
   setupAliveThenGone: (params: { pgid: ProcessGroupId }) => void;
-  // `error` stays `unknown` rather than `Error` — a test proving realm-safety stages a value built
-  // by `vm.runInNewContext`, which this repo's own Error is not the constructor of.
-  setupUnknownError: (params: { pgid: ProcessGroupId; error: unknown }) => void;
+  // The probe fails EPERM — a group owned by another user, which this broker does not read as gone.
+  setupPermissionDenied: (params: { pgid: ProcessGroupId }) => void;
   getCallFor: (params: { pgid: ProcessGroupId }) => unknown;
 } => {
   isFsErrorProxy();
-  killProxy();
-  const handle = registerSpyOn({ object: process, method: 'kill' });
+  const kill = killProxy();
 
   return {
     setupAlive: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      handle.calledWith([-Number(pgid), PROBE_SIGNAL]).returns(true);
+      kill.setupSent({ pid: -Number(pgid), signal: PROBE_SIGNAL });
     },
 
     setupGone: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      handle
-        .calledWith([-Number(pgid), PROBE_SIGNAL])
-        .throws(FsErrorStub({ code: 'ESRCH', syscall: 'kill' }));
+      kill.setupNotFound({ pid: -Number(pgid), signal: PROBE_SIGNAL });
     },
 
     setupAliveThenGone: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      handle.onceFor([-Number(pgid), PROBE_SIGNAL]).returns(true);
-      handle
-        .onceFor([-Number(pgid), PROBE_SIGNAL])
-        .throws(FsErrorStub({ code: 'ESRCH', syscall: 'kill' }));
+      kill.setupSentThenNotFound({ pid: -Number(pgid), signal: PROBE_SIGNAL });
     },
 
-    setupUnknownError: ({ pgid, error }: { pgid: ProcessGroupId; error: unknown }): void => {
-      handle.calledWith([-Number(pgid), PROBE_SIGNAL]).implement(() => {
-        throw error;
-      });
+    setupPermissionDenied: ({ pgid }: { pgid: ProcessGroupId }): void => {
+      kill.setupPermissionDenied({ pid: -Number(pgid), signal: PROBE_SIGNAL });
     },
 
     getCallFor: ({ pgid }: { pgid: ProcessGroupId }): unknown =>
-      handle.callsMatching([-Number(pgid), PROBE_SIGNAL]).at(-1),
+      kill
+        .getCallsFor({ pid: -Number(pgid) })
+        .filter((call) => call[1] === PROBE_SIGNAL)
+        .at(-1),
   };
 };

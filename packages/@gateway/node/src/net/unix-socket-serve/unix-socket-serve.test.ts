@@ -1,85 +1,110 @@
-import { join } from 'path';
-import { mkdtempSync, chmodSync, rmSync } from 'fs';
-import { tmpdir } from '../../os/os';
 import { unixSocketServe } from './unix-socket-serve';
 import { unixSocketServeProxy } from './unix-socket-serve.proxy';
-import { unixSocketRequest } from '../unix-socket-request/unix-socket-request';
+import { UnixSocketRecordedErrorStub } from '../unix-socket-recorded-error/unix-socket-recorded-error.stub';
 
+// The same server bound on a real unix socket and driven by a real `unixSocketRequest` client lives
+// in `net.test.ts`, which composes no proxy and so leaves `net` and `fs` real for the whole file.
 describe('unixSocketServe', () => {
-  it('VALID: {onRequestLine resolving a value} => writes that value back to the requester', async () => {
-    unixSocketServeProxy();
-    const dir = mkdtempSync(join(tmpdir(), 'dm-node-net-'));
-    const socketPath = join(dir, 'ok.sock');
-    const server = await unixSocketServe({
-      socketPath,
-      onRequestLine: async (line) => Promise.resolve(`handled:${line}`),
+  describe('binding', () => {
+    it('VALID: {fresh socket path} => creates the parent directory and resolves once listening', async () => {
+      const proxy = unixSocketServeProxy();
+      proxy.listens({ socketPath: '/tmp/dm-sock/ok.sock' });
+
+      const server = await unixSocketServe({
+        socketPath: '/tmp/dm-sock/ok.sock',
+        onRequestLine: async (line) => Promise.resolve(line),
+      });
+
+      expect({
+        close: server.close,
+        mkdirs: proxy.getMkdirCallsFor({ socketPath: '/tmp/dm-sock/ok.sock' }),
+        unlinks: proxy.getUnlinkCallsFor({ socketPath: '/tmp/dm-sock/ok.sock' }),
+      }).toStrictEqual({
+        close: expect.any(Function),
+        mkdirs: [['/tmp/dm-sock', { recursive: true }]],
+        unlinks: [],
+      });
     });
 
-    const response = await unixSocketRequest({ socketPath, requestLine: 'hello', timeoutMs: 2000 });
+    it('VALID: {a stale socket file left by a dead peer} => unlinks it before binding', async () => {
+      const proxy = unixSocketServeProxy();
+      proxy.listensOverStaleSocket({ socketPath: '/tmp/dm-sock/stale.sock' });
 
-    await server.close();
-    rmSync(dir, { recursive: true, force: true });
+      await unixSocketServe({
+        socketPath: '/tmp/dm-sock/stale.sock',
+        onRequestLine: async (line) => Promise.resolve(line),
+      });
 
-    expect(response).toBe('handled:hello');
+      expect(proxy.getUnlinkCallsFor({ socketPath: '/tmp/dm-sock/stale.sock' })).toStrictEqual([
+        ['/tmp/dm-sock/stale.sock'],
+      ]);
+    });
+
+    it('ERROR: {socket path already held} => rejects with the recorded EADDRINUSE', async () => {
+      const proxy = unixSocketServeProxy();
+      const error = UnixSocketRecordedErrorStub({
+        code: 'EADDRINUSE',
+        socketPath: '/tmp/dm-sock/held.sock',
+      });
+      proxy.listenFails({ socketPath: '/tmp/dm-sock/held.sock', error });
+
+      await expect(
+        unixSocketServe({
+          socketPath: '/tmp/dm-sock/held.sock',
+          onRequestLine: async (line) => Promise.resolve(line),
+        }),
+      ).rejects.toBe(error);
+    });
   });
 
-  it('VALID: {a stale socket file left by a dead peer} => unlinks it and rebinds', async () => {
-    unixSocketServeProxy();
-    const dir = mkdtempSync(join(tmpdir(), 'dm-node-net-'));
-    const socketPath = join(dir, 'stale.sock');
-    const firstServer = await unixSocketServe({
-      socketPath,
-      onRequestLine: async (line) => Promise.resolve(line),
+  describe('serving', () => {
+    it('VALID: {onRequestLine resolving a value} => writes that value back to the client', async () => {
+      const proxy = unixSocketServeProxy();
+      proxy.listens({ socketPath: '/tmp/dm-sock/ok.sock' });
+      await unixSocketServe({
+        socketPath: '/tmp/dm-sock/ok.sock',
+        onRequestLine: async (line) => Promise.resolve(`handled:${line}`),
+      });
+      const client = proxy.connectClient({ socketPath: '/tmp/dm-sock/ok.sock' });
+
+      client.sendLine({ line: 'hello' });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(client.getWrittenLines()).toStrictEqual(['handled:hello']);
     });
-    // Simulate a peer that died without cleaning up: the socket file survives on disk with
-    // nothing listening on it once the handle above is dropped without close().
 
-    const secondServer = await unixSocketServe({
-      socketPath,
-      onRequestLine: async (line) => Promise.resolve(`second:${line}`),
+    it('ERROR: {onRequestLine throws} => writes an ERROR frame back instead of hanging the client', async () => {
+      const proxy = unixSocketServeProxy();
+      proxy.listens({ socketPath: '/tmp/dm-sock/throws.sock' });
+      await unixSocketServe({
+        socketPath: '/tmp/dm-sock/throws.sock',
+        onRequestLine: async () => Promise.reject(new Error('handler exploded')),
+      });
+      const client = proxy.connectClient({ socketPath: '/tmp/dm-sock/throws.sock' });
+
+      client.sendLine({ line: 'x' });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(client.getWrittenLines()).toStrictEqual(['ERROR: handler exploded']);
     });
-
-    const response = await unixSocketRequest({ socketPath, requestLine: 'x', timeoutMs: 2000 });
-
-    await firstServer.close();
-    await secondServer.close();
-    rmSync(dir, { recursive: true, force: true });
-
-    expect(response).toBe('second:x');
   });
 
-  it('ERROR: {onRequestLine throws} => writes an ERROR frame back instead of hanging the peer', async () => {
-    unixSocketServeProxy();
-    const dir = mkdtempSync(join(tmpdir(), 'dm-node-net-'));
-    const socketPath = join(dir, 'throws.sock');
-    const server = await unixSocketServe({
-      socketPath,
-      onRequestLine: async () => Promise.reject(new Error('handler exploded')),
+  describe('closing', () => {
+    it('VALID: {close} => closes the server bound on that path once', async () => {
+      const proxy = unixSocketServeProxy();
+      proxy.listens({ socketPath: '/tmp/dm-sock/ok.sock' });
+      const server = await unixSocketServe({
+        socketPath: '/tmp/dm-sock/ok.sock',
+        onRequestLine: async (line) => Promise.resolve(line),
+      });
+
+      await server.close();
+
+      expect(proxy.getCloseCountFor({ socketPath: '/tmp/dm-sock/ok.sock' })).toBe(1);
     });
-
-    const response = await unixSocketRequest({ socketPath, requestLine: 'x', timeoutMs: 2000 });
-
-    await server.close();
-    rmSync(dir, { recursive: true, force: true });
-
-    expect(response).toBe('ERROR: handler exploded');
-  });
-
-  it('ERROR: {socket path parent is not writable} => rejects with code EACCES', async () => {
-    unixSocketServeProxy();
-    const dir = mkdtempSync(join(tmpdir(), 'dm-node-net-'));
-    chmodSync(dir, 0o500);
-    const socketPath = join(dir, 'denied.sock');
-
-    const caught: unknown = await unixSocketServe({
-      socketPath,
-      onRequestLine: async (line) => Promise.resolve(line),
-    }).catch((error: unknown) => error);
-    const error = caught as NodeJS.ErrnoException;
-
-    chmodSync(dir, 0o700);
-    rmSync(dir, { recursive: true, force: true });
-
-    expect(error.code).toBe('EACCES');
   });
 });

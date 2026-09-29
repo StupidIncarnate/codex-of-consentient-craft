@@ -1,6 +1,7 @@
 import { writeFile } from './write-file';
 import { writeFileProxy } from './write-file.proxy';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
+import { FileExistsRecordedErrorStub } from '../../fs/file-exists-recorded-error/file-exists-recorded-error.stub';
 
 describe('writeFile', () => {
   it('VALID: {path, contents} => writes the contents and resolves', async () => {
@@ -42,5 +43,20 @@ describe('writeFile', () => {
       ['/project/queue.json', '{"items":[1]}', 'utf8'],
       ['/project/queue.json', '{"items":[2]}', 'utf8'],
     ]);
+  });
+
+  it('VALID: {rejectsOnce, then succeeds} => the first write rejects, the retry writes', async () => {
+    const proxy = writeFileProxy();
+    const error = FileExistsRecordedErrorStub({ path: '/project/registry.lock' });
+    proxy.succeeds({ path: '/project/registry.lock' });
+    proxy.rejectsOnce({ path: '/project/registry.lock', error });
+
+    const first: unknown = await writeFile('/project/registry.lock', '111').catch(
+      (caught: unknown) => caught,
+    );
+
+    await expect(writeFile('/project/registry.lock', '222')).resolves.toBe(undefined);
+    expect(first).toBe(error);
+    expect(proxy.writtenContentsFor({ path: '/project/registry.lock' })).toBe('222');
   });
 });

@@ -6,6 +6,8 @@ import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 export const writeFileProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  // Fails the NEXT write to this path only; a retry falls through to whatever `succeeds` staged.
+  rejectsOnce: ({ path, error }: { path: string; error: FsError }) => void;
   writtenContentsFor: ({ path }: { path: string }) => unknown;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
@@ -21,6 +23,12 @@ export const writeFileProxy = (): {
     // `.implement()` rejects with the staged value untouched.
     rejects: ({ path, error }: { path: string; error: FsError }): void => {
       handle.calledWith([path]).implement(async (): Promise<never> => {
+        await Promise.resolve();
+        return Promise.reject(error);
+      });
+    },
+    rejectsOnce: ({ path, error }: { path: string; error: FsError }): void => {
+      handle.onceFor([path]).implement(async (): Promise<never> => {
         await Promise.resolve();
         return Promise.reject(error);
       });

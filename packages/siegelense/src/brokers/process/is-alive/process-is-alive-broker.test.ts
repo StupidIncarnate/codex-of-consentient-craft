@@ -1,5 +1,3 @@
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processIsAliveBroker } from './process-is-alive-broker';
 import { processIsAliveBrokerProxy } from './process-is-alive-broker.proxy';
@@ -43,10 +41,9 @@ describe('processIsAliveBroker', () => {
     it('ERROR: {EPERM} => rethrows rather than reporting false', () => {
       const proxy = processIsAliveBrokerProxy();
       const pgid = ProcessGroupIdStub({ value: 4821 });
-      const error = FsErrorStub({ code: 'EPERM', syscall: 'kill' });
-      proxy.setupUnknownError({ pgid, error });
+      proxy.setupPermissionDenied({ pgid });
 
-      expect(() => processIsAliveBroker({ pgid })).toThrow(/^EPERM: kill ''$/u);
+      expect(() => processIsAliveBroker({ pgid })).toThrow(/^kill EPERM$/u);
     });
   });
 });
