@@ -7,17 +7,17 @@
  */
 
 // Turn a bare session or sub-agent id into its transcript, searching every project directory
-export * from './src/brokers/transcript/resolve/transcript-resolve-broker';
-export * from './src/brokers/transcript/load/transcript-load-broker';
+export * from './transcript/resolve/transcript-resolve-broker';
+export * from './transcript/load/transcript-load-broker';
 
 // What a session's sub-agents actually spent, read from files the parent transcript never mentions
-export * from './src/brokers/subagent/roster-load/subagent-roster-load-broker';
+export * from './subagent/roster-load/subagent-roster-load-broker';
 
 // Find a quest's quest.json, checking the repo-local homes before the user-global one
-export * from './src/brokers/quest/find/quest-find-broker';
+export * from './quest/find/quest-find-broker';
 
 // Read just the flows out of a quest's quest.json
-export * from './src/brokers/quest/load/quest-load-broker';
+export * from './quest/load/quest-load-broker';
 
 // Read the operations/wardResults/riftcarverResults/userRequest a work-item index join needs
-export * from './src/brokers/quest/index-load/quest-index-load-broker';
+export * from './quest/index-load/quest-index-load-broker';

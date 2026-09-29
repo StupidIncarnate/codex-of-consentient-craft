@@ -7,8 +7,8 @@
  * import { digestCommandContract } from '@dungeonmaster/session-forensics';
  */
 
-export * from './contracts';
-export * from './statics';
-export * from './guards';
-export * from './transformers';
-export * from './brokers';
+export * from './src/contracts/contracts';
+export * from './src/statics/statics';
+export * from './src/guards/guards';
+export * from './src/transformers/transformers';
+export * from './src/brokers/brokers';

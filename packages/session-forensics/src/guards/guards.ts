@@ -7,7 +7,7 @@
  */
 
 // Does this reviewing role owe a verdict on this unit? Four of the six documented exclusions apply
-export * from './src/guards/is-track-owed-unit/is-track-owed-unit-guard';
+export * from './is-track-owed-unit/is-track-owed-unit-guard';
 
 // A node the graph prints (terminal) that still points onward is not a terminal unit
-export * from './src/guards/is-terminal-unit/is-terminal-unit-guard';
+export * from './is-terminal-unit/is-terminal-unit-guard';

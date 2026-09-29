@@ -42,35 +42,41 @@
       "require": "./dist/index.js",
       "import": "./dist/index.js"
     },
-    "./contracts": {
-      "source": "./contracts.ts",
-      "types": "./dist/contracts.d.ts",
-      "require": "./dist/contracts.js",
-      "import": "./dist/contracts.js"
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
     },
-    "./statics": {
-      "source": "./statics.ts",
-      "types": "./dist/statics.d.ts",
-      "require": "./dist/statics.js",
-      "import": "./dist/statics.js"
-    },
-    "./guards": {
-      "source": "./guards.ts",
-      "types": "./dist/guards.d.ts",
-      "require": "./dist/guards.js",
-      "import": "./dist/guards.js"
-    },
-    "./transformers": {
-      "source": "./transformers.ts",
-      "types": "./dist/transformers.d.ts",
-      "require": "./dist/transformers.js",
-      "import": "./dist/transformers.js"
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
     },
     "./brokers": {
-      "source": "./brokers.ts",
-      "types": "./dist/brokers.d.ts",
-      "require": "./dist/brokers.js",
-      "import": "./dist/brokers.js"
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
+    },
+    "./contracts": {
+      "source": "./src/contracts/contracts.ts",
+      "types": "./dist/src/contracts/contracts.d.ts",
+      "import": "./dist/src/contracts/contracts.js",
+      "require": "./dist/src/contracts/contracts.js"
+    },
+    "./guards": {
+      "source": "./src/guards/guards.ts",
+      "types": "./dist/src/guards/guards.d.ts",
+      "import": "./dist/src/guards/guards.js",
+      "require": "./dist/src/guards/guards.js"
+    },
+    "./statics": {
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
+    },
+    "./transformers": {
+      "source": "./src/transformers/transformers.ts",
+      "types": "./dist/src/transformers/transformers.d.ts",
+      "import": "./dist/src/transformers/transformers.js",
+      "require": "./dist/src/transformers/transformers.js"
     }
   },
   "bin": {

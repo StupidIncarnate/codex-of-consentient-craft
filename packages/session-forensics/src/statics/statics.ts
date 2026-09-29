@@ -7,10 +7,10 @@
  */
 
 // A copy of the orchestrator's table of which reviewing role owes a sign-off on what
-export * from './src/statics/track-denominator/track-denominator-statics';
+export * from './track-denominator/track-denominator-statics';
 
 // Fallback numbers for digest windows, floors and excerpt lengths
-export * from './src/statics/digest-default/digest-default-statics';
+export * from './digest-default/digest-default-statics';
 
 // The tool-call input keys worth printing in a brief, in priority order
-export * from './src/statics/tool-brief-key/tool-brief-key-statics';
+export * from './tool-brief-key/tool-brief-key-statics';
