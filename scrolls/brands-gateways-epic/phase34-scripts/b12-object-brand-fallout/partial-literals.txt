@@ -1,0 +1,11 @@
+packages/orchestrator/src/brokers/quest/get-next-step/build-spawn-instruction-layer-broker.ts:77 SpawnInstruction spread: (canResume ? { resumeSessionId: workItem.sessionId, resumePr
+packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts:46 LinkedQuestInfo spread: (matchedWorkItem ? { workItemId: matchedWorkItem.id, role: m
+packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.proxy.ts:49 OrchestrationProcess spread: (questWorkItemId === undefined ? {} : { questWorkItemId })
+packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.ts:38 ProcessActivity spread: (prior?.osPid !== undefined && { osPid: prior.osPid }), (prior?.sessionJsonlPath !== undefined && { sessionJsonlPath
+packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:163 ChatStreamEndedPayload spread: payload.data
+packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:170 ChatStreamEndedPayload spread: payload.data
+packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts:80 TreeItem (upstream) spread: (file.hits && { hits: file.hits })
+packages/mcp/src/responders/quest/handle/blight-checklist-layer-responder.ts:38 ToolResponse spread: (!checklist.success && { isError: true })
+packages/mcp/src/responders/quest/handle/get-quest-layer-responder.ts:72 ToolResponse spread: (!result.success && { isError: true })
+packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:100 ToolResponse spread: (!result.success && { isError: true })
+packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:257 ToolResponse spread: (!notes.success && { isError: true })

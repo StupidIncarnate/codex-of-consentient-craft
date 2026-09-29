@@ -1,0 +1,2379 @@
+{
+ "census": {
+  "total": 582,
+  "byPkg": {
+   "cli": 9,
+   "config": 4,
+   "eslint-plugin": 11,
+   "hooks": 36,
+   "hydration": 24,
+   "hydration-recipes": 19,
+   "mcp": 29,
+   "orchestrator": 71,
+   "server": 33,
+   "session-forensics": 1,
+   "shared": 121,
+   "siegelense": 98,
+   "testing": 25,
+   "tooling": 20,
+   "ward": 32,
+   "web": 49
+  }
+ },
+ "overlayOnly": {
+  "total": 822,
+  "per": {
+   "testing": 24,
+   "shared": 34,
+   "config": 23,
+   "orchestrator": 217,
+   "hydration": 24,
+   "hydration-recipes": 31,
+   "web": 24,
+   "server": 3,
+   "cli": 63,
+   "eslint-plugin": 177,
+   "hooks": 19,
+   "local-eslint": 10,
+   "ward": 26,
+   "mcp": 80,
+   "session-forensics": 0,
+   "siegelense": 57,
+   "tooling": 10
+  },
+  "kinds": {
+   "TS2322": 561,
+   "TS2345": 81,
+   "TS2379": 1,
+   "TS2719": 131,
+   "TS2352": 20,
+   "TS18046": 8,
+   "TS2344": 11,
+   "TS2375": 3,
+   "TS1360": 2,
+   "TS7053": 3,
+   "TS2741": 1
+  }
+ },
+ "withRewriter": {
+  "total": 450,
+  "per": {
+   "testing": 10,
+   "shared": 5,
+   "config": 0,
+   "orchestrator": 163,
+   "hydration": 25,
+   "hydration-recipes": 32,
+   "web": 7,
+   "server": 1,
+   "cli": 0,
+   "eslint-plugin": 123,
+   "hooks": 0,
+   "local-eslint": 10,
+   "ward": 5,
+   "mcp": 64,
+   "session-forensics": 0,
+   "siegelense": 4,
+   "tooling": 1
+  },
+  "kinds": {
+   "TS2322": 311,
+   "TS2379": 1,
+   "TS2352": 20,
+   "TS2345": 32,
+   "TS2353": 8,
+   "TS18046": 8,
+   "TS2344": 11,
+   "TS7031": 51,
+   "TS2375": 3,
+   "TS1360": 2,
+   "TS7053": 3
+  }
+ },
+ "rewrittenFiles": 225,
+ "leftovers": {
+  "partial": [
+   "packages/orchestrator/src/brokers/quest/get-next-step/build-spawn-instruction-layer-broker.ts:77 SpawnInstruction spread: (canResume ? { resumeSessionId: workItem.sessionId, resumePr",
+   "packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts:46 LinkedQuestInfo spread: (matchedWorkItem ? { workItemId: matchedWorkItem.id, role: m",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.proxy.ts:49 OrchestrationProcess spread: (questWorkItemId === undefined ? {} : { questWorkItemId })",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.ts:38 ProcessActivity spread: (prior?.osPid !== undefined && { osPid: prior.osPid }), (prior?.sessionJsonlPath !== undefined && { sessionJsonlPath",
+   "packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:163 ChatStreamEndedPayload spread: payload.data",
+   "packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:170 ChatStreamEndedPayload spread: payload.data",
+   "packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts:80 TreeItem (upstream) spread: (file.hits && { hits: file.hits })",
+   "packages/mcp/src/responders/quest/handle/blight-checklist-layer-responder.ts:38 ToolResponse spread: (!checklist.success && { isError: true })",
+   "packages/mcp/src/responders/quest/handle/get-quest-layer-responder.ts:72 ToolResponse spread: (!result.success && { isError: true })",
+   "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:100 ToolResponse spread: (!result.success && { isError: true })",
+   "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:257 ToolResponse spread: (!notes.success && { isError: true })"
+  ],
+  "incomplete": [
+   "packages/orchestrator/src/brokers/quest/get-next-step/build-spawn-instruction-layer-broker.ts:90 SpawnInstruction missing questId,role,workItemId,taskPrompt",
+   "packages/orchestrator/src/brokers/quest/get-next-step/build-spawn-instruction-layer-broker.ts:101 SpawnInstruction missing questId,role,workItemId,taskPrompt",
+   "packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts:48 LinkedQuestInfo missing questId",
+   "packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts:48 LinkedQuestInfo missing questId",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.proxy.ts:52 OrchestrationProcess missing processId,questId,kill",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.proxy.ts:52 OrchestrationProcess missing processId,questId,kill",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.ts:40 ProcessActivity missing lastActivityAt",
+   "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.ts:41 ProcessActivity missing lastActivityAt",
+   "packages/mcp/src/responders/quest/handle/blight-checklist-layer-responder.ts:53 ToolResponse missing content",
+   "packages/mcp/src/responders/quest/handle/get-quest-layer-responder.ts:79 ToolResponse missing content",
+   "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:107 ToolResponse missing content",
+   "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:264 ToolResponse missing content"
+  ],
+  "ambiguous": [],
+  "noImport": [
+   "packages/mcp/src/index.proxy.ts:36 IsolateModulesMock"
+  ]
+ },
+ "standing": [
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/brokers/install-testbed/create/install-testbed-create-broker.ts:86",
+   "text": "TS2322 Type '{ guildPath: string & $brand<\"GuildPath\">; dungeonmasterPath: string & $brand<\"DungeonmasterPath\">; } & $brand<\"InstallTestbed\">' is not assignable to type 'InstallTestbed'.   Type '{ guildPath: string & $brand<\"Gu"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts:110",
+   "text": "TS2322 Type '{ guildPath: string & $brand<\"GuildPath\">; guildName: string & $brand<\"GuildName\">; rootDir: string & $brand<\"RootDir\">; } & $brand<\"TestGuild\">' is not assignable to type 'TestGuild'.   Type '{ guildPath: string &"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/middleware/mock-register/mock-register-middleware.ts:84",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"MockHandle\">' is not assignable to type 'MockHandle'.   Type '{ [x: string]: unknown; } & $brand<\"MockHandle\">' is missing the following properties from type '{ calledWith: (args"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/middleware/mock-register/mock-register-middleware.ts:87",
+   "text": "TS2322 Type '{ [x: string]: unknown; args: readonly unknown[]; once: boolean; consumed: boolean; } & $brand<\"StagedCall\">' is not assignable to type 'StagedCall'.   Property 'impl' is missing in type '{ [x: string]: unknown; ar"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/middleware/spy-on-register/spy-on-register-middleware.ts:100",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"MockHandle\">' is not assignable to type 'MockHandle'.   Type '{ [x: string]: unknown; } & $brand<\"MockHandle\">' is missing the following properties from type '{ calledWith: (args"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/middleware/spy-on-register/spy-on-register-middleware.ts:103",
+   "text": "TS2322 Type '{ [x: string]: unknown; args: readonly unknown[]; once: boolean; consumed: boolean; } & $brand<\"StagedCall\">' is not assignable to type 'StagedCall'.   Property 'impl' is missing in type '{ [x: string]: unknown; ar"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/responders/endpoint-mock/listen/endpoint-mock-listen-responder.ts:59",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"EndpointControl\">' is not assignable to type 'EndpointControl'.   Type '{ [x: string]: unknown; } & $brand<\"EndpointControl\">' is missing the following properties from type '{ re"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/responders/endpoint-mock/setup/endpoint-mock-setup-responder.ts:31",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"EndpointMockLifecycle\">' is not assignable to type 'EndpointMockLifecycle'.   Type '{ [x: string]: unknown; } & $brand<\"EndpointMockLifecycle\">' is missing the following properti"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/responders/endpoint-mock/setup/endpoint-mock-setup-responder.ts:63",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"EndpointMockLifecycle\">' is not assignable to type 'EndpointMockLifecycle'.   Type '{ [x: string]: unknown; } & $brand<\"EndpointMockLifecycle\">' is missing the following properti"
+  },
+  {
+   "pkg": "testing",
+   "where": "packages/testing/src/transformers/mock-staging-create/mock-staging-create-transformer.ts:25",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"MockStaging\">' is not assignable to type 'MockStaging'.   Type '{ [x: string]: unknown; } & $brand<\"MockStaging\">' is missing the following properties from type '{ returns: (val:"
+  },
+  {
+   "pkg": "shared",
+   "where": "packages/shared/src/brokers/architecture/boot-tree/widget-subtree-render-layer-broker.ts:153",
+   "text": "TS2322 Type 'WidgetNodeSelf' is not assignable to type '{ children: WidgetNodeSelf[]; widgetName: string & $brand<\"ContentText\">; filePath: string & $brand<\"AbsoluteFilePath\">; bindingsAttached: (string & $brand<...>)[]; } & $b"
+  },
+  {
+   "pkg": "shared",
+   "where": "packages/shared/src/brokers/architecture/widget-node-render/architecture-widget-node-render-broker.ts:156",
+   "text": "TS2379 Argument of type '{ packageSrcPath?: never; callChainFn?: never; node: WidgetNodeSelf; prefix: string & $brand<\"ContentText\">; isLast: boolean; httpEdges: ({ method: string & $brand<...>; ... 4 more ...; paired: boolean;"
+  },
+  {
+   "pkg": "shared",
+   "where": "packages/shared/src/transformers/contract-index-from-sources/contract-index-from-sources-transformer.ts:107",
+   "text": "TS2322 Type '{ localName: string & $brand<\"Identifier\">; targetFile: string & $brand<\"AbsoluteFilePath\">; isTypeOnly: boolean; }[]' is not assignable to type '({ localName: string & $brand<\"Identifier\">; targetFile: string & $b"
+  },
+  {
+   "pkg": "shared",
+   "where": "packages/shared/src/transformers/namespace-methods-group-by-domain/namespace-methods-group-by-domain-transformer.ts:49",
+   "text": "TS2322 Type '{ domain: string & $brand<\"ContentText\">; methods: (string & $brand<\"ContentText\">)[]; }[]' is not assignable to type '({ domain: string & $brand<\"ContentText\">; methods: (string & $brand<\"ContentText\">)[]; } & $br"
+  },
+  {
+   "pkg": "shared",
+   "where": "packages/shared/src/transformers/quest-contract-properties-to-text/quest-contract-properties-to-text-transformer.ts:50",
+   "text": "TS2322 Type 'QuestContractPropertySelf[]' is not assignable to type 'readonly ({ name: string & $brand<\"PropertyName\">; type: string & $brand<\"TypeReference\">; description: string & $brand<\"PropertyDescription\">; properties?: Q"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/active-quests/quest-active-quests-broker.ts:37",
+   "text": "TS2322 Type '{ quest: { id: string & $brand<\"QuestId\">; folder: string & $brand<\"QuestFolder\">; title: string & $brand<\"QuestTitle\">; status: \"complete\" | \"blocked\" | ... 12 more ... | \"abandoned\"; ... 25 more ...; smoketestRes"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/get-next-step/build-spawn-instruction-layer-broker.ts:77",
+   "text": "TS2322 Type '{ resumeSessionId?: (string & $brand<\"SessionId\">) | undefined; resumePrompt?: string & $brand<\"PromptText\">; questId: string & $brand<\"QuestId\">; role: \"codeweaver\" | ... 3 more ... | \"warpgate\"; workItemId: strin"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/mcp-create/quest-mcp-create-broker.ts:80",
+   "text": "TS2322 Type '{ id: string & $brand<\"GuildId\">; name: string & $brand<\"GuildName\">; path: string & $brand<\"GuildPath\">; createdAt: string & $brand<\"IsoTimestamp\">; valid: boolean; questCount: number & $brand<...>; urlSlug?: (str"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:143",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"DesignDecisionId\">; title: string & $brand<\"DecisionTitle\">; rati"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:144",
+   "text": "TS2322 Type '({ id: string & $brand<\"DesignDecisionId\">; title: string & $brand<\"DecisionTitle\">; rationale: string & $brand<\"DecisionRationale\">; relatedNodeIds: (string & $brand<...>)[]; } & $brand<...>)[]' is not assignable "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:145",
+   "text": "TS2322 Type '({ id: string & $brand<\"DesignDecisionId\">; title: string & $brand<\"DecisionTitle\">; rationale: string & $brand<\"DecisionRationale\">; relatedNodeIds: (string & $brand<...>)[]; } & $brand<...>)[]' is not assignable "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:156",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"ToolingRequirementId\">; name: string & $brand<\"ToolingName\">; pac"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:157",
+   "text": "TS2322 Type '({ id: string & $brand<\"ToolingRequirementId\">; name: string & $brand<\"ToolingName\">; packageName: string & $brand<\"NpmPackageName\">; reason: string & $brand<...>; requiredByObservables: (string & $brand<...>)[]; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:158",
+   "text": "TS2322 Type '({ id: string & $brand<\"ToolingRequirementId\">; name: string & $brand<\"ToolingName\">; packageName: string & $brand<\"NpmPackageName\">; reason: string & $brand<...>; requiredByObservables: (string & $brand<...>)[]; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:163",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"QuestContractEntryId\">; name: string & $brand<\"ContractName\">; ki"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:164",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestContractEntryId\">; name: string & $brand<\"ContractName\">; kind: \"data\" | \"endpoint\" | \"event\"; status: \"new\" | \"existing\" | \"modified\"; source: string & $brand<...>; nodeId: string & $b"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:165",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestContractEntryId\">; name: string & $brand<\"ContractName\">; kind: \"data\" | \"endpoint\" | \"event\"; status: \"new\" | \"existing\" | \"modified\"; source: string & $brand<...>; nodeId: string & $b"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:178",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:179",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:180",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:218",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"QuestCommentId\">; flowId: string & $brand<\"FlowId\">; nodeId: stri"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:219",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestCommentId\">; flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<...>; observableId?: (string & $b"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:220",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestCommentId\">; flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<...>; observableId?: (string & $b"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:287",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernke"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:288",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; ... 31 more ...; ne"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:289",
+   "text": "TS2322 Type '({ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; ... 31 more ...; ne"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:289",
+   "text": "TS2352 Conversion of type '({ id: string & $brand<\"QuestWorkItemId\">; role?: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\" | und"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:294",
+   "text": "TS2322 Type '({ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">)[]' is not assignable to type '({ id: string & $brand<\"WardResultId\">; createdAt: string & $brand<\"IsoTimestamp\">; exitC"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:295",
+   "text": "TS2322 Type '({ id: string & $brand<\"WardResultId\">; createdAt: string & $brand<\"IsoTimestamp\">; exitCode: number & $brand<\"ExitCode\">; runId?: (string & $brand<\"WardRunId\">) | undefined; wardMode?: \"committed\" | ... 1 more ..."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:296",
+   "text": "TS2322 Type '({ id: string & $brand<\"WardResultId\">; createdAt: string & $brand<\"IsoTimestamp\">; exitCode: number & $brand<\"ExitCode\">; runId?: (string & $brand<\"WardRunId\">) | undefined; wardMode?: \"committed\" | ... 1 more ..."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.ts:43",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"ActiveQuestFacade\">' is not assignable to type 'ActiveQuestFacade'.   Type '{ [x: string]: unknown; } & $brand<\"ActiveQuestFacade\">' is missing the following properties from type"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/brokers/quest/work-item-insert/quest-work-item-insert-broker.ts:46",
+   "text": "TS2352 Conversion of type '{ questId: string & $brand<\"QuestId\">; workItems: ({ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | ... 5 more ... | \"warpgate\"; ... 31 mo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts:10",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts:18",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts:31",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts:44",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts:55",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/guards/has-raw-primitive-type/has-raw-primitive-type-guard.ts:26",
+   "text": "TS2322 Type 'QuestContractPropertySelf[]' is not assignable to type '({ name: string & $brand<\"PropertyName\">; type: string & $brand<\"TypeReference\">; description: string & $brand<\"PropertyDescription\">; properties?: QuestContr"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts:46",
+   "text": "TS2322 Type '{ workItemId?: string & $brand<\"QuestWorkItemId\">; role?: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; questId: s"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/chat/start/chat-start-responder.ts:322",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/chat/start/chat-start-responder.ts:403",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/clarify/answer/clarify-answer-responder.ts:29",
+   "text": "TS2352 Conversion of type '{ questId: string & $brand<\"QuestId\">; designDecisions: ({ id: string & $brand<\"DesignDecisionId\">; title: string & $brand<\"DecisionTitle\">; rationale: string & $brand<...>; relatedNodeIds: (string & "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/comment/batch/comment-batch-responder.ts:44",
+   "text": "TS2352 Conversion of type '{ questId: string & $brand<\"QuestId\">; comments: ({ id: string & $brand<\"QuestCommentId\">; flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<...>; created"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/followup-chat/start/followup-chat-start-responder.ts:151",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/orchestration/resume/orchestration-resume-responder.ts:214",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/orchestration/start/orchestration-start-responder.ts:189",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/orchestration/startup-recovery/recover-guild-layer-responder.ts:167",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts:69",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/quest/modify/quest-modify-responder.ts:47",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.ts:59",
+   "text": "TS2322 Type '{ [x: string]: unknown; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; questWorkItemId?: (string & $brand<\"QuestWorkItemId\">) | undefined; } & $brand<...>' is not assignable to type '"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.proxy.ts:49",
+   "text": "TS2322 Type '{ kill: jest.Mock<any, any, any>; questWorkItemId?: string & $brand<\"QuestWorkItemId\">; processId: string & $brand<\"ProcessId\">; questId: string & $brand<\"QuestId\">; }' is not assignable to type 'OrchestrationProce"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/orchestration-processes/orchestration-processes-state.ts:38",
+   "text": "TS2345 Argument of type '{ sessionJsonlPath?: string & $brand<\"AbsoluteFilePath\">; osPid?: number & $brand<\"ProcessPid\">; lastActivityAt: Date; }' is not assignable to parameter of type '{ lastActivityAt: Date; osPid?: (number "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.proxy.ts:27",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.proxy.ts:37",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:17",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:17",
+   "text": "TS2353 Object literal may only specify known properties, and 'processId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:46",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:46",
+   "text": "TS2353 Object literal may only specify known properties, and 'processId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:87",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:87",
+   "text": "TS2353 Object literal may only specify known properties, and 'processId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:107",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:107",
+   "text": "TS2353 Object literal may only specify known properties, and 'sessionId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:144",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:144",
+   "text": "TS2353 Object literal may only specify known properties, and 'sessionId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:172",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:172",
+   "text": "TS2353 Object literal may only specify known properties, and 'processId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:174",
+   "text": "TS2345 Argument of type '{ questId: string & $brand<\"QuestId\">; questions: ({ question: string & $brand<\"ClarificationQuestionText\">; header: string & $brand<\"ClarificationQuestionHeader\">; options: { ...; }[]; multiSelect: boo"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/state/pending-clarification/pending-clarification-state.test.ts:175",
+   "text": "TS2353 Object literal may only specify known properties, and 'processId' does not exist in type '{ questId?: string; questions?: { question?: string; header?: string; options?: { label?: string; description?: string; }[]; multi"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:21",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:21",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:30",
+   "text": "TS2322 Type '({ id: string & $brand<\"OperationItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; ... 4 more ...; pac"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:41",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:41",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:55",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:55",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:67",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:67",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:82",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:82",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:88",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:103",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:103",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:107",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:108",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:110",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:130",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:130",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:133",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:146",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:146",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:159",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:159",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:180",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:180",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:213",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:213",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:229",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:229",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:246",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:246",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:266",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:266",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:270",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:271",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:292",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:292",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:295",
+   "text": "TS18046 'nodes' is of type 'unknown'."
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:313",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:313",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:326",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:326",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-array-upsert/quest-array-upsert-transformer.test.ts:335",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; }"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-contract-raw-primitive-properties/quest-contract-raw-primitive-properties-transformer.ts:58",
+   "text": "TS2345 Argument of type 'QuestContractPropertySelf' is not assignable to parameter of type '{ name: string & $brand<\"PropertyName\">; type: string & $brand<\"TypeReference\">; description: string & $brand<\"PropertyDescription\">; p"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.test.ts:18",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.test.ts:34",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.test.ts:52",
+   "text": "TS2322 Type '({ id: string & $brand<\"FlowNodeId\">; label: string & $brand<\"FlowNodeLabel\">; type: \"state\" | \"decision\" | \"action\" | \"terminal\"; packages: (string & $brand<\"PackageName\">)[]; observables: ({ ...; } & $brand<...>)"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:31",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:31",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:47",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:47",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:49",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:60",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:60",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:62",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:75",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:75",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:77",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:89",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:89",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:91",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:105",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:105",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:107",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:122",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:122",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:124",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:138",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:138",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:140",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:161",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:161",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:163",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:176",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:176",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:178",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:202",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:202",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:225",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:225",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:227",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:238",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:238",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:240",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:275",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:275",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:277",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:308",
+   "text": "TS2322 Type '{ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; ... 31 more ...; nee"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:308",
+   "text": "TS2322 Type '{ id: string & $brand<\"QuestWorkItemId\">; role?: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\" | undefined; ... 31 "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:330",
+   "text": "TS2322 Type '{ id: string & $brand<\"QuestWorkItemId\">; role: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\"; ... 31 more ...; nee"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:330",
+   "text": "TS2322 Type '{ id: string & $brand<\"QuestWorkItemId\">; role?: \"chaoswhisperer\" | \"bughunt\" | \"tavernkeeper\" | \"riftcarver\" | \"codeweaver\" | \"ward\" | \"spiritmender\" | \"flowrider\" | \"siegemaster\" | \"warpgate\" | undefined; ... 31 "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:466",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:468",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:496",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:498",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:519",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:521",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:548",
+   "text": "TS2322 Type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operational\"; entryPoint: string & $brand<\"FlowEntryPoint\">; ... 5 more ...; scope?: (string & $brand<...>) | undefined; } "
+  },
+  {
+   "pkg": "orchestrator",
+   "where": "packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts:550",
+   "text": "TS2352 Conversion of type '{ [x: string]: unknown; id: unknown; _delete?: boolean | undefined; } & $brand<\"ItemWithId\">' to type '{ id: string & $brand<\"FlowId\">; name: string & $brand<\"FlowName\">; flowType: \"runtime\" | \"operat"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:15",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:33",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:54",
+   "text": "TS2344 Type 'SqlTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'SqlTarget' but required in type '$brand<\"Hydra"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:77",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:107",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:145",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:165",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/hydration/create/hydration-create-broker.test.ts:220",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.ts:84",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.ts:156",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.ts:185",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.ts:226",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/plan-preflight-broker.ts:242",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/preflight/verb-check-layer-broker.ts:38",
+   "text": "TS2322 Type 'readonly (OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<...>;"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/run/op-filter-apply-layer-broker.ts:181",
+   "text": "TS2322 Type 'OpFilterSelf' is not assignable to type '{ ops: readonly (OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/brokers/plan/run/plan-run-broker.ts:61",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; } & $brand<\"HydrationRunState\">' is not assignable to type 'HydrationRunState'.   Type '{ recipeName: string & $brand<\"RecipeName\">; } & $brand<\"HydrationRunState\">' is "
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-fold-writes/plan-fold-writes-transformer.ts:57",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-fold-writes/plan-fold-writes-transformer.ts:74",
+   "text": "TS2322 Type '(OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<...>; } & $bra"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-fold-writes/plan-fold-writes-transformer.ts:82",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-makes/plan-makes-transformer.ts:47",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-runs/plan-runs-transformer.ts:51",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/src/transformers/plan-saved-names/plan-saved-names-transformer.ts:32",
+   "text": "TS2345 Argument of type 'OpFilterSelf | ({ op: \"create\"; ingredient: string & $brand<\"IngredientName\">; ref: string & $brand<\"RowRef\">; index: number & $brand<\"RowIndex\">; ancestors: (string & $brand<...>)[]; fields: Record<..."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/test/harnesses/file-target/file-target.harness.ts:83",
+   "text": "TS2322 Type '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">' is not assignable to type 'FileTarget'.   Property 'home' is missing in type '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $"
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/test/harnesses/file-target/file-target.harness.ts:83",
+   "text": "TS2353 Object literal may only specify known properties, and 'home' does not exist in type '{ baseUrl?: string | undefined; [$brand]?: Record<string, true>; }'."
+  },
+  {
+   "pkg": "hydration",
+   "where": "packages/hydration/test/type-fixtures/positive/shape-assertions.ts:102",
+   "text": "TS2344 Type 'DmTarget' does not satisfy the constraint '{ baseUrl?: (string & $brand<\"Url\">) | undefined; } & $brand<\"HydrationTarget\">'.   Property '[$brand]' is missing in type 'DmTarget' but required in type '$brand<\"Hydrati"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:51",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:63",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:63",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:73",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:85",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:85",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:95",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:107",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:107",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:117",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:142",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:142",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:152",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:164",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:164",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:174",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:199",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:199",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:209",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:234",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:234",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:244",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:256",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:256",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:266",
+   "text": "TS2322 Type '{ recipeName: string & $brand<\"RecipeName\">; description: string & $brand<\"RecipeDescription\">; } & $brand<\"RecipeCatalogEntry\">' is not assignable to type 'RecipeCatalogEntry'.   Type '{ recipeName: string & $bran"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:277",
+   "text": "TS7031 Binding element 'params' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts:277",
+   "text": "TS7031 Binding element 'target' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes-hydration/create/recipes-hydration-create-broker.ts:31",
+   "text": "TS2344 Type '{ home: string & $brand<\"AbsoluteFilePath\">; claudeHome: string & $brand<\"AbsoluteFilePath\">; baseUrl?: (string & $brand<\"Url\">) | undefined; request?: HttpRequestFn | undefined; } & $brand<...>' does not satisfy t"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/brokers/recipes-hydration/create/recipes-hydration-create-broker.ts:32",
+   "text": "TS2344 Type '{ home: string & $brand<\"AbsoluteFilePath\">; claudeHome: string & $brand<\"AbsoluteFilePath\">; baseUrl?: (string & $brand<\"Url\">) | undefined; request?: HttpRequestFn | undefined; } & $brand<...>' does not satisfy t"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/contracts/guild-fields-schema/guild-fields-schema-contract.ts:25",
+   "text": "TS2375 Type '$ZodBranded<ZodObject<{ path: $ZodBranded<ZodString, \"GuildPath\", \"out\">; name: $ZodBranded<ZodString, \"GuildName\", \"out\">; }, $strip>, \"GuildFields\", \"out\">' is not assignable to type 'ZodType<{ path: string & $br"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/contracts/operation-fields-schema/operation-fields-schema-contract.ts:26",
+   "text": "TS2375 Type '$ZodBranded<ZodObject<{ status: ZodEnum<{ pending: \"pending\"; in_progress: \"in_progress\"; complete: \"complete\"; }>; role: ZodEnum<{ chaoswhisperer: \"chaoswhisperer\"; bughunt: \"bughunt\"; tavernkeeper: \"tavernkeeper\""
+  },
+  {
+   "pkg": "hydration-recipes",
+   "where": "packages/hydration-recipes/src/contracts/quest-fields-schema/quest-fields-schema-contract.ts:28",
+   "text": "TS2375 Type '$ZodBranded<ZodObject<{ status: ZodEnum<{ created: \"created\"; pending: \"pending\"; explore_flows: \"explore_flows\"; review_flows: \"review_flows\"; flows_approved: \"flows_approved\"; explore_observables: \"explore_observ"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/bindings/use-comment-queue/use-comment-queue-binding.ts:51",
+   "text": "TS2322 Type '{ flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<\"IsoTimestamp\">; observableId?: (string & $brand<...>) | undefined; } & $"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/state/comment-queue/comment-queue-state.ts:89",
+   "text": "TS2322 Type '{ flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<\"IsoTimestamp\">; observableId?: (string & $brand<...>) | undefined; } & $"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/state/comment-queue/comment-queue-state.ts:89",
+   "text": "TS2322 Type '{ flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<\"IsoTimestamp\">; observableId?: (string & $brand<...>) | undefined; } & $"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/state/comment-queue/comment-queue-state.ts:99",
+   "text": "TS2322 Type '{ flowId: string & $brand<\"FlowId\">; nodeId: string & $brand<\"FlowNodeId\">; text: string & $brand<\"CommentText\">; createdAt: string & $brand<\"IsoTimestamp\">; observableId?: (string & $brand<...>) | undefined; } & $"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:163",
+   "text": "TS2345 Argument of type '{ reason: \"turn-ended\"; chatProcessId: string & $brand<\"ProcessId\">; sessionId?: (string & $brand<\"SessionId\">) | undefined; retained?: boolean | undefined; [$brand]: { ...; }; }' is not assignable to p"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:170",
+   "text": "TS2345 Argument of type '{ reason: \"history-replayed\"; chatProcessId?: (string & $brand<\"ProcessId\">) | undefined; questId?: (string & $brand<\"QuestId\">) | undefined; [$brand]: { ...; }; }' is not assignable to parameter of typ"
+  },
+  {
+   "pkg": "web",
+   "where": "packages/web/test/harnesses/quest/quest.harness.ts:791",
+   "text": "TS2345 Argument of type '{ id: string & $brand<\"QuestId\">; folder: string & $brand<\"QuestFolder\">; title: string & $brand<\"QuestTitle\">; status: \"paused\" | \"created\" | \"pending\" | ... 11 more ... | \"abandoned\"; ... 26 more ...;"
+  },
+  {
+   "pkg": "server",
+   "where": "packages/server/test/harnesses/server-app/server-app.harness.ts:336",
+   "text": "TS2322 Type '{ id: string & $brand<\"QuestId\">; folder: string & $brand<\"QuestFolder\">; title: string & $brand<\"QuestTitle\">; status: \"created\" | \"pending\" | \"explore_flows\" | ... 11 more ... | \"abandoned\"; ... 25 more ...; smok"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.ts:123",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.ts:130",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.ts:133",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.ts:142",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker.ts:77",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.ts:49",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.ts:68",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-silent-catch/is-silent-body-layer-broker.ts:41",
+   "text": "TS2322 Type 'TsestreeSelf[] | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentP"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-silent-catch/rule-ban-silent-catch-broker.ts:59",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.ts:49",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.ts:68",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker.ts:90",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker.ts:91",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts:33",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts:70",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts:82",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-discriminated-union-variants-layer-broker.ts:89",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts:21",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts:23",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts:38",
+   "text": "TS2322 Type 'TsestreeSelf | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPat"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/check-resolve-schema-binding-layer-broker.ts:52",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.ts:91",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.ts:125",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker.ts:121",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker.ts:149",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/find-module-const-init-layer-broker.ts:27",
+   "text": "TS2322 Type 'TsestreeSelf | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPat"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/resolve-spawned-program-layer-broker.ts:55",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/resolve-spawned-program-layer-broker.ts:58",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/resolve-static-string-layer-broker.ts:39",
+   "text": "TS2322 Type 'TsestreeSelf | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPat"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/resolve-static-string-layer-broker.ts:104",
+   "text": "TS2322 Type 'TsestreeSelf[]' is not assignable to type 'readonly ({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPatt"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.ts:99",
+   "text": "TS2322 Type 'TsestreeSelf[]' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"A"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.ts:183",
+   "text": "TS2322 Type 'TsestreeSelf[]' is not assignable to type 'readonly ({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPatt"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.ts:184",
+   "text": "TS2322 Type 'TsestreeSelf[]' is not assignable to type 'readonly ({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPatt"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.ts:226",
+   "text": "TS2322 Type 'TsestreeSelf | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPat"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.ts:227",
+   "text": "TS2322 Type 'TsestreeSelf | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPat"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts:72",
+   "text": "TS2345 Argument of type 'TsestreeSelf' is not assignable to parameter of type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"A"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.ts:130",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.ts:142",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.ts:158",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:102",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:112",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:123",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:127",
+   "text": "TS2345 Argument of type '(stmt: Tsestree) => boolean' is not assignable to parameter of type '(value: TsestreeSelf, index: number, array: TsestreeSelf[]) => unknown'.   Types of parameters 'stmt' and 'value' are incompatible.  "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:133",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.ts:139",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:72",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:90",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:107",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:121",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:138",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/validate-harness-constructor-side-effects-layer-broker.ts:153",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker.ts:107",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-magic-arrays/rule-enforce-magic-arrays-broker.ts:104",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:59",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:64",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:85",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:110",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:115",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:136",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:161",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:166",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.ts:187",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-param-binding/check-unbound-type-properties-layer-broker.ts:51",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:263",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:314",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:325",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts:329",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-no-exposed-child-proxies-layer-broker.ts:36",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-no-exposed-child-proxies-layer-broker.ts:57",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-object-expression-layer-broker.ts:34",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-object-expression-layer-broker.ts:47",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-proxy-constructor-side-effects-layer-broker.ts:105",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-proxy-function-return-layer-broker.ts:64",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-proxy-function-return-layer-broker.ts:78",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/validate-return-statement-layer-broker.ts:49",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker.ts:97",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker.ts:109",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-stub-usage/rule-enforce-stub-usage-broker.ts:68",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-stub-usage/rule-enforce-stub-usage-broker.ts:86",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-stub-usage/rule-enforce-stub-usage-broker.ts:92",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:173",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:181",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:314",
+   "text": "TS2345 Argument of type 'TsestreeSelf' is not assignable to parameter of type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"A"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:330",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:374",
+   "text": "TS2345 Argument of type 'TsestreeSelf' is not assignable to parameter of type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"A"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.ts:378",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker.ts:68",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/check-any-leak-return-layer-broker.ts:28",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/check-any-leak-return-layer-broker.ts:36",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/check-any-leak-return-layer-broker.ts:56",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/find-enclosing-function-layer-broker.ts:30",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/is-type-name-referenced-layer-broker.ts:38",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/is-type-name-referenced-layer-broker.ts:44",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/is-type-name-referenced-layer-broker.ts:48",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/is-type-name-referenced-layer-broker.ts:54",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/rule-gateway-return-unknown-not-caller-type-broker.ts:122",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/rule-gateway-return-unknown-not-caller-type-broker.ts:144",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/gateway-return-unknown-not-caller-type/rule-gateway-return-unknown-not-caller-type-broker.ts:146",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/no-multiple-property-assertions/rule-no-multiple-property-assertions-broker.ts:119",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/no-mutable-state-in-proxy-factory/rule-no-mutable-state-in-proxy-factory-broker.ts:52",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/platform-globals-ban/enclosing-function-binding-names-layer-broker.ts:24",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/platform-globals-ban/is-inside-inline-page-callback-layer-broker.ts:28",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/platform-globals-ban/is-inside-inline-page-callback-layer-broker.ts:33",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-binding-initializer-layer-broker.ts:21",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-binding-initializer-layer-broker.ts:23",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-binding-initializer-layer-broker.ts:45",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-validated-expression-layer-broker.ts:62",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-validated-expression-layer-broker.ts:67",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts:72",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts:77",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts:93",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts:100",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard.ts:36",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard.ts:41",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard.ts:51",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard.ts:55",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard.ts:64",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/guards/is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard.ts:22",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/transformers/ast-find-expect-call/ast-find-expect-call-transformer.ts:28",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer.ts:20",
+   "text": "TS2322 Type 'TsestreeSelf | null | undefined' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/transformers/type-name-from-annotation/type-name-from-annotation-transformer.ts:27",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/transformers/type-name-from-annotation/type-name-from-annotation-transformer.ts:47",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | ... "
+  },
+  {
+   "pkg": "eslint-plugin",
+   "where": "packages/eslint-plugin/src/transformers/validate-function-params-use-object-destructuring/validate-function-params-use-object-destructuring-transformer.ts:41",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '{ type: \"TSInterfaceDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"Awai"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:91",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"AwaitExp"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:95",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"AwaitExp"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:99",
+   "text": "TS2322 Type 'TsestreeSelf | null' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"A"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:125",
+   "text": "TS2322 Type 'TsestreeSelf | null' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"A"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:196",
+   "text": "TS2322 Type '(TsestreeSelf | null)[]' is not assignable to type 'readonly (({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assignmen"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.ts:213",
+   "text": "TS2322 Type '(TsestreeSelf | null)[]' is not assignable to type 'readonly (({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assignmen"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/no-hardcoded-package-names/rule-no-hardcoded-package-names-broker.ts:127",
+   "text": "TS2345 Argument of type 'TsestreeSelf' is not assignable to parameter of type '{ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Assign"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/brokers/rule/no-hardcoded-package-names/rule-no-hardcoded-package-names-broker.ts:137",
+   "text": "TS2345 Argument of type 'TsestreeSelf[]' is not assignable to parameter of type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"Ass"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/transformers/effective-expression-parent/effective-expression-parent-transformer.ts:34",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"AwaitExp"
+  },
+  {
+   "pkg": "local-eslint",
+   "where": "packages/local-eslint/src/transformers/effective-expression-parent/effective-expression-parent-transformer.ts:37",
+   "text": "TS2322 Type 'TsestreeSelf' is not assignable to type '({ type: \"ImportDeclaration\" | \"AccessorProperty\" | \"ArrayExpression\" | \"ArrayPattern\" | \"ArrowFunctionExpression\" | \"AssignmentExpression\" | \"AssignmentPattern\" | \"AwaitExp"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/guards/is-explicit-path-scope/is-explicit-path-scope-guard.ts:36",
+   "text": "TS1360 Type '{ readonly only: \"notAFileScope\"; readonly onlyTests: \"notAFileScope\"; readonly committed: \"gitDerived\"; readonly uncommitted: \"gitDerived\"; readonly passthrough: \"callerTyped\"; }' does not satisfy the expected typ"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/guards/is-explicit-path-scope/is-explicit-path-scope-guard.ts:40",
+   "text": "TS7053 Element implicitly has an 'any' type because expression of type 'unique symbol | \"committed\" | \"uncommitted\" | \"only\" | \"passthrough\" | \"onlyTests\"' can't be used to index type '{ readonly only: \"notAFileScope\"; readonly"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/guards/is-explicit-path-scope/is-explicit-path-scope-guard.ts:41",
+   "text": "TS7053 Element implicitly has an 'any' type because expression of type 'unique symbol | \"committed\" | \"uncommitted\" | \"only\" | \"passthrough\" | \"onlyTests\"' can't be used to index type '{ readonly only: \"notAFileScope\"; readonly"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/guards/is-file-scope-requested/is-file-scope-requested-guard.ts:33",
+   "text": "TS1360 Type '{ readonly only: \"typeFilter\"; readonly onlyTests: \"testNameFilter\"; readonly committed: \"fileScope\"; readonly uncommitted: \"fileScope\"; readonly passthrough: \"fileScope\"; }' does not satisfy the expected type 'Rec"
+  },
+  {
+   "pkg": "ward",
+   "where": "packages/ward/src/guards/is-file-scope-requested/is-file-scope-requested-guard.ts:36",
+   "text": "TS7053 Element implicitly has an 'any' type because expression of type 'unique symbol | \"committed\" | \"uncommitted\" | \"only\" | \"passthrough\" | \"onlyTests\"' can't be used to index type '{ readonly only: \"typeFilter\"; readonly on"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts:88",
+   "text": "TS2322 Type '{ hits?: ({ line: number & $brand<\"LineNumber\">; text: string & $brand<\"LineText\">; } & $brand<\"GrepHit\">)[]; name: string & $brand<\"FunctionName\">; type: string & $brand<...>; purpose: (string & $brand<...>) | und"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:33",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:38",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:38",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:41",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:45",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:45",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:48",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:52",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:52",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:55",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:59",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:59",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:62",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:67",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:67",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:70",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:75",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/architecture/architecture-flow.ts:75",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:29",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:34",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:34",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:41",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:46",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:46",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:53",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:58",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/interaction/interaction-flow.ts:58",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:56",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:60",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:62",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:66",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:68",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:73",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:75",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:79",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:81",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:85",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:87",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:92",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:94",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:99",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:102",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:107",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:110",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:117",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:117",
+   "text": "TS7031 Binding element 'meta' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:124",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:129",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:131",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:136",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:138",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:143",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:145",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:150",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:152",
+   "text": "TS2322 Type '{ name: string & $brand<\"ToolName\">; description: string & $brand<\"ToolDescription\">; inputSchema: Record<string & $brand<\"InputSchemaKey\">, unknown>; } & $brand<...>' is not assignable to type 'ToolRegistration'. "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/flows/quest/quest-flow.ts:157",
+   "text": "TS7031 Binding element 'args' implicitly has an 'any' type."
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/index.proxy.ts:36",
+   "text": "TS2322 Type '{ module: string & $brand<\"FilePath\">; factory: () => { StartMcpServer: () => Promise<void>; }; }' is not assignable to type 'IsolateModulesMock'.   Property '[$brand]' is missing in type '{ module: string & $brand"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/responders/quest/handle/blight-checklist-layer-responder.ts:38",
+   "text": "TS2322 Type '{ isError?: true; content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; }' is not assignable to type '{ content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; isError?: boolean | undefine"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/responders/quest/handle/get-quest-layer-responder.ts:72",
+   "text": "TS2322 Type '{ isError?: true; content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; }' is not assignable to type '{ content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; isError?: boolean | undefine"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:100",
+   "text": "TS2322 Type '{ isError?: true; content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; }' is not assignable to type '{ content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; isError?: boolean | undefine"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/responders/quest/handle/quest-handle-responder.ts:257",
+   "text": "TS2322 Type '{ isError?: true; content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; }' is not assignable to type '{ content: { type: \"text\"; text: string & $brand<\"ContentText\">; }[]; isError?: boolean | undefine"
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/transformers/tree-formatter/tree-formatter-transformer.ts:34",
+   "text": "TS2322 Type '{ name: string & $brand<\"FolderName\">; items: ({ name: string & $brand<\"FunctionName\">; type: string & $brand<\"FileType\">; path: string & $brand<\"PathSegment\">; purpose?: (string & $brand<...>) | undefined; hits?: "
+  },
+  {
+   "pkg": "mcp",
+   "where": "packages/mcp/src/transformers/tree-formatter/tree-formatter-transformer.ts:56",
+   "text": "TS2345 Argument of type '{ name: string & $brand<\"FolderName\">; items: ({ name: string & $brand<\"FunctionName\">; type: string & $brand<\"FileType\">; path: string & $brand<\"PathSegment\">; purpose?: (string & $brand<...>) | undefi"
+  },
+  {
+   "pkg": "siegelense",
+   "where": "packages/siegelense/src/brokers/browser-session/launch/browser-session-launch-broker.ts:299",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"BrowserSession\">' is not assignable to type 'BrowserSession'.   Type '{ [x: string]: unknown; } & $brand<\"BrowserSession\">' is missing the following properties from type '{ goto:"
+  },
+  {
+   "pkg": "siegelense",
+   "where": "packages/siegelense/src/brokers/lane/boot/lane-boot-broker.ts:266",
+   "text": "TS2322 Type '{ [x: string]: unknown; } & $brand<\"LaneSession\">' is not assignable to type 'LaneSession'.   Type '{ [x: string]: unknown; } & $brand<\"LaneSession\">' is missing the following properties from type '{ specName: stri"
+  },
+  {
+   "pkg": "siegelense",
+   "where": "packages/siegelense/src/flows/siegelense/siegelense-compare-layer-flow.ts:27",
+   "text": "TS2322 Type '{ instanceId: string & $brand<\"InstanceId\">; runA: string & $brand<\"RunId\">; runB: string & $brand<\"RunId\">; isJson: boolean; } & $brand<\"CompareArgs\">' is not assignable to type '{ instanceId: string & $brand<\"Ins"
+  },
+  {
+   "pkg": "siegelense",
+   "where": "packages/siegelense/src/flows/siegelense/siegelense-results-layer-flow.ts:29",
+   "text": "TS2322 Type '{ instanceId: string & $brand<\"InstanceId\">; runId: (string & $brand<\"RunId\">) | null; step: (number & $brand<\"StepIndex\">) | null; kind: \"network\" | ... 5 more ... | null; where: ({ ...; } & $brand<...>) | null; f"
+  },
+  {
+   "pkg": "tooling",
+   "where": "packages/tooling/src/brokers/adapter-census/build/adapter-census-build-broker.ts:104",
+   "text": "TS2322 Type '{ adapters: ({ file: string & $brand<\"CensusPath\">; exportNames: (string & $brand<\"ExportName\">)[]; shape: \"pass-through\" | \"logic\"; reasons: (\"no-outside-call\" | ... 9 more ... | \"promise-construction\")[]; ... 5 m"
+  }
+ ]
+}
