@@ -5,7 +5,6 @@ import { CheckResultStub } from '../../../contracts/check-result/check-result.st
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
-import { CheckTypeStub } from '../../../contracts/check-type/check-type.stub';
 
 import { commandRawBroker } from './command-raw-broker';
 import { commandRawBrokerProxy } from './command-raw-broker.proxy';
@@ -32,7 +31,7 @@ describe('commandRawBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const runId = RunIdStub();
-      const checkType = CheckTypeStub({ value: 'lint' });
+      const checkType = 'lint';
 
       await commandRawBroker({ rootPath, runId, checkType });
 
@@ -59,7 +58,7 @@ describe('commandRawBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const runId = RunIdStub();
-      const checkType = CheckTypeStub({ value: 'typecheck' });
+      const checkType = 'typecheck';
 
       await commandRawBroker({ rootPath, runId, checkType });
 
@@ -78,7 +77,7 @@ describe('commandRawBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const runId = RunIdStub();
-      const checkType = CheckTypeStub({ value: 'typecheck' });
+      const checkType = 'typecheck';
 
       await commandRawBroker({ rootPath, runId, checkType });
 
@@ -93,7 +92,7 @@ describe('commandRawBroker', () => {
 
       const rootPath = AbsoluteFilePathStub({ value: '/project' });
       const runId = RunIdStub();
-      const checkType = CheckTypeStub({ value: 'lint' });
+      const checkType = 'lint';
 
       await commandRawBroker({ rootPath, runId, checkType });
 
