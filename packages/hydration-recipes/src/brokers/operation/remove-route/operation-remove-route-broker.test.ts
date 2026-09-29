@@ -1,7 +1,12 @@
 import { operationRemoveRouteBroker } from './operation-remove-route-broker';
 import { operationRemoveRouteBrokerProxy } from './operation-remove-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildListItemStub, OperationItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  GuildListItemStub,
+  OperationItemStub,
+  QuestStub,
+  WorkItemStub,
+} from '@dungeonmaster/shared/contracts';
 
 const GUILD_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -64,6 +69,67 @@ describe('operationRemoveRouteBroker', () => {
         ...quest,
         operations: [codeweaverItem, wardItemOne, flowriderItem, siegemasterItem, wardItemTwo],
       });
+    });
+  });
+
+  // A live target's START route mints the riftcarver operation WITH its carve work item. Dropping
+  // the operation alone leaves a pending carve row pointing at nothing, which a later play runs.
+  describe('work items that worked the removed operation', () => {
+    it('VALID: {record: the riftcarver item, a carve work item linked to it} => drops the linked work item and keeps every other one', async () => {
+      const proxy = operationRemoveRouteBrokerProxy();
+      const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
+      const intakeItem = OperationItemStub({
+        id: '22222222-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+      });
+      const riftcarverItem = OperationItemStub({
+        id: '22222222-0000-4000-8000-000000000002',
+        role: 'riftcarver',
+        status: 'in_progress',
+      });
+      const intakeWorkItem = WorkItemStub({
+        id: '33333333-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        relatedDataItems: ['operations/22222222-0000-4000-8000-000000000001'],
+      });
+      const carveWorkItem = WorkItemStub({
+        id: '33333333-0000-4000-8000-000000000002',
+        role: 'riftcarver',
+        status: 'pending',
+        spawnerType: 'command',
+        relatedDataItems: ['operations/22222222-0000-4000-8000-000000000002'],
+      });
+      const quest = QuestStub({
+        id: 'add-auth',
+        folder: 'add-auth',
+        operations: [intakeItem, riftcarverItem],
+        workItems: [intakeWorkItem, carveWorkItem],
+      });
+      const questFilePath = `/tmp/dm-home/guilds/${GUILD_ID}/quests/add-auth/quest.json`;
+      proxy.succeeds({
+        guild: GuildListItemStub({ id: GUILD_ID }),
+        quest,
+        questFilePath,
+        outboxPath: '/tmp/dm-home/event-outbox.jsonl',
+      });
+
+      const result = await operationRemoveRouteBroker({ target, record: riftcarverItem });
+
+      expect(result).toStrictEqual({ success: true });
+
+      const written = proxy.getWrittenQuest({ questFilePath });
+
+      expect(JSON.parse(String(written))).toStrictEqual(
+        JSON.parse(
+          JSON.stringify({
+            ...quest,
+            operations: [intakeItem],
+            workItems: [intakeWorkItem],
+          }),
+        ),
+      );
     });
   });
 });

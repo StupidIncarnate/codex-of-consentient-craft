@@ -120,7 +120,13 @@ export const QuestFlow = (): Hono => {
   });
 
   app.post(apiRoutesStatics.quests.start, async (c) => {
-    const result = await QuestStartResponder({ params: { questId: c.req.param('questId') } });
+    // Begin Quest posts no body at all, so a missing or non-JSON body degrades to `{}` — the
+    // responder then plays the dispatcher exactly as it does for the browser.
+    const body: unknown = await c.req.json().catch(() => ({}));
+    const result = await QuestStartResponder({
+      params: { questId: c.req.param('questId') },
+      body,
+    });
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 
