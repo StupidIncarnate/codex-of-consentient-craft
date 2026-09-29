@@ -16,9 +16,9 @@
  * // has somewhere to deliver. "Read-only never sends" is therefore a compile error, not a guard.
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Box, Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { hasQuestGateContentGuard } from '@dungeonmaster/shared/guards';

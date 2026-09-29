@@ -6,7 +6,7 @@
  * // Renders modal with directory listing, parent navigation, and select button
  */
 
-import { Button, Group, Loader, Modal, NavLink, Stack, Text } from '@mantine/core';
+import { Button, Group, Loader, Modal, NavLink, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type { GuildPath } from '@dungeonmaster/shared/contracts';
 

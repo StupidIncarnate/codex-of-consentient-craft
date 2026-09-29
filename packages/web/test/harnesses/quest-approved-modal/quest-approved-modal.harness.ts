@@ -5,7 +5,7 @@
  * const harness = questApprovedModalHarness({ sessions, guildPath: GUILD_PATH });
  * const result = await harness.setupTest({ request, guildName, sessionId, status });
  */
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';

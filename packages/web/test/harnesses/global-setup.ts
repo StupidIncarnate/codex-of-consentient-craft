@@ -1,10 +1,11 @@
 import { mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import * as os from '#gateway/node/os';
+import * as path from '#gateway/node/path';
 
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { getEnv, pid, stderr } from '#gateway/node/process';
 
-const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
+const TEST_HOME = getEnv('E2E_TEST_HOME') ?? path.join(os.tmpdir(), `dm-e2e-${pid}`);
 
 // The two sandbox namings that land under `os.tmpdir()`, each named by the file that mints it:
 // `playwright.config.ts`'s `dm-e2e-<pid>` and `locationsInstanceHomePathFindBroker`'s
@@ -58,7 +59,7 @@ export default function globalSetup(): void {
     } catch (error: unknown) {
       // One entry nobody can stat or remove — another user's sandbox, or one a run that ended a
       // moment ago is still tearing down — must not take the whole suite with it.
-      process.stderr.write(`[e2e-setup] sandbox sweep skipped ${entryPath}: ${String(error)}\n`);
+      stderr.write(`[e2e-setup] sandbox sweep skipped ${entryPath}: ${String(error)}\n`);
     }
   }
 

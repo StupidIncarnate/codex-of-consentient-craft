@@ -13,9 +13,9 @@
  * // nests every one of its work items beneath it, unnumbered — see the row-building block below.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
-import { Box, Group, Stack, UnstyledButton } from '@mantine/core';
+import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type {
   Quest,

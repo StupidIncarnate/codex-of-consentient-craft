@@ -7,7 +7,7 @@
  * // Renders QUEST_SUMMARY_NOTE_GROUP with the group's title and its note rows
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestSummaryNoteGroup } from '@dungeonmaster/shared/contracts';
 

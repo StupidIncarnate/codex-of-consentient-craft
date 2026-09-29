@@ -9,7 +9,7 @@
  * // Renders "↩ walk pt: 1", or nothing when mintedByLabel is undefined
  */
 
-import { Text } from '@mantine/core';
+import { Text } from '#gateway/npm/mantine__core';
 
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

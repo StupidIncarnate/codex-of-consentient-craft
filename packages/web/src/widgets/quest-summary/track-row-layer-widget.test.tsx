@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts';
 import { verificationTracksStatics } from '@dungeonmaster/shared/statics';

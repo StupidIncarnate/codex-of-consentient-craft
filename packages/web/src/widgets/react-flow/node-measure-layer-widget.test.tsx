@@ -1,4 +1,4 @@
-import React from 'react';
+import React from '#gateway/npm/react';
 
 import { render } from '@testing-library/react';
 

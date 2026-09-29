@@ -7,7 +7,12 @@
  * // Renders a dark-theme RPG node card with accent color by type
  */
 
-import { IconCircle, IconDiamond, IconPlayerPlay, IconSquare } from '@tabler/icons-react';
+import {
+  IconCircle,
+  IconDiamond,
+  IconPlayerPlay,
+  IconSquare,
+} from '#gateway/npm/tabler__icons-react';
 
 import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 

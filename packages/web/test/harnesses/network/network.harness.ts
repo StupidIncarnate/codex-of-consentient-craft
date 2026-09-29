@@ -5,7 +5,7 @@
  * const network = networkHarness({ page });
  * // afterEach: await network.dump({ testInfo })
  */
-import type { Page, TestInfo } from '@playwright/test';
+import type { Page, TestInfo } from '#gateway/npm/playwright__test';
 import { networkRecordPlaywrightBroker } from '@dungeonmaster/testing/brokers/network-record/playwright';
 
 type RecorderInstance = ReturnType<typeof networkRecordPlaywrightBroker>;

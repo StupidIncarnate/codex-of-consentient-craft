@@ -9,6 +9,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
+import { URL } from '#gateway/node/url';
 
 const GUILD_PATH = '/tmp/dm-e2e-ws-reconnect';
 const CHAT_TIMEOUT = 15_000;

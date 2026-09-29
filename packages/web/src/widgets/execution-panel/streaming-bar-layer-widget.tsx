@@ -6,7 +6,7 @@
  * // Renders "░░░░░░░░░░░░░░░░░░░░ streaming..." with pulse animation
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 

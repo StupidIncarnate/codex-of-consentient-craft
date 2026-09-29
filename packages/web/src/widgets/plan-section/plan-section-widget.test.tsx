@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PlanSectionTestItemStub } from '../../contracts/plan-section-test-item/plan-section-test-item.stub';

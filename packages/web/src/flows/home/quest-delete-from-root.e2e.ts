@@ -5,6 +5,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
+import { URL } from '#gateway/node/url';
 
 const GUILD_PATH = '/tmp/dm-e2e-quest-delete-from-root';
 const HTTP_OK = 200;

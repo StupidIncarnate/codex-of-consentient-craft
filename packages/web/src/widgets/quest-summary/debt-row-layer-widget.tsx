@@ -21,7 +21,7 @@
  * the same unit read as duplicates of each other.
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestSummaryDebt } from '@dungeonmaster/shared/contracts';
 

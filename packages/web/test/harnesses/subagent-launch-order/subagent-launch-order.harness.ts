@@ -12,7 +12,7 @@
  * await launches.revealParentChainEntries();
  * expect(await launches.paintedOrderInParentChainIs({ order: 'parentBefore|nestedChain' })).toBe(true);
  */
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import {
   AssistantTaskToolUseStreamLineStub,

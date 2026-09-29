@@ -6,7 +6,7 @@
  * // Renders labeled tag chips in loot-rare color, or "none" when empty
  */
 
-import { Group, Text } from '@mantine/core';
+import { Group, Text } from '#gateway/npm/mantine__core';
 
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';
 import type { TagItem } from '../../contracts/tag-item/tag-item-contract';

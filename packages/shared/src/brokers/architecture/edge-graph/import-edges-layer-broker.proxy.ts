@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { Dirent } from '#gateway/node/fs';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';

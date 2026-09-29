@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import { formatFolderContentLayerBrokerProxy } from './format-folder-content-layer-broker.proxy';

@@ -1,4 +1,5 @@
 import { sessionSnippetStatics } from './session-snippet-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const MAX_SNIPPET_BYTES = 2048;
 

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

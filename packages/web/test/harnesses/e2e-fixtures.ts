@@ -9,7 +9,7 @@
  * // The watch, network recording and the dispatcher pause run automatically — no setup needed
  * // wireHarnessLifecycle bridges harness beforeEach/afterEach to Playwright's test hooks
  */
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect } from '#gateway/npm/playwright__test';
 import { dispatchPauseHarness } from './dispatch-pause/dispatch-pause.harness';
 import { networkHarness } from './network/network.harness';
 import { openHandleWatchHarness } from './open-handle-watch/open-handle-watch.harness';

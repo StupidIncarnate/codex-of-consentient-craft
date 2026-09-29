@@ -10,16 +10,16 @@
  * // Node-card comment. Pass observableId as well to anchor the comment to an assertion card.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import { Group, Popover, Stack, Text } from '@mantine/core';
+import { Group, Popover, Stack, Text } from '#gateway/npm/mantine__core';
 import {
   IconMessageCircle,
   IconMessageCircleFilled,
   IconPencil,
   IconTrash,
   IconX,
-} from '@tabler/icons-react';
+} from '#gateway/npm/tabler__icons-react';
 
 import type { FlowId, FlowNodeId, ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
 import { commentTextContract } from '@dungeonmaster/shared/contracts';

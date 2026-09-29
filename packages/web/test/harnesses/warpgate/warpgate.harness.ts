@@ -13,7 +13,7 @@
  * warpgate.seedWarpgateQuest({ questId, questFolder, questFilePath, status: 'merging', warpgateStatus: 'in_progress' });
  * warpgate.seedFollowupTurns({ sessionId, turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'hello' }] });
  */
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import {
   AssistantTextStreamLineStub,

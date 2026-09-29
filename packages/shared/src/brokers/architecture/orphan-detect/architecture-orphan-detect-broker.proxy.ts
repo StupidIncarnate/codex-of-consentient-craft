@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { Dirent } from '#gateway/node/fs';
 import { listWalkedFolderFilesLayerBrokerProxy } from './list-walked-folder-files-layer-broker.proxy';
 import { walkReachableFilesLayerBrokerProxy } from './walk-reachable-files-layer-broker.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';

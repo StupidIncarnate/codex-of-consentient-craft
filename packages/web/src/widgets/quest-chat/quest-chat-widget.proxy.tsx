@@ -6,7 +6,7 @@
  * proxy.setupGuilds({ guilds });
  */
 
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import type { GuildListItemStub, OrchestrationMode } from '@dungeonmaster/shared/contracts';
 

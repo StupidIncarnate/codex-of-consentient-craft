@@ -9,7 +9,7 @@
  * // Renders one line: what tripped the guardrail, and the wait
  */
 
-import { Text } from '@mantine/core';
+import { Text } from '#gateway/npm/mantine__core';
 
 import type { DispatchHold } from '@dungeonmaster/shared/contracts';
 

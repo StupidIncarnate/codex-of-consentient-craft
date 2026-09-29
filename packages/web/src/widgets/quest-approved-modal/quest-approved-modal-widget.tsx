@@ -10,7 +10,7 @@
  * // Renders dungeon-themed modal with two action buttons
  */
 
-import { Modal, Stack, Text } from '@mantine/core';
+import { Modal, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';

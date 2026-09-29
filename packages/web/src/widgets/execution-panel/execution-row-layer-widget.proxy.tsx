@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-widget.proxy';
 import { ExecutionRowMintedByBadgeLayerWidgetProxy } from './execution-row-minted-by-badge-layer-widget.proxy';

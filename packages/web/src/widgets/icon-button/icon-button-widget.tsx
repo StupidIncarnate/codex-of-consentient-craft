@@ -10,8 +10,8 @@
  * // Renders a square 22px button with the orange primary fill and a 14px send glyph
  */
 
-import { ActionIcon } from '@mantine/core';
-import type { TablerIcon } from '@tabler/icons-react';
+import { ActionIcon } from '#gateway/npm/mantine__core';
+import type { TablerIcon } from '#gateway/npm/tabler__icons-react';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';

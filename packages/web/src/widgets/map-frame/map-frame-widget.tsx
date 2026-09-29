@@ -6,7 +6,7 @@
  * // Renders a bordered box with corner decorations containing children
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { CssPixels } from '@dungeonmaster/shared/contracts';
 

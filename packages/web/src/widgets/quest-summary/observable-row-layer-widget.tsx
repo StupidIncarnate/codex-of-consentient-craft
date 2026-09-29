@@ -7,7 +7,7 @@
  * // Renders QUEST_SUMMARY_OBSERVABLE_ROW with the added-by, anchor and description lines
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestSummaryObservable } from '@dungeonmaster/shared/contracts';
 

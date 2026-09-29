@@ -18,9 +18,9 @@
  * ]);
  */
 import { appendFileSync, readFileSync, promises as fsPromises } from 'fs';
-import { dirname } from 'path';
+import { dirname } from '#gateway/node/path';
 
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import {
   AssistantTextStreamLineStub,

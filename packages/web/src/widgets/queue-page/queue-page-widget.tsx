@@ -14,7 +14,7 @@
  * // Renders the queue list page content inside the app layout.
  */
 
-import { Box, Group, Stack, Text } from '@mantine/core';
+import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
 import { arrayIndexContract, totalCountContract } from '@dungeonmaster/shared/contracts';
 

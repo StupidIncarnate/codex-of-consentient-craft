@@ -9,8 +9,8 @@ import {
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
-import { act, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SessionViewWidget } from './session-view-widget';

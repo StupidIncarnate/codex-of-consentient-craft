@@ -22,10 +22,10 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '#gateway/node/path';
 
-import type { APIRequestContext } from '@playwright/test';
-import { z } from 'zod';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
+import { z } from '#gateway/npm/zod';
 
 import type { FilePath, ProcessId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import {
@@ -41,6 +41,8 @@ import { claudeMockHarness } from '../claude-mock/claude-mock.harness';
 import { dispatchPauseHarness } from '../dispatch-pause/dispatch-pause.harness';
 import { questHarness } from '../quest/quest.harness';
 import { wardMockHarness } from '../ward-mock/ward-mock.harness';
+import { getEnv } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 const DISPATCH_STATE_ROUTE = '/api/orchestration/dispatch';
 const DISPATCH_PLAYING_MODE = 'node-playing';
@@ -165,7 +167,7 @@ export const dispatchHarness = ({
   // Rewrites dispatch-state.json to a clean `paused` state, dropping any extra fields a previous
   // spec wrote to it, and leaving the dispatcher paused but PLAYABLE.
   const releaseQueueHold = (): void => {
-    const home = process.env.DUNGEONMASTER_HOME;
+    const home = getEnv('DUNGEONMASTER_HOME');
     if (home === undefined) {
       throw new Error('DUNGEONMASTER_HOME env var is not set');
     }

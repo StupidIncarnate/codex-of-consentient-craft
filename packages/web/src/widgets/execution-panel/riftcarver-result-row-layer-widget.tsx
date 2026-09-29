@@ -8,7 +8,7 @@
  * // Renders "Riftcarver exit code: 1 (repairable)" plus the persisted carve log once it loads
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
 

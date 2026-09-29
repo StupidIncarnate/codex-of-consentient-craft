@@ -7,7 +7,7 @@
  * // Renders QUEST_SUMMARY_NOTE_ROW with the note's summary and role/detail text
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestNote } from '@dungeonmaster/shared/contracts';
 

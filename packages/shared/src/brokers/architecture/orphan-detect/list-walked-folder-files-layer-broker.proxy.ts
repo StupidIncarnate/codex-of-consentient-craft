@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 
 export const listWalkedFolderFilesLayerBrokerProxy = (): {

@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { CommentBatchSendResultStub } from '../../contracts/comment-batch-send-result/comment-batch-send-result.stub';
 import { CommentQueueBarWidgetProxy } from '../comment-queue-bar/comment-queue-bar-widget.proxy';

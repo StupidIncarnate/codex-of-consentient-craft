@@ -13,7 +13,7 @@
  * const plan = recipe({ name: 'seed-guild' }, () => [dmRegistryBroker.guilds.add(1, ...)])();
  * await dmRegistryBroker.run(plan, dmTarget.apiTarget());
  */
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';

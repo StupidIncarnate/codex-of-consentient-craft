@@ -24,11 +24,11 @@
  * // [{ tag: 'span', text: 'A', testId: 'CHAT_MESSAGE_TEXT', src: '' }, { tag: 'img', ... }, ...]
  */
 import fs, { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { dirname, join } from 'path';
-import { crc32, deflateSync } from 'zlib';
+import { tmpdir } from '#gateway/node/os';
+import { dirname, join } from '#gateway/node/path';
+import { crc32, deflateSync } from '#gateway/node/zlib';
 
-import type { Page, Response } from '@playwright/test';
+import type { Page, Response } from '#gateway/npm/playwright__test';
 
 import {
   environmentStatics,
@@ -42,6 +42,8 @@ import {
 // what a *.harness.ts may import) only bans `.proxy` paths and paths ending `-contract`, so this
 // import is mechanically unblocked even though sibling harnesses restate other statics as literals.
 import { webConfigStatics } from '../../../src/statics/web-config/web-config-statics';
+import { Buffer } from '#gateway/node/buffer';
+import { getEnv } from '#gateway/node/process';
 
 // Every browser-evaluated function below is passed BY REFERENCE to page.evaluate, which serializes
 // only the function's own source text — no outer closure survives the trip, so each one is entirely
@@ -663,7 +665,7 @@ export const transcriptImagesHarness = (): {
   // Returns `unknown` (never a raw string) to stay consistent with every other resolved-value
   // method in this file — see the file header on why these test-only reads are typed opaquely.
   const resolveTestServerPort = (): unknown => {
-    const port = process.env.DUNGEONMASTER_PORT;
+    const port = getEnv('DUNGEONMASTER_PORT');
     if (port === undefined || port.length === 0) {
       throw new Error(
         'transcript-images harness: DUNGEONMASTER_PORT is not set — playwright.config.ts must set it before this harness can resolve a served image URL',
@@ -770,7 +772,7 @@ export const transcriptImagesHarness = (): {
     // process.env before spawning workers, and which the spawned server child inherits via its own
     // explicit `env:` override, so both sides resolve the identical port.
     buildExpectedImageUrl: ({ imagePath }: { imagePath: string }): unknown => {
-      const port = process.env.DUNGEONMASTER_PORT;
+      const port = getEnv('DUNGEONMASTER_PORT');
       if (port === undefined || port.length === 0) {
         throw new Error(
           'transcript-images harness: DUNGEONMASTER_PORT is not set — playwright.config.ts must set it before this harness can resolve a served image URL',

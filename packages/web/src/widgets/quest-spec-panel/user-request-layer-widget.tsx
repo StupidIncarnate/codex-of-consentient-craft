@@ -19,8 +19,8 @@
  * // Renders the request's text and image segments in composed order
  */
 
-import { Box, Text } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Text } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 

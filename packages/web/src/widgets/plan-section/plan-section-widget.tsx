@@ -6,7 +6,7 @@
  * // Renders section header with count and the item list
  */
 
-import { Box, Stack } from '@mantine/core';
+import { Box, Stack } from '#gateway/npm/mantine__core';
 
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';

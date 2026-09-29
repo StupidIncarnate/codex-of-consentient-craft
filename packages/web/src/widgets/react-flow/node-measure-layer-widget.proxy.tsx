@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+
 interface NodeMeasureLayerWidgetProxyResult {
   setupUnmeasuredGraph: () => void;
   setupMeasuredGraph: () => void;

@@ -12,7 +12,7 @@
  * // Renders the panel for an assertion card: heading = observable.description, no contracts section
  */
 
-import { IconX } from '@tabler/icons-react';
+import { IconX } from '#gateway/npm/tabler__icons-react';
 
 import type {
   FlowNode,

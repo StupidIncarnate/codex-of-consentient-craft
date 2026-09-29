@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 import {
   QuestIdStub,
   QuestListItemStub,
@@ -13,6 +13,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { SessionFilterStub } from '../../contracts/session-filter/session-filter.stub';
 import { GuildSessionListWidget } from './guild-session-list-widget';
 import { GuildSessionListWidgetProxy } from './guild-session-list-widget.proxy';
+import { document } from '#gateway/browser/document';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 

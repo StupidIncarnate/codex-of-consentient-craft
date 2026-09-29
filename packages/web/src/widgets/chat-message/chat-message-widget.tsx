@@ -6,8 +6,8 @@
  * // Renders styled chat bubble with role label and content
  */
 
-import { Box, Text } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Text } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';

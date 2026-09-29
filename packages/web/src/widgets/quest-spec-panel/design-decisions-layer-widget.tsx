@@ -6,7 +6,7 @@
  * // Renders design decisions with title, rationale, and related node IDs tags
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 

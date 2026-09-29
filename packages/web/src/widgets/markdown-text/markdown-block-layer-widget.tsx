@@ -8,7 +8,7 @@
  * // Renders a bold level-2 heading line
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { MarkdownBlock } from '../../contracts/markdown-block/markdown-block-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

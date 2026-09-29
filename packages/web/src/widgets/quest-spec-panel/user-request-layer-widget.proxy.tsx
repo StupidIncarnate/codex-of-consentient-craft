@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 
 export const UserRequestLayerWidgetProxy = (): {
   getChildTestIds: () => readonly ReturnType<Element['getAttribute']>[];

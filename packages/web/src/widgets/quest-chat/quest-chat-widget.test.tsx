@@ -2,8 +2,8 @@
  * PURPOSE: Tests for QuestChatWidget — the thin wrapper that reads URL params, looks up the matched guild, and delegates to QuestChatRoutingLayerWidget.
  */
 
-import { waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { waitFor } from '#gateway/npm/testing-library__react';
+import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { GuildListItemStub, OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 

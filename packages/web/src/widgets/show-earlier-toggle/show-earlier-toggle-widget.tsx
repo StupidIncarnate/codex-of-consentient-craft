@@ -6,7 +6,7 @@
  * // Renders one clickable row; calls onToggle when clicked.
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';

@@ -7,7 +7,7 @@
  * // afterEach: cleans session directory
  */
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '#gateway/node/path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import {
@@ -34,6 +34,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
+import { getEnv } from '#gateway/node/process';
 
 const { recipe } = recipesHydrationCreateBroker();
 
@@ -279,7 +280,7 @@ export const sessionHarness = ({
     // when set, else the real OS home. dungeonmasterHomeFindBroker is NOT a substitute here — it
     // resolves the dungeonmaster DATA dir (home + '/.dungeonmaster'), not the raw home Claude CLI
     // itself uses for session JSONL.
-    const home = process.env.DUNGEONMASTER_HOME ?? homedir();
+    const home = getEnv('DUNGEONMASTER_HOME') ?? homedir();
     return dmTargetContract.parse({ home, claudeHome: home });
   };
 

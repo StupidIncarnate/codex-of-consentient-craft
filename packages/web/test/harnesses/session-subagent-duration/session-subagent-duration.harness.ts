@@ -16,7 +16,7 @@
  * const armed = await probe.readIntervalCounts();
  * // { registered: 1, cleared: 0, live: 1 } — proves the counter was actually watching
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 // Package-local, not `@dungeonmaster/shared` — the elapsed-tick period lives in this package's own
 // statics/. `enforce-harness-patterns` only bans `.proxy` paths and paths ending `-contract`, so a

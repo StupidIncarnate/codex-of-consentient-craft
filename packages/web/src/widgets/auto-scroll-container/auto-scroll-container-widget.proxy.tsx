@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { useAutoScrollBindingProxy } from '../../bindings/use-auto-scroll/use-auto-scroll-binding.proxy';
 

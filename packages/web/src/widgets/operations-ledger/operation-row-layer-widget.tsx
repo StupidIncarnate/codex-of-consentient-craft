@@ -8,7 +8,7 @@
  * // Renders one [x]/[>]/[ ] row for the given operation
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { Flow, OperationItem } from '@dungeonmaster/shared/contracts';
 

@@ -9,6 +9,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { rateLimitsHarness } from '../../../test/harnesses/rate-limits/rate-limits.harness';
+import { URL } from '#gateway/node/url';
 
 const GUILD_PATH = '/tmp/dm-e2e-multi-widget-coexistence';
 const WIDGET_TIMEOUT = 10_000;

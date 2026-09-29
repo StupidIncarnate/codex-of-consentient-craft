@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 

@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '#gateway/npm/testing-library__react';
+import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
 import {
   ArrayIndexStub,

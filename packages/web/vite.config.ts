@@ -1,9 +1,10 @@
 import { readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
-import react from '@vitejs/plugin-react';
+import { resolve } from '#gateway/node/path';
+import react from '#gateway/npm/vitejs__plugin-react';
 import { defineConfig } from 'vite';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { getEnv } from '#gateway/node/process';
 
 const sharedSubpaths = readdirSync(resolve(__dirname, '../shared'))
   .filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts') && file !== 'index.ts')
@@ -14,7 +15,7 @@ const basePort = Number(portResolveBroker());
 // e2e runner asks the OS for both, so its web port is NOT basePort + 1 and guessing it here
 // leaves Playwright waiting on a port nothing ever binds. The +1 is the fallback for `npm run
 // dev`, which sets only the API port.
-const webPort = Number(process.env.DUNGEONMASTER_WEB_PORT) || basePort + 1;
+const webPort = Number(getEnv('DUNGEONMASTER_WEB_PORT')) || basePort + 1;
 const { hostname } = environmentStatics;
 
 // Set by `dev:no-watch`, for driving this app against a bundle that must not move under you —
@@ -25,7 +26,7 @@ const { hostname } = environmentStatics;
 // to the next `page.goto`, so an edit part-way through splits a run across two versions of the
 // tree with nothing saying so. Symptom when this regresses: a page that never boots — zero
 // network requests, a blank white screenshot — then a timeout on whatever was awaited.
-const noWatch = process.env.E2E_NO_WATCH === '1';
+const noWatch = getEnv('E2E_NO_WATCH') === '1';
 const frozenServerOptions = noWatch ? { hmr: false as const, watch: null } : {};
 
 export default defineConfig({

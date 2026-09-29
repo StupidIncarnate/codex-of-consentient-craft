@@ -12,9 +12,9 @@
  * </AutoScrollContainerWidget>
  */
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from '#gateway/npm/react';
 
-import { Box } from '@mantine/core';
+import { Box } from '#gateway/npm/mantine__core';
 
 import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
 import type { TestId } from '../../contracts/test-id/test-id-contract';

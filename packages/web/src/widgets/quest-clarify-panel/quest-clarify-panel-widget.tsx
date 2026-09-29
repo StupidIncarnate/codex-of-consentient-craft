@@ -8,9 +8,9 @@
  * // Renders question text, option buttons, and "Other..." freeform input
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';

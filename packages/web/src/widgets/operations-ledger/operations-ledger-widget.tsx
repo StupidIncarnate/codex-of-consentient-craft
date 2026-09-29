@@ -8,7 +8,7 @@
  * // underneath; renders nothing when operations is empty
  */
 
-import { Box } from '@mantine/core';
+import { Box } from '#gateway/npm/mantine__core';
 
 import type { Flow, OperationItem } from '@dungeonmaster/shared/contracts';
 

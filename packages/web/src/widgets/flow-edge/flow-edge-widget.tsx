@@ -11,7 +11,7 @@
  * // <ReactFlow edgeTypes={EDGE_TYPES} edges=[{ ..., type: 'flow', data: { label, route } }] />
  */
 
-import React from 'react';
+import React from '#gateway/npm/react';
 
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '#gateway/npm/xyflow__react';
 import type { EdgeProps } from '#gateway/npm/xyflow__react';

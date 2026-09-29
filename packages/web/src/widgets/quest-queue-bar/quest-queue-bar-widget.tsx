@@ -6,8 +6,8 @@
  * // Renders nothing when the queue is empty; otherwise renders a fixed-position strip at the top of the viewport.
  */
 
-import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
-import { useState } from 'react';
+import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 import { Link } from '#gateway/npm/react-router-dom';
 
 import { arrayIndexContract, totalCountContract } from '@dungeonmaster/shared/contracts';

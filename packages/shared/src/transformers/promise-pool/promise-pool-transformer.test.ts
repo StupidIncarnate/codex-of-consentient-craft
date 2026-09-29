@@ -2,6 +2,7 @@ import { ArrayIndexStub } from '../../contracts/array-index/array-index.stub';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 import { promisePoolTransformer } from './promise-pool-transformer';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 describe('promisePoolTransformer', () => {
   describe('result ordering', () => {

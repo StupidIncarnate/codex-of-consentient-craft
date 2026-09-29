@@ -6,7 +6,7 @@
  * // Renders GUILDS header with guild list and selection highlighting
  */
 
-import { Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';

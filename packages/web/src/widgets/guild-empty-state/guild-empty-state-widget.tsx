@@ -6,9 +6,9 @@
  * // Renders inline form with name/path inputs and CREATE button
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Group, Stack, Text, TextInput } from '@mantine/core';
+import { Group, Stack, Text, TextInput } from '#gateway/npm/mantine__core';
 
 import type { GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';

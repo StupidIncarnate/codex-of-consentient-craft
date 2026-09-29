@@ -9,9 +9,9 @@
  * // note === null renders a reason field plus MET / NOT MET controls; a note renders the verdict
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Box, Group, Stack, Text } from '@mantine/core';
+import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId, QuestNote, QuestSummaryObservable } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';

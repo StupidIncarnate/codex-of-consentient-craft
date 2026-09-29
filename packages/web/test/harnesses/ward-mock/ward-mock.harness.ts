@@ -12,11 +12,12 @@
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '#gateway/node/path';
 
 import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
+import { getEnv } from '#gateway/node/process';
 
 export { WardQueueResponseStub } from '@dungeonmaster/shared/contracts';
 
@@ -28,7 +29,7 @@ const ENCODE_NON_SAFE = /[^A-Za-z0-9._-]/gu;
 const SCOPE_REPLACEMENT = '_';
 
 const getRootQueueDir = () => {
-  const home = process.env.DUNGEONMASTER_HOME;
+  const home = getEnv('DUNGEONMASTER_HOME');
   if (!home) {
     throw new Error('DUNGEONMASTER_HOME env var is not set');
   }

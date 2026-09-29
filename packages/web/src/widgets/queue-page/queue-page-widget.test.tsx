@@ -1,4 +1,4 @@
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
 import {
   DispatchHoldStub,

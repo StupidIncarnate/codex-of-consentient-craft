@@ -16,7 +16,7 @@
  * await send.queueCommentOn({ card: send.nodeCard({ which: 'alpha' }), text: 'note' });
  * await send.clickSendButton();
  */
-import type { APIRequestContext, Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
 

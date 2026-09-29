@@ -10,7 +10,7 @@
  * proxy.setupRateLimits({ snapshot: RateLimitsSnapshotStub() });
  */
 
-import { screen, within } from '@testing-library/react';
+import { screen, within } from '#gateway/npm/testing-library__react';
 
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 

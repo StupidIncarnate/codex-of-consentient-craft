@@ -7,7 +7,7 @@
  * // Renders QUEST_SUMMARY_FLOW_ROW with the flow's name/type line and its track rows
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestSummaryFlow } from '@dungeonmaster/shared/contracts';
 

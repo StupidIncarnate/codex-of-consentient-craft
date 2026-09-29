@@ -8,7 +8,7 @@
  * // Renders a filled bar at 37%, with the composer's upload testid on the wrapping element
  */
 
-import { Progress } from '@mantine/core';
+import { Progress } from '#gateway/npm/mantine__core';
 
 import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';

@@ -11,7 +11,7 @@
  * control that went dark and came back on its own. The recorded ORDER is what makes "never
  * reverted" expressible as an assertion.
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 import type { TestId } from '../../../src/contracts/test-id/test-id-contract';
 

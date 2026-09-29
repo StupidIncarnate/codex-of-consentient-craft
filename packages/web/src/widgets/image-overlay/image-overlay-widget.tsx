@@ -11,8 +11,8 @@
  * // Renders a centred modal at 75% viewport width, capped at 90vh; a taller image scrolls inside
  */
 
-import { Modal } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
+import { Modal } from '#gateway/npm/mantine__core';
+import { IconX } from '#gateway/npm/tabler__icons-react';
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { testIdContract } from '../../contracts/test-id/test-id-contract';

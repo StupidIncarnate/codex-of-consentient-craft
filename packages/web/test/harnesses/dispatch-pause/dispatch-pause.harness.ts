@@ -10,7 +10,7 @@
  * USAGE:
  * await dispatchPauseHarness({ request }).pause();
  */
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 export const DISPATCH_PAUSE_ROUTE = '/api/orchestration/dispatch/pause';
 

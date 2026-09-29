@@ -6,7 +6,7 @@
  * // Subscribes to useRateLimitsBinding; mounts in AppWidget top row, vertically centered with the logo.
  */
 
-import { Stack } from '@mantine/core';
+import { Stack } from '#gateway/npm/mantine__core';
 
 import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
 import { RateLimitCardWidget } from '../rate-limit-card/rate-limit-card-widget';

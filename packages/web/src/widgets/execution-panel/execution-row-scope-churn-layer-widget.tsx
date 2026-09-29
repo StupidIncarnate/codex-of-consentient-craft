@@ -12,7 +12,7 @@
  * // scope was marked by two or more work items
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 

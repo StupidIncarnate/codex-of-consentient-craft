@@ -13,7 +13,7 @@
  * // { imageStartsRightOfTextEnd: true, verticalRangesOverlap: true } once the image and the text
  * // before it share a line
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 // Every browser-evaluated function below is passed BY REFERENCE to page.evaluate, which serializes
 // only the function's own source text — no outer closure survives the trip, so each one queries and

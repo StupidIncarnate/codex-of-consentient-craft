@@ -6,9 +6,9 @@
  * // Renders title on the left and ABANDON QUEST button on the right
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 

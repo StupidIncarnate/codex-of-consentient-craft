@@ -10,7 +10,7 @@
  * rather than silently presented as quest-less.
  */
 
-import { Group, Loader, SegmentedControl, Stack, Text } from '@mantine/core';
+import { Group, Loader, SegmentedControl, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type {
   QuestId,

@@ -18,8 +18,8 @@
  * // the same `now` and computes its own figure independently.
  */
 
-import { Box, Text } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Text } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';

@@ -11,7 +11,7 @@
  * // "[unmarked] <unitId>" lines, or nothing when the work item was assigned no units
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 

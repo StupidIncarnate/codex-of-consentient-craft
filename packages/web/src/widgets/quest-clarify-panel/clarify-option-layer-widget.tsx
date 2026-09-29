@@ -7,7 +7,7 @@
  * // Renders the option's label and description; calls onSelect with the option's label on click
  */
 
-import { Text, UnstyledButton } from '@mantine/core';
+import { Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

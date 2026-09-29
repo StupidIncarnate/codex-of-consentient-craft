@@ -6,9 +6,9 @@
  * // Rendered by routes; reads useParams() and useGuildsBinding() to resolve routing branches.
  */
 
-import { useParams } from 'react-router-dom';
+import { useParams } from '#gateway/npm/react-router-dom';
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 

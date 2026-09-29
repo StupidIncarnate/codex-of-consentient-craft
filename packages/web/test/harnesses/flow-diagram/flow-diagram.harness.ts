@@ -10,7 +10,7 @@
  * await diagram.seedAndOpen({ guildName: 'Diagram Guild' });
  * expect(await diagram.nodesDoNotOverlap()).toBe(true);
  */
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';

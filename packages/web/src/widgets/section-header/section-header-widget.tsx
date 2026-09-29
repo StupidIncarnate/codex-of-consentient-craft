@@ -6,7 +6,7 @@
  * // Renders "OBJECTIVES (3)" in primary color with monospace xs fw600
  */
 
-import { Group, Text } from '@mantine/core';
+import { Group, Text } from '#gateway/npm/mantine__core';
 
 import type { SectionCount } from '../../contracts/section-count/section-count-contract';
 import type { SectionLabel } from '../../contracts/section-label/section-label-contract';

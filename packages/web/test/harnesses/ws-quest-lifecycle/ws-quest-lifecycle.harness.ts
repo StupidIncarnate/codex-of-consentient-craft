@@ -9,8 +9,8 @@
  *   .poll(() => lifecycle.matchedQuestIdsFor({ eventType: 'quest-paused' }).length, { timeout: 10_000 })
  *   .toBe(1);
  */
-import type { Page } from '@playwright/test';
-import { z } from 'zod';
+import type { Page } from '#gateway/npm/playwright__test';
+import { z } from '#gateway/npm/zod';
 
 const wsQuestLifecycleFrameContract = z
   .object({

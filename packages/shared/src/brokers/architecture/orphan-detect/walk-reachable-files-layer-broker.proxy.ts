@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { Dirent } from '#gateway/node/fs';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { findStartupFilesLayerBrokerProxy } from './find-startup-files-layer-broker.proxy';
 import { readSourceTextLayerBrokerProxy } from './read-source-text-layer-broker.proxy';

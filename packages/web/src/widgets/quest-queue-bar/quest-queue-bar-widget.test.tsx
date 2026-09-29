@@ -1,6 +1,6 @@
-import { waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { waitFor } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
+import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
 import {
   DispatchStateStub,
@@ -12,6 +12,7 @@ import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/manti
 import { act } from '#gateway/npm/testing-library__react';
 import { QuestQueueBarWidget } from './quest-queue-bar-widget';
 import { QuestQueueBarWidgetProxy } from './quest-queue-bar-widget.proxy';
+import { document } from '#gateway/browser/document';
 
 describe('QuestQueueBarWidget', () => {
   describe('empty queue', () => {

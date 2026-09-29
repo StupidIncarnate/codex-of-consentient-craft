@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CssColorOverrideStub } from '../../contracts/css-color-override/css-color-override.stub';
@@ -8,6 +8,7 @@ import { FormInputValueStub } from '../../contracts/form-input-value/form-input-
 import { FormPlaceholderStub } from '../../contracts/form-placeholder/form-placeholder.stub';
 import { FormInputWidget } from './form-input-widget';
 import { FormInputWidgetProxy } from './form-input-widget.proxy';
+import { document } from '#gateway/browser/document';
 
 describe('FormInputWidget', () => {
   describe('rendering', () => {

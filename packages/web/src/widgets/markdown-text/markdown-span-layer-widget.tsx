@@ -8,7 +8,7 @@
  * // Renders `nav` as body text on an inset chip
  */
 
-import { Text } from '@mantine/core';
+import { Text } from '#gateway/npm/mantine__core';
 
 import type { MarkdownSpan } from '../../contracts/markdown-span/markdown-span-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

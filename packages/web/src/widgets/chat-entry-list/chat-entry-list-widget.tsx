@@ -18,7 +18,7 @@
  * // starts no interval — omit `now` and an unfinished chain shows no figure at all.
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';

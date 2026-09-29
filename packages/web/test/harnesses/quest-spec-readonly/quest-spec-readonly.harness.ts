@@ -14,7 +14,7 @@
  * });
  * // quest.json on disk now carries both arrays; re-navigating (or a fresh mount) renders them
  */
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises } from '#gateway/node/fs';
 
 import type { DesignDecision, ToolingRequirement } from '@dungeonmaster/shared/contracts';
 

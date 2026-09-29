@@ -14,8 +14,8 @@
  * // Renders work-item row with chevron, order number, [ROLE] badge, row name, and status
  */
 
-import { Box, Text, UnstyledButton } from '@mantine/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
+import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import type {
   ContractName,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from '#gateway/npm/react';
 
 import { Handle, Position } from '#gateway/npm/xyflow__react';
 

@@ -9,7 +9,7 @@
  * // Renders headings, lists, fences, and inline code from the raw message text
  */
 
-import { Box } from '@mantine/core';
+import { Box } from '#gateway/npm/mantine__core';
 
 import type { MarkdownSource } from '../../contracts/markdown-source/markdown-source-contract';
 import { parseMarkdownBlocksTransformer } from '../../transformers/parse-markdown-blocks/parse-markdown-blocks-transformer';

@@ -7,9 +7,9 @@
  * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
 import { existsSync, promises as fsPromises } from 'fs';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join } from '#gateway/node/path';
 
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import {
   guildIdContract,
@@ -30,6 +30,7 @@ import { dmTargetHarness } from '../dm-target/dm-target.harness';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
+import { getEnv } from '#gateway/node/process';
 
 const { recipe } = recipesHydrationCreateBroker();
 const QUEST_SAVE_NAME = 'quest';
@@ -345,8 +346,8 @@ export const questHarness = ({
 } => {
   const resolvedBaseUrl =
     baseURL ??
-    process.env.DUNGEONMASTER_BASE_URL ??
-    `http://${environmentStatics.hostname}:${process.env.DUNGEONMASTER_WEB_PORT ?? String(Number(process.env.DUNGEONMASTER_PORT ?? '5737') + 1)}`;
+    getEnv('DUNGEONMASTER_BASE_URL') ??
+    `http://${environmentStatics.hostname}:${getEnv('DUNGEONMASTER_WEB_PORT') ?? String(Number(getEnv('DUNGEONMASTER_PORT') ?? '5737') + 1)}`;
   const dmTarget = dmTargetHarness({ baseURL: resolvedBaseUrl, request });
 
   const createQuest = async ({
@@ -369,7 +370,7 @@ export const questHarness = ({
     ])();
     const result = await dmRegistryBroker.run(plan, dmTarget.apiTarget());
     const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
-    const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+    const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
     const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
     const filePath = filePathContract.parse(
       `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
@@ -407,7 +408,7 @@ export const questHarness = ({
     )();
     const result = await dmRegistryBroker.run(plan, dmTarget.writeTarget());
     const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
-    const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+    const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
     const questFolderPath = `${dungeonmasterHome}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildId}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.folder}`;
     const filePath = filePathContract.parse(
       `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,

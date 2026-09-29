@@ -7,9 +7,9 @@
  * // Renders a tab per flow; the active tab shows name, entry/exit points, scope, and diagram
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
 import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 import type {

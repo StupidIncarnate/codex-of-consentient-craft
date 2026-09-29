@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 import { QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

@@ -1,5 +1,5 @@
-import { fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 

@@ -17,7 +17,7 @@
  * `questHumanVerdictRecordBroker` (orchestrator) compares the same way, against the same id.
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId, QuestNote, QuestSummaryObservable } from '@dungeonmaster/shared/contracts';
 

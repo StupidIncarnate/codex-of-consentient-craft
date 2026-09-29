@@ -6,7 +6,7 @@
  * // Renders "--- 25.5k context (+2.1k) · SubAgents - 12.0k ---" styled divider
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { ContextTokenDelta } from '../../contracts/context-token-delta/context-token-delta-contract';
 import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';

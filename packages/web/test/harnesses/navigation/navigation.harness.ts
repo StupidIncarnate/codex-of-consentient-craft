@@ -7,7 +7,7 @@
  * await nav.navigateToSession({ urlSlug: 'my-guild', sessionId: 'abc-123' });
  * await nav.triggerReplayFromBrowser({ guildId: 'guild-id', sessionIds: ['s1', 's2'] });
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 const HTTP_OK = 200;
 const MODAL_DISMISS_TIMEOUT = 5_000;

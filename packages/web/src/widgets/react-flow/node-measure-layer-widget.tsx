@@ -11,7 +11,7 @@
  * // Forces a re-measure on the next frame whenever the graph is still unmeasured
  */
 
-import React from 'react';
+import React from '#gateway/npm/react';
 
 import { useNodesInitialized, useUpdateNodeInternals } from '#gateway/npm/xyflow__react';
 

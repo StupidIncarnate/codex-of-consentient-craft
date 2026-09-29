@@ -7,7 +7,7 @@
  * // Renders the quest folder path, an UNREADABLE badge, and the load failure reason
  */
 
-import { Box, Group } from '@mantine/core';
+import { Box, Group } from '#gateway/npm/mantine__core';
 
 import type { SkippedQuestFile } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

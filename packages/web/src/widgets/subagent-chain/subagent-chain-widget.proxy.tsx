@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { useDisclosureAnchorBindingProxy } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding.proxy';
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
@@ -7,6 +7,7 @@ import { ShowEarlierToggleWidgetProxy } from '../show-earlier-toggle/show-earlie
 import { ToolRowWidgetProxy } from '../tool-row/tool-row-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
+import { HTMLElement } from '#gateway/browser/HTMLElement';
 
 export const SubagentChainWidgetProxy = (): {
   clickHeader: () => Promise<void>;

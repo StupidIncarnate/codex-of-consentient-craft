@@ -6,7 +6,7 @@
  * // Renders a monospace styled UnstyledButton with theme colors
  */
 
-import { UnstyledButton } from '@mantine/core';
+import { UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';

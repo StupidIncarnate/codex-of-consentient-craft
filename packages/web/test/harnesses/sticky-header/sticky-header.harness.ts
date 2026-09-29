@@ -13,7 +13,7 @@
  * await sticky.scrollTranscriptToFoot();
  * expect(await sticky.pinnedStackIs({ testIds: 'execution-row-header|SUBAGENT_CHAIN_HEADER' })).toBe(true);
  */
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import {

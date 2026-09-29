@@ -7,7 +7,7 @@
  * // Renders the session summary, an optional QUEST badge, and an optional status label
  */
 
-import { Badge, Group, UnstyledButton } from '@mantine/core';
+import { Badge, Group, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { QuestStatus, SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

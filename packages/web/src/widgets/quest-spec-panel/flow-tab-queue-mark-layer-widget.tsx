@@ -10,7 +10,7 @@
  * // Renders nothing while that flow holds no queued comment
  */
 
-import { IconMessageCircleFilled } from '@tabler/icons-react';
+import { IconMessageCircleFilled } from '#gateway/npm/tabler__icons-react';
 
 import type { FlowId, QuestId } from '@dungeonmaster/shared/contracts';
 

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { UploadPercentStub } from '../../contracts/upload-percent/upload-percent.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';

@@ -14,7 +14,7 @@
  * await lifecycle.reloadQuest();
  * expect(await lifecycle.readQueue({ which: 'first' })).toStrictEqual([]);
  */
-import type { APIRequestContext, Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';

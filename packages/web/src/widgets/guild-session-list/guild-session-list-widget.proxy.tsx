@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestRowLayerWidgetProxy } from './quest-row-layer-widget.proxy';
@@ -7,6 +7,7 @@ import { SessionRowLayerWidgetProxy } from './session-row-layer-widget.proxy';
 import { UnreadableQuestRowLayerWidgetProxy } from './unreadable-quest-row-layer-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
+import { document } from '#gateway/browser/document';
 
 export const GuildSessionListWidgetProxy = (): {
   hasHeader: () => boolean;

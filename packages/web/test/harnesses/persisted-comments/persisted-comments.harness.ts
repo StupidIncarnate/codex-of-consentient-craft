@@ -11,7 +11,7 @@
  * await view.seedAndOpenSpecPanel({ guildName: 'View Guild', status: 'review_flows', withSession: true });
  * expect(await view.commentBadgeTextsOn({ testId: 'FLOW_NODE' })).toStrictEqual(['2']);
  */
-import type { APIRequestContext, Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';

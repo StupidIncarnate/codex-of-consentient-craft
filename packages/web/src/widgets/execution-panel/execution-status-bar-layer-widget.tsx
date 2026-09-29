@@ -11,7 +11,7 @@
  * // (source: 'ledger'), or "EXECUTION — AWAITING PLAN" when totalCount is 0
  */
 
-import { Group, Text } from '@mantine/core';
+import { Group, Text } from '#gateway/npm/mantine__core';
 
 import type { CompletedCount } from '@dungeonmaster/shared/contracts';
 import type { TotalCount } from '@dungeonmaster/shared/contracts';

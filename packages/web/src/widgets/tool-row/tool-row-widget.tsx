@@ -17,8 +17,8 @@
  * // Renders collapsed single-line tool row, expandable on click to show full input and result
  */
 
-import { Box, Text, UnstyledButton } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';

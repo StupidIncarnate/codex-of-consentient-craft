@@ -6,7 +6,7 @@
  * // Renders tooling with name, package, reason, observables. Contracts render inline on flow nodes, not here.
  */
 
-import { Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
 import type { ToolingRequirement } from '@dungeonmaster/shared/contracts';
 

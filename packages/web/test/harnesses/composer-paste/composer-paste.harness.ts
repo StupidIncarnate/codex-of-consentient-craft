@@ -22,11 +22,12 @@
  * // prevented === false — dispatchEvent returns false once preventDefault fired
  */
 import { existsSync, readdirSync, statSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join } from '#gateway/node/path';
 
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { guildHarness } from '../guild/guild.harness';
+import { Buffer } from '#gateway/node/buffer';
 
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 8_000;

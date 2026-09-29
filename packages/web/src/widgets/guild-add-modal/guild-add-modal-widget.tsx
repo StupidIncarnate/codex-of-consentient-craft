@@ -6,9 +6,9 @@
  * // Renders modal with name input, path display, browse button, and create/cancel actions
  */
 
-import { useState } from 'react';
+import { useState } from '#gateway/npm/react';
 
-import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
+import { Button, Group, Modal, Stack, TextInput } from '#gateway/npm/mantine__core';
 
 import type { GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';

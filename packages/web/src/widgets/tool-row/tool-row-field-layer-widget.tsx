@@ -10,8 +10,8 @@
  * // Renders the field inline or as a captioned code block, each with its own expand/collapse
  */
 
-import { Box, Text } from '@mantine/core';
-import { useState } from 'react';
+import { Box, Text } from '#gateway/npm/mantine__core';
+import { useState } from '#gateway/npm/react';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { FormattedToolField } from '../../contracts/formatted-tool-field/formatted-tool-field-contract';

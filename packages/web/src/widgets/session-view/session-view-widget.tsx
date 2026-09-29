@@ -6,9 +6,9 @@
  * // Reads :sessionId and :guildSlug from URL params, mounts useSessionReplayBinding, renders ChatPanelWidget readOnly
  */
 
-import { useParams } from 'react-router-dom';
+import { useParams } from '#gateway/npm/react-router-dom';
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 

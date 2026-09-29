@@ -12,12 +12,13 @@
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
 import * as fs from 'fs';
-import * as path from 'path';
-import { z } from 'zod';
+import * as path from '#gateway/node/path';
+import { z } from '#gateway/npm/zod';
 
 import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
+import { getEnv } from '#gateway/node/process';
 
 // One record per fake-CLI spawn, written by `bin/claude`. `resumeSessionId` is the value the
 // orchestrator passed after `--resume` (null on a fresh spawn) — the only observable proof of
@@ -49,7 +50,7 @@ const ENCODE_NON_SAFE = /[^A-Za-z0-9._-]/gu;
 const SCOPE_REPLACEMENT = '_';
 
 const getRootQueueDir = () => {
-  const home = process.env.DUNGEONMASTER_HOME;
+  const home = getEnv('DUNGEONMASTER_HOME');
   if (!home) {
     throw new Error('DUNGEONMASTER_HOME env var is not set');
   }

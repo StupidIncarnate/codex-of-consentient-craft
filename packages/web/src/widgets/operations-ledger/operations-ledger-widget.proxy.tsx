@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { OperationRowLayerWidgetProxy } from './operation-row-layer-widget.proxy';
 

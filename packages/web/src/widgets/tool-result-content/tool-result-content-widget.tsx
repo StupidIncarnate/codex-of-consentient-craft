@@ -14,7 +14,7 @@
  * // Renders the payload verbatim, or as captioned per-property units when it needs the help
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import type { CssPixels } from '@dungeonmaster/shared/contracts';

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
 import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 

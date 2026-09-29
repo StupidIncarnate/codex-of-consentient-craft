@@ -9,7 +9,7 @@
  * failure, so one malformed quest.json looks the same wherever the reader meets it.
  */
 
-import { Box, Group } from '@mantine/core';
+import { Box, Group } from '#gateway/npm/mantine__core';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 

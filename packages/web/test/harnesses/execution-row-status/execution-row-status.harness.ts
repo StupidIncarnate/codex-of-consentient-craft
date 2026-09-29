@@ -17,7 +17,7 @@
  * transition the browser really did render. A MutationObserver sees every state the DOM ever held,
  * so the ORDERED SEQUENCE it records is decidable no matter how briefly each state existed.
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 import type { DisplayLabel } from '../../../src/contracts/display-label/display-label-contract';
 

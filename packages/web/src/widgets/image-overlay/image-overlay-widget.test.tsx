@@ -1,9 +1,10 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageOverlayWidget } from './image-overlay-widget';
 import { ImageOverlayWidgetProxy } from './image-overlay-widget.proxy';
+import { setTimeout } from '#gateway/browser/setTimeout';
 
 // Mantine's Modal defaults `trapFocus: true`, and @mantine/hooks' `useFocusTrap` arms an
 // uncleared, zero-delay `setTimeout` on every mount where it is active (both its ref callback and

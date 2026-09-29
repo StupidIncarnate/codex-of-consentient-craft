@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { ChatMessageWidgetProxy } from '../chat-message/chat-message-widget.proxy';
 import { ContextDividerWidgetProxy } from '../context-divider/context-divider-widget.proxy';

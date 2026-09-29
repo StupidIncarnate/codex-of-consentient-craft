@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { FlowNodeHandlesWidgetProxy } from '../flow-node-handles/flow-node-handles-widget.proxy';
 import { CommentPopoverWidgetProxy } from '../comment-popover/comment-popover-widget.proxy';

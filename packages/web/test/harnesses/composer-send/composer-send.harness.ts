@@ -15,11 +15,12 @@
  * const posts = send.readPosts();
  */
 import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join } from '#gateway/node/path';
 
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { getEnv } from '#gateway/node/process';
 
 // Restated rather than imported: a harness may not import application statics/contracts as values,
 // and these are the exact `data-testid` literals chat-input-widget.tsx and
@@ -465,7 +466,7 @@ export const composerSendHarness = ({
       guildId: string;
       questId: string;
     }): unknown => {
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
       if (dungeonmasterHome === undefined) {
         throw new Error('composer-send harness: DUNGEONMASTER_HOME env var is not set');
       }

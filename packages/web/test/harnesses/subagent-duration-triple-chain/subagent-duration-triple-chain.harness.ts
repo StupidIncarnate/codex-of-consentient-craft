@@ -32,7 +32,7 @@
  * // omitting `durationMs` inside one, omits the corresponding tag/line entirely.
  */
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '#gateway/node/path';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {

@@ -9,7 +9,7 @@
  * // Renders the part's caption (when it has one and needs it) plus its markdown or plain text
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { CssPixels } from '@dungeonmaster/shared/contracts';
 import type { ToolResultPart } from '../../contracts/tool-result-part/tool-result-part-contract';

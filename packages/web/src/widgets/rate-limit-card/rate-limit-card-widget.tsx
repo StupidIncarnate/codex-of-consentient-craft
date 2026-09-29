@@ -6,7 +6,7 @@
  * // Renders one bracketed monospace line; bar/percent are colored by the danger/warning/default threshold.
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { RateLimitWindow } from '@dungeonmaster/shared/contracts';
 

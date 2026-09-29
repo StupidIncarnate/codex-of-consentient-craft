@@ -7,7 +7,7 @@
  * // Renders the guild's name, styled gold when selectedGuildId equals guild.id
  */
 
-import { UnstyledButton } from '@mantine/core';
+import { UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { GuildId, GuildListItem } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';

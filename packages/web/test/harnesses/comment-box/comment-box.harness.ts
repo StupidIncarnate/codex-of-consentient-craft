@@ -12,7 +12,7 @@
  * await comments.openCommentPopoverOnNode();
  * expect(await comments.readQueue()).toStrictEqual([...]);
  */
-import type { APIRequestContext, Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
 import type { CommentText } from '@dungeonmaster/shared/contracts';

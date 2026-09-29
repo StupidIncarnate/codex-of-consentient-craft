@@ -10,7 +10,7 @@
  * // (a finished row with no unmet marks renders nothing extra)
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 

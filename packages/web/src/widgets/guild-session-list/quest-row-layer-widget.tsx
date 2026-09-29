@@ -9,8 +9,8 @@
  * // Renders the quest title, a colored status badge, and (when deletable) a skull delete control
  */
 
-import { Box, Button, Group, Popover, Stack, Text } from '@mantine/core';
-import { IconSkull } from '@tabler/icons-react';
+import { Box, Button, Group, Popover, Stack, Text } from '#gateway/npm/mantine__core';
+import { IconSkull } from '#gateway/npm/tabler__icons-react';
 
 import {
   isPreExecutionQuestStatusGuard,

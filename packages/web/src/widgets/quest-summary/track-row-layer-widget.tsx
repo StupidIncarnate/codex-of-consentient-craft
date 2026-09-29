@@ -15,7 +15,7 @@
  * `text-dim` (nobody yet).
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestSummaryTrackCounts } from '@dungeonmaster/shared/contracts';
 

@@ -9,7 +9,7 @@
  * // Renders a Link row with four labeled fields and an error dot when entry.error is set
  */
 
-import { Link } from 'react-router-dom';
+import { Link } from '#gateway/npm/react-router-dom';
 
 import type { ArrayIndex, QuestQueueEntry, TotalCount } from '@dungeonmaster/shared/contracts';
 

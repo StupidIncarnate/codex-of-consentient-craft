@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { FlowDetailPanelCommentRowLayerWidgetProxy } from './flow-detail-panel-comment-row-layer-widget.proxy';
 import { FlowDetailPanelContractEntryLayerWidgetProxy } from './flow-detail-panel-contract-entry-layer-widget.proxy';

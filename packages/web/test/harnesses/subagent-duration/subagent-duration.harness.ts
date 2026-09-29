@@ -29,8 +29,8 @@
  * // Appends a <task-notification> line to the MAIN session JSONL — the notification landing
  * // mid-test, after the chain already rendered live. Omit durationMs to omit the whole tag.
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from '#gateway/node/fs';
+import * as path from '#gateway/node/path';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {

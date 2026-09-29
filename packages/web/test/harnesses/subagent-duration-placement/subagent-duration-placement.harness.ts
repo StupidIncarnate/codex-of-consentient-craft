@@ -14,7 +14,7 @@
  * const rowStyle = await placement.readDurationStyle({ testId: 'execution-row-duration' });
  * expect(rowStyle).toStrictEqual(chainStyle);
  */
-import type { Page } from '@playwright/test';
+import type { Page } from '#gateway/npm/playwright__test';
 
 // Browser-evaluated predicate: SUBAGENT_CHAIN_HEADER renders three children in a fixed order —
 // chevron (index 0), description (index 1), duration (index 2, present only while the chain has a

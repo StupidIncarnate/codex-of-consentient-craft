@@ -7,7 +7,7 @@
  * // Renders "Ward exit code: 1 (committed)" plus the lint/typecheck/test breakdown once it loads
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
 

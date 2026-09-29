@@ -7,7 +7,7 @@
  * const guild = await guilds.createGuild({ name: 'Test', path: '/tmp/test' });
  * const guildId = guilds.extractGuildId({ guild });
  */
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -16,6 +16,7 @@ import type { GuildId, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { dmTargetHarness } from '../dm-target/dm-target.harness';
+import { getEnv } from '#gateway/node/process';
 
 type GuildRecord = Record<PropertyKey, unknown>;
 
@@ -44,8 +45,8 @@ export const guildHarness = ({
 } => {
   const resolvedBaseUrl =
     baseURL ??
-    process.env.DUNGEONMASTER_BASE_URL ??
-    `http://${environmentStatics.hostname}:${process.env.DUNGEONMASTER_WEB_PORT ?? String(Number(process.env.DUNGEONMASTER_PORT ?? '5737') + 1)}`;
+    getEnv('DUNGEONMASTER_BASE_URL') ??
+    `http://${environmentStatics.hostname}:${getEnv('DUNGEONMASTER_WEB_PORT') ?? String(Number(getEnv('DUNGEONMASTER_PORT') ?? '5737') + 1)}`;
 
   const dmTarget = dmTargetHarness({ baseURL: resolvedBaseUrl, request });
 

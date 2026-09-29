@@ -1,4 +1,4 @@
-import { IconSend, IconTrash } from '@tabler/icons-react';
+import { IconSend, IconTrash } from '#gateway/npm/tabler__icons-react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';

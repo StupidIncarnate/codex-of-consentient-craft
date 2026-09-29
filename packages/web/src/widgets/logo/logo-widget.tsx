@@ -6,7 +6,7 @@
  * // Renders the full logo with fireballs on both sides
  */
 
-import { Group } from '@mantine/core';
+import { Group } from '#gateway/npm/mantine__core';
 
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';

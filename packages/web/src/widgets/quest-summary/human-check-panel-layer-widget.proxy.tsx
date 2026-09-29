@@ -4,8 +4,8 @@
 // share the same HUMAN_CHECK_ROW testid.
 // USAGE: Create in a test, use the row-scoped selectors to assert per-criterion state.
 
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, within } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { HumanCheckRowLayerWidgetProxy } from './human-check-row-layer-widget.proxy';

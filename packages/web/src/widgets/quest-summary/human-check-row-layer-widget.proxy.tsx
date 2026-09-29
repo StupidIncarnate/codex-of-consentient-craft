@@ -3,8 +3,8 @@
 // own test file ever renders.
 // USAGE: Create in a test, use setup methods to configure the broker's HTTP response.
 
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, within } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { questHumanVerdictBrokerProxy } from '../../brokers/quest/human-verdict/quest-human-verdict-broker.proxy';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';

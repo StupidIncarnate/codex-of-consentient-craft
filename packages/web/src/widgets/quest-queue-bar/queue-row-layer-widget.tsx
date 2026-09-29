@@ -10,7 +10,7 @@
  * // entry.error is set
  */
 
-import { Link } from 'react-router-dom';
+import { Link } from '#gateway/npm/react-router-dom';
 
 import type { ArrayIndex, QuestQueueEntry, TotalCount } from '@dungeonmaster/shared/contracts';
 
