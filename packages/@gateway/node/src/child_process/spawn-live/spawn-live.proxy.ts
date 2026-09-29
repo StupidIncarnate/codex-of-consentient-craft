@@ -22,6 +22,10 @@ export const spawnLiveProxy = (): {
   setupSuccess: (params: { command: string }) => ChildProcess;
   setupNullStdout: (params: { command: string }) => void;
   setupSpawnError: (params: { command: string; error: Error }) => ChildProcess;
+  setupChildFactory: (params: { command: string; create: () => ChildProcess }) => void;
+  setupChildFactoryOnce: (params: { command: string; create: () => ChildProcess }) => void;
+  setupSpawnThrows: (params: { command: string; error: Error }) => void;
+  setupSpawnThrowsOnce: (params: { command: string; error: Error }) => void;
   getSpawnedOptions: (params: { command: string }) => unknown;
   getCallsFor: (params: { command: string }) => readonly unknown[][];
   captureStderrWrites: () => string[];
@@ -54,6 +58,36 @@ export const spawnLiveProxy = (): {
         child.emit('error', error);
       });
       return child;
+    },
+
+    // Sticky: every spawn of `command` gets whatever `create` builds at spawn time.
+    setupChildFactory: ({
+      command,
+      create,
+    }: {
+      command: string;
+      create: () => ChildProcess;
+    }): void => {
+      handle.calledWith([command]).implement(create);
+    },
+
+    // One-shot: the next spawn of `command` only; it outranks a sticky factory for the same command.
+    setupChildFactoryOnce: ({
+      command,
+      create,
+    }: {
+      command: string;
+      create: () => ChildProcess;
+    }): void => {
+      handle.onceFor([command]).implement(create);
+    },
+
+    setupSpawnThrows: ({ command, error }: { command: string; error: Error }): void => {
+      handle.calledWith([command]).throws(error);
+    },
+
+    setupSpawnThrowsOnce: ({ command, error }: { command: string; error: Error }): void => {
+      handle.onceFor([command]).throws(error);
     },
 
     getSpawnedOptions: ({ command }: { command: string }): unknown =>

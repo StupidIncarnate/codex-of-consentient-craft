@@ -24,15 +24,18 @@ describe('spawnStreamJson()', () => {
       abortSignal: controller.signal,
     });
 
-    expect(proxy.getSpawnedOptions({ cliPath: '/fake/bin/claude' })).toStrictEqual({
-      command: '/fake/bin/claude',
-      args: ['-p', 'hi'],
-      stdin: 'inherit',
-      stderr: 'pipe',
-      cwd: '/repo',
-      env: { A: '1' },
-      abortSignal: controller.signal,
-    });
+    expect(proxy.getAllSpawnCalls()).toStrictEqual([
+      [
+        '/fake/bin/claude',
+        ['-p', 'hi'],
+        {
+          stdio: ['inherit', 'pipe', 'pipe'],
+          cwd: '/repo',
+          env: { A: '1' },
+          signal: controller.signal,
+        },
+      ],
+    ]);
   });
 
   it('EMPTY: {cwd, env, abortSignal omitted} => spawn options carry none of them', () => {
@@ -42,10 +45,7 @@ describe('spawnStreamJson()', () => {
     spawnStreamJson({ args: ['-p', 'hi'] });
 
     expect(proxy.getSpawnedOptions({ cliPath: '/fake/bin/claude' })).toStrictEqual({
-      command: '/fake/bin/claude',
-      args: ['-p', 'hi'],
-      stdin: 'inherit',
-      stderr: 'pipe',
+      stdio: ['inherit', 'pipe', 'pipe'],
     });
   });
 
@@ -56,10 +56,7 @@ describe('spawnStreamJson()', () => {
     spawnStreamJson({ args: ['-p', 'hi'], stdinMode: 'ignore' });
 
     expect(proxy.getSpawnedOptions({ cliPath: '/fake/bin/claude' })).toStrictEqual({
-      command: '/fake/bin/claude',
-      args: ['-p', 'hi'],
-      stdin: 'ignore',
-      stderr: 'pipe',
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
   });
 
@@ -70,10 +67,7 @@ describe('spawnStreamJson()', () => {
     spawnStreamJson({ args: ['-p', 'hi'], stderrMode: 'inherit' });
 
     expect(proxy.getSpawnedOptions({ cliPath: '/fake/bin/claude' })).toStrictEqual({
-      command: '/fake/bin/claude',
-      args: ['-p', 'hi'],
-      stdin: 'inherit',
-      stderr: 'inherit',
+      stdio: ['inherit', 'pipe', 'inherit'],
     });
   });
 
@@ -141,16 +135,190 @@ describe('spawnStreamJson()', () => {
 
   it('ERROR: {claude not found anywhere} => throws ClaudeNotInstalledError before spawning', () => {
     const proxy = spawnStreamJsonProxy();
-    proxy.setupCliPathThrows({
-      error: new ClaudeNotInstalledError(
-        'Claude CLI not found: no CLAUDE_CLI_PATH override, no installed @anthropic-ai/claude-code package, and no claude binary on PATH',
-      ),
-    });
+    proxy.setupCliNotInstalled();
 
     expect(() => spawnStreamJson({ args: ['-p', 'hi'] })).toThrow(
       new ClaudeNotInstalledError(
         'Claude CLI not found: no CLAUDE_CLI_PATH override, no installed @anthropic-ai/claude-code package, and no claude binary on PATH',
       ),
     );
+  });
+
+  it('VALID: {no setup call} => the default CLI path spawns a fresh child per spawn', () => {
+    const proxy = spawnStreamJsonProxy();
+
+    const first = spawnStreamJson({ args: ['-p', 'one'] });
+    const second = spawnStreamJson({ args: ['-p', 'two'] });
+
+    expect(new Set([first.process, second.process]).size).toBe(2);
+    expect(first.stdout).toBe(first.process.stdout);
+    expect(proxy.isSpawnedStdout(second.stdout)).toBe(true);
+  });
+
+  it('VALID: {setupSpawn then a default spawn} => the one-shot child comes first, then a fresh default child', () => {
+    const proxy = spawnStreamJsonProxy();
+    const { mockProcess } = proxy.setupSpawn();
+
+    const first = spawnStreamJson({ args: ['-p', 'one'] });
+    const second = spawnStreamJson({ args: ['-p', 'two'] });
+
+    expect([first.process === mockProcess, second.process === mockProcess]).toStrictEqual([
+      true,
+      false,
+    ]);
+  });
+
+  it('VALID: {recorded kill} => kill is a call-recording function returning true', () => {
+    const proxy = spawnStreamJsonProxy();
+    const { mockProcess } = proxy.setupSpawn();
+
+    const killed = spawnStreamJson({ args: ['-p', 'hi'] }).process.kill('SIGTERM');
+
+    expect(killed).toBe(true);
+    expect(mockProcess.kill.mock.calls).toStrictEqual([['SIGTERM']]);
+  });
+
+  it('VALID: {setupExitOnKill} => kill makes the child emit exit with the staged code', async () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupExitOnKill({ exitCode: 143 });
+    const { process: child } = spawnStreamJson({ args: ['-p', 'hi'] });
+    const exits: (number | null)[] = [];
+    child.on('exit', (code: number | null) => {
+      exits.push(code);
+    });
+
+    child.kill();
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(exits).toStrictEqual([143]);
+  });
+
+  it('VALID: {setupExitCode} => the child emits exit with the staged code without a kill', async () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupExitCode({ exitCode: 3 });
+    const { process: child } = spawnStreamJson({ args: ['-p', 'hi'] });
+    const exits: (number | null)[] = [];
+    child.on('exit', (code: number | null) => {
+      exits.push(code);
+    });
+
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(exits).toStrictEqual([3]);
+  });
+
+  it('ERROR: {setupError} => the child emits the staged error', async () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupError({ error: new Error('child broke') });
+    const { process: child } = spawnStreamJson({ args: ['-p', 'hi'] });
+    const errors: Error[] = [];
+    child.on('error', (error: Error) => {
+      errors.push(error);
+    });
+
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(errors).toStrictEqual([new Error('child broke')]);
+  });
+
+  it('VALID: {setupSpawnLazy then setupExitCode} => the lazily built child honours exit config set after staging', async () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupSpawnLazy();
+    proxy.setupExitCode({ exitCode: 9 });
+    const { process: child } = spawnStreamJson({ args: ['-p', 'hi'] });
+    const exits: (number | null)[] = [];
+    child.on('exit', (code: number | null) => {
+      exits.push(code);
+    });
+
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(exits).toStrictEqual([9]);
+  });
+
+  it('ERROR: {setupSpawnThrow} => every spawn throws the staged error', () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupSpawnThrow({ error: new Error('no spawn') });
+
+    expect(() => spawnStreamJson({ args: ['-p', 'a'] })).toThrow(new Error('no spawn'));
+    expect(() => spawnStreamJson({ args: ['-p', 'b'] })).toThrow(new Error('no spawn'));
+  });
+
+  it('ERROR: {setupSpawnThrowOnce} => the first spawn throws and the second gets a child', () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupSpawnThrowOnce({ error: new Error('once') });
+
+    expect(() => spawnStreamJson({ args: ['-p', 'a'] })).toThrow(new Error('once'));
+
+    const second = spawnStreamJson({ args: ['-p', 'b'] });
+
+    expect(proxy.isSpawnedStdout(second.stdout)).toBe(true);
+  });
+
+  it('VALID: {setupAutoStdoutLines} => a default child replays the lines on its stdout', async () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupAutoStdoutLines({ lines: ['{"type":"a"}', '{"type":"b"}'] });
+    const { stdout } = spawnStreamJson({ args: ['-p', 'hi'] });
+    const received: string[] = [];
+    stdout.on('data', (chunk: Buffer) => {
+      received.push(chunk.toString());
+    });
+
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(received).toStrictEqual(['{"type":"a"}\n{"type":"b"}\n']);
+  });
+
+  it('VALID: {emitStdoutLines} => the lines reach every spawned child stdout', async () => {
+    const proxy = spawnStreamJsonProxy();
+    const first = spawnStreamJson({ args: ['-p', 'one'] });
+    const second = spawnStreamJson({ args: ['-p', 'two'] });
+    const received: string[] = [];
+    first.stdout.on('data', (chunk: Buffer) => {
+      received.push(`first:${chunk.toString()}`);
+    });
+    second.stdout.on('data', (chunk: Buffer) => {
+      received.push(`second:${chunk.toString()}`);
+    });
+
+    proxy.emitStdoutLines({ lines: ['x'] });
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(received).toStrictEqual(['first:x\n', 'second:x\n']);
+  });
+
+  it('VALID: {two spawns} => getAllSpawnCalls returns each full tuple in call order', () => {
+    const proxy = spawnStreamJsonProxy();
+
+    spawnStreamJson({ args: ['-p', 'one'], cwd: '/a' });
+    spawnStreamJson({ args: ['-p', 'two'], stdinMode: 'ignore' });
+
+    expect(proxy.getAllSpawnCalls()).toStrictEqual([
+      ['/fake/bin/claude', ['-p', 'one'], { stdio: ['inherit', 'pipe', 'pipe'], cwd: '/a' }],
+      ['/fake/bin/claude', ['-p', 'two'], { stdio: ['ignore', 'pipe', 'pipe'] }],
+    ]);
+  });
+
+  it('VALID: {setupCliPath} => spawns and read-back address the staged path', () => {
+    const proxy = spawnStreamJsonProxy();
+    proxy.setupCliPath({ cliPath: '/other/claude' });
+
+    spawnStreamJson({ args: ['-p', 'hi'] });
+
+    expect(proxy.getAllSpawnCalls()).toStrictEqual([
+      ['/other/claude', ['-p', 'hi'], { stdio: ['inherit', 'pipe', 'pipe'] }],
+    ]);
   });
 });

@@ -4,7 +4,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
-import { appendFile } from '#gateway/node/fs__promises';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { join } from '#gateway/node/path';
 
@@ -20,23 +19,14 @@ export const questOutboxAppendBrokerProxy = (): {
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
-  // Composed for its lifecycle only: a second `registerMock` on `appendFile` replaces this
-  // handle's stubs, so every stub this proxy needs is staged on the one handle below.
-  appendFileProxy();
-  const appendHandle: MockHandle = registerMock({ fn: appendFile });
+  const appendProxy = appendFileProxy();
 
   // Every proxy that composes a quest persist reaches this append, and most never stage it: the
   // outbox is addressed by its file name, so an unstaged persist lands quietly while an exact
   // `setupOutboxAppend` / `setupAppendFailure` address stays the one a test can read back.
-  const stagedOutboxPaths: FilePath[] = [];
-  appendHandle
-    .calledWith([
-      (value: unknown) =>
-        typeof value === 'string' &&
-        value.endsWith('outbox.jsonl') &&
-        !stagedOutboxPaths.some((staged) => staged === value),
-    ])
-    .resolves(undefined);
+  appendProxy.succeedsMatchingPath({
+    path: (value: unknown) => typeof value === 'string' && value.endsWith('outbox.jsonl'),
+  });
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -50,7 +40,6 @@ export const questOutboxAppendBrokerProxy = (): {
       homePath: FilePath;
       outboxFilePath: FilePath;
     }): void => {
-      stagedOutboxPaths.push(outboxFilePath);
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       // questOutboxAppendBroker's own join(homePath, event-outbox.jsonl) -> outboxFilePath,
       // addressed by the exact tuple rather than an address-less FIFO slot, so it can never answer
@@ -58,7 +47,7 @@ export const questOutboxAppendBrokerProxy = (): {
       joinHandle
         .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
         .returns(outboxFilePath);
-      appendHandle.calledWith([outboxFilePath]).resolves(undefined);
+      appendProxy.succeeds({ path: outboxFilePath });
     },
 
     setupAppendFailure: ({
@@ -70,26 +59,20 @@ export const questOutboxAppendBrokerProxy = (): {
       outboxFilePath: FilePath;
       error: FsError;
     }): void => {
-      stagedOutboxPaths.push(outboxFilePath);
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
       joinHandle
         .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
         .returns(outboxFilePath);
-      // `.implement()`, not `.rejects()`: `.rejects()` coerces a value that is not `instanceof Error`
-      // through `new Error(String(val))`, which would drop the error's `code`.
-      appendHandle.calledWith([outboxFilePath]).implement(async (): Promise<never> => {
-        await Promise.resolve();
-        return Promise.reject(error);
-      });
+      appendProxy.rejects({ path: outboxFilePath, error });
     },
 
     // Address-keyed: proves the append landed on the same outboxFilePath setupOutboxAppend used.
     getAppendedContent: ({ outboxFilePath }: { outboxFilePath: FilePath }): unknown =>
-      appendHandle.callsMatching([outboxFilePath]).at(-1)?.[1],
+      appendProxy.appendedContentsFor({ path: outboxFilePath }),
 
     // questOutboxAppendBroker appends exactly once per call, so the last recorded call is
     // unambiguous — there is no second address it could be confused with.
     getAppendedPath: ({ outboxFilePath }: { outboxFilePath: FilePath }): unknown =>
-      appendHandle.callsMatching([outboxFilePath]).at(-1)?.[0],
+      appendProxy.getCallsFor({ path: outboxFilePath }).at(-1)?.[0],
   };
 };

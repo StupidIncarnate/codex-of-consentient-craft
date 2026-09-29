@@ -1,41 +1,50 @@
-import { createServer, type AddressInfo } from 'net';
 import { isPortFree } from './is-port-free';
+import { isPortFreeProxy } from './is-port-free.proxy';
 
 describe('isPortFree', () => {
-  it('VALID: {port: an OS-assigned free port} => resolves true', async () => {
-    const probe = createServer();
-    await new Promise<void>((resolve) => {
-      probe.listen(0, resolve);
-    });
-    // listen(0) with no path always yields an AddressInfo, never the string/null shapes the
-    // return type also allows.
-    const { port } = probe.address() as AddressInfo;
-    await new Promise<void>((resolve) => {
-      probe.close(() => {
-        resolve();
-      });
-    });
+  it('VALID: {port staged free} => resolves true', async () => {
+    const proxy = isPortFreeProxy();
+    proxy.setupPortFree({ port: 4173 });
 
-    const result = await isPortFree({ port });
+    const result = await isPortFree({ port: 4173 });
 
     expect(result).toBe(true);
   });
 
-  it('ERROR: {port: already bound by another server} => resolves false on EADDRINUSE', async () => {
-    const occupier = createServer();
-    await new Promise<void>((resolve) => {
-      occupier.listen(0, resolve);
-    });
-    const { port } = occupier.address() as AddressInfo;
+  it('ERROR: {port staged in use} => resolves false on the bind error', async () => {
+    const proxy = isPortFreeProxy();
+    proxy.setupPortInUse({ port: 3737 });
 
-    const result = await isPortFree({ port });
-
-    await new Promise<void>((resolve) => {
-      occupier.close(() => {
-        resolve();
-      });
-    });
+    const result = await isPortFree({ port: 3737 });
 
     expect(result).toBe(false);
+  });
+
+  it('VALID: {two ports staged differently} => each port resolves its own staged result', async () => {
+    const proxy = isPortFreeProxy();
+    proxy.setupPortFree({ port: 4173 });
+    proxy.setupPortInUse({ port: 3737 });
+
+    const results = await Promise.all([isPortFree({ port: 4173 }), isPortFree({ port: 3737 })]);
+
+    expect(results).toStrictEqual([true, false]);
+  });
+
+  it('VALID: {same port staged in use then free} => the latest staging wins', async () => {
+    const proxy = isPortFreeProxy();
+    proxy.setupPortInUse({ port: 3737 });
+    proxy.setupPortFree({ port: 3737 });
+
+    const result = await isPortFree({ port: 3737 });
+
+    expect(result).toBe(true);
+  });
+
+  it('ERROR: {port never staged} => rejects naming the port', async () => {
+    isPortFreeProxy();
+
+    await expect(isPortFree({ port: 9999 })).rejects.toStrictEqual(
+      new Error('isPortFreeProxy: port 9999 was not staged'),
+    );
   });
 });

@@ -1,4 +1,3 @@
-import { appendFile } from '#gateway/node/fs__promises';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
@@ -25,10 +24,11 @@ export const chatSubagentTailBrokerProxy = (): {
   const ensureDirSetup = ensureDirProxy();
   // The touch's path is built inside the broker from session + cwd + agent, so it is addressed by
   // its shape — a `.jsonl` directly under a `subagents/` directory — rather than by value.
-  appendFileProxy();
-  registerMock({ fn: appendFile })
-    .calledWith([(path: string) => path.includes('/subagents/agent-') && path.endsWith('.jsonl')])
-    .resolves(undefined);
+  const appendProxy = appendFileProxy();
+  appendProxy.succeedsMatchingPath({
+    path: (path: unknown) =>
+      typeof path === 'string' && path.includes('/subagents/agent-') && path.endsWith('.jsonl'),
+  });
 
   return {
     setupHomeDir: ({ homeDir }: { homeDir: string }): void => {

@@ -1,3 +1,4 @@
+import { ChildProcessStub } from '../child-process/child-process.stub';
 import { spawnLive } from './spawn-live';
 import { spawnLiveProxy } from './spawn-live.proxy';
 
@@ -124,5 +125,51 @@ describe('spawnLive()', () => {
       ['claude', ['-p', 'hi'], { stdio: ['inherit', 'pipe', 'pipe'], cwd: '/repo' }],
       ['claude', [], { stdio: ['ignore', 'pipe', 'pipe'] }],
     ]);
+  });
+
+  it('VALID: {sticky child factory} => each spawn gets its own fresh child', () => {
+    const proxy = spawnLiveProxy();
+    proxy.setupChildFactory({ command: 'claude', create: () => ChildProcessStub() });
+
+    const first = spawnLive({ command: 'claude', args: ['a'] });
+    const second = spawnLive({ command: 'claude', args: ['b'] });
+
+    expect(new Set([first.process, second.process]).size).toBe(2);
+    expect(first.stdout).toBe(first.process.stdout);
+    expect(second.stdout).toBe(second.process.stdout);
+  });
+
+  it('VALID: {one-shot child factory over a sticky one} => the next spawn takes the one-shot child, the one after the sticky', () => {
+    const proxy = spawnLiveProxy();
+    const onceChild = ChildProcessStub();
+    const stickyChild = ChildProcessStub();
+    proxy.setupChildFactory({ command: 'claude', create: () => stickyChild });
+    proxy.setupChildFactoryOnce({ command: 'claude', create: () => onceChild });
+
+    const first = spawnLive({ command: 'claude', args: [] });
+    const second = spawnLive({ command: 'claude', args: [] });
+
+    expect([first.process === onceChild, second.process === stickyChild]).toStrictEqual([
+      true,
+      true,
+    ]);
+  });
+
+  it('ERROR: {sticky throw} => every spawn of the command throws the staged error', () => {
+    const proxy = spawnLiveProxy();
+    proxy.setupSpawnThrows({ command: 'claude', error: new Error('spawn boom') });
+
+    expect(() => spawnLive({ command: 'claude', args: [] })).toThrow(new Error('spawn boom'));
+    expect(() => spawnLive({ command: 'claude', args: [] })).toThrow(new Error('spawn boom'));
+  });
+
+  it('ERROR: {one-shot throw over a sticky child} => the first spawn throws, the second gets the child', () => {
+    const proxy = spawnLiveProxy();
+    const child = ChildProcessStub();
+    proxy.setupChildFactory({ command: 'claude', create: () => child });
+    proxy.setupSpawnThrowsOnce({ command: 'claude', error: new Error('spawn once') });
+
+    expect(() => spawnLive({ command: 'claude', args: [] })).toThrow(new Error('spawn once'));
+    expect(spawnLive({ command: 'claude', args: [] }).process).toBe(child);
   });
 });

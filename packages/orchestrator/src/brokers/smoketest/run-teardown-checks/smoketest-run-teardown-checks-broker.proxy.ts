@@ -1,6 +1,4 @@
-import { isPortFree } from '#gateway/node/net';
 import { isPortFreeProxy } from '#gateway/node/net/is-port-free/is-port-free.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
@@ -13,18 +11,15 @@ export const smoketestRunTeardownChecksBrokerProxy = (): {
   setupProcessAlive: (params: { pid: ProcessPid }) => void;
   setupProcessGone: (params: { pid: ProcessPid }) => void;
 } => {
-  // `isPortFreeProxy` stages nothing: the wrapper binds a real socket. A test names an arbitrary
-  // port, so the wrapper itself is staged by the port each check carries.
-  isPortFreeProxy();
-  const portHandle = registerMock({ fn: isPortFree });
+  const portProxy = isPortFreeProxy();
   const processProxy = processIsAliveBrokerProxy();
 
   return {
     setupPortFree: ({ port }: { port: number }): void => {
-      portHandle.calledWith([{ port }]).resolves(true);
+      portProxy.setupPortFree({ port });
     },
     setupPortInUse: ({ port }: { port: number }): void => {
-      portHandle.calledWith([{ port }]).resolves(false);
+      portProxy.setupPortInUse({ port });
     },
     setupProcessAlive: ({ pid }: { pid: ProcessPid }): void => {
       processProxy.setupAlive({ pid });
