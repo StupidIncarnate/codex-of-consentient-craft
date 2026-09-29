@@ -123,59 +123,29 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Phase 2 handoff (2026-09-29, early morning) — READ THIS FIRST
+### Handoff (2026-09-29, evening) — READ THIS FIRST
 
-A18 is finished in code. A19 prep is committed. What is left for Phase 2 is one uncommitted diff, the A19
-switch-on, and the proving runs. The user stopped the session before the final ward, so every "Gate" below is still
-owed.
+**State.** Phase 2 is done. Phase 3 is done except the eslint-plugin share of wave 3.5 (L2 to L5) and R5. Phase 4's groundwork is done: 4.0 decisions, both indexes (R1, R6), and rules R2, R3, R4, R8, R9 registered (R2/R3/R4 tagged `pre-edit`, all off). Every script-development item is done, and every brand wave has a proven script. The filler lane is part-way: B17 and B18 done in most packages, T05 swept everywhere but three orchestrator hits.
 
-**How A18 was finished (for the record).** A fresh three-rule census (`node tmp/a18-census/run.mjs <pkg>`, config
-`tmp/a18-census.config.js`, output `tmp/a18-census/<pkg>.json`); a read-only gap census (`tmp/a18-census/gaps.md`);
-gateway units built before any hand batch (GB4, U1, U2, U3, GN13, GN14, GN15, GBIN1, GNPM-vite); agents working
-queues (`a18-operator/queue-agent-prompt.txt`); and the codemod `tmp/a18-codemod/run.cjs <pkg> [--apply]` (see
-"Scripts used"), which cleared about three quarters of the hits by itself. Commits from a1d6abed6 to a86065b08.
+**Last proof on this branch (HEAD after the T05 orchestrator commit 2f87a555e):** integration 1790700091564-feb3 226 of 226 (two slow-file flags, F106); web e2e 1790700266232-e240 131 of 131; `check:consumer` 174 of 174 and `check:published` green after wave 3.3 (bc5a82729). No full `npm run ward` has run since the P3-0 gate: run one first.
 
-**Census now:** 0 in every package except `packages/web/src/main.ts` (three CSS imports, concession 9),
-`packages/testing/src/brokers/timers/watch/timers-watch-broker.ts` (concession 14, already off in `eslint.config.js`),
-and hydration's 32 compile-error fixtures (ignored by the repo `eslint.config.js`; only the census config lacks the
-ignore).
+**Nothing is running and nothing is uncommitted in the main checkout.** One branch is open: `gp-l2-tsestree` in `worktrees/gateway-pivot/worktrees/gp-l2-tsestree` (see step 2).
 
-#### What is left, in order
+#### What to do next, in order
 
 | Step | What | Runs with |
 |---|---|---|
-| 1 | **DONE (the A18-last commit).** **Land the uncommitted A18 diff.** In the tree, ungated by the operator: GN15 (`@gateway/node`: `FsStat.inode` on `statSync`, `rm` `maxRetries`/`retryDelay`, `mkdtempSync`, `writeFileBytesSync`), GNPM-vite (`vite` moved to `@gateway/npm` `dependencies`; `#gateway/npm/vite` is TYPE-ONLY — `export type * from 'vite' with { 'resolution-mode': 'import' }` — because the gateway compiles as CommonJS and plain `vite` resolves to its `export = any` CJS entry; `vite.config.ts` uses `satisfies UserConfig` instead of `defineConfig`), web's last three harnesses and `vite.config.ts`, and web's dependency row. The agent gated `@gateway/node` and `@gateway/npm` on all four checks and the web files on lint and typecheck. Operator: `npm run build --workspace=@dungeonmaster/node --workspace=@dungeonmaster/npm` (Playwright and Vite load these from `dist`), `npm install --package-lock-only`, then ward `lint,typecheck,unit,integration` on `packages/@gateway/node packages/@gateway/npm packages/web` and web's full `e2e`, then commit. Record the type-only vite subpath as a concession. | alone (it touches web's e2e) |
-| 2 | **DONE (the A19 switch-on commit).** **A19 switch-on.** In `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`, uncomment `raw-import-ban`, `platform-globals-ban` and `bin-program-spawn-ban`. Add concession 9's file-scoped `raw-import-ban` off for `packages/web/src/main.ts` in `eslint.config.js` (concession 14's entry is already there). Scan the whole repo with the repo config before switching (every package must read 0 outside the two concessions). Build `eslint-plugin`, `shared` and `hooks` after (hooks serves the pre-edit rules). Set A18 and A19 to `done`. | alone (rules go live for every package at once) |
-| 3 | **DONE (P3-0 passed 2026-09-29).** Full ward 1790669740390-89c8 green on every check, red only on F80's slow test (fixed, 7ba284fba); `check:published` exit 0; F81 done, then `build:clean` and `check:consumer` 89 of 89. Second full ward 1790673289169-efcf green on every check, red only on two hydration-recipes slow files (F84 active). F84 closes P3-0 by a whole-package `hydration-recipes` run. Step 4 follow-ups started beside it in disjoint packages: F79 (testing, and F77's siegelense leftovers), F82+F83 (cli seeds), F52 (`@gateway/node`, server). **Proving runs, the follow-up the user named.** `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`, wait on it), then `npm run check:consumer` and `npm run check:published`. Fix every red (rule 4). Watch for: slow-test flags under load (hydration-recipes' three recipe tests at 1.0 to 1.3s, `execution-panel-widget.test.tsx` lint time), and `rate-limits-live-update.e2e.ts`, which failed once under five agents' load and passed alone. `check:consumer` must also cover the dependency removals (a86065b08) and cli's `bundle` script losing `--external:zod`. | alone |
-| 4 | Open follow-ups from this session: F79 (testing's network-record-capture `as unknown as Request`, and a type-only predicate in `integration-environment-create-broker.proxy.ts`), F77's remaining capacity and recipe-seed broker mocks, and the rule gap the web agent found (`enforce-harness-patterns` accepts `process.env` in a harness constructor but rejects `getEnv()` there). Older open ones: F10, F30, F47, F52, F53, F54, F63, F72. | in parallel with each other, after step 3; one agent per follow-up, disjoint packages |
+| 1 | `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`, wait on it). Fix every red (rule 4). Expect slow-file flags only (F106). | alone |
+| 2 | **Finish L2 in its worktree** (row L2): the `eslint-rule` copy to `TSESLint.RuleModule` (98 parse sites, about 525 references; `RuleModule` needs `defaultOptions`), move that copy out, then merge `gp-l2-tsestree` into gateway-pivot (`git merge`, from the main checkout), refresh the lockfile (`local-eslint` gained `@dungeonmaster/npm`), `build:clean`, gate eslint-plugin and local-eslint on all four checks, delete the worktree and branch. | alone for the merge; other packages' work may run beside the L2 agent |
+| 3 | After the merge, in eslint-plugin: wave 3.4's 6 removals (`phase34-scripts/b15-as-never/RUN.md`), L3 for eslint-plugin (`l3-stub-swaps`: 14 `EslintRulesStub`, `EslintConfigStub` leftovers need `plugins` in `FlatConfigStub`), L5 (teaching text; also `packages/eslint-plugin/src/brokers/rule/CLAUDE.md`), then R5, F100, R7, and B17/B18's eslint-plugin batches. | one agent per package |
+| 4 | Rest of L4: testing's `ts.*` rows and L3 blockers (`TimerHandle` retypes to `NodeJS.Timeout \| NodeJS.Immediate`), siegelense `zod-issue-error`, shared `process-signal`, the `node-builtin` swap to `builtinModules`, root `@types/@typescript-eslint__parser`. | beside step 3 |
+| 5 | Filler lane rest: B18's orchestrator + hydration-recipes + server + mcp wave (`orch-4`, `server-1`, `mcp-1` together), hooks, siegelense, then `adapter-result` moves out; B17's orchestrator, hooks, server batches, then its rule batches (R1a/R1b/R2a-c); T05's last three orchestrator hits (two `start-orchestrator.proxy.ts` constructor defaults server relies on; the rule does not see `#gateway/node/process`'s `stderr` alias), then switch T05's three rules on. | disjoint packages side by side |
+| 6 | Phase 3 close: full ward, `build:clean`, `check:consumer`, `check:published`. Then Phase 4 waves W1 to W10 per "4.2 Brand waves", each with its SD script (W1 `feasibility/b15/codemod.cjs`, W3/W4 `b15-id-brands`, W5 `b15-value-brands`, W6 `b12-object-brand-fallout`, W7 `b14-shape-contracts`, W8 `b15-unknown-fields`, W9 `b15-dead-reparse`) and 4.0's tables in `items/b15-*.md`, `items/b11-*.md`, `items/b14-*.md`. | one wave at a time |
+| 7 | B16, Phase 5 (T06, T08, T09; F63's Jest bump needs a quiet `npm install`), Phase 6. | |
 
-**What can run in parallel.** Steps 1 to 3 cannot: each changes or grades the whole tree, and a full ward on a tree
-other agents are editing proves nothing. Step 4's follow-ups can run side by side (up to five agents), each on its
-own package, once step 3 is green. Phase 3 and 4 script-development (SD) items write only under `tmp/` and
-`phase34-scripts/`, so they may also run during steps 1 to 3.
+**How this session ran waves (keep doing it):** a runner agent applies a script package by package, gates each, and writes `tmp/<wave>-commits/<NN>-<pkg>.txt`; the operator commits one list per package, checks each list is non-empty first, and builds any package whose barrel or export key moved before the next gate. Rule F: integration and web e2e once per wave.
 
-**Decisions made this session** (also in Concessions and follow-ups): concession 14 (testing's timer watcher),
-concession 15 (`readFileProxy` fallback one-shots); `app-widget.integration.test.tsx` folded into the unit test; C3
-resolved without a concession (Vite's config loader resolves `#gateway/*`); shared's chat-entry stubs use fixed
-default uuids (a node-crypto import there broke web's bundle); the start responder's "spawns nothing" check is the
-unit I/O trap; F77 and F78 closed.
-
-### After Phase 2
-
-1. Phases 3 and 4 run per "Phases 3 and 4 — the plan" under "The order of work". Its entry gate, P3-0, is steps 1
-   to 3 above. Rule F (fast lane first) replaces rule 18's per-commit gate there (concession 16).
-2. Phase 5 state: T05 scans 0 in every package except orchestrator, siegelense and hydration-recipes (not yet
-   swept); T04 has 2 hits in siegelense. Both rule sets stay off in the shared config. They run in the plan's
-   filler lane.
-3. Phase 6 last.
-4. Standing decisions that still apply: `calledWith([])`/`onceFor([])` is allowed on a function that takes no
-   arguments (`randomUUID`, `now`); the ban is for functions that take arguments. A `registerMock` on a pure
-   passthrough (`join`, `dirname`, `tmpdir`, `randomUUID`) is allowed; the ban is for wrappers with a real I/O
-   body. A proxy that records a void sink (stdout, stderr, exit) with a read-back is not a catch-all. C2 is a
-   resolver, not a concession. Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild
-   output line by line.
-
-Git history holds every earlier handoff.
+**Open decisions for the next operator:** the two `start-orchestrator.proxy.ts` constructor defaults (T05); whether SD1's dead-condition pass should stop stripping `parent === null` (L2 found it live at runtime); `testing`'s `mockArgValueMatchTransformer` has no cycle guard, so a proxy addressing a call by a real AST node overflows the stack (L2 worked around it in eslint-plugin).
 
 ### Lessons worth keeping
 
@@ -701,7 +671,7 @@ the wave that needs it. These items run in isolation, beside any wave:
 | SD8 | W9 | Dead re-parse removal: trace provenance (a value from a parse can drop its re-parse; a value from a cast cannot) and fix the nested-edit syntax errors that broke 16 files. | `feasibility/b15/dead-reparse.cjs` | 1,821 sites, 16 failing files |
 | SD9 | B17 | The 83 hand sites: `as unknown` followed by a parse, and variable-then-use, into `contract.parse(JSON.parse(x))`. | `feasibility/b17/` | 83 sites |
 | SD10 | B18 | Callers that read `.success` off an `AdapterResult` (rewrite to a plain `await`), and proxy mocks resolving `undefined` against the old type. | `feasibility/b18/` | 118 functions, 7 diagnostics |
-| SD11 | T05 | Invented errors that carry a Node `code` (for example `Object.assign(new Error(..), { code: 'ENOENT' })`), staged on a gateway fs proxy, become that proxy's recorded-failure method. | `scripting-opportunities.md`, T05's scan | about a third of 223 invented errors Audit 2026-09-29 scan: orchestrator 57 (54 empty-called-with, 3 invented failures), siegelense 34 (empty-called-with), testing 2 (concession 13's file); hydration-recipes, web and every `@gateway/*` are 0. `@gateway/node`'s 7 spy hits are sanctioned void-sink recorders (stdout/stderr `write`, `process.on`, each with a read-back): the rule exempts that shape when the file reads the handle back (the void-sink commit); `@gateway/node` scans 0. Left: empty-called-with orchestrator 55, siegelense 33; invented failures orchestrator 3. Siegelense swept (the T05-siegelense commit): all three rules 0 there, 33 `calledWith([])` stages become argument-addressed (bounded predicates for argv-built queries and the self-made kill-signal promise). Orchestrator sweep active. |
+| SD11 | T05 | Invented errors that carry a Node `code` (for example `Object.assign(new Error(..), { code: 'ENOENT' })`), staged on a gateway fs proxy, become that proxy's recorded-failure method. | `scripting-opportunities.md`, T05's scan | about a third of 223 invented errors Audit 2026-09-29 scan: orchestrator 57 (54 empty-called-with, 3 invented failures), siegelense 34 (empty-called-with), testing 2 (concession 13's file); hydration-recipes, web and every `@gateway/*` are 0. `@gateway/node`'s 7 spy hits are sanctioned void-sink recorders (stdout/stderr `write`, `process.on`, each with a read-back): the rule exempts that shape when the file reads the handle back (the void-sink commit); `@gateway/node` scans 0. Left: empty-called-with orchestrator 55, siegelense 33; invented failures orchestrator 3. Siegelense swept (the T05-siegelense commit): all three rules 0 there, 33 `calledWith([])` stages become argument-addressed (bounded predicates for argv-built queries and the self-made kill-signal promise). Orchestrator swept (2c71f98f3 and 2f87a555e): `ban-proxy-empty-called-with` 55 to 3, invented failures and catch-alls 0. Left: two `start-orchestrator.proxy.ts` constructor defaults (server's tests rely on them) and a `stderr` recorder the rule misreads (it matches `process.stderr` syntax, not the `#gateway/node/process` alias). Then switch the three rules on. |
 | SD12 | W3, B13 | The test-side fallout of R8's parameter retype: 1,480 of 1,823 diagnostics are in web's harnesses. Script harness parameter retyping and the call sites that pass literals. | `feasibility/b13/validate.cjs` | 1,823 diagnostics |
 
 Five agents at most still applies across both lanes; the operator fills free slots with SD items first, since each
@@ -941,6 +911,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F103 | The `create-package` seeds for `programmatic-service`, `eslint-plugin` and `hook-handlers` depend on `__SCOPE__/shared`, which does not exist in a consumer (F87's `mcp-server` bug); `check:consumer` does not scaffold them, nor any type with a `.` entry. | 3.3-R-b | done (the F103 commit) | The four seeds (and `cli-tool`) import nothing outside their package and read `argv`/streams through `#gateway/node/process`; `check:consumer` scaffolds `jobs`, `rules`, `hooks`, `runner`. Unit 1790694540419-cd03. |
 | F104 | `packages/hooks/src/startup/start-post-edit-hook.integration.test.ts`: all 11 tests time out before their first assertion (run 1790696433684-3047); passed in earlier waves. Suspects: the index-building rules (R1, R8, R9) loaded or run by the post-edit hook, index built at plugin load, or a stale hooks `dist`. | wave 3.4 integration | done (the F104 commit) | Not a hang: the file's `beforeAll` warm-up (load `eslint.config.js` plus the first TypeScript program, about 6.7s alone) crossed ward's 30s integration timeout under whole-repo load, failing all 11 tests. The index rules are off and do not run in the hook. `beforeAll` gets its own 120s timeout; each test is about 250ms warm. Gate 1790696794499-0377. The growing config load is F105. |
 | F105 | Loading `eslint.config.js` costs about 3.1s per process, most of it tsx transpiling eslint-plugin's rule source; every hook integration worker and every lint process pays it, and it grows with each rule. Consider loading eslint-plugin's compiled `dist` in `eslint.config.js` (keeping source for ward's own lint of eslint-plugin), or lazy-importing the heavy index brokers inside the rules that use them. | F104 | open | |
+| F106 | Slow-file flags in the whole-repo integration run 1790700091564-feb3: `typed-return-is-void-like-transformer.integration.test.ts` 14.6s (give it F102's fixture tsconfig) and hooks' `start-post-ask-question-hook.integration.test.ts` 11.9s (the config-load warm-up F104 describes; give its `beforeAll` a warm-up timeout or fix F105). | operator | open | |
 | F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | done | a8369332a; ward rebuilt. Typecheck runs a second pass against `tsconfig.build.json`. It found TS2379 in `testing` (F11 fixing) and TS6059 in `@gateway/browser` (G21 fixing). |
 
 ## Blocked items
@@ -965,3 +936,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-28 | Night (operator): master merged; Phase 2 finished (A13); A18 zod sweep everywhere; A18 hand batches ward, hooks, cli done, web to B27, orchestrator and server to B02, siegelense to S04; gateway units GN5 to GN10 and more; T05 swept in web, testing, `@gateway/*`; two web e2e races fixed; phase 3/4 scripts written; rule 19. User stopped new dispatch at the end. Next: START HERE. |
 | 2026-09-29 | Planning session (no code changed): Phase 3 and 4 re-planned against measured counts in `phase-3-4-plan.md` (since merged into "Phases 3 and 4 — the plan"); Phase 3/4 tables replaced; concessions 16 to 18; prototypes and censuses committed under `phase34-scripts/`. |
 | 2026-09-29 | Phase 2 finish session (operator): A18 finished in code — gateway units GB4, U1 to U3, GN13 to GN15, GBIN1, GNPM-vite; the A18 codemod; hand queues in every package; dependency removals (a1d6abed6 to a86065b08); A19 prep (0ba37e71e); F77, F78 closed; concessions 14, 15. The user stopped before the final ward. The last A18 diff (GN15, `vite` subpath, web's last spots) is uncommitted. Phase 3 and 4 plan merged into this file. Next: START HERE "Phase 2 handoff". |
+| 2026-09-29 | Operator session (day): Phase 2 closed (A18, A19 switch-on, P3-0 gate); waves 3.1 to 3.4 done; 3.3's layout with explicit per-barrel keys (concession 22) and `ban-test-support-in-production` (concession 23); 4.0 decisions; R1, R2, R3, R4, R6, R8, R9, T10, T2, T1, L0, L1; L3 and L4 for hooks, server, mcp; L2 part 1 on branch `gp-l2-tsestree`; every SD script; B17 and B18 in most packages; T05 swept; disk-full incident fixed (F95 to F97); about 60 follow-ups closed. Next: START HERE \"Handoff (2026-09-29, evening)\". |
