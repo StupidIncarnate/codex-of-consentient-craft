@@ -3,7 +3,9 @@
  */
 
 import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { readItem, writeItem } from '#gateway/browser/localStorage';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
+import { MemoryRouter, Route, Routes, useLocation } from '#gateway/npm/react-router-dom';
 import {
   GuildIdStub,
   GuildListItemStub,
@@ -194,10 +196,10 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(guild.id);
+        expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(guild.id);
       });
 
-      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(guild.id);
+      expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(guild.id);
     });
 
     it('VALID: {stored guild in localStorage, guild exists} => auto-selects guild on mount', async () => {
@@ -208,7 +210,7 @@ describe('HomeContentWidget', () => {
       proxy.clearStorage();
       const guild = GuildListItemStub({ name: 'Stored Guild' });
 
-      localStorage.setItem(GUILD_STORAGE_KEY, guild.id);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guild.id });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
@@ -240,7 +242,7 @@ describe('HomeContentWidget', () => {
       const staleGuildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const realGuild = GuildListItemStub({ name: 'Real Guild' });
 
-      localStorage.setItem(GUILD_STORAGE_KEY, staleGuildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: staleGuildId });
 
       proxy.setupGuilds({ guilds: [realGuild] });
       proxy.setupSessions({ sessions: [] });
@@ -257,11 +259,89 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+        expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(null);
       });
 
-      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+      expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(null);
       expect(proxy.isSelectGuildMessageVisible()).toBe(true);
+    });
+
+    it('ERROR: {storage refuses saving the clicked guild} => logs the refusal and stores nothing', async () => {
+      const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
+      proxy.clearStorage();
+      proxy.storageWriteFails({ key: GUILD_STORAGE_KEY });
+      const guild = GuildListItemStub({ name: 'Refused Guild' });
+
+      proxy.setupGuilds({ guilds: [guild] });
+
+      await act(async () => {
+        mantineRenderMiddleware({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
+      });
+
+      proxy.setupSessions({ sessions: [] });
+
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(
+          proxy.getLoggedErrorsFor({
+            message: '[home-content] failed to persist the selected guild',
+          }),
+        ).toStrictEqual([
+          ['[home-content] failed to persist the selected guild', StorageDisabledErrorStub()],
+        ]);
+      });
+
+      expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(null);
+    });
+
+    it('ERROR: {no guild selected, storage refuses clearing the saved guild} => logs the refusal', async () => {
+      const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.clearStorage();
+      proxy.storageRemoveFails({ key: GUILD_STORAGE_KEY });
+      proxy.setupGuilds({ guilds: [GuildListItemStub({ name: 'Some Guild' })] });
+
+      await act(async () => {
+        mantineRenderMiddleware({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(proxy.isSelectGuildMessageVisible()).toBe(true);
+      });
+
+      expect(
+        proxy.getLoggedErrorsFor({
+          message: '[home-content] failed to persist the selected guild',
+        }),
+      ).toStrictEqual([
+        ['[home-content] failed to persist the selected guild', StorageDisabledErrorStub()],
+      ]);
     });
 
     it('EMPTY: {no stored guild} => shows select a guild message', async () => {
@@ -289,7 +369,7 @@ describe('HomeContentWidget', () => {
       });
 
       expect(proxy.isSelectGuildMessageVisible()).toBe(true);
-      expect(localStorage.getItem(GUILD_STORAGE_KEY)).toBe(null);
+      expect(readItem({ key: GUILD_STORAGE_KEY })).toBe(null);
     });
   });
 
@@ -577,7 +657,6 @@ describe('HomeContentWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
       proxy.setupQuests({ quests: [] });
-      const consoleErrorSpy = proxy.setupConsoleErrorCapture();
 
       proxy.setupGuilds({ guilds: [] });
       proxy.setupSessions({ sessions: [] });
@@ -611,24 +690,24 @@ describe('HomeContentWidget', () => {
       });
 
       await waitFor(() => {
-        const loggedError = consoleErrorSpy.callsMatching([
-          '[home-content] guild create failed',
-        ])[0]?.[1];
+        const [loggedError] = proxy
+          .getLoggedErrorsFor({ message: '[home-content] guild create failed' })
+          .map((call) => call[1]);
 
         expect(loggedError).toBeInstanceOf(Error);
-        expect(consoleErrorSpy.callsMatching(['[home-content] guild create failed'])).toStrictEqual(
-          [['[home-content] guild create failed', loggedError]],
-        );
+        expect(
+          proxy.getLoggedErrorsFor({ message: '[home-content] guild create failed' }),
+        ).toStrictEqual([['[home-content] guild create failed', loggedError]]);
       });
 
-      const loggedError = consoleErrorSpy.callsMatching([
-        '[home-content] guild create failed',
-      ])[0]?.[1];
+      const [loggedError] = proxy
+        .getLoggedErrorsFor({ message: '[home-content] guild create failed' })
+        .map((call) => call[1]);
 
       expect(loggedError).toBeInstanceOf(Error);
-      expect(consoleErrorSpy.callsMatching(['[home-content] guild create failed'])).toStrictEqual([
-        ['[home-content] guild create failed', loggedError],
-      ]);
+      expect(
+        proxy.getLoggedErrorsFor({ message: '[home-content] guild create failed' }),
+      ).toStrictEqual([['[home-content] guild create failed', loggedError]]);
     });
   });
 
@@ -646,7 +725,7 @@ describe('HomeContentWidget', () => {
         title: 'Delete Me' as never,
         status: 'complete' as never,
       });
-      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
@@ -702,7 +781,7 @@ describe('HomeContentWidget', () => {
         title: 'Running Quest' as never,
         status: 'complete' as never,
       });
-      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
@@ -766,7 +845,7 @@ describe('HomeContentWidget', () => {
         title: 'Fallback Quest' as never,
         status: 'complete' as never,
       });
-      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
@@ -820,7 +899,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDirectoryBrowse({ entries: [] });
       const guildId = GuildIdStub({ value: 'c3c3c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Unreadable Guild' });
-      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
@@ -863,7 +942,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDirectoryBrowse({ entries: [] });
       const guildId = GuildIdStub({ value: 'c4c4c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Healthy Guild' });
-      localStorage.setItem(GUILD_STORAGE_KEY, guildId);
+      writeItem({ key: GUILD_STORAGE_KEY, value: guildId });
 
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });

@@ -1,3 +1,4 @@
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import { questRiftcarverDetailBrokerProxy } from '../../brokers/quest/riftcarver-detail/quest-riftcarver-detail-broker.proxy';
@@ -7,6 +8,7 @@ export const RiftcarverResultDetailLayerWidgetProxy = (): {
   setupNotFound: () => void;
   getRequestCount: () => RequestCount;
 } => {
+  consoleErrorProxy();
   const broker = questRiftcarverDetailBrokerProxy();
 
   return {

@@ -1,8 +1,9 @@
 import * as ourModule from './git';
 
 describe('#gateway/bin/git', () => {
-  it('VALID: {module} => exports every git function, gitRun and GitNotInstalledError', () => {
+  it('VALID: {module} => exports every git function, gitRun, gitRunSync and both error classes', () => {
     expect(Object.keys(ourModule).sort()).toStrictEqual([
+      'GitCommandFailedError',
       'GitNotInstalledError',
       'addAll',
       'branchDelete',
@@ -13,6 +14,7 @@ describe('#gateway/bin/git', () => {
       'detectOriginDefaultBranch',
       'diffFiles',
       'gitRun',
+      'gitRunSync',
       'headSha',
       'logNameOnly',
       'push',

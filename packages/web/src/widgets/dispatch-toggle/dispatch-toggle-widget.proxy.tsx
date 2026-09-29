@@ -7,8 +7,9 @@
  * proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
  */
 
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
+import { screen, within } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
@@ -45,6 +46,7 @@ export const DispatchToggleWidgetProxy = (): {
   // The notice renders whenever a hold is on the state. Its own suite pins the wording and the
   // countdown; here it is a child this widget mounts, and it pins the clock the countdown reads.
   DispatchHoldNoticeWidgetProxy();
+  consoleErrorProxy();
 
   return {
     setupDispatchState: ({ state }: { state: DispatchState }): void => {

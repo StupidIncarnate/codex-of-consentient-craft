@@ -6,10 +6,12 @@
  * // Renders guild list sidebar + session list, used as the "/" route content
  */
 
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { consoleError } from '#gateway/browser/console';
+import { readItem, removeItem, writeItem } from '#gateway/browser/localStorage';
+import { useEffect, useState } from '#gateway/npm/react';
+import { Link, useNavigate } from '#gateway/npm/react-router-dom';
 
-import { Box, Center, Group, Text } from '@mantine/core';
+import { Box, Center, Group, Text } from '#gateway/npm/mantine__core';
 
 import type {
   GuildId,
@@ -40,12 +42,8 @@ export const HomeContentWidget = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [internalView, setInternalView] = useState<InternalView>('main');
   const [selectedGuildId, setSelectedGuildId] = useState<GuildId | null>(() => {
-    try {
-      const stored = localStorage.getItem(GUILD_STORAGE_KEY);
-      return stored ? (stored as GuildId) : null;
-    } catch {
-      return null;
-    }
+    const stored = readItem({ key: GUILD_STORAGE_KEY });
+    return stored ? (stored as GuildId) : null;
   });
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
@@ -67,14 +65,11 @@ export const HomeContentWidget = (): React.JSX.Element => {
   const [deletingQuestId, setDeletingQuestId] = useState<QuestId | null>(null);
 
   useEffect(() => {
-    try {
-      if (selectedGuildId) {
-        localStorage.setItem(GUILD_STORAGE_KEY, selectedGuildId);
-      } else {
-        localStorage.removeItem(GUILD_STORAGE_KEY);
-      }
-    } catch {
-      // localStorage unavailable
+    const persisted = selectedGuildId
+      ? writeItem({ key: GUILD_STORAGE_KEY, value: selectedGuildId })
+      : removeItem({ key: GUILD_STORAGE_KEY });
+    if (!persisted.success) {
+      consoleError('[home-content] failed to persist the selected guild', persisted.error);
     }
   }, [selectedGuildId]);
 
@@ -116,7 +111,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   setInternalView('main');
                 })
                 .catch((createError: unknown) => {
-                  globalThis.console.error('[home-content] guild create failed', createError);
+                  consoleError('[home-content] guild create failed', createError);
                 });
             }}
             onCancel={
@@ -191,7 +186,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   });
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
-                      globalThis.console.error('[home-content] navigation failed', navError);
+                      consoleError('[home-content] navigation failed', navError);
                     });
                   }
                 }}
@@ -203,7 +198,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   });
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
-                      globalThis.console.error('[home-content] navigation failed', navError);
+                      consoleError('[home-content] navigation failed', navError);
                     });
                   }
                 }}
@@ -213,7 +208,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   const result = navigate(`/${slug}/quest`);
                   if (result instanceof Promise) {
                     result.catch((navError: unknown) => {
-                      globalThis.console.error('[home-content] navigation failed', navError);
+                      consoleError('[home-content] navigation failed', navError);
                     });
                   }
                 }}
@@ -265,7 +260,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
               setSelectedGuildId(id);
             })
             .catch((createError: unknown) => {
-              globalThis.console.error('[home-content] guild create failed', createError);
+              consoleError('[home-content] guild create failed', createError);
             });
         }}
       />

@@ -1,0 +1,22 @@
+You are an agent on the brands-and-gateways epic. Work from `/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot` (branch `gateway-pivot`). Never `cd` into a package.
+
+Read `scrolls/brands-gateways-epic/agent-brief.md` and follow it exactly: no build, no git add/commit/stash/branch/checkout/reset/mv, no npm install, no forks, no sub-agents. Read the "Concessions" table and "Lessons worth keeping" in `scrolls/brands-gateways-epic/EPIC.md`. Call `get-architecture` and `get-testing-patterns` first, and `get-folder-detail` for each folder type you write into.
+
+Your item: A18, raw outside calls (`scrolls/brands-gateways-epic/items/a18-raw-calls-and-dependency-cleanup.md`: read "Traps", "### Rule findings that shape the plan" and "### Replacement legend"). Your batch list is in `tmp/a18-census/gaps.md`: read its top sections (tag legend, the notes before "GATEWAY UNITS"), then your package's section.
+
+## Your queue: {QUEUE}
+Work the batches in that order. Each batch's files, and their own companions (`.test.ts`, `.proxy.ts`, `.stub.ts` beside them), are your whole scope. A file outside your queue that must change (a composer of a proxy you changed) is reported, not edited, unless the operator has named it.
+
+For each batch:
+1. Move every raw import and platform global in the batch files onto its `#gateway/*` export. A gateway function is imported from its barrel (`#gateway/node/process`); its proxy or stub from its own file (`#gateway/node/process/cwd/cwd.proxy`).
+2. A proxy that spied on a raw global or module now composes the gateway wrapper's own proxy, staged by exact argument tuple or a predicate keyed on a value the test supplies.
+3. Gate: `npm run ward -- --only lint,typecheck,unit,integration -- <the batch files and their companions>` (timeout 600000, `| tail -30`). Web: `--only lint,typecheck,unit` per batch. A `DISCOVERY MISMATCH` means narrow `--only`, not widen scope.
+4. Prove it clean for the three rules: `node tmp/a18-census/run.mjs <pkg>` re-censuses the whole package (slow on big packages; run it once per report, not per batch) and your files must not appear in `tmp/a18-census/<pkg>.json` — except `page.evaluate`-style callback globals, which A19 carves out.
+
+Report after every {REPORT_EVERY} batches (or when the queue ends), then CONTINUE with the next batch without waiting — the operator commits your reported batches while you work. Stop early only on a gateway gap or a red you cannot fix inside your files; then report exactly what the gateway lacks (package, wrapper, method, shape) and move on to the next batch that does not need it.
+
+Banned in your diff (the operator scans for these): `as never`, `as unknown as`, `calledWith([])`/`onceFor([])` on a function that takes arguments, accept-all or type-only staging predicates, `registerMock({ fn })` on a gateway wrapper with a real body (`run`, `streamLines`, `ensureDir`, a bin wrapper), raw builtin imports, real `process.cwd()`/`homedir()` in tests, a hand-made `new Error` staged as an outside failure (use a recorded-failure stub), `jest.mock`/`jest.spyOn`.
+
+Other agents: a codemod may be applied to other files in your package while you work. Never edit a file outside your queue; if package-wide typecheck shows a red in a file that is not yours, name it in LEFT STANDING and carry on.
+
+Each report: the brief's sections (CHANGED per batch, WARD run ids, LEFT STANDING, DECISIONS, BUILD NEEDED), under 30 lines. If your context passes about 300k tokens, finish the batch, and write a HANDOFF section (the conventions you settled on) in your report and stop.

@@ -58,6 +58,9 @@ export const useElapsedTickBindingProxy = (): {
     handle: tickHandle,
   });
   const clearProxy = clearIntervalProxy();
+  // IntervalHandleStub cancels its own handle as it mints it, and a clearInterval spy some earlier
+  // proxy installed records that cancel against the tick handle. Only clears after staging count.
+  const clearsBeforeStaging = clearProxy.getCallsFor({ handle: tickHandle }).length;
 
   // passthrough so the real listener actually attaches — the "backgrounded tab resync" test relies
   // on document.dispatchEvent genuinely reaching the binding's own handler, and jsdom's
@@ -82,7 +85,8 @@ export const useElapsedTickBindingProxy = (): {
     },
     getTickIntervalCount: (): TickCallCount =>
       intervalProxy.getCallsFor({ delay: elapsedDisplayConfigStatics.refresh.tickMs }).length,
-    getClearedTickCount: (): TickCallCount => clearProxy.getCallsFor({ handle: tickHandle }).length,
+    getClearedTickCount: (): TickCallCount =>
+      clearProxy.getCallsFor({ handle: tickHandle }).length - clearsBeforeStaging,
     getVisibilityChangeListenerCount: (): TickCallCount =>
       addEventListenerHandle.callsMatching(['visibilitychange', isVisibilityChangeListenerArg])
         .length,

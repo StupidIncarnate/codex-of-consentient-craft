@@ -17,9 +17,13 @@
  * // when absent) and by `surface` ('main' by default; the FOLLOW-UP composer passes 'followup')
  */
 
-import { Box, UnstyledButton } from '@mantine/core';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Blob } from '#gateway/browser/Blob';
+import { consoleError } from '#gateway/browser/console';
+import { HTMLImageElement } from '#gateway/browser/HTMLImageElement';
+import { readItem, removeItem, writeItem } from '#gateway/browser/localStorage';
+import { Box, UnstyledButton } from '#gateway/npm/mantine__core';
+import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
+import { useParams } from '#gateway/npm/react-router-dom';
 
 import type { PastedImageUpload, QuestId, UserInput } from '@dungeonmaster/shared/contracts';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
@@ -145,19 +149,17 @@ export const ChatInputWidget = ({
   // clear semantics without duplicating the key-building.
   const markDraftDispatched = useCallback((): void => {
     const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
-    try {
-      localStorage.setItem(dispatchedKey, 'true');
-    } catch {
-      // localStorage unavailable
+    const written = writeItem({ key: dispatchedKey, value: 'true' });
+    if (!written.success) {
+      consoleError('[chat-input] failed to stamp the draft as dispatched', written.error);
     }
   }, [composerScope]);
 
   const clearDraftDispatchedStamp = useCallback((): void => {
     const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
-    try {
-      localStorage.removeItem(dispatchedKey);
-    } catch {
-      // localStorage unavailable
+    const removed = removeItem({ key: dispatchedKey });
+    if (!removed.success) {
+      consoleError('[chat-input] failed to clear the dispatched stamp', removed.error);
     }
   }, [composerScope]);
 
@@ -168,14 +170,12 @@ export const ChatInputWidget = ({
   const writeTextDraft = useCallback(
     ({ text }: { text: string }): void => {
       const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
-      try {
-        if (text.length > 0) {
-          localStorage.setItem(scopedKey, text);
-        } else {
-          localStorage.removeItem(scopedKey);
-        }
-      } catch {
-        // localStorage unavailable
+      const persisted =
+        text.length > 0
+          ? writeItem({ key: scopedKey, value: text })
+          : removeItem({ key: scopedKey });
+      if (!persisted.success) {
+        consoleError('[chat-input] failed to persist the draft text', persisted.error);
       }
     },
     [composerScope],
@@ -242,14 +242,8 @@ export const ChatInputWidget = ({
       // accepted. Read before the write below overwrites it, because it is what the retraction
       // restores; re-deriving it from the live DOM afterwards would rebuild the very content whose
       // bytes failed.
-      const durableText = (() => {
-        const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
-        try {
-          return localStorage.getItem(scopedKey) ?? '';
-        } catch {
-          return '';
-        }
-      })();
+      const durableText =
+        readItem({ key: `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}` }) ?? '';
 
       // The text draft is written in the SAME synchronous step that put the thumbnail on screen, so
       // the persisted draft never names fewer images than the composer is showing. Holding it back
@@ -266,7 +260,7 @@ export const ChatInputWidget = ({
       // typed while the write was in flight — see contentRevisionRef.
       draftImagesSaveBroker({ scopeKey: composerScope, attachments: orderedAttachments }).catch(
         (error: unknown) => {
-          globalThis.console.error('[chat-input] failed to save draft images', error);
+          consoleError('[chat-input] failed to save draft images', error);
           if (addsAttachment && contentRevisionRef.current === revision) {
             writeTextDraft({ text: durableText });
           }
@@ -591,14 +585,9 @@ export const ChatInputWidget = ({
     }
     restoredScopeRef.current = composerScope;
 
-    const wasDispatched = (() => {
-      try {
-        const dispatchedKey = `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}`;
-        return localStorage.getItem(dispatchedKey) !== null;
-      } catch {
-        return false;
-      }
-    })();
+    const wasDispatched =
+      readItem({ key: `${chatComposerStatics.draftDispatchedKeyPrefix}:${composerScope}` }) !==
+      null;
 
     if (wasDispatched) {
       // This composer's own document never learned whether its last send was accepted or
@@ -617,24 +606,28 @@ export const ChatInputWidget = ({
 
     const scopedKey = `${chatComposerStatics.draftStorageKeyPrefix}:${composerScope}`;
     const text = (() => {
-      try {
-        const scopedValue = localStorage.getItem(scopedKey);
-        if (scopedValue !== null) return scopedValue;
-        if (composerScope !== chatComposerStatics.draftScope.createScopeKey) return '';
-        // MIGRATION: a draft saved before per-composer scoping existed lived under one global
-        // key, shared by every quest and every tab. That old key carries no quest identity to
-        // recover, so the ONLY scope it can safely join is the create surface's — the one scope
-        // no real quest can ever collide with (see chatComposerStatics.draftScope.createScopeKey).
-        // Adopted once: written to the scoped key and the legacy key removed, so this branch is a
-        // no-op on every restore after the first.
-        const legacyValue = localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix);
-        if (legacyValue === null) return '';
-        localStorage.setItem(scopedKey, legacyValue);
-        localStorage.removeItem(chatComposerStatics.draftStorageKeyPrefix);
+      const scopedValue = readItem({ key: scopedKey });
+      if (scopedValue !== null) return scopedValue;
+      if (composerScope !== chatComposerStatics.draftScope.createScopeKey) return '';
+      // MIGRATION: a draft saved before per-composer scoping existed lived under one global
+      // key, shared by every quest and every tab. That old key carries no quest identity to
+      // recover, so the ONLY scope it can safely join is the create surface's — the one scope
+      // no real quest can ever collide with (see chatComposerStatics.draftScope.createScopeKey).
+      // Adopted once: written to the scoped key and the legacy key removed, so this branch is a
+      // no-op on every restore after the first. A failed adopt keeps the legacy key, so the next
+      // restore offers the same draft again rather than losing it.
+      const legacyValue = readItem({ key: chatComposerStatics.draftStorageKeyPrefix });
+      if (legacyValue === null) return '';
+      const adopted = writeItem({ key: scopedKey, value: legacyValue });
+      if (!adopted.success) {
+        consoleError('[chat-input] failed to adopt the legacy draft', adopted.error);
         return legacyValue;
-      } catch {
-        return '';
       }
+      const legacyRemoved = removeItem({ key: chatComposerStatics.draftStorageKeyPrefix });
+      if (!legacyRemoved.success) {
+        consoleError('[chat-input] failed to remove the legacy draft key', legacyRemoved.error);
+      }
+      return legacyValue;
     })();
 
     try {
@@ -673,14 +666,14 @@ export const ChatInputWidget = ({
         composerWriteBroker({ editor, segments, attachments: map });
       }
     } catch (error) {
-      globalThis.console.error('[chat-input] failed to restore draft', error);
+      consoleError('[chat-input] failed to restore draft', error);
     }
   }, [composerScope, handleContentChanged, clearDraftDispatchedStamp]);
 
   useEffect(() => {
     cancelledRestoreRef.current = false;
     restoreDraft().catch((error: unknown) => {
-      globalThis.console.error('[chat-input] failed to restore draft', error);
+      consoleError('[chat-input] failed to restore draft', error);
     });
     return () => {
       cancelledRestoreRef.current = true;
@@ -706,7 +699,7 @@ export const ChatInputWidget = ({
             suppressContentEditableWarning
             onPaste={(event) => {
               handlePaste(event).catch((error: unknown) => {
-                globalThis.console.error('[chat-input] paste handler failed', error);
+                consoleError('[chat-input] paste handler failed', error);
               });
             }}
             onInput={() => {

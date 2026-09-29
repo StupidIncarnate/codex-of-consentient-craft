@@ -11,10 +11,12 @@
  * // Renders the flow graph with node cards, edges, detail panel, and controls
  */
 
+import { consoleError } from '#gateway/browser/console';
+import { document } from '#gateway/browser/document';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import { Group } from '#gateway/npm/mantine__core';
-import { IconFocusCentered, IconZoomIn, IconZoomOut } from '@tabler/icons-react';
+import { IconFocusCentered, IconZoomIn, IconZoomOut } from '#gateway/npm/tabler__icons-react';
 
 import type {
   Flow,
@@ -184,7 +186,7 @@ export const ReactFlowDiagramWidget = ({
         setError(false);
       })
       .catch((layoutError: unknown) => {
-        globalThis.console.error('[react-flow-diagram]', layoutError);
+        consoleError('[react-flow-diagram]', layoutError);
         setError(true);
       });
   }, [flow]);

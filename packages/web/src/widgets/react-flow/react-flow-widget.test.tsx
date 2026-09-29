@@ -1,7 +1,9 @@
-import React from 'react';
+import { document } from '#gateway/browser/document';
+import React from '#gateway/npm/react';
 
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { ReactFlowWidget } from './react-flow-widget';
 import { ReactFlowWidgetProxy } from './react-flow-widget.proxy';
@@ -12,8 +14,8 @@ describe('ReactFlowWidget', () => {
     it('VALID: {nodes: [3 nodes], edges: []} => REACT_FLOW_CANVAS present with exactly 3 FLOW_NODE elements', () => {
       ReactFlowWidgetProxy();
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
               id: 'node-one',
@@ -33,7 +35,7 @@ describe('ReactFlowWidget', () => {
           ],
           edges: [],
         }),
-      );
+      });
 
       expect(screen.getByTestId('REACT_FLOW_CANVAS')).toBe(
         document.querySelector('[data-testid="REACT_FLOW_CANVAS"]'),
@@ -51,8 +53,8 @@ describe('ReactFlowWidget', () => {
       const FlowNode = ({ id }: { id: string }) =>
         React.createElement('div', { 'data-testid': 'FLOW_NODE', 'data-node-id': id });
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
               id: 'node-one',
@@ -64,7 +66,7 @@ describe('ReactFlowWidget', () => {
           edges: [],
           nodeTypes: { flowNode: FlowNode as never },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_NODE')).toBe(
         document.querySelector('[data-testid="FLOW_NODE"]'),
@@ -83,13 +85,13 @@ describe('ReactFlowWidget', () => {
         contractCount: 2,
       });
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [{ id: 'click-target', position: { x: 0, y: 0 }, data: clickedData }],
           edges: [],
           onNodeClick,
         }),
-      );
+      });
 
       await userEvent.click(screen.getByTestId('FLOW_NODE'));
 
@@ -104,8 +106,8 @@ describe('ReactFlowWidget', () => {
     it('EDGE: {click FLOW_NODE, onNodeClick undefined} => does not throw', async () => {
       ReactFlowWidgetProxy();
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [
             {
               id: 'node-one',
@@ -115,7 +117,7 @@ describe('ReactFlowWidget', () => {
           ],
           edges: [],
         }),
-      );
+      });
 
       await expect(userEvent.click(screen.getByTestId('FLOW_NODE'))).resolves.toBe(undefined);
     });
@@ -127,13 +129,13 @@ describe('ReactFlowWidget', () => {
 
       const onPaneClick = jest.fn();
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [],
           edges: [],
           onPaneClick,
         }),
-      );
+      });
 
       await userEvent.click(screen.getByTestId('REACT_FLOW_PANE'));
 
@@ -144,12 +146,12 @@ describe('ReactFlowWidget', () => {
     it('EDGE: {click pane, onPaneClick undefined} => does not throw', async () => {
       ReactFlowWidgetProxy();
 
-      render(
-        React.createElement(ReactFlowWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(ReactFlowWidget, {
           nodes: [],
           edges: [],
         }),
-      );
+      });
 
       await expect(userEvent.click(screen.getByTestId('REACT_FLOW_PANE'))).resolves.toBe(undefined);
     });

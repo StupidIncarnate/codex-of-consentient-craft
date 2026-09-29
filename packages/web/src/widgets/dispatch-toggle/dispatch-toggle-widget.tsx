@@ -16,6 +16,7 @@
  * // Renders nothing while the dispatch state is loading, then a single pixel button.
  */
 
+import { consoleError } from '#gateway/browser/console';
 import { useDispatchStateBinding } from '../../bindings/use-dispatch-state/use-dispatch-state-binding';
 import { orchestrationDispatchPauseBroker } from '../../brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker';
 import { orchestrationDispatchPlayBroker } from '../../brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker';
@@ -47,12 +48,12 @@ export const DispatchToggleWidget = (): React.JSX.Element | null => {
         onClick={(): void => {
           if (isPlaying) {
             orchestrationDispatchPauseBroker().catch((error: unknown) => {
-              globalThis.console.error('[dispatch-toggle] pause failed', error);
+              consoleError('[dispatch-toggle] pause failed', error);
             });
             return;
           }
           orchestrationDispatchPlayBroker().catch((error: unknown) => {
-            globalThis.console.error('[dispatch-toggle] play failed', error);
+            consoleError('[dispatch-toggle] play failed', error);
           });
         }}
       />

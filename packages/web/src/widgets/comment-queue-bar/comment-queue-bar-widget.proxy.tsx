@@ -9,9 +9,10 @@
  * mantineRenderMiddleware({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
  */
 
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
 import { notifications } from '#gateway/npm/mantine__notifications';
-import { fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -70,6 +71,7 @@ export const CommentQueueBarWidgetProxy = (): {
   // Clear and Send are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for the
   // child-proxy rule only — this proxy addresses both buttons by their own queue-bar testids.
   IconButtonWidgetProxy();
+  consoleErrorProxy();
   const user = userEvent.setup(userEventStatics.options);
 
   // The widget calls onSend exactly one way — a single `{ comments }` payload object — so the

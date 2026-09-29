@@ -13,8 +13,10 @@
  * // Sprites only, transparent, sized to content — a header above a populated panel
  */
 
-import { Box, Group, Text } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { clearInterval } from '#gateway/browser/clearInterval';
+import { setInterval } from '#gateway/browser/setInterval';
+import { Box, Group, Text } from '#gateway/npm/mantine__core';
+import { useEffect, useState } from '#gateway/npm/react';
 
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';

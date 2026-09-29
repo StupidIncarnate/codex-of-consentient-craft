@@ -6,8 +6,12 @@
  * // Renders animated row with cycling sparkle glyph, planning verb, and dot ellipsis
  */
 
-import { Box, Text } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { clearInterval } from '#gateway/browser/clearInterval';
+import { clearTimeout } from '#gateway/browser/clearTimeout';
+import { setInterval } from '#gateway/browser/setInterval';
+import { setTimeout } from '#gateway/browser/setTimeout';
+import { Box, Text } from '#gateway/npm/mantine__core';
+import { useEffect, useState } from '#gateway/npm/react';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { streamingIndicatorConfigStatics } from '../../statics/streaming-indicator-config/streaming-indicator-config-statics';

@@ -23,7 +23,7 @@
  * handover is missing", which is the distinction the two marks exist to draw.
  */
 
-import { Box, Text } from '@mantine/core';
+import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 

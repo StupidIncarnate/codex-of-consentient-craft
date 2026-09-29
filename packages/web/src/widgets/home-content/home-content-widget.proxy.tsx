@@ -8,9 +8,15 @@
 
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { screen, within } from '#gateway/npm/testing-library__react';
-import userEvent from '@testing-library/user-event';
+import userEvent from '#gateway/npm/testing-library__user-event';
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
+import { clear } from '#gateway/browser/localStorage';
+import { readItemProxy } from '#gateway/browser/localStorage/read-item/read-item.proxy';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
+import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remove-item.proxy';
+import { writeItemProxy } from '#gateway/browser/localStorage/write-item/write-item.proxy';
 
-import type { RecordedCalls, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -74,7 +80,9 @@ export const HomeContentWidgetProxy = (): {
   selectAllSessionsFilter: () => Promise<void>;
   isQueueLinkVisible: () => boolean;
   clickQueueLink: () => Promise<void>;
-  setupConsoleErrorCapture: () => SpyOnHandle;
+  getLoggedErrorsFor: (params: { message: string }) => RecordedCalls;
+  storageWriteFails: (params: { key: string }) => void;
+  storageRemoveFails: (params: { key: string }) => void;
   setupCreateGuildError: () => void;
   clearStorage: () => void;
   setupDeleteQuest: () => void;
@@ -108,18 +116,12 @@ export const HomeContentWidgetProxy = (): {
   const sessionList = GuildSessionListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
   const addModal = GuildAddModalWidgetProxy();
-  // Staged unconditionally (not just when a test calls setupConsoleErrorCapture): any test that
-  // exercises the guild-create-fails or navigate-fails catch handlers hits these regardless of
-  // whether that specific test cares about reading the logged call. passthrough: true — console.error
-  // is a shared sink; React's own internal warnings also flow through it and must keep printing
-  // normally, not throw for being unstaged.
-  const consoleErrorHandle = registerSpyOn({
-    object: globalThis.console,
-    method: 'error',
-    passthrough: true,
-  });
-  consoleErrorHandle.calledWith(['[home-content] guild create failed']).returns(undefined);
-  consoleErrorHandle.calledWith(['[home-content] navigation failed']).returns(undefined);
+  // Records and silences every console.error line, so a test exercising a failing catch handler can
+  // read back what was logged without it printing.
+  const consoleProxy = consoleErrorProxy();
+  readItemProxy();
+  const storageWriteProxy = writeItemProxy();
+  const storageRemoveProxy = removeItemProxy();
 
   return {
     // The empty-state form and the add-guild modal each mount a directory browser that lists a
@@ -201,7 +203,16 @@ export const HomeContentWidgetProxy = (): {
     clickQueueLink: async (): Promise<void> => {
       await userEvent.click(screen.getByTestId('HOME_QUEUE_LINK'), userEventStatics.options);
     },
-    setupConsoleErrorCapture: (): SpyOnHandle => consoleErrorHandle,
+    getLoggedErrorsFor: ({ message }: { message: string }): RecordedCalls =>
+      consoleProxy.getCallsFor({ message }),
+    // Storage refuses every write (or removal) under this exact key, the way a private-mode browser
+    // does.
+    storageWriteFails: ({ key }: { key: string }): void => {
+      storageWriteProxy.setupWriteFails({ key, error: StorageDisabledErrorStub() });
+    },
+    storageRemoveFails: ({ key }: { key: string }): void => {
+      storageRemoveProxy.setupRemoveFails({ key, error: StorageDisabledErrorStub() });
+    },
     setupCreateGuildError: (): void => {
       createGuildProxy.setupError();
     },
@@ -246,7 +257,7 @@ export const HomeContentWidgetProxy = (): {
       notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],
     getDeleteBrokerCalls: (): RecordedCalls => deleteBrokerSpy.callsMatching([]),
     clearStorage: (): void => {
-      localStorage.clear();
+      clear();
     },
   };
 };

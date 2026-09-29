@@ -1406,7 +1406,10 @@ describe('ExecutionPanelWidget', () => {
 
       // The parent transcript: a Task tool_use line that spawned the nested sub-agent.
       // This is the only entry routed to the parent's own work-item bucket.
-      const nestedTaskToolUse = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+      const nestedTaskToolUse = TaskToolUseChatEntryStub({
+        agentId: 'minion-1',
+        uuid: 'd0000000-0000-4000-8000-000000000001',
+      });
 
       // The nested sub-agent's OWN transcript entries. They arrive bucketed under the
       // session pool (sessionEntries), NOT the parent's work-item bucket.
@@ -1414,16 +1417,19 @@ describe('ExecutionPanelWidget', () => {
         source: 'subagent',
         agentId: 'minion-1',
         content: 'nested line one',
+        uuid: 'd0000000-0000-4000-8000-000000000002',
       });
       const nestedEntry2 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'nested line two',
+        uuid: 'd0000000-0000-4000-8000-000000000003',
       });
       const nestedEntry3 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'nested line three',
+        uuid: 'd0000000-0000-4000-8000-000000000004',
       });
 
       const workItemEntries = new Map([[parentWorkItemId, [nestedTaskToolUse]]]);

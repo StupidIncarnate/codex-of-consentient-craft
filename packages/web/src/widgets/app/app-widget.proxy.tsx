@@ -6,8 +6,9 @@
  * proxy.setupGuilds({ guilds: [] });
  */
 
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { connectProxy } from '#gateway/browser/WebSocket/connect/connect.proxy';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type {
   DirectoryEntryStub,
@@ -27,7 +28,13 @@ import { QuestQueueBarWidgetProxy } from '../quest-queue-bar/quest-queue-bar-wid
 import { RateLimitsStackWidgetProxy } from '../rate-limits-stack/rate-limits-stack-widget.proxy';
 import { SessionViewWidgetProxy } from '../session-view/session-view-widget.proxy';
 
+import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
+import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
+
+// The channel this proxy's own socket answers, kept apart from the url every binding proxy stages so a
+// count read here holds only the sockets opened on it.
+const SHARED_CHANNEL_URL = WsUrlStub({ value: 'ws://localhost:4747/ws' });
 
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
@@ -43,6 +50,10 @@ type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 const setupHomeContent = HomeContentWidgetProxy;
 const setupQuestChat = QuestChatWidgetProxy;
 const setupSessionView = SessionViewWidgetProxy;
+// AppWidget never opens a socket itself; the bindings its routes mount share the channel's one.
+const setupSocket = connectProxy;
+
+type SocketConnectionCount = ReturnType<ReturnType<typeof connectProxy>['getConnectionCount']>;
 
 export const AppWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
@@ -75,6 +86,8 @@ export const AppWidgetProxy = (): {
   isLogoLinkVisible: () => boolean;
   isQuestQueueBarVisible: () => boolean;
   clearStorage: () => void;
+  setupSharedChannel: () => void;
+  getSocketConnectionCount: () => SocketConnectionCount;
 } => {
   LogoWidgetProxy();
   MapFrameWidgetProxy();
@@ -83,6 +96,7 @@ export const AppWidgetProxy = (): {
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
   const rateLimits = RateLimitsStackWidgetProxy();
+  const socketProxy = setupSocket({ url: SHARED_CHANNEL_URL });
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -169,5 +183,12 @@ export const AppWidgetProxy = (): {
     clearStorage: (): void => {
       homeProxy.clearStorage();
     },
+    // Resets the channel singleton and connects it the way AppMountFlow does in production, on this
+    // proxy's own url.
+    setupSharedChannel: (): void => {
+      webSocketChannelState.clear();
+      webSocketChannelState.connect({ url: SHARED_CHANNEL_URL });
+    },
+    getSocketConnectionCount: (): SocketConnectionCount => socketProxy.getConnectionCount(),
   };
 };

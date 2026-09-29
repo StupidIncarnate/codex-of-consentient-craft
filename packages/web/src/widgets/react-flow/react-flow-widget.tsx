@@ -13,7 +13,8 @@
  * // Renders a ReactFlow canvas; fires onNodeClick with the clicked node on click.
  */
 
-import React from 'react';
+import { consoleError } from '#gateway/browser/console';
+import React from '#gateway/npm/react';
 
 import { Controls, ReactFlow } from '#gateway/npm/xyflow__react';
 import type { Node, Edge, NodeTypes, EdgeTypes, ReactFlowProps } from '#gateway/npm/xyflow__react';
@@ -126,7 +127,7 @@ export const ReactFlowWidget = ({
           zoom,
         })
         .catch((viewportError: unknown) => {
-          globalThis.console.error('[react-flow-widget] setViewport failed', viewportError);
+          consoleError('[react-flow-widget] setViewport failed', viewportError);
         });
     },
     // Lower the zoom floor below React Flow's 0.5 default so the top-align fit-width (and the manual

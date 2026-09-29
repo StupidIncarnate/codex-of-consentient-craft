@@ -42,8 +42,10 @@ describe('pastedImageMemoryState', () => {
   describe('forget()', () => {
     it('VALID: {two uuids remembered, forget one} => the forgotten uuid recalls [], the other is untouched', () => {
       pastedImageMemoryStateProxy().setupEmpty();
-      const { uuid: keptUuid } = ChatEntryStub();
-      const { uuid: forgottenUuid } = ChatEntryStub();
+      const { uuid: keptUuid } = ChatEntryStub({ uuid: 'b0000000-0000-4000-8000-00000000000a' });
+      const { uuid: forgottenUuid } = ChatEntryStub({
+        uuid: 'b0000000-0000-4000-8000-00000000000b',
+      });
       const keptDataUrls = [ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' })];
 
       pastedImageMemoryState.remember({ uuid: keptUuid, dataUrls: keptDataUrls });
@@ -62,8 +64,8 @@ describe('pastedImageMemoryState', () => {
   describe('clear()', () => {
     it('VALID: {two uuids remembered, clear} => both recall []', () => {
       pastedImageMemoryStateProxy().setupEmpty();
-      const { uuid: firstUuid } = ChatEntryStub();
-      const { uuid: secondUuid } = ChatEntryStub();
+      const { uuid: firstUuid } = ChatEntryStub({ uuid: 'b0000000-0000-4000-8000-00000000000a' });
+      const { uuid: secondUuid } = ChatEntryStub({ uuid: 'b0000000-0000-4000-8000-00000000000b' });
 
       pastedImageMemoryState.remember({
         uuid: firstUuid,

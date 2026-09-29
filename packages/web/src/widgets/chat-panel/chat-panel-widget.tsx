@@ -6,8 +6,10 @@
  * // Renders chat message list with input textarea and send button
  */
 
-import { Box } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { clearInterval } from '#gateway/browser/clearInterval';
+import { setInterval } from '#gateway/browser/setInterval';
+import { Box } from '#gateway/npm/mantine__core';
+import { useEffect, useRef, useState } from '#gateway/npm/react';
 
 import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';

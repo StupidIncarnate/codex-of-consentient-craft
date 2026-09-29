@@ -1,8 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { clearIntervalProxy } from '#gateway/browser/clearInterval/clear-interval/clear-interval.proxy';
+import { setIntervalProxy } from '#gateway/browser/setInterval/set-interval/set-interval.proxy';
+import { fireEvent, screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
@@ -11,14 +10,13 @@ import { ChatEntryListWidgetProxy } from '../chat-entry-list/chat-entry-list-wid
 import { ChatInputWidgetProxy } from '../chat-input/chat-input-widget.proxy';
 import { PixelSpriteWidgetProxy } from '../pixel-sprite/pixel-sprite-widget.proxy';
 
-type TickCallCount = ReturnType<SpyOnHandle['callsMatching']>['length'];
+type TickCallCount = ReturnType<ReturnType<typeof setIntervalProxy>['getCallsFor']>['length'];
 
 // Nothing in ChatPanelWidget's own render tree imports useElapsedTickBinding — composing
 // useElapsedTickBindingProxy here would be a phantom child (enforce-proxy-child-creation refuses
-// a proxy mocking a binding its own implementation file never imports). setInterval is a global,
-// not an import, so counting calls at this one address directly is the way to prove the session
-// path registers none, without claiming a binding relationship that does not exist.
-const isTickCallbackArg = (value: unknown): boolean => typeof value === 'function';
+// a proxy mocking a binding its own implementation file never imports). The widget's own raccoon
+// interval runs through the same gateway setInterval, so counting calls at the elapsed tick's delay
+// proves the session path registers none, without claiming a binding relationship that does not exist.
 
 const SHIFT_ON_TOKEN = '{shift>}';
 const SHIFT_OFF_TOKEN = '{/shift}';
@@ -89,14 +87,11 @@ export const ChatPanelWidgetProxy = (): {
   const entryListProxy = ChatEntryListWidgetProxy();
   PixelSpriteWidgetProxy();
 
-  // passthrough: real setInterval still runs (the raccoon sprite's own 2000/500/300ms interval
-  // included) — this only records calls so getTickIntervalCount can prove none arrive at the
-  // elapsed-tick binding's own address.
-  const setIntervalHandle: SpyOnHandle = registerSpyOn({
-    object: globalThis,
-    method: 'setInterval',
-    passthrough: true,
-  });
+  // Both pass through: the real raccoon interval still runs and is really cleared on unmount; the
+  // set-interval proxy only records, so getTickIntervalCount can prove no call arrives at the
+  // elapsed-tick binding's own delay.
+  const intervalProxy = setIntervalProxy();
+  clearIntervalProxy();
 
   return {
     // CHAT_INPUT is a contenteditable div, not a form element — userEvent.type's plain-character
@@ -142,9 +137,6 @@ export const ChatPanelWidgetProxy = (): {
     getDurationTestIds: (): ReturnType<Element['getAttribute']>[] =>
       entryListProxy.getDurationTestIds(),
     getTickIntervalCount: (): TickCallCount =>
-      setIntervalHandle.callsMatching([
-        isTickCallbackArg,
-        elapsedDisplayConfigStatics.refresh.tickMs,
-      ]).length,
+      intervalProxy.getCallsFor({ delay: elapsedDisplayConfigStatics.refresh.tickMs }).length,
   };
 };

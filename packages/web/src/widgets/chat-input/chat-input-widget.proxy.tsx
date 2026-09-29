@@ -1,8 +1,16 @@
 import { notifications } from '#gateway/npm/mantine__notifications';
-import { screen } from '@testing-library/react';
+import { Blob } from '#gateway/browser/Blob';
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
+import { File } from '#gateway/browser/File';
+import { clear } from '#gateway/browser/localStorage';
+import { readItemProxy } from '#gateway/browser/localStorage/read-item/read-item.proxy';
+import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remove-item.proxy';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
+import { writeItemProxy } from '#gateway/browser/localStorage/write-item/write-item.proxy';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle, RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { composerDeleteThumbnailBrokerProxy } from '../../brokers/composer/delete-thumbnail/composer-delete-thumbnail-broker.proxy';
 import { composerInsertImageBrokerProxy } from '../../brokers/composer/insert-image/composer-insert-image-broker.proxy';
@@ -62,6 +70,9 @@ export const ChatInputWidgetProxy = (): {
   getProgressPercent: () => ProgressPercent;
   getEditorText: () => NonNullable<Node['textContent']>;
   indexedDbUnavailable: (params: { error: Error }) => void;
+  storageWriteFails: (params: { key: string }) => void;
+  storageRemoveFails: (params: { key: string }) => void;
+  getLoggedErrors: () => RecordedCalls;
 } => {
   // Child creation only, per enforce-proxy-child-creation — the widget imports every one of these
   // directly (no binding layer sits between the composer and its adapters/brokers). The DOM
@@ -98,10 +109,14 @@ export const ChatInputWidgetProxy = (): {
   const notificationsHandle: MockHandle = registerMock({ fn: notifications.show });
   notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   const attachBrokerProxy = pastedImageAttachBrokerProxy();
+  readItemProxy();
+  const storageWriteProxy = writeItemProxy();
+  const storageRemoveProxy = removeItemProxy();
+  const consoleProxy = consoleErrorProxy();
 
   return {
     clearStorage: (): void => {
-      localStorage.clear();
+      clear();
     },
 
     // Builds a real Blob (and a File wrapping it) plus a clipboardData stand-in shaped like the
@@ -200,5 +215,17 @@ export const ChatInputWidgetProxy = (): {
     indexedDbUnavailable: ({ error }: { error: Error }): void => {
       loadBrokerProxy.storeUnavailable({ error });
     },
+
+    // Storage refuses every write (or removal) under this exact key, the way a private-mode browser
+    // does; every other key still writes for real.
+    storageWriteFails: ({ key }: { key: string }): void => {
+      storageWriteProxy.setupWriteFails({ key, error: StorageDisabledErrorStub() });
+    },
+
+    storageRemoveFails: ({ key }: { key: string }): void => {
+      storageRemoveProxy.setupRemoveFails({ key, error: StorageDisabledErrorStub() });
+    },
+
+    getLoggedErrors: (): RecordedCalls => consoleProxy.getCalls(),
   };
 };

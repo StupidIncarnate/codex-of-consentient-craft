@@ -234,6 +234,7 @@ describe('ImageContentLayerWidget', () => {
       it('VALID: {content: bare placeholder, nothing staged in memory} => the broken-image box takes the place the missing image would have occupied', () => {
         // #missing-image-never-vanishes
         const proxy = ImageContentLayerWidgetProxy();
+        proxy.setupEmptyMemory();
         const { content, uuid } = [
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
@@ -252,6 +253,7 @@ describe('ImageContentLayerWidget', () => {
       it('VALID: {content: bare placeholder, nothing staged in memory} => the text before and after is unchanged and the box names itself for the missing image', () => {
         // #broken-box-keeps-its-place
         const proxy = ImageContentLayerWidgetProxy();
+        proxy.setupEmptyMemory();
         const { content, uuid } = [
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
@@ -269,6 +271,7 @@ describe('ImageContentLayerWidget', () => {
       it('VALID: {content: bare placeholder, nothing staged in memory} => the broken box measures the configured broken-thumbnail size, both dimensions', () => {
         // #render-broken-box
         const proxy = ImageContentLayerWidgetProxy();
+        proxy.setupEmptyMemory();
         const { content, uuid } = [
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;

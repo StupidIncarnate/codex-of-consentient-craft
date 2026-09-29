@@ -1,6 +1,8 @@
 import { notifications } from '#gateway/npm/mantine__notifications';
-import { fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
+import { randomUuidProxy } from '#gateway/browser/crypto/random-uuid/random-uuid.proxy';
+import { fireEvent, screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type {
   OrchestrationMode,
@@ -149,6 +151,10 @@ export const QuestChatContentLayerWidgetProxy = (): {
   const approvedModal = QuestApprovedModalWidgetProxy();
   QuestLoadErrorWidgetProxy();
   QuestSpecPanelWidgetProxy();
+  // Pass through: the chat binding proxy stages the ids a test asserts on, and a failing navigate's
+  // log is recorded and silenced.
+  randomUuidProxy();
+  consoleErrorProxy();
   return {
     setupConnectedChannel: () => {
       binding.setupConnectedChannel();

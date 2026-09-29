@@ -6,7 +6,7 @@
  * // Renders the full Dungeonmaster web UI with routes for guild selection (/), guild chat (/:guildSlug/quest), and quest chat (/:guildSlug/quest/:questSlug)
  */
 
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from '#gateway/npm/react-router-dom';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 

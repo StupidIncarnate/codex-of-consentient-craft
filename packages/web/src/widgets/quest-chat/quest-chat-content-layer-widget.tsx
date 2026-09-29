@@ -7,10 +7,13 @@
  * // questId set → live workspace. The binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { consoleError } from '#gateway/browser/console';
+import { randomUuid } from '#gateway/browser/crypto';
+import { URLSearchParams } from '#gateway/browser/URLSearchParams';
+import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
+import { useLocation, useNavigate } from '#gateway/npm/react-router-dom';
 
-import { Box, Stack, Text } from '@mantine/core';
+import { Box, Stack, Text } from '#gateway/npm/mantine__core';
 
 import type {
   ChatEntry,
@@ -193,7 +196,7 @@ export const QuestChatContentLayerWidget = ({
       const userEntry = chatEntryContract.parse({
         role: 'user',
         content: message,
-        uuid: crypto.randomUUID(),
+        uuid: randomUuid(),
         timestamp: new Date().toISOString(),
       });
       setLocalEntries((prev) => [...prev, userEntry]);
@@ -217,7 +220,7 @@ export const QuestChatContentLayerWidget = ({
           const result = navigate(`/${guildSlug}/quest/${newQuestId}`, { replace: true });
           if (result instanceof Promise) {
             result.catch((navError: unknown) => {
-              globalThis.console.error('[quest-chat] new-chat navigate failed', navError);
+              consoleError('[quest-chat] new-chat navigate failed', navError);
             });
           }
         })
@@ -228,7 +231,7 @@ export const QuestChatContentLayerWidget = ({
             role: 'system',
             type: 'error',
             content: errorMessage,
-            uuid: crypto.randomUUID(),
+            uuid: randomUuid(),
             timestamp: new Date().toISOString(),
           });
           setLocalEntries((prev) => [...prev, errorEntry]);
@@ -462,7 +465,7 @@ export const QuestChatContentLayerWidget = ({
   const onAbandon = isAbandonableQuestStatusGuard({ status: quest.status })
     ? (): void => {
         questAbandonBroker({ questId: quest.id }).catch((abandonError: unknown) => {
-          globalThis.console.error('[quest-chat] abandon failed', abandonError);
+          consoleError('[quest-chat] abandon failed', abandonError);
         });
       }
     : undefined;
@@ -493,7 +496,7 @@ export const QuestChatContentLayerWidget = ({
           })
           .catch((startError: unknown) => {
             setBeginQuestPending(false);
-            globalThis.console.error('[quest-chat] begin quest failed', startError);
+            consoleError('[quest-chat] begin quest failed', startError);
             // The modal stays open on a rejection so the reader can read the toast and retry
             // without losing their place. The broker hands up the server's own sentence, which
             // names the actual cause.
@@ -511,7 +514,7 @@ export const QuestChatContentLayerWidget = ({
           questId: quest.id,
           modifications: { status: approvedReviewStatus },
         }).catch((modifyError: unknown) => {
-          globalThis.console.error('[quest-chat] keep chatting failed', modifyError);
+          consoleError('[quest-chat] keep chatting failed', modifyError);
         });
       }}
     />
@@ -527,10 +530,7 @@ export const QuestChatContentLayerWidget = ({
             if (nextStatus === 'flows_approved') {
               sendMessage({ message: FLOWS_APPROVED_FOLLOWUP_MESSAGE }).catch(
                 (sendError: unknown) => {
-                  globalThis.console.error(
-                    '[quest-chat] flows-approved follow-up failed',
-                    sendError,
-                  );
+                  consoleError('[quest-chat] flows-approved follow-up failed', sendError);
                 },
               );
             }
@@ -542,7 +542,7 @@ export const QuestChatContentLayerWidget = ({
             // trigger for the next phase.
           })
           .catch((modifyError: unknown) => {
-            globalThis.console.error('[quest-chat] modify failed', modifyError);
+            consoleError('[quest-chat] modify failed', modifyError);
           });
       }}
       pendingQuestion={pendingClarification}
@@ -580,7 +580,7 @@ export const QuestChatContentLayerWidget = ({
             onStopFollowup={handleStopFollowup}
             onMerge={(): void => {
               questMergeBroker({ questId: quest.id }).catch((mergeError: unknown) => {
-                globalThis.console.error('[quest-chat] merge failed', mergeError);
+                consoleError('[quest-chat] merge failed', mergeError);
               });
             }}
             onStatusChange={({ status }): void => {
@@ -590,7 +590,7 @@ export const QuestChatContentLayerWidget = ({
               // would flip the status back and let the next scan re-block on the same item.
               if (isQuestResumableQuestStatusGuard({ status: quest.status })) {
                 questResumeBroker({ questId: quest.id }).catch((resumeError: unknown) => {
-                  globalThis.console.error('[quest-chat] resume failed', resumeError);
+                  consoleError('[quest-chat] resume failed', resumeError);
                 });
                 return;
               }
@@ -598,12 +598,12 @@ export const QuestChatContentLayerWidget = ({
                 questId: quest.id,
                 modifications: { status },
               }).catch((modifyError: unknown) => {
-                globalThis.console.error('[quest-chat] status change failed', modifyError);
+                consoleError('[quest-chat] status change failed', modifyError);
               });
             }}
             onPause={(): void => {
               questPauseBroker({ questId: quest.id }).catch((pauseError: unknown) => {
-                globalThis.console.error('[quest-chat] pause failed', pauseError);
+                consoleError('[quest-chat] pause failed', pauseError);
               });
             }}
             {...(onAbandon ? { onAbandon } : {})}

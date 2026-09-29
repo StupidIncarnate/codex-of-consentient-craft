@@ -49,16 +49,21 @@ describe('mergeDescendantSubagentEntriesTransformer', () => {
 
   describe('descendant entries pulled from the pool', () => {
     it('VALID: {Task spawns minion-1, minion entries only in pool} => appends descendant entries after ownEntries', () => {
-      const taskMinion = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+      const taskMinion = TaskToolUseChatEntryStub({
+        agentId: 'minion-1',
+        uuid: 'c0000000-0000-4000-8000-000000000001',
+      });
       const m1 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'm1',
+        uuid: 'c0000000-0000-4000-8000-000000000002',
       });
       const m2 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'm2',
+        uuid: 'c0000000-0000-4000-8000-000000000003',
       });
 
       const result = mergeDescendantSubagentEntriesTransformer({
@@ -70,16 +75,21 @@ describe('mergeDescendantSubagentEntriesTransformer', () => {
     });
 
     it('EDGE: {descendant already present in ownEntries} => not duplicated', () => {
-      const taskMinion = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+      const taskMinion = TaskToolUseChatEntryStub({
+        agentId: 'minion-1',
+        uuid: 'c0000000-0000-4000-8000-000000000001',
+      });
       const m1 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'm1',
+        uuid: 'c0000000-0000-4000-8000-000000000002',
       });
       const m2 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'm2',
+        uuid: 'c0000000-0000-4000-8000-000000000003',
       });
 
       const result = mergeDescendantSubagentEntriesTransformer({
@@ -91,21 +101,27 @@ describe('mergeDescendantSubagentEntriesTransformer', () => {
     });
 
     it('VALID: {minion spawns a nested sub-agent via parentAgentId} => grandchild entries pulled with no depth cap', () => {
-      const taskMinion = TaskToolUseChatEntryStub({ agentId: 'minion-1' });
+      const taskMinion = TaskToolUseChatEntryStub({
+        agentId: 'minion-1',
+        uuid: 'c0000000-0000-4000-8000-000000000001',
+      });
       const m1 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'minion-1',
         content: 'm1',
+        uuid: 'c0000000-0000-4000-8000-000000000002',
       });
       const taskSub = TaskToolUseChatEntryStub({
         agentId: 'sub-1',
         parentAgentId: 'minion-1',
         source: 'subagent',
+        uuid: 'c0000000-0000-4000-8000-000000000004',
       });
       const s1 = AssistantTextChatEntryStub({
         source: 'subagent',
         agentId: 'sub-1',
         content: 's1',
+        uuid: 'c0000000-0000-4000-8000-000000000005',
       });
 
       const result = mergeDescendantSubagentEntriesTransformer({

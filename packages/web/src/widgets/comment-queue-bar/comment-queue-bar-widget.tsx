@@ -17,9 +17,10 @@
  * message invisible until a reload replays the session from disk.
  */
 
-import { useState } from 'react';
+import { consoleError } from '#gateway/browser/console';
+import { useState } from '#gateway/npm/react';
 
-import { Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '#gateway/npm/mantine__core';
 import { IconSend, IconTrash } from '#gateway/npm/tabler__icons-react';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -135,7 +136,7 @@ export const CommentQueueBarWidget = ({
                 .catch((error: unknown) => {
                   // The fetch itself rejected before any response arrived — the queue is left
                   // untouched (cleared only on a 200) and the failure is logged for diagnosis.
-                  globalThis.console.error('[comment-queue-bar] send failed', error);
+                  consoleError('[comment-queue-bar] send failed', error);
                   notifications.show({ message: NETWORK_ERROR_MESSAGE, color: 'red' });
                 })
                 .finally(() => {

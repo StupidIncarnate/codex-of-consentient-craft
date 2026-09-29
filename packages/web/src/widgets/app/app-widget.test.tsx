@@ -2,18 +2,21 @@
  * PURPOSE: Tests for AppWidget - routing, layout, guild selection, and session navigation
  */
 
-import { waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 import {
   DispatchStateStub,
   GuildIdStub,
   GuildListItemStub,
+  QuestIdStub,
   QuestQueueEntryStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { act } from '#gateway/npm/testing-library__react';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
+import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
+import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
+import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
 import { HomeContentWidget } from '../home-content/home-content-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
 import { SessionViewWidget } from '../session-view/session-view-widget';
@@ -831,6 +834,59 @@ describe('AppWidget', () => {
       });
 
       expect(proxy.isSessionViewVisible()).toBe(true);
+    });
+  });
+
+  describe('shared websocket connection', () => {
+    it('VALID: {chat + queue + rate-limits bindings mounted together} => exactly one WebSocket is opened', async () => {
+      const proxy = AppWidgetProxy();
+      proxy.setupQuestQueue({ entries: [] });
+      proxy.setupRateLimits({ snapshot: null });
+      proxy.setupSharedChannel();
+
+      const questId = QuestIdStub({ value: 'test-quest' });
+
+      const { result: chatResult } = renderHook(() => useQuestChatBinding({ questId }));
+      const { result: queueResult } = renderHook(() => useQuestQueueBinding());
+      const { result: rateLimitsResult } = renderHook(() => useRateLimitsBinding());
+
+      // Both HTTP-backed bindings finishing their load confirms every mount effect, the socket
+      // subscriptions included, has run.
+      await waitFor(() => {
+        expect(queueResult.current).toStrictEqual({
+          activeEntry: null,
+          allEntries: [],
+          errorEntry: undefined,
+          isLoading: false,
+        });
+        expect(rateLimitsResult.current).toStrictEqual({
+          snapshot: null,
+          isLoading: false,
+        });
+      });
+
+      expect(chatResult.current).toStrictEqual({
+        entriesBySession: new Map(),
+        entriesByWorkItem: new Map(),
+        slotEntries: new Map(),
+        followupEntries: [],
+        quest: null,
+        loadError: null,
+        pendingClarification: null,
+        isStreaming: false,
+        isFollowupStreaming: false,
+        armStreaming: expect.any(Function),
+        disarmStreaming: expect.any(Function),
+        disarmFollowupStreaming: expect.any(Function),
+        sendMessage: expect.any(Function),
+        sendFollowupMessage: expect.any(Function),
+        sendCommentBatch: expect.any(Function),
+        submitClarifyAnswers: expect.any(Function),
+        stopChat: expect.any(Function),
+        stopFollowupChat: expect.any(Function),
+      });
+      // The three bindings share the singleton webSocketChannelState, so one socket serves them all.
+      expect(proxy.getSocketConnectionCount()).toBe(1);
     });
   });
 });

@@ -1,5 +1,11 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { btoa } from '#gateway/browser/btoa';
+import { document } from '#gateway/browser/document';
+import { InputEvent } from '#gateway/browser/InputEvent';
+import { readItem, writeItem } from '#gateway/browser/localStorage';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
+import { setTimeout } from '#gateway/browser/setTimeout';
+import { fireEvent, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -916,7 +922,7 @@ describe('ChatInputWidget', () => {
 
       fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'B' }) });
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('A[Pasted Image 1]B');
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('A[Pasted Image 1]B');
     });
   });
 
@@ -1026,7 +1032,7 @@ describe('ChatInputWidget', () => {
 
       fireEvent.paste(firstEditor, { clipboardData: proxy.pasteText({ text: 'B' }) });
 
-      const draftBeforeReload = localStorage.getItem(DRAFT_STORAGE_KEY);
+      const draftBeforeReload = readItem({ key: DRAFT_STORAGE_KEY });
 
       firstRender.unmount();
 
@@ -1055,7 +1061,7 @@ describe('ChatInputWidget', () => {
         clipboardData: proxy.pasteText({ text: '' }),
       });
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(draftBeforeReload);
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe(draftBeforeReload);
     });
 
     // The design decision restored-draft-sends-like-any-other: the reload path is not finished when
@@ -1122,7 +1128,7 @@ describe('ChatInputWidget', () => {
       // Computed independently of the widget/transformer — the same round-trip
       // file-read-data-url-broker.test.ts uses to pin FileReader's own base64 output — rather than
       // read back whatever the composer happened to render.
-      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedBase64 = btoa(String.fromCharCode(...pastedBytes));
 
       expect(onSendMessage).toHaveBeenCalledTimes(1);
       expect(onSendMessage).toHaveBeenCalledWith({
@@ -1211,8 +1217,8 @@ describe('ChatInputWidget', () => {
       // Computed independently of the widget/transformer, from the SAME raw bytes each pasteImage
       // call was given — never from proxy.getThumbnailSrcs() or any other read of what the composer
       // itself rendered, which would make the assertion circular.
-      const firstDataBase64 = globalThis.btoa(String.fromCharCode(...firstBytes));
-      const secondDataBase64 = globalThis.btoa(String.fromCharCode(...secondBytes));
+      const firstDataBase64 = btoa(String.fromCharCode(...firstBytes));
+      const secondDataBase64 = btoa(String.fromCharCode(...secondBytes));
       const expectedImages = [
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: firstDataBase64 }),
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: secondDataBase64 }),
@@ -1349,7 +1355,7 @@ describe('ChatInputWidget', () => {
     it('EDGE: {localStorage holds "A[Pasted Image 1]B", IndexedDB draft store is empty} => #check-orphaned-token-drops-alone the surrounding text restores and the token is gone', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      localStorage.setItem(DRAFT_STORAGE_KEY, 'A[Pasted Image 1]B');
+      writeItem({ key: DRAFT_STORAGE_KEY, value: 'A[Pasted Image 1]B' });
 
       mantineRenderMiddleware({
         ui: (
@@ -1418,7 +1424,7 @@ describe('ChatInputWidget', () => {
         setTimeout(resolve, 0);
       });
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(null);
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe(null);
     });
   });
 
@@ -1495,7 +1501,7 @@ describe('ChatInputWidget', () => {
       editor.textContent = 'hand typed text';
       fireEvent.input(editor);
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('hand typed text');
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('hand typed text');
     });
 
     it('VALID: {typed text, no image in composer} => #check-typing-clears-placeholder removes the CHAT_INPUT_PLACEHOLDER element', () => {
@@ -1587,7 +1593,7 @@ describe('ChatInputWidget', () => {
       // the reload-restore tests above do, rather than read back off the composer's own thumbnail.
       // widthPx/heightPx stay at ComposerAttachmentStub's own defaults because attachYields never
       // overrode them, and the downscale ladder's proxy stages exactly those as the measured size.
-      const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedDataBase64 = btoa(String.fromCharCode(...pastedBytes));
       const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
       const expectedAttachments = [
         ComposerAttachmentStub({
@@ -1839,8 +1845,8 @@ describe('ChatInputWidget', () => {
 
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
-      const firstDataBase64 = globalThis.btoa(String.fromCharCode(...firstBytes));
-      const secondDataBase64 = globalThis.btoa(String.fromCharCode(...secondBytes));
+      const firstDataBase64 = btoa(String.fromCharCode(...firstBytes));
+      const secondDataBase64 = btoa(String.fromCharCode(...secondBytes));
       const expectedImages = [
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: firstDataBase64 }),
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: secondDataBase64 }),
@@ -2159,7 +2165,7 @@ describe('ChatInputWidget', () => {
         ]);
       });
 
-      const draftBeforeSend = localStorage.getItem(DRAFT_STORAGE_KEY);
+      const draftBeforeSend = readItem({ key: DRAFT_STORAGE_KEY });
 
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
@@ -2167,9 +2173,9 @@ describe('ChatInputWidget', () => {
         expect(proxy.isEditorEditable()).toBe(true);
       });
 
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(draftBeforeSend);
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe(draftBeforeSend);
 
-      const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedDataBase64 = btoa(String.fromCharCode(...pastedBytes));
       const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
 
       await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([
@@ -2226,7 +2232,7 @@ describe('ChatInputWidget', () => {
         expect(proxy.isEditorEditable()).toBe(true);
       });
 
-      const expectedDataBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedDataBase64 = btoa(String.fromCharCode(...pastedBytes));
       const expectedByteLength = base64ByteLengthTransformer({ dataBase64: expectedDataBase64 });
 
       await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([
@@ -2366,7 +2372,7 @@ describe('ChatInputWidget', () => {
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
       await waitFor(() => {
-        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe(null);
+        expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe(null);
       });
 
       await expect(proxy.getStoredDraftImages()).resolves.toStrictEqual([]);
@@ -2461,7 +2467,7 @@ describe('ChatInputWidget', () => {
       fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
       fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
 
-      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe('true');
+      expect(readItem({ key: DISPATCHED_STAMP_KEY })).toBe('true');
     });
 
     it('VALID: {send accepted} => #check-stamp-cleared-on-acceptance the dispatched stamp is removed', async () => {
@@ -2487,7 +2493,7 @@ describe('ChatInputWidget', () => {
         expect(proxy.isEditorEditable()).toBe(true);
       });
 
-      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
+      expect(readItem({ key: DISPATCHED_STAMP_KEY })).toBe(null);
     });
 
     it('ERROR: {send rejected} => #check-stamp-cleared-on-rejection the dispatched stamp is removed while the draft text survives', async () => {
@@ -2515,8 +2521,8 @@ describe('ChatInputWidget', () => {
         expect(proxy.isEditorEditable()).toBe(true);
       });
 
-      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('hello');
+      expect(readItem({ key: DISPATCHED_STAMP_KEY })).toBe(null);
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('hello');
     });
 
     // THE RED CASE for the reload-races-an-accepted-send defect: a page reload racing the response
@@ -2564,14 +2570,14 @@ describe('ChatInputWidget', () => {
       // defect under test is about the SEND's own dispatched stamp, not a paste/reload race
       // "durable write ordering" already covers elsewhere.
       await waitFor(() => {
-        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('A[Pasted Image 1]');
+        expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('A[Pasted Image 1]');
       });
 
       // Enter fires the send — onSendMessage's promise never settles in THIS document, exactly
       // like a real request whose response arrives only after the tab reloads.
       fireEvent.keyDown(firstEditor, { key: 'Enter', shiftKey: false });
 
-      expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe('true');
+      expect(readItem({ key: DISPATCHED_STAMP_KEY })).toBe('true');
 
       // Simulated reload: the pending onSendMessage promise (and its never-firing .then/.catch) is
       // discarded along with the whole first render, same as a real page unload discards an
@@ -2589,7 +2595,7 @@ describe('ChatInputWidget', () => {
       });
 
       await waitFor(() => {
-        expect(localStorage.getItem(DISPATCHED_STAMP_KEY)).toBe(null);
+        expect(readItem({ key: DISPATCHED_STAMP_KEY })).toBe(null);
       });
 
       // The composer's whole post-reload state as ONE strict object — what is on screen and what
@@ -2598,7 +2604,7 @@ describe('ChatInputWidget', () => {
       expect({
         editorText: proxy.getEditorText(),
         thumbnailAttachmentIds: proxy.getThumbnailAttachmentIds(),
-        storedDraftText: localStorage.getItem(DRAFT_STORAGE_KEY),
+        storedDraftText: readItem({ key: DRAFT_STORAGE_KEY }),
         storedDraftImages: await proxy.getStoredDraftImages(),
       }).toStrictEqual({
         editorText: '',
@@ -2613,7 +2619,7 @@ describe('ChatInputWidget', () => {
     it("VALID: {a main-scope draft restored, then the same instance re-scoped to the follow-up surface} => #check-scope-change-clears-editor the editor empties instead of carrying the first scope's text into the second", async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      localStorage.setItem(MAIN_DRAFT_STORAGE_KEY, 'first scope draft');
+      writeItem({ key: MAIN_DRAFT_STORAGE_KEY, value: 'first scope draft' });
 
       const { rerender } = mantineRenderMiddleware({
         ui: (
@@ -2673,10 +2679,10 @@ describe('ChatInputWidget', () => {
 
       // Turns red at 'first scope draft' — that is the leak itself: the first scope's text written
       // into the second scope's key.
-      expect(localStorage.getItem(FOLLOWUP_DRAFT_STORAGE_KEY)).toBe(null);
+      expect(readItem({ key: FOLLOWUP_DRAFT_STORAGE_KEY })).toBe(null);
       // Turns red at null if the clear ever routes through handleContentChanged — writing the
       // now-empty editor back out would delete the draft the ORIGINAL scope is still entitled to.
-      expect(localStorage.getItem(MAIN_DRAFT_STORAGE_KEY)).toBe('first scope draft');
+      expect(readItem({ key: MAIN_DRAFT_STORAGE_KEY })).toBe('first scope draft');
     });
   });
 
@@ -2685,7 +2691,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
       // The pre-scoping key: the prefix read ALONE, with no ":<scopeKey>" suffix.
-      localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
+      writeItem({ key: chatComposerStatics.draftStorageKeyPrefix, value: 'legacy draft' });
 
       mantineRenderMiddleware({
         ui: (
@@ -2705,16 +2711,16 @@ describe('ChatInputWidget', () => {
 
       // Turns red at null — the adopted text has to be written under the create surface's own
       // scoped key, or the very next mount finds nothing and the bare key is already deleted.
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('legacy draft');
       // Turns red at 'legacy draft' — removing the bare key is the destructive half of this
       // migration, and the half that has to be paired with the write above to be safe.
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix)).toBe(null);
+      expect(readItem({ key: chatComposerStatics.draftStorageKeyPrefix })).toBe(null);
     });
 
     it('VALID: {mount, unmount, remount with the bare key already adopted} => #check-legacy-draft-migration-idempotent the bare key stays absent and the scoped draft is unchanged', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
+      writeItem({ key: chatComposerStatics.draftStorageKeyPrefix, value: 'legacy draft' });
 
       const firstRender = mantineRenderMiddleware({
         ui: (
@@ -2727,7 +2733,7 @@ describe('ChatInputWidget', () => {
       });
 
       await waitFor(() => {
-        expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
+        expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('legacy draft');
       });
 
       firstRender.unmount();
@@ -2748,10 +2754,177 @@ describe('ChatInputWidget', () => {
 
       // Turns red at 'legacy draft' — a second adoption pass would have to resurrect the bare key
       // first, so any value here at all means the migration is not the once-only branch it claims.
-      expect(localStorage.getItem(chatComposerStatics.draftStorageKeyPrefix)).toBe(null);
+      expect(readItem({ key: chatComposerStatics.draftStorageKeyPrefix })).toBe(null);
       // Turns red at null — the remount reads the scoped key and must leave it exactly as the first
       // mount wrote it.
-      expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBe('legacy draft');
+      expect(readItem({ key: DRAFT_STORAGE_KEY })).toBe('legacy draft');
+    });
+  });
+
+  describe('storage refusals', () => {
+    it('ERROR: {storage refuses the draft text write} => logs the refusal and the editor keeps the typed text', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      proxy.storageWriteFails({ key: DRAFT_STORAGE_KEY });
+
+      mantineRenderMiddleware({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      fireEvent.paste(screen.getByTestId('CHAT_INPUT'), {
+        clipboardData: proxy.pasteText({ text: 'hello' }),
+      });
+
+      expect({
+        editorText: proxy.getEditorText(),
+        storedDraft: readItem({ key: DRAFT_STORAGE_KEY }),
+        loggedErrors: proxy.getLoggedErrors(),
+      }).toStrictEqual({
+        editorText: 'hello',
+        storedDraft: null,
+        loggedErrors: [
+          ['[chat-input] failed to persist the draft text', StorageDisabledErrorStub()],
+        ],
+      });
+    });
+
+    it('ERROR: {storage refuses the dispatched stamp} => logs the refusal and the send still goes out', () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      proxy.storageWriteFails({ key: DISPATCHED_STAMP_KEY });
+      const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
+
+      mantineRenderMiddleware({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      expect(onSendMessage.mock.calls).toStrictEqual([[{ message: 'hello' }]]);
+      expect({
+        stamp: readItem({ key: DISPATCHED_STAMP_KEY }),
+        loggedErrors: proxy.getLoggedErrors(),
+      }).toStrictEqual({
+        stamp: null,
+        loggedErrors: [
+          ['[chat-input] failed to stamp the draft as dispatched', StorageDisabledErrorStub()],
+        ],
+      });
+    });
+
+    it('ERROR: {storage refuses removing the dispatched stamp after an accepted send} => logs the refusal and the stamp stays', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      proxy.storageRemoveFails({ key: DISPATCHED_STAMP_KEY });
+      const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
+
+      mantineRenderMiddleware({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={onSendMessage}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      const editor = screen.getByTestId('CHAT_INPUT');
+      fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'hello' }) });
+      fireEvent.keyDown(editor, { key: 'Enter', shiftKey: false });
+
+      await waitFor(() => {
+        expect(proxy.isEditorEditable()).toBe(true);
+      });
+
+      expect({
+        stamp: readItem({ key: DISPATCHED_STAMP_KEY }),
+        loggedErrors: proxy.getLoggedErrors(),
+      }).toStrictEqual({
+        stamp: 'true',
+        loggedErrors: [
+          ['[chat-input] failed to clear the dispatched stamp', StorageDisabledErrorStub()],
+        ],
+      });
+    });
+
+    it('ERROR: {storage refuses adopting the legacy draft} => logs the refusal, restores the draft, and keeps the bare key', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      writeItem({ key: chatComposerStatics.draftStorageKeyPrefix, value: 'legacy draft' });
+      proxy.storageWriteFails({ key: DRAFT_STORAGE_KEY });
+
+      mantineRenderMiddleware({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('legacy draft');
+      });
+
+      expect({
+        scopedDraft: readItem({ key: DRAFT_STORAGE_KEY }),
+        legacyDraft: readItem({ key: chatComposerStatics.draftStorageKeyPrefix }),
+        loggedErrors: proxy.getLoggedErrors(),
+      }).toStrictEqual({
+        scopedDraft: null,
+        legacyDraft: 'legacy draft',
+        loggedErrors: [
+          ['[chat-input] failed to adopt the legacy draft', StorageDisabledErrorStub()],
+        ],
+      });
+    });
+
+    it('ERROR: {storage refuses removing the adopted legacy key} => logs the refusal and the draft is still adopted', async () => {
+      const proxy = ChatInputWidgetProxy();
+      proxy.clearStorage();
+      writeItem({ key: chatComposerStatics.draftStorageKeyPrefix, value: 'legacy draft' });
+      proxy.storageRemoveFails({ key: chatComposerStatics.draftStorageKeyPrefix });
+
+      mantineRenderMiddleware({
+        ui: (
+          <ChatInputWidget
+            isStreaming={false}
+            onSendMessage={jest.fn(async (): Promise<void> => Promise.resolve())}
+            onStopChat={jest.fn()}
+          />
+        ),
+      });
+
+      await waitFor(() => {
+        expect(proxy.getEditorText()).toBe('legacy draft');
+      });
+
+      expect({
+        scopedDraft: readItem({ key: DRAFT_STORAGE_KEY }),
+        legacyDraft: readItem({ key: chatComposerStatics.draftStorageKeyPrefix }),
+        loggedErrors: proxy.getLoggedErrors(),
+      }).toStrictEqual({
+        scopedDraft: 'legacy draft',
+        legacyDraft: 'legacy draft',
+        loggedErrors: [
+          ['[chat-input] failed to remove the legacy draft key', StorageDisabledErrorStub()],
+        ],
+      });
     });
   });
 });

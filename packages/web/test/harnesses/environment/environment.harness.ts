@@ -13,15 +13,16 @@
  * // Returns [] while the fixture repo holds no quest worktree
  * // Call env.cleanup() or rely on afterEach if wired
  */
-import { execFileSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { gitRunSync } from '#gateway/bin/git';
+import * as fs from '#gateway/node/fs';
+import * as path from '#gateway/node/path';
 
 import type { FileName, FilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub, FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
+import { envSnapshot } from '#gateway/node/process';
 
 // Real committer identity + disabled GPG signing, scoped to the child process env (not `-c` argv
 // flags, not a `git config` write) so these throwaway fixture commits never depend on, or mutate,
@@ -70,11 +71,7 @@ export const environmentHarness = ({
   };
 
   const runGit = (args: readonly string[]): void => {
-    execFileSync('git', [...args], {
-      cwd: guildPath,
-      env: { ...process.env, ...GIT_COMMIT_ENV },
-      stdio: 'ignore',
-    });
+    gitRunSync({ args: [...args], cwd: guildPath, env: { ...envSnapshot(), ...GIT_COMMIT_ENV } });
   };
 
   // Riftcarver pushes the quest branch to `origin` right after carving (`git push -u origin
@@ -92,11 +89,9 @@ export const environmentHarness = ({
 
   const ensureRemote = (): void => {
     if (!fs.existsSync(remotePath)) {
-      execFileSync('git', ['init', '--bare', '-b', 'main', remotePath], { stdio: 'ignore' });
+      gitRunSync({ args: ['init', '--bare', '-b', 'main', remotePath], cwd: guildPath });
     }
-    const remotes = execFileSync('git', ['remote'], { cwd: guildPath, encoding: 'utf8' }).split(
-      '\n',
-    );
+    const remotes = gitRunSync({ args: ['remote'], cwd: guildPath }).split('\n');
     runGit(
       remotes.includes('origin')
         ? ['remote', 'set-url', 'origin', remotePath]
@@ -183,10 +178,10 @@ export const environmentHarness = ({
     const nodeModules = path.join(guildPath, 'node_modules');
     const scopeDir = path.join(nodeModules, '@dungeonmaster');
     fs.mkdirSync(scopeDir, { recursive: true });
-    fs.symlinkSync(
-      path.join('..', '..', 'packages', FIXTURE_PACKAGE_NAME),
-      path.join(scopeDir, FIXTURE_PACKAGE_NAME),
-    );
+    fs.symlinkSync({
+      target: path.join('..', '..', 'packages', FIXTURE_PACKAGE_NAME),
+      path: path.join(scopeDir, FIXTURE_PACKAGE_NAME),
+    });
     fs.mkdirSync(path.join(nodeModules, 'zod'), { recursive: true });
   };
 

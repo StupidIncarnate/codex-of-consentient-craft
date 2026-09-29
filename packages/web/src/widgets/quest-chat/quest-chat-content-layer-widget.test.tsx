@@ -1,5 +1,7 @@
-import { act, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { btoa } from '#gateway/browser/btoa';
+import { Node } from '#gateway/browser/Node';
+import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
+import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import {
   GuildIdStub,
@@ -1537,7 +1539,7 @@ describe('QuestChatContentLayerWidget', () => {
         expect(proxy.getNewQuestRequestCount()).toBe(1);
       });
 
-      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedBase64 = btoa(String.fromCharCode(...pastedBytes));
       const bodies = await proxy.getNewQuestRequestBodies();
 
       // The composer embeds a `[Pasted Image 1]` marker in the message text at the position the
@@ -1568,7 +1570,7 @@ describe('QuestChatContentLayerWidget', () => {
       // for why the marker is there at all.
       const expectedWireMessage = `[Pasted Image 1]${sharedMessage}`;
       const pastedBytes = new Uint8Array([11, 22, 33, 44]);
-      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedBase64 = btoa(String.fromCharCode(...pastedBytes));
       const sharedImages = [
         PastedImageUploadStub({ mediaType: 'image/png', dataBase64: expectedBase64 }),
       ];
@@ -1710,7 +1712,7 @@ describe('QuestChatContentLayerWidget', () => {
 
       // STATE (a): only the optimistic entry exists yet. Its bubble carries the composed text, and
       // its image is drawn from the staged data URL — no transcript copy has arrived.
-      const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
+      const expectedBase64 = btoa(String.fromCharCode(...pastedBytes));
       const expectedDataUrl = `data:image/png;base64,${expectedBase64}`;
 
       const bubblesBeforeDelivery = screen

@@ -9,8 +9,9 @@
  * <RiftcarverResultDetailLayerWidget questId={questId} riftcarverResult={riftcarverResult} />
  */
 
-import { Text } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { consoleError } from '#gateway/browser/console';
+import { Text } from '#gateway/npm/mantine__core';
+import { useEffect, useState } from '#gateway/npm/react';
 
 import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
 
@@ -41,7 +42,7 @@ export const RiftcarverResultDetailLayerWidget = ({
         }
       })
       .catch((fetchError: unknown) => {
-        globalThis.console.error('[riftcarver-result-detail] fetch failed', fetchError);
+        consoleError('[riftcarver-result-detail] fetch failed', fetchError);
       });
     return (): void => {
       cancelled = true;

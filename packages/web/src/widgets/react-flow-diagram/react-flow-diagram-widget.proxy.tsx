@@ -1,7 +1,6 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { consoleErrorProxy } from '#gateway/browser/console/console-error/console-error.proxy';
+import { screen } from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { elkLayoutBrokerProxy } from '../../brokers/elk/layout/elk-layout-broker.proxy';
 import { FlowEdgeWidgetProxy } from '../flow-edge/flow-edge-widget.proxy';
@@ -69,15 +68,8 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
   const recipeCalloutProxy = FlowRecipeCalloutLayerWidgetProxy();
   const user = userEvent.setup(userEventStatics.options);
   // The widget logs a rejected ELK layout directly from its catch (no thrown error surfaces to
-  // React), so any test that triggers that path would otherwise throw here. passthrough: true —
-  // console.error is a shared sink; React's own internal warnings (e.g. act() warnings) also flow
-  // through it and must keep printing normally, not throw for being unstaged.
-  const consoleErrorHandle = registerSpyOn({
-    object: globalThis.console,
-    method: 'error',
-    passthrough: true,
-  });
-  consoleErrorHandle.calledWith(['[react-flow-diagram]']).returns(undefined);
+  // React); the proxy records and silences it.
+  const consoleProxy = consoleErrorProxy();
 
   return {
     setupEmptyQueue: (): void => {
@@ -218,7 +210,7 @@ export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult
     // nothing new — the canvas deliberately keeps the last good graph — so this log is the only
     // signal a test can wait on before asserting what survived.
     countLayoutErrorLogs: (): HTMLElement['childElementCount'] =>
-      consoleErrorHandle.callsMatching(['[react-flow-diagram]']).length,
+      consoleProxy.getCallsFor({ message: '[react-flow-diagram]' }).length,
     hasDetailPanel: (): boolean => screen.queryByTestId('FLOW_NODE_DETAIL_PANEL') !== null,
     // Direct children of the floating control cluster, in DOM order. Scoped because the comment
     // bubbles on the cards are buttons on this canvas too; direct children rather than a descendant
