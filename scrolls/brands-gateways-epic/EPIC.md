@@ -163,6 +163,10 @@ More rules for the operator:
 - Step 2 done: L2 merged (62507f92d).
 - Plans written: T06 (`items/t06-*.md` "## Plan", 15 agents in 3 waves) and L4 rest (`items/b05-*.md` "## Plan — L4 rest and L3 leftovers", 14 batches; hooks, server and mcp L3 leftovers were already done).
 
+### Quiet window planned (16:25)
+
+No new dispatch until the running agents drain (R7 a-e, T06 E1, F100 shared, R1-orch-h). Then, with nothing else running: `build:clean`, full `npm run ward`, `check:consumer` and `check:published` (hooks install parses settings now; shared and testing APIs changed); then testing's quiet wave (K-test-1, K-test-2, R1-testing-a to -c); then R5's switch-on (`outsideTypeCasts` on after a full scan), R7-f/g, F100's eslint-plugin batches.
+
 ### Lessons worth keeping
 
 - **Gate composers.** A change to one package's proxies is gated with a unit run of every package that composes
