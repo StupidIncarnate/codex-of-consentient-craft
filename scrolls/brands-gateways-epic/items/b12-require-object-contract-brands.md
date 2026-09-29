@@ -351,3 +351,39 @@ the Z-phase agent writes accurate text.
 
 ## Concessions made while executing
 
+
+## Plan — R7: `require-object-contract-brands-indexed`
+
+**What it refuses** (quoting this file's check table, rows marked Indexed, and BR row 2254): "`require-object-contract-brands-indexed`: a leaf with no brand, and a layer contract's text ... B4's index, to leave alone every key B4 claims; the parent file, to derive a layer's text ... **No.** Without the index, the hook would tell a model to brand `questId` as `'SomeQuestId'`, which B4 then refuses."
+1. A `z.string()` or `z.number()` leaf with no `.brand<'…'>()` in its chain, except a key `enforce-owner-field-reuse` claims. Message: `Field {{key}} has no brand. Add .brand<'{{expected}}'>().` Autofix: insert the derived brand after the last check call and before `.optional()`/`.nullable()`/`.default()`.
+2. In a `*-layer-contract.ts`: every brand text equals owner plus key plus leaf keys, where owner and key come from the parent's one use. Message: `Layer {{layer}} is used under key {{key}}. Its brand must be '{{expected}}'.` Autofix: replace the text.
+3. A layer imported by any file but its parent. Message: `Layer {{layer}} is imported by {{file}}. Only its parent, {{parent}}, may import it.` No autofix.
+
+**Existing code it extends**
+- `packages/eslint-plugin/src/brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker.ts` (R2, the syntax half). It already skips layers (`const isLayer = baseName.includes('-layer-contract')`, "A layer's owner is the file that imports it, so its texts belong to the indexed rule") and has no leaf check. Its helpers are reused unchanged: `astBrandPathTransformer`, `astExpectedBrandTextTransformer`, `astFieldListOwnersTransformer`, `astLocalIdConstsTransformer`, `isAstBrandInChainGuard`, `zodObjectBrandStatics`.
+- R6's index in shared, already exported: `ownerIndexBuildBroker` (`@dungeonmaster/shared/brokers`), `ownerIndexNameMatchTransformer`, `repoRootFromSourcePathTransformer`, `layerFileParentResolveTransformer` (`@dungeonmaster/shared/transformers`); `contractIndexBuildBroker` gives each layer entry's `nestedInFiles`. "Claimed" means `ownerIndexNameMatchTransformer({ ownerIndex, packageName, name: key }) !== undefined`, the same call `packages/eslint-plugin/src/brokers/rule/enforce-owner-field-reuse/rule-enforce-owner-field-reuse-broker.ts` uses at its line 105-108. Same code, no second matcher (B13 "Done when").
+- No shared change is needed, so no shared build.
+
+**Files, by batch** (eslint-plugin only; one agent at a time)
+
+| Batch | Files | What |
+|---|---|---|
+| R7-a | `packages/eslint-plugin/src/statics/zod-object-brand/zod-object-brand-statics.ts`, `packages/eslint-plugin/src/statics/zod-object-brand/zod-object-brand-statics.test.ts`, `packages/eslint-plugin/src/guards/is-ast-unbranded-leaf/is-ast-unbranded-leaf-guard.ts`, `packages/eslint-plugin/src/guards/is-ast-unbranded-leaf/is-ast-unbranded-leaf-guard.test.ts` | Add `leafRoots` (`string`, `number`, `int`, and the v4 string formats) to the statics. The guard: a `z.string()`/`z.number()` chain sitting as a property value, array element, record key or value, or tuple position, with no brand in its chain. |
+| R7-b | `packages/eslint-plugin/src/transformers/ast-leaf-brand-anchor/ast-leaf-brand-anchor-transformer.ts`, its `.test.ts`, `packages/eslint-plugin/src/transformers/ast-layer-parent-use/ast-layer-parent-use-transformer.ts`, its `.test.ts` | The anchor node the fixer inserts after (before any wrapper in `reuseModifiers`, after `.min(1)`/`.uuid()`). The second reads a parent contract's source text and a layer const name and returns the owner name plus key path where the layer is used (TypeScript through `#gateway/npm/typescript`). |
+| R7-c | `packages/eslint-plugin/src/brokers/rule/require-object-contract-brands-indexed/rule-require-object-contract-brands-indexed-broker.ts`, `.test.ts`, `.proxy.ts` | The leaf half (check 1): builds the index once per process, skips claimed keys and reuses (`.shape.` access, another contract, the owner's local id const), reports and fixes. Proxy composes `ownerIndexBuildBrokerProxy` as R8's proxy does. |
+| R7-d | `packages/eslint-plugin/src/brokers/rule/require-object-contract-brands-indexed/layer-contract-check-layer-broker.ts`, `.test.ts`, `.proxy.ts` | The layer half (checks 2 and 3): parent via `layerFileParentResolveTransformer`, its text read through `#gateway/node/fs`, importers from `contractIndexBuildBroker`. |
+| R7-e | `packages/eslint-plugin/src/brokers/rule/require-object-contract-brands-indexed/rule-require-object-contract-brands-indexed-broker.ts`, `.test.ts` | Call R7-d from the rule; RuleTester cases for both halves (needs R7-c and R7-d first). |
+| R7-f | `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`, `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.proxy.ts`, `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.test.ts` | Import, `rules` type entry (line ~236) and object entry (line ~339) beside `require-object-contract-brands`; proxy import; add the name to the test's expected list (line ~97). |
+| R7-g | `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`, `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.test.ts`, `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts`, `packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.integration.test.ts`, `packages/eslint-plugin/src/startup/start-eslint-plugin.integration.test.ts` | `'@dungeonmaster/require-object-contract-brands-indexed': 'off'` with a comment after line 197; a config test that it is `off` and not a `ruleEnforceOn` entry (mirror lines 145-160); add it to `WARD_ONLY_TYPE_CHECKED_RULES` (as `enforce-owner-field-reuse` is at line 23); add the name to both integration lists. (Five files; if the agent finds it heavy, split the two integration tests off.) |
+
+**Off and scanned first: yes.** Registered `'off'`, never tagged in `dungeonmaster-rule-enforce-on-statics.ts` (ward only, so the hook never reads the index). After R7-e run `npm run ward -- scan @dungeonmaster/require-object-contract-brands-indexed -- packages/<pkg>`, one package at a time, and hand-check a sample per package; the scan works on an `off` rule (`scanEslintConfigSourceTransformer` forces `error`). Measured today for orientation only: a regex census counts about 91 `z.string()`/`z.number()` leaves in contract files with no brand in their statement (session-forensics 53, hooks 25, a few elsewhere), before subtracting claimed keys and reuses; the R2 rule on hooks reads wrong-text hits but none for missing leaves. **There are 0 `*-layer-contract.ts` files in the repo today**, so the layer half has only RuleTester coverage until C7's layers ([B07](b07-layers-and-statics-regex.md)) exist; say so in the report.
+
+**Autofix:** leaf brand insertion (check 1) and layer text replacement (check 2). None for check 3.
+
+**Teaching rows:** the messages above; BR row 2228 area (`require-zod-on-primitives` replaced) is already this item's Z-phase text; add "leaf with no brand" and the layer texts to the Z01 to Z03 note. No doc file is edited here.
+
+**Size:** medium. 24 files in 7 batches, one agent each, sequential (R7-a, b, c, d, e, f, g; a and b are independent of each other).
+
+**Already done:** R2's syntax half, the index (R6), `enforce-owner-field-reuse` (R8) and the plugin's rule registration pattern. The `-indexed` rule folder does not exist (`ls packages/eslint-plugin/src/brokers/rule/` has only `require-object-contract-brands`).
+
+**Dependencies:** none open. R7-f and R7-g both edit shared registration files with no other chunk except R5-c (`config-dungeonmaster-broker.ts`), so do not run R7-g beside R5-c.

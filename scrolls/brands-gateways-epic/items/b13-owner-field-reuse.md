@@ -218,3 +218,45 @@ that phase writes accurate text.
 
 ## Concessions made while executing
 
+
+## Plan — F100: the nested-object and inline-enum copy checks in `enforce-owner-field-reuse`
+
+**What it refuses** (this file's five-checks table, rows 3 and 4): "A nested object written inline is not a copy of an existing object contract ... It is a copy when it has the same keys as an object contract in the index, and each key has the same schema once brand texts are ignored" with message `{{key}} copies {{ownerContract}}. Use {{ownerContract}}, or {{ownerContract}}.pick({ … }) for part of it.` and autofix "replace the object with the contract, and add the import". And: "An inline `z.enum` is not a copy of another enum's values ... a copy when its value set equals an enum contract in the index, or an inline `z.enum` in another contract" with messages `{{key}} copies the values of {{enumContract}}. Import it.` and, for two inline copies, `{{key}} has the same values as {{otherKey}} in {{otherContract}}. Move them into {{derivedName}} and import it in both.` EPIC F100: "R8 built only the parameter and contract-key checks. Build the two as a follow-up chunk in `enforce-owner-field-reuse` before W10."
+
+**Existing code it extends**
+- `packages/eslint-plugin/src/brokers/rule/enforce-owner-field-reuse/rule-enforce-owner-field-reuse-broker.ts` (279 lines; messages `contractKeyNotReused` and `paramNotOwnerType` only; its `CallExpression` visitor reads `isAstObjectSchemaGuard` and a top-level `shape`), with the import-writing helpers `astImportInsertAnchorTransformer`, `importInsertTextTransformer`, `ownerIndexImportSourceTransformer`, `isAstNameImportedGuard`.
+- R6's owner index, `packages/shared/src/contracts/owner-index-owner/owner-index-owner-contract.ts`: each owner already carries `schemaText` (the whole initializer text) and `fields`; B13 says "[B10] already builds this" and the object-copy check can use it. It records NO enum: `packages/shared/src/transformers/owner-index-from-sources/contract-file-owners-read-layer-transformer.ts` keeps only object contracts (`objectLiteral !== undefined`) and standalone brands, so an enum contract (`z.enum([...])`) is invisible to the index. That is the shared work below. Inline enums inside other owners are recoverable from their `schemaText`.
+
+**Design decision (autofix limit).** An ESLint fixer edits one file and cannot create the new enum contract file. So the enum message with an existing enum contract fixes (replace with the contract, add the import); the two-inline-copies message carries NO autofix and ends with the message text above. Report this under DECISIONS as a departure from the table's "create the enum contract" (the same reason B13 gives for the no-autofix fifth check).
+
+**Files, by batch**
+
+Shared first (one agent at a time in shared; then the operator builds shared, because the rule imports these from `@dungeonmaster/shared/*` and ESLint sets no `source` condition, so lint and `ward scan` read shared's `dist`; unit tests read source and need no build):
+
+| Batch | Files | What |
+|---|---|---|
+| F100-s1 | `packages/shared/src/contracts/owner-index-enum/owner-index-enum-contract.ts`, `.../owner-index-enum-contract.test.ts`, `.../owner-index-enum.stub.ts`, `packages/shared/src/contracts/contracts.ts` | New contract: contract name, owner-style name, file path, package, `values` (sorted string array). Barrel line. |
+| F100-s2 | `packages/shared/src/contracts/owner-index/owner-index-contract.ts`, `.../owner-index-contract.test.ts`, `.../owner-index.stub.ts` | Add `enums: z.array(ownerIndexEnumContract)` to the index; stub and test follow. |
+| F100-s3 | `packages/shared/src/transformers/owner-index-from-sources/contract-file-owners-read-layer-transformer.ts`, its `.test.ts`, `packages/shared/src/transformers/owner-index-from-sources/owner-index-from-sources-transformer.ts`, its `.test.ts` | Read exported `z.enum([...])` contracts and merge them into the index. |
+| F100-s4 | `packages/shared/src/transformers/owner-index-object-copy-match/owner-index-object-copy-match-transformer.ts`, its `.test.ts`, `packages/shared/src/transformers/owner-index-enum-copy-match/owner-index-enum-copy-match-transformer.ts`, its `.test.ts` | Object: strip `.brand<'…'>()` and whitespace from a nested object's text and each reachable owner's per-key text, compare key sets and normalised schemas (a whole copy only; "a subset of keys ... is left alone"). Enum: compare value sets against `enums` and against inline enums found in owners' `schemaText`. Both use `ownerIndexOwnersReachableTransformer` so only owners the file can import count. |
+| F100-s5 | `packages/shared/src/transformers/transformers.ts`, `packages/shared/src/brokers/owner-index/build/owner-index-build-broker.test.ts`, `packages/shared/src/brokers/owner-index/build/owner-index-build-broker.proxy.ts` | Barrel lines for the two transformers; the build broker's test asserts `enums` on a temp-dir fixture. (Only if a test or proxy needs the edit; the broker itself should not change.) |
+
+Then eslint-plugin (after the shared build):
+
+| Batch | Files | What |
+|---|---|---|
+| F100-p1 | `packages/eslint-plugin/src/brokers/rule/enforce-owner-field-reuse/nested-object-copy-report-layer-broker.ts`, `.test.ts`, `.proxy.ts` | Nested `z.object` inside a contract's field: ask the object-copy transformer; report `nestedObjectCopy`; fix replaces the object node with the contract name and adds the value import. |
+| F100-p2 | `packages/eslint-plugin/src/brokers/rule/enforce-owner-field-reuse/enum-copy-report-layer-broker.ts`, `.test.ts`, `.proxy.ts` | `z.enum([...])` in `contracts/`, inline or standalone: report `enumCopy` (fix with import when an enum contract exists) or `enumCopyInline` (no fix). |
+| F100-p3 | `packages/eslint-plugin/src/brokers/rule/enforce-owner-field-reuse/rule-enforce-owner-field-reuse-broker.ts`, `.test.ts`, `.proxy.ts` | Add the three message ids, call both layers from the visitors, header PURPOSE text. Rule stays `off`, ward-only, untagged: no registration file changes (it is already in `eslint-plugin-create-responder.ts`, the config at line 193 and the integration lists). |
+
+**Off and scanned first: yes.** The rule is already `'off'` and ward-only, so the additions inherit that; scan with `npm run ward -- scan @dungeonmaster/enforce-owner-field-reuse -- packages/<pkg>` per package after the shared build, compare against R8's recorded 255 (orchestrator 152, web 47; 233 `questId`), and hand-check a sample of the new hits. Report the split of new hits by message.
+
+**Autofix:** nested-object copy (replace and import); enum copy when the enum contract exists. None for two inline enums.
+
+**Teaching rows:** the messages above; BR row 2255 ("inline copies of an existing contract, and copied enum values") and B13's own rows (snippet line 105, `architecture-overview-broker.ts:274` and `:279`), all finished in Z01/Z02. Nothing edited here.
+
+**Size:** large. 18 shared files and 9 plugin files (27 total) in 5 shared batches and 3 plugin batches, one agent each. Shared batches are sequential (s1, s2, s3, s4, s5, in that order); the operator then builds shared once; plugin batches p1 and p2 are independent, p3 follows both.
+
+**Already done:** the parameter and contract-key checks, the index (with `schemaText`), the registration, the config entry and the enforce-on exclusion.
+
+**Dependencies:** F100 needs nothing else. It can run beside R5 and R7 with disjoint file lists (shared batches touch a package no other chunk touches; the plugin batches touch only the `enforce-owner-field-reuse` folder). Its plugin batches need the shared build first ("BUILD NEEDED: `@dungeonmaster/shared`", to be run by the operator alone). Commit after the plugin batches; F100 edits neither the create responder nor the config broker.
