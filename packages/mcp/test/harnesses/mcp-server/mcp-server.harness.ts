@@ -30,7 +30,6 @@ import type {
   TextContent,
 } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { JsonRpcRequestStub } from '#gateway/npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub';
-import { BufferStateStub } from '../../../src/contracts/buffer-state/buffer-state.stub';
 import { mcpServerStatics } from '../../../src/statics/mcp-server/mcp-server-statics';
 
 // A reply is a JSONRPCResultResponse (`result`) or a JSONRPCErrorResponse (`error`); the SDK types
@@ -111,14 +110,14 @@ export const mcpServerHarness = (): {
 
     const pendingResponses = new Map<RpcId, (response: JsonRpcReply) => void>();
     const pendingTimeouts = new Map<RpcId, NodeJS.Timeout>();
-    const bufferState = BufferStateStub();
+    const bufferState = { value: '' };
 
     const dataHandler = (chunk: Buffer): void => {
-      bufferState.value = (bufferState.value + chunk.toString()) as typeof bufferState.value;
+      bufferState.value += chunk.toString();
 
       const lines = bufferState.value.split('\n');
       const remaining = lines.pop() ?? '';
-      bufferState.value = remaining as typeof bufferState.value;
+      bufferState.value = remaining;
 
       for (const line of lines) {
         const trimmedLine = line.trim();

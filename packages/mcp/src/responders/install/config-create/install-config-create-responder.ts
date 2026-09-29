@@ -18,6 +18,7 @@ import {
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
+import { mcpConfigContract } from '../../../contracts/mcp-config/mcp-config-contract';
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { settingsPermissionsAddBroker } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker';
@@ -37,7 +38,9 @@ export const InstallConfigCreateResponder = async ({
   // Rejects (invalid JSON, EACCES, …) propagate to installExecuteBroker, which reports them as a
   // failed InstallResult naming this file — never treated as "missing", which used to fall through
   // to the write below and silently drop every other MCP server the user configured.
-  const existingConfig = (await readJsonFileIfExists(configPath)) as McpConfig | null;
+  const existingContents = await readJsonFileIfExists(configPath);
+  const existingConfig: McpConfig | null =
+    existingContents === null ? null : mcpConfigContract.parse(existingContents);
 
   // Add MCP permissions to .claude/settings.json (always, regardless of MCP config state)
   const targetProjectRoot = pathSegmentContract.parse(context.targetProjectRoot);

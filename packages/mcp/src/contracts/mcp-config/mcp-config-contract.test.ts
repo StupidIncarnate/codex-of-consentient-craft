@@ -52,17 +52,34 @@ describe('mcpConfigContract', () => {
       expect(result).toStrictEqual(input);
     });
 
-    it('INVALID: rejects config with invalid server structure', () => {
+    it('VALID: keeps server entries of another shape and unknown top-level keys', () => {
+      const result = mcpConfigContract.parse({
+        theme: 'dark',
+        mcpServers: {
+          remote: { type: 'http', url: 'https://example.test/mcp' },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        theme: 'dark',
+        mcpServers: {
+          remote: { type: 'http', url: 'https://example.test/mcp' },
+        },
+      });
+    });
+
+    it('INVALID: rejects a server entry whose args is not an array', () => {
       expect(() => {
         return mcpConfigContract.parse({
           mcpServers: {
             dungeonmaster: {
               type: 'stdio',
-              // missing command and args
+              command: 'node',
+              args: 'index.js',
             },
           },
         });
-      }).toThrow('received undefined');
+      }).toThrow('expected array');
     });
   });
 });

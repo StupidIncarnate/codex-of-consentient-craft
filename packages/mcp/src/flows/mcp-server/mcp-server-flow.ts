@@ -15,6 +15,7 @@ import {
 } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
+import { toolRegistrationContract } from '../../contracts/tool-registration/tool-registration-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
 import { toolCallCallerLiftTransformer } from '../../transformers/tool-call-caller-lift/tool-call-caller-lift-transformer';
@@ -42,11 +43,7 @@ export const McpServerFlow = async ({
   const handlerMap = new Map(registrations.map((reg) => [reg.name, reg.handler]));
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
-    tools: registrations.map((reg) => ({
-      name: reg.name,
-      description: reg.description,
-      inputSchema: reg.inputSchema,
-    })),
+    tools: registrations.map((reg) => toolRegistrationContract.parse(reg)),
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {

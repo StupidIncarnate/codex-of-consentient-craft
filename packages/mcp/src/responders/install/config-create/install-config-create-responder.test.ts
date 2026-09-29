@@ -134,6 +134,57 @@ describe('InstallConfigCreateResponder', () => {
     });
   });
 
+  describe('existing config of another shape', () => {
+    it('VALID: {url server and extra top-level key} => merge keeps both untouched', async () => {
+      const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
+
+      proxy.setupFileRead({
+        targetProjectRoot,
+        content: JSON.stringify({
+          theme: 'dark',
+          mcpServers: { remote: { type: 'http', url: 'https://example.test/mcp' } },
+        }),
+      });
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot,
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(JSON.parse(String(proxy.getWrittenConfig({ targetProjectRoot })))).toStrictEqual({
+        theme: 'dark',
+        mcpServers: {
+          remote: { type: 'http', url: 'https://example.test/mcp' },
+          ...dungeonmasterConfigCreatorTransformer(),
+        },
+      });
+    });
+
+    it('ERROR: {mcpServers is a string} => rejects and never writes', async () => {
+      const proxy = InstallConfigCreateResponderProxy();
+      const targetProjectRoot = FilePathStub({ value: '/project' });
+
+      proxy.setupFileRead({
+        targetProjectRoot,
+        content: JSON.stringify({ mcpServers: 'oops' }),
+      });
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot,
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toThrow(/expected record/u);
+
+      expect(proxy.getWrittenConfig({ targetProjectRoot })).toBe(undefined);
+    });
+  });
+
   describe('invalid JSON config', () => {
     it('ERROR: {invalid JSON in .mcp.json} => rejects naming the file and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();

@@ -19,13 +19,15 @@ import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
 import { JsonRpcRequestStub } from '#gateway/npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub';
-import { DiscoverTreeResultStub } from '../../contracts/discover-tree-result/discover-tree-result.stub';
+import { z } from '#gateway/npm/zod';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 
 import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.harness';
 import { cwd } from '#gateway/node/process';
 import { Buffer } from '#gateway/node/buffer';
+
+const discoverTreeResultShape = z.object({ results: z.string(), count: z.number() });
 
 describe('McpServerFlow', () => {
   const mcp = mcpServerHarness();
@@ -172,7 +174,7 @@ describe('McpServerFlow', () => {
       const [firstContent] = result.content;
 
       const parsedData: unknown = JSON.parse(firstContent!.text);
-      const data = DiscoverTreeResultStub(parsedData as never);
+      const data = discoverTreeResultShape.parse(parsedData);
 
       const { results, count } = data;
 
@@ -200,7 +202,7 @@ describe('McpServerFlow', () => {
       const [firstContent] = result.content;
 
       const parsedData: unknown = JSON.parse(firstContent!.text);
-      const data = DiscoverTreeResultStub(parsedData as never);
+      const data = discoverTreeResultShape.parse(parsedData);
 
       expect(data.results).toMatch(/^@dungeonmaster\/\n {2}shared\/\n {4}brokers\/\n[\s\S]+$/u);
     });
@@ -225,7 +227,7 @@ describe('McpServerFlow', () => {
       const [firstContent] = result.content;
 
       const parsedData: unknown = JSON.parse(firstContent!.text);
-      const data = DiscoverTreeResultStub(parsedData as never);
+      const data = discoverTreeResultShape.parse(parsedData);
 
       expect(data.results).toMatch(/^ {10}cwd-resolve-broker \(broker\) - .+$/mu);
     });

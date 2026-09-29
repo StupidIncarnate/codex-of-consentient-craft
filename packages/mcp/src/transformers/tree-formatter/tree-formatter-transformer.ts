@@ -13,7 +13,9 @@
  * // Returns: "guards/\n  guard1 (guard) - Checks permission"
  */
 import type { CappedGrepHits } from '../../contracts/capped-grep-hits/capped-grep-hits-contract';
+import { treeItemContract } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
+import { treeNodeContract } from '../../contracts/tree-node/tree-node-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { folderNameContract } from '../../contracts/folder-name/folder-name-contract';
@@ -24,16 +26,22 @@ import { grepHitsCapTransformer } from '../grep-hits-cap/grep-hits-cap-transform
 import { pathToTreeRelativeTransformer } from '../path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverOutputCapStatics } from '../../statics/discover-output-cap/discover-output-cap-statics';
 
-export const treeFormatterTransformer = ({ items }: { items: readonly TreeItem[] }): TreeOutput => {
-  if (items.length === 0) {
+export const treeFormatterTransformer = ({
+  items: rawItems,
+}: {
+  items: readonly TreeItem[];
+}): TreeOutput => {
+  if (rawItems.length === 0) {
     return treeOutputContract.parse('');
   }
 
+  // Parsed once, up front: the tree and the hit budget below both key on these very objects.
+  const items = rawItems.map((rawItem) => treeItemContract.parse(rawItem));
+
   // Build tree structure
   const root: TreeNode = {
-    name: folderNameContract.parse(''),
+    ...treeNodeContract.parse({ name: folderNameContract.parse(''), items: [] }),
     children: new Map(),
-    items: [],
   };
 
   for (const item of items) {
@@ -53,9 +61,8 @@ export const treeFormatterTransformer = ({ items }: { items: readonly TreeItem[]
       const folderName = folderNameContract.parse(segment);
       if (!currentNode.children.has(folderName)) {
         currentNode.children.set(folderName, {
-          name: folderName,
+          ...treeNodeContract.parse({ name: folderName, items: [] }),
           children: new Map(),
-          items: [],
         });
       }
       const childNode = currentNode.children.get(folderName);
