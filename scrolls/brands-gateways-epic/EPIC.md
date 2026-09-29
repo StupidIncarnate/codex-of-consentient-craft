@@ -136,7 +136,7 @@ The operator stopped here because the user moved sessions. Read this section fir
 | agy SL-LAST | A13: siegelense's last 13 adapters, delete `adapters.ts` (`tmp/agy/sl-last.md`, output `tmp/agy/sl-last.out`) | `siegelense` | running |
 | a18-r1c1 (sonnet) | A18 wave 0: R1, C1 | `eslint-plugin` rules | running |
 | a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | running |
-| a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | running |
+| a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | done (the GB commit). For B18: `localStorage/clear` returns `{ success: true }`. Web batches must move timer callers and their proxies together (proxies only see calls made through the wrapper) |
 | a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | running |
 | web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | done (the web slow-tests commit): the shared guild form proxy pastes instead of typing |
 
