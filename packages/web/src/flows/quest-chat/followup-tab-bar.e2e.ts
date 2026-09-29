@@ -7,7 +7,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
-import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 const GUILD_PATH = '/tmp/dm-e2e-followup-tab-bar';
 const PANEL_TIMEOUT = 10_000;

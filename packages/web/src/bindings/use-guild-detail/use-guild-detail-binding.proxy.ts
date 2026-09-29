@@ -1,7 +1,7 @@
 import * as guildDetailBrokerModule from '../../brokers/guild/detail/guild-detail-broker';
 
 import { console } from '#gateway/browser/console';
-import type { GuildStub } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 

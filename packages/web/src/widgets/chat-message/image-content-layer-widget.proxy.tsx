@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import type { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';

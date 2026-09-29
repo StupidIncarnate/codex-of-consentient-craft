@@ -7,7 +7,7 @@
  */
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
 
 import { orchestrationModeGetResultContract } from './orchestration-mode-get-result-contract';
 import type { OrchestrationModeGetResult } from './orchestration-mode-get-result-contract';

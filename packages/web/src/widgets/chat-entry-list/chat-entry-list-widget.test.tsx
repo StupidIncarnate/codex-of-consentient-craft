@@ -7,7 +7,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';

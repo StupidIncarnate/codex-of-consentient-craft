@@ -2,7 +2,7 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { RequestCount } from '@dungeonmaster/testing';
-import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 

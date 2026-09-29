@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useDispatchStateBinding } from './use-dispatch-state-binding';

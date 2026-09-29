@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';

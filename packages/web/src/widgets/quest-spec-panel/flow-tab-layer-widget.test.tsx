@@ -1,6 +1,8 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { ArrayIndexStub, FlowStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';

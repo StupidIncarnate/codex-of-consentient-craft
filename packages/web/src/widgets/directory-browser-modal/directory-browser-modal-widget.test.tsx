@@ -1,6 +1,6 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
-import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';

@@ -1,10 +1,8 @@
-import {
-  QuestIdStub,
-  QuestStub,
-  QuestSummaryFlowStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
 import { setTimeout } from '#gateway/browser/setTimeout';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';

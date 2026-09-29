@@ -1,4 +1,6 @@
-import { PastedImageUploadStub, QuestIdStub, UserInputStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 
 import { questFollowupBroker } from './quest-followup-broker';
 import { questFollowupBrokerProxy } from './quest-followup-broker.proxy';

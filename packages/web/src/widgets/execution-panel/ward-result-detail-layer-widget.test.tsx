@@ -1,6 +1,8 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
-import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 

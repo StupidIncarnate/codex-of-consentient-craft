@@ -1,4 +1,7 @@
-import { AssistantTextChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextChatEntryStub,
+  UserChatEntryStub,
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { upsertChatEntriesByUuidTransformer } from './upsert-chat-entries-by-uuid-transformer';
 

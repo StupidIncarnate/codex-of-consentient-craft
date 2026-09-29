@@ -28,12 +28,9 @@ import type { APIRequestContext } from '#gateway/npm/playwright__test';
 import { z } from '#gateway/npm/zod';
 
 import type { FilePath, ProcessId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
-import {
-  SimpleTextResponseStub,
-  WardQueueResponseStub,
-  processIdContract,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
+import { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmHttpResponse } from '@dungeonmaster/hydration-recipes/contracts';
 

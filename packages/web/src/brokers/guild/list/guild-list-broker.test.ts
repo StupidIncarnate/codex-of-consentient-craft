@@ -1,4 +1,4 @@
-import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
 import { guildListBroker } from './guild-list-broker';
 import { guildListBrokerProxy } from './guild-list-broker.proxy';

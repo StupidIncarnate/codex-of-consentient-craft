@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ClarifyOptionLayerWidget } from './clarify-option-layer-widget';
 import { ClarifyOptionLayerWidgetProxy } from './clarify-option-layer-widget.proxy';

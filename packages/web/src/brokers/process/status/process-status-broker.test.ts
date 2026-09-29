@@ -1,4 +1,5 @@
-import { OrchestrationStatusStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { processStatusBroker } from './process-status-broker';
 import { processStatusBrokerProxy } from './process-status-broker.proxy';

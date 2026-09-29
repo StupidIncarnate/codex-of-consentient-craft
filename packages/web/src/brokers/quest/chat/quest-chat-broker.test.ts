@@ -1,9 +1,7 @@
-import {
-  PastedImageUploadStub,
-  ProcessIdStub,
-  QuestIdStub,
-  UserInputStub,
-} from '@dungeonmaster/shared/contracts';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 
 import { questChatBroker } from './quest-chat-broker';
 import { questChatBrokerProxy } from './quest-chat-broker.proxy';

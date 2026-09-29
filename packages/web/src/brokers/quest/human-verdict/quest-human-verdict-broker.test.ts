@@ -1,4 +1,5 @@
-import { ObservableIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ObservableIdStub } from '@dungeonmaster/shared/contracts/observable-id/observable-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questHumanVerdictBroker } from './quest-human-verdict-broker';
 import { questHumanVerdictBrokerProxy } from './quest-human-verdict-broker.proxy';

@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questResumeBroker } from './quest-resume-broker';
 import { questResumeBrokerProxy } from './quest-resume-broker.proxy';

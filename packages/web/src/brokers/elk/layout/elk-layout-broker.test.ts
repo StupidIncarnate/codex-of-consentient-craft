@@ -1,4 +1,5 @@
-import { FlowEdgeStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 
 import { ElkPositionMapStub } from '../../../contracts/elk-position-map/elk-position-map.stub';
 import { FlowEdgeRouteMapStub } from '../../../contracts/flow-edge-route-map/flow-edge-route-map.stub';

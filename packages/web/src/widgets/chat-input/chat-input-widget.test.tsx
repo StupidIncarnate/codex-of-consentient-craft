@@ -7,7 +7,7 @@ import { setTimeout } from '#gateway/browser/setTimeout';
 import { fireEvent, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
-import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { composerInsertImageBroker } from '../../brokers/composer/insert-image/composer-insert-image-broker';

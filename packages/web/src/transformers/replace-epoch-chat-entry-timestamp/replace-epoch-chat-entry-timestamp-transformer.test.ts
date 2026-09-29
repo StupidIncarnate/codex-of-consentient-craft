@@ -1,4 +1,7 @@
-import { AssistantTextChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextChatEntryStub,
+  UserChatEntryStub,
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { replaceEpochChatEntryTimestampTransformer } from './replace-epoch-chat-entry-timestamp-transformer';
 

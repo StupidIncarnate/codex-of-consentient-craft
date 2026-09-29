@@ -1,20 +1,18 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
-import {
-  QuestStub,
-  DesignDecisionStub,
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-  QuestCommentStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';

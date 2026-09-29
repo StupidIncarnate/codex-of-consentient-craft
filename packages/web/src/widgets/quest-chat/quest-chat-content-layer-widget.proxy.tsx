@@ -4,12 +4,8 @@ import { randomUuidProxy } from '#gateway/browser/crypto/random-uuid/random-uuid
 import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type {
-  OrchestrationMode,
-  ProcessId,
-  QuestId,
-  QuestSummaryStub,
-} from '@dungeonmaster/shared/contracts';
+import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 import type { RequestCount } from '@dungeonmaster/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';

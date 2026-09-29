@@ -1,4 +1,4 @@
-import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestQueueBinding } from './use-quest-queue-binding';

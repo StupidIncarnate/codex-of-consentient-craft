@@ -18,7 +18,9 @@ import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { FileName, FilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub, FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';

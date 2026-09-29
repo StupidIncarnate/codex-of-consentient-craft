@@ -1,5 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildIdStub, ProcessIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { replayHistoryMessageContract } from './replay-history-message-contract';
 import type { ReplayHistoryMessage } from './replay-history-message-contract';

@@ -1,6 +1,7 @@
 import * as questListBrokerModule from '../../brokers/quest/list/quest-list-broker';
 
-import type { QuestListItemStub, SkippedQuestFileStub } from '@dungeonmaster/shared/contracts';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';

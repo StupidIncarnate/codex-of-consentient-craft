@@ -3,18 +3,18 @@ import userEvent from '#gateway/npm/testing-library__user-event';
 
 import {
   AssistantTextChatEntryStub,
-  OperationItemStub,
-  QuestProjectionStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  RiftcarverResultStub,
-  SessionIdStub,
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
-  UnitObservationStub,
-  WardResultStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

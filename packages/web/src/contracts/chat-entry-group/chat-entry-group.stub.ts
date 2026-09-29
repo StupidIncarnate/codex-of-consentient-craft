@@ -5,7 +5,7 @@ import {
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { chatEntryGroupContract } from './chat-entry-group-contract';
 import type { ChatEntryGroup } from './chat-entry-group-contract';
 

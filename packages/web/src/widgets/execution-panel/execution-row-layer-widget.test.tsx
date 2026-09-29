@@ -1,14 +1,12 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import {
-  ContractNameStub,
-  ErrorMessageStub,
-  RiftcarverResultStub,
-  UnitObservationStub,
-  WardResultStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContractNameStub } from '@dungeonmaster/shared/contracts/contract-name/contract-name.stub';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
@@ -17,7 +15,7 @@ import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';

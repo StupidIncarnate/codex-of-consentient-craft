@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { renderHook } from '#gateway/npm/testing-library__react';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';

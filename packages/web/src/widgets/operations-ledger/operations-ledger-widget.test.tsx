@@ -1,6 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { FlowStub, OperationItemStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { OperationsLedgerWidget } from './operations-ledger-widget';

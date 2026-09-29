@@ -1,4 +1,5 @@
-import { FlowIdStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { operationFlowLabelsTransformer } from './operation-flow-labels-transformer';
 

@@ -8,7 +8,8 @@
 
 import { screen } from '#gateway/npm/testing-library__react';
 
-import type { GuildListItemStub, OrchestrationMode } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';

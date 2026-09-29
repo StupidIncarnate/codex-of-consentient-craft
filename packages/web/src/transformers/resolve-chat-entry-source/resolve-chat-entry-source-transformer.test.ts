@@ -1,4 +1,7 @@
-import { AssistantTextChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextChatEntryStub,
+  UserChatEntryStub,
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { resolveChatEntrySourceTransformer } from './resolve-chat-entry-source-transformer';
 
 describe('resolveChatEntrySourceTransformer', () => {

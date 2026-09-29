@@ -1,4 +1,4 @@
-import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
 import { console } from '#gateway/browser/console';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';

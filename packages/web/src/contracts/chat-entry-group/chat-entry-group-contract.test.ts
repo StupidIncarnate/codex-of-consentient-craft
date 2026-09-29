@@ -1,4 +1,4 @@
-import { TaskNotificationChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { TaskNotificationChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { chatEntryGroupContract } from './chat-entry-group-contract';
 import { SingleGroupStub, SubagentChainGroupStub } from './chat-entry-group.stub';

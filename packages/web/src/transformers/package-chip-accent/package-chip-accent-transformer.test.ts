@@ -1,4 +1,4 @@
-import { PackageTypeStub } from '@dungeonmaster/shared/contracts';
+import { PackageTypeStub } from '@dungeonmaster/shared/contracts/package-type/package-type.stub';
 
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { packageChipAccentTransformer } from './package-chip-accent-transformer';

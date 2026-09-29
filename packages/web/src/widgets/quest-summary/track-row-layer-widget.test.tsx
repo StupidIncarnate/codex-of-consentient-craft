@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 import { verificationTracksStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

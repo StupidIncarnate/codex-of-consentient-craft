@@ -1,4 +1,4 @@
-import { WardDetailStub } from '@dungeonmaster/shared/contracts';
+import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
 
 import { wardDetailToDisplayLinesTransformer } from './ward-detail-to-display-lines-transformer';
 

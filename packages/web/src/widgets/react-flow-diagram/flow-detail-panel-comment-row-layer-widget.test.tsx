@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { QuestCommentStub } from '@dungeonmaster/shared/contracts';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowDetailPanelCommentRowLayerWidget } from './flow-detail-panel-comment-row-layer-widget';

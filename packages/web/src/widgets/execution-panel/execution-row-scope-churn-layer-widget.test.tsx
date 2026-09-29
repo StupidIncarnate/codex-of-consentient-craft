@@ -1,6 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { UnitObservationStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowScopeChurnLayerWidget } from './execution-row-scope-churn-layer-widget';

@@ -1,7 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import type { ThinkingRowWidgetProps } from './thinking-row-widget';
 import { ThinkingRowWidget } from './thinking-row-widget';
 import { ThinkingRowWidgetProxy } from './thinking-row-widget.proxy';

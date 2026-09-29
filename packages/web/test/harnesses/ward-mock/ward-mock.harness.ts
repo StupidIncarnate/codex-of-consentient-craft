@@ -26,7 +26,7 @@ import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
 import { getEnv } from '#gateway/node/process';
 
-export { WardQueueResponseStub } from '@dungeonmaster/shared/contracts';
+export { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 
 // ── Queue helpers ──────────────────────────────────────────────────────────────
 

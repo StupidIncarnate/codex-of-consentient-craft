@@ -2,7 +2,7 @@ import {
   AssistantTextChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { mergeDescendantSubagentEntriesTransformer } from './merge-descendant-subagent-entries-transformer';
 
 describe('mergeDescendantSubagentEntriesTransformer', () => {

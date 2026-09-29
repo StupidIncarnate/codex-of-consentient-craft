@@ -1,4 +1,4 @@
-import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';

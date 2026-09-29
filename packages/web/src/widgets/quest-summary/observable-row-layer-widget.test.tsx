@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts';
+import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';

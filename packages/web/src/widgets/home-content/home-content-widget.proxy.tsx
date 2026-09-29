@@ -20,15 +20,13 @@ import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import type {
-  DirectoryEntryStub,
-  GuildIdStub,
-  GuildListItemStub,
-  QuestIdStub,
-  QuestListItemStub,
-  SessionListItemStub,
-  SkippedQuestFileStub,
-} from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
+import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
+import type { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
 import * as questDeleteBrokerModule from '../../brokers/quest/delete/quest-delete-broker';
 

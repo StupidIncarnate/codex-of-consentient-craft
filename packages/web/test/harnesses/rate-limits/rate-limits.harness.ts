@@ -30,12 +30,10 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
 import type { FilePath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
-import {
-  DispatchStateStub,
-  FilePathStub,
-  UsageBucketStub,
-  UsageLedgerStub,
-} from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { getEnv } from '#gateway/node/process';
 
 const SNAPSHOT_FILENAME = 'rate-limits.json';

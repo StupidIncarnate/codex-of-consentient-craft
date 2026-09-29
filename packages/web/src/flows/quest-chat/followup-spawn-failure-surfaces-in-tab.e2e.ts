@@ -1,8 +1,6 @@
-import {
-  AssistantTextStreamLineStub,
-  SessionIdStub,
-  SystemInitStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';

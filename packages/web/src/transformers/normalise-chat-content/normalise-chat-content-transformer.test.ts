@@ -1,4 +1,4 @@
-import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';

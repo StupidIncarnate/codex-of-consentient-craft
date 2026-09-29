@@ -2,11 +2,9 @@ import { waitFor } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
-import {
-  DispatchStateStub,
-  QuestQueueEntryStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';

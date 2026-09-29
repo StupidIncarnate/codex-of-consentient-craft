@@ -3,7 +3,7 @@ import {
   AssistantToolUseChatEntryStub,
   SystemErrorChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { hasEquivalentChatEntryGuard } from './has-equivalent-chat-entry-guard';

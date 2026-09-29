@@ -6,15 +6,13 @@ import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { readItem, writeItem } from '#gateway/browser/localStorage';
 import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
 import { MemoryRouter, Route, Routes, useLocation } from '#gateway/npm/react-router-dom';
-import {
-  GuildIdStub,
-  GuildListItemStub,
-  QuestIdStub,
-  QuestListItemStub,
-  SessionIdStub,
-  SessionListItemStub,
-  SkippedQuestFileStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
+import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HomeContentWidget } from './home-content-widget';

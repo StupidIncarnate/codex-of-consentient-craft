@@ -5,11 +5,11 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-  CssPixelsStub,
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 import {
   SingleGroupStub,
   SubagentChainGroupStub,

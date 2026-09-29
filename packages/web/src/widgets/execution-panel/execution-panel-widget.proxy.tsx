@@ -3,7 +3,7 @@ import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RequestCount } from '@dungeonmaster/testing';
-import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
+import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
 
 import { act } from '#gateway/npm/testing-library__react';
 import { useElapsedTickBindingProxy } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding.proxy';

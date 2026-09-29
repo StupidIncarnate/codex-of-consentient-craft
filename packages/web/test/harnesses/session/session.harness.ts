@@ -20,19 +20,23 @@ import {
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
-  AbsoluteFilePathStub,
   AskUserQuestionToolResultStreamLineStub,
+  SuccessfulToolResultStreamLineStub,
+  TaskToolResultStreamLineStub,
+} from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import {
   AssistantAskUserQuestionStreamLineStub,
   AssistantReadToolUseStreamLineStub,
   AssistantRedactedThinkingStreamLineStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-  SuccessfulToolResultStreamLineStub,
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import {
   TaskNotificationUserTextStreamLineStub,
-  TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { getEnv } from '#gateway/node/process';

@@ -1,4 +1,4 @@
-import { WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { executionRowDisplayResolveTransformer } from './execution-row-display-resolve-transformer';
 
 describe('executionRowDisplayResolveTransformer', () => {

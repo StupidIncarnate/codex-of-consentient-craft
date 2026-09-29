@@ -1,4 +1,6 @@
-import { QuestIdStub, QuestProjectionStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { setTimeout } from '#gateway/browser/setTimeout';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';

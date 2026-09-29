@@ -1,4 +1,4 @@
-import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts/pasted-image-media-type/pasted-image-media-type.stub';
 
 import { ImageDataUrlStub } from '../../../contracts/image-data-url/image-data-url.stub';
 import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';

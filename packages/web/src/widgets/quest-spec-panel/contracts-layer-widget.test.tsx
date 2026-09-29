@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ContractsLayerWidget } from './contracts-layer-widget';

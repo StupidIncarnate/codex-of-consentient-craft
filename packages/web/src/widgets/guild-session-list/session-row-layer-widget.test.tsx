@@ -1,4 +1,5 @@
-import { SessionIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SessionRowLayerWidget } from './session-row-layer-widget';

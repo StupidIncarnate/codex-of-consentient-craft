@@ -1,4 +1,5 @@
-import { DirectoryEntryStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 

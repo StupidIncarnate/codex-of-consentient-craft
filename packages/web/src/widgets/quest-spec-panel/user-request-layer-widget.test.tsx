@@ -1,4 +1,4 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';

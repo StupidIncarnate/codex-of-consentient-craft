@@ -1,4 +1,5 @@
-import { QuestIdStub, WardResultStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { act, renderHook } from '#gateway/npm/testing-library__react';
 

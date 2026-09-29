@@ -5,7 +5,7 @@ import {
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { collectSubagentChainsTransformer } from './collect-subagent-chains-transformer';
 
 describe('collectSubagentChainsTransformer', () => {

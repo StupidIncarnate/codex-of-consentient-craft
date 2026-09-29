@@ -1,8 +1,8 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CompletedCountStub } from '@dungeonmaster/shared/contracts';
-import { TotalCountStub } from '@dungeonmaster/shared/contracts';
+import { CompletedCountStub } from '@dungeonmaster/shared/contracts/completed-count/completed-count.stub';
+import { TotalCountStub } from '@dungeonmaster/shared/contracts/total-count/total-count.stub';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { ExecutionStatusBarLayerWidgetProxy } from './execution-status-bar-layer-widget.proxy';
 

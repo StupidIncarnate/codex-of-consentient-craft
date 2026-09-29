@@ -48,7 +48,7 @@ export {
   ErrorResponseStub,
   ResumeResponseStub,
   ClarificationResponseStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 
 // ── Queue helpers ──────────────────────────────────────────────────────────────
 

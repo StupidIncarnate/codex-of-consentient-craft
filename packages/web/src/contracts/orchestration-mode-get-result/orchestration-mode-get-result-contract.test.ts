@@ -1,4 +1,4 @@
-import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
 
 import { orchestrationModeGetResultContract } from './orchestration-mode-get-result-contract';
 import { OrchestrationModeGetResultStub } from './orchestration-mode-get-result.stub';

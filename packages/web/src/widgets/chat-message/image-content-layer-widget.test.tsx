@@ -1,6 +1,6 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
-import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

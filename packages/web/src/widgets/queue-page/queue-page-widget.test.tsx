@@ -1,12 +1,10 @@
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
-import {
-  DispatchHoldStub,
-  DispatchStateStub,
-  QuestQueueEntryStub,
-  RateLimitsSnapshotStub,
-  RateLimitWindowStub,
-} from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QueuePageWidget } from './queue-page-widget';

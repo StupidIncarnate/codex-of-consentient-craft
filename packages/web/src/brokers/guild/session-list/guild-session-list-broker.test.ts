@@ -1,4 +1,5 @@
-import { GuildIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
 import { guildSessionListBroker } from './guild-session-list-broker';
 import { guildSessionListBrokerProxy } from './guild-session-list-broker.proxy';

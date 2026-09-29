@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { CommentAnchorStub } from '../../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../../contracts/comment-queue-entry/comment-queue-entry.stub';

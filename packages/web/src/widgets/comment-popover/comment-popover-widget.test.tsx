@@ -1,9 +1,7 @@
-import {
-  FlowIdStub,
-  FlowNodeIdStub,
-  ObservableIdStub,
-  QuestIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub';
+import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
+import { ObservableIdStub } from '@dungeonmaster/shared/contracts/observable-id/observable-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';

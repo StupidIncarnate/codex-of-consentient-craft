@@ -1,7 +1,8 @@
 import { crypto } from '#gateway/browser/crypto';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import type { ProcessId, QuestStatus, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import type { RequestCount } from '@dungeonmaster/testing';
 
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';

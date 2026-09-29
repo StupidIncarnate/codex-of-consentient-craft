@@ -2,7 +2,7 @@ import {
   AssistantToolUseChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { isTaskToolUseGuard } from './is-task-tool-use-guard';
 
 describe('isTaskToolUseGuard', () => {

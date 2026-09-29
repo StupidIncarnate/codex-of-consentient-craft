@@ -1,4 +1,5 @@
-import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act, waitFor } from '#gateway/npm/testing-library__react';

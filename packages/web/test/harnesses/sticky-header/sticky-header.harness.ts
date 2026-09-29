@@ -16,11 +16,9 @@
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import type { SessionId } from '@dungeonmaster/shared/contracts';
-import {
-  AssistantReadToolUseStreamLineStub,
-  SessionIdStub,
-  SuccessfulToolResultStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantReadToolUseStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SuccessfulToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
 
 import { guildHarness } from '../guild/guild.harness';
 import { navigationHarness } from '../navigation/navigation.harness';

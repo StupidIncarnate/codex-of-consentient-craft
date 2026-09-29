@@ -1,14 +1,14 @@
 import {
   AssistantTextChatEntryStub,
-  GuildIdStub,
-  GuildListItemStub,
-  ProcessIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 

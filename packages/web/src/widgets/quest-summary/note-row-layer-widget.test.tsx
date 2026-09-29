@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { QuestNoteStub } from '@dungeonmaster/shared/contracts';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { NoteRowLayerWidget } from './note-row-layer-widget';

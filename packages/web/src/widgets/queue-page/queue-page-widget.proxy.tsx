@@ -12,7 +12,7 @@
 
 import { screen, within } from '#gateway/npm/testing-library__react';
 
-import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { useQuestQueueBindingProxy } from '../../bindings/use-quest-queue/use-quest-queue-binding.proxy';
 import { DispatchToggleWidgetProxy } from '../dispatch-toggle/dispatch-toggle-widget.proxy';

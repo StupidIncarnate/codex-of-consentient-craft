@@ -1,18 +1,16 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import {
-  FlowEdgeStub,
-  FlowNodeIdStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowRecipeStub,
-  FlowStub,
-  QuestCommentStub,
-  QuestContractEntryStub,
-  QuestIdStub,
-  QuestPackageEntryStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowRecipeStub } from '@dungeonmaster/shared/contracts/flow-recipe/flow-recipe.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';

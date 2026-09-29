@@ -1,6 +1,7 @@
 import { waitFor } from '#gateway/npm/testing-library__react';
 
-import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';

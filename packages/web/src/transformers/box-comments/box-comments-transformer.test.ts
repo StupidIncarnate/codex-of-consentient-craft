@@ -1,9 +1,7 @@
-import {
-  FlowIdStub,
-  FlowNodeIdStub,
-  ObservableIdStub,
-  QuestCommentStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub';
+import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
+import { ObservableIdStub } from '@dungeonmaster/shared/contracts/observable-id/observable-id.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 
 import { boxCommentsTransformer } from './box-comments-transformer';
 

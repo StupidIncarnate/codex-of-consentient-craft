@@ -1,4 +1,5 @@
-import { QuestIdStub, RiftcarverResultStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
 import { RiftcarverDetailStub } from '../../../contracts/riftcarver-detail/riftcarver-detail.stub';
 

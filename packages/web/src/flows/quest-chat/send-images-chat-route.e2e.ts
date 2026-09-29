@@ -11,12 +11,10 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { chatControlHarness } from '../../../test/harnesses/chat-control/chat-control.harness';
-import {
-  SessionIdStub,
-  TimeoutMsStub,
-  SystemInitStreamLineStub,
-  AssistantTextStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 const GUILD_PATH = '/tmp/dm-e2e-send-images-chat-route';

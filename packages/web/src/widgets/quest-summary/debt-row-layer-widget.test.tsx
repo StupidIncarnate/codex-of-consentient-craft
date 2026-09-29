@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts';
+import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DebtRowLayerWidget } from './debt-row-layer-widget';

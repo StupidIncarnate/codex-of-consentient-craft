@@ -6,8 +6,8 @@ import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/f
 import {
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-  CssPixelsStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 import type { ToolRowWidgetProps } from './tool-row-widget';
 import { ToolRowWidget } from './tool-row-widget';
 import { ToolRowWidgetProxy } from './tool-row-widget.proxy';

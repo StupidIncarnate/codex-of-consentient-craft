@@ -2,7 +2,7 @@ import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
   AssistantToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { collectPairTailEntriesTransformer } from './collect-pair-tail-entries-transformer';
 

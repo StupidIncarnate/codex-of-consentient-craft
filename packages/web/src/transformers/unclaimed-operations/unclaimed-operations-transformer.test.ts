@@ -1,4 +1,5 @@
-import { OperationItemStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { unclaimedOperationsTransformer } from './unclaimed-operations-transformer';
 

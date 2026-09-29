@@ -1,4 +1,5 @@
-import { DesignDecisionStub, ToolingRequirementStub } from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';

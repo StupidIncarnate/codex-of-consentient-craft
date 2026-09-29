@@ -1,7 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import type { InjectedPromptLayerWidgetProps } from './injected-prompt-layer-widget';
 import { InjectedPromptLayerWidget } from './injected-prompt-layer-widget';

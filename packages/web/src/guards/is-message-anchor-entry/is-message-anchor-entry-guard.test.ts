@@ -6,7 +6,7 @@ import {
   SystemErrorChatEntryStub,
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { isMessageAnchorEntryGuard } from './is-message-anchor-entry-guard';
 

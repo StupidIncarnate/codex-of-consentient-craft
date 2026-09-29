@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { orchestrationDispatchPauseBroker } from './orchestration-dispatch-pause-broker';
 import { orchestrationDispatchPauseBrokerProxy } from './orchestration-dispatch-pause-broker.proxy';

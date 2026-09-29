@@ -1,4 +1,4 @@
-import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts';
+import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { UnreadableQuestRowLayerWidget } from './unreadable-quest-row-layer-widget';

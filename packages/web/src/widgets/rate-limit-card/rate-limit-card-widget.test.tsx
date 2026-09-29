@@ -1,4 +1,4 @@
-import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { RateLimitCardWidget } from './rate-limit-card-widget';

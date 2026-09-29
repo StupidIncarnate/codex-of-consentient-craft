@@ -1,7 +1,7 @@
 import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RequestCount } from '@dungeonmaster/testing';
-import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { questSummaryBrokerProxy } from '../../brokers/quest/summary/quest-summary-broker.proxy';
 import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';

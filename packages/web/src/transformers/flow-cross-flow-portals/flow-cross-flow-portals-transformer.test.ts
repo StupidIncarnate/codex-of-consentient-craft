@@ -1,4 +1,5 @@
-import { FlowEdgeStub, FlowNodeStub } from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 
 import { flowCrossFlowPortalsTransformer } from './flow-cross-flow-portals-transformer';
 

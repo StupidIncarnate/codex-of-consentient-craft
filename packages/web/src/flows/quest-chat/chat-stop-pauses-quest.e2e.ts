@@ -5,13 +5,11 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
-import {
-  SessionIdStub,
-  TimeoutMsStub,
-  SystemInitStreamLineStub,
-  AssistantTextStreamLineStub,
-  ResultStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop-pauses-quest';

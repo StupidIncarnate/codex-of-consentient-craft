@@ -15,10 +15,8 @@
  */
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
-import {
-  AssistantTextStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import type { FilePath, GuildId, Quest, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';

@@ -1,5 +1,6 @@
 import { useState } from '#gateway/npm/react';
-import { QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestRowLayerWidget } from './quest-row-layer-widget';

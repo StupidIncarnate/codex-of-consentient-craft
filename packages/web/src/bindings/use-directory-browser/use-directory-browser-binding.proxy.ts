@@ -1,7 +1,7 @@
 import * as directoryBrowseBrokerModule from '../../brokers/directory/browse/directory-browse-broker';
 
 import { console } from '#gateway/browser/console';
-import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 

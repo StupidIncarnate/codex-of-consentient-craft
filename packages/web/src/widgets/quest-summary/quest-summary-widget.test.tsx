@@ -1,15 +1,13 @@
 import { screen, waitFor } from '#gateway/npm/testing-library__react';
 
-import {
-  QuestIdStub,
-  QuestNoteStub,
-  QuestSummaryDebtStub,
-  QuestSummaryFlowStub,
-  QuestSummaryNoteGroupStub,
-  QuestSummaryObservableStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryNoteGroupStub } from '@dungeonmaster/shared/contracts/quest-summary-note-group/quest-summary-note-group.stub';
+import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestSummaryWidget } from './quest-summary-widget';

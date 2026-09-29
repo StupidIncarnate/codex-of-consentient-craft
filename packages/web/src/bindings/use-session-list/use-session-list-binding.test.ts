@@ -1,4 +1,5 @@
-import { GuildIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
 import { console } from '#gateway/browser/console';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';

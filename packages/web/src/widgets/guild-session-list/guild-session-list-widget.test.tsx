@@ -1,11 +1,9 @@
 import { useState } from '#gateway/npm/react';
-import {
-  QuestIdStub,
-  QuestListItemStub,
-  SessionIdStub,
-  SessionListItemStub,
-  SkippedQuestFileStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
+import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

@@ -1,9 +1,7 @@
-import {
-  QuestIdStub,
-  QuestSummaryFlowStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
 import { questSummaryBroker } from './quest-summary-broker';
 import { questSummaryBrokerProxy } from './quest-summary-broker.proxy';

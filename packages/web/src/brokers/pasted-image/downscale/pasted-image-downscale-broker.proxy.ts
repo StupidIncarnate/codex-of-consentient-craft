@@ -3,7 +3,7 @@
 // USAGE: Create proxy in test, stage originalIs()/reencodeYields() (or reencodeYieldsInOrder()),
 // call the broker, then read back getRescaleCalls() for what the encode was actually asked for.
 
-import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts/pasted-image-media-type/pasted-image-media-type.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { imageMeasureBrokerProxy } from '../../image/measure/image-measure-broker.proxy';

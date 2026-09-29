@@ -1,4 +1,4 @@
-import { ChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { ChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { pastedImageMemoryState } from './pasted-image-memory-state';

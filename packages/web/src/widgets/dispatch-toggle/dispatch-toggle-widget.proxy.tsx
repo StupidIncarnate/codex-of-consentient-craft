@@ -11,7 +11,7 @@ import { consoleErrorProxy } from '#gateway/browser/console/console-error/consol
 import { screen, within } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { useDispatchStateBindingProxy } from '../../bindings/use-dispatch-state/use-dispatch-state-binding.proxy';
 import { orchestrationDispatchPauseBrokerProxy } from '../../brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker.proxy';

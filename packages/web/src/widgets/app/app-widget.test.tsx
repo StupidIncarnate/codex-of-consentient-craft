@@ -3,14 +3,12 @@
  */
 
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
-import {
-  DispatchStateStub,
-  GuildIdStub,
-  GuildListItemStub,
-  QuestIdStub,
-  QuestQueueEntryStub,
-  SessionListItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';

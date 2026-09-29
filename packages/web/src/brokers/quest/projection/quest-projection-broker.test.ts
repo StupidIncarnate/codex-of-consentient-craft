@@ -1,4 +1,5 @@
-import { QuestIdStub, QuestProjectionStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
 
 import { questProjectionBroker } from './quest-projection-broker';
 import { questProjectionBrokerProxy } from './quest-projection-broker.proxy';

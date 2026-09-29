@@ -1,6 +1,6 @@
 import { waitFor } from '#gateway/npm/testing-library__react';
 
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';

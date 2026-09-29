@@ -3,18 +3,16 @@ import { Node } from '#gateway/browser/Node';
 import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
-import {
-  GuildIdStub,
-  PastedImageUploadStub,
-  ProcessIdStub,
-  QuestIdStub,
-  QuestStub,
-  QuestSummaryFlowStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';

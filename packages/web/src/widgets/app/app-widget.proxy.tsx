@@ -10,15 +10,13 @@ import { connectProxy } from '#gateway/browser/WebSocket/connect/connect.proxy';
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type {
-  DirectoryEntryStub,
-  DispatchStateStub,
-  GuildIdStub,
-  GuildListItemStub,
-  QuestQueueEntryStub,
-  RateLimitsSnapshotStub,
-  SessionListItemStub,
-} from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import type { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
+import type { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 
 import { LogoWidgetProxy } from '../logo/logo-widget.proxy';
 import { MapFrameWidgetProxy } from '../map-frame/map-frame-widget.proxy';

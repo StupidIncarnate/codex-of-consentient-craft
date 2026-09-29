@@ -3,12 +3,10 @@ import { chatControlHarness } from '../../../test/harnesses/chat-control/chat-co
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
-import {
-  SessionIdStub,
-  TimeoutMsStub,
-  SystemInitStreamLineStub,
-  AssistantTextStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 const GUILD_PATH = '/tmp/dm-e2e-chat-stop-first-message';

@@ -1,6 +1,6 @@
 import { act, renderHook } from '#gateway/npm/testing-library__react';
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
-import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 
 import { useAgentOutputBinding } from './use-agent-output-binding';
 import { useAgentOutputBindingProxy } from './use-agent-output-binding.proxy';

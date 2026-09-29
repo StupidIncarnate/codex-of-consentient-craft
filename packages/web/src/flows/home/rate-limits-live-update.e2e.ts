@@ -1,5 +1,6 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
 
 import { rateLimitsHarness } from '../../../test/harnesses/rate-limits/rate-limits.harness';
 

@@ -23,10 +23,8 @@ import { dirname } from '#gateway/node/path';
 
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
-import {
-  AssistantTextStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import type { ContentText, FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { TestId } from '../../../src/contracts/test-id/test-id-contract';

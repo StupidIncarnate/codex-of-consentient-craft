@@ -1,4 +1,6 @@
-import { ProcessIdStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { chatStreamEndedPayloadContract } from './chat-stream-ended-payload-contract';
 import { ChatStreamEndedPayloadStub } from './chat-stream-ended-payload.stub';

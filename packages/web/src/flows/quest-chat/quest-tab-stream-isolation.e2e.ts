@@ -1,8 +1,8 @@
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';

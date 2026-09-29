@@ -1,10 +1,8 @@
-import {
-  GuildIdStub,
-  PastedImageUploadStub,
-  ProcessIdStub,
-  QuestIdStub,
-  UserInputStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { UserInputStub } from '@dungeonmaster/shared/contracts/user-input/user-input.stub';
 
 import { questNewBroker } from './quest-new-broker';
 import { questNewBrokerProxy } from './quest-new-broker.proxy';

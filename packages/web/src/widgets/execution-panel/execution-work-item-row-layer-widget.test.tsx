@@ -1,16 +1,14 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import {
-  AssistantTextChatEntryStub,
-  OperationItemStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-  RiftcarverResultStub,
-  SessionIdStub,
-  WardResultStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';

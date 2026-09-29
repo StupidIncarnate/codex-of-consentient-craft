@@ -1,8 +1,6 @@
-import {
-  QuestIdStub,
-  QuestNoteStub,
-  QuestSummaryObservableStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HumanCheckPanelLayerWidget } from './human-check-panel-layer-widget';

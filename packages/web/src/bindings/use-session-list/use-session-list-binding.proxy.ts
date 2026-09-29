@@ -1,7 +1,7 @@
 import { console } from '#gateway/browser/console';
 import * as guildSessionListBrokerModule from '../../brokers/guild/session-list/guild-session-list-broker';
 
-import type { SessionListItemStub } from '@dungeonmaster/shared/contracts';
+import type { SessionListItemStub } from '@dungeonmaster/shared/contracts/session-list-item/session-list-item.stub';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 

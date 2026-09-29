@@ -17,10 +17,12 @@ import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import {
   SuccessfulToolResultStreamLineStub,
   TaskToolResultStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
 import { guildHarness } from '../guild/guild.harness';
 import { navigationHarness } from '../navigation/navigation.harness';

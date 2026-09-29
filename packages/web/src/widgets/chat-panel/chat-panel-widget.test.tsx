@@ -7,7 +7,7 @@ import {
   TaskNotificationChatEntryStub,
   TaskToolUseChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { ChatPanelWidget } from './chat-panel-widget';
 import { ChatPanelWidgetProxy } from './chat-panel-widget.proxy';
 

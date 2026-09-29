@@ -1,9 +1,7 @@
-import {
-  AssistantTextStreamLineStub,
-  SessionIdStub,
-  SystemInitStreamLineStub,
-  TimeoutMsStub,
-} from '@dungeonmaster/shared/contracts';
+import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 

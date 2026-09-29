@@ -1,4 +1,4 @@
-import { FlowRecipeStub } from '@dungeonmaster/shared/contracts';
+import { FlowRecipeStub } from '@dungeonmaster/shared/contracts/flow-recipe/flow-recipe.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowRecipeCalloutLayerWidget } from './flow-recipe-callout-layer-widget';

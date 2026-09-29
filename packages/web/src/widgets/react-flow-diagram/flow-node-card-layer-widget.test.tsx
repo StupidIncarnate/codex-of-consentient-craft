@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts';
+import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';

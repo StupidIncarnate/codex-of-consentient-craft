@@ -1,5 +1,5 @@
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
 test.describe('Smoke Tests', () => {

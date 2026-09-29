@@ -1,4 +1,7 @@
-import { AssistantTextChatEntryStub, UserChatEntryStub } from '@dungeonmaster/shared/contracts';
+import {
+  AssistantTextChatEntryStub,
+  UserChatEntryStub,
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { deriveSortedChatEntriesMapTransformer } from './derive-sorted-chat-entries-map-transformer';
 

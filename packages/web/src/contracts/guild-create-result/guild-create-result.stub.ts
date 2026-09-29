@@ -8,7 +8,7 @@
  */
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { guildCreateResultContract } from './guild-create-result-contract';
 import type { GuildCreateResult } from './guild-create-result-contract';

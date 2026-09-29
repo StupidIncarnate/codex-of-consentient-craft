@@ -3,7 +3,7 @@ import React from '#gateway/npm/react';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { screen } from '#gateway/npm/testing-library__react';
 
-import { FlowEdgeStub } from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 
 import { FlowEdgeWidget } from './flow-edge-widget';
 import { FlowEdgeWidgetProxy } from './flow-edge-widget.proxy';

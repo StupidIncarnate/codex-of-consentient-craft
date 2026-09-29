@@ -1,4 +1,4 @@
-import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { DispatchHoldNoticeWidget } from './dispatch-hold-notice-widget';

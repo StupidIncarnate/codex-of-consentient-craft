@@ -1,7 +1,7 @@
 import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { mergeCommandOutputEntriesTransformer } from './merge-command-output-entries-transformer';
 

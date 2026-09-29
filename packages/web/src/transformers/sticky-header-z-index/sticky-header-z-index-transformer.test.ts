@@ -1,4 +1,4 @@
-import { CssPixelsStub } from '@dungeonmaster/shared/contracts';
+import { CssPixelsStub } from '@dungeonmaster/shared/contracts/css-pixels/css-pixels.stub';
 
 import { stickyHeaderZIndexTransformer } from './sticky-header-z-index-transformer';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';

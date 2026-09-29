@@ -1,4 +1,5 @@
-import { CommentTextStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { CommentTextStub } from '@dungeonmaster/shared/contracts/comment-text/comment-text.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { act, renderHook } from '#gateway/npm/testing-library__react';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';

@@ -33,14 +33,16 @@ import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
-  AbsoluteFilePathStub,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import {
   TaskNotificationUserTextStreamLineStub,
-  TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
+import { TaskToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 

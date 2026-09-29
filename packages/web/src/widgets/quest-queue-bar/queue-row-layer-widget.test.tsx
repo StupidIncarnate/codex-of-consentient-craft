@@ -1,11 +1,9 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import { MemoryRouter } from '#gateway/npm/react-router-dom';
 
-import {
-  ArrayIndexStub,
-  QuestQueueEntryStub,
-  TotalCountStub,
-} from '@dungeonmaster/shared/contracts';
+import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import { TotalCountStub } from '@dungeonmaster/shared/contracts/total-count/total-count.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QueueRowLayerWidget } from './queue-row-layer-widget';
