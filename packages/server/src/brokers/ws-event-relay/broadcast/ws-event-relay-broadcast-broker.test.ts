@@ -1,9 +1,10 @@
 import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
 
-import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
+import type { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
 
 import { wsEventRelayBroadcastBroker } from './ws-event-relay-broadcast-broker';
 import { wsEventRelayBroadcastBrokerProxy } from './ws-event-relay-broadcast-broker.proxy';
+import { WsContextStub } from '#gateway/npm/hono__ws/ws-context/ws-context.stub';
 
 describe('wsEventRelayBroadcastBroker', () => {
   describe('event subscription (broadcast to clients)', () => {
@@ -20,7 +21,7 @@ describe('wsEventRelayBroadcastBroker', () => {
     it('VALID: {one healthy client} => sends serialized message to client', () => {
       wsEventRelayBroadcastBrokerProxy();
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       const clients = new Set([client]);
       const message = WsMessageStub({
         type: 'phase-change',
@@ -37,6 +38,7 @@ describe('wsEventRelayBroadcastBroker', () => {
             payload: { processId: 'proc-123', phase: 'codeweaver' },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
+          {},
         ],
       ]);
       expect(result.size).toBe(0);
@@ -47,9 +49,9 @@ describe('wsEventRelayBroadcastBroker', () => {
       const send1 = jest.fn();
       const send2 = jest.fn();
       const send3 = jest.fn();
-      const client1 = WsClientStub({ send: send1 });
-      const client2 = WsClientStub({ send: send2 });
-      const client3 = WsClientStub({ send: send3 });
+      const client1 = WsContextStub({ send: send1 });
+      const client2 = WsContextStub({ send: send2 });
+      const client3 = WsContextStub({ send: send3 });
       const clients = new Set([client1, client2, client3]);
       const message = WsMessageStub({ type: 'slot-update' });
 
@@ -61,9 +63,9 @@ describe('wsEventRelayBroadcastBroker', () => {
         timestamp: '2025-01-01T00:00:00.000Z',
       });
 
-      expect(send1.mock.calls).toStrictEqual([[expectedMessage]]);
-      expect(send2.mock.calls).toStrictEqual([[expectedMessage]]);
-      expect(send3.mock.calls).toStrictEqual([[expectedMessage]]);
+      expect(send1.mock.calls).toStrictEqual([[expectedMessage, {}]]);
+      expect(send2.mock.calls).toStrictEqual([[expectedMessage, {}]]);
+      expect(send3.mock.calls).toStrictEqual([[expectedMessage, {}]]);
       expect(result.size).toBe(0);
       expect(clients.size).toBe(3);
     });
@@ -75,7 +77,7 @@ describe('wsEventRelayBroadcastBroker', () => {
       const deadSend = jest.fn(() => {
         throw new Error('Connection closed');
       });
-      const deadClient = WsClientStub({ send: deadSend });
+      const deadClient = WsContextStub({ send: deadSend });
       const clients = new Set([deadClient]);
       const message = WsMessageStub();
 
@@ -92,8 +94,8 @@ describe('wsEventRelayBroadcastBroker', () => {
       const deadSend = jest.fn(() => {
         throw new Error('Connection closed');
       });
-      const healthyClient = WsClientStub({ send: healthySend });
-      const deadClient = WsClientStub({ send: deadSend });
+      const healthyClient = WsContextStub({ send: healthySend });
+      const deadClient = WsContextStub({ send: deadSend });
       const clients = new Set([healthyClient, deadClient]);
       const message = WsMessageStub({ type: 'progress-update' });
 
@@ -112,8 +114,8 @@ describe('wsEventRelayBroadcastBroker', () => {
       const deadSend = jest.fn(() => {
         throw new Error('Connection closed');
       });
-      const healthyClient = WsClientStub({ send: healthySend });
-      const deadClient = WsClientStub({ send: deadSend });
+      const healthyClient = WsContextStub({ send: healthySend });
+      const deadClient = WsContextStub({ send: deadSend });
       const clients = new Set([healthyClient, deadClient]);
       const message = WsMessageStub({ type: 'progress-update' });
 
@@ -133,8 +135,8 @@ describe('wsEventRelayBroadcastBroker', () => {
       const dead2 = jest.fn(() => {
         throw new Error('Connection closed');
       });
-      const client1 = WsClientStub({ send: dead1 });
-      const client2 = WsClientStub({ send: dead2 });
+      const client1 = WsContextStub({ send: dead1 });
+      const client2 = WsContextStub({ send: dead2 });
       const clients = new Set([client1, client2]);
       const message = WsMessageStub();
 

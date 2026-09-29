@@ -39,8 +39,8 @@ import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait
 import { webBundleResponseBrokerProxy } from '../../../brokers/web-bundle/response/web-bundle-response-broker.proxy';
 import { wsEventRelayBroadcastBrokerProxy } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker.proxy';
 import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
-import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { ServerInitResponder } from './server-init-responder';
+import type { WSContext } from '#gateway/npm/hono__ws';
 
 // Longer than the wait broker's whole poll budget.
 const PAST_DEADLINE_MS = 1000;
@@ -71,9 +71,9 @@ export const ServerInitResponderProxy = (): {
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
   setupWebBundleFile: (params: { contents: FileContents; expectedRelativePath: string }) => void;
-  simulateConnection: (params: { client: WsClient }) => void;
-  simulateMessage: (params: { data: string; ws: WsClient }) => void;
-  simulateDisconnect: (params: { ws: WsClient }) => void;
+  simulateConnection: (params: { client: WSContext }) => void;
+  simulateMessage: (params: { data: string; ws: WSContext }) => void;
+  simulateDisconnect: (params: { ws: WSContext }) => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
   setupLoadQuestFailure: (params: { questId: QuestId; error: Error }) => void;
   // Stages what TWO overlapping onQuestChanged firings for the SAME questId each resolve with —
@@ -204,15 +204,15 @@ export const ServerInitResponderProxy = (): {
       listen.port = value;
       portProxy.setEnvPort({ value });
     },
-    simulateConnection: ({ client }: { client: WsClient }): void => {
+    simulateConnection: ({ client }: { client: WSContext }): void => {
       const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onOpen?.(undefined, client);
     },
-    simulateMessage: ({ data, ws }: { data: string; ws: WsClient }): void => {
+    simulateMessage: ({ data, ws }: { data: string; ws: WSContext }): void => {
       const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onMessage?.({ data }, ws);
     },
-    simulateDisconnect: ({ ws }: { ws: WsClient }): void => {
+    simulateDisconnect: ({ ws }: { ws: WSContext }): void => {
       const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onClose?.(undefined, ws);
     },

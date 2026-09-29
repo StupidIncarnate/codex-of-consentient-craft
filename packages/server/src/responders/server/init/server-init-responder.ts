@@ -49,12 +49,12 @@ import type {
   WsMessage,
 } from '@dungeonmaster/shared/contracts';
 
-import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
 import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
+import type { WSContext } from '#gateway/npm/hono__ws';
 
 type HonoApp = Parameters<typeof createNodeWebSocket>[0]['app'];
 
@@ -91,10 +91,10 @@ export const ServerInitResponder = ({
   // `clients` carries every connected WS so global events
   // (execution-queue-updated, execution-queue-error, phase-change, slot-update,
   // progress-update, process-complete, process-failed, quest-persisted) can fan out.
-  const clients = new Set<WsClient>();
+  const clients = new Set<WSContext>();
   // Per-quest subscriptions: a client subscribed to questId X receives only the
   // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
-  const clientSubscriptions = new Map<WsClient, Set<QuestId>>();
+  const clientSubscriptions = new Map<WSContext, Set<QuestId>>();
   // Per-quest replay-in-progress flags. While a (client, questId) pair is in
   // this map, live PER_QUEST_EVENT_TYPES events for that questId are NOT
   // forwarded to that client through the per-quest path; instead chat-output
@@ -104,7 +104,7 @@ export const ServerInitResponder = ({
   // pure-loss case where live emits during replay are suppressed AND replay
   // reads an empty JSONL — the test sees nothing and times out. Cleared when
   // chat-history-complete fires for the subscribe-quest replay (or replay errors out).
-  const replayInProgressByClient = new Map<WsClient, Set<QuestId>>();
+  const replayInProgressByClient = new Map<WSContext, Set<QuestId>>();
   // Live chat-output frames suppressed during a replay window, keyed by
   // (client, questId, workItemId). Drained in the subscribe-quest .finally:
   // for each workItem, deliver buffered frames ONLY IF replay produced no
@@ -115,13 +115,13 @@ export const ServerInitResponder = ({
   // legitimately race-lost frames whenever ANY replay in the quest succeeded.
   // Frames without workItemId go under the null key.
   const bufferedDuringReplay = new Map<
-    WsClient,
+    WSContext,
     Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>
   >();
   // WorkItemIds for which replay's direct-send delivered at least one chat-output
   // frame, per (client, questId). Used by the subscribe-quest .finally to decide
   // which workItem buffers to drain.
-  const replayDeliveredWorkItems = new Map<WsClient, Map<QuestId, Set<QuestWorkItemId | null>>>();
+  const replayDeliveredWorkItems = new Map<WSContext, Map<QuestId, Set<QuestWorkItemId | null>>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -129,7 +129,7 @@ export const ServerInitResponder = ({
   // questId) would be filtered out by the per-quest broadcast filter and the readonly
   // viewer page would hang on the loading state forever. The entry is removed when
   // chat-history-complete fires for that chatProcessId, or when the client disconnects.
-  const replayClientByChatProcessId = new Map<ProcessId, WsClient>();
+  const replayClientByChatProcessId = new Map<ProcessId, WSContext>();
   // workItemId → owning questId. The quest-driven watchers emit chat-output tagged with a
   // workItemId but no questId (one watcher can serve work items across several quests, so
   // there is no single id to stamp at the source), and a frame this map cannot answer for
@@ -168,7 +168,7 @@ export const ServerInitResponder = ({
     '/ws',
     upgradeWebSocket(() => ({
       onOpen: (_evt: unknown, ws: unknown) => {
-        clients.add(ws as WsClient);
+        clients.add(ws as WSContext);
         processDevLogBroker({ message: 'WebSocket client connected' });
       },
       onMessage: (evt: unknown, _ws: unknown) => {
@@ -190,7 +190,7 @@ export const ServerInitResponder = ({
 
           if (message.type === 'replay-history') {
             const { sessionId, guildId, chatProcessId } = message;
-            const replayWs = _ws as WsClient;
+            const replayWs = _ws as WSContext;
             // Track the requesting client so chat-output / chat-history-complete events
             // emitted by ChatReplayResponder for this chatProcessId can be routed DIRECTLY
             // back to the SessionViewWidget — bypassing the per-quest broadcast filter
@@ -220,7 +220,7 @@ export const ServerInitResponder = ({
 
                 const detail: unknown = JSON.parse(contents);
 
-                (_ws as WsClient).send(
+                (_ws as WSContext).send(
                   JSON.stringify({
                     type: 'ward-detail-response',
                     wardResultId,
@@ -238,7 +238,7 @@ export const ServerInitResponder = ({
 
           if (message.type === 'subscribe-quest') {
             const subQuestId = message.questId;
-            const subWs = _ws as WsClient;
+            const subWs = _ws as WSContext;
             const existing = clientSubscriptions.get(subWs) ?? new Set<QuestId>();
             existing.add(subQuestId);
             clientSubscriptions.set(subWs, existing);
@@ -435,7 +435,7 @@ export const ServerInitResponder = ({
 
           if (message.type === 'unsubscribe-quest') {
             const unsubQuestId = message.questId;
-            const unsubWs = _ws as WsClient;
+            const unsubWs = _ws as WSContext;
             const existing = clientSubscriptions.get(unsubWs);
             if (existing) {
               existing.delete(unsubQuestId);
@@ -447,7 +447,7 @@ export const ServerInitResponder = ({
 
           if (message.type === 'replay-quest-history') {
             const replayQuestId = message.questId;
-            const replayWs = _ws as WsClient;
+            const replayWs = _ws as WSContext;
             StartOrchestrator.loadQuest({ questId: replayQuestId })
               .then(async (quest) => {
                 // Send current quest state to the requesting client BEFORE replay,
@@ -508,7 +508,7 @@ export const ServerInitResponder = ({
         }
       },
       onClose: (_evt: unknown, ws: unknown) => {
-        const closedClient = ws as WsClient;
+        const closedClient = ws as WSContext;
         clients.delete(closedClient);
         clientSubscriptions.delete(closedClient);
         replayInProgressByClient.delete(closedClient);
@@ -712,7 +712,7 @@ export const ServerInitResponder = ({
           // chatProcessId (SessionViewWidget — won't have a subscription). Track
           // already-delivered clients so a client somehow on both paths is not double-sent.
           const serializedQuestMsg = JSON.stringify(envelope);
-          const delivered = new Set<WsClient>();
+          const delivered = new Set<WSContext>();
 
           // A per-quest event whose questId could not be resolved is addressed to nobody.
           // Every quest subscription is keyed by id, so the only way to deliver such a

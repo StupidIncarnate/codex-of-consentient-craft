@@ -14,8 +14,8 @@ import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
 
-import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
 import { ServerInitResponderProxy } from './server-init-responder.proxy';
+import { WsContextStub } from '#gateway/npm/hono__ws/ws-context/ws-context.stub';
 
 describe('ServerInitResponder', () => {
   describe('websocket setup', () => {
@@ -34,7 +34,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -60,7 +60,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       const sessionIdOne = SessionIdStub({ value: 'session-relay-pin-one' });
       const sessionIdTwo = SessionIdStub({ value: 'session-relay-pin-two' });
       const guildId = GuildIdStub();
@@ -111,7 +111,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       const chatProcessId = ProcessIdStub({ value: 'replay-flag-proc' });
       const sessionId = SessionIdStub({ value: 'session-replay-flag' });
       proxy.simulateConnection({ client });
@@ -166,7 +166,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       proxy.simulateMessage({ data: 'not-json{{{', ws: client });
@@ -203,7 +203,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'ward-detail-request', questId, wardResultId }),
@@ -228,7 +228,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
@@ -245,7 +245,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
@@ -262,7 +262,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       proxy.firePipelineFlush();
@@ -275,7 +275,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
       const handler = proxy.getCapturedEventHandler({ type: 'phase-change' });
@@ -296,7 +296,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateDisconnect({ ws: client });
 
@@ -333,7 +333,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -395,7 +395,7 @@ describe('ServerInitResponder', () => {
       });
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -449,7 +449,7 @@ describe('ServerInitResponder', () => {
       });
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId: questIdY }),
@@ -486,7 +486,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -567,7 +567,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -626,7 +626,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -711,7 +711,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -797,7 +797,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -849,7 +849,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -903,7 +903,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
@@ -966,8 +966,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
@@ -1005,7 +1005,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendA = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
+      const clientA = WsContextStub({ send: sendA });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
@@ -1057,7 +1057,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendA = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
+      const clientA = WsContextStub({ send: sendA });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId: questIdX }),
@@ -1115,8 +1115,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
@@ -1173,8 +1173,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
@@ -1240,8 +1240,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
@@ -1280,8 +1280,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
       proxy.simulateMessage({
@@ -1341,7 +1341,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'replay-quest-history', questId }),
@@ -1391,7 +1391,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
@@ -1422,8 +1422,8 @@ describe('ServerInitResponder', () => {
 
       const sendA = jest.fn();
       const sendB = jest.fn();
-      const clientA = WsClientStub({ send: sendA });
-      const clientB = WsClientStub({ send: sendB });
+      const clientA = WsContextStub({ send: sendA });
+      const clientB = WsContextStub({ send: sendB });
       const replayProcessIdA = ProcessIdStub({ value: 'replay-direct-two-A' });
       const replayProcessIdB = ProcessIdStub({ value: 'replay-direct-two-B' });
       const linkedQuestId = QuestIdStub({ value: 'quest-replay-link-two' });
@@ -1489,7 +1489,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       const replayProcessId = ProcessIdStub({ value: 'replay-direct-orphan' });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
@@ -1531,7 +1531,7 @@ describe('ServerInitResponder', () => {
       proxy.callResponder();
 
       const sendMock = jest.fn();
-      const client = WsClientStub({ send: sendMock });
+      const client = WsContextStub({ send: sendMock });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({ type: 'subscribe-quest', questId }),
