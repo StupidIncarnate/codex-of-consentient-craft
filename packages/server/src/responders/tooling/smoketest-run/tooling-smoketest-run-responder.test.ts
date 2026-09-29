@@ -14,7 +14,7 @@ describe('ToolingSmoketestRunResponder', () => {
 
   it('ERROR: {orchestrator throws "Smoketest already running"} => returns 409', async () => {
     const proxy = ToolingSmoketestRunResponderProxy();
-    const suite = SmoketestSuiteStub({ value: 'signals' });
+    const suite = 'signals';
     proxy.setupAlreadyRunning({ runId: 'run-123', suite });
 
     const result = await ToolingSmoketestRunResponder({ body: { suite } });
