@@ -4,6 +4,7 @@ import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
@@ -38,7 +39,7 @@ export const responderLinesRenderLayerBrokerProxy = (): {
           return content;
         }
       }
-      throw new Error('ENOENT');
+      throw FileMissingErrorStub({ path: fp });
     };
 
   return {

@@ -1,5 +1,6 @@
 import { architectureBindingFlowTraceBrokerProxy } from '../binding-flow-trace/architecture-binding-flow-trace-broker.proxy';
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureWidgetNodeRenderBrokerProxy = (): {
@@ -18,7 +19,7 @@ export const architectureWidgetNodeRenderBrokerProxy = (): {
               return content;
             }
           }
-          throw new Error('ENOENT');
+          throw FileMissingErrorStub({ path: fp });
         },
       });
     },

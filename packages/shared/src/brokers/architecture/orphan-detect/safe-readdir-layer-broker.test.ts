@@ -1,6 +1,7 @@
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('safeReaddirLayerBroker', () => {
   it('VALID: {readdir succeeds with default empty} => returns empty array', () => {
@@ -16,7 +17,7 @@ describe('safeReaddirLayerBroker', () => {
   it('EMPTY: {readdir throws ENOENT} => returns empty array (swallowed)', () => {
     const proxy = safeReaddirLayerBrokerProxy();
     const dirPath = AbsoluteFilePathStub({ value: '/missing/dir' });
-    proxy.setupReaddirThrows({ dirPath, error: new Error('ENOENT') });
+    proxy.setupReaddirThrows({ dirPath, error: FileMissingErrorStub({ path: dirPath }) });
 
     const result = safeReaddirLayerBroker({ dirPath });
 

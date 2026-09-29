@@ -7,6 +7,7 @@ import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edg
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
 import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event-bus-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
@@ -45,7 +46,7 @@ export const architectureBootTreeBrokerProxy = (): {
           return content;
         }
       }
-      throw new Error('ENOENT');
+      throw FileMissingErrorStub({ path: fp });
     };
 
   return {

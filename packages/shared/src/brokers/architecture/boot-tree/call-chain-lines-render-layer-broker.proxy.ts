@@ -1,5 +1,6 @@
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
@@ -30,7 +31,7 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
           return content;
         }
       }
-      throw new Error('ENOENT');
+      throw FileMissingErrorStub({ path: fp });
     };
 
   return {
