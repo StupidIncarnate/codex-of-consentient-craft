@@ -37,8 +37,7 @@ export const InstallCreateJestResponder = async ({
 
   if (existsSync(packageJsonPath)) {
     const packageJsonContent = await readFile(packageJsonPath);
-    const rawParsed: unknown = JSON.parse(packageJsonContent);
-    const parsedPackageJson = packageJsonContract.safeParse(rawParsed);
+    const parsedPackageJson = packageJsonContract.safeParse(JSON.parse(packageJsonContent));
 
     if (
       parsedPackageJson.success &&

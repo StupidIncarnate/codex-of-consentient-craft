@@ -27,8 +27,7 @@ export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
   stdout.write(inputData);
 
   try {
-    const parsed = JSON.parse(inputData) as unknown;
-    const validated = statuslineInputContract.parse(parsed);
+    const validated = statuslineInputContract.parse(JSON.parse(inputData));
 
     const nowMs = now();
     const nowIso = new Date(nowMs).toISOString();

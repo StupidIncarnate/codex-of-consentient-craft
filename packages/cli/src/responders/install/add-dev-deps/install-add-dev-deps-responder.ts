@@ -42,8 +42,7 @@ export const InstallAddDevDepsResponder = async ({
   }
 
   const packageJsonContent = await readFile(packageJsonPath);
-  const rawParsed: unknown = JSON.parse(packageJsonContent);
-  const parsedPackageJson = packageJsonContract.safeParse(rawParsed);
+  const parsedPackageJson = packageJsonContract.safeParse(JSON.parse(packageJsonContent));
 
   if (!parsedPackageJson.success) {
     return {
@@ -83,7 +82,7 @@ export const InstallAddDevDepsResponder = async ({
   const mergedDevDeps = dependencyMapContract.parse(Object.fromEntries(mergedEntries));
   // Preserve the original top-level key order (name/version/license first). packageJsonContract's
   // object parse hoists declared keys, so build the write from an order-preserving record parse.
-  const orderedPackageJson = packageJsonRawContract.parse(rawParsed);
+  const orderedPackageJson = packageJsonRawContract.parse(JSON.parse(packageJsonContent));
   const updatedPackageJson = { ...orderedPackageJson, devDependencies: mergedDevDeps };
 
   const contents = jsonFileContentsTransformer({ value: updatedPackageJson });

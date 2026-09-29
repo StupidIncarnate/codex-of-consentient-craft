@@ -64,8 +64,7 @@ export const CliCreatePackageResponder = async ({
     join(context.targetProjectRoot, 'package.json'),
   );
   const rootPackageJsonContent = await readFile(rootPackageJsonPath);
-  const rootPackageJsonRaw: unknown = JSON.parse(rootPackageJsonContent);
-  const rootPackageJson = packageJsonRawContract.parse(rootPackageJsonRaw);
+  const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rootPackageJsonContent));
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
