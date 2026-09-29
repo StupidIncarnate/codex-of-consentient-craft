@@ -60,4 +60,20 @@ describe('LogoWidget', () => {
       expect(pre.style.fontFamily).toBe('monospace');
     });
   });
+
+  describe('narrow viewport', () => {
+    it('VALID: {} => the sprites sit in hideable slots and the group never wraps', () => {
+      LogoWidgetProxy();
+
+      mantineRenderAdapter({ ui: <LogoWidget /> });
+
+      const slots = screen.getAllByTestId('LOGO_SPRITE_SLOT');
+
+      expect(slots.map((slot) => slot.className)).toStrictEqual(['logo-sprite', 'logo-sprite']);
+      expect(screen.getByTestId('LOGO_GROUP').style.getPropertyValue('--group-wrap')).toBe(
+        'nowrap',
+      );
+      expect(screen.getByTestId('LOGO_ASCII').className).toBe('logo-ascii');
+    });
+  });
 });

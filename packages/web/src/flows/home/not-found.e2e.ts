@@ -104,4 +104,20 @@ test.describe('Not Found', () => {
 
     expect(body.error).toMatch(/^Guild not found: [0-9a-f-]+$/u);
   });
+
+  test('ERROR: unknown top-level route shows the not-found page with the path and a link home', async ({
+    page,
+  }) => {
+    await page.goto('/x-does-not-exist');
+
+    await expect(page.getByTestId('NOT_FOUND_PAGE')).toBeVisible();
+    await expect(page.getByTestId('NOT_FOUND_PATH')).toHaveText('/x-does-not-exist');
+    await expect(page.getByTestId('LOGO_LINK')).toBeVisible();
+    await expect(page.getByTestId('NOT_FOUND_HOME_LINK')).toHaveAttribute('href', '/');
+
+    await page.getByTestId('NOT_FOUND_HOME_LINK').click();
+
+    await expect(page).toHaveURL(/\/$/u);
+    await expect(page.getByTestId('NOT_FOUND_PAGE')).not.toBeVisible();
+  });
 });

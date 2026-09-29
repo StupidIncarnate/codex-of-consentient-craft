@@ -160,7 +160,7 @@ export const HomeContentWidgetProxy = (): {
     },
     clickAddSession: async (): Promise<void> => {
       const sessionListEl = screen.getByTestId('GUILD_SESSION_LIST');
-      const addButton = within(sessionListEl).getByTestId('PIXEL_BTN');
+      const addButton = within(sessionListEl).getByTestId('SESSION_ADD_BUTTON');
       await userEvent.click(addButton, userEventStatics.options);
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),

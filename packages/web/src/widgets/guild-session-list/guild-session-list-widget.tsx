@@ -28,8 +28,11 @@ import { QuestRowLayerWidget } from './quest-row-layer-widget';
 import { SessionRowLayerWidget } from './session-row-layer-widget';
 import { UnreadableQuestRowLayerWidget } from './unreadable-quest-row-layer-widget';
 
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
+
+const addTestId = testIdContract.parse('SESSION_ADD_BUTTON');
 
 export interface GuildSessionListWidgetProps {
   sessions: readonly SessionListItem[];
@@ -79,6 +82,7 @@ export const GuildSessionListWidget = ({
         <PixelBtnWidget
           label={'+' as ButtonLabel}
           onClick={onAdd}
+          testId={addTestId}
           variant={'ghost' as ButtonVariant}
           icon
         />

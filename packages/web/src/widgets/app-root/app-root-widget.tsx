@@ -11,6 +11,7 @@ import { createTheme, MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
 
 import { mantineNotificationsAdapter } from '../../adapters/mantine/notifications/mantine-notifications-adapter';
+import { logoStatics } from '../../statics/logo/logo-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const theme = createTheme({ fontFamily: 'monospace', defaultRadius: 2 });
@@ -31,7 +32,13 @@ const SELECTION_CSS = `::selection { background-color: ${colors.primary}; color:
 // legible and clickable to be a credit at all.
 const ATTRIBUTION_CSS = `.react-flow__attribution { background: transparent; padding: 2px 4px; } .react-flow__attribution a { color: ${colors['text-dim']}; font-family: monospace; font-size: 9px; } .react-flow__attribution a:hover { color: ${colors.primary}; }`;
 
-const GLOBAL_CSS = `${SELECTION_CSS} ${ATTRIBUTION_CSS}`;
+// The logo row is `nowrap`, so below the width where sprites + ASCII art no longer fit side by
+// side it has to shrink something rather than wrap the sprites above and below the title. Sprites
+// go first; the ASCII art itself steps down its font size only once it alone overflows. `!important`
+// because the art's own size is an inline style, which a media query cannot otherwise beat.
+const LOGO_CSS = `@media (max-width: ${logoStatics.breakpoints.hideSpritesMaxPx}px) { .logo-sprite { display: none; } } @media (max-width: ${logoStatics.breakpoints.smallAsciiMaxPx}px) { .logo-ascii { font-size: ${logoStatics.fontSizes.smallAsciiPx}px !important; } } @media (max-width: ${logoStatics.breakpoints.tinyAsciiMaxPx}px) { .logo-ascii { font-size: ${logoStatics.fontSizes.tinyAsciiPx}px !important; } }`;
+
+const GLOBAL_CSS = `${SELECTION_CSS} ${ATTRIBUTION_CSS} ${LOGO_CSS}`;
 
 const NotificationsComponent = mantineNotificationsAdapter();
 

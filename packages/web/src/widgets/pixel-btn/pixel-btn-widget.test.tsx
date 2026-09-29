@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
 import { ButtonVariantStub } from '../../contracts/button-variant/button-variant.stub';
+import { TestIdStub } from '../../contracts/test-id/test-id.stub';
 import { PixelBtnWidget } from './pixel-btn-widget';
 import { PixelBtnWidgetProxy } from './pixel-btn-widget.proxy';
 
@@ -231,6 +232,30 @@ describe('PixelBtnWidget', () => {
       const button = screen.getByTestId('PIXEL_BTN');
 
       expect(button.style.backgroundColor).toBe('rgb(255, 107, 53)');
+    });
+  });
+
+  describe('testId', () => {
+    it('VALID: {testId: "GUILD_CREATE_BUTTON"} => button carries that id and not PIXEL_BTN', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'CREATE' });
+      const testId = TestIdStub({ value: 'GUILD_CREATE_BUTTON' });
+
+      mantineRenderAdapter({
+        ui: <PixelBtnWidget label={label} onClick={jest.fn()} testId={testId} />,
+      });
+
+      expect(screen.getByTestId('GUILD_CREATE_BUTTON').textContent).toBe('CREATE');
+      expect(screen.queryAllByTestId('PIXEL_BTN')).toStrictEqual([]);
+    });
+
+    it('EMPTY: {no testId} => button carries PIXEL_BTN', () => {
+      PixelBtnWidgetProxy();
+      const label = ButtonLabelStub({ value: 'GO' });
+
+      mantineRenderAdapter({ ui: <PixelBtnWidget label={label} onClick={jest.fn()} /> });
+
+      expect(screen.getByTestId('PIXEL_BTN').textContent).toBe('GO');
     });
   });
 });

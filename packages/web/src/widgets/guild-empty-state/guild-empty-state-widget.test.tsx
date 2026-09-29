@@ -98,4 +98,19 @@ describe('GuildEmptyStateWidget', () => {
       expect(onCancel).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('button test ids', () => {
+    it('VALID: {onCancel provided} => BROWSE, CREATE and CANCEL each carry their own id', () => {
+      GuildEmptyStateWidgetProxy();
+
+      mantineRenderAdapter({
+        ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} onCancel={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('GUILD_BROWSE_BUTTON').textContent).toBe('BROWSE');
+      expect(screen.getByTestId('GUILD_CREATE_BUTTON').textContent).toBe('CREATE');
+      expect(screen.getByTestId('GUILD_CANCEL_BUTTON').textContent).toBe('CANCEL');
+      expect(screen.queryAllByTestId('PIXEL_BTN')).toStrictEqual([]);
+    });
+  });
 });

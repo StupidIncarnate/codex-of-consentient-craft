@@ -60,7 +60,7 @@ describe('AppRootWidget', () => {
     // the brightest object on the canvas, and recolouring the link alone changes almost nothing.
     // Nothing here hides it — no display:none, no visibility:hidden, and hover restores full
     // strength, because a credit has to stay legible and clickable to be a credit.
-    it('VALID: {children} => declares palette ::selection and a dimmed React Flow attribution', () => {
+    it('VALID: {children} => declares palette ::selection, a dimmed React Flow attribution and the narrow-viewport logo rules', () => {
       AppRootWidgetProxy();
 
       render(
@@ -73,7 +73,10 @@ describe('AppRootWidget', () => {
         '::selection { background-color: #ff6b35; color: #0d0907; }' +
           ' .react-flow__attribution { background: transparent; padding: 2px 4px; }' +
           ' .react-flow__attribution a { color: #8a7260; font-family: monospace; font-size: 9px; }' +
-          ' .react-flow__attribution a:hover { color: #ff6b35; }',
+          ' .react-flow__attribution a:hover { color: #ff6b35; }' +
+          ' @media (max-width: 619px) { .logo-sprite { display: none; } }' +
+          ' @media (max-width: 519px) { .logo-ascii { font-size: 5px !important; } }' +
+          ' @media (max-width: 419px) { .logo-ascii { font-size: 4px !important; } }',
       );
     });
   });
