@@ -20,6 +20,7 @@ import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check
 import { msPerSecondStatics } from '../../../statics/ms-per-second/ms-per-second-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
+import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 import { checkRunLintBroker } from '../../check-run/lint/check-run-lint-broker';
 import { checkRunTypecheckBroker } from '../../check-run/typecheck/check-run-typecheck-broker';
 import { checkRunUnitBroker } from '../../check-run/unit/check-run-unit-broker';
@@ -88,11 +89,15 @@ export const singlePackageLayerBroker = async ({
         const failCount = projectResult.errors.length + projectResult.testFailures.length;
         const statusLabel = projectResult.status === 'pass' ? 'PASS' : 'FAIL';
         const isScopedWithResults = hasPassthrough && Number(projectResult.filesCount) > 0;
+        // A crash left no report to count processed files from, so comparing its default 0 with
+        // discovery would list every discovered file — the requested one included — as unrun.
+        const isCrashed = isCrashedProjectResultGuard({ projectResult });
         const hasMismatch =
+          !isCrashed &&
           !isScopedWithResults &&
           Number(projectResult.discoveredCount) > 0 &&
           Number(projectResult.discoveredCount) !== Number(projectResult.filesCount);
-        const mismatch = hasMismatch ? '  DISCOVERY MISMATCH' : '';
+        const mismatch = isCrashed ? '  CRASH' : hasMismatch ? '  DISCOVERY MISMATCH' : '';
         const detail =
           failCount > 0
             ? `${String(projectResult.filesCount)} files, ${String(failCount)} errors, ${String(projectResult.discoveredCount)} discovered${mismatch}`
