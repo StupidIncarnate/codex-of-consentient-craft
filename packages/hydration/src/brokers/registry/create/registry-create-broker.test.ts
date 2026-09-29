@@ -412,7 +412,7 @@ describe('registryCreateBroker', () => {
           line: LineCountStub({ value: 15 }),
           code: 2322,
           message:
-            'Type \'"blocked"\' is not assignable to type \'"approved" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | "review_observables" | "in_progress" | "complete" | "abandoned"\'.',
+            'Type \'"blocked"\' is not assignable to type \'"explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | "review_observables" | "approved" | "in_progress" | "complete" | "abandoned"\'.',
         }),
       ]);
     });
