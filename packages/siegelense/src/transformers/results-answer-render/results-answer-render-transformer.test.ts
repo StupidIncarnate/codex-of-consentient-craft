@@ -434,4 +434,99 @@ describe('resultsAnswerRenderTransformer', () => {
       expect(result).toBe('INSTANCE: inst_7f3a9c21 (alive)\nGET 304 /@vite/client\n');
     });
   });
+
+  describe('--since boot readings carrying run, step and time', () => {
+    it('VALID: {kind: ws, stamped sent, received and closed rows} => one timeline line each, time as ISO', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: null,
+        kind: 'ws',
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({
+              run: 'run_1',
+              step: 2,
+              at: 1790642409654,
+              url: 'ws://localhost/ws',
+              direction: 'sent',
+              payload: 'ping',
+            }),
+          }),
+          ContentTextStub({
+            value: JSON.stringify({
+              run: 'run_1',
+              step: 3,
+              at: 1790642409000,
+              url: 'ws://localhost/ws',
+              direction: 'closed',
+              payload: '',
+            }),
+          }),
+          ContentTextStub({
+            value: JSON.stringify({
+              run: null,
+              step: null,
+              at: 1790642409000,
+              url: 'ws://localhost/ws',
+              direction: 'received',
+              payload: 'pong',
+            }),
+          }),
+        ],
+      });
+
+      expect(resultsAnswerRenderTransformer({ answer })).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\n' +
+          '[run_1 step 2 2026-09-29T00:40:09.654Z] sent ws://localhost/ws — ping\n' +
+          '[run_1 step 3 2026-09-29T00:40:09.000Z] closed ws://localhost/ws\n' +
+          '[between runs 2026-09-29T00:40:09.000Z] received ws://localhost/ws — pong\n',
+      );
+    });
+
+    it('VALID: {kind: network and console, stamped rows} => the same run, step and time lead the line', () => {
+      const networkAnswer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: null,
+        kind: 'network',
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({
+              run: 'run_5',
+              step: 1,
+              at: 1790642409000,
+              method: 'GET',
+              url: '/',
+              status: 200,
+            }),
+          }),
+        ],
+      });
+      const consoleAnswer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: null,
+        kind: 'console',
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({
+              run: 'run_5',
+              step: 1,
+              at: 1790642409000,
+              type: 'error',
+              text: 'boom',
+            }),
+          }),
+        ],
+      });
+
+      expect(resultsAnswerRenderTransformer({ answer: networkAnswer })).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\n[run_5 step 1 2026-09-29T00:40:09.000Z] GET 200 /\n',
+      );
+      expect(resultsAnswerRenderTransformer({ answer: consoleAnswer })).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\n[run_5 step 1 2026-09-29T00:40:09.000Z] ERROR: boom\n',
+      );
+    });
+  });
 });

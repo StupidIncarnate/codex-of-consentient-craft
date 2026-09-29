@@ -34,6 +34,31 @@ export const resultsStatics = {
   since: {
     boot: 'boot',
   },
+  // Which --kind each --where-* flag can narrow. A flag outside its kinds filters nothing, so the
+  // parser refuses it rather than letting the whole unfiltered view come back.
+  whereScope: {
+    path: { flag: '--where-path', rows: 'network rows', kinds: ['network'] },
+    method: { flag: '--where-method', rows: 'network rows', kinds: ['network'] },
+    nth: {
+      flag: '--where-nth',
+      rows: 'console, network and ws rows',
+      kinds: ['console', 'network', 'ws'],
+    },
+    level: { flag: '--where-level', rows: 'console and server rows', kinds: ['console', 'server'] },
+    steps: {
+      flag: '--where-steps',
+      rows: 'console, network, ws, server and step rows',
+      kinds: ['console', 'network', 'ws', 'server', 'steps'],
+    },
+  },
+  // The names a --fields entry can match, per buffer kind. `run` and `step` are stamped onto a
+  // `--since boot` row only. Step and screenshot readings take their names from their own contracts.
+  fields: {
+    console: ['at', 'kind', 'type', 'text', 'url', 'line', 'stack'],
+    network: ['at', 'method', 'url', 'resourceType', 'status', 'requestBody', 'responseBody'],
+    ws: ['at', 'url', 'direction', 'payload'],
+    sinceBootStamped: ['run', 'step'],
+  },
   limits: {
     maxRows: 200,
   },

@@ -469,7 +469,11 @@ describe('resultsReadBroker', () => {
       query: ResultsQueryStub({ instanceId: INSTANCE_ID, kind: 'console', since: 'boot' }),
     });
 
-    expect(result.rows).toStrictEqual([run1Text, betweenRunsText, run2Text]);
+    expect(result.rows).toStrictEqual([
+      '{"run":"run_1","step":null,"at":1,"kind":"console","type":"log","text":"a"}',
+      '{"run":null,"step":null,"at":2,"kind":"console","type":"log","text":"b"}',
+      '{"run":"run_2","step":null,"at":3,"kind":"console","type":"log","text":"c"}',
+    ]);
   });
 
   it('VALID: {kind: network, since: boot} => entries from run_1 AND run_2, with real matched/returned counts', async () => {
@@ -496,7 +500,14 @@ describe('resultsReadBroker', () => {
     });
 
     expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
-      { matched: 2, returned: 2, rows: [run1Text, run2Text] },
+      {
+        matched: 2,
+        returned: 2,
+        rows: [
+          '{"run":"run_1","step":null,"at":1,"method":"GET","url":"/api/a","resourceType":"fetch","status":200,"requestBody":null,"responseBody":"ok"}',
+          '{"run":"run_2","step":null,"at":1,"method":"POST","url":"/api/b","resourceType":"fetch","status":500,"requestBody":null,"responseBody":"ok"}',
+        ],
+      },
     );
   });
 
@@ -544,7 +555,10 @@ describe('resultsReadBroker', () => {
       matched: 2,
       returned: 2,
       truncated: false,
-      rows: [run1Text, run2Text],
+      rows: [
+        '{"run":"run_1","step":null,"at":1,"method":"GET","url":"/api/a","resourceType":"fetch","status":200,"requestBody":null,"responseBody":"ok"}',
+        '{"run":"run_2","step":null,"at":1,"method":"POST","url":"/api/b","resourceType":"fetch","status":500,"requestBody":null,"responseBody":"ok"}',
+      ],
       storedReturn: null,
     });
   });
