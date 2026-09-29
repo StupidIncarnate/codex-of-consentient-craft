@@ -1,17 +1,15 @@
 import { networkRecordCaptureBroker } from './network-record-capture-broker';
 import { networkRecordCaptureBrokerProxy } from './network-record-capture-broker.proxy';
-import { mswServerAdapter } from '../../../adapters/msw/server/msw-server-adapter';
-import { mswHttpAdapter } from '../../../adapters/msw/http/msw-http-adapter';
+import { http, HttpResponse } from '#gateway/npm/msw';
 
 describe('networkRecordCaptureBroker', () => {
   describe('start and capture', () => {
     it('VALID: {mocked GET request} => captures method, url, source', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(http.get('http://test.local/api/guilds', () => HttpResponse.json({ id: '1' })));
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/guilds');
@@ -26,12 +24,11 @@ describe('networkRecordCaptureBroker', () => {
     });
 
     it('VALID: {mocked GET request} => captures status and response body', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(http.get('http://test.local/api/guilds-2', () => HttpResponse.json({ id: '2' })));
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/guilds-2');
@@ -45,16 +42,15 @@ describe('networkRecordCaptureBroker', () => {
     });
 
     it('VALID: {mocked POST with body} => captures request body', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(
         http.post('http://test.local/api/quests', () =>
           HttpResponse.json({ created: true }, { status: 201 }),
         ),
       );
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/quests', {
@@ -74,12 +70,11 @@ describe('networkRecordCaptureBroker', () => {
 
   describe('clear', () => {
     it('VALID: {entries exist then clear} => removes all entries', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(http.get('http://test.local/api/sessions', () => HttpResponse.json([])));
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/sessions');
@@ -93,12 +88,11 @@ describe('networkRecordCaptureBroker', () => {
 
   describe('stop', () => {
     it('VALID: {stop then request} => does not capture after stop', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(http.get('http://test.local/api/test', () => HttpResponse.json({ ok: true })));
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
       recorder.stop();
 
@@ -111,13 +105,12 @@ describe('networkRecordCaptureBroker', () => {
   describe('body read failure', () => {
     it('VALID: {request.clone().text() rejects} => writes error to stderr', async () => {
       const proxy = networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const server = proxy.getServer();
       server.use(
         http.post('http://test.local/api/body-fail', () => HttpResponse.json({ ok: true })),
       );
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       proxy.setupBodyReadFailure({ error: new Error('body stream locked') });
@@ -139,15 +132,14 @@ describe('networkRecordCaptureBroker', () => {
 
   describe('getEntries', () => {
     it('VALID: {multiple requests} => captures entries for each request', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(
         http.get('http://test.local/api/first', () => HttpResponse.json({ n: 1 })),
         http.get('http://test.local/api/second', () => HttpResponse.json({ n: 2 })),
       );
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/first');
@@ -162,12 +154,11 @@ describe('networkRecordCaptureBroker', () => {
     });
 
     it('VALID: {getEntries} => returns a copy not a reference', async () => {
-      networkRecordCaptureBrokerProxy();
-      const { http, HttpResponse } = mswHttpAdapter();
-      const server = mswServerAdapter();
+      const proxy = networkRecordCaptureBrokerProxy();
+      const server = proxy.getServer();
       server.use(http.get('http://test.local/api/copy', () => HttpResponse.json({})));
 
-      const recorder = networkRecordCaptureBroker();
+      const recorder = networkRecordCaptureBroker({ server });
       recorder.start();
 
       await fetch('http://test.local/api/copy');

@@ -1,8 +1,10 @@
 /**
- * PURPOSE: Converts MockCall objects to TypeScript AST statement nodes
+ * PURPOSE: Converts merged MockCall objects into the jest.mock() statements the proxy-mock hoister
+ * prepends to a test file. ts-jest/proxy-mock-transformer.js hashes this file by path into its cache
+ * key, so a move here moves that path too.
  *
  * USAGE:
- * const statements = typescriptMockCallsToStatementsAdapter({mockCalls, nodeFactory});
+ * const statements = mockCallsToStatementsTransformer({mockCalls, nodeFactory});
  * // Returns array of TypeScript statement nodes for jest.mock() calls
  *
  * Factory expressions are cloned with synthetic positions to prevent the TypeScript
@@ -10,12 +12,12 @@
  * are inserted into another source file.
  */
 
-import * as ts from 'typescript';
-import type { MockCall } from '../../../contracts/mock-call/mock-call-contract';
-import type { TypescriptNodeFactory } from '../../../contracts/typescript-node-factory/typescript-node-factory-contract';
-import type { TypescriptStatement } from '../../../contracts/typescript-statement/typescript-statement-contract';
+import * as ts from '#gateway/npm/typescript';
+import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
+import type { TypescriptStatement } from '../../contracts/typescript-statement/typescript-statement-contract';
 
-export const typescriptMockCallsToStatementsAdapter = ({
+export const mockCallsToStatementsTransformer = ({
   mockCalls,
   nodeFactory,
 }: {

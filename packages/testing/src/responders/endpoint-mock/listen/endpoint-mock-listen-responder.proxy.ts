@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { mswHttpAdapterProxy } from '../../../adapters/msw/http/msw-http-adapter.proxy';
-import { mswServerAdapterProxy } from '../../../adapters/msw/server/msw-server-adapter.proxy';
+import { mswServerStateProxy } from '../../../state/msw-server/msw-server-state.proxy';
 import type { EndpointResponseContract } from '../../../contracts/endpoint-control/endpoint-control-contract';
 
 export const EndpointMockListenResponderProxy = (): {
@@ -11,8 +10,7 @@ export const EndpointMockListenResponderProxy = (): {
   // exempt from both, same as its existing I/O-mock setup.
   getSampleContract: () => EndpointResponseContract;
 } => {
-  mswHttpAdapterProxy();
-  mswServerAdapterProxy();
+  mswServerStateProxy();
 
   return {
     getSampleContract: (): EndpointResponseContract =>

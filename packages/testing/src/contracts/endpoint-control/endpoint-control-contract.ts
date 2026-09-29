@@ -33,7 +33,8 @@ export type EndpointControl = z.infer<typeof endpointControlContract> & {
   networkError: () => void;
   // Answers with `data` only once `release()` is called, so a test can assert in-flight UI state
   // (a disabled button, a spinner) that a same-tick `resolves()` settles too fast to observe.
-  holdsOpen: (params: { data: unknown }) => { release: () => void };
+  // `data` is JSON-encoded; `rawBody` is released verbatim (text, HTML) and wins when both are given.
+  holdsOpen: (params: { data?: unknown; rawBody?: string }) => { release: () => void };
   getRequestCount: () => RequestCount;
   // Parsed JSON bodies of the requests this endpoint received, oldest first. Lets a test assert
   // WHAT the frontend sent, not merely that it sent something — a request-count-only assertion

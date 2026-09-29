@@ -13,7 +13,7 @@
  * source path keeps passing and moving one back to `dist` fails.
  */
 
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
 const PACKAGE_ROOT = resolve(__dirname, '..');
@@ -27,6 +27,8 @@ const TRANSFORM_PATH_FILES = [
 
 const REQUIRE_ARGUMENT = /require\(\s*'([^']+)'\s*\)/gu;
 
+const RESOLVE_FROM_DIRNAME_ARGUMENT = /path\.resolve\(\s*__dirname,\s*'([^']+)'/gu;
+
 describe('jest transform path', () => {
   describe('relative requires in the files jest loads before transforming anything', () => {
     it.each(TRANSFORM_PATH_FILES)('VALID: {%s} => requires no compiled output', (relativePath) => {
@@ -38,6 +40,30 @@ describe('jest transform path', () => {
         .filter((specifier) => specifier.split('/').includes('dist'));
 
       expect(distRequires).toStrictEqual([]);
+    });
+  });
+
+  // computeVersion catches any throw and falls back to a fixed key, so a hashed file that moved
+  // leaves every test on a cache key that never changes again — silently.
+  describe('files proxy-mock-transformer.js hashes into its cache key by name', () => {
+    it('VALID: {every path.resolve(__dirname, ...) in computeVersion} => names a path that exists', () => {
+      const transformerDir = resolve(PACKAGE_ROOT, 'ts-jest');
+      const contents = readFileSync(resolve(transformerDir, 'proxy-mock-transformer.js'), 'utf-8');
+
+      const resolvedPaths = [...contents.matchAll(RESOLVE_FROM_DIRNAME_ARGUMENT)].map((match) => {
+        const relativePath = String(match[1]);
+        return { relativePath, exists: existsSync(resolve(transformerDir, relativePath)) };
+      });
+
+      expect(resolvedPaths).toStrictEqual([
+        { relativePath: '../../shared/testing.ts', exists: true },
+        { relativePath: '../../', exists: true },
+        {
+          relativePath:
+            '../src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts',
+          exists: true,
+        },
+      ]);
     });
   });
 });

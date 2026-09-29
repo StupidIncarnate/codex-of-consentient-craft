@@ -39,7 +39,7 @@ const computeVersion = () => {
       fs.readFileSync(
         path.resolve(
           __dirname,
-          '../src/adapters/typescript/mock-calls-to-statements/typescript-mock-calls-to-statements-adapter.ts',
+          '../src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts',
         ),
         'utf-8',
       ),

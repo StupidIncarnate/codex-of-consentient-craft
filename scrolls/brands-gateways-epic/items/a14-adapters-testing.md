@@ -232,3 +232,54 @@ above, callers moved, adapter folder deleted). Left: `mock-calls-to-statements` 
 `ts-jest/proxy-mock-transformer.js`, which still names it) and `source-file-getter` (the middleware above). The
 `source-file-getter` adapter test's three real-compile tests now use a stub program and read through the
 adapter's fallback, so they no longer trip the slow-test gate; carry that shape into the middleware test.
+
+## Plan — G-Y msw and F68
+
+Agent scope: `packages/testing` only. `msw/server` was a module singleton (`setupServer()` once), and the
+setup responder, listen responder and capture broker must share that one instance, so it moves to a state file
+(`#gateway/npm/msw__node` `setupServer`). `http`, `HttpResponse` and `ws` come from `#gateway/npm/msw` directly. The
+gateway msw subpaths have no wrapper proxy (stubs only), so the msw proxies compose the state proxy.
+
+New:
+- `packages/testing/src/state/msw-server/msw-server-state.ts` + `.proxy.ts` + `.test.ts`
+
+Callers moved (implementation + proxy each):
+- `packages/testing/src/responders/endpoint-mock/listen/endpoint-mock-listen-responder.ts` + `.proxy.ts`
+- `packages/testing/src/responders/endpoint-mock/setup/endpoint-mock-setup-responder.ts` + `.proxy.ts`
+- `packages/testing/src/brokers/network-record/capture/network-record-capture-broker.ts` + `.proxy.ts`
+
+F68:
+- `packages/testing/src/responders/endpoint-mock/listen/endpoint-mock-listen-responder.ts` (`holdsOpen` takes `rawBody`)
+- `packages/testing/src/responders/endpoint-mock/listen/endpoint-mock-listen-responder.test.ts` (release a held raw-text body)
+- `packages/testing/src/contracts/endpoint-control/endpoint-control-contract.ts` (`holdsOpen` param type)
+
+Delete (adapter, proxy, test each): `adapters/msw/http`, `adapters/msw/server`, `adapters/msw/ws`. The server
+adapter's request-interception tests move onto the state test.
+
+## Plan — G-Y typescript, part 2
+
+Agent scope: the last two typescript adapters in `packages/testing`, one at a time, each followed by
+`--only unit -- packages/testing packages/hooks`. Nothing under `msw/*` or the endpoint-mock `holdsOpen` (F68).
+
+1. `mock-calls-to-statements` → transformer (imports `* as ts from '#gateway/npm/typescript'`):
+   - new `src/transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts` + `.test.ts`
+   - `src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts` + `.proxy.ts`
+   - `ts-jest/proxy-mock-transformer.js` (`computeVersion` hashes the transformer's path)
+   - `src/transform-path-sources.integration.test.ts` (every file `computeVersion` resolves by name exists, so
+     the key is never the `'2.0.0'` fallback)
+   - delete `src/adapters/typescript/mock-calls-to-statements/` (adapter, proxy, test)
+2. `source-file-getter` → middleware (program lookup, then `#gateway/node/fs` `readFileSync` + `#gateway/npm/typescript`):
+   - new `src/middleware/typescript-source-file-get/typescript-source-file-get-middleware.ts` + `.proxy.ts` +
+     `.test.ts` (stub program, staged reads; no real `ts.createProgram`)
+   - `src/middleware/proxy-mock-collector/proxy-mock-collector-middleware.ts` + `.proxy.ts`
+   - `src/middleware/proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.ts` + `.proxy.ts`
+   - `src/middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.test.ts`
+     (takes the two whole-pipeline hoisting tests, staged in memory instead of a real temp dir)
+   - delete `src/adapters/typescript/source-file-getter/` (adapter, proxy, test), leaving no `src/adapters/typescript/`
+   - also `src/jest.setup-io-trap.js`: its comment named the moved adapter file.
+
+Done: both steps green at their gates. `src/adapters/typescript/` no longer exists.
+`mock-calls-to-statements` is now `transformers/mock-calls-to-statements`, and the path `computeVersion` hashes names
+it. `source-file-getter` is now `middleware/typescript-source-file-get`, reading through `#gateway/node/fs`
+`readFileSync`. The two whole-pipeline hoisting tests now live in the typescript-proxy-mock-transformer middleware
+test, staged in memory.

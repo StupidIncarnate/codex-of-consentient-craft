@@ -1,17 +1,28 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from '#gateway/npm/msw';
 
-import { mswServerAdapter } from './msw-server-adapter';
-import { mswServerAdapterProxy } from './msw-server-adapter.proxy';
+import { mswServerState } from './msw-server-state';
+import { mswServerStateProxy } from './msw-server-state.proxy';
 
 const parseBody = async (response: Response): Promise<unknown> =>
   JSON.parse(JSON.stringify(await response.json())) as unknown;
 
-describe('mswServerAdapter', () => {
+describe('mswServerState', () => {
+  describe('get', () => {
+    it('VALID: {called twice} => returns the same server instance', () => {
+      mswServerStateProxy();
+
+      const first = mswServerState.get();
+      const second = mswServerState.get();
+
+      expect(Object.is(first, second)).toBe(true);
+    });
+  });
+
   describe('request interception', () => {
     it('VALID: {GET handler} => intercepts and returns JSON response', async () => {
-      mswServerAdapterProxy();
+      mswServerStateProxy();
 
-      const server = mswServerAdapter();
+      const server = mswServerState.get();
 
       server.use(http.get('http://test.local/api/items', () => HttpResponse.json([{ id: '1' }])));
 
@@ -22,10 +33,10 @@ describe('mswServerAdapter', () => {
     });
 
     it('VALID: {POST handler with status} => intercepts POST and returns custom status', async () => {
-      mswServerAdapterProxy();
+      mswServerStateProxy();
 
       const CREATED = 201;
-      const server = mswServerAdapter();
+      const server = mswServerState.get();
 
       server.use(
         http.post('http://test.local/api/items', () =>
@@ -44,9 +55,9 @@ describe('mswServerAdapter', () => {
     });
 
     it('VALID: {error handler} => produces network error on fetch', async () => {
-      mswServerAdapterProxy();
+      mswServerStateProxy();
 
-      const server = mswServerAdapter();
+      const server = mswServerState.get();
 
       server.use(http.get('http://test.local/api/error', () => HttpResponse.error()));
 

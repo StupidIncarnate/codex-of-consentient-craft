@@ -2,7 +2,7 @@
  * PURPOSE: Hooks MSW server lifecycle events to capture HTTP traffic for test diagnostics
  *
  * USAGE:
- * const recorder = networkRecordCaptureBroker();
+ * const recorder = networkRecordCaptureBroker({ server });
  * recorder.start();
  * // ... run tests that make HTTP requests ...
  * await recorder.flush();
@@ -10,7 +10,7 @@
  * recorder.stop();
  */
 
-import { mswServerAdapter } from '../../../adapters/msw/server/msw-server-adapter';
+import type { SetupServer } from '#gateway/npm/msw__node';
 import { mswRequestIdContract } from '../../../contracts/msw-request-id/msw-request-id-contract';
 import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
@@ -20,7 +20,11 @@ import type { NetworkLogEntry } from '../../../contracts/network-log-entry/netwo
 import type { MswRequestId } from '../../../contracts/msw-request-id/msw-request-id-contract';
 import type { PendingRequest } from '../../../contracts/pending-request/pending-request-contract';
 
-export const networkRecordCaptureBroker = (): {
+export const networkRecordCaptureBroker = ({
+  server,
+}: {
+  server: SetupServer;
+}): {
   start: () => void;
   stop: () => void;
   clear: () => void;
@@ -30,8 +34,6 @@ export const networkRecordCaptureBroker = (): {
   const entries: NetworkLogEntry[] = [];
   const pendingRequests = new Map<MswRequestId, PendingRequest>();
   const pendingBodies: Promise<void>[] = [];
-
-  const server = mswServerAdapter();
 
   return {
     start: (): void => {

@@ -1,17 +1,14 @@
-import * as ts from 'typescript';
-import { typescriptMockCallsToStatementsAdapter } from './typescript-mock-calls-to-statements-adapter';
-import { typescriptMockCallsToStatementsAdapterProxy } from './typescript-mock-calls-to-statements-adapter.proxy';
-import { MockCallStub } from '../../../contracts/mock-call/mock-call.stub';
-import { ModuleNameStub } from '../../../contracts/module-name/module-name.stub';
-import { SourceFileNameStub } from '../../../contracts/source-file-name/source-file-name.stub';
-import { TypescriptNodeFactoryStub } from '../../../contracts/typescript-node-factory/typescript-node-factory.stub';
-import { IdentifierNameStub } from '../../../contracts/identifier-name/identifier-name.stub';
+import * as ts from '#gateway/npm/typescript';
+import { mockCallsToStatementsTransformer } from './mock-calls-to-statements-transformer';
+import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
+import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
+import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
+import { TypescriptNodeFactoryStub } from '../../contracts/typescript-node-factory/typescript-node-factory.stub';
+import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 
-describe('typescriptMockCallsToStatementsAdapter', () => {
+describe('mockCallsToStatementsTransformer', () => {
   describe('valid mock calls conversion', () => {
     it('VALID: {mockCall without factory} => returns jest.mock statement', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'fs' }),
         factory: null,
@@ -19,7 +16,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -34,8 +31,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'axios' }),
         factory: '() => ({ get: jest.fn() })',
@@ -43,7 +38,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -60,8 +55,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with nested property access} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'fs' }),
         factory: '() => ({ readFile: jest.fn().mockResolvedValue("content") })',
@@ -69,7 +62,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -86,8 +79,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with spread assignment} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'config' }),
         factory: '() => ({ ...actualConfig, override: true })',
@@ -95,7 +86,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -112,8 +103,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with arrow function parameters} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'api' }),
         factory: '() => ({ fetch: (url) => ({ json: () => ({}) }) })',
@@ -121,7 +110,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -138,8 +127,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'module' }),
         factory: '() => ({ myFunc })',
@@ -147,7 +134,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -164,8 +151,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with parenthesized expression} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'math' }),
         factory: '() => (({ add: jest.fn() }))',
@@ -173,7 +158,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -190,8 +175,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {factory with numeric literal} => clones correctly', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'constants' }),
         factory: '() => ({ value: 42 })',
@@ -199,7 +182,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -216,8 +199,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {multiple mock calls} => returns multiple statements', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCalls = [
         MockCallStub({
           moduleName: ModuleNameStub({ value: 'fs' }),
@@ -232,7 +213,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       ];
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({ mockCalls, nodeFactory });
+      const statements = mockCallsToStatementsTransformer({ mockCalls, nodeFactory });
 
       const printer = ts.createPrinter();
       const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
@@ -249,8 +230,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
 
   describe('selective factory mock generation', () => {
     it('VALID: {mockCall with identifierNames} => returns jest.mock with selective factory', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'fs/promises' }),
         factory: null,
@@ -259,7 +238,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -276,8 +255,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {mockCall for process module} => uses Object.assign and Object.create instead of spread', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'process' }),
         factory: null,
@@ -286,7 +263,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -303,8 +280,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {mockCall with multiple identifierNames} => returns factory with all identifiers', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: 'fs/promises' }),
         factory: null,
@@ -316,7 +291,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -335,8 +310,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
 
   describe('property-access (objectIdentifierNames) auto-mock generation', () => {
     it('VALID: {mockCall with objectIdentifierNames} => auto-mocks every method of the named object, not the whole module', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         factory: null,
@@ -346,7 +319,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -363,8 +336,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {mockCall with both identifierNames and objectIdentifierNames} => generates a flat property for one and a nested auto-mock for the other', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         factory: null,
@@ -374,7 +345,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -391,8 +362,6 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
 
     it('VALID: {mockCall with both arrays empty, no factory} => returns a bare jest.mock() call (whole-module automock)', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const mockCall = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         factory: null,
@@ -402,7 +371,7 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
       });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [mockCall],
         nodeFactory,
       });
@@ -421,10 +390,8 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
 
   describe('empty mock calls', () => {
     it('EMPTY: {empty mockCalls array} => returns empty array', () => {
-      typescriptMockCallsToStatementsAdapterProxy();
-
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const statements = typescriptMockCallsToStatementsAdapter({
+      const statements = mockCallsToStatementsTransformer({
         mockCalls: [],
         nodeFactory,
       });

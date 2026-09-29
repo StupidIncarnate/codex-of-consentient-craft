@@ -11,7 +11,7 @@
  */
 
 import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
-import { typescriptMockCallsToStatementsAdapter } from '../../adapters/typescript/mock-calls-to-statements/typescript-mock-calls-to-statements-adapter';
+import { mockCallsToStatementsTransformer } from '../../transformers/mock-calls-to-statements/mock-calls-to-statements-transformer';
 import { sourceFilePrependStatementsTransformer } from '../../transformers/source-file-prepend-statements/source-file-prepend-statements-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyMockCollectorMiddleware } from '../proxy-mock-collector/proxy-mock-collector-middleware';
@@ -57,7 +57,7 @@ export const typescriptProxyMockTransformerMiddleware = ({
 
   const deduplicatedMocks = mockCallsMergeByModuleTransformer({ mockCalls });
 
-  const mockStatements = typescriptMockCallsToStatementsAdapter({
+  const mockStatements = mockCallsToStatementsTransformer({
     mockCalls: deduplicatedMocks,
     nodeFactory,
   });

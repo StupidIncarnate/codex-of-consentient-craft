@@ -15,7 +15,7 @@
  * // Returns the names of `candidateNames` that barrelPath (transitively) exports
  */
 
-import { typescriptSourceFileGetterAdapter } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter';
+import { typescriptSourceFileGetMiddleware } from '../typescript-source-file-get/typescript-source-file-get-middleware';
 import { astLocalExportNamesTransformer } from '../../transformers/ast-local-export-names/ast-local-export-names-transformer';
 import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
@@ -39,7 +39,7 @@ export const proxyReexportNamesResolveMiddleware = ({
   }
   visitedFiles.add(filePath);
 
-  const sourceFile = typescriptSourceFileGetterAdapter({ program, filePath });
+  const sourceFile = typescriptSourceFileGetMiddleware({ program, filePath });
   if (!sourceFile) {
     return [];
   }

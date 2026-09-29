@@ -10,7 +10,7 @@
  * proxy.setupFilesOnDisk({ filePaths: ['/repo/a.proxy.ts'] });
  */
 
-import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter.proxy';
+import { typescriptSourceFileGetMiddlewareProxy } from '../typescript-source-file-get/typescript-source-file-get-middleware.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
 import { proxyReexportNamesResolveMiddlewareProxy } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.proxy';
 
@@ -19,7 +19,7 @@ export const proxyMockCollectorMiddlewareProxy = (): {
   setupFileContains: ({ filePath, content }: { filePath: string; content: string }) => void;
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
 } => {
-  const sourceFileProxy = typescriptSourceFileGetterAdapterProxy();
+  const sourceFileProxy = typescriptSourceFileGetMiddlewareProxy();
   const importPathProxy = importPathResolverMiddlewareProxy();
   proxyReexportNamesResolveMiddlewareProxy();
 

@@ -10,7 +10,7 @@
  * proxy.setupFileMissing({ filePath: '/nonexistent.ts' });
  */
 
-import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter.proxy';
+import { typescriptSourceFileGetMiddlewareProxy } from '../typescript-source-file-get/typescript-source-file-get-middleware.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
 
 export const proxyReexportNamesResolveMiddlewareProxy = (): {
@@ -18,7 +18,7 @@ export const proxyReexportNamesResolveMiddlewareProxy = (): {
   setupFileMissing: ({ filePath }: { filePath: string }) => void;
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
 } => {
-  const sourceFileProxy = typescriptSourceFileGetterAdapterProxy();
+  const sourceFileProxy = typescriptSourceFileGetMiddlewareProxy();
   const importPathProxy = importPathResolverMiddlewareProxy();
 
   return {

@@ -6,8 +6,8 @@
  * control.resolves({ data: [{ id: '123' }] });
  */
 
-import { mswHttpAdapter } from '../../../adapters/msw/http/msw-http-adapter';
-import { mswServerAdapter } from '../../../adapters/msw/server/msw-server-adapter';
+import { http, HttpResponse } from '#gateway/npm/msw';
+import { mswServerState } from '../../../state/msw-server/msw-server-state';
 import { requestCountContract } from '../../../contracts/request-count/request-count-contract';
 import type { RequestCount } from '../../../contracts/request-count/request-count-contract';
 import type {
@@ -27,8 +27,7 @@ export const EndpointMockListenResponder = ({
   url: string;
   contract?: EndpointResponseContract;
 }): EndpointControl => {
-  const server = mswServerAdapter();
-  const { http, HttpResponse } = mswHttpAdapter();
+  const server = mswServerState.get();
   // MSW handlers need absolute URLs in Node/jsdom - resolve relative paths against localhost
   const handlerUrl = url.startsWith('/') ? `http://localhost${url}` : url;
   // One entry per received request, holding its parsed JSON body. Every handler CLONES the request
@@ -127,7 +126,13 @@ export const EndpointMockListenResponder = ({
       );
     },
 
-    holdsOpen: ({ data }: { data: unknown }): { release: () => void } => {
+    holdsOpen: ({
+      data,
+      rawBody,
+    }: {
+      data?: unknown;
+      rawBody?: string;
+    }): { release: () => void } => {
       // Resolver lives on an object property, not a `let`, so nothing here is reassigned by name -
       // only `gate.resolve` is overwritten, once, by the Promise constructor's own callback.
       const gate: { resolve: () => void } = { resolve: (): void => undefined };
@@ -144,7 +149,10 @@ export const EndpointMockListenResponder = ({
               .catch((error: unknown) => ({ bodyParseError: String(error) })),
           );
           await opened;
-          return HttpResponse.json(data as never);
+          // `rawBody` is answered verbatim; `data` (the default) is JSON-encoded.
+          return rawBody === undefined
+            ? HttpResponse.json(data as never)
+            : new HttpResponse(rawBody);
         }),
       );
 

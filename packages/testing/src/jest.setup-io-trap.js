@@ -369,7 +369,7 @@ if (!REAL_IO_TEST_FILE.test(testPath) && !GATEWAY_OWN_TEST_FILE.test(testPath)) 
   }
 
   // registerMock's own AST transform special-cases `process`/`node:process` (see
-  // `typescript-mock-calls-to-statements-adapter.ts`) and stages `kill` with a plain `jest.fn()` on
+  // `mock-calls-to-statements-transformer.ts`) and stages `kill` with a plain `jest.fn()` on
   // an `Object.create(jest.requireActual('process'))` shim — that shim's OWN `kill` shadows
   // whatever this installs, so a proxy that calls `registerMock({ fn: kill })` is unaffected by this
   // trap either way. Only a caller that does not stage the call (`registerSpyOn({ object: process,

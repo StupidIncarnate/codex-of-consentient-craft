@@ -17,8 +17,8 @@
 import { unhandledRequestMessageContract } from '../../../contracts/unhandled-request-message/unhandled-request-message-contract';
 import type { EndpointMockLifecycle } from '../../../contracts/endpoint-mock-lifecycle/endpoint-mock-lifecycle-contract';
 import type { UnhandledRequestMessage } from '../../../contracts/unhandled-request-message/unhandled-request-message-contract';
-import { mswServerAdapter } from '../../../adapters/msw/server/msw-server-adapter';
-import { mswWsAdapter } from '../../../adapters/msw/ws/msw-ws-adapter';
+import { ws } from '#gateway/npm/msw';
+import { mswServerState } from '../../../state/msw-server/msw-server-state';
 import { isRealIoTestFileGuard } from '../../../guards/is-real-io-test-file/is-real-io-test-file-guard';
 
 // RFC 6455 reserves 1000-1015 for the protocol itself; 1011 ("internal error") is what
@@ -43,8 +43,7 @@ export const EndpointMockSetupResponder = ({
     return NOOP_LIFECYCLE;
   }
 
-  const server = mswServerAdapter();
-  const { ws } = mswWsAdapter();
+  const server = mswServerState.get();
   const unhandled: UnhandledRequestMessage[] = [];
 
   // `*` matches every URL. Passed to `resetHandlers()` (never `use()`) both here and below, so a

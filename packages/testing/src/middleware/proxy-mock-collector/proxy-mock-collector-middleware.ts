@@ -16,7 +16,7 @@
  * // Returns array of MockCall objects from all proxy files in the chain
  */
 
-import { typescriptSourceFileGetterAdapter } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter';
+import { typescriptSourceFileGetMiddleware } from '../typescript-source-file-get/typescript-source-file-get-middleware';
 import { astMockCallsTransformer } from '../../transformers/ast-mock-calls/ast-mock-calls-transformer';
 import { astModuleMockCallsTransformer } from '../../transformers/ast-module-mock-calls/ast-module-mock-calls-transformer';
 import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
@@ -57,7 +57,7 @@ export const proxyMockCollectorMiddleware = ({
     }
     visitedKeys.add(visitKey);
 
-    const sourceFile = typescriptSourceFileGetterAdapter({ program, filePath: entry.filePath });
+    const sourceFile = typescriptSourceFileGetMiddleware({ program, filePath: entry.filePath });
     if (!sourceFile) {
       continue;
     }
