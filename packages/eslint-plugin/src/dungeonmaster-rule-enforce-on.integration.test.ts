@@ -19,6 +19,8 @@ const WARD_ONLY_TYPE_CHECKED_RULES = [
   '@dungeonmaster/platform-globals-ban',
   '@dungeonmaster/bin-program-spawn-ban',
   '@dungeonmaster/require-contract-parse',
+  '@dungeonmaster/enforce-unique-contract-names',
+  '@dungeonmaster/enforce-owner-field-reuse',
 ];
 
 interface Violation {
@@ -295,10 +297,10 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 76 rules (11 third-party + 65 @dungeonmaster)', () => {
+    it('VALID: pre-edit count => 77 rules (11 third-party + 66 @dungeonmaster)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(76);
+      expect(preEditCount).toBe(77);
     });
   });
 

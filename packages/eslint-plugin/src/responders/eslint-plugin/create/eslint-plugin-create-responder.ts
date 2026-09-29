@@ -71,6 +71,8 @@ import { ruleBanDomHandlesInIngredientsBroker } from '../../../brokers/rule/ban-
 import { ruleBanNondeterminismInIngredientsBroker } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker';
 import { ruleRawImportBanBroker } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker';
 import { ruleRequireContractParseBroker } from '../../../brokers/rule/require-contract-parse/rule-require-contract-parse-broker';
+import { ruleEnforceUniqueContractNamesBroker } from '../../../brokers/rule/enforce-unique-contract-names/rule-enforce-unique-contract-names-broker';
+import { ruleEnforceOwnerFieldReuseBroker } from '../../../brokers/rule/enforce-owner-field-reuse/rule-enforce-owner-field-reuse-broker';
 import { rulePlatformGlobalsBanBroker } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker';
 import { ruleBinProgramSpawnBanBroker } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker';
 import { ruleGatewayImportBoundaryBroker } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker';
@@ -90,6 +92,7 @@ import { ruleBanInventedFailuresBroker } from '../../../brokers/rule/ban-invente
 import { ruleBanContractTypePredicatesBroker } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker';
 import { ruleRequireObjectContractBrandsBroker } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker';
 import { ruleBanTypeAliasesBroker } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker';
+import { ruleBanJoinIdBesideChildBroker } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -163,6 +166,8 @@ export const EslintPluginCreateResponder = (): {
     readonly 'platform-globals-ban': EslintRule;
     readonly 'bin-program-spawn-ban': EslintRule;
     readonly 'require-contract-parse': EslintRule;
+    readonly 'enforce-unique-contract-names': EslintRule;
+    readonly 'enforce-owner-field-reuse': EslintRule;
     readonly 'gateway-import-boundary': EslintRule;
     readonly 'gateway-colocation': EslintRule;
     readonly 'gateway-layout': EslintRule;
@@ -180,6 +185,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-contract-type-predicates': EslintRule;
     readonly 'require-object-contract-brands': EslintRule;
     readonly 'ban-type-aliases': EslintRule;
+    readonly 'ban-join-id-beside-child': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -258,6 +264,8 @@ export const EslintPluginCreateResponder = (): {
       'platform-globals-ban': rulePlatformGlobalsBanBroker(),
       'bin-program-spawn-ban': ruleBinProgramSpawnBanBroker(),
       'require-contract-parse': ruleRequireContractParseBroker(),
+      'enforce-unique-contract-names': ruleEnforceUniqueContractNamesBroker(),
+      'enforce-owner-field-reuse': ruleEnforceOwnerFieldReuseBroker(),
       'gateway-import-boundary': ruleGatewayImportBoundaryBroker(),
       'gateway-colocation': ruleGatewayColocationBroker(),
       'gateway-layout': ruleGatewayLayoutBroker(),
@@ -275,6 +283,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-contract-type-predicates': ruleBanContractTypePredicatesBroker(),
       'require-object-contract-brands': ruleRequireObjectContractBrandsBroker(),
       'ban-type-aliases': ruleBanTypeAliasesBroker(),
+      'ban-join-id-beside-child': ruleBanJoinIdBesideChildBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

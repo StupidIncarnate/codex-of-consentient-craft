@@ -65,6 +65,8 @@ import { ruleBanDomHandlesInIngredientsBrokerProxy } from '../../../brokers/rule
 import { ruleBanNondeterminismInIngredientsBrokerProxy } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.proxy';
 import { ruleRawImportBanBrokerProxy } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker.proxy';
 import { ruleRequireContractParseBrokerProxy } from '../../../brokers/rule/require-contract-parse/rule-require-contract-parse-broker.proxy';
+import { ruleEnforceUniqueContractNamesBrokerProxy } from '../../../brokers/rule/enforce-unique-contract-names/rule-enforce-unique-contract-names-broker.proxy';
+import { ruleEnforceOwnerFieldReuseBrokerProxy } from '../../../brokers/rule/enforce-owner-field-reuse/rule-enforce-owner-field-reuse-broker.proxy';
 import { rulePlatformGlobalsBanBrokerProxy } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.proxy';
 import { ruleBinProgramSpawnBanBrokerProxy } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.proxy';
 import { ruleGatewayImportBoundaryBrokerProxy } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.proxy';
@@ -84,6 +86,7 @@ import { ruleEnforceGatewaySchemaFieldsBrokerProxy } from '../../../brokers/rule
 import { ruleBanContractTypePredicatesBrokerProxy } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy';
 import { ruleRequireObjectContractBrandsBrokerProxy } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker.proxy';
 import { ruleBanTypeAliasesBrokerProxy } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker.proxy';
+import { ruleBanJoinIdBesideChildBrokerProxy } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -156,6 +159,8 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanNondeterminismInIngredientsBrokerProxy();
   ruleRawImportBanBrokerProxy();
   ruleRequireContractParseBrokerProxy();
+  ruleEnforceUniqueContractNamesBrokerProxy();
+  ruleEnforceOwnerFieldReuseBrokerProxy();
   rulePlatformGlobalsBanBrokerProxy();
   ruleBinProgramSpawnBanBrokerProxy();
   ruleGatewayImportBoundaryBrokerProxy();
@@ -175,6 +180,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanContractTypePredicatesBrokerProxy();
   ruleRequireObjectContractBrandsBrokerProxy();
   ruleBanTypeAliasesBrokerProxy();
+  ruleBanJoinIdBesideChildBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {
