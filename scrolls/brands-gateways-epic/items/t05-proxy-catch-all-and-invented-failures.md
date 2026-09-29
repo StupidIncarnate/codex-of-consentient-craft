@@ -196,3 +196,32 @@ Fixes: the image-serve proxy stages `dirname` by the exact path each setup metho
 path's parent, the two calls the broker makes. The get-quest-status proxy's `throws({ processId, error })`
 becomes `setupServerError({ processId, message })`, since what it stages is the server's HTTP 500 body and
 never a thrown error; both tests pass the message.
+
+## Plan — T05 eslint-plugin, local-eslint
+
+Scanned each package alone with all three rules on (`node tmp/t05-scan-pkgs.js <pkg>`). Violations before any edit:
+
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.proxy.ts:51`
+  `ban-proxy-empty-called-with` — `readHandle.calledWith([])` on raw `readFileSync`.
+- `packages/local-eslint`: none.
+
+Fix: the proxy stages two complementary predicates on the path, each with the gateway's fixed `'utf8'`
+encoding, one returning the `getContents` text and one throwing `FsErrorStub` ENOENT. Rescanned: 0.
+
+## Plan — T05 shared, hydration, session-forensics
+
+Scanned each package alone with all three rules on. Violations before any edit: `packages/shared` 54
+(35 `ban-proxy-empty-called-with`, 19 `ban-invented-failures`), spread over 33 proxy files under
+`src/brokers/architecture/**` (boot-tree, edge-graph, event-bus, export-name-resolve, import-edges,
+orphan-detect, package-e2e-eligible-detect, package-inventory, package-type-detect, project-map,
+responder-annotations, source-read, state-writes, widget-tree, ws-edges, ws-gateway), plus
+`config-root/find`, `cwd/resolve`, `port/config-walk`, `project-root/find` and one test
+(`import-edges/read-source-layer-broker.test.ts`). `packages/hydration`: none. `packages/session-forensics`: none.
+
+Fixes: the read-file layer proxies drop the constructor `calledWith([]).returns('')` fallback; their
+`setupImplementation` addresses `[anyPath]` (a `typeof value === 'string'` predicate), one argument short of
+the gateway's `[path, 'utf8']` or `[path, { withFileTypes: true }]`, so an exact `setupReturns` / `setupError`
+still outranks it regardless of call order. A full-arity predicate ties the exact address and lets the
+later staging win, which broke `architectureProjectMapBrokerProxy` and `httpEdgesToAnnotationsLayerBrokerProxy`.
+Every `new Error('ENOENT')` becomes `FileMissingErrorStub({ path })`. The three path-walk proxies drop their
+`dirname` passthrough default, since each setup already stages `dirname` by exact path. Rescanned: 0 violations.

@@ -5,8 +5,9 @@ import {
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { configResolveBroker, DungeonmasterConfigStub } from '@dungeonmaster/config';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config';
+import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
@@ -45,8 +46,6 @@ export const multiPackageLayerBrokerProxy = (): {
   setupWardConcurrency: (params: { rootPath: AbsoluteFilePath; concurrency: number }) => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
-  getConfigResolveCallCount: () => unknown;
-  getConfigResolveFilePaths: () => unknown[];
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(runIdMockStatics.timestamp);
@@ -69,7 +68,7 @@ export const multiPackageLayerBrokerProxy = (): {
   // addresses the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
-  const configResolveHandle = registerMock({ fn: configResolveBroker });
+  const configProxy = configResolveBrokerProxy();
   // A resolved config carrying no `ward` key at all, matching what a consumer who has never heard
   // of this key gets back for real (see P14) — the broker under test falls back to
   // configDefaultsStatics.ward.concurrency.default on its own. Staged per rootPath by every
@@ -81,9 +80,10 @@ export const multiPackageLayerBrokerProxy = (): {
     rootPath: AbsoluteFilePath;
     config: ReturnType<typeof DungeonmasterConfigStub>;
   }): void => {
-    configResolveHandle
-      .calledWith([{ filePath: filePathContract.parse(`${String(rootPath)}/package.json`) }])
-      .resolves(config);
+    configProxy.setupResolves({
+      filePath: filePathContract.parse(`${String(rootPath)}/package.json`),
+      config,
+    });
   };
 
   // Every child ward process embeds its own runId in the printed summary line, and this level's
@@ -216,11 +216,5 @@ export const multiPackageLayerBrokerProxy = (): {
     getAllSpawnedArgs: (): unknown[] => [
       ...stream.getCallsFor({ command: String(resolvedCommandRef.value) }),
     ],
-    getConfigResolveCallCount: (): unknown => configResolveHandle.callsMatching([]).length,
-    // Deliberately un-narrowed: the whole `{filePath}` call argument, one entry per call. Inline
-    // structural casts are forbidden in brokers/, so the test asserts on this shape with
-    // toStrictEqual rather than the proxy destructuring it first.
-    getConfigResolveFilePaths: (): unknown[] =>
-      configResolveHandle.callsMatching([]).map((call) => call[0]),
   };
 };

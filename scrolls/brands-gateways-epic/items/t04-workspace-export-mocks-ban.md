@@ -172,6 +172,35 @@ Consumers moved onto them:
   quest/followup-stop, quest/human-verdict, server/init, tooling/smoketest-state}` proxies, plus the
   tests of smoketest-state and server/init that now call a named setup (`setupNoActiveRun`, `setupReplaySuccess`)
 
+## Plan — T04 orchestrator
+
+Re-scan 2026-09-28 (same config): orchestrator 5, every hit a `.proxy.ts` mocking a `@dungeonmaster/shared`
+broker with `registerMock`. Each moves onto `cwdResolveBrokerProxy` (the real walk over staged fs) or drops
+a backstop that nothing reaches. Named files, all under `packages/orchestrator/src/`:
+
+- `brokers/quest/repo-root/quest-repo-root-broker.proxy.ts` and `.test.ts`: `setupResolveSuccess` /
+  `setupResolveRejects` stage the walk from the guild path; the "escaped ancestor" test resolves to `/`
+  (the only real walk result that does not own the guild path)
+- `brokers/quest/mcp-create/quest-mcp-create-broker.proxy.ts` and `.test.ts`: `setupResolvedRepoRoot` /
+  `setupResolveFallback` stage the walk from the cwd; `setupResolveError` throws from the first
+  config-path `join`; the subfolder test's cwd becomes a real descendant of the repo root
+- `brokers/chat/history-replay/chat-history-replay-broker.proxy.ts` and `.test.ts`: `setupGuild`,
+  `setupCwdResolveSuccess`, `setupCwdResolveReject()` (no error param) stage the walk from each guild path
+- `brokers/smoketest/ensure-guild/smoketest-ensure-guild-broker.proxy.ts` and `.test.ts`: home and guild
+  walks staged per start path; default root `/`; the test's home path sits under the codex repo root
+- `responders/orchestration/startup-recovery/recover-guild-layer-responder.proxy.ts`: the
+  `dungeonmasterHomeFindBroker` backstop is removed
+
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>
+
+## Plan — T04 ward
+
+Re-scan 2026-09-28 (`tmp/t04-scan.config.js`, `packages/ward`): one hit,
+`packages/ward/src/brokers/command/run/multi-package-layer-broker.proxy.ts:72` mocking `configResolveBroker`
+from `@dungeonmaster/config`. It now composes `configResolveBrokerProxy` from
+`@dungeonmaster/config/config-resolve-caller.proxy` and stages the root `package.json` address through
+`setupResolves`. That proxy exposes no call readback, so the proxy's `getConfigResolveCallCount` and
+`getConfigResolveFilePaths` are gone and the "resolves the ward config exactly once" test asserts that both
+folders graded through the one staged root address. Re-scan: ward 0.

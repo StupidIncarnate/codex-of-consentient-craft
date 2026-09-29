@@ -835,17 +835,17 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      await multiPackageLayerBroker({
+      const result = await multiPackageLayerBroker({
         config,
         projectFolders: [wardFolder, hooksFolder],
         rootPath,
       });
 
-      // Two workspace folders were graded, but the config read happened once — a per-folder read
-      // would show up here as 2.
-      expect(proxy.getConfigResolveCallCount()).toBe(1);
-      expect(proxy.getConfigResolveFilePaths()).toStrictEqual([
-        { filePath: '/home/user/project/package.json' },
+      // Only the root package.json address is staged. A per-folder read would hit an unstaged
+      // address and never resolve a config, so both folders grading through proves the one read.
+      expect(result.checks[0]?.projectResults.map((r) => r.projectFolder.name)).toStrictEqual([
+        '@dungeonmaster/ward',
+        '@dungeonmaster/hooks',
       ]);
     });
 

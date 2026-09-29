@@ -1,9 +1,7 @@
 // Raw registerMock on the raw Node `readFileSync`, not readFileSyncIfExistsProxy's own
 // path-specific methods: readFileSyncIfExists calls the gateway's readFileSync internally, which
-// mocks this SAME underlying raw fs.readFileSync — this 0-arg catch-all sits BENEATH any
-// path-specific staging, the sanctioned exception the a12 item's Trap section names ("a proxy that
-// also offers a 0-argument setupImplementation computed per path"), matching the shape
-// shared/brokers/architecture/boot-tree/read-file-contents-layer-broker.proxy.ts already uses.
+// mocks this SAME underlying raw fs.readFileSync, and this rule needs one predicate to answer many
+// candidate paths.
 import { readFileSync } from 'fs';
 import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-exists/read-file-sync-if-exists.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
@@ -48,14 +46,22 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
         exists: false,
       });
 
-      readHandle.calledWith([]).implement((path) => {
-        const filePath = filePathContract.parse(String(path));
-        const contents = getContents(filePath);
-        if (contents === null) {
+      // Same complementary-predicate split as above, addressed by the path and the fixed 'utf8'
+      // encoding the gateway's readFileSync passes.
+      readHandle
+        .calledWith([
+          (value: unknown): boolean => getContents(filePathContract.parse(String(value))) !== null,
+          'utf8',
+        ])
+        .implement((path) => String(getContents(filePathContract.parse(String(path)))));
+      readHandle
+        .calledWith([
+          (value: unknown): boolean => getContents(filePathContract.parse(String(value))) === null,
+          'utf8',
+        ])
+        .implement((path) => {
           throw FsErrorStub({ code: 'ENOENT', path: String(path) });
-        }
-        return contents;
-      });
+        });
     },
   };
 };
