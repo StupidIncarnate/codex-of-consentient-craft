@@ -14,6 +14,9 @@
  * // one — in which case the caller lets the browser handle the keystroke natively.
  */
 
+import { HTMLImageElement } from '#gateway/browser/HTMLImageElement';
+import { Text } from '#gateway/browser/Text';
+
 import { attachmentIdContract } from '../../../contracts/attachment-id/attachment-id-contract';
 import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';

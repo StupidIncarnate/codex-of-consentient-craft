@@ -10,7 +10,7 @@
  * read. This guarantees streaming-vs-replay parity even if the wire ever delivers entries in a
  * different order.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import type {
   ChatEntry,

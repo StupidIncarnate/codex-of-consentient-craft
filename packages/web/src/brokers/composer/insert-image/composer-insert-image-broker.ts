@@ -13,6 +13,8 @@
  * // behind, and collapses the caret after the thumbnail.
  */
 
+import { Node } from '#gateway/browser/Node';
+
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';

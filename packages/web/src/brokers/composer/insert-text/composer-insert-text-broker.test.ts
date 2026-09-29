@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+
 import { composerInsertTextBroker } from './composer-insert-text-broker';
 import { composerInsertTextBrokerProxy } from './composer-insert-text-broker.proxy';
 import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';

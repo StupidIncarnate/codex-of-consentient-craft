@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+
 import { composerDeleteThumbnailBroker } from './composer-delete-thumbnail-broker';
 import { composerDeleteThumbnailBrokerProxy } from './composer-delete-thumbnail-broker.proxy';
 import { AttachmentIdStub } from '../../../contracts/attachment-id/attachment-id.stub';

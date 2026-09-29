@@ -10,7 +10,7 @@
  * // Returns { detail: unknown, loading: boolean } updated when ward-detail-response arrives
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 
 import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
 

@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+
 import { composerInsertImageBroker } from './composer-insert-image-broker';
 import { composerInsertImageBrokerProxy } from './composer-insert-image-broker.proxy';
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';

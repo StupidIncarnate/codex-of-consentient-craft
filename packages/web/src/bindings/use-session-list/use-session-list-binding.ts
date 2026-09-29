@@ -5,7 +5,9 @@
  * const {data, loading, error, refresh} = useSessionListBinding({guildId});
  * // Returns {data: SessionListItem[], loading: boolean, error: Error | null, refresh: () => Promise<void>}
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { GuildId, SessionListItem } from '@dungeonmaster/shared/contracts';
 
@@ -47,7 +49,7 @@ export const useSessionListBinding = ({
 
   useEffect(() => {
     fetchSessions().catch((catchError: unknown) => {
-      globalThis.console.error('[use-session-list]', catchError);
+      console.error('[use-session-list]', catchError);
     });
   }, [fetchSessions]);
 

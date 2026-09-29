@@ -12,6 +12,8 @@
  * // outside it), leaves no empty text nodes behind, and collapses the caret after the text.
  */
 
+import { Node } from '#gateway/browser/Node';
+
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { composerCaretFillerElementTransformer } from '../../../transformers/composer-caret-filler-element/composer-caret-filler-element-transformer';

@@ -10,6 +10,8 @@
  * // Replaces the editor's children with one node per segment and returns { success: true }
  */
 
+import { Text } from '#gateway/browser/Text';
+
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';

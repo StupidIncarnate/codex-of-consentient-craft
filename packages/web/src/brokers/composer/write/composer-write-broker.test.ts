@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+
 import { composerWriteBroker } from './composer-write-broker';
 import { composerWriteBrokerProxy } from './composer-write-broker.proxy';
 import { AttachmentIdStub } from '../../../contracts/attachment-id/attachment-id.stub';
