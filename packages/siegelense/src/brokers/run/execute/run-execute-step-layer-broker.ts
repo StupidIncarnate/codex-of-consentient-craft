@@ -55,6 +55,7 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isNativeError } from '#gateway/node/util__types';
 import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
@@ -152,7 +153,7 @@ export const runExecuteStepLayerBroker = async ({
     if (step.step === 'seed' && step.as !== null) {
       recordOutput({
         name: stepOutputNameContract.parse(step.as),
-        result: JSON.parse(reading.reading) as Record<PropertyKey, unknown>,
+        result: seedResultContract.parse(JSON.parse(reading.reading)),
       });
     }
 

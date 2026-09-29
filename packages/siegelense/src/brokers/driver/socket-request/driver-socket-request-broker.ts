@@ -40,9 +40,9 @@ export const driverSocketRequestBroker = async ({
     timeoutMs,
   });
 
-  const parsedUnknown = ((): unknown => {
+  const parsedResponse = ((): ReturnType<typeof driverResponseContract.safeParse> => {
     try {
-      return JSON.parse(line);
+      return driverResponseContract.safeParse(JSON.parse(line));
     } catch (error) {
       throw new Error(`Malformed frame from driver at ${socketPath}: ${String(error)}`, {
         cause: error,
@@ -50,7 +50,6 @@ export const driverSocketRequestBroker = async ({
     }
   })();
 
-  const parsedResponse = driverResponseContract.safeParse(parsedUnknown);
   if (!parsedResponse.success) {
     throw new Error(
       `Malformed frame from driver at ${socketPath}: ${parsedResponse.error.message}`,

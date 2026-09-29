@@ -24,6 +24,7 @@
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { setTimeout } from '#gateway/node/setTimeout';
 
+import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
@@ -49,13 +50,11 @@ export const untilBufferMatchLayerBroker = async ({
   buildReading: (params: { parsed: Record<PropertyKey, unknown>; waitedMs: number }) => ContentText;
 }): Promise<ContentText> => {
   const sinceLines = readSince({ fromIndex });
-  const matchedLine = sinceLines.find((line) =>
-    matches(JSON.parse(line) as Record<PropertyKey, unknown>),
-  );
+  const matchedLine = sinceLines.find((line) => matches(resultRowContract.parse(JSON.parse(line))));
 
   if (matchedLine !== undefined) {
     const waitedMs = Date.now() - startedAtMs;
-    const parsed = JSON.parse(matchedLine) as Record<PropertyKey, unknown>;
+    const parsed = resultRowContract.parse(JSON.parse(matchedLine));
     return buildReading({ parsed, waitedMs });
   }
 
@@ -83,7 +82,7 @@ export const untilBufferMatchLayerBroker = async ({
   const earlier = wholeBuffer.slice(0, fromIndex);
   let earlierMatchIndex = -1;
   earlier.forEach((line, index) => {
-    if (matches(JSON.parse(line) as Record<PropertyKey, unknown>)) {
+    if (matches(resultRowContract.parse(JSON.parse(line)))) {
       earlierMatchIndex = index;
     }
   });

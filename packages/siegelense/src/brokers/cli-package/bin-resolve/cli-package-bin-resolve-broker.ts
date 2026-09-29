@@ -39,8 +39,9 @@ export const cliPackageBinResolveBroker = (): AbsoluteFilePath => {
     );
   }
 
-  const rawManifest: unknown = JSON.parse(readFileSync(join(packageRoot, 'package.json')));
-  const manifest = packageJsonContract.parse(rawManifest);
+  const manifest = packageJsonContract.parse(
+    JSON.parse(readFileSync(join(packageRoot, 'package.json'))),
+  );
   const { bin } = manifest;
   const binEntries = typeof bin === 'object' ? Object.entries(bin) : [];
   const binRelative = binEntries.find(([binName]) => binName === CLI_BIN_NAME)?.[1];

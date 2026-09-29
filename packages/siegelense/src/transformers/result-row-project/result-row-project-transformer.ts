@@ -18,6 +18,7 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import { resultRowContract } from '../../contracts/result-row/result-row-contract';
 import type { ResultField } from '../../contracts/result-field/result-field-contract';
 
 export const resultRowProjectTransformer = ({
@@ -31,11 +32,7 @@ export const resultRowProjectTransformer = ({
     return row;
   }
 
-  const parsedUnknown: unknown = JSON.parse(row);
-  const source: Record<PropertyKey, unknown> =
-    typeof parsedUnknown === 'object' && parsedUnknown !== null
-      ? (parsedUnknown as Record<PropertyKey, unknown>)
-      : {};
+  const source = resultRowContract.parse(JSON.parse(row));
 
   const projected = fields.reduce<Record<PropertyKey, unknown>>((accumulated, field) => {
     if (field in source) {

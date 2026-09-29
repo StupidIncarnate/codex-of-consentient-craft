@@ -31,6 +31,7 @@ import {
   seedBindingNameContract,
   type SeedBindingName,
 } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
+import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
@@ -81,7 +82,7 @@ export const runVerbLayerBroker = async ({
     if (step.as !== null) {
       recordBinding({
         name: seedBindingNameContract.parse(step.as),
-        result: JSON.parse(reading),
+        result: seedResultContract.parse(JSON.parse(reading)),
       });
     }
     return reading;

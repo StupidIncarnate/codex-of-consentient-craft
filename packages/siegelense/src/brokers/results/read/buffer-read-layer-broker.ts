@@ -31,6 +31,7 @@ import { readFileIfExists } from '#gateway/node/fs__promises';
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
@@ -103,11 +104,7 @@ export const bufferReadLayerBroker = async ({
     where === null || (where.path === null && where.method === null)
       ? levelFiltered
       : levelFiltered.filter((entry) => {
-          const parsedUnknown: unknown = JSON.parse(entry.text);
-          const source =
-            typeof parsedUnknown === 'object' && parsedUnknown !== null
-              ? (parsedUnknown as Record<PropertyKey, unknown>)
-              : {};
+          const source = resultRowContract.parse(JSON.parse(entry.text));
           const url = typeof source.url === 'string' ? source.url : null;
           const method = typeof source.method === 'string' ? source.method : null;
 

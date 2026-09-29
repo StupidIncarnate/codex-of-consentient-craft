@@ -113,9 +113,9 @@ export const runArgsParseTransformer = ({
     );
   }
 
-  const parsedSteps: unknown = (() => {
+  const parsedSteps = ((): ReturnType<typeof runArgsContract.shape.steps.safeParse> => {
     try {
-      return JSON.parse(rawStepsJson);
+      return runArgsContract.shape.steps.safeParse(JSON.parse(rawStepsJson));
     } catch (error) {
       throw new Error(
         `${sourceFlag}'s value is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
@@ -144,8 +144,18 @@ export const runArgsParseTransformer = ({
   // down as `instanceRunBroker: driver for instance ... reported a failure: [` plus a raw JSON dump.
   // Checked after `instanceId`/`stopOn` above, not before: those two refusals take priority over an
   // empty batch when a caller's argv gets more than one thing wrong at once.
-  if (Array.isArray(parsedSteps) && parsedSteps.length === 0) {
+  if (parsedSteps.success && parsedSteps.data.length === 0) {
     throw new Error(`${sourceFlag}: ${EMPTY_BATCH_MESSAGE}`);
+  }
+
+  // The steps' own issues are reported under the `steps` path, exactly as the whole-object parse
+  // below words them, because the steps were parsed on their own so the JSON text goes straight
+  // into a contract.
+  if (!parsedSteps.success) {
+    const detail = parsedSteps.error.issues
+      .map((issue) => `${['steps', ...issue.path].join('.')}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`${sourceFlag}: ${detail}`, { cause: parsedSteps.error });
   }
 
   return flagContractParseTransformer({
@@ -153,7 +163,7 @@ export const runArgsParseTransformer = ({
     parse: () =>
       runArgsContract.parse({
         instanceId,
-        steps: parsedSteps,
+        steps: parsedSteps.data,
         stopOn,
         isJson: args.includes(siegelenseOutputStatics.flags.json),
       }),

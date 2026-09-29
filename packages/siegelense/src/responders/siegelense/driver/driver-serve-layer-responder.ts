@@ -67,6 +67,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../../brokers/locati
 import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/write/shutdown-reason-write-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
+import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -74,6 +75,8 @@ import { driverSessionState } from '../../../state/driver-session/driver-session
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
+
+type FrameOutcome = { success: true; data: DriverRequest } | { success: false; message: string };
 
 const MS_PER_SECOND = 1_000;
 
@@ -148,22 +151,22 @@ export const DriverServeLayerResponder = async ({
   const serveResult = await unixSocketServe({
     socketPath,
     onRequestLine: async (line) => {
-      const requestUnknown = ((): unknown => {
+      const parsedRequest = ((): FrameOutcome => {
         try {
-          return JSON.parse(line);
+          const parsed = driverRequestContract.safeParse(JSON.parse(line));
+          return parsed.success
+            ? { success: true, data: parsed.data }
+            : { success: false, message: parsed.error.message };
         } catch (parseError) {
-          return parseError;
+          return { success: false, message: String(parseError) };
         }
       })();
-      const parsedRequest = driverRequestContract.safeParse(requestUnknown);
 
       if (!parsedRequest.success) {
         return JSON.stringify({
           ok: false,
           payload: '',
-          error: `Malformed request frame: ${
-            requestUnknown instanceof Error ? String(requestUnknown) : parsedRequest.error.message
-          }`,
+          error: `Malformed request frame: ${parsedRequest.message}`,
         });
       }
 

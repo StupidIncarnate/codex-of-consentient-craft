@@ -31,12 +31,13 @@ import type { InstanceId } from '../../../contracts/instance-id/instance-id-cont
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
+import type { RunRequest } from '../../../contracts/run-request/run-request-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { instanceReleaseBroker } from '../../instance/release/instance-release-broker';
 import { laneTeardownBroker } from '../../lane/teardown/lane-teardown-broker';
 import { runExecuteBroker } from '../../run/execute/run-execute-broker';
 
-type PayloadParseOutcome = { success: true; value: unknown } | { success: false; error: unknown };
+type RunPayloadOutcome = { success: true; data: RunRequest } | { success: false; message: string };
 
 export const driverHandleRequestBroker = async ({
   request,
@@ -70,28 +71,22 @@ export const driverHandleRequestBroker = async ({
   }
 
   if (request.kind === 'run') {
-    const parsedPayload: PayloadParseOutcome = ((): PayloadParseOutcome => {
+    const parsedRun = ((): RunPayloadOutcome => {
       try {
-        return { success: true, value: JSON.parse(request.payload) as unknown };
+        const parsed = runRequestContract.safeParse(JSON.parse(request.payload));
+        return parsed.success
+          ? { success: true, data: parsed.data }
+          : { success: false, message: parsed.error.message };
       } catch (error) {
-        return { success: false, error };
+        return { success: false, message: String(error) };
       }
     })();
 
-    if (!parsedPayload.success) {
-      return driverResponseContract.parse({
-        ok: false,
-        payload: '',
-        error: `Malformed run payload: ${String(parsedPayload.error)}`,
-      });
-    }
-
-    const parsedRun = runRequestContract.safeParse(parsedPayload.value);
     if (!parsedRun.success) {
       return driverResponseContract.parse({
         ok: false,
         payload: '',
-        error: `Malformed run payload: ${parsedRun.error.message}`,
+        error: `Malformed run payload: ${parsedRun.message}`,
       });
     }
 
