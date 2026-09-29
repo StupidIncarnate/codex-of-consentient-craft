@@ -40,6 +40,7 @@ import type { DisplayLabel } from '../../contracts/display-label/display-label-c
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
+import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
@@ -222,8 +223,8 @@ export const ExecutionPanelWidget = ({
   // draws no figure for it, and diverging from the row's test would hold the timer for a row that
   // draws nothing.
   const hasRunningWorkItem = visibleWorkItems.some((wi) => {
-    const wiRowStatus = wi.status as ExecutionStepStatus;
-    return wiRowStatus === ('in_progress' as ExecutionStepStatus) && wi.startedAt !== undefined;
+    const wiRowStatus = executionStepStatusContract.parse(wi.status);
+    return wiRowStatus === 'in_progress' && wi.startedAt !== undefined;
   });
   const { now } = useElapsedTickBinding({ enabled: hasRunningWorkItem });
 

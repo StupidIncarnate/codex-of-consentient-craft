@@ -21,6 +21,7 @@ import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
 import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
 import { questFollowupResponseContract } from '../../../contracts/quest-followup-response/quest-followup-response-contract';
+import { uploadProgressPostContract } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -37,11 +38,17 @@ export const questFollowupBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questFollowup.replace(':questId', questId);
 
-  const result = await xhrPostWithProgress({
+  const post = uploadProgressPostContract.parse({
     url,
     body: { message, ...(images === undefined || images.length === 0 ? {} : { images }) },
+    onProgress: onProgress ?? ((): void => undefined),
+  });
+
+  const result = await xhrPostWithProgress({
+    url: post.url,
+    body: post.body,
     onProgress: ({ bytesSent, bytesTotal }): void => {
-      onProgress?.({
+      post.onProgress({
         bytesSent: byteLengthContract.parse(bytesSent),
         bytesTotal: byteLengthContract.parse(bytesTotal),
       });

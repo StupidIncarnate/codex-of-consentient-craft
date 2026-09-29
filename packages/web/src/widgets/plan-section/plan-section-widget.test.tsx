@@ -1,24 +1,19 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { PlanSectionTestItemStub } from '../../contracts/plan-section-test-item/plan-section-test-item.stub';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { PlanSectionWidget } from './plan-section-widget';
 import { PlanSectionWidgetProxy } from './plan-section-widget.proxy';
 
-type TestItem = ReturnType<typeof PlanSectionTestItemStub>;
-
-const renderItem = (item: TestItem): React.JSX.Element => (
-  <span data-testid="PLAN_ITEM">{item.text}</span>
-);
+const renderItem = (item: string): React.JSX.Element => <span data-testid="PLAN_ITEM">{item}</span>;
 
 describe('PlanSectionWidget', () => {
   describe('rendering', () => {
     it('VALID: {title: "STEPS", items: [step-a, step-b]} => renders section header', () => {
       PlanSectionWidgetProxy();
       const title = SectionLabelStub({ value: 'STEPS' });
-      const itemA = PlanSectionTestItemStub({ text: 'step-a' });
-      const itemB = PlanSectionTestItemStub({ text: 'step-b' });
+      const itemA = 'step-a';
+      const itemB = 'step-b';
 
       mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
@@ -30,8 +25,8 @@ describe('PlanSectionWidget', () => {
     it('VALID: {items: [step-a, step-b]} => renders all items', () => {
       PlanSectionWidgetProxy();
       const title = SectionLabelStub({ value: 'STEPS' });
-      const itemA = PlanSectionTestItemStub({ text: 'step-a' });
-      const itemB = PlanSectionTestItemStub({ text: 'step-b' });
+      const itemA = 'step-a';
+      const itemB = 'step-b';
 
       mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
@@ -46,7 +41,7 @@ describe('PlanSectionWidget', () => {
     it('EMPTY: {items: []} => renders section with count zero', () => {
       PlanSectionWidgetProxy();
       const title = SectionLabelStub({ value: 'STEPS' });
-      const items: TestItem[] = [];
+      const items: string[] = [];
 
       mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={items} renderItem={renderItem} />,
@@ -60,7 +55,7 @@ describe('PlanSectionWidget', () => {
     it('VALID: {items: [item]} => renders no add or remove buttons', () => {
       PlanSectionWidgetProxy();
       const title = SectionLabelStub({ value: 'STEPS' });
-      const itemA = PlanSectionTestItemStub({ text: 'step-a' });
+      const itemA = 'step-a';
 
       mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA]} renderItem={renderItem} />,

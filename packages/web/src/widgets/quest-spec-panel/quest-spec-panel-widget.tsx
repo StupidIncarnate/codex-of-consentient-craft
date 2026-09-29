@@ -29,7 +29,7 @@ import {
 
 import type { AskUserQuestionItem } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { GateSectionKey } from '../../contracts/gate-section-key/gate-section-key-contract';
+import { gateSectionKeyContract } from '../../contracts/gate-section-key/gate-section-key-contract';
 import { isGateSectionVisibleGuard } from '../../guards/is-gate-section-visible/is-gate-section-visible-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -50,7 +50,7 @@ const SCROLLABLE_STYLE = { flex: 1, overflowY: 'auto' as const, padding: 16 };
 const ACTION_BAR_STYLE_BASE = { padding: 12, flexShrink: 0 };
 const HEADER_FONT_SIZE = 'xs' as const;
 
-const CONTRACTS_SECTION = 'contracts' as GateSectionKey;
+const CONTRACTS_SECTION = gateSectionKeyContract.parse('contracts');
 
 // SPEC is the working surface — the request being satisfied, and the diagram satisfying it.
 // DETAILS holds the prose a reader consults once and then wants out of the way.

@@ -46,7 +46,7 @@ import type { DisplayFilePath } from '../../contracts/display-file-path/display-
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
+import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
@@ -152,7 +152,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
       return parsedId.success ? riftcarverResultsById.get(parsedId.data) : undefined;
     })
     .filter((rr): rr is NonNullable<typeof rr> => rr !== undefined);
-  const status = workItem.status as ExecutionStepStatus;
+  const status = executionStepStatusContract.parse(workItem.status);
   const operationRef = workItem.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
   const operation = operationRef
     ? operationsById.get(operationRef.slice(OPERATIONS_PREFIX_LENGTH) as OperationItem['id'])
@@ -194,7 +194,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
       dependsOn={depLabels}
       isAdhoc={workItem.insertedBy !== undefined}
       entries={entries}
-      isStreaming={status === ('in_progress' as ExecutionStepStatus)}
+      isStreaming={status === 'in_progress'}
       {...(includeSkipped ? { autoExpand: true } : {})}
       workItem={workItem}
       {...(order === undefined ? {} : { order })}

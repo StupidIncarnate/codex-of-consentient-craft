@@ -29,6 +29,7 @@ import { chatCompletePayloadContract } from '../../contracts/chat-complete-paylo
 import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload-contract';
 import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
 import type { ChatOutputPayload } from '../../contracts/chat-output-payload/chat-output-payload-contract';
+import { chatStreamEndedPayloadContract } from '../../contracts/chat-stream-ended-payload/chat-stream-ended-payload-contract';
 import type { ChatStreamEndedPayload } from '../../contracts/chat-stream-ended-payload/chat-stream-ended-payload-contract';
 import { clarificationRequestPayloadContract } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
 import type { ClarificationRequestPayload } from '../../contracts/clarification-request-payload/clarification-request-payload-contract';
@@ -160,14 +161,18 @@ export const webSocketChannelState = {
     if (envelope.data.type === 'chat-complete') {
       const payload = chatCompletePayloadContract.safeParse(envelope.data.payload);
       if (payload.success) {
-        internalState.chatStreamEndedSubject.next({ ...payload.data, reason: 'turn-ended' });
+        internalState.chatStreamEndedSubject.next(
+          chatStreamEndedPayloadContract.parse({ ...payload.data, reason: 'turn-ended' }),
+        );
       }
       return;
     }
     if (envelope.data.type === 'chat-history-complete') {
       const payload = chatHistoryCompletePayloadContract.safeParse(envelope.data.payload);
       if (payload.success) {
-        internalState.chatStreamEndedSubject.next({ ...payload.data, reason: 'history-replayed' });
+        internalState.chatStreamEndedSubject.next(
+          chatStreamEndedPayloadContract.parse({ ...payload.data, reason: 'history-replayed' }),
+        );
       }
       return;
     }
