@@ -17,6 +17,7 @@ describe('StartEslintPlugin', () => {
         'ban-invented-failures',
         'ban-jest-mock-in-proxies',
         'ban-jest-mock-in-tests',
+        'ban-jsx-outside-widgets-and-flows',
         'ban-negated-matchers',
         'ban-node-builtins-in-test-scenarios',
         'ban-nondeterminism-in-ingredients',

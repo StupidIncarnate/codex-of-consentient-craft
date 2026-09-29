@@ -3,7 +3,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 82 rule names', () => {
+    it('VALID: {} => returns plugin with all 83 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -19,6 +19,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-invented-failures',
         'ban-jest-mock-in-proxies',
         'ban-jest-mock-in-tests',
+        'ban-jsx-outside-widgets-and-flows',
         'ban-negated-matchers',
         'ban-node-builtins-in-test-scenarios',
         'ban-nondeterminism-in-ingredients',

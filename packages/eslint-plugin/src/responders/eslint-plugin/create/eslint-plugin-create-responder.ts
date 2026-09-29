@@ -8,6 +8,7 @@
 import { ruleBanAdhocTypesBroker } from '../../../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker';
 import { ruleBanPrimitivesBroker } from '../../../brokers/rule/ban-primitives/rule-ban-primitives-broker';
 import { ruleEnforceContractUsageInTestsBroker } from '../../../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker';
+import { ruleBanJsxOutsideWidgetsAndFlowsBroker } from '../../../brokers/rule/ban-jsx-outside-widgets-and-flows/rule-ban-jsx-outside-widgets-and-flows-broker';
 import { ruleBanJestMockInTestsBroker } from '../../../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker';
 import { ruleRequireZodOnPrimitivesBroker } from '../../../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker';
 import { ruleEnforceProjectStructureBroker } from '../../../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker';
@@ -95,6 +96,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-primitives': EslintRule;
     readonly 'enforce-contract-usage-in-tests': EslintRule;
     readonly 'ban-jest-mock-in-tests': EslintRule;
+    readonly 'ban-jsx-outside-widgets-and-flows': EslintRule;
     readonly 'require-zod-on-primitives': EslintRule;
     readonly 'enforce-project-structure': EslintRule;
     readonly 'enforce-import-dependencies': EslintRule;
@@ -184,6 +186,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-primitives': ruleBanPrimitivesBroker(),
       'enforce-contract-usage-in-tests': ruleEnforceContractUsageInTestsBroker(),
       'ban-jest-mock-in-tests': ruleBanJestMockInTestsBroker(),
+      'ban-jsx-outside-widgets-and-flows': ruleBanJsxOutsideWidgetsAndFlowsBroker(),
       'require-zod-on-primitives': ruleRequireZodOnPrimitivesBroker(),
       'enforce-project-structure': ruleEnforceProjectStructureBroker(),
       'enforce-import-dependencies': ruleEnforceImportDependenciesBroker(),

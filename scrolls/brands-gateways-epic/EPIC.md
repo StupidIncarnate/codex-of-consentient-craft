@@ -810,7 +810,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | done | 9844987fa. The published `jest-config-base` wires `jest.setup-global.js` and its teardown, and `ban-bare-os-home-tmp` is deleted. A comment at `web/test/harnesses/claude-mock/bin/claude:232` still names the deleted rule; Z06 fixes it. |
 | T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | todo | operator splits |
 | T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo | |
-| T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | todo | Planned (the T10 plan commit): 0 violating files in every package; the plan is one agent writing `ban-jsx-outside-widgets-and-flows`, landed off, scanned, then switched on. |
+| T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | done (the T10 commit) | Planned (the T10 plan commit): 0 violating files in every package; the plan is one agent writing `ban-jsx-outside-widgets-and-flows`, landed off, scanned, then switched on. `ban-jsx-outside-widgets-and-flows` reports the outermost JSX tree in any file outside `widgets/` and `flows/` (tests, stubs and harnesses included); scans 0; at `error` and tagged `pre-edit`. Gate 1790680759524-5312. eslint-plugin, shared and hooks rebuilt. |
 
 ### Phase 6 — docs and the finish line
 

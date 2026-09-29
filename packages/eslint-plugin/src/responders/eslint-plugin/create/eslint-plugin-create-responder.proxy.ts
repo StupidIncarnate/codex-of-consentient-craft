@@ -2,6 +2,7 @@ import '#gateway/npm/eslint-plugin-jest/rules/rules.proxy';
 import { ruleBanAdhocTypesBrokerProxy } from '../../../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker.proxy';
 import { ruleBanPrimitivesBrokerProxy } from '../../../brokers/rule/ban-primitives/rule-ban-primitives-broker.proxy';
 import { ruleEnforceContractUsageInTestsBrokerProxy } from '../../../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker.proxy';
+import { ruleBanJsxOutsideWidgetsAndFlowsBrokerProxy } from '../../../brokers/rule/ban-jsx-outside-widgets-and-flows/rule-ban-jsx-outside-widgets-and-flows-broker.proxy';
 import { ruleBanJestMockInTestsBrokerProxy } from '../../../brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker.proxy';
 import { ruleRequireZodOnPrimitivesBrokerProxy } from '../../../brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker.proxy';
 import { ruleEnforceProjectStructureBrokerProxy } from '../../../brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.proxy';
@@ -90,6 +91,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanPrimitivesBrokerProxy();
   ruleEnforceContractUsageInTestsBrokerProxy();
   ruleBanJestMockInTestsBrokerProxy();
+  ruleBanJsxOutsideWidgetsAndFlowsBrokerProxy();
   ruleRequireZodOnPrimitivesBrokerProxy();
   ruleEnforceProjectStructureBrokerProxy();
   ruleEnforceImportDependenciesBrokerProxy();
