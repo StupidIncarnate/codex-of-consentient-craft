@@ -1,9 +1,7 @@
-import {
-  CommentBatchEntryStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-} from '@dungeonmaster/shared/contracts';
+import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts/comment-batch-entry/comment-batch-entry.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { commentBatchStaleAnchorsTransformer } from './comment-batch-stale-anchors-transformer';
 

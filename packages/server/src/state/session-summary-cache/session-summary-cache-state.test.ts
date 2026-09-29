@@ -1,4 +1,4 @@
-import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { MtimeMsStub } from '../../contracts/mtime-ms/mtime-ms.stub';
 import { SessionSummaryStub } from '../../contracts/session-summary/session-summary.stub';

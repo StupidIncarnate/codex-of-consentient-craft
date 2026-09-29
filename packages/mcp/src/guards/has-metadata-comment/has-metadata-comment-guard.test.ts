@@ -1,6 +1,6 @@
 import { hasMetadataCommentGuard } from './has-metadata-comment-guard';
 import { hasMetadataCommentGuardProxy } from './has-metadata-comment-guard.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('hasMetadataCommentGuard', () => {
   describe('valid metadata', () => {

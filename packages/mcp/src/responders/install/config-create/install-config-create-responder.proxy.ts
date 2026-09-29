@@ -13,8 +13,9 @@ import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
 import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
-import { PathSegmentStub, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstallConfigCreateResponder } from './install-config-create-responder';
 

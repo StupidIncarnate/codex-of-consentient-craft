@@ -27,9 +27,9 @@ import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
-import { ExecResultStub } from '@dungeonmaster/shared/contracts';
+import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
 type HookName =
   | 'start-pre-bash-hook'

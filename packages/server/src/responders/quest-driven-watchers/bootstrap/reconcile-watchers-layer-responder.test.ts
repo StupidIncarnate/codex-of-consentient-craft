@@ -1,12 +1,10 @@
-import {
-  GuildListItemStub,
-  QuestIdStub,
-  QuestSessionStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { ReconcileWatchersLayerResponder } from './reconcile-watchers-layer-responder';
 import { ReconcileWatchersLayerResponderProxy } from './reconcile-watchers-layer-responder.proxy';

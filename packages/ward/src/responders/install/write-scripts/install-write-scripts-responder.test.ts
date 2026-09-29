@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallWriteScriptsResponderProxy } from './install-write-scripts-responder.proxy';
 import { installScriptsStatics } from '../../../statics/install-scripts/install-scripts-statics';
 

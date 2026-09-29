@@ -1,5 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { e2eArtifactsHarness } from '../../../../test/harnesses/e2e-artifacts/e2e-artifacts.harness';
 import { e2eArtifactsPruneBroker } from './e2e-artifacts-prune-broker';

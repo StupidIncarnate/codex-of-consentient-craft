@@ -1,6 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { runIdMockStatics } from '../../../statics/run-id-mock/run-id-mock-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';

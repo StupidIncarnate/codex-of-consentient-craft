@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';

@@ -3,11 +3,9 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
-import {
-  locationsRateLimitsSnapshotPathFindBrokerProxy,
-  locationsRateLimitsSnapshotTmpPathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsRateLimitsSnapshotPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker.proxy';
+import { locationsRateLimitsSnapshotTmpPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-snapshot-tmp-path-find/locations-rate-limits-snapshot-tmp-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const rateLimitsSnapshotWriteBrokerProxy = (): {

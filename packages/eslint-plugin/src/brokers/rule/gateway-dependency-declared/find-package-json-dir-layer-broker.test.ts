@@ -1,6 +1,6 @@
 import { findPackageJsonDirLayerBroker } from './find-package-json-dir-layer-broker';
 import { findPackageJsonDirLayerBrokerProxy } from './find-package-json-dir-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findPackageJsonDirLayerBroker', () => {
   describe('package.json found', () => {

@@ -1,6 +1,6 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { gatewayPackageNamesReadLayerBrokerProxy } from './gateway-package-names-read-layer-broker.proxy';

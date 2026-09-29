@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
 import { InstallCreatePlaywrightResponderProxy } from './install-create-playwright-responder.proxy';
 

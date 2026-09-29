@@ -4,16 +4,14 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
-import type {
-  AbsoluteFilePath,
-  GuildIdStub,
-  ProcessIdStub,
-  QuestIdStub,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;

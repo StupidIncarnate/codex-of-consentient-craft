@@ -1,7 +1,9 @@
 import { operationUpdateRouteBroker } from './operation-update-route-broker';
 import { operationUpdateRouteBrokerProxy } from './operation-update-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildListItemStub, OperationItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 const GUILD_ID = '11111111-1111-4111-8111-111111111111';
 

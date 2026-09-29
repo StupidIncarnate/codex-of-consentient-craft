@@ -1,5 +1,5 @@
 import { firstWordTransformer } from './first-word-transformer';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('firstWordTransformer', () => {
   describe('single word', () => {

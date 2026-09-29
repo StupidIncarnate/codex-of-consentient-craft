@@ -1,4 +1,5 @@
-import type { QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { QuestAbandonResponder } from './quest-abandon-responder';
 

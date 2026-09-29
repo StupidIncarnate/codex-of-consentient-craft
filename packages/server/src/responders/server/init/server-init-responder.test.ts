@@ -1,20 +1,18 @@
 import { setTimeout } from '#gateway/node/setTimeout';
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  FilePathStub,
-  GuildIdStub,
-  ProcessIdStub,
-  QuestCommentStub,
-  QuestIdStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-  UserChatEntryStub,
-  WardDetailStub,
-  WorkItemStub,
-  WsMessageStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
 
 import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
 import { ServerInitResponderProxy } from './server-init-responder.proxy';

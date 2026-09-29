@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { workspaceRootFindBroker } from './workspace-root-find-broker';
 import { workspaceRootFindBrokerProxy } from './workspace-root-find-broker.proxy';
 

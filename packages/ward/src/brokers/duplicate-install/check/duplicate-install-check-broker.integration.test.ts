@@ -1,5 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { duplicateInstallCheckBroker } from './duplicate-install-check-broker';
 import { duplicateInstallFixtureHarness } from '../../../../test/harnesses/duplicate-install-fixture/duplicate-install-fixture.harness';

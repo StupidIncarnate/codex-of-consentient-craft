@@ -1,6 +1,6 @@
 import { globResolveTransformer } from './glob-resolve-transformer';
 import { DiscoverInputStub } from '../../contracts/discover-input/discover-input.stub';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('globResolveTransformer', () => {
   it('VALID: no glob => defaults to **/*', () => {

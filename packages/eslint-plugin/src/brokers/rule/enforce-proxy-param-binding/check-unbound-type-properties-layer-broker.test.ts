@@ -2,7 +2,7 @@ import { checkUnboundTypePropertiesLayerBroker } from './check-unbound-type-prop
 import { checkUnboundTypePropertiesLayerBrokerProxy } from './check-unbound-type-properties-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 const buildIdentifier = ({ name }: { name: string }): ReturnType<typeof TsestreeStub> =>
   TsestreeStub({

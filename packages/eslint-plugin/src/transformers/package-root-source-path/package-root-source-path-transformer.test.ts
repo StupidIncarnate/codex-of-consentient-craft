@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { packageRootSourcePathTransformer } from './package-root-source-path-transformer';
 
 describe('packageRootSourcePathTransformer', () => {

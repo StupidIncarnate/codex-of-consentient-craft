@@ -2,7 +2,7 @@ import { checkDiscriminatedUnionVariantsLayerBroker } from './check-discriminate
 import { checkDiscriminatedUnionVariantsLayerBrokerProxy } from './check-discriminated-union-variants-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 // Build z.<method>(...args) CallExpression node
 const buildZCall = ({

@@ -1,8 +1,6 @@
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';

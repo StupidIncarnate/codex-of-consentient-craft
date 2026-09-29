@@ -1,8 +1,8 @@
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceProxyChildCreationBroker } from './rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyChildCreationBrokerProxy } from './rule-enforce-proxy-child-creation-broker.proxy';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 type FileContents = ReturnType<typeof FileContentsStub>;
 type FilePath = ReturnType<typeof FilePathStub>;

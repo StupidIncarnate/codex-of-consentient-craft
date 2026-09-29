@@ -1,4 +1,6 @@
-import { GetQuestResultStub, QuestCommentStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questStripCommentsTransformer } from './quest-strip-comments-transformer';
 

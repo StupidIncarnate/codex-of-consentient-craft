@@ -4,8 +4,8 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import type { ExecResultStub } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import {
   EditToolHookStub,

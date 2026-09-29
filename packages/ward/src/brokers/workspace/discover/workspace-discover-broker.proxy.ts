@@ -1,5 +1,6 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { patternResolveLayerBrokerProxy } from './pattern-resolve-layer-broker.proxy';
 

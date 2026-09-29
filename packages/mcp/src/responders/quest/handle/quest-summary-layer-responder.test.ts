@@ -1,11 +1,9 @@
-import {
-  QuestSummaryDebtStub,
-  QuestSummaryFlowStub,
-  QuestSummaryNoteGroupStub,
-  QuestSummaryObservableStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts/quest-summary-debt/quest-summary-debt.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryNoteGroupStub } from '@dungeonmaster/shared/contracts/quest-summary-note-group/quest-summary-note-group.stub';
+import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts/quest-summary-observable/quest-summary-observable.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 
 import { QuestSummaryLayerResponder } from './quest-summary-layer-responder';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';

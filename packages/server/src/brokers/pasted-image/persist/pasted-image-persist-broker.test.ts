@@ -1,10 +1,8 @@
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
-import {
-  GuildIdStub,
-  QuestIdStub,
-  PastedImageUploadStub,
-  AbsoluteFilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { pastedImagePersistBroker } from './pasted-image-persist-broker';
 import { pastedImagePersistBrokerProxy } from './pasted-image-persist-broker.proxy';

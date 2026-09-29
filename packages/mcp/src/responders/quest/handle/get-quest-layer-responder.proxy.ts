@@ -8,7 +8,7 @@
 
 import type { GetQuestResult } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 export const GetQuestLayerResponderProxy = (): {
   setupReturns: (params: { questId: string; result: GetQuestResult }) => void;

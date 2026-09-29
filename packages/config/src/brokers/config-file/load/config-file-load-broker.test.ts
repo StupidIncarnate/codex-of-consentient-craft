@@ -1,7 +1,7 @@
 import { configFileLoadBroker } from './config-file-load-broker';
 import { configFileLoadBrokerProxy } from './config-file-load-broker.proxy';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configFileLoadBroker', () => {

@@ -1,5 +1,5 @@
 import { guildDefaultPathBumpTransformer } from './guild-default-path-bump-transformer';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildDefaultPathBumpTransformer', () => {
   describe('a default fragment', () => {

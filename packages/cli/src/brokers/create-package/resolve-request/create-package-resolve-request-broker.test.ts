@@ -1,5 +1,5 @@
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 import { createPackageResolveRequestBroker } from './create-package-resolve-request-broker';
 import { createPackageResolveRequestBrokerProxy } from './create-package-resolve-request-broker.proxy';

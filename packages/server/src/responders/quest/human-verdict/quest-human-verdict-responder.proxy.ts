@@ -1,5 +1,5 @@
 import { questHumanVerdictRecordBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { QuestHumanVerdictResponder } from './quest-human-verdict-responder';
 

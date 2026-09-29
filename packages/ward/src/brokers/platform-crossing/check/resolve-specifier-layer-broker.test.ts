@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 import { resolveSpecifierLayerBrokerProxy } from './resolve-specifier-layer-broker.proxy';
 import { ModuleSpecifierStub } from '../../../contracts/module-specifier/module-specifier.stub';

@@ -1,4 +1,5 @@
-import { PastedImageMediaTypeStub, PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts/pasted-image-media-type/pasted-image-media-type.stub';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { pastedImageUploadListContract } from './pasted-image-upload-list-contract';

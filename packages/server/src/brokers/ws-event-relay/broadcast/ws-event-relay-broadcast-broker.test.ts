@@ -1,4 +1,4 @@
-import { WsMessageStub } from '@dungeonmaster/shared/contracts';
+import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
 
 import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
 

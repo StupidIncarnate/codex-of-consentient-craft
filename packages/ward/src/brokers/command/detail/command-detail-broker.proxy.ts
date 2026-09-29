@@ -1,6 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 

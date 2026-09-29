@@ -1,9 +1,10 @@
 // PURPOSE: Proxy for orchestrator-get-quest-status-broker that mocks shared fetch + port resolution
 // USAGE: const proxy = orchestratorGetQuestStatusBrokerProxy(); proxy.returns({ processId, status: OrchestrationStatusStub() });
 
-import type { OrchestrationStatusStub, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
-import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;

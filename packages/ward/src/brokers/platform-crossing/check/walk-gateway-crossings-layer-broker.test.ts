@@ -1,4 +1,5 @@
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
 import { GatewayPackageNameStub } from '../../../contracts/gateway-package-name/gateway-package-name.stub';

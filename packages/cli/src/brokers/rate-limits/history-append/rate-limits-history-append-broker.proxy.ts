@@ -1,8 +1,8 @@
 import { dirname } from '#gateway/node/path';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
-import { locationsRateLimitsHistoryPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsRateLimitsHistoryPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-history-path-find/locations-rate-limits-history-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const rateLimitsHistoryAppendBrokerProxy = (): {

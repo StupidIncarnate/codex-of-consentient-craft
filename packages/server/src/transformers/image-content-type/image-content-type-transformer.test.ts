@@ -1,5 +1,5 @@
 import { imageContentTypeTransformer } from './image-content-type-transformer';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 describe('imageContentTypeTransformer', () => {

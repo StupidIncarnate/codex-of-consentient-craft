@@ -1,10 +1,8 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-import type {
-  SessionIdStub,
-  PathSegmentStub,
-  ContentTextStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import type { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { transcriptResolveBrokerProxy } from '../resolve/transcript-resolve-broker.proxy';
 
 type SessionId = ReturnType<typeof SessionIdStub>;

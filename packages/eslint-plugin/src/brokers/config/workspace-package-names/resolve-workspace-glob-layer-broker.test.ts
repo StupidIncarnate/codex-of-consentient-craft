@@ -1,4 +1,5 @@
-import { FilePathStub, PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { resolveWorkspaceGlobLayerBroker } from './resolve-workspace-glob-layer-broker';
 import { resolveWorkspaceGlobLayerBrokerProxy } from './resolve-workspace-glob-layer-broker.proxy';
 

@@ -1,5 +1,5 @@
 import { pathToTreeRelativeTransformer } from './path-to-tree-relative-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToTreeRelativeTransformer', () => {
   describe('monorepo paths', () => {

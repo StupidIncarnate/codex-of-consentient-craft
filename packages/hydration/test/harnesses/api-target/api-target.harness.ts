@@ -15,7 +15,7 @@
  */
 import { createServer } from '#gateway/node/http';
 import type { Server } from '#gateway/node/http';
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';
 import { HttpResponseStub } from '../../../src/contracts/http-response/http-response.stub';

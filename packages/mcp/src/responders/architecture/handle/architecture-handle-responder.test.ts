@@ -1,10 +1,8 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
-import {
-  ContentTextStub,
-  FileContentsStub,
-  GlobPatternStub,
-  PathSegmentStub as FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
+import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { projectMapStatics } from '@dungeonmaster/shared/statics';
 import { ArchitectureHandleResponderProxy } from './architecture-handle-responder.proxy';
 

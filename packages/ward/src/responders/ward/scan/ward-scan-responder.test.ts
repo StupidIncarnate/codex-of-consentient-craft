@@ -1,5 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { WardScanResponderProxy } from './ward-scan-responder.proxy';

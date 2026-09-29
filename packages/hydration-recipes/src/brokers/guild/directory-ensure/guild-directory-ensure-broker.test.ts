@@ -1,7 +1,7 @@
 import { guildDirectoryEnsureBroker } from './guild-directory-ensure-broker';
 import { guildDirectoryEnsureBrokerProxy } from './guild-directory-ensure-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildDirectoryEnsureBroker', () => {
   describe('a path inside the target', () => {

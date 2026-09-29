@@ -13,7 +13,8 @@
 import { createServer } from '#gateway/node/http';
 import type { Server } from '#gateway/node/http';
 
-import { ContentTextStub, GuildStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 export const laneApiHarness = (): {
   beforeEach: () => Promise<void>;

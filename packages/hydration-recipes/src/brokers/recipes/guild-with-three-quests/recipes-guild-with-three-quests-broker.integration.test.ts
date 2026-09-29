@@ -1,4 +1,4 @@
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';

@@ -1,7 +1,7 @@
 import { guildQueryRouteBroker } from './guild-query-route-broker';
 import { guildQueryRouteBrokerProxy } from './guild-query-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
 describe('guildQueryRouteBroker', () => {
   describe('an empty where clause', () => {

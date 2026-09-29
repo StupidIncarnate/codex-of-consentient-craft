@@ -10,7 +10,7 @@
  * proxy.getPatchedBody({ questId: 'quest-abc-123' });
  */
 import { environmentStatics } from '@dungeonmaster/shared/statics';
-import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { fetchWithStatusProxy } from '#gateway/node/fetch/fetch-with-status/fetch-with-status.proxy';

@@ -1,5 +1,5 @@
 import { packageNameFromSpecifierTransformer } from './package-name-from-specifier-transformer';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts';
+import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('packageNameFromSpecifierTransformer', () => {
   describe('scoped packages', () => {

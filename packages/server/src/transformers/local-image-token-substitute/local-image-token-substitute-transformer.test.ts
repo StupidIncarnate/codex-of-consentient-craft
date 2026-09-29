@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { LocalImagePathMatchStub } from '../../contracts/local-image-path-match/local-image-path-match.stub';
 import { PastedImageOrdinalStub } from '../../contracts/pasted-image-ordinal/pasted-image-ordinal.stub';

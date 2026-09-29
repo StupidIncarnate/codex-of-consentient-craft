@@ -1,5 +1,5 @@
 import { questFieldsToModifyInputTransformer } from './quest-fields-to-modify-input-transformer';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 describe('questFieldsToModifyInputTransformer', () => {
   describe('a modifiable field', () => {

@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { e2eArtifactsRemoveBroker } from './e2e-artifacts-remove-broker';
 import { e2eArtifactsRemoveBrokerProxy } from './e2e-artifacts-remove-broker.proxy';

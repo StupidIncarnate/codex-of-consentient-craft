@@ -1,4 +1,4 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { PlaywrightLineResultsStub } from '../../contracts/playwright-line-results/playwright-line-results.stub';
 import { playwrightLineToResultsTransformer } from './playwright-line-to-results-transformer';

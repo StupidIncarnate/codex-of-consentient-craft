@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewayPackageNamesReadLayerBroker } from './gateway-package-names-read-layer-broker';
 import { gatewayPackageNamesReadLayerBrokerProxy } from './gateway-package-names-read-layer-broker.proxy';
 

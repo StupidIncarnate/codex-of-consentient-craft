@@ -1,13 +1,11 @@
 import { questToUnitsTransformer } from './quest-to-units-transformer';
 import { VerificationUnitStub } from '../../contracts/verification-unit/verification-unit.stub';
-import {
-  FlowStub,
-  FlowNodeStub,
-  FlowEdgeStub,
-  FlowObservableStub,
-  WorkItemStub,
-  UnitObservationStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 describe('questToUnitsTransformer', () => {

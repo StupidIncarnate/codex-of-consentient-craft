@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { WardDetailResponderProxy } from './ward-detail-responder.proxy';

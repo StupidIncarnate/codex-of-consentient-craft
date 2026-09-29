@@ -1,6 +1,6 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questFindBrokerProxy } from '../find/quest-find-broker.proxy';
 
 type QuestId = ReturnType<typeof QuestIdStub>;

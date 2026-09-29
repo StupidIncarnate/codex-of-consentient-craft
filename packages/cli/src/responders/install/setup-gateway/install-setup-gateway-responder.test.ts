@@ -1,4 +1,5 @@
-import { FilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { InstallSetupGatewayResponder } from './install-setup-gateway-responder';
 import { InstallSetupGatewayResponderProxy } from './install-setup-gateway-responder.proxy';
 

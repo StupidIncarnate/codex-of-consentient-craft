@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ScanRuleNameStub } from '../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanEslintConfigSourceTransformer } from './scan-eslint-config-source-transformer';

@@ -2,7 +2,7 @@ import { validateNoExposedChildProxiesLayerBroker } from './validate-no-exposed-
 import { validateNoExposedChildProxiesLayerBrokerProxy } from './validate-no-exposed-child-proxies-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 type Identifier = ReturnType<typeof IdentifierStub>;
 

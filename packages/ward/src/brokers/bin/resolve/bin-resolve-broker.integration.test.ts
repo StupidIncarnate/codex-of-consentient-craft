@@ -1,5 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { binResolveHarness } from '../../../../test/harnesses/bin-resolve/bin-resolve.harness';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';

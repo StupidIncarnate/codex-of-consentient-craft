@@ -5,7 +5,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardFlow } from './ward-flow';
 

@@ -1,4 +1,5 @@
-import { FilePathStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 import { CreatePackageRequestStub } from '../../../contracts/create-package-request/create-package-request.stub';
 import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';

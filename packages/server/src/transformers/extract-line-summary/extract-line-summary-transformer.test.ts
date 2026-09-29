@@ -1,4 +1,4 @@
-import { SummaryStreamLineStub } from '@dungeonmaster/shared/contracts';
+import { SummaryStreamLineStub } from '@dungeonmaster/shared/contracts/summary-stream-line/summary-stream-line.stub';
 
 import { extractLineSummaryTransformer } from './extract-line-summary-transformer';
 

@@ -1,4 +1,4 @@
-import { FolderConfigStub } from '@dungeonmaster/shared/contracts';
+import { FolderConfigStub } from '@dungeonmaster/shared/contracts/folder-config/folder-config.stub';
 import { firstFileSuffixTransformer } from './first-file-suffix-transformer';
 
 describe('firstFileSuffixTransformer', () => {

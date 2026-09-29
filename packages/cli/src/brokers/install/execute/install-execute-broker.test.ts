@@ -4,13 +4,11 @@
 
 import { installExecuteBroker } from './install-execute-broker';
 import { installExecuteBrokerProxy } from './install-execute-broker.proxy';
-import {
-  FilePathStub,
-  PackageNameStub,
-  InstallContextStub,
-  InstallResultStub,
-  ErrorMessageStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 describe('installExecuteBroker', () => {
   describe('executing install', () => {

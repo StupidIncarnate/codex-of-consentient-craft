@@ -10,7 +10,7 @@ import * as path from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CommandResultStub } from '../../../src/contracts/command-result/command-result.stub';
 import { ExitCodeStub } from '../../../src/contracts/exit-code/exit-code.stub';

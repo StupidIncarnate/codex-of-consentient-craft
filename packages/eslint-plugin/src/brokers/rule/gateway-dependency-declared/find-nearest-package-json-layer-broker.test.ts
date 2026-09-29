@@ -1,6 +1,6 @@
 import { findNearestPackageJsonLayerBroker } from './find-nearest-package-json-layer-broker';
 import { findNearestPackageJsonLayerBrokerProxy } from './find-nearest-package-json-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findNearestPackageJsonLayerBroker', () => {
   describe('package.json found', () => {

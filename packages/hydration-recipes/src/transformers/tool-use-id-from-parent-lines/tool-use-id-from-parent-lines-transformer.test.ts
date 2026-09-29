@@ -1,5 +1,5 @@
 import { toolUseIdFromParentLinesTransformer } from './tool-use-id-from-parent-lines-transformer';
-import { AgentIdStub } from '@dungeonmaster/shared/contracts';
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 
 describe('toolUseIdFromParentLinesTransformer', () => {
   describe('a correlation line present among the parent lines', () => {

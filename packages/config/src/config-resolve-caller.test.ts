@@ -1,7 +1,7 @@
 // configResolveBroker is imported through the SAME specifier ('@dungeonmaster/config') the proxy
 // mocks, so this test observes the exact call real external callers make.
 import { configResolveBroker } from '@dungeonmaster/config';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { configResolveBrokerProxy } from './config-resolve-caller.proxy';
 import { DungeonmasterConfigStub } from './contracts/dungeonmaster-config/dungeonmaster-config.stub';
 

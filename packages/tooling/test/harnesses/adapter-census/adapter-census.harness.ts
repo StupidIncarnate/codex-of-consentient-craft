@@ -11,7 +11,7 @@
 import * as path from '#gateway/node/path';
 import { execFileSync } from '#gateway/node/child_process';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
 import { CommandResultStub } from '../../../src/contracts/command-result/command-result.stub';

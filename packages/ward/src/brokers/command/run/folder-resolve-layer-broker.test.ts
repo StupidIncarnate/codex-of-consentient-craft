@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { folderResolveLayerBroker } from './folder-resolve-layer-broker';
 import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';

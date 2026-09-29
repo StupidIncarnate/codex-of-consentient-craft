@@ -1,5 +1,5 @@
 import { fileTypeDetectorTransformer } from './file-type-detector-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('fileTypeDetectorTransformer', () => {
   it('VALID: {broker filepath} => returns "broker"', () => {

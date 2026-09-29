@@ -1,5 +1,6 @@
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
-import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { packageReadLayerBrokerProxy } from './package-read-layer-broker.proxy';
 

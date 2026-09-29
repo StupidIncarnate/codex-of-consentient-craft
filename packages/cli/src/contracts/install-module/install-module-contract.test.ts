@@ -1,4 +1,5 @@
-import { InstallContextStub, InstallResultStub } from '@dungeonmaster/shared/contracts';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 import { installModuleContract } from './install-module-contract';
 import { InstallModuleStub } from './install-module.stub';
 

@@ -1,7 +1,7 @@
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleGatewayLayoutBroker } from './rule-gateway-layout-broker';
 import { ruleGatewayLayoutBrokerProxy } from './rule-gateway-layout-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 const ruleTester = ruleTesterHarness();
 

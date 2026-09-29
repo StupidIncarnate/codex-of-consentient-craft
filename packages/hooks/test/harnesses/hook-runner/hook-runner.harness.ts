@@ -13,9 +13,9 @@ import { join, resolve } from '#gateway/node/path';
 import { tsxLoaderUrl } from '#gateway/npm/tsx';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
-import { ExecResultStub } from '@dungeonmaster/shared/contracts';
+import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
 // `node --import <tsx loader>` is tsx's own documented equivalent of the `tsx` bin, minus two
 // process launches: `npx` re-resolves the bin through npm on every call, and the `tsx` CLI then

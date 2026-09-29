@@ -1,7 +1,9 @@
 import { questPersistDirectBroker } from './quest-persist-direct-broker';
 import { questPersistDirectBrokerProxy } from './quest-persist-direct-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { FilePathStub, FileContentsStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 describe('questPersistDirectBroker', () => {
   describe('a successful persist', () => {

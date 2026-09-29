@@ -3,8 +3,9 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { PathSegmentStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 type PathSegment = ReturnType<typeof PathSegmentStub>;
 type SessionId = ReturnType<typeof SessionIdStub>;

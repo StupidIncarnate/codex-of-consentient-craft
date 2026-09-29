@@ -1,6 +1,6 @@
 import { rootPackageJsonRegisterTransformer } from './root-package-json-register-transformer';
 import { PackageJsonRawStub } from '../../contracts/package-json-raw/package-json-raw.stub';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('rootPackageJsonRegisterTransformer', () => {
   describe('valid input', () => {

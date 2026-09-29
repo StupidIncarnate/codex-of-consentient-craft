@@ -1,6 +1,6 @@
 import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 type Quest = ReturnType<typeof QuestStub>;
 

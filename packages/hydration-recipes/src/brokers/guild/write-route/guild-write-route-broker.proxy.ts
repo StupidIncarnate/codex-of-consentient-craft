@@ -3,7 +3,7 @@ import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/cont
 
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';
 import { guildUniquePathResolveBrokerProxy } from '../unique-path-resolve/guild-unique-path-resolve-broker.proxy';
-import type { GuildStub } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 

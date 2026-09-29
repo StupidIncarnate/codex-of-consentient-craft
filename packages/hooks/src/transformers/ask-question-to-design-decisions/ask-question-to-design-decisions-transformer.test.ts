@@ -1,4 +1,5 @@
-import { AskUserQuestionStub, AskUserQuestionResponseStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
+import { AskUserQuestionResponseStub } from '@dungeonmaster/shared/contracts/ask-user-question-response/ask-user-question-response.stub';
 import { askQuestionToDesignDecisionsTransformer } from './ask-question-to-design-decisions-transformer';
 
 describe('askQuestionToDesignDecisionsTransformer', () => {

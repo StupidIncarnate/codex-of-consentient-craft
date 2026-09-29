@@ -1,4 +1,5 @@
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { InstallDetectConfigResponderProxy } from './install-detect-config-responder.proxy';
 
 describe('InstallDetectConfigResponder', () => {

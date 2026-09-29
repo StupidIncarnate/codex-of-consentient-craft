@@ -4,13 +4,11 @@
 
 import { installRunBroker } from './install-run-broker';
 import { installRunBrokerProxy } from './install-run-broker.proxy';
-import {
-  InstallContextStub,
-  InstallResultStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 describe('installRunBroker', () => {
   describe('running installation', () => {

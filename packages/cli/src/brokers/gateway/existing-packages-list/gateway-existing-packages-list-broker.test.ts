@@ -1,4 +1,5 @@
-import { FilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { gatewayExistingPackagesListBroker } from './gateway-existing-packages-list-broker';
 import { gatewayExistingPackagesListBrokerProxy } from './gateway-existing-packages-list-broker.proxy';
 

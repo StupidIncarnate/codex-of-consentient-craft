@@ -1,5 +1,5 @@
 import { isAbsoluteGuildPathGuard } from './is-absolute-guild-path-guard';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('isAbsoluteGuildPathGuard', () => {
   describe('absolute paths', () => {

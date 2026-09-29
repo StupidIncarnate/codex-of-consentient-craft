@@ -1,5 +1,5 @@
-import { contractIndexBuildBrokerProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { contractIndexBuildBrokerProxy } from '@dungeonmaster/shared/brokers/contract-index/build/contract-index-build-broker.proxy';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 export const ruleRequireContractParseBrokerProxy = (): {
   setupProject: ({

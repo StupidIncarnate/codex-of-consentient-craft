@@ -1,28 +1,26 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  DesignDecisionStub,
-  FlowNodeStub,
-  FlowStub,
-  GetQuestResultStub,
-  GuildIdStub,
-  ModifyQuestResultStub,
-  OperationItemStub,
-  OrchestrationStatusStub,
-  ProcessIdStub,
-  QuestCommentStub,
-  QuestContractEntryStub,
-  QuestIdStub,
-  QuestListItemStub,
-  QuestStub,
-  QuestSummaryFlowStub,
-  QuestSummaryStub,
-  QuestSummaryTrackCountsStub,
-  ToolingRequirementStub,
-  UrlSlugStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 

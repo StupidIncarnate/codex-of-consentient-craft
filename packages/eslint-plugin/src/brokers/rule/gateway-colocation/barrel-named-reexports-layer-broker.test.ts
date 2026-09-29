@@ -1,4 +1,4 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { barrelNamedReexportsLayerBroker } from './barrel-named-reexports-layer-broker';
 import { barrelNamedReexportsLayerBrokerProxy } from './barrel-named-reexports-layer-broker.proxy';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';

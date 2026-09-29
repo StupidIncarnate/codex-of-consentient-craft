@@ -4,7 +4,9 @@
 
 import { installFinalizeOrchestrateBroker } from './install-finalize-orchestrate-broker';
 import { installFinalizeOrchestrateBrokerProxy } from './install-finalize-orchestrate-broker.proxy';
-import { FilePathStub, PackageNameStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
 describe('installFinalizeOrchestrateBroker', () => {
   describe('orchestrating finalize calls', () => {

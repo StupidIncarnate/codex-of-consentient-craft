@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { questUserAddBodyContract } from './quest-user-add-body-contract';
 import type { QuestUserAddBody } from './quest-user-add-body-contract';
 

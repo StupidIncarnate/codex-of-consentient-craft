@@ -1,5 +1,6 @@
 import { gitignoreToGlobTransformer } from './gitignore-to-glob-transformer';
-import { FileContentsStub, GlobPatternStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('gitignoreToGlobTransformer', () => {
   describe('line translation', () => {

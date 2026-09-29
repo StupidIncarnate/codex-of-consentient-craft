@@ -1,5 +1,5 @@
 import { filePathToCwdRelativeTransformer } from './file-path-to-cwd-relative-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('filePathToCwdRelativeTransformer', () => {
   it('VALID: {filename inside cwd} => returns relative path', () => {

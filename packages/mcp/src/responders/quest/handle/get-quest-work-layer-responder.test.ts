@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';

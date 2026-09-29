@@ -1,5 +1,6 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { AdapterResultStub, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 
 import { QuestSignalBackResponder } from './quest-signal-back-responder';
 

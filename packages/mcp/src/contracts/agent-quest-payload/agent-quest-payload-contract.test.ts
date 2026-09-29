@@ -1,4 +1,5 @@
-import { QuestCommentStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { agentQuestPayloadContract } from './agent-quest-payload-contract';
 import { AgentQuestPayloadStub } from './agent-quest-payload.stub';

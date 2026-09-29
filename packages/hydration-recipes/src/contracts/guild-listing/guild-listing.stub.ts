@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { guildListingContract } from './guild-listing-contract';
 import type { GuildListing } from './guild-listing-contract';

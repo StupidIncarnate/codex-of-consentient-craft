@@ -1,4 +1,4 @@
-import { QuestSummaryStub } from '@dungeonmaster/shared/contracts';
+import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { QuestSummaryResponderProxy } from './quest-summary-responder.proxy';
 

@@ -1,13 +1,11 @@
 import { questToCoverageTransformer } from './quest-to-coverage-transformer';
 import { TrackCoverageStub } from '../../contracts/track-coverage/track-coverage.stub';
-import {
-  FlowStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowOffMapSignoffStub,
-  WorkItemStub,
-  UnitObservationStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 
 describe('questToCoverageTransformer', () => {
   describe('spec observable in runtime flow', () => {

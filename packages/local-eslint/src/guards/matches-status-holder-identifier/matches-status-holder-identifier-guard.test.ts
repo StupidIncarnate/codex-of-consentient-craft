@@ -1,4 +1,4 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { matchesStatusHolderIdentifierGuard } from './matches-status-holder-identifier-guard';
 
 describe('matchesStatusHolderIdentifierGuard', () => {

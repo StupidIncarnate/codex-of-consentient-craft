@@ -21,11 +21,9 @@ import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import {
-  FileContentsStub,
-  globPatternContract,
-  PathSegmentStub,
-} from '@dungeonmaster/shared/contracts';
+import { globPatternContract } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
 // Placeholder content for a file glob genuinely matched but grep then filters out — any real

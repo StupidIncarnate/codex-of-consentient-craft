@@ -1,16 +1,14 @@
-import {
-  SessionIdStub,
-  AgentIdStub,
-  QuestIdStub,
-  ContentTextStub,
-  FlowStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  WorkItemStub,
-  UnitObservationStub,
-  OperationItemStub,
-  WardResultStub,
-} from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { DigestRunResponder } from './digest-run-responder';
 import { DigestRunResponderProxy } from './digest-run-responder.proxy';

@@ -1,4 +1,4 @@
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { QuestUserAddResponderProxy } from './quest-user-add-responder.proxy';
 

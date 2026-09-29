@@ -3,7 +3,8 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallCreateJestResponder } from './install-create-jest-responder';
 
 export const InstallCreateJestResponderProxy = (): {

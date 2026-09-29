@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ScanConfigFileStub } from '../../../contracts/scan-config-file/scan-config-file.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';

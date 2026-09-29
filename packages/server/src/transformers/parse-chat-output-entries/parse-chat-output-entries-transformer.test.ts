@@ -1,4 +1,4 @@
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { parseChatOutputEntriesTransformer } from './parse-chat-output-entries-transformer';
 import { parseChatOutputEntriesTransformerProxy } from './parse-chat-output-entries-transformer.proxy';

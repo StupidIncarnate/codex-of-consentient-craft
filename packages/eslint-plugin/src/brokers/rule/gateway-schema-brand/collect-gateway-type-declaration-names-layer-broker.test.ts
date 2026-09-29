@@ -1,4 +1,5 @@
-import { FilePathStub, IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 

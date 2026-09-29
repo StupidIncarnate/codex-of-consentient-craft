@@ -19,7 +19,7 @@ import { existsSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 const REPO_ROOT = FilePathStub({
   value: resolve(__dirname, '../../../../..'),

@@ -2,7 +2,7 @@ import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-lay
 import { checkFolderReturnTypeLayerBrokerProxy } from './check-folder-return-type-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('checkFolderReturnTypeLayerBroker', () => {
   describe('R1 — void is permitted exactly when every discarded call also told it nothing', () => {

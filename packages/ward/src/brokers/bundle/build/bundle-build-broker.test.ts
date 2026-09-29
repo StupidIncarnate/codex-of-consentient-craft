@@ -1,5 +1,5 @@
 import { pid } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { bundleBuildBroker } from './bundle-build-broker';
 import { bundleBuildBrokerProxy } from './bundle-build-broker.proxy';

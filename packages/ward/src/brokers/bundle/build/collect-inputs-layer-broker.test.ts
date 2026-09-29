@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { collectInputsLayerBroker } from './collect-inputs-layer-broker';
 import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.proxy';

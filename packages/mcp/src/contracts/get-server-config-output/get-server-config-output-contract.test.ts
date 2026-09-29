@@ -1,4 +1,4 @@
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { getServerConfigOutputContract } from './get-server-config-output-contract';
 import { GetServerConfigOutputStub } from './get-server-config-output.stub';

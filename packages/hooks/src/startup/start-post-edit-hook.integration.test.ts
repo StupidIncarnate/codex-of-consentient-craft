@@ -4,7 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';

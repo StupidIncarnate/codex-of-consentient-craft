@@ -1,5 +1,6 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { GuildName, GuildPath, GuildStub } from '@dungeonmaster/shared/contracts';
+import type { GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildAddResponder } from './guild-add-responder';
 
 type Guild = ReturnType<typeof GuildStub>;

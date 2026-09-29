@@ -1,4 +1,4 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { extractJsonArrayTransformer } from './extract-json-array-transformer';
 
 describe('extractJsonArrayTransformer', () => {

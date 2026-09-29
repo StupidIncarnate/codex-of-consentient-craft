@@ -1,5 +1,5 @@
 import { shCScriptTransformer } from './sh-c-script-transformer';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('shCScriptTransformer', () => {
   describe('single-quoted script', () => {

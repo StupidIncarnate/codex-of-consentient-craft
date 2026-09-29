@@ -1,6 +1,7 @@
 import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 import { SavedRecordNameStub, FieldNameStub } from '@dungeonmaster/hydration/contracts';
-import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';

@@ -1,6 +1,6 @@
 import { isProcessCwdCallGuard } from './is-process-cwd-call-guard';
 import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('isProcessCwdCallGuard', () => {
   describe('process.cwd() calls', () => {

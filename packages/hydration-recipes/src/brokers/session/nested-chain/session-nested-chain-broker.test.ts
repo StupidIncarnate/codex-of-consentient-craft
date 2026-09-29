@@ -1,8 +1,8 @@
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-  TaskToolResultStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { TaskToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 import { sessionNestedChainBroker } from './session-nested-chain-broker';

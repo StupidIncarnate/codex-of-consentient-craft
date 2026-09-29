@@ -1,7 +1,7 @@
 import { setExitCodeProxy } from '#gateway/node/process/set-exit-code/set-exit-code.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';

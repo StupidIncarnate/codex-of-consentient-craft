@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { OrchestrationDispatchPlayResponder } from './orchestration-dispatch-play-responder';
 
 type DispatchState = ReturnType<typeof DispatchStateStub>;

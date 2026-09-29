@@ -4,16 +4,14 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import {
-  SessionIdStub,
-  AgentIdStub,
-  QuestIdStub,
-  ContentTextStub,
-  FlowStub,
-  WorkItemStub,
-  OperationItemStub,
-  WardResultStub,
-} from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { SessionForensicsFlow } from './session-forensics-flow';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';

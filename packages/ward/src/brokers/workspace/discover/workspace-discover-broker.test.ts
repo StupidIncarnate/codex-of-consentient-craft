@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { workspaceDiscoverBroker } from './workspace-discover-broker';
 import { workspaceDiscoverBrokerProxy } from './workspace-discover-broker.proxy';

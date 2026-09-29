@@ -1,5 +1,5 @@
 import { filePathWithTypeInfixTransformer } from './file-path-with-type-infix-transformer';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('filePathWithTypeInfixTransformer', () => {
   describe('valid paths with .ts extension', () => {

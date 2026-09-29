@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { QuestModifyResponder } from './quest-modify-responder';
 
 export const QuestModifyResponderProxy = (): {

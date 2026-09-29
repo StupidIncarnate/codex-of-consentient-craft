@@ -1,4 +1,4 @@
-import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { PostToolUseHookStub } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { HookPostAskQuestionResponder } from './hook-post-ask-question-responder';
 import { HookPostAskQuestionResponderProxy } from './hook-post-ask-question-responder.proxy';

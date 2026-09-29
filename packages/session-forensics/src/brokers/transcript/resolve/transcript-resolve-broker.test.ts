@@ -1,8 +1,6 @@
-import {
-  AbsoluteFilePathStub,
-  PathSegmentStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { transcriptResolveBroker } from './transcript-resolve-broker';
 import { transcriptResolveBrokerProxy } from './transcript-resolve-broker.proxy';

@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { platformCrossingCheckBroker } from './platform-crossing-check-broker';
 import { platformCrossingCheckBrokerProxy } from './platform-crossing-check-broker.proxy';

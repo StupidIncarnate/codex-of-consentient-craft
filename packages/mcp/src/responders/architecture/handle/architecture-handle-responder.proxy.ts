@@ -6,15 +6,13 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
  */
 
-import {
-  architectureOverviewBrokerProxy,
-  architecturePackageInventoryBrokerProxy,
-  architectureProjectMapBrokerProxy,
-  architectureGatewayInventoryBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/overview/architecture-overview-broker.proxy';
+import { architecturePackageInventoryBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-inventory/architecture-package-inventory-broker.proxy';
+import { architectureProjectMapBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/project-map/architecture-project-map-broker.proxy';
+import { architectureGatewayInventoryBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/gateway-inventory/architecture-gateway-inventory-broker.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type {
   ContentText,
   FileContents,

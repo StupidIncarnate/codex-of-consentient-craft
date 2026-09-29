@@ -1,6 +1,7 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
-import { FileContentsStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('settingsPermissionsAddBroker', () => {

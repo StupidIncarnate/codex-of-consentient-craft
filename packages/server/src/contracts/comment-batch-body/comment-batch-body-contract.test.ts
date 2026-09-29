@@ -1,5 +1,5 @@
 import type { ZodError } from '#gateway/npm/zod';
-import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts';
+import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts/comment-batch-entry/comment-batch-entry.stub';
 
 import { commentBatchBodyContract } from './comment-batch-body-contract';
 import { CommentBatchBodyStub } from './comment-batch-body.stub';

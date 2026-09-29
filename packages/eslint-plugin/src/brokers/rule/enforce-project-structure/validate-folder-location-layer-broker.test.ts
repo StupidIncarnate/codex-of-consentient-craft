@@ -2,7 +2,7 @@ import { validateFolderLocationLayerBroker } from './validate-folder-location-la
 import { validateFolderLocationLayerBrokerProxy } from './validate-folder-location-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 const allowedFolders = Object.keys(folderConfigStatics);

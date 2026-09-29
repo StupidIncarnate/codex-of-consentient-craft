@@ -4,7 +4,8 @@ import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingre
 import { reservedVerbStatics } from '../../../statics/reserved-verb/reserved-verb-statics';
 import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
 import { TypeDiagnosticStub } from '../../../contracts/type-diagnostic/type-diagnostic.stub';
-import { RepoRelativePathStub, LineCountStub } from '@dungeonmaster/shared/contracts';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
+import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 
 // ONE ts.createProgram for the whole suite, computed at module scope — a program per test measured
 // 1.1-1.4s each against ward's 1000ms testWarnMs bar (see the adapter's own suite, and the plan's

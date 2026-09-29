@@ -38,13 +38,13 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   fileNameContract,
-  FilePathStub,
   guildIdContract,
-  GuildNameStub,
-  GuildPathStub,
   pastedImageUploadContract,
   questIdContract,
 } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';

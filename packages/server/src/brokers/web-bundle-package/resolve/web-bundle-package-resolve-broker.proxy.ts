@@ -1,6 +1,7 @@
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub, PackageJsonStub } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { PackageJsonStub } from '@dungeonmaster/shared/contracts/package-json/package-json.stub';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 // The broker resolves its OWN package.json by walking up from its own __dirname via

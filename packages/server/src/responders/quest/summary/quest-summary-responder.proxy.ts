@@ -1,6 +1,6 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
-import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { QuestSummaryResponder } from './quest-summary-responder';
 

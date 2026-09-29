@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { e2eArtifactsPruneBroker } from './e2e-artifacts-prune-broker';
 import { e2eArtifactsPruneBrokerProxy } from './e2e-artifacts-prune-broker.proxy';

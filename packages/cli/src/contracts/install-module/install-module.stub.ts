@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { InstallResultStub } from '@dungeonmaster/shared/contracts';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 import { installModuleContract } from './install-module-contract';
 import type { InstallModule } from './install-module-contract';
 

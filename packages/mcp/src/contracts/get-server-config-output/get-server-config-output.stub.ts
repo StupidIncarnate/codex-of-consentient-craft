@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { getServerConfigOutputContract } from './get-server-config-output-contract';
 import type { GetServerConfigOutput } from './get-server-config-output-contract';

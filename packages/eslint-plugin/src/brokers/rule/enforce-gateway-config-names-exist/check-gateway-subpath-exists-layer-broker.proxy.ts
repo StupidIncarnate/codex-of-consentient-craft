@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
 export const checkGatewaySubpathExistsLayerBrokerProxy = (): {

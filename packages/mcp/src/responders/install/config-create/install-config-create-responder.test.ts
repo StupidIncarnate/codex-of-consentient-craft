@@ -5,7 +5,7 @@
  * npm run ward -- --only test -- packages/mcp/src/responders/install/config-create/install-config-create-responder.test.ts
  */
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
 

@@ -1,5 +1,5 @@
 import { globIgnoreFilterTransformer } from './glob-ignore-filter-transformer';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
 const STATIC_PATTERNS = fileDiscoveryStatics.globIgnorePatterns.map((value) =>

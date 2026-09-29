@@ -1,7 +1,7 @@
 import { checkResolveSchemaBindingLayerBroker } from './check-resolve-schema-binding-layer-broker';
 import { checkResolveSchemaBindingLayerBrokerProxy } from './check-resolve-schema-binding-layer-broker.proxy';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('checkResolveSchemaBindingLayerBroker', () => {
   it('VALID: identifier bound at Program level returns the init AST node', () => {

@@ -1,9 +1,7 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type {
-  GuildId,
-  QuestListItemStub,
-  SkippedQuestFileStub,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 import { QuestListResponder } from './quest-list-responder';
 
 type QuestListItem = ReturnType<typeof QuestListItemStub>;

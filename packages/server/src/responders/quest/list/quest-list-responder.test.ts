@@ -1,8 +1,6 @@
-import {
-  GuildIdStub,
-  QuestListItemStub,
-  SkippedQuestFileStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 import { QuestListResponderProxy } from './quest-list-responder.proxy';
 
 describe('QuestListResponder', () => {

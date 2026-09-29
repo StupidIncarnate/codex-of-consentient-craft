@@ -1,7 +1,5 @@
-import {
-  architecturePackageE2eEligibleDetectBrokerProxy,
-  portKillListenersBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-e2e-eligible-detect/architecture-package-e2e-eligible-detect-broker.proxy';
+import { portKillListenersBrokerProxy } from '@dungeonmaster/shared/brokers/port/kill-listeners/port-kill-listeners-broker.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
@@ -12,8 +10,8 @@ import {
   filePathContract,
   absoluteFilePathContract,
   networkPortContract,
-  AbsoluteFilePathStub,
 } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';

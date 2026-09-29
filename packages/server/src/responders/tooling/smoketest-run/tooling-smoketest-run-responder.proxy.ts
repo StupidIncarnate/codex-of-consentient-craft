@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { configRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { configRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/config-root/find/config-root-find-broker.proxy';
 import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';

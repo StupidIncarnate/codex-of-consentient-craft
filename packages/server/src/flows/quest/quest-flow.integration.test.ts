@@ -1,19 +1,17 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import {
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestCommentStub,
-  QuestIdStub,
-  QuestNoteStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';

@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';

@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { binWorkspaceRootLayerBroker } from './bin-workspace-root-layer-broker';
 import { binWorkspaceRootLayerBrokerProxy } from './bin-workspace-root-layer-broker.proxy';

@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { gatewaySourceCopyBroker } from './gateway-source-copy-broker';
 import { gatewaySourceCopyBrokerProxy } from './gateway-source-copy-broker.proxy';
 

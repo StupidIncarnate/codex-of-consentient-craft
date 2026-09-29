@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { HookSessionSnippetPackagesResponder } from './hook-session-snippet-packages-responder';
 import { HookSessionSnippetPackagesResponderProxy } from './hook-session-snippet-packages-responder.proxy';

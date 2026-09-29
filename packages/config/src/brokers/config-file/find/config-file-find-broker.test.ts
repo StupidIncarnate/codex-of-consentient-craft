@@ -1,7 +1,7 @@
 import { configFileFindBroker } from './config-file-find-broker';
 import { configFileFindBrokerProxy } from './config-file-find-broker.proxy';
 import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not-found-error';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('configFileFindBroker', () => {
   describe('config file found cases', () => {

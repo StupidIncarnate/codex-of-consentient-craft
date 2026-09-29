@@ -1,6 +1,6 @@
 import { findParentConfigsLayerBroker } from './find-parent-configs-layer-broker';
 import { findParentConfigsLayerBrokerProxy } from './find-parent-configs-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 type DungeonmasterConfig = ReturnType<typeof DungeonmasterConfigStub>;

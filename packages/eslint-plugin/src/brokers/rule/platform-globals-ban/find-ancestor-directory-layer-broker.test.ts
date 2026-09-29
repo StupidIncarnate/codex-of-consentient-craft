@@ -1,6 +1,6 @@
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('findAncestorDirectoryLayerBroker', () => {
   describe('marker found', () => {

@@ -1,7 +1,9 @@
 import { sessionListBrokerProxy } from '../../../brokers/session/list/session-list-broker.proxy';
 import { sessionSummaryCacheStateProxy } from '../../../state/session-summary-cache/session-summary-cache-state.proxy';
 import { SessionListResponder } from './session-list-responder';
-import type { GuildId, GuildStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildId } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;

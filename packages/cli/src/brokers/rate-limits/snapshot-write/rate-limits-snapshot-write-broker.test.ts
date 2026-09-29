@@ -1,4 +1,4 @@
-import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { rateLimitsSnapshotWriteBroker } from './rate-limits-snapshot-write-broker';
 import { rateLimitsSnapshotWriteBrokerProxy } from './rate-limits-snapshot-write-broker.proxy';

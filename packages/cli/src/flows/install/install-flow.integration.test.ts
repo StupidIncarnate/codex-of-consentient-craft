@@ -4,7 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';

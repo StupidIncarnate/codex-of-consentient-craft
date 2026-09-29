@@ -1,8 +1,9 @@
 import { questDeleteBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { questOwningGuildFindBrokerProxy } from '../owning-guild-find/quest-owning-guild-find-broker.proxy';
-import type { GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;

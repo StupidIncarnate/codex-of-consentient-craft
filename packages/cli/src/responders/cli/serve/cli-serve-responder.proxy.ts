@@ -1,4 +1,4 @@
-import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { getPlatformProxy } from '#gateway/node/process/get-platform/get-platform.proxy';

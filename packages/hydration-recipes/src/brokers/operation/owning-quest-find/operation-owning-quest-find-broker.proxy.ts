@@ -3,9 +3,10 @@ import {
   questGetBrokerProxy,
   questListBrokerProxy,
 } from '@dungeonmaster/orchestrator/testing';
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
-import type { GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;

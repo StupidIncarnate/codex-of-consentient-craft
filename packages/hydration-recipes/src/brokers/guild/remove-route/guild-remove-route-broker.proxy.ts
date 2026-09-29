@@ -1,5 +1,5 @@
 import { guildRemoveBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 

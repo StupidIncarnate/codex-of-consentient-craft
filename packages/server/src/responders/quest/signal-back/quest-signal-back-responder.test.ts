@@ -1,9 +1,7 @@
-import {
-  AdapterResultStub,
-  OperationItemIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { QuestSignalBackResponderProxy } from './quest-signal-back-responder.proxy';
 

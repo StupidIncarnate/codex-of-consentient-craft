@@ -1,5 +1,5 @@
 import { sessionDefaultIdBumpTransformer } from './session-default-id-bump-transformer';
-import { SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 describe('sessionDefaultIdBumpTransformer', () => {
   describe('a default id', () => {

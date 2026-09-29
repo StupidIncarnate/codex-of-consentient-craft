@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { AddQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import { QuestUserAddResponder } from './quest-user-add-responder';
 

@@ -1,4 +1,4 @@
-import { InstallResultStub } from '@dungeonmaster/shared/contracts';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { installExecuteBrokerProxy } from '../execute/install-execute-broker.proxy';
 

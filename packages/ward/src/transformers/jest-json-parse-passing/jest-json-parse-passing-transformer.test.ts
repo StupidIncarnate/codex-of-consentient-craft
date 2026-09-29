@@ -1,4 +1,4 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { jestJsonParsePassingTransformer } from './jest-json-parse-passing-transformer';
 

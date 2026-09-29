@@ -1,5 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { freshProjectHarness } from '../../../test/harnesses/fresh-project/fresh-project.harness';
 

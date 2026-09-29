@@ -30,11 +30,8 @@ import { join } from '#gateway/node/path';
 import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
-import {
-  errorMessageContract,
-  ExitCodeStub,
-  packageJsonContract,
-} from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const RUN_TIMEOUT_MS = 20_000;

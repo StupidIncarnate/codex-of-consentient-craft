@@ -7,10 +7,8 @@ import { join } from '#gateway/node/path';
 import { deleteEnv } from '#gateway/node/process';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import {
-  locationsQuestFolderPathFindBrokerProxy,
-  locationsQuestImagesPathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
+import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 
 import { localImageCopyBrokerProxy } from '../../local-image/copy/local-image-copy-broker.proxy';
 

@@ -1,4 +1,5 @@
-import { IdentifierStub, ImportPathStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
+import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
 import { barrelSingleHomeLayerBrokerProxy } from './barrel-single-home-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';

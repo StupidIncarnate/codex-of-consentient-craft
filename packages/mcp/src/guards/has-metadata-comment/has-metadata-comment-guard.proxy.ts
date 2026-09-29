@@ -7,7 +7,7 @@
  * // Returns FileContents with all required metadata sections
  */
 
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const hasMetadataCommentGuardProxy = (): {

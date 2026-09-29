@@ -1,4 +1,5 @@
-import { GetQuestResultStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 
 import { GetQuestLayerResponder } from './get-quest-layer-responder';

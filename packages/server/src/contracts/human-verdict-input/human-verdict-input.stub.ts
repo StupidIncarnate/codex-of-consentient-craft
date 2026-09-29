@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { humanVerdictInputContract } from './human-verdict-input-contract';
 import type { HumanVerdictInput } from './human-verdict-input-contract';

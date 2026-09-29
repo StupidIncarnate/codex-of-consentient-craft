@@ -2,7 +2,7 @@ import {
   AssistantToolUseChatEntryStub,
   AssistantTextChatEntryStub,
   UserChatEntryStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { chatEntriesExtractQuestIdTransformer } from './chat-entries-extract-quest-id-transformer';
 

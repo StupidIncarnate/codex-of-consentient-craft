@@ -1,5 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { wsIncomingMessageContract } from './ws-incoming-message-contract';
 import type { WsIncomingMessage } from './ws-incoming-message-contract';
 

@@ -4,7 +4,7 @@ import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.prox
 import { dirname, join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { processDevLogBrokerProxy } from '../../process/dev-log/process-dev-log-broker.proxy';

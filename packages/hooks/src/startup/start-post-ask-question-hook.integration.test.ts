@@ -1,5 +1,5 @@
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
-import { ExecResultStub } from '@dungeonmaster/shared/contracts';
+import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 import { hookRunnerHarness } from '../../test/harnesses/hook-runner/hook-runner.harness';
 
 describe('start-post-ask-question-hook', () => {

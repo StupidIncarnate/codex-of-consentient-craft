@@ -7,7 +7,7 @@
  */
 
 import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 

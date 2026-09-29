@@ -6,18 +6,16 @@
  * repeated subprocess spawn + 2s startup delay per test (16 tests x 2s = 32s saved)
  */
 
-import {
-  DesignDecisionStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-  QuestCommentStub,
-  QuestContractEntryStub,
-  QuestNoteStub,
-  QuestStub,
-  ToolingRequirementStub,
-} from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
 import { JsonRpcRequestStub } from '../../contracts/json-rpc-request/json-rpc-request.stub';
@@ -26,8 +24,8 @@ import { RpcMethodStub } from '../../contracts/rpc-method/rpc-method.stub';
 import { ToolListResultStub } from '../../contracts/tool-list-result/tool-list-result.stub';
 import { ToolCallResultStub } from '../../contracts/tool-call-result/tool-call-result.stub';
 import { DiscoverTreeResultStub } from '../../contracts/discover-tree-result/discover-tree-result.stub';
-import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
-import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 
 import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.harness';
 import { cwd } from '#gateway/node/process';

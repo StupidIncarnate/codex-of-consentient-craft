@@ -1,10 +1,8 @@
-import {
-  QuestIdStub,
-  WorkItemStub,
-  OperationItemStub,
-  WardResultStub,
-  RiftcarverResultStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
 import { questIndexLoadBroker } from './quest-index-load-broker';
 import { questIndexLoadBrokerProxy } from './quest-index-load-broker.proxy';

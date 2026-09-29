@@ -1,4 +1,6 @@
-import { GuildIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestDeleteResponderProxy } from './quest-delete-responder.proxy';

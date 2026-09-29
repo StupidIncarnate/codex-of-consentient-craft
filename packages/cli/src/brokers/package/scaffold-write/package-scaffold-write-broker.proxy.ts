@@ -3,7 +3,7 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath, PathSegment, FileContents } from '@dungeonmaster/shared/contracts';
 
 export const packageScaffoldWriteBrokerProxy = (): {

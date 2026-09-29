@@ -1,5 +1,5 @@
 import { pathToBasenameTransformer } from './path-to-basename-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToBasenameTransformer', () => {
   it('VALID: extracts filename from absolute path', () => {

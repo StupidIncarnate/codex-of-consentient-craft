@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 import { QuestsQueueResponder } from './quests-queue-responder';
 
 type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;

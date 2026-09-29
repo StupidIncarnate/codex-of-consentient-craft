@@ -22,12 +22,10 @@ import { join } from '#gateway/node/path';
 
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type {
-  SessionIdStub,
-  AgentIdStub,
-  ContentTextStub,
-  AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
+import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { pid } from '#gateway/node/process';
 
 type SessionId = ReturnType<typeof SessionIdStub>;

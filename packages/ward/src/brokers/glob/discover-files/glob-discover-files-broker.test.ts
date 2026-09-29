@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { globDiscoverFilesBroker } from './glob-discover-files-broker';
 import { globDiscoverFilesBrokerProxy } from './glob-discover-files-broker.proxy';

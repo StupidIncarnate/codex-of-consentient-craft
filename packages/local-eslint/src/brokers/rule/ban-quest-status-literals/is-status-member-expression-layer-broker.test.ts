@@ -1,4 +1,4 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { isStatusMemberExpressionLayerBrokerProxy } from './is-status-member-expression-layer-broker.proxy';
 import { TsestreeStub, TsestreeNodeType } from '@dungeonmaster/eslint-plugin';
 

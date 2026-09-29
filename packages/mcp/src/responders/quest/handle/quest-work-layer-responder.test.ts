@@ -1,4 +1,4 @@
-import { StepNameStub } from '@dungeonmaster/shared/contracts';
+import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';

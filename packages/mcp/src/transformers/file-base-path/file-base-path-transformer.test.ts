@@ -1,5 +1,5 @@
 import { fileBasePathTransformer } from './file-base-path-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('fileBasePathTransformer', () => {
   it('VALID: removes .ts extension', () => {

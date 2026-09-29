@@ -1,7 +1,7 @@
 import { guildUniquePathResolveBroker } from './guild-unique-path-resolve-broker';
 import { guildUniquePathResolveBrokerProxy } from './guild-unique-path-resolve-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildUniquePathResolveBroker', () => {
   describe('the default fragment, free', () => {

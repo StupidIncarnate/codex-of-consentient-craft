@@ -5,7 +5,7 @@
  * npm test -- cli-entry.integration.test.ts
  */
 
-import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliBinHarness } from '../test/harnesses/cli-bin/cli-bin.harness';

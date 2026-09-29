@@ -3,13 +3,11 @@ import { questReachRouteBrokerProxy } from './quest-reach-route-broker.proxy';
 import { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
 import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
-import {
-  GetQuestInputStub,
-  GetQuestResultStub,
-  ModifyQuestInputStub,
-  ModifyQuestResultStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 describe('questReachRouteBroker', () => {
   describe('a single hop on a write-only target', () => {

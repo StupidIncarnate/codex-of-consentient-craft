@@ -1,5 +1,5 @@
 import { pathToRelativeTransformer } from './path-to-relative-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToRelativeTransformer', () => {
   it('VALID: removes cwd from absolute path', () => {

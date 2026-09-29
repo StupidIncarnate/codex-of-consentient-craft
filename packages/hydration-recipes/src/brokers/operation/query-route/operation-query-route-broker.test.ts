@@ -1,7 +1,8 @@
 import { operationQueryRouteBroker } from './operation-query-route-broker';
 import { operationQueryRouteBrokerProxy } from './operation-query-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { OperationItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 describe('operationQueryRouteBroker', () => {
   describe('a where clause narrowing by role', () => {

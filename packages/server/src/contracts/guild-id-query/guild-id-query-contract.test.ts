@@ -1,4 +1,4 @@
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { guildIdQueryContract } from './guild-id-query-contract';
 import { GuildIdQueryStub } from './guild-id-query.stub';
 

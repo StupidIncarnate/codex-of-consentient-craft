@@ -27,11 +27,11 @@ import { tsxCliPath } from '#gateway/npm/tsx';
 import {
   errorMessageContract,
   fileContentsContract,
-  FilePathStub,
-  ExitCodeStub,
   type ErrorMessage,
   type FileContents,
 } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 // binExists/binIsExecutable/readBinContent back the "file structure" assertions in
 // cli-entry.integration.test.ts, which must keep grading the built esbuild bundle — see that

@@ -1,10 +1,8 @@
 import { fileScannerBroker } from './file-scanner-broker';
 import { fileScannerBrokerProxy } from './file-scanner-broker.proxy';
-import {
-  FileContentsStub,
-  GlobPatternStub,
-  PathSegmentStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 

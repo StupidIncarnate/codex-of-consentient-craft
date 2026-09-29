@@ -18,7 +18,8 @@ import { ensureDir, utimes, writeFile } from '#gateway/node/fs__promises';
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 
-import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const DAY_SECONDS = 86_400;

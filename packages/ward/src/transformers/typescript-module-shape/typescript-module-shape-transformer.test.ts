@@ -1,4 +1,4 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { typescriptModuleShapeTransformer } from './typescript-module-shape-transformer';
 
 describe('typescriptModuleShapeTransformer', () => {

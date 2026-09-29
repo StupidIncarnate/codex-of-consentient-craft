@@ -1,6 +1,8 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { DispatchStateStub, GetQuestResultStub } from '@dungeonmaster/shared/contracts';
-import type { QuestId, QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import type { QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestResumeResponder } from './quest-resume-responder';
 
 type Quest = ReturnType<typeof QuestStub>;

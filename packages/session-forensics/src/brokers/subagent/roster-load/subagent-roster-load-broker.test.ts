@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  AgentIdStub,
-  ContentTextStub,
-  PathSegmentStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 import { subagentRosterLoadBroker } from './subagent-roster-load-broker';
 import { subagentRosterLoadBrokerProxy } from './subagent-roster-load-broker.proxy';

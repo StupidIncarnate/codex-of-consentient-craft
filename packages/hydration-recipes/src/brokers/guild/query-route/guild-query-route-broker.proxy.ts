@@ -1,6 +1,6 @@
 import { guildListBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 
-import type { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 

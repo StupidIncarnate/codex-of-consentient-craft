@@ -1,6 +1,6 @@
 import { ruleEnforceGatewayRestrictedToBroker } from './rule-enforce-gateway-restricted-to-broker';
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
-import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts/gateway-lint-config/gateway-lint-config.stub';
 
 const ruleTester = ruleTesterHarness();
 

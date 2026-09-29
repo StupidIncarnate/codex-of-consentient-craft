@@ -1,7 +1,7 @@
 import { questQueryRouteBroker } from './quest-query-route-broker';
 import { questQueryRouteBrokerProxy } from './quest-query-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 const GUILD_ID = '11111111-1111-4111-8111-111111111111';
 

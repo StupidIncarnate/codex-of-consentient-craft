@@ -1,6 +1,6 @@
 import { configResolveBroker } from './config-resolve-broker';
 import { configResolveBrokerProxy } from './config-resolve-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { DungeonmasterConfigStub } from '../../../contracts/dungeonmaster-config/dungeonmaster-config.stub';
 
 describe('configResolveBroker', () => {

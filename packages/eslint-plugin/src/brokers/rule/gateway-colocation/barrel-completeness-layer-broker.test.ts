@@ -1,4 +1,6 @@
-import { FilePathStub, IdentifierStub, ImportPathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
+import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
 import { barrelCompletenessLayerBrokerProxy } from './barrel-completeness-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';

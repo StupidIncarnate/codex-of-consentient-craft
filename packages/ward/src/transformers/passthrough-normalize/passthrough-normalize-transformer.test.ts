@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { hasPassthroughMatchGuard } from '../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { CliArgStub } from '../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';

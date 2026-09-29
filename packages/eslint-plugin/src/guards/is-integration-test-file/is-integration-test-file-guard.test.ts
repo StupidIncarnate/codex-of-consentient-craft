@@ -1,5 +1,5 @@
 import { isIntegrationTestFileGuard } from './is-integration-test-file-guard';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('isIntegrationTestFileGuard', () => {
   describe('integration test files', () => {

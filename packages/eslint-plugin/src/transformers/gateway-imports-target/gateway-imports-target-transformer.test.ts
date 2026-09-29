@@ -1,6 +1,6 @@
 import { gatewayImportsTargetTransformer } from './gateway-imports-target-transformer';
 import { GatewayConsumerPackageJsonStub } from '../../contracts/gateway-consumer-package-json/gateway-consumer-package-json.stub';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts';
+import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('gatewayImportsTargetTransformer', () => {
   describe('exact key match', () => {

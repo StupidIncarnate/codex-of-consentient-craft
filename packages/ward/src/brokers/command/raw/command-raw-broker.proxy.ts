@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';

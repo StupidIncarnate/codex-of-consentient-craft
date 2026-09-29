@@ -1,4 +1,4 @@
-import { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
+import { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
 
 import { QuestProjectionResponderProxy } from './quest-projection-responder.proxy';
 

@@ -1,5 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { QuestIdStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { createQuestOutputContract } from './create-quest-output-contract';
 import type { CreateQuestOutput } from './create-quest-output-contract';

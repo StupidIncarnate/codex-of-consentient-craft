@@ -1,6 +1,7 @@
 import { typeDiagnosticContract } from './type-diagnostic-contract';
 import { TypeDiagnosticStub } from './type-diagnostic.stub';
-import { RepoRelativePathStub, LineCountStub } from '@dungeonmaster/shared/contracts';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
+import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 
 describe('typeDiagnosticContract', () => {
   describe('valid diagnostics', () => {

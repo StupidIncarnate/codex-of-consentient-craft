@@ -1,6 +1,6 @@
 import { webBundleResponseBroker } from './web-bundle-response-broker';
 import { webBundleResponseBrokerProxy } from './web-bundle-response-broker.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('webBundleResponseBroker', () => {
   it('VALID: {pathname: "/"} => serves index.html as text/html at 200', async () => {

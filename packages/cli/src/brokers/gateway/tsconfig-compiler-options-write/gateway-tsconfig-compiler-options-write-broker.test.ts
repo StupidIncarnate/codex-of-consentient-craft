@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { TsconfigCompilerOptionsStub } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options.stub';
 import { gatewayTsconfigCompilerOptionsWriteBroker } from './gateway-tsconfig-compiler-options-write-broker';
 import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from './gateway-tsconfig-compiler-options-write-broker.proxy';

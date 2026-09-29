@@ -1,6 +1,6 @@
 import { packageScaffoldWriteBroker } from './package-scaffold-write-broker';
 import { packageScaffoldWriteBrokerProxy } from './package-scaffold-write-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ScaffoldFileStub } from '../../../contracts/scaffold-file/scaffold-file.stub';
 
 describe('packageScaffoldWriteBroker', () => {

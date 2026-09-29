@@ -1,4 +1,4 @@
-import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
+import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { questNewBodyContract } from './quest-new-body-contract';

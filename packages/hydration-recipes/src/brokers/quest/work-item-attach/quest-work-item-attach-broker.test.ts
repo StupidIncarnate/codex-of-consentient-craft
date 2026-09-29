@@ -1,7 +1,9 @@
 import { questWorkItemAttachBroker } from './quest-work-item-attach-broker';
 import { questWorkItemAttachBrokerProxy } from './quest-work-item-attach-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildListItemStub, QuestStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 const GUILD_ID = '11111111-1111-4111-8111-111111111111';

@@ -1,4 +1,4 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { webBundleDistPathBroker } from './web-bundle-dist-path-broker';
 import { webBundleDistPathBrokerProxy } from './web-bundle-dist-path-broker.proxy';

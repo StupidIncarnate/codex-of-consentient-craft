@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { OrchestrationDispatchPauseResponderProxy } from './orchestration-dispatch-pause-responder.proxy';
 

@@ -1,10 +1,8 @@
-import {
-  WorkItemStub,
-  OperationItemStub,
-  WardResultStub,
-  RiftcarverResultStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { workItemToIndexRowTransformer } from './work-item-to-index-row-transformer';
 

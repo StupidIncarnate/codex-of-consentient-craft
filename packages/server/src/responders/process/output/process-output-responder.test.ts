@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { ProcessOutputResponderProxy } from './process-output-responder.proxy';
 
 describe('ProcessOutputResponder', () => {

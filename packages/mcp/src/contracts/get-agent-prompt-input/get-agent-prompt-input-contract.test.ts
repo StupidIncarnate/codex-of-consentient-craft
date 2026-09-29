@@ -1,4 +1,5 @@
-import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { getAgentPromptInputContract } from './get-agent-prompt-input-contract';
 import { GetAgentPromptInputStub } from './get-agent-prompt-input.stub';

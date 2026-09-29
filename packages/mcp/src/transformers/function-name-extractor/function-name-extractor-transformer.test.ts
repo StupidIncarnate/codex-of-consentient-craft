@@ -1,5 +1,5 @@
 import { functionNameExtractorTransformer } from './function-name-extractor-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { FunctionNameStub } from '../../contracts/function-name/function-name.stub';
 
 describe('functionNameExtractorTransformer', () => {

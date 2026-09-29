@@ -1,6 +1,6 @@
 import { jsonlToRecordsTransformer } from './jsonl-to-records-transformer';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('jsonlToRecordsTransformer', () => {
   describe('valid input', () => {

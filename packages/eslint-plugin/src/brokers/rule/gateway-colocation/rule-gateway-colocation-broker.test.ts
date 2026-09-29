@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleGatewayColocationBroker } from './rule-gateway-colocation-broker';
 import { ruleGatewayColocationBrokerProxy } from './rule-gateway-colocation-broker.proxy';

@@ -6,7 +6,8 @@ import { RegistryDuplicateNameError } from '../../../errors/registry-duplicate-n
 import { RegistryDanglingLinkError } from '../../../errors/registry-dangling-link/registry-dangling-link-error';
 import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
 import { TypeDiagnosticStub } from '../../../contracts/type-diagnostic/type-diagnostic.stub';
-import { RepoRelativePathStub, LineCountStub } from '@dungeonmaster/shared/contracts';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
+import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 import {
   guildIngredient,
   questIngredient,

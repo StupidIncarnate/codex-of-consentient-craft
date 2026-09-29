@@ -1,4 +1,4 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { namedImportValueNamesTransformer } from './named-import-value-names-transformer';
 
 describe('namedImportValueNamesTransformer', () => {

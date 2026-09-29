@@ -1,4 +1,5 @@
-import { InstallResultStub, InstallContextStub } from '@dungeonmaster/shared/contracts';
+import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { CliInitResponderProxy } from './cli-init-responder.proxy';
 
 describe('CliInitResponder', () => {

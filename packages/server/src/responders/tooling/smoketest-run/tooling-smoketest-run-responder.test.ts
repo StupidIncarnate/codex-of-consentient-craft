@@ -1,4 +1,4 @@
-import { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts';
+import { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts/smoketest-suite/smoketest-suite.stub';
 
 import { ToolingSmoketestRunResponder } from './tooling-smoketest-run-responder';
 import { ToolingSmoketestRunResponderProxy } from './tooling-smoketest-run-responder.proxy';

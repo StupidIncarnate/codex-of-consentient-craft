@@ -22,11 +22,8 @@ import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-disco
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import {
-  PathSegmentStub,
-  globPatternContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
 

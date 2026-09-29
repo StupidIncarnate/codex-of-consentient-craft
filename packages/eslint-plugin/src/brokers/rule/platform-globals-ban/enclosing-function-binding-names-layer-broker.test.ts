@@ -1,7 +1,7 @@
 import { enclosingFunctionBindingNamesLayerBroker } from './enclosing-function-binding-names-layer-broker';
 import { enclosingFunctionBindingNamesLayerBrokerProxy } from './enclosing-function-binding-names-layer-broker.proxy';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 // The `const NAME = () => {}` case needs `declarator.init === fn`, an object-identity check that
 // `tsestreeContract.parse` cannot preserve through a stub (every nested field is re-parsed into its

@@ -1,4 +1,4 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { callerRepoRootBannerTransformer } from './caller-repo-root-banner-transformer';
 

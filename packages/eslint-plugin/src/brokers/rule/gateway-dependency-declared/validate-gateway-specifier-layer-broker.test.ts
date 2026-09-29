@@ -2,7 +2,7 @@ import { validateGatewaySpecifierLayerBroker } from './validate-gateway-specifie
 import { validateGatewaySpecifierLayerBrokerProxy } from './validate-gateway-specifier-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
-import { ImportPathStub } from '@dungeonmaster/shared/contracts';
+import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('validateGatewaySpecifierLayerBroker', () => {
   describe('mapped and declared', () => {

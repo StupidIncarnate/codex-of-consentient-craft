@@ -1,6 +1,8 @@
 import { questOwningGuildFindBroker } from './quest-owning-guild-find-broker';
 import { questOwningGuildFindBrokerProxy } from './quest-owning-guild-find-broker.proxy';
-import { GuildListItemStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 describe('questOwningGuildFindBroker', () => {
   describe('a quest that exists under the second guild', () => {

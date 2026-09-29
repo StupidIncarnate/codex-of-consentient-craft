@@ -1,4 +1,4 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { workspacePackageRootImportNameTransformer } from './workspace-package-root-import-name-transformer';
 
 describe('workspacePackageRootImportNameTransformer', () => {

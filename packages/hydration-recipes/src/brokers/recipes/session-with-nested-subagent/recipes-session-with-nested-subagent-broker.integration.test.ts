@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 

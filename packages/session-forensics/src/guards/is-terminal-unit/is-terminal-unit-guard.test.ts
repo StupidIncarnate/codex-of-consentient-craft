@@ -1,5 +1,5 @@
 import { isTerminalUnitGuard } from './is-terminal-unit-guard';
-import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts';
+import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
 
 type FlowNodeId = ReturnType<typeof FlowNodeIdStub>;
 

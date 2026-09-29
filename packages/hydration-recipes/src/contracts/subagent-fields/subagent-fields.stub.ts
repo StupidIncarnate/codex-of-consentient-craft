@@ -7,7 +7,7 @@
  * // Returns SubagentFields
  */
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
+import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 
 import { subagentFieldsContract } from './subagent-fields-contract';
 import type { SubagentFields } from './subagent-fields-contract';

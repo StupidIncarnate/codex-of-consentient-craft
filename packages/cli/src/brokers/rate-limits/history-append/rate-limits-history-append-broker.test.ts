@@ -1,4 +1,4 @@
-import { RateLimitsHistoryLineStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitsHistoryLineStub } from '@dungeonmaster/shared/contracts/rate-limits-history-line/rate-limits-history-line.stub';
 
 import { rateLimitsHistoryAppendBroker } from './rate-limits-history-append-broker';
 import { rateLimitsHistoryAppendBrokerProxy } from './rate-limits-history-append-broker.proxy';

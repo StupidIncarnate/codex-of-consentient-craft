@@ -1,4 +1,4 @@
-import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
 import { QuestsQueueResponderProxy } from './quests-queue-responder.proxy';
 

@@ -1,5 +1,5 @@
 import { extractFirstUserMessageTransformer } from './extract-first-user-message-transformer';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('extractFirstUserMessageTransformer', () => {
   describe('valid user message', () => {

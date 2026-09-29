@@ -1,4 +1,5 @@
-import { GuildStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildGetResponderProxy } from './guild-get-responder.proxy';
 
 describe('GuildGetResponder', () => {

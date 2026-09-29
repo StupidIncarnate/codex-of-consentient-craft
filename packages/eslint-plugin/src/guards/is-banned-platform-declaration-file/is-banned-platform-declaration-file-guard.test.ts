@@ -1,5 +1,5 @@
 import { isBannedPlatformDeclarationFileGuard } from './is-banned-platform-declaration-file-guard';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('isBannedPlatformDeclarationFileGuard', () => {
   describe('banned files', () => {

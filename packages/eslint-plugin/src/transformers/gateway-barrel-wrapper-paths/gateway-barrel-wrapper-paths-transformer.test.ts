@@ -1,4 +1,6 @@
-import { FileContentsStub, IdentifierStub, ModulePathStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
+import { ModulePathStub } from '@dungeonmaster/shared/contracts/module-path/module-path.stub';
 import { gatewayBarrelWrapperPathsTransformer } from './gateway-barrel-wrapper-paths-transformer';
 
 describe('gatewayBarrelWrapperPathsTransformer', () => {

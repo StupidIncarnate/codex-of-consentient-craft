@@ -1,5 +1,5 @@
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import type { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';

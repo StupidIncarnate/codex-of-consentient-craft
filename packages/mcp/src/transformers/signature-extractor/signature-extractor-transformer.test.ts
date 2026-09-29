@@ -1,5 +1,5 @@
 import { signatureExtractorTransformer } from './signature-extractor-transformer';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('signatureExtractorTransformer', () => {
   it('VALID: {export const with object destructuring} => extracts signature', () => {

@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { topLevelTextLayerTransformer } from './top-level-text-layer-transformer';
 
 describe('topLevelTextLayerTransformer', () => {

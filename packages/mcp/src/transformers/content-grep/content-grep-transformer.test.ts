@@ -1,5 +1,5 @@
 import { contentGrepTransformer } from './content-grep-transformer';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GrepHitStub } from '../../contracts/grep-hit/grep-hit.stub';
 import { DiscoverInputStub } from '../../contracts/discover-input/discover-input.stub';
 

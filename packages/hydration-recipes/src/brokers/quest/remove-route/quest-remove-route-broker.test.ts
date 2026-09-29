@@ -1,7 +1,8 @@
 import { questRemoveRouteBroker } from './quest-remove-route-broker';
 import { questRemoveRouteBrokerProxy } from './quest-remove-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   isPreExecutionQuestStatusGuard,
   isTerminalQuestStatusGuard,

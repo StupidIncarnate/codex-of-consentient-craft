@@ -1,4 +1,4 @@
-import { PackageJsonStub } from '@dungeonmaster/shared/contracts';
+import { PackageJsonStub } from '@dungeonmaster/shared/contracts/package-json/package-json.stub';
 import { hasPackageJsonDependencyGuard } from './has-package-json-dependency-guard';
 
 describe('hasPackageJsonDependencyGuard', () => {

@@ -1,6 +1,6 @@
 import { repoScopeResolveBroker } from './repo-scope-resolve-broker';
 import { repoScopeResolveBrokerProxy } from './repo-scope-resolve-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('repoScopeResolveBroker', () => {
   describe('workspaces root found immediately', () => {

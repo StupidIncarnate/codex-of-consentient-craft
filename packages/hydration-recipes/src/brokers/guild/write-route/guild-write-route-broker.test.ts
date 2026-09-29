@@ -1,7 +1,7 @@
 import { guildWriteRouteBroker } from './guild-write-route-broker';
 import { guildWriteRouteBrokerProxy } from './guild-write-route-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 describe('guildWriteRouteBroker', () => {
   describe('a relative path in fields', () => {

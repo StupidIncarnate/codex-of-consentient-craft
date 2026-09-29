@@ -2,7 +2,7 @@ import { guildRemoveRouteBroker } from './guild-remove-route-broker';
 import { guildRemoveRouteBrokerProxy } from './guild-remove-route-broker.proxy';
 import { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 describe('guildRemoveRouteBroker', () => {
   describe('a write-only target', () => {

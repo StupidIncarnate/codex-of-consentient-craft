@@ -1,6 +1,6 @@
 import { isOutOfMemoryFailureGuard } from './is-out-of-memory-failure-guard';
 import { RawOutputStub } from '../../contracts/raw-output/raw-output.stub';
-import { ProcessSignalStub } from '@dungeonmaster/shared/contracts';
+import { ProcessSignalStub } from '@dungeonmaster/shared/contracts/process-signal/process-signal.stub';
 
 describe('isOutOfMemoryFailureGuard', () => {
   describe('out of memory', () => {

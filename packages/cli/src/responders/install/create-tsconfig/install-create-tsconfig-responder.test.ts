@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallCreateTsconfigResponderProxy } from './install-create-tsconfig-responder.proxy';
 import { tsconfigTemplateStatics } from '../../../statics/tsconfig-template/tsconfig-template-statics';
 

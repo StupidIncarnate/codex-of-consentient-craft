@@ -1,6 +1,6 @@
 import { questFindBroker } from './quest-find-broker';
 import { questFindBrokerProxy } from './quest-find-broker.proxy';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 describe('questFindBroker', () => {
   describe('found in a single candidate root', () => {

@@ -12,7 +12,7 @@ import { writeFile } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const transcriptHarness = (): {

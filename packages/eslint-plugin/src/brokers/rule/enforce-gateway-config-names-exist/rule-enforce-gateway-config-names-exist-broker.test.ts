@@ -1,7 +1,7 @@
 import { ruleEnforceGatewayConfigNamesExistBroker } from './rule-enforce-gateway-config-names-exist-broker';
 import { ruleEnforceGatewayConfigNamesExistBrokerProxy } from './rule-enforce-gateway-config-names-exist-broker.proxy';
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
-import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts/gateway-lint-config/gateway-lint-config.stub';
 
 const ruleTester = ruleTesterHarness();
 

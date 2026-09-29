@@ -1,11 +1,10 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { AbsoluteFilePathStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
-import type {
-  SessionIdStub,
-  AgentIdStub,
-  QuestIdStub,
-  ContentTextStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { transcriptLoadBrokerProxy } from '../../../brokers/transcript/load/transcript-load-broker.proxy';
 import { transcriptResolveBrokerProxy } from '../../../brokers/transcript/resolve/transcript-resolve-broker.proxy';
 import { subagentRosterLoadBrokerProxy } from '../../../brokers/subagent/roster-load/subagent-roster-load-broker.proxy';

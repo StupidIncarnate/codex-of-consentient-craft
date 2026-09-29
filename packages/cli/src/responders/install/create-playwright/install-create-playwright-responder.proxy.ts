@@ -3,8 +3,8 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-e2e-eligible-detect/architecture-package-e2e-eligible-detect-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { InstallCreatePlaywrightResponder } from './install-create-playwright-responder';
 

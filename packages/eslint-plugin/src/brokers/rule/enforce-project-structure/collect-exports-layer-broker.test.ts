@@ -2,7 +2,7 @@ import { collectExportsLayerBroker } from './collect-exports-layer-broker';
 import { collectExportsLayerBrokerProxy } from './collect-exports-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('collectExportsLayerBroker', () => {
   describe('valid named exports', () => {

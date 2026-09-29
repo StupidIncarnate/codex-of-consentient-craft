@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { duplicateInstallCheckBroker } from './duplicate-install-check-broker';
 import { duplicateInstallCheckBrokerProxy } from './duplicate-install-check-broker.proxy';

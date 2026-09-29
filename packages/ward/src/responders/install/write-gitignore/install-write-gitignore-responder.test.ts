@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallWriteGitignoreResponderProxy } from './install-write-gitignore-responder.proxy';
 
 const ALL_ENTRIES = '.ward/\ntest-results/\n.ward-playwright-report*.json\n';

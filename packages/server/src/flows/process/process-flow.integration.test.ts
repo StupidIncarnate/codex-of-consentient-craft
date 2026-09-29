@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 

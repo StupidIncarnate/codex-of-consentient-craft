@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hooks-creator/agents-hooks-creator-transformer';
 import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';

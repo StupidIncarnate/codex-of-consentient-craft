@@ -4,9 +4,9 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 type FilePath = ReturnType<typeof FilePathStub>;

@@ -1,5 +1,5 @@
 import { isMultiDotFileGuard } from './is-multi-dot-file-guard';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('isMultiDotFileGuard', () => {
   it('VALID: returns true for .test.ts files', () => {

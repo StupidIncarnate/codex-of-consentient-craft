@@ -1,5 +1,5 @@
-import type { GuildStub } from '@dungeonmaster/shared/contracts';
-import { AgentIdStub } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';

@@ -1,4 +1,4 @@
-import { OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 
 import { signalBackResultContract } from './signal-back-result-contract';
 import { SignalBackResultStub } from './signal-back-result.stub';

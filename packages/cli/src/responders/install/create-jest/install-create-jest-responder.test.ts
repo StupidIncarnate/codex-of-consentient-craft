@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallCreateJestResponderProxy } from './install-create-jest-responder.proxy';
 import { jestConfigTemplateStatics } from '../../../statics/jest-config-template/jest-config-template-statics';
 

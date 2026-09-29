@@ -2,7 +2,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { agentsPluginCreateBroker } from './agents-plugin-create-broker';
 

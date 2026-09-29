@@ -1,4 +1,5 @@
-import { PathSegmentStub, GatewayImportsMapStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import { GatewayImportsMapStub } from '@dungeonmaster/shared/contracts/gateway-imports-map/gateway-imports-map.stub';
 import { gatewayImportsMergeTransformer } from './gateway-imports-merge-transformer';
 
 describe('gatewayImportsMergeTransformer', () => {

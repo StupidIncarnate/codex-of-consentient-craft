@@ -1,5 +1,6 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { OrchestrationStatusStub, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
 import { ProcessStatusResponder } from './process-status-responder';
 
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;

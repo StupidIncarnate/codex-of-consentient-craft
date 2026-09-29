@@ -1,11 +1,9 @@
-import {
-  GuildStub,
-  GuildIdStub,
-  QuestListItemStub,
-  QuestStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { SessionSummaryStub } from '../../../contracts/session-summary/session-summary.stub';
 

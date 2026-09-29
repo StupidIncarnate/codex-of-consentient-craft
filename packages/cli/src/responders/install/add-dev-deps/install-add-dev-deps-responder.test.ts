@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallAddDevDepsResponderProxy } from './install-add-dev-deps-responder.proxy';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 

@@ -13,7 +13,7 @@
  * transcripts.completionAgentIdsIn({ testbed, relativePath: 'projects/x/sess.jsonl' });
  */
 
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { RelativePathStub } from '@dungeonmaster/testing';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 

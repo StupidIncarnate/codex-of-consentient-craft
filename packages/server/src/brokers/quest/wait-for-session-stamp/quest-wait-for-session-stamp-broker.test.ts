@@ -1,10 +1,8 @@
 import { NowMsStub } from '#gateway/node/Date/now/now-ms.stub';
-import {
-  QuestIdStub,
-  QuestStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { questWaitForSessionStampBroker } from './quest-wait-for-session-stamp-broker';
 import { questWaitForSessionStampBrokerProxy } from './quest-wait-for-session-stamp-broker.proxy';

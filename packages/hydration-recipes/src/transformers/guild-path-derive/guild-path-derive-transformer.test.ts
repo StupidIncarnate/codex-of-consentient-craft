@@ -1,6 +1,6 @@
 import { guildPathDeriveTransformer } from './guild-path-derive-transformer';
 import { DmTargetStub } from '../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildPathDeriveTransformer', () => {
   describe('a relative fragment', () => {

@@ -3,7 +3,7 @@ import { validateExportLayerBrokerProxy } from './validate-export-layer-broker.p
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { CollectedExportStub } from '../../../contracts/collected-export/collected-export.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts';
+import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateExportLayerBroker', () => {

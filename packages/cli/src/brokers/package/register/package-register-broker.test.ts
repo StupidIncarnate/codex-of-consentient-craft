@@ -1,4 +1,5 @@
-import { FilePathStub, PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { packageRegisterBrokerProxy } from './package-register-broker.proxy';
 import { PackageJsonRawStub } from '../../../contracts/package-json-raw/package-json-raw.stub';
 

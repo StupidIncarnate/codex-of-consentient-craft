@@ -4,7 +4,8 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { FilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
 import { scaffoldedTemplateTypecheckHarness } from '../../test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness';
 import { scaffoldedPlaywrightConfigRunHarness } from '../../test/harnesses/scaffolded-playwright-config-run/scaffolded-playwright-config-run.harness';

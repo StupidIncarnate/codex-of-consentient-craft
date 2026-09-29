@@ -1,8 +1,6 @@
-import {
-  OperationItemIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { signalBackInputContract } from './signal-back-input-contract';
 import { SignalBackInputStub } from './signal-back-input.stub';

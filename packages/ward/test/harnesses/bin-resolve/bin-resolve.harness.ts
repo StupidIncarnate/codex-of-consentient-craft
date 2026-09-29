@@ -15,7 +15,7 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const binResolveHarness = (): {

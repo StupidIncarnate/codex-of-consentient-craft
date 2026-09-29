@@ -1,9 +1,9 @@
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import type { InstallResultStub } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { installRunBrokerProxy } from '../../../brokers/install/run/install-run-broker.proxy';
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { CliInitResponder } from './cli-init-responder';
 
 type InstallResult = ReturnType<typeof InstallResultStub>;

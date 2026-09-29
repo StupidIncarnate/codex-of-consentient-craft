@@ -1,5 +1,6 @@
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
-import { GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { guildDirectoryEnsureBroker } from './guild-directory-ensure-broker';
 import { guildQueryRouteBroker } from '../query-route/guild-query-route-broker';

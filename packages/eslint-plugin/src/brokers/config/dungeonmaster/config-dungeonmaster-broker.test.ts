@@ -1,6 +1,6 @@
 import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
 import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
-import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts/gateway-lint-config/gateway-lint-config.stub';
 import { EslintRuleNameStub } from '../../../contracts/eslint-rule-name/eslint-rule-name.stub';
 import typescriptEslintPlugin from '#gateway/npm/typescript-eslint__eslint-plugin';
 import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';

@@ -1,4 +1,4 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { playwrightJsonReportToPassingTransformer } from './playwright-json-report-to-passing-transformer';
 

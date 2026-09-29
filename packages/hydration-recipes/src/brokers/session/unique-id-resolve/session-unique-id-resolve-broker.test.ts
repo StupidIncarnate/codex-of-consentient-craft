@@ -1,7 +1,8 @@
 import { sessionUniqueIdResolveBroker } from './session-unique-id-resolve-broker';
 import { sessionUniqueIdResolveBrokerProxy } from './session-unique-id-resolve-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 describe('sessionUniqueIdResolveBroker', () => {
   describe('the default id, free', () => {

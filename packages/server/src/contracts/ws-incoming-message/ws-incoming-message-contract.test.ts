@@ -1,5 +1,6 @@
 import type { ZodError } from '#gateway/npm/zod';
-import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { wsIncomingMessageContract } from './ws-incoming-message-contract';
 import {
   WsReplayHistoryMessageStub,

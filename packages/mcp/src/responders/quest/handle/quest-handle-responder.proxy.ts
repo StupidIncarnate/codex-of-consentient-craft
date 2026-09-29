@@ -18,16 +18,14 @@ import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestr
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import type {
-  GetQuestResultStub,
-  GuildIdStub,
-  ModifyQuestResultStub,
-  OrchestrationStatusStub,
-  QuestIdStub,
-  QuestListItemStub,
-  UrlSlugStub,
-} from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import type { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
 import { QuestHandleResponder } from './quest-handle-responder';
 

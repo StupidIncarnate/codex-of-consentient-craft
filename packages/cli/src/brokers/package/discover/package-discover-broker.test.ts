@@ -4,8 +4,9 @@
 
 import { packageDiscoverBroker } from './package-discover-broker';
 import { packageDiscoverBrokerProxy } from './package-discover-broker.proxy';
-import { FilePathStub, PackageNameStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 describe('packageDiscoverBroker', () => {
   describe('discovering packages', () => {

@@ -1,9 +1,7 @@
-import {
-  AgentPromptResultStub,
-  OperationItemIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AgentPromptResultStub } from '@dungeonmaster/shared/contracts/agent-prompt-result/agent-prompt-result.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { InteractionHandleResponderProxy } from './interaction-handle-responder.proxy';

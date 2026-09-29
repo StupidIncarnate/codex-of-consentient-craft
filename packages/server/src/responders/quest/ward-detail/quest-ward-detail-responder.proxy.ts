@@ -1,14 +1,12 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  FilePathStub as SharedFilePathStub,
-  GuildIdStub,
-  QuestIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub as SharedFilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
-import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';

@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { imageServeStatics } from '../../../statics/image-serve/image-serve-statics';
 import { ImageServeResponderProxy } from './image-serve-responder.proxy';

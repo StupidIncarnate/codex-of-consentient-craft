@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { configGatewayLintConfigBroker } from './config-gateway-lint-config-broker';
 import { configGatewayLintConfigBrokerProxy } from './config-gateway-lint-config-broker.proxy';
 

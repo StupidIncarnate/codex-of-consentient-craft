@@ -7,7 +7,7 @@
  * // Returns SessionFields
  */
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
+import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 
 import { sessionFieldsContract } from './session-fields-contract';
 import type { SessionFields } from './session-fields-contract';

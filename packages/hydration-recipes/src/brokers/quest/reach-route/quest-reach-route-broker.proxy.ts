@@ -2,12 +2,10 @@ import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orch
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
-import type {
-  GetQuestInputStub,
-  GetQuestResultStub,
-  ModifyQuestInputStub,
-  ModifyQuestResultStub,
-} from '@dungeonmaster/shared/contracts';
+import type { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
+import type { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+import type { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
+import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 
 type ModifyQuestInput = ReturnType<typeof ModifyQuestInputStub>;
 type ModifyQuestResult = ReturnType<typeof ModifyQuestResultStub>;

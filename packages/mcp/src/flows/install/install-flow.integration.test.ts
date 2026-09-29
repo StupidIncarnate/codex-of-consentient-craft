@@ -11,7 +11,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallFlow } from './install-flow';
 

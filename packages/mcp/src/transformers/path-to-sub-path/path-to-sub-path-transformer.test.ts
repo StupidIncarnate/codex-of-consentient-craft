@@ -1,5 +1,5 @@
 import { pathToSubPathTransformer } from './path-to-sub-path-transformer';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
 describe('pathToSubPathTransformer', () => {
   describe('src anchor', () => {

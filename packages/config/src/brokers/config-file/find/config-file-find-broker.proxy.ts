@@ -1,6 +1,6 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { configRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { configRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/config-root/find/config-root-find-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { dirname } from '#gateway/node/path';
 

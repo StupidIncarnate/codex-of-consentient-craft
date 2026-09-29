@@ -1,5 +1,5 @@
 import { Hono } from '#gateway/npm/hono';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type {
   AbsoluteFilePath,
   FileContents,
@@ -10,10 +10,8 @@ import type {
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 
-import {
-  portResolveBrokerProxy,
-  locationsWardResultsPathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
+import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/ward-results-path-find/locations-ward-results-path-find-broker.proxy';
 import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';

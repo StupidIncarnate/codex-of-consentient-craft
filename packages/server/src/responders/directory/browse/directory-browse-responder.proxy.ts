@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import { DirectoryBrowseResponder } from './directory-browse-responder';
 
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;

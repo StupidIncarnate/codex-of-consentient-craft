@@ -1,4 +1,4 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { gatewayPackageScaffoldFilesTransformer } from './gateway-package-scaffold-files-transformer';
 
 const fileNamed = ({

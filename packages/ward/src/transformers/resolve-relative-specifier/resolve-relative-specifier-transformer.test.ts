@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolveRelativeSpecifierTransformer } from './resolve-relative-specifier-transformer';
 import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 

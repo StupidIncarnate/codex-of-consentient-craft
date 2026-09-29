@@ -1,12 +1,8 @@
 import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  GuildId,
-  GuildStub,
-  QuestId,
-  QuestListItemStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -15,7 +11,7 @@ import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
-import type { GlobPatternStub } from '@dungeonmaster/shared/contracts';
+import type { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 type Guild = ReturnType<typeof GuildStub>;

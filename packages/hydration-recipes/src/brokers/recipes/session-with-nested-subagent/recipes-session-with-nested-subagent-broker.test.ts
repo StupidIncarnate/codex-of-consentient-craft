@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  GuildIdStub,
-  GuildStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { RecipeContextStub } from '../../../contracts/recipe-context/recipe-context.stub';
 import { recipesSessionWithNestedSubagentBroker } from './recipes-session-with-nested-subagent-broker';

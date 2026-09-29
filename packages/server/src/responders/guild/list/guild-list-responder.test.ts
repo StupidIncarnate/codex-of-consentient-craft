@@ -1,4 +1,4 @@
-import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import { GuildListResponderProxy } from './guild-list-responder.proxy';
 
 describe('GuildListResponder', () => {

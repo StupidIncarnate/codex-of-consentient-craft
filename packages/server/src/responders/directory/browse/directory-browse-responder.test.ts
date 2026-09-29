@@ -1,4 +1,4 @@
-import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
 import { DirectoryBrowseResponderProxy } from './directory-browse-responder.proxy';
 
 describe('DirectoryBrowseResponder', () => {

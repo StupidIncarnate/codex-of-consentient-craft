@@ -1,5 +1,5 @@
 import { discoverIgnoreState } from './discover-ignore-state';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts';
+import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
 describe('discoverIgnoreState', () => {

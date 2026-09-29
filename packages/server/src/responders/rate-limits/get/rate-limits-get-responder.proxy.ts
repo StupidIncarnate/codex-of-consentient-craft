@@ -1,5 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { RateLimitsGetResponder } from './rate-limits-get-responder';
 

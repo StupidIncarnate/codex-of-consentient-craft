@@ -1,4 +1,4 @@
-import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
 
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { OrchestrationModeGetResponder } from './orchestration-mode-get-responder';
