@@ -5,16 +5,19 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
 import { EditToolInputStub } from '../contracts/edit-tool-input/edit-tool-input.stub';
 import { WriteToolInputStub } from '../contracts/write-tool-input/write-tool-input.stub';
 
 import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/hook-persistent-runner.harness';
 
+const PACKAGE_DIR = resolve(__dirname, '../..');
+
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using _lint-testbed (NOT _test-workspace or .test-tmp which are ESLint-ignored)
 const BASE_DIR = FilePathStub({
-  value: `${process.cwd()}/src/_lint-testbed/post-edit-tests`,
+  value: `${PACKAGE_DIR}/src/_lint-testbed/post-edit-tests`,
 });
 
 describe('post-edit-hook', () => {
@@ -41,7 +44,7 @@ describe('post-edit-hook', () => {
     await persistentRunner.start({
       hookName: 'start-post-edit-hook',
       warmupHookData: PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Write',
         tool_input: WriteToolInputStub({
           file_path: `${warmupTestbed.guildPath}/example.info.ts`,
@@ -86,7 +89,7 @@ describe('post-edit-hook', () => {
       const filePath = `${testbed.guildPath}/example.info.ts`;
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Write',
         tool_input: WriteToolInputStub({
           file_path: filePath,
@@ -138,7 +141,7 @@ describe('post-edit-hook', () => {
       });
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Edit',
         tool_input: EditToolInputStub({
           file_path: filePath,
@@ -207,7 +210,7 @@ return a&&b;
 };`;
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Write',
         tool_input: WriteToolInputStub({
           file_path: filePath,
@@ -267,7 +270,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
 `;
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Write',
         tool_input: WriteToolInputStub({
           file_path: filePath,
@@ -330,7 +333,7 @@ function test(): void {
 \`\`\``;
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Write',
         tool_input: WriteToolInputStub({
           file_path: filePath,
@@ -365,7 +368,7 @@ function test(): void {
       const filePath = `${testbed.guildPath}/does-not-exist.ts`;
 
       const hookData = PostToolUseHookStub({
-        cwd: process.cwd(),
+        cwd: PACKAGE_DIR,
         tool_name: 'Edit',
         tool_input: EditToolInputStub({
           file_path: filePath,
