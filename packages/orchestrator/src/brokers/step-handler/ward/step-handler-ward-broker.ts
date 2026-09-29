@@ -30,6 +30,8 @@
  * // { outcome: 'done' | 'empty' | 'unmet' | 'wall', detail, resultRef: 'wardResults/<id>' }
  */
 
+import { getEnv } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import {
   absoluteFilePathContract,
   contentTextContract,
@@ -82,7 +84,7 @@ export const stepHandlerWardBroker = async ({
   const { questPath } = await questFindQuestPathBroker({ questId });
 
   const { exitCode: rawExitCode, output: rawOutput } = await streamLines({
-    command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
+    command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,
     args: [RUN_SUBCOMMAND, ...args],
     cwd: startPath,
     onLine,
@@ -102,7 +104,7 @@ export const stepHandlerWardBroker = async ({
   const runId = wardOutputToRunIdTransformer({ output });
 
   const detailJson = runId ? await wardDetailBroker({ startPath, runId }) : null;
-  const wardResultId = crypto.randomUUID();
+  const wardResultId = randomUUID();
 
   if (detailJson) {
     const wardResultsDir = filePathContract.parse(

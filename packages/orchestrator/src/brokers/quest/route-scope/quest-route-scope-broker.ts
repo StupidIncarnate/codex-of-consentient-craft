@@ -25,6 +25,7 @@
  * graph, so each completes on its own signal and this broker never touches it.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
 import {
   errorMessageContract,
@@ -229,7 +230,7 @@ export const questRouteScopeBroker = async ({
 
       const minted: WorkItem[] = action.batch.map((item) =>
         workItemContract.parse({
-          id: questWorkItemIdContract.parse(crypto.randomUUID()),
+          id: questWorkItemIdContract.parse(randomUUID()),
           role: item.role,
           status: 'pending',
           spawnerType: isCommandWorkItemRoleGuard({ role: item.role }) ? 'command' : 'agent',

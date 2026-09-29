@@ -7,6 +7,8 @@
  * await RecoverGuildLayerResponder({guildItem});
  */
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { FilePathStub, GuildStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
@@ -20,7 +22,6 @@ import type {
 import {
   registerMock,
   registerModuleMock,
-  registerSpyOn,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
@@ -109,6 +110,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   // Only the startup-recovery trigger's own restore warnings, in write order.
   getRestoreStderrWrites: () => readonly unknown[];
 } => {
+  stderrProxy();
   const guildGetProxy = guildGetBrokerProxy();
   const questListProxy = questListBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; questModifyBroker itself still runs for
@@ -135,9 +137,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const worktreeRestoreMock = registerMock({ fn: worktreeResumeRestoreBroker });
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerMock({ fn: randomUUID }).calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
   // Every quest resolves to the repo-root branch by default — the shape every quest built via
   // QuestStub (no worktreePath) is meant to take — so the worktree gate is transparent to every

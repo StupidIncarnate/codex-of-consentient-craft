@@ -1,3 +1,4 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AddQuestInputStub,
@@ -1278,7 +1279,7 @@ describe('QuestFlow', () => {
 
       const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000c1' });
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f1' });
-      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,
@@ -1389,7 +1390,7 @@ describe('QuestFlow', () => {
 
       const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000c3' });
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
-      const planWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const planWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,

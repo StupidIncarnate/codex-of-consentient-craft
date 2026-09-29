@@ -6,6 +6,7 @@
  * // Returns { paused: true } on success, throws when the quest is not found or the pause fails to persist.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
@@ -33,7 +34,7 @@ export const OrchestrationPauseResponder = async ({
   // afterwards would find nothing and mint a synthetic id for a process that really existed.
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
   const announcementProcessId =
-    existingProcess?.processId ?? processIdContract.parse(`proc-pause-${crypto.randomUUID()}`);
+    existingProcess?.processId ?? processIdContract.parse(`proc-pause-${randomUUID()}`);
 
   const result = await questPauseBroker({
     questId,

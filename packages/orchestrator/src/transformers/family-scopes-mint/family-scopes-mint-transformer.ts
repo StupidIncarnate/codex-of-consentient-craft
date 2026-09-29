@@ -19,6 +19,7 @@
  * the router routes past it.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { operationItemContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, PackageName, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -70,7 +71,7 @@ export const familyScopesMintTransformer = ({
 
   return relayTailFanOutTransformer({ entry: familyEntry, quest }).map((slice) =>
     operationItemContract.parse({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       role: familyEntry.role,
       text: slice.text,
       status: 'pending',

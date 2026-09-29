@@ -15,6 +15,7 @@
  * passthrough-by-default behaviour.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join, resolve } from '#gateway/node/path';
@@ -32,7 +33,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
-  registerSpyOn,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
@@ -75,9 +75,13 @@ export const questModifyBrokerProxy = (): {
   getCallInputs: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  // Server-stamped assertion ids come from crypto.randomUUID. Passthrough so every test gets a real
+  // Server-stamped assertion ids come from randomUUID. Passthrough so every test gets a real
   // uuid by default; tests that assert on the stamped id queue deterministic values via setupAssertionIds.
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
+  const uuidSpy = registerMock({ fn: randomUUID });
+  const realCrypto = requireActual<{ randomUUID: typeof randomUUID }>({
+    module: '#gateway/node/crypto',
+  });
+  uuidSpy.calledWith([]).implement(() => realCrypto.randomUUID());
   // questModifyBroker's own join(questPath, quest.json) -> questFilePath, addressed by the exact
   // tuple below (never an address-less FIFO slot), so it can never answer a different broker's
   // join call sharing the same underlying mocked `join`.

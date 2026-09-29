@@ -1,5 +1,7 @@
-import { homedir } from 'os';
-import { join } from 'path';
+import { stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import type {
   AbsoluteFilePath,
   QuestId,
@@ -32,7 +34,7 @@ type Quest = ReturnType<typeof QuestStubType>;
 
 type AgentLaunchProxy = ReturnType<typeof agentLaunchBrokerProxy>;
 
-// crypto.randomUUID is mocked sticky to this value below (and questUserAddBroker mints the
+// randomUUID is mocked sticky to this value below (and questUserAddBroker mints the
 // new quest's id from the same call), so this is the questId chatSpawnBroker's cwd
 // resolution looks up immediately after a chaoswhisperer-new spawn creates a quest.
 const CREATED_QUEST_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -154,7 +156,7 @@ export const chatSpawnBrokerProxy = (): {
     .calledWith([])
     .resolves({ success: true as const });
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(CREATED_QUEST_ID);
+  registerMock({ fn: randomUUID }).calledWith([]).returns(CREATED_QUEST_ID);
   // The launcher mints its processId through the gateway's randomUUID; restaged on the
   // launcher proxy's own handle so the chat spawn's processId is the id asserted below.
   launchProxy.setupProcessUuid({ uuid: CREATED_QUEST_ID });
@@ -244,7 +246,7 @@ export const chatSpawnBrokerProxy = (): {
     },
 
     setupStderrCapture: (): SpyOnHandle => {
-      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      const handle = registerSpyOn({ object: stderr, method: 'write' });
       // Every write must succeed regardless of content — this proxy silences + records
       // stderr wholesale, it never discriminates by what was written.
       handle.calledWith([]).returns(true);

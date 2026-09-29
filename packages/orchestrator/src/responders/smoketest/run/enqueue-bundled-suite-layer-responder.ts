@@ -6,6 +6,7 @@
  * // Returns { questId, guildSlug } or null when the catalog is empty.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import type {
   GuildId,
   QuestQueueEntry,
@@ -58,7 +59,7 @@ export const EnqueueBundledSuiteLayerResponder = async ({
 
   // Pre-register an orchestration processId tied to this smoketest's questId so the
   // get-quest-status MCP probe has a live id to query at runtime.
-  const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
+  const processId = processIdContract.parse(`proc-${randomUUID()}`);
   orchestrationProcessesState.register({
     orchestrationProcess: {
       processId,

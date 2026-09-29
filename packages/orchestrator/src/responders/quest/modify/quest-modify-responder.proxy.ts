@@ -1,5 +1,7 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import {
   FileContentsStub,
   FileNameStub,
@@ -25,6 +27,7 @@ export const QuestModifyResponderProxy = (): {
   setupQuestModifyEmpty: ReturnType<typeof questModifyBrokerProxy>['setupEmptyFolder'];
   setupAutoResume: (params: { quest: Quest }) => void;
 } => {
+  stderrProxy();
   const modifyProxy = questModifyBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
@@ -34,9 +37,7 @@ export const QuestModifyResponderProxy = (): {
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerMock({ fn: randomUUID }).calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
   const setupPathResolution = ({ quest }: { quest: Quest }): void => {
     const guildId = GuildIdStub();

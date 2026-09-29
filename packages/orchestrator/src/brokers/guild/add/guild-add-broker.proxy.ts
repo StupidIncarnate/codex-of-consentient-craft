@@ -1,3 +1,4 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath, Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
@@ -61,9 +62,9 @@ export const guildAddBrokerProxy = (): {
   const addMock = registerMock({ fn: guildAddBroker });
   addMock.calledWith([]).implement(realMod.guildAddBroker as never);
 
-  // crypto.randomUUID and Date.prototype.toISOString take no identifying argument — [] is
+  // randomUUID and Date.prototype.toISOString take no identifying argument — [] is
   // the honest address for both.
-  const randomUuidHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  const randomUuidHandle = registerMock({ fn: randomUUID });
   randomUuidHandle.calledWith([]).returns(DEFAULT_GENERATED_ID);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
@@ -93,7 +94,7 @@ export const guildAddBrokerProxy = (): {
       configReadProxy.setupConfig({ config: existingConfig });
       homeEnsureProxy.setupEnsureSuccess({ homeDir, homePath, guildsPath });
 
-      // The id segment is whatever this test staged for crypto.randomUUID (the sticky default
+      // The id segment is whatever this test staged for randomUUID (the sticky default
       // above, or a one-shot from stageGeneratedId) — read back off the caller's own
       // guildDirPath/guildsPath rather than guessed, so the join address matches the real call
       // whichever id is in play.
@@ -146,7 +147,7 @@ export const guildAddBrokerProxy = (): {
       ensureDirHandle.getCallsFor({ path: () => true }).map((call) => call[0]),
     configFilesWritten: (): readonly unknown[] => configWriteProxy.configFilesWritten(),
 
-    // Queues ONE further crypto.randomUUID call ahead of the sticky default above — a live
+    // Queues ONE further randomUUID call ahead of the sticky default above — a live
     // onceFor outranks it — so a test proving "no supplied id mints a fresh one each call" can
     // pin exactly which id each successive guildAddBroker call receives.
     stageGeneratedId: ({ id }: { id: string }): void => {

@@ -8,6 +8,7 @@
  * // the web binding can dedup duplicate emissions and timestamp-sort streamed/replayed entries
  * // identically.
  */
+import { randomUUID } from '#gateway/node/crypto';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -41,7 +42,7 @@ export const parseAssistantStreamEntryTransformer = ({
       ? lineUuid
       : typeof rawLineUuid === 'string' && String(rawLineUuid).length > 0
         ? String(rawLineUuid)
-        : crypto.randomUUID();
+        : randomUUID();
   const resolvedTimestamp =
     typeof timestamp === 'string' && timestamp.length > 0
       ? timestamp

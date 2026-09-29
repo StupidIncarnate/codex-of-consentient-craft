@@ -19,6 +19,7 @@
  * WHEN-NOT-TO-USE: To modify an existing quest — use questModifyBroker.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import {
@@ -62,7 +63,7 @@ export const questCreateBroker = async ({
   const { initialWorkItemRole } = questFlowStatics[input.questType ?? 'feature'];
 
   const planOperationItem: OperationItem = operationItemContract.parse({
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     role: initialWorkItemRole,
     text: 'Author spec + implementation plan',
     status: 'in_progress',

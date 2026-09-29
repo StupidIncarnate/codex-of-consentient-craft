@@ -6,6 +6,9 @@
  * // Returns ModifyQuestResult with success status
  */
 
+import { stderr } from '#gateway/node/process';
+import { AbortController } from '#gateway/node/AbortController';
+import { randomUUID } from '#gateway/node/crypto';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 
@@ -39,7 +42,7 @@ export const QuestModifyResponder = async ({
       });
 
       if (!existingProcess) {
-        const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
+        const processId = processIdContract.parse(`proc-${randomUUID()}`);
         const abortController = new AbortController();
 
         orchestrationProcessesState.register({
@@ -88,7 +91,7 @@ export const QuestModifyResponder = async ({
             orchestrationProcessesState.remove({ processId });
           })
           .catch((error: unknown) => {
-            process.stderr.write(
+            stderr.write(
               `Orchestration loop failed for quest ${typedQuestId}: ${error instanceof Error ? error.message : 'Unknown error'}\n`,
             );
             orchestrationProcessesState.remove({ processId });

@@ -16,6 +16,9 @@
  * append that follows the git-context write; see `getPersistedQuest`.
  */
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
@@ -39,7 +42,7 @@ import {
   type Quest,
   type QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
@@ -96,6 +99,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   getTypecheckSpawns: () => readonly unknown[];
   getRiftcarverLogWrites: () => readonly { path: unknown; contents: unknown }[];
 } => {
+  stderrProxy();
+  getEnvProxy();
   const typecheckSpawn = streamLinesProxy();
   locationsWorktreePathFindBrokerProxy();
   const isAccessibleProxy = pathExistsProxy();
@@ -191,10 +196,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     });
   };
 
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  uuidSpy
-    .calledWith([])
-    .returns(FIXED_RIFTCARVER_RESULT_UUID as ReturnType<typeof crypto.randomUUID>);
+  const uuidSpy = registerMock({ fn: randomUUID });
+  uuidSpy.calledWith([]).returns(FIXED_RIFTCARVER_RESULT_UUID as ReturnType<typeof randomUUID>);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
     .returns(FIXED_TIMESTAMP);

@@ -14,6 +14,7 @@
  *   and MUST go through `chatLineProcessTransformer` so sub-agent correlation survives.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
@@ -22,6 +23,6 @@ export const commandLineToChatEntryTransformer = ({ line }: { line: string }): C
     role: 'assistant',
     type: 'text',
     content: line,
-    uuid: crypto.randomUUID(),
+    uuid: randomUUID(),
     timestamp: new Date().toISOString(),
   });

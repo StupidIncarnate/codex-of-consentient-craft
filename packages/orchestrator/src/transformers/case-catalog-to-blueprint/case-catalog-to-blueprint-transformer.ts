@@ -19,6 +19,7 @@
  * smoketestScenariosStatics.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   operationItemContract,
   streamSignalKindContract,
@@ -60,13 +61,13 @@ export const caseCatalogToBlueprintTransformer = ({
   const built = cases.map((entry) => ({
     entry,
     operation: operationItemContract.parse({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       role: 'codeweaver',
       text: entry.name,
       status: 'pending',
       locked: false,
     }),
-    workItemId: workItemContract.shape.id.parse(crypto.randomUUID()),
+    workItemId: workItemContract.shape.id.parse(randomUUID()),
   }));
 
   const operations: OperationItem[] = built.map((item) => item.operation);

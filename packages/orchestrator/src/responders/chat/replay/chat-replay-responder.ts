@@ -6,6 +6,7 @@
  * // Replays JSONL history via callbacks and emits quest-session-linked if a quest is found
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import type { AdapterResult, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
@@ -23,8 +24,7 @@ export const ChatReplayResponder = async ({
   guildId: GuildId;
   chatProcessId?: ProcessId;
 }): Promise<AdapterResult> => {
-  const chatProcessId =
-    clientChatProcessId ?? processIdContract.parse(`replay-${crypto.randomUUID()}`);
+  const chatProcessId = clientChatProcessId ?? processIdContract.parse(`replay-${randomUUID()}`);
 
   // Look up the linked quest BEFORE replay so chat-output frames can be stamped with
   // questId+workItemId when available. Orphan sessions (no linked quest) still emit

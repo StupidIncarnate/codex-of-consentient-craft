@@ -1,3 +1,4 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { portConfigWalkBrokerProxy } from '../config-walk/port-config-walk-broker.proxy';
 
@@ -15,11 +16,11 @@ export const portResolveBrokerProxy = (): {
 
   return {
     setEnvPort: ({ value }: { value: string }): void => {
-      process.env.DUNGEONMASTER_PORT = value;
+      setEnv('DUNGEONMASTER_PORT', value);
     },
 
     clearEnvPort: (): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_PORT');
+      deleteEnv('DUNGEONMASTER_PORT');
     },
 
     setupConfigPort: ({ startDir, port }: { startDir: string; port: number }): void => {

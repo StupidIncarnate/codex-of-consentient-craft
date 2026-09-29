@@ -26,6 +26,8 @@
  * // { outcome: 'done' | 'unmet' | 'wall', detail, resultRef: 'riftcarverResults/<id>' }
  */
 
+import { getEnv, stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
 import {
@@ -156,7 +158,7 @@ export const stepHandlerRiftcarverBroker = async ({
               try {
                 return await currentBranch({ cwd: recordedWorktreePath });
               } catch (error) {
-                process.stderr.write(
+                stderr.write(
                   `[step-handler-riftcarver] currentBranch failed for ${recordedWorktreePath}: ${error instanceof Error ? error.message : String(error)}\n`,
                 );
                 return null;
@@ -276,7 +278,7 @@ export const stepHandlerRiftcarverBroker = async ({
       // TYPECHECK. Deliberately has NO done-check — this is the VERDICT the repair loop re-runs.
       step.value = STEPS.typecheck;
       const typecheck = await streamLines({
-        command: process.env.WARD_CLI_PATH ?? wardCommandStatics.bin,
+        command: getEnv('WARD_CLI_PATH') ?? wardCommandStatics.bin,
         args: [...wardCommandStatics.typecheckArgs],
         cwd: worktreePath,
         onLine: (line: string): void => {
@@ -320,7 +322,7 @@ export const stepHandlerRiftcarverBroker = async ({
     ? 'done'
     : riftcarverFailureClassifyTransformer({ failedStep: carve.failedStep, error: carve.error });
 
-  const riftcarverResultId = crypto.randomUUID();
+  const riftcarverResultId = randomUUID();
 
   await riftcarverPersistResultBroker({
     questFolderPath: filePathContract.parse(questPath),

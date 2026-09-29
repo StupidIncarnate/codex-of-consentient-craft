@@ -28,6 +28,7 @@
  * derives quest `complete`, off the family graph's position.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   operationItemContract,
   questWorkItemIdContract,
@@ -83,7 +84,7 @@ export const questAdvanceBroker = async ({ questId }: { questId: QuestId }): Pro
         family === undefined ? undefined : GRAPH_BY_FAMILY.get(String(family))?.entry;
 
       const newWorkItem: WorkItem = workItemContract.parse({
-        id: questWorkItemIdContract.parse(crypto.randomUUID()),
+        id: questWorkItemIdContract.parse(randomUUID()),
         role: nextOperation.role,
         status: 'pending',
         // The step the scope ENTERS at. Without it the router has no current step to read and

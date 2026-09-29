@@ -9,6 +9,7 @@
  * npm run ward -- --only lint,typecheck,integration -- packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.integration.test.ts
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   FlowNodeStub,
@@ -80,8 +81,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -174,8 +175,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -238,8 +239,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -305,8 +306,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -365,8 +366,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -412,8 +413,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -457,8 +458,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -539,8 +540,8 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -624,13 +625,13 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const ward1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const repair1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const ward2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const repair2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const ward3Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const repair3Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const ward1Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const repair1Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const ward2Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const repair2Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const ward3Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const repair3Id = QuestWorkItemIdStub({ value: randomUUID() });
       const relatedDataItems = [`operations/${opId}`];
 
       // Three full `ward -> repair -> ward` cycles, laid out explicitly rather than generated:
@@ -741,9 +742,9 @@ describe('questRouteScopeBroker — codeweaver step chain (integration — real 
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const repairIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()].map(
-        (value) => QuestWorkItemIdStub({ value }),
+      const opId = randomUUID();
+      const repairIds = [randomUUID(), randomUUID(), randomUUID()].map((value) =>
+        QuestWorkItemIdStub({ value }),
       );
 
       await quest.seedInProgressRelay({
@@ -841,8 +842,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const sweepInItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const sweepInItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -888,8 +889,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const sweepInItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const sweepInItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -933,8 +934,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -984,8 +985,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1031,8 +1032,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const happyWalkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const happyWalkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1093,8 +1094,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const fixHappyItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const fixHappyItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1150,8 +1151,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const happyWalkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const happyWalkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1242,9 +1243,9 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const piece1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const piece2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const piece1Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const piece2Id = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1309,9 +1310,9 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const piece1Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
-      const piece2Id = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const piece1Id = QuestWorkItemIdStub({ value: randomUUID() });
+      const piece2Id = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1374,8 +1375,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const happyWalkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const happyWalkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1425,8 +1426,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const adversarialItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const adversarialItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1487,8 +1488,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const fixAdversarialItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const fixAdversarialItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1544,8 +1545,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const adversarialItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const adversarialItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1641,8 +1642,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const adversarialItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const adversarialItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1693,8 +1694,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1742,8 +1743,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1787,8 +1788,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1861,8 +1862,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const sweepOutItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const sweepOutItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1909,8 +1910,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const sweepOutItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const sweepOutItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -1957,8 +1958,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2044,8 +2045,8 @@ describe('siegemaster', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const happyWalkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const happyWalkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2151,8 +2152,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2238,8 +2239,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2291,8 +2292,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const planItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const planItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2343,8 +2344,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2400,8 +2401,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const workItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const workItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2460,8 +2461,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2522,8 +2523,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const reviewItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const reviewItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2580,8 +2581,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2627,8 +2628,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const commitItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const commitItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2672,8 +2673,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2720,8 +2721,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2768,8 +2769,8 @@ describe('flowrider', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const wardItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const wardItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2894,8 +2895,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2937,8 +2938,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -2982,8 +2983,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const gateItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const gateItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -3080,8 +3081,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const carveItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const carveItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -3176,8 +3177,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const carveItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const carveItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -3230,8 +3231,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const mergeItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const mergeItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,
@@ -3281,8 +3282,8 @@ describe('wardFull, riftcarver and warpgate', () => {
       });
       const { questId } = await quest.createGuildAndQuest({ testbed });
 
-      const opId = crypto.randomUUID();
-      const mergeItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const opId = randomUUID();
+      const mergeItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await quest.seedInProgressRelay({
         questId,

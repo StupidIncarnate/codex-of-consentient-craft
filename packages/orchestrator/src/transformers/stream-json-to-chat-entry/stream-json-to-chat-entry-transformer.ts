@@ -12,6 +12,7 @@
  * content twice.
  * A supplied `serverBaseUrl` turns a user line's pasted-image paths into server URLs.
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { streamJsonResultContract } from '../../contracts/stream-json-result/stream-json-result-contract';
 import type { StreamJsonResult } from '../../contracts/stream-json-result/stream-json-result-contract';
@@ -49,9 +50,7 @@ export const streamJsonToChatEntryTransformer = ({
   // duplicate emissions into one entry.
   const rawUuid = line.uuid;
   const lineUuid =
-    typeof rawUuid === 'string' && String(rawUuid).length > 0
-      ? String(rawUuid)
-      : crypto.randomUUID();
+    typeof rawUuid === 'string' && String(rawUuid).length > 0 ? String(rawUuid) : randomUUID();
   const timestamp = String(extractTimestampFromJsonlLineTransformer({ parsed }));
 
   if (type === 'assistant') {

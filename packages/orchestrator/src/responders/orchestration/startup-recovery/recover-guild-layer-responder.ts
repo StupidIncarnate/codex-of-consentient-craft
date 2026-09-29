@@ -12,6 +12,9 @@
  * // orchestration loops for the rest
  */
 
+import { stderr } from '#gateway/node/process';
+import { AbortController } from '#gateway/node/AbortController';
+import { randomUUID } from '#gateway/node/crypto';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type {
   GuildListItem,
@@ -126,7 +129,7 @@ export const RecoverGuildLayerResponder = async ({
           // One quest's worktree resolution or block must not abort recovery for the guild's
           // other quests — that failure is contained here rather than left to escape into the
           // outer catch below, which only tolerates ENOENT from the guild-wide quest-list read.
-          process.stderr.write(
+          stderr.write(
             `[recover-guild-layer-responder] failed to resolve worktree state for quest ${quest.id}: ${String(error)}\n`,
           );
           return null;
@@ -165,7 +168,7 @@ export const RecoverGuildLayerResponder = async ({
     await Promise.all(orphanResets);
 
     for (const quest of recoverableQuests) {
-      const processId = processIdContract.parse(`proc-recovery-${crypto.randomUUID()}`);
+      const processId = processIdContract.parse(`proc-recovery-${randomUUID()}`);
       const abortController = new AbortController();
 
       orchestrationProcessesState.register({

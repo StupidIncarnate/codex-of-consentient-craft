@@ -9,6 +9,7 @@
  * // and timestamp from the source line, so the web binding dedups duplicate dual-source emissions.
  * // A supplied serverBaseUrl rewrites every pasted-image path in a user-text line into a server URL.
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
@@ -44,7 +45,7 @@ export const parseUserStreamEntryTransformer = ({
       ? lineUuid
       : typeof rawLineUuid === 'string' && String(rawLineUuid).length > 0
         ? String(rawLineUuid)
-        : crypto.randomUUID();
+        : randomUUID();
   const resolvedTimestamp =
     typeof timestamp === 'string' && timestamp.length > 0
       ? timestamp

@@ -1,5 +1,6 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { ModifyQuestResultStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -25,7 +26,11 @@ export const CommentBatchResponderProxy = (): {
   const modifyHandle = registerMock({ fn: questModifyBroker });
   // The minted comment id. Passthrough so a test that doesn't care about the id still gets a real
   // (if unpredictable) uuid; setupUuids queues deterministic ones for assertion.
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
+  const uuidSpy = registerMock({ fn: randomUUID });
+  const realCrypto = requireActual<{ randomUUID: typeof randomUUID }>({
+    module: '#gateway/node/crypto',
+  });
+  uuidSpy.calledWith([]).implement(() => realCrypto.randomUUID());
   // The fallback createdAt for an entry that omits its own — sticky, no test in this responder's
   // suite needs more than one distinct value per run.
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })

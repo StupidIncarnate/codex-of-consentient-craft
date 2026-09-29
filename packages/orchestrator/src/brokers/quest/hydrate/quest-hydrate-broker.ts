@@ -16,6 +16,7 @@
  * WHEN-NOT-TO-USE: Anywhere the quest should be produced by a real ChaosWhisperer run.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   addQuestInputContract,
   fileContentsContract,
@@ -67,7 +68,7 @@ export const questHydrateBroker = async ({
   createdAt?: IsoTimestamp;
   updatedAt?: IsoTimestamp;
 }): Promise<{ questId: QuestId }> => {
-  const questId = blueprint.fixedQuestId ?? questIdContract.parse(crypto.randomUUID());
+  const questId = blueprint.fixedQuestId ?? questIdContract.parse(randomUUID());
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
 
   // 1. Create the quest folder + initial quest.json at status 'created'
@@ -159,7 +160,7 @@ export const questHydrateBroker = async ({
       firstActionable === undefined
         ? undefined
         : workItemContract.parse({
-            id: blueprint.fixedWorkItemId ?? questWorkItemIdContract.parse(crypto.randomUUID()),
+            id: blueprint.fixedWorkItemId ?? questWorkItemIdContract.parse(randomUUID()),
             role: firstActionable.role,
             status: 'pending',
             spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role })

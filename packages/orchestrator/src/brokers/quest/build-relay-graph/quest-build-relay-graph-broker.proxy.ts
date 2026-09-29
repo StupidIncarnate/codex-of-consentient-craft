@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Proxy for questBuildRelayGraphBroker — the broker is pure except for
- * crypto.randomUUID (operation + work item ids), which is pinned with a queue of fixed ids.
+ * randomUUID (operation + work item ids), which is pinned with a queue of fixed ids.
  *
  * USAGE:
  * const proxy = questBuildRelayGraphBrokerProxy();
@@ -8,14 +8,19 @@
  * // ...call questBuildRelayGraphBroker...
  */
 
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { randomUUID } from '#gateway/node/crypto';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 export const questBuildRelayGraphBrokerProxy = (): {
   setupUuids: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
 } => {
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
+  const uuidSpy = registerMock({ fn: randomUUID });
+  const realCrypto = requireActual<{ randomUUID: typeof randomUUID }>({
+    module: '#gateway/node/crypto',
+  });
+  uuidSpy.calledWith([]).implement(() => realCrypto.randomUUID());
 
   return {
     setupUuids: ({

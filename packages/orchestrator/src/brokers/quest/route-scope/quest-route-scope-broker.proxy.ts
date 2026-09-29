@@ -24,6 +24,7 @@
  * body, and a caller's suite that imports this file sees them exactly as if it were not there.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { AbsoluteFilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import type { OperationItemId, Quest, QuestStub } from '@dungeonmaster/shared/contracts';
 import {
@@ -103,9 +104,9 @@ export const questRouteScopeBrokerProxy = (): {
 
       // Sequenced ids and a pinned clock, so a minted scope or work item can be asserted whole.
       // Neither global takes an identifying argument, so `[]` is the honest address for both.
-      registerSpyOn({ object: crypto, method: 'randomUUID' })
+      registerMock({ fn: randomUUID })
         .calledWith([])
-        .implement((): ReturnType<typeof crypto.randomUUID> => {
+        .implement((): ReturnType<typeof randomUUID> => {
           const index = uuidCounter.value;
           uuidCounter.value += 1;
           return `00000000-0000-4000-8000-00000000000${String(index)}`;

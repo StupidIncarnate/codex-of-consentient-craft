@@ -1,3 +1,5 @@
+import { stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import type {
   AbsoluteFilePathStub,
   ProcessId,
@@ -109,17 +111,15 @@ export const OrchestrationResumeResponderProxy = (): {
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  registerMock({ fn: randomUUID }).calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
-  // process.stderr.write is a single shared spy across every proxy composed into this test file.
+  // stderr.write is a single shared spy across every proxy composed into this test file.
   // quest-orchestration-loop-broker.proxy.ts (constructed above via questOrchestrationLoopBrokerProxy())
   // already stages the generic `calledWith([])` catch-all this responder's own writes answer
   // through — a second `calledWith([])` registration here would collide (later-wins) rather than
   // add coverage, so this proxy only READS the shared spy, filtering its own prefix out of every
   // call recorded on it.
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
 
   return {
     callResponder: OrchestrationResumeResponder,
@@ -309,7 +309,7 @@ export const OrchestrationResumeResponderProxy = (): {
     getBlockOnFailureCalls: (): readonly unknown[] =>
       blockOnFailureMock.mock.calls.map((call) => call[0]),
 
-    // Filters the shared process.stderr.write spy down to this responder's own lines — see the
+    // Filters the shared stderr.write spy down to this responder's own lines — see the
     // constructor comment on stderrSpy for why this reads rather than re-registers the address.
     getStderrWrites: (): readonly unknown[] =>
       stderrSpy

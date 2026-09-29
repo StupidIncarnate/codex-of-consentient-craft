@@ -22,6 +22,8 @@
  * CLI writes the sub-agent JSONL under.
  */
 
+import { stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, ProcessId, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
@@ -102,7 +104,7 @@ export const chatStreamProcessHandleBroker = ({
           role: 'assistant',
           type: 'text',
           content: rawLine,
-          uuid: crypto.randomUUID(),
+          uuid: randomUUID(),
           timestamp: new Date().toISOString(),
         });
         onEntries({ chatProcessId, entries: [fallbackEntry], sessionId: runtimeSessionId });
@@ -175,7 +177,7 @@ export const chatStreamProcessHandleBroker = ({
               subagentHandles.push(handle);
             })
             .catch((error: unknown) => {
-              process.stderr.write(
+              stderr.write(
                 `chatSubagentTailBroker failed: ${error instanceof Error ? error.message : String(error)}\n`,
               );
             })

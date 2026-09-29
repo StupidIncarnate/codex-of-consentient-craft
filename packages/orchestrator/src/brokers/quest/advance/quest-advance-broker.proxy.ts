@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Proxy for questAdvanceBroker — delegates quest file I/O to the
  * questOperationsUpdateBroker proxy (the broker's only dependency) and pins
- * crypto.randomUUID with a queue of fixed ids so the created work item is deterministic.
+ * randomUUID with a queue of fixed ids so the created work item is deterministic.
  *
  * USAGE:
  * const proxy = questAdvanceBrokerProxy();
@@ -11,9 +11,10 @@
  * const persisted = proxy.getLastPersistedQuest();
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import type { questContract } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
 
@@ -29,9 +30,13 @@ export const questAdvanceBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
 } => {
   const operationsUpdateProxy = questOperationsUpdateBrokerProxy();
-  // The new work item id comes from crypto.randomUUID. Passthrough by default; tests queue
+  // The new work item id comes from randomUUID. Passthrough by default; tests queue
   // deterministic ids via setupUuids.
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
+  const uuidSpy = registerMock({ fn: randomUUID });
+  const realCrypto = requireActual<{ randomUUID: typeof randomUUID }>({
+    module: '#gateway/node/crypto',
+  });
+  uuidSpy.calledWith([]).implement(() => realCrypto.randomUUID());
 
   return {
     setupQuestFound: ({ quest }: { quest: Quest }): void => {

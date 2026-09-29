@@ -1,3 +1,5 @@
+import { randomUUID } from '#gateway/node/crypto';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
 import {
   ExitCodeStub,
@@ -7,7 +9,7 @@ import {
   WorkItemStub,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
@@ -21,7 +23,7 @@ type Quest = ReturnType<typeof QuestStub>;
 type Parsed = ReturnType<typeof questContract.parse>;
 type WorktreePath = NonNullable<Quest['worktreePath']>;
 
-// crypto.randomUUID is sticky-mocked to this literal by chatSpawnBrokerProxy's own constructor
+// randomUUID is sticky-mocked to this literal by chatSpawnBrokerProxy's own constructor
 // (its last registration wins over agentLaunchBrokerProxy's own uuid mock). FollowupChatStartResponder
 // mints a fresh tavernkeeper work item id off the SAME global mock, so this is the id it computes
 // whenever no existing item is found.
@@ -56,7 +58,7 @@ export const FollowupChatStartResponderProxy = (): {
   getModifyCallInputs: () => readonly unknown[];
   captureEmits: (params: { type: OrchestrationEventType }) => readonly CapturedOrchestrationEmit[];
 } => {
-  // Guild default staging, the questModifyBroker auto-mock, and the launcher's crypto.randomUUID +
+  // Guild default staging, the questModifyBroker auto-mock, and the launcher's randomUUID +
   // chatStreamProcessHandle + main-tail + kill-layer + spawn-adapter wiring — everything
   // chatSpawnBroker's real internal chain needs to complete a full spawn. This proxy's own quest-
   // resolution scenario methods (setupSessionLinkQuest, ...) are never
@@ -77,6 +79,10 @@ export const FollowupChatStartResponderProxy = (): {
   const getProxy = questGetBrokerProxy();
   // FollowupChatStartResponder's OWN questModifyBroker persist call(s).
   const modifyProxy = questModifyBrokerProxy();
+  // questModifyBrokerProxy stages a real-uuid passthrough at randomUUID's only address `[]`, and
+  // the later registration wins, so the minted id is restaged after it.
+  registerMock({ fn: randomUUID }).calledWith([]).returns(MINTED_WORK_ITEM_ID);
+  stderrProxy();
   const processStateProxy = orchestrationProcessesStateProxy();
   processStateProxy.setupEmpty();
   const eventsProxy = orchestrationEventsStateProxy();

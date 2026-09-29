@@ -26,6 +26,8 @@
  * //   than an API overload, the retry schedule was spent, or dispatch was paused mid-wait.
  */
 
+import { stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import type {
   AdapterResult,
   ExitCode,
@@ -91,7 +93,7 @@ export const spawnOneAgentLayerBroker = async ({
 
   const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
   const processId = processIdContract.parse(
-    `${orchestrationDispatchStatics.processIdPrefix}-${crypto.randomUUID()}`,
+    `${orchestrationDispatchStatics.processIdPrefix}-${randomUUID()}`,
   );
 
   // Resume path: either orphan recovery retained a crashed session (resumePrompt on the
@@ -145,7 +147,7 @@ export const spawnOneAgentLayerBroker = async ({
           rejection.seen = true;
           rejection.line = line;
         }
-        process.stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
+        stderr.write(`[dev] ◂  stderr  proc:${processId}  ${line}\n`);
       },
       onComplete: ({ exitCode: code }): void => {
         resolve({ exitCode: code });
@@ -186,13 +188,13 @@ export const spawnOneAgentLayerBroker = async ({
             role: workItemRoleContract.parse(instruction.role),
             workItemId: instruction.workItemId,
           }).catch((error: unknown) => {
-            process.stderr.write(
+            stderr.write(
               `[node-dispatch] session cwd record failed for work item ${instruction.workItemId}: ${String(error)}\n`,
             );
           });
         })
         .catch((error: unknown) => {
-          process.stderr.write(
+          stderr.write(
             `[node-dispatch] sessionId stamp failed for work item ${instruction.workItemId}: ${String(error)}\n`,
           );
         }),
@@ -220,20 +222,20 @@ export const spawnOneAgentLayerBroker = async ({
   if (rejection.seen) {
     const hold = await dispatchHoldRejectBroker({ line: rejection.line, nowMs: Date.now() }).catch(
       (error: unknown) => {
-        process.stderr.write(
+        stderr.write(
           `[node-dispatch] failed to record the rate-limit hold for work item ${instruction.workItemId}: ${String(error)}\n`,
         );
         return null;
       },
     );
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} died on a rate-limit refusal — dispatch holds until ${hold === null ? 'the next poll re-reads the state' : hold.resumeAt}\n`,
     );
     return ok;
   }
 
   if (!overload.seen) {
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] ${instruction.role} child for work item ${instruction.workItemId} exited with code ${String(exitCode)} — terminal status is owned by signal-back / orphan recovery\n`,
     );
     return ok;
@@ -242,20 +244,20 @@ export const spawnOneAgentLayerBroker = async ({
   const nextAttempt = overloadAttempt + 1;
   const delayMs = apiOverloadRetryDelayTransformer({ attempt: nextAttempt });
   if (delayMs === null) {
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} still hitting API overload after ${String(overloadAttempt)} retries — schedule spent, handing off to orphan recovery\n`,
     );
     return ok;
   }
 
   if (isPlaying !== undefined && !isPlaying()) {
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} hit API overload but dispatch is paused — abandoning retry\n`,
     );
     return ok;
   }
 
-  process.stderr.write(
+  stderr.write(
     `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} died on API overload — retry ${String(nextAttempt)} in ${String(delayMs)}ms\n`,
   );
   await timerSleepBroker({ ms: delayMs });
@@ -263,7 +265,7 @@ export const spawnOneAgentLayerBroker = async ({
   // The wait is long enough that the world can change under it: the user can pause dispatch, and
   // the dying child may have signalled back before it lost the API. Re-check both before respawning.
   if (isPlaying !== undefined && !isPlaying()) {
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] dispatch paused during API-overload backoff — abandoning retry for work item ${instruction.workItemId}\n`,
     );
     return ok;
@@ -279,7 +281,7 @@ export const spawnOneAgentLayerBroker = async ({
     refreshedItem !== undefined &&
     isTerminalWorkItemStatusGuard({ status: refreshedItem.status })
   ) {
-    process.stderr.write(
+    stderr.write(
       `[node-dispatch] work item ${instruction.workItemId} went terminal during API-overload backoff — no retry needed\n`,
     );
     return ok;

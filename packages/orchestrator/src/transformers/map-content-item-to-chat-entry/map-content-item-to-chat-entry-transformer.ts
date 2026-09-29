@@ -5,6 +5,7 @@
  * mapContentItemToChatEntryTransformer({item: {type: 'text', text: 'hello'}, usage: {inputTokens: 10, outputTokens: 5, cacheCreationInputTokens: 0, cacheReadInputTokens: 0}});
  * // Returns {role: 'assistant', type: 'text', content: 'hello', usage: {...}} or null if unrecognized
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, ChatUsage } from '@dungeonmaster/shared/contracts';
 
@@ -34,7 +35,7 @@ export const mapContentItemToChatEntryTransformer = ({
   durationMs?: number;
 }): ChatEntry | null => {
   const itemType = item.type;
-  const resolvedUuid = typeof uuid === 'string' && uuid.length > 0 ? uuid : crypto.randomUUID();
+  const resolvedUuid = typeof uuid === 'string' && uuid.length > 0 ? uuid : randomUUID();
   const resolvedTimestamp =
     typeof timestamp === 'string' && timestamp.length > 0 ? timestamp : '1970-01-01T00:00:00.000Z';
 

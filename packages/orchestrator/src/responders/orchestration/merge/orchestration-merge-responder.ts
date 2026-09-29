@@ -14,6 +14,7 @@
  * // the status transition itself is rejected.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   getQuestInputContract,
   modifyQuestInputContract,
@@ -84,8 +85,8 @@ export const OrchestrationMergeResponder = async ({
     throw new Error(`Failed to start merge: ${modifyResult.error}`);
   }
 
-  const operationItemId = crypto.randomUUID();
-  const warpgateWorkItemId = questWorkItemIdContract.parse(crypto.randomUUID());
+  const operationItemId = randomUUID();
+  const warpgateWorkItemId = questWorkItemIdContract.parse(randomUUID());
   const now = new Date().toISOString();
 
   await questOperationsUpdateBroker({

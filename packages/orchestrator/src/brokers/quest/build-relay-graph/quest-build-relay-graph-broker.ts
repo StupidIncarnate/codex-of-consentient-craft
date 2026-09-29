@@ -26,6 +26,7 @@
  *   safe — it is a pure function of its inputs.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   operationItemContract,
   questWorkItemIdContract,
@@ -103,7 +104,7 @@ export const questBuildRelayGraphBroker = ({
       : GRAPH_BY_FAMILY.get(firstActionableFamily)?.entry;
 
   const firstWorkItem = workItemContract.parse({
-    id: questWorkItemIdContract.parse(crypto.randomUUID()),
+    id: questWorkItemIdContract.parse(randomUUID()),
     role: firstActionable.role,
     status: 'pending',
     spawnerType: isCommandWorkItemRoleGuard({ role: firstActionable.role }) ? 'command' : 'agent',

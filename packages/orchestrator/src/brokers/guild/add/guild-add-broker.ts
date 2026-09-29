@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Registers a new guild in the dungeonmaster config and creates its quests directory.
  * Accepts an OPTIONAL caller-supplied id — every existing caller passes none and gets a fresh
- * `crypto.randomUUID()` mint, same as before. A caller supplies one when a downstream comparison
+ * `randomUUID()` mint, same as before. A caller supplies one when a downstream comparison
  * (e.g. a hydration recipe seeding the same guild down two independent routes) needs both writes
  * to land on the identical id rather than two random ones that can never match.
  *
@@ -28,6 +28,7 @@
  * reaches.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -73,7 +74,7 @@ export const guildAddBroker = async ({
       ? (await dungeonmasterHomeEnsureBroker()).guildsPath
       : join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 
-  const guildId = guildIdContract.parse(id ?? crypto.randomUUID());
+  const guildId = guildIdContract.parse(id ?? randomUUID());
 
   const guildDir = join(guildsPath, guildId);
   const questsDir = join(guildDir, dungeonmasterHomeStatics.paths.questsDir);

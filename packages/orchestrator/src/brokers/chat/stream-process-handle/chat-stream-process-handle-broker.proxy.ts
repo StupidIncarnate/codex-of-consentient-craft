@@ -1,5 +1,7 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { questGetServerConfigBrokerProxy } from '../../quest/get-server-config/quest-get-server-config-broker.proxy';
@@ -15,6 +17,7 @@ export const chatStreamProcessHandleBrokerProxy = (): {
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
   setPort: (params: { value: string }) => void;
 } => {
+  stderrProxy();
   claudeLineNormalizeBrokerProxy();
   const subagentTailProxy = chatSubagentTailBrokerProxy();
   // The broker now resolves the server's bound port to build the pasted-image rewrite
@@ -25,7 +28,7 @@ export const chatStreamProcessHandleBrokerProxy = (): {
   const serverConfigProxy = questGetServerConfigBrokerProxy();
   serverConfigProxy.setPort({ value: '3737' });
 
-  const uuidMock: SpyOnHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  const uuidMock: SpyOnHandle = registerMock({ fn: randomUUID });
   const dateMock: SpyOnHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
 
   return {
@@ -43,7 +46,7 @@ export const chatStreamProcessHandleBrokerProxy = (): {
     }: {
       uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
     }): void => {
-      // crypto.randomUUID takes no arguments — [] is the honest address. Each call queues a
+      // randomUUID takes no arguments — [] is the honest address. Each call queues a
       // one-shot answer consumed in registration order, same as the mockReturnValueOnce chain
       // this replaces.
       for (const uuid of uuids) {

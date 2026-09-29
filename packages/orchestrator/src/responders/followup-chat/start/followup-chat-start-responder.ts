@@ -9,6 +9,8 @@
  * // spawns/resumes the chat, streaming output via orchestration events
  */
 
+import { stderr } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
 import {
   errorMessageContract,
   getQuestInputContract,
@@ -53,7 +55,7 @@ export const FollowupChatStartResponder = async ({
   const existingItem = questResult.quest.workItems.find((wi) => wi.role === 'tavernkeeper');
 
   const tavernkeeperWorkItemId: QuestWorkItemId =
-    existingItem?.id ?? questWorkItemIdContract.parse(crypto.randomUUID());
+    existingItem?.id ?? questWorkItemIdContract.parse(randomUUID());
   const resumeSessionId = existingItem?.sessionId;
 
   const nowIso = new Date().toISOString();
@@ -133,7 +135,7 @@ export const FollowupChatStartResponder = async ({
             ],
           } as ModifyQuestInput,
         }).catch((error: unknown) => {
-          process.stderr.write(`[followup-chat] work-item update failed: ${String(error)}\n`);
+          stderr.write(`[followup-chat] work-item update failed: ${String(error)}\n`);
         });
 
         orchestrationProcessesState.remove({ processId: chatProcessId });
@@ -187,9 +189,7 @@ export const FollowupChatStartResponder = async ({
         ],
       } as ModifyQuestInput,
     }).catch((modifyError: unknown) => {
-      process.stderr.write(
-        `[followup-chat] work-item failure update failed: ${String(modifyError)}\n`,
-      );
+      stderr.write(`[followup-chat] work-item failure update failed: ${String(modifyError)}\n`);
     });
     throw error;
   }

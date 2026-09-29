@@ -7,6 +7,7 @@
  * // `enqueued[0]` is the first-enqueued quest — the caller uses it to navigate to the execution view.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   questSourceContract,
   smoketestRunIdContract,
@@ -52,7 +53,7 @@ export const SmoketestRunResponder = async ({
     );
   }
 
-  const runId = smoketestRunIdContract.parse(crypto.randomUUID());
+  const runId = smoketestRunIdContract.parse(randomUUID());
   smoketestRunState.start({ runId, suite });
 
   try {

@@ -10,6 +10,7 @@
  * // feedback the quest did not record.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import type {
   CommentBatchEntry,
   Flow,
@@ -30,7 +31,7 @@ export const CommentBatchResponder = async ({
 }): Promise<{ comments: QuestComment[]; flows: Flow[] }> => {
   const minted: QuestComment[] = comments.map((entry) =>
     questCommentContract.parse({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       flowId: entry.flowId,
       nodeId: entry.nodeId,
       ...(entry.observableId === undefined ? {} : { observableId: entry.observableId }),

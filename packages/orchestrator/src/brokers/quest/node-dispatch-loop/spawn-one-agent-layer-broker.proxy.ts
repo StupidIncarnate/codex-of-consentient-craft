@@ -1,3 +1,5 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import {
   DispatchHoldStub,
   GetQuestResultStub,
@@ -82,7 +84,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   questSessionRecordBrokerProxy();
   dispatchHoldRejectBrokerProxy();
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(PROCESS_UUID);
+  registerMock({ fn: randomUUID }).calledWith([]).returns(PROCESS_UUID);
 
   // The refusal path stamps the hold with Date.now(); pinned so the recorded argument is an exact
   // value a test can assert rather than a moving target.
@@ -90,15 +92,9 @@ export const spawnOneAgentLayerBrokerProxy = (): {
     .calledWith([])
     .returns(Date.parse('2026-09-13T04:49:29.242Z'));
 
-  const stderr: unknown[] = [];
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
   // Record-and-swallow: the retry path narrates every decision to stderr, which would bury the
-  // test output. `[]` is the honest address — the line text is what a test asserts, via
-  // getStderrLines below.
-  stderrSpy.calledWith([]).implement(((chunk: unknown) => {
-    stderr.push(String(chunk));
-    return true;
-  }) as never);
+  // test output. The line text is what a test asserts, via getStderrLines below.
+  const stderrChild = stderrProxy();
 
   // No per-test address to key on: the sessionId comes from the child's own init line and the row's
   // content is asserted by the session-record broker's own suite, so this stages an explicit
@@ -236,6 +232,6 @@ export const spawnOneAgentLayerBrokerProxy = (): {
 
     getLastBackoffDelay: (): ElapsedMs | undefined => sleepProxy.getRegisteredDelays().at(-1),
 
-    getStderrLines: (): readonly unknown[] => [...stderr],
+    getStderrLines: (): readonly unknown[] => stderrChild.getWrites().map((chunk) => String(chunk)),
   };
 };

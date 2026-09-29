@@ -17,6 +17,7 @@
  * // Returns ProcessId after validating + enqueuing; the dispatch loop drives the relay from here.
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import {
   getQuestInputContract,
   modifyQuestInputContract,
@@ -76,7 +77,7 @@ export const OrchestrationStartResponder = async ({
   // recomputed while the workspace moves on.
   const packageGraph = await PrepareQuestPackageGraphLayerResponder({ quest });
 
-  const processId = processIdContract.parse(`proc-${crypto.randomUUID()}`);
+  const processId = processIdContract.parse(`proc-${randomUUID()}`);
 
   // Idempotency, keyed on the ONE family Start seeds. Every later family's scopes are minted when
   // the graph routes to it, so there is no tail on the ledger to detect and a check looking for one

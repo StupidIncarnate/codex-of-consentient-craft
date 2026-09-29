@@ -1,9 +1,10 @@
+import { randomUUID } from '#gateway/node/crypto';
 import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { chatEntryContract } from './chat-entry-contract';
 import type { ChatEntry } from './chat-entry-contract';
 
-const stubUuid = (): string => crypto.randomUUID();
+const stubUuid = (): string => randomUUID();
 const stubTimestamp = (): string => new Date().toISOString();
 
 export const UserChatEntryStub = ({ ...props }: StubArgument<ChatEntry> = {}): ChatEntry =>

@@ -1,3 +1,4 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
@@ -105,7 +106,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
@@ -223,7 +224,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       });
 
       const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d4' });
-      const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,
@@ -302,7 +303,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d5' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
@@ -388,7 +389,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d6' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
@@ -489,7 +490,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d3' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
@@ -578,7 +579,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d5' });
-    const cwWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const cwWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,
@@ -656,7 +657,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f2' });
-      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,
@@ -740,7 +741,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
       const flowOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f3' });
-      const flowWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const flowWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       // No sign-off column exists on any unit — proving this accepts because nothing gates on
       // one, not because of a runtime-flow-only filter still running underneath.
@@ -816,7 +817,7 @@ describe('QuestHandleSignalBackResponder (integration) — the two verification 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
       const siegeOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f6' });
-      const siegeWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+      const siegeWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
       await questHelper.seedInProgressRelay({
         questId,
@@ -933,7 +934,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     });
 
     const warpgateOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000f7' });
-    const warpgateWorkItemId = QuestWorkItemIdStub({ value: crypto.randomUUID() });
+    const warpgateWorkItemId = QuestWorkItemIdStub({ value: randomUUID() });
 
     await questHelper.seedInProgressRelay({
       questId,

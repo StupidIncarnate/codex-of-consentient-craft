@@ -2,7 +2,7 @@
  * PURPOSE: Proxy for OrchestrationMergeResponder — composes the child broker/state proxies so the
  * responder AND the brokers it drives (questGetBroker, questModifyBroker,
  * questOperationsUpdateBroker) run REAL with only the fs adapters mocked. Follows the same
- * composition shape as orchestration-start-responder.proxy.ts: crypto.randomUUID is queued with
+ * composition shape as orchestration-start-responder.proxy.ts: randomUUID is queued with
  * fixed ids so the appended operation/work-item ids are deterministic, and
  * Date.prototype.toISOString is pinned by the composed persist proxies so `now` and every
  * broker-stamped timestamp agree.
@@ -14,9 +14,10 @@
  * proxy.getLastPersistedQuest(); // the ledger-append's atomic persist
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { ProcessIdStub, QuestIdStub, questContract } from '@dungeonmaster/shared/contracts';
 import type { QuestWorkItemId, QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
@@ -55,7 +56,13 @@ export const OrchestrationMergeResponderProxy = (): {
   const processesProxy = orchestrationProcessesStateProxy();
   processesProxy.setupEmpty();
 
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
+  const uuidSpy = registerMock({ fn: randomUUID });
+
+  const realCrypto = requireActual<{ randomUUID: typeof randomUUID }>({
+    module: '#gateway/node/crypto',
+  });
+
+  uuidSpy.calledWith([]).implement(() => realCrypto.randomUUID());
   uuidSpy.onceFor([]).returns(WARPGATE_OPERATION_ID);
   uuidSpy.onceFor([]).returns(WARPGATE_WORK_ITEM_ID);
 

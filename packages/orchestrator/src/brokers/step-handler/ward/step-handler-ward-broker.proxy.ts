@@ -21,6 +21,8 @@
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
@@ -75,6 +77,7 @@ export const stepHandlerWardBrokerProxy = (): {
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
 } => {
+  getEnvProxy();
   // `join` has no dedicated proxy (a plain pass-through re-export — see `#gateway/node/path`'s own
   // header), so this stages a real passthrough directly: the ward-results write path is computed
   // for real below rather than stubbed, which is what makes the detail-write assertion meaningful.
@@ -116,9 +119,9 @@ export const stepHandlerWardBrokerProxy = (): {
   const modifyMock = registerMock({ fn: questModifyBroker });
   modifyMock.calledWith([]).resolves(ModifyQuestResultStub({ success: true }));
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
+  registerMock({ fn: randomUUID })
     .calledWith([])
-    .returns(FIXED_WARD_RESULT_UUID as ReturnType<typeof crypto.randomUUID>);
+    .returns(FIXED_WARD_RESULT_UUID as ReturnType<typeof randomUUID>);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
