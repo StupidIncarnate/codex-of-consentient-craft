@@ -575,5 +575,115 @@ Rule and doc batches: TO-1a, TO-1b, TO-2, TO-3, TO-5, the T1 to T6 docs batch, p
 | D4 | `orchestrationEventsStateFacade` is retired with the other carriers (add it to K-orch-1 or K-orch-2). |
 | D5 | `timerHandle` is dead after L4 wave 3: moved out (by L4 T5 if it has not already). |
 
+## Plan — typeNotSchemaInferred queue (R1-T)
+
+Planning pass, 2026-09-29. No code changed. Every hit below is a `typeNotSchemaInferred` line from `npm run ward -- scan @dungeonmaster/require-contract-parse -- packages/<pkg>`, one package at a time, run in this worktree after `shared`'s `dist` was rebuilt at 14:32 (the classifier's `CallSignature` widening from 3cb1197bb is in `dist`, so the counts are current). The rule reads `@dungeonmaster/shared/brokers` through ESLint, which sets no `source` condition, so **every classifier change below needs a `shared` rebuild before the scan moves**.
+
+### Measured
+
+| Package | typeNotSchemaInferred hits | Types |
+|---|---|---|
+| hydration | 8 | `HydrationRunState`, `AnyZodSchema`, `AnyZodObjectSchema`, `AnyIngredient`, `Registry` (all four in `ingredient-config`), `OpFilterNestedOp`, `AnyRecipeInputSchema`, `NoRecipeInputSchema` |
+| hooks | 3 | `SettingsHookListEntry`, `PreEditLintConfig`, `RuleConfig` |
+| testing | 3 | `HttpMethod`, `InstallTestbed`, `TestGuild` |
+| cli | 2 | `DependencyKey`, `DependencyVersion` |
+| hydration-recipes | 2 | `DmResponseBody`, `RecipeCatalogEntry` |
+| mcp | 2 | `ToolRegistration`, `TreeNode` |
+| server | 2 | `IsoTimestamp`, `ProcessId` |
+| eslint-plugin | 1 | `RuleViolation` |
+| shared | 1 | `WorkItemForUpsert` |
+| orchestrator, siegelense | 0 | (orchestrator still reads 3 `contractNeverParsed`; siegelense reads 0 in all) |
+| web, tooling, config, ward, local-eslint, session-forensics | 0 | measured too, because no other agent had; web still reads 12 `contractNeverParsed` (the W1 brands) |
+
+Total 24. All 24 are in files whose other exports are fine; the scan reports each once per type, on the first token of the file.
+
+### Decision per hit
+
+Codes: **(a)** a sanctioned exception the rule must exempt; **(b)** convert to `z.infer` of a named schema in the file; **(c)** a types-only method set or data-plus-functions the classifier misses.
+
+| Type (file under `packages/<pkg>/src/contracts/`) | Class | Decision | Cite |
+|---|---|---|---|
+| hooks `SettingsHookListEntry` (`claude-settings/`) | (b) | `settingsHookListEntryContract = z.union([preToolUseHookContract, postToolUseHookContract, sessionStartHookContract, subagentStartHookContract, subagentStopHookContract, worktreeCreateHookContract])`, non-exported like its siblings; the type becomes `z.infer` of it. | b14 row 5 (CONV) |
+| hooks `RuleConfig` (`rule-config/`) | (b) | The `message?: Message \| ((hookData: unknown) => Message)` half is a hand-written data-plus-callable member (`Message \| fn` is not a function type, so the classifier says `other`). Put it in the schema: `message: z.union([messageContract, z.custom<(hookData: unknown) => Message>((value) => typeof value === 'function')]).optional()`, the same `z.custom` + `typeof` pattern as `ingredientDefaultsFnContract` (`ingredient-config-contract.ts:47`). `RuleConfig` becomes `z.infer<typeof ruleConfigContract>`. | not in b14 table; 4.0 row 6 says "the clean fix is in `rule-config-contract.ts`" |
+| hooks `PreEditLintConfig` (`pre-edit-lint-config/`) | (b) | With `message` inside `ruleConfigContract`, the `Omit<...> & { rules: ... }` substitution has no reason left: `PreEditLintConfig = z.infer<typeof preEditLintConfigContract>`. Same batch as `RuleConfig`. | b14 row 6 (called KEEP-3, but its data half is a hand-written array, not functions) |
+| cli `DependencyKey`, `DependencyVersion` (`dependency-map/`) | (b) | `z.infer<typeof dependencyMapContract.keyType>` has a property access in its `typeof`; the classifier accepts only a bare identifier (`type-node-shape-classify-layer-transformer.ts:78`). Extract `dependencyKeyContract = z.string().brand<'DependencyKey'>()` and `dependencyVersionContract`, use them in the `z.record`, and infer from each. No rule change. | 4.0 did not list it |
+| hydration `HydrationRunState` (`hydration-run-state/`) | (b) | `records: Map<RowRef, unknown>` and `saved: Map<SavedRecordName, unknown>` are data. Move both into `hydrationRunStateContract` as `z.map(rowRefContract, z.unknown())` and `z.map(savedRecordNameContract, z.unknown())`; the type becomes `z.infer`. Same file as R1-hydration-b (which adds the parse), so it rides that batch. | b14 row 11 names `hydrationTarget`, not this file |
+| hydration `AnyZodSchema`, `AnyZodObjectSchema` (`ingredient-config/`) | (b) | Delete both aliases; each use site writes the library type through `#gateway/npm/zod` (`z.ZodType`, `z.ZodObject<z.ZodRawShape>`). Users: `op-attach-apply-layer-broker.ts`, `op-create-apply-layer-broker.ts`, `op-update-apply-layer-broker.ts`, `plan-preflight-broker.ts`. | b14 row 12 (CONV, C2) |
+| hydration `AnyRecipeInputSchema`, `NoRecipeInputSchema` (`recipe-def/`) | (b) | Same: delete, write `z.ZodTypeAny` and `z.ZodType<undefined>` at the users `hydration-create-broker.ts`, `recipe-declare-broker.ts`, `hydration-target-contract.ts` and inside `RecipeInputOf` in the same file. | b14 row 17 (CONV) |
+| hydration `OpFilterNestedOp` (`op-filter/`) | (b) | Delete; users `op-filter-apply-layer-broker.ts` and `op-filter-transformer.ts` write `OpFilter['ops'][number]`. | b14 row 16 (CONV, B5) |
+| hydration `AnyIngredient` and `Registry` (`ingredient-config/`) | (a) | 4.0 keeps both (row 12 KEEP-2: "Phantom keys and conditional types. `Registry = Record<string, AnyIngredient>` is a plain alias over a keep-2 type"). The classifier exempts a compile-time type only when the declaration has type parameters (`contract-file-exports-read-layer-transformer.ts:63`); these two have none. Rule change **RC-2**. | b14:222-224 exception 2 |
+| hydration-recipes `DmResponseBody` (`dm-response-body/`) | (b) | Hand-written recursive JSON type with a `z.ZodType<DmResponseBody>` annotation on the const. Replace with `export const dmResponseBodyContract = z.json();` and `DmResponseBody = z.infer<typeof dmResponseBodyContract>`; the JSON value set is the same. The R1 table's `uploadProgressPost` row already plans `z.json()` for its `body` (W8 row 106). | not in b14 table |
+| hydration-recipes `RecipeCatalogEntry` (`recipe-catalog-entry/`) | (b) then (c) | `inputs?: z.ZodType \| undefined` is data (a schema value), so 4.0's KEEP-3 (row 21) misses it. Move `inputs` into `recipeCatalogEntryContract` as `zodSchemaContract.optional()` (the `z.custom` instanceof check `recipe-def-contract.ts:20` already uses). The remaining intersection member holds `probeListing` and `execute`, both functions; its left half `RecipeCatalogEntryData` is an alias, so it needs **RC-1**. | b14 row 21 |
+| mcp `ToolRegistration` (`tool-registration/`) | (c) | `z.infer<typeof toolRegistrationContract> & { handler: ToolHandler }` where `ToolHandler` is a same-file function type. The classifier sees a property typed by an identifier and says `data`. Rule change **RC-1** (resolve a same-file alias). | b14 row 22 (KEEP-1) |
+| mcp `TreeNode` (`tree-node/`) | (b) | `children: Map<FolderName, TreeNode>` is data. Add `get children(): ...` returning `z.map(folderNameContract, treeNodeContract)` to `treeNodeContract`, the self-reference form `op-filter-contract.ts:59-74` documents (the getter's return type wraps `z.core.$ZodType<...>`). The type becomes `z.infer`. Rides R1-mcp-c, which already parses `treeNode`. | not in b14 table |
+| server `IsoTimestamp`, `ProcessId` (`iso-timestamp/`, `process-id/`) | (b) | Re-export aliases. Repoint the two users (`server-init-responder.ts` to `@dungeonmaster/orchestrator`'s `isoTimestampContract`, `process-id-params-contract.ts` to `@dungeonmaster/shared/contracts`'s `processIdContract`), then move the two contract files with their stubs and tests out (rule 8). | b14 rows 32, 33 (DROP) |
+| eslint-plugin `RuleViolation` (`rule-violation/`) | (b) | `fix?` and `suggest?` are a callable and an array of `{ desc; fix }` records, so the intersection's literal half is data. Move both into the schema: `fix: z.custom<(...args: unknown[]) => unknown>((value) => typeof value === 'function').optional()` and `suggest: z.array(z.object({ desc: suggestionDescriptionContract, fix: <same custom> })).readonly().optional()`; drop the type-only `SuggestionDescription` helper's comment. **Rides R1-eslint-b** (`ruleViolation`, blocked on B06), so this hit joins that blocked row. | not in b14 table |
+| shared `WorkItemForUpsert` (`work-item-for-upsert/`) | (b) | `z.infer<typeof workItemForUpsertContract>` in place of `ReturnType<typeof workItemForUpsertContract.parse>`. One line. | b14 row 35 (CONV) |
+| testing `HttpMethod` (`endpoint-control/`) | (b) | `endpointHttpMethodContract = z.enum([...])`; already planned as K-test-1 (b02 R1-K Part 3). No new batch: K-test-1 clears it. | b14 row 37 (CONV) |
+| testing `InstallTestbed`, `TestGuild` (`install-testbed/`, `test-guild/`) | (c) | `InstallTestbedData & { ...functions }` and `TestGuildData & { ...functions }`: each left half is a same-file alias of `z.infer` and each literal half is only functions. Rule change **RC-1**. | b14 rows 38, 40 (KEEP-3) |
+
+Classes: 5 exempt through the rule (RC-1: `ToolRegistration`, `InstallTestbed`, `TestGuild`; RC-2: `AnyIngredient`, `Registry`), 19 converted. `RecipeCatalogEntry` is counted with the converts and also needs RC-1.
+
+### The rule changes, in one batch
+
+One agent, `packages/shared` only, five files: `src/transformers/contract-index-from-sources/type-node-shape-classify-layer-transformer.ts` and `.test.ts`, `contract-file-exports-read-layer-transformer.ts` and `.test.ts`, `contract-index-from-sources-transformer.test.ts`. The rule broker and the eslint-plugin config do not change.
+
+| Change | Shape it exempts | How |
+|---|---|---|
+| **RC-1** same-file alias resolution | A reference to a type alias or interface declared at the top level of the same file resolves to that declaration's right-hand side, at the top of the type, as an intersection member and as a property type. `InstallTestbedData` resolves to `inferred`; `handler: ToolHandler` resolves to a function property; `RecipeCatalogEntryData` resolves to `inferred`. A visited-name set stops a cycle. | The reader passes the file's alias map to the classifier (a new `typeAliases` parameter beside `schemaNames`). Nothing crosses files. |
+| **RC-2** phantom carrier | An interface whose every member is a computed property keyed by a `unique symbol` const declared in the same file (`readonly [ING]: unknown`). `Record<string, X>` and `Readonly<X>` of such a type carry it (`Registry`). New shape `'phantom'`, counted as exempt beside `functions`. | Reads the `declare const ING: unique symbol` declaration from the file's statements, as `schemaNames` is read. |
+
+The concession if the operator declines RC-2: a per-file rule override in the eslint config for `packages/hydration/src/contracts/ingredient-config/ingredient-config-contract.ts` only, with a comment naming b14 exception 2. It is weaker: the override also stops grading that file's other types.
+
+Tests: the classifier test gains the five shapes above as fixtures (valid), and keeps a `Record<string, SomeDataInterface>` and an alias of a data literal as `other` (invalid), so the widening is proved narrow. Ward for the batch: `npm run ward -- --only lint,typecheck,unit -- <the five files>`. **BUILD NEEDED: `@dungeonmaster/shared`**, run by the coordinator, before any re-scan.
+
+### Convert batches
+
+Each: 2 to 4 contract or user files plus their stubs and tests, `npm run ward -- --only lint,typecheck,unit -- <touched files>`, then the package re-scan whose `typeNotSchemaInferred` count falls by exactly the batch's types. Batches in different packages run side by side (cap four); batches in one package run in order.
+
+| Batch | Package | Files | Types cleared | Waits for |
+|---|---|---|---|---|
+| T-hooks | hooks | `claude-settings-contract.ts`, `rule-config-contract.ts`, `pre-edit-lint-config-contract.ts` (+ their tests and stubs) | `SettingsHookListEntry`, `RuleConfig`, `PreEditLintConfig` | nothing |
+| T-cli | cli | `dependency-map-contract.ts` (+ stub, test) | `DependencyKey`, `DependencyVersion` | nothing |
+| T-shared | shared | `work-item-for-upsert-contract.ts` | `WorkItemForUpsert` | nothing |
+| T-server | server | `iso-timestamp-contract.ts`, `process-id-contract.ts` (moved out), `server-init-responder.ts`, `process-id-params-contract.ts` | `IsoTimestamp`, `ProcessId` | nothing |
+| T-hyd-a | hydration | `ingredient-config-contract.ts`, `op-attach-apply-layer-broker.ts`, `op-create-apply-layer-broker.ts`, `op-update-apply-layer-broker.ts` | `AnyZodSchema` | R1-hydration-a/b done (same barrel) |
+| T-hyd-b | hydration | `ingredient-config-contract.ts`, `plan-preflight-broker.ts` | `AnyZodObjectSchema` | T-hyd-a |
+| T-hyd-c | hydration | `recipe-def-contract.ts`, `hydration-create-broker.ts`, `recipe-declare-broker.ts`, `hydration-target-contract.ts` | `AnyRecipeInputSchema`, `NoRecipeInputSchema` | T-hyd-b, and R1-hydration-b (edits `hydration-target-contract.ts`) |
+| T-hyd-d | hydration | `op-filter-contract.ts`, `op-filter-apply-layer-broker.ts`, `op-filter-transformer.ts` | `OpFilterNestedOp` | T-hyd-c |
+| R1-hydration-b (amended) | hydration | adds `hydration-run-state-contract.ts`'s two maps | `HydrationRunState` | as before |
+| T-hyr | hydration-recipes | `dm-response-body-contract.ts` (its only type user is `dm-response-body.stub.ts`), `recipe-catalog-entry-contract.ts`, and `recipes-catalog-broker.ts` (the one production file that names `RecipeCatalogEntry` and reads `.inputs`) | `DmResponseBody`, `RecipeCatalogEntry` | RC-1 rebuilt |
+| R1-mcp-c (amended) | mcp | adds `tree-node-contract.ts`'s `children` getter | `TreeNode` | as before |
+| R1-eslint-b (amended) | eslint-plugin | adds `rule-violation-contract.ts`'s `fix` and `suggest` | `RuleViolation` | as before (blocked) |
+| K-test-1 (unchanged) | testing | `endpoint-control-contract.ts` | `HttpMethod` | as before |
+
+The two ingredient-config batches and T-hyd-c/d share the hydration barrel and `ingredient-config-contract.ts`, so they run one after another: one agent chain. T-hyd-a's four files are one over the "2 to 4 users" comfort line only because three are one-line type swaps; if the agent finds more than four users, split by user rather than by type.
+
+Risk to check in T-hyr: `recipeCatalogEntryContract.parse` now returns `inputs` as `unknown` (a `z.custom` with no type argument, as `recipe-def-contract.ts:17-19` explains, avoids `StubArgument`'s expansion of a `ZodType`'s methods). Any reader that calls `.parse` on `entry.inputs` needs its own narrowing; the agent runs the recipe catalog and hydration-recipes unit suites and reports the readers it edits.
+
+### Can R1's rule switch on after this queue?
+
+`typeNotSchemaInferred` reads 0 everywhere once RC-1, RC-2, the eight convert batches and the three amended rows land. The rule as a whole switches on only when the second message reads 0 too. What the scans read now for `contractNeverParsed`:
+
+| Package | Still unparsed | Row that clears it |
+|---|---|---|
+| eslint-plugin | `astNode`, `eslintRuleName`, `ruleViolation` | R1-eslint-b (blocked: L2/C2 and B06); `eslintRuleName` is R1-eslint-a and has not landed |
+| orchestrator | `followupDepth`, `slotManagerResult`, `workItemId` | R1-orch-h; the first two move out under the operator decision, `workItemId` waits for W3 |
+| shared | `adapterResult`, `claudeQueueResponse`, `wardQueueResponse`, `wardRunId`, `resultStreamLine`, `systemInitStreamLine` | R1-shared-f and R1-shared-g (operator decisions recorded above); `adapterResult` is in no batch: B18 deletes `AdapterResult`, so it needs an owner or a note under B18 |
+| testing | `baseName`, `commandName` (W1); `endpointControl`, `endpointMockLifecycle`, `mockHandle`, `mockStaging`, `recordedCalls` (K-test-1/2); `isolateModulesMock`, `mockProcessBehavior`, `mockSpawnResult`, `pendingRequest`, `proxyMockQueueEntry`, `stagedCall` (R1-testing-a/b) | the testing batches |
+| web | 12 contracts | R1-web-w1 (the W1 codemod) |
+| cli, hooks, hydration, hydration-recipes, mcp, server, siegelense, tooling, config, ward, local-eslint, session-forensics | 0 | done |
+
+So the switch-on waits on: R1-T (this queue), R1-eslint-a and -b, R1-orch-h, the W1 and W3 blocked rows (testing `baseName`/`commandName`, web's 12, `workItemId`), the shared-f/g decisions with an owner for `adapterResult`, and the testing batches. The change itself stays as written under "Order and switch-on": rule config `off` to `error`, then `npm run ward -- --only lint -- <a file per package>` as the probe.
+
+### Operator decisions for R1-T (2026-09-29 afternoon)
+
+| # | Decision |
+|---|---|
+| T-D1 | RC-1 yes: the classifier resolves a type alias declared in the same file. |
+| T-D2 | RC-2 yes, narrowly: an interface keyed only by a same-file `unique symbol` (and `Record`/`Readonly` of one) is an exempt phantom carrier. No per-file override. |
+| T-D3 | `adapterResult` belongs to B18's last step ("remove `adapterResultContract`"), after B18's `sh-1` and `c-5` leftovers land. |
+| T-D4 | T-server is dropped: the R1 index agent already owns `iso-timestamp` and `process-id`. |
+
 ## Concessions made while executing
 
