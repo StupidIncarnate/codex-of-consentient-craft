@@ -28,10 +28,12 @@ export const GuildEmptyStateWidgetProxy = (): {
 
   return {
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {
-      await userEvent.type(screen.getByTestId('GUILD_NAME_INPUT'), value, userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_NAME_INPUT'), userEventStatics.options);
+      await userEvent.paste(value);
     },
     typeGuildPath: async ({ value }: { value: string }): Promise<void> => {
-      await userEvent.type(screen.getByTestId('GUILD_PATH_INPUT'), value, userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_PATH_INPUT'), userEventStatics.options);
+      await userEvent.paste(value);
     },
     getGuildPathValue: (): HTMLElement['textContent'] => {
       const wrapper = screen.getByTestId('GUILD_PATH_INPUT');
