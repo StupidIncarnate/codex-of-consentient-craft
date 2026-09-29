@@ -100,4 +100,30 @@ describe('runSyncWithInput()', () => {
 
     expect(proxy.getSpawnedEnvFor({ command: 'hook', args: [], cwd: '/repo' })).toBe(undefined);
   });
+
+  it('VALID: {called twice with one command and cwd} => getCallsFor returns each full argument tuple in call order', () => {
+    const proxy = runSyncWithInputProxy();
+    proxy.setupResult({
+      command: 'hook',
+      args: ['--a'],
+      cwd: '/repo',
+      status: 0,
+      stdout: '',
+      stderr: '',
+    });
+
+    runSyncWithInput({ command: 'hook', args: ['--a'], cwd: '/repo', input: 'one' });
+    runSyncWithInput({
+      command: 'hook',
+      args: ['--a'],
+      cwd: '/repo',
+      input: 'two',
+      env: { ONLY: 'this' },
+    });
+
+    expect(proxy.getCallsFor({ command: 'hook', args: ['--a'], cwd: '/repo' })).toStrictEqual([
+      ['hook', ['--a'], { cwd: '/repo', input: 'one', encoding: 'utf8' }],
+      ['hook', ['--a'], { cwd: '/repo', input: 'two', encoding: 'utf8', env: { ONLY: 'this' } }],
+    ]);
+  });
 });

@@ -24,6 +24,7 @@ export const runSyncWithInputProxy = (): {
   }) => void;
   getInputFor: (params: { command: string; args: string[]; cwd: string }) => unknown;
   getSpawnedEnvFor: (params: { command: string; args: string[]; cwd: string }) => unknown;
+  getCallsFor: (params: { command: string; args: string[]; cwd: string }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: spawnSync });
   const calls: SpawnedCall[] = [];
@@ -72,5 +73,12 @@ export const runSyncWithInputProxy = (): {
     getInputFor: (params): unknown => findLast(params)?.input,
 
     getSpawnedEnvFor: (params): unknown => findLast(params)?.env,
+
+    getCallsFor: ({ command, args, cwd }): readonly unknown[][] =>
+      handle.callsMatching([
+        command,
+        args,
+        (options: unknown): boolean => (options as { cwd?: string }).cwd === cwd,
+      ]),
   };
 };

@@ -132,4 +132,25 @@ describe('spawnPiped()', () => {
       expect(proxy.getKillCountFor({ command: 'worker', args: [], cwd: '/repo' })).toBe(1);
     });
   });
+
+  describe('getCallsFor()', () => {
+    it('VALID: {two spawns of one binary, differing cwd} => each call recorded as its full tuple, only the matching cwd read back', () => {
+      const proxy = spawnPipedProxy();
+      proxy.setupChild({ command: 'worker', args: ['--fast'], cwd: '/repo' });
+      proxy.setupChild({ command: 'worker', args: ['--fast'], cwd: '/other' });
+
+      spawnPiped({ command: 'worker', args: ['--fast'], cwd: '/repo', env: { ONLY: 'this' } });
+      spawnPiped({ command: 'worker', args: ['--fast'], cwd: '/other' });
+
+      expect(
+        proxy.getCallsFor({ command: 'worker', args: ['--fast'], cwd: '/repo' }),
+      ).toStrictEqual([
+        [
+          'worker',
+          ['--fast'],
+          { cwd: '/repo', stdio: ['pipe', 'pipe', 'pipe'], env: { ONLY: 'this' } },
+        ],
+      ]);
+    });
+  });
 });

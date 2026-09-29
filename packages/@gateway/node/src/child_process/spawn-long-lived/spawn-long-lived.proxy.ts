@@ -14,6 +14,7 @@ interface MockChild extends EventEmitter {
 export const spawnLongLivedProxy = (): {
   setupSuccess: (params: { command: string }) => { killMock: () => number };
   setupSpawnError: (params: { command: string; error: Error }) => void;
+  getCallsFor: (params: { command: string }) => readonly unknown[][];
   captureStderrWrites: () => string[];
 } => {
   const handle = registerMock({ fn: spawn });
@@ -47,6 +48,9 @@ export const spawnLongLivedProxy = (): {
         return child as ChildProcess;
       });
     },
+
+    getCallsFor: ({ command }: { command: string }): readonly unknown[][] =>
+      handle.callsMatching([command]),
 
     captureStderrWrites: (): string[] =>
       stderrWriteSpy.callsMatching([]).map((call) => String(call[0])),

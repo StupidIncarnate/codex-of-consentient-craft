@@ -23,6 +23,7 @@ export const spawnLiveProxy = (): {
   setupNullStdout: (params: { command: string }) => void;
   setupSpawnError: (params: { command: string; error: Error }) => ChildProcess;
   getSpawnedOptions: (params: { command: string }) => unknown;
+  getCallsFor: (params: { command: string }) => readonly unknown[][];
   captureStderrWrites: () => string[];
 } => {
   const handle = registerMock({ fn: spawn });
@@ -57,6 +58,9 @@ export const spawnLiveProxy = (): {
 
     getSpawnedOptions: ({ command }: { command: string }): unknown =>
       handle.callsMatching([command]).at(-1)?.[2],
+
+    getCallsFor: ({ command }: { command: string }): readonly unknown[][] =>
+      handle.callsMatching([command]),
 
     captureStderrWrites: (): string[] =>
       stderrWriteSpy.callsMatching([]).map((call) => String(call[0])),

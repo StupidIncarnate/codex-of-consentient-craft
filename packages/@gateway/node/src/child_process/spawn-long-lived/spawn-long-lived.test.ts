@@ -46,4 +46,17 @@ describe('spawnLongLived()', () => {
       expect(kill).toStrictEqual(expect.any(Function));
     });
   });
+
+  describe('getCallsFor()', () => {
+    it('VALID: {spawned with args and cwd} => the full argument tuple is read back', () => {
+      const proxy = spawnLongLivedProxy();
+      proxy.setupSuccess({ command: 'npx' });
+
+      spawnLongLived({ command: 'npx', args: ['vite'], cwd: '/path' });
+
+      expect(proxy.getCallsFor({ command: 'npx' })).toStrictEqual([
+        ['npx', ['vite'], { cwd: '/path', stdio: 'pipe', detached: false }],
+      ]);
+    });
+  });
 });

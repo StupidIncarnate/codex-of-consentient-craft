@@ -112,4 +112,17 @@ describe('spawnLive()', () => {
     ).toBe(true);
     expect(result.stdout).toBe(child.stdout);
   });
+
+  it('VALID: {spawned twice} => getCallsFor returns each full argument tuple in call order', () => {
+    const proxy = spawnLiveProxy();
+    proxy.setupSuccess({ command: 'claude' });
+
+    spawnLive({ command: 'claude', args: ['-p', 'hi'], cwd: '/repo' });
+    spawnLive({ command: 'claude', args: [], stdin: 'ignore' });
+
+    expect(proxy.getCallsFor({ command: 'claude' })).toStrictEqual([
+      ['claude', ['-p', 'hi'], { stdio: ['inherit', 'pipe', 'pipe'], cwd: '/repo' }],
+      ['claude', [], { stdio: ['ignore', 'pipe', 'pipe'] }],
+    ]);
+  });
 });

@@ -37,6 +37,7 @@ export const spawnPipedProxy = (): {
   getWrittenLinesFor: (params: { command: string; args: string[]; cwd: string }) => string[];
   getKillCountFor: (params: { command: string; args: string[]; cwd: string }) => number;
   getSpawnedEnvFor: (params: { command: string; args: string[]; cwd: string }) => unknown;
+  getCallsFor: (params: { command: string; args: string[]; cwd: string }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: spawn });
   const spawned: SpawnedChild[] = [];
@@ -124,5 +125,12 @@ export const spawnPipedProxy = (): {
     getKillCountFor: (params): number => findLast(params)?.killCount.value ?? 0,
 
     getSpawnedEnvFor: (params): unknown => findLast(params)?.env,
+
+    getCallsFor: ({ command, args, cwd }): readonly unknown[][] =>
+      handle.callsMatching([
+        command,
+        args,
+        (options: unknown): boolean => (options as { cwd?: string }).cwd === cwd,
+      ]),
   };
 };
