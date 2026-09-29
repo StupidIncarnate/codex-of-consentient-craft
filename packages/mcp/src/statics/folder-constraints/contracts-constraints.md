@@ -10,6 +10,20 @@ contracts/
     user-id-contract.ts
     user-id-contract.test.ts
     user-id.stub.ts
+  active-quest-facade/
+    active-quest-facade-contract.ts   # types only: no test, no stub
+```
+
+**Plain data is always a schema.** A contract file may export only types when Zod cannot check the shape: a method
+set, a function type, a generic. Such a file has no const, no `-contract.test.ts` and no `.stub.ts`. The same
+file holds no data member: a type with data goes through a schema (pattern 3 below).
+
+```typescript
+// contracts/active-quest-facade/active-quest-facade-contract.ts
+export type ActiveQuestFacade = {
+    setActive: (quest: unknown) => void;
+    clear: () => void;
+};
 ```
 
 **NAMING CONVENTIONS:**
@@ -46,6 +60,8 @@ export type User = z.infer<typeof userContract>;
 - ❌ WRONG: `import { userContract } from "./user-contract"`
 - This is enforced by `@dungeonmaster/ban-contract-in-tests` ESLint rule
 - Stub files re-export the contract implementation for test use
+- A test of code that takes a types-only contract's type passes an object literal; TypeScript types it structurally,
+  so the test names no contract and no stub
 
 **STUB PATTERNS:**
 
@@ -83,6 +99,10 @@ export const FilePathStub = (
 ```
 
 **3. Mixed Data + Function Stubs (our own types with both data and functions):**
+
+A type with data and functions keeps the const for its data half and a stub. A type whose every member is a function,
+a function type or a generic method set has no schema to write: its file exports only types (see FOLDER STRUCTURE), with
+no const, stub or test.
 
 ```typescript
 
@@ -134,6 +154,9 @@ re-declares a library type by hand is wrong.
 - Data properties MUST be validated through `contract.parse()`
 - Function properties MUST be preserved outside parse (maintains references for `jest.fn()`)
 - Import colocated contract from same directory
+
+A stub of a types-only contract exists only where a test double has many users. It imports the type with
+`import type` and returns a typed literal without a parse.
 
 **STUBS vs PROXIES:**
 

@@ -130,6 +130,14 @@ export const architectureFolderDetailBroker = ({
   if (config.requireStub) {
     sections.push(contentTextContract.parse(`- Stub: \`{name}.stub${extension}\`\n`));
   }
+
+  if (folderType === 'contracts') {
+    sections.push(
+      contentTextContract.parse(
+        'A file whose every export is a type Zod cannot check (a function type, a method set, a generic) exports only types and needs no test or stub.\n',
+      ),
+    );
+  }
   sections.push(contentTextContract.parse(''));
 
   // 6. Special Features

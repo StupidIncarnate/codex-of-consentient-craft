@@ -47,6 +47,38 @@ describe('contractFileExportsReadLayerTransformer', () => {
       });
     });
 
+    it('VALID: {types-only file of a call-signature property and a length-plus-functions interface} => no consts and every type exempt', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/mock-handle-contract.ts',
+        [
+          'export type MockHandle = {',
+          '  calledWith: (args: readonly unknown[]) => MockStaging;',
+          '  callsMatching: {',
+          '    (args: readonly []): RecordedCalls;',
+          '    (args: readonly unknown[]): unknown[][];',
+          '  };',
+          '};',
+          'export interface RecordedCalls {',
+          '  readonly length: number;',
+          '  map: <U>(fn: (call: unknown[], index: number) => U) => U[];',
+          '  [Symbol.iterator]: () => IterableIterator<unknown[]>;',
+          '}',
+        ].join('\n'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractFileExportsReadLayerTransformer({ sourceFile });
+
+      expect(result).toStrictEqual({
+        exportedConstNames: [],
+        typeExports: [
+          { typeName: 'MockHandle', isSchemaInferred: false, isExempt: true },
+          { typeName: 'RecordedCalls', isSchemaInferred: false, isExempt: true },
+        ],
+      });
+    });
+
     it('VALID: {unexported const, destructured export} => lists only exported identifier consts', () => {
       const sourceFile = ts.createSourceFile(
         '/repo/thing-contract.ts',

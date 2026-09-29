@@ -166,7 +166,7 @@ describe('architectureFolderDetailBroker', () => {
       );
 
       expect(section).toBe(
-        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}-contract.ts`\n\n- Test: `{name}-contract.test.ts`\n\n- Stub: `{name}.stub.ts`\n\n\n',
+        '## Required Files\n\n**Proxy Required:** No\n\n- Implementation: `{name}-contract.ts`\n\n- Test: `{name}-contract.test.ts`\n\n- Stub: `{name}.stub.ts`\n\nA file whose every export is a type Zod cannot check (a function type, a method set, a generic) exports only types and needs no test or stub.\n\n\n',
       );
     });
 

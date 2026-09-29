@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Says how a contract file's exported type relates to the schemas in that file. Reach for
  * this to tell a type inferred from a schema (`z.infer<typeof xContract>`) from the three shapes Zod
- * has no schema for: a function type or method set, and data plus functions
+ * has no schema for: a function type or method set (a call-signature property and a `length`
+ * member included), and data plus functions
  * (`z.infer<typeof xContract> & { send: () => void }`).
  *
  * USAGE:
@@ -33,15 +34,30 @@ export const typeNodeShapeClassifyLayerTransformer = ({
 
   if (ts.isTypeLiteralNode(node) || ts.isInterfaceDeclaration(node)) {
     const { members } = node;
-    const isMethodSet =
-      members.length > 0 &&
-      members.every(
-        (member) =>
-          ts.isMethodSignature(member) ||
-          (ts.isPropertySignature(member) &&
-            member.type !== undefined &&
-            ts.isFunctionTypeNode(member.type)),
-      );
+    const memberKinds = members.map((member) => {
+      if (ts.isMethodSignature(member)) {
+        return 'function';
+      }
+      if (!ts.isPropertySignature(member) || member.type === undefined) {
+        return 'data';
+      }
+      if (ts.isFunctionTypeNode(member.type)) {
+        return 'function';
+      }
+      if (
+        ts.isTypeLiteralNode(member.type) &&
+        member.type.members.length > 0 &&
+        member.type.members.every((inner) => inner.kind === ts.SyntaxKind.CallSignature)
+      ) {
+        return 'function';
+      }
+      return ts.isIdentifier(member.name) &&
+        member.name.text === 'length' &&
+        member.type.kind === ts.SyntaxKind.NumberKeyword
+        ? 'length'
+        : 'data';
+    });
+    const isMethodSet = memberKinds.includes('function') && !memberKinds.includes('data');
     return isMethodSet && !(ts.isInterfaceDeclaration(node) && node.heritageClauses !== undefined)
       ? 'functions'
       : 'other';
@@ -63,6 +79,26 @@ export const typeNodeShapeClassifyLayerTransformer = ({
         schemaNames.some((schemaName) => String(schemaName) === firstArgument.exprName.getText())
         ? 'inferred'
         : 'other';
+    }
+
+    if (ts.isIdentifier(typeName) && typeName.text === 'Readonly' && firstArgument !== undefined) {
+      return typeNodeShapeClassifyLayerTransformer({ node: firstArgument, schemaNames }) ===
+        'functions'
+        ? 'functions'
+        : 'other';
+    }
+
+    const [, keyArgument] = typeArguments ?? [];
+    if (
+      ts.isIdentifier(typeName) &&
+      typeName.text === 'Pick' &&
+      firstArgument !== undefined &&
+      firstArgument.kind === ts.SyntaxKind.ArrayType &&
+      keyArgument !== undefined &&
+      keyArgument.kind === ts.SyntaxKind.LiteralType &&
+      ['"length"', "'length'"].includes(keyArgument.getText())
+    ) {
+      return 'functions';
     }
 
     if (

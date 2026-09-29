@@ -138,6 +138,55 @@ describe('contractIndexFromSourcesTransformer', () => {
     });
   });
 
+  describe('types-only contract files', () => {
+    it('VALID: {a file exporting only call-signature and method-set types} => no contract names, every type exempt, not parsed', () => {
+      const handleFile = AbsoluteFilePathStub({
+        value: '/repo/packages/alpha/src/contracts/mock-handle/mock-handle-contract.ts',
+      });
+
+      const result = contractIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, betaPackage],
+        sources: [
+          {
+            filePath: handleFile,
+            text: ContentTextStub({
+              value: [
+                'export type MockHandle = {',
+                '  callsMatching: {',
+                '    (args: readonly []): RecordedCalls;',
+                '    (args: readonly unknown[]): unknown[][];',
+                '  };',
+                '};',
+                'export interface RecordedCalls {',
+                '  readonly length: number;',
+                '  map: <U>(fn: (call: unknown[], index: number) => U) => U[];',
+                '}',
+                '',
+              ].join('\n'),
+            }),
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePath: handleFile,
+          packageName: '@repo/alpha',
+          isLayer: false,
+          exportedContractNames: [],
+          typeExports: [
+            { typeName: 'MockHandle', isSchemaInferred: false, isExempt: true },
+            { typeName: 'RecordedCalls', isSchemaInferred: false, isExempt: true },
+          ],
+          parseSites: [],
+          nestedInFiles: [],
+          isParsed: false,
+        },
+      ]);
+    });
+  });
+
   describe('nested contracts', () => {
     it('VALID: {a parsed contract uses another as a value} => the nested one counts as parsed', () => {
       const innerFile = AbsoluteFilePathStub({

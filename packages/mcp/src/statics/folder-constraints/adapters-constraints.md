@@ -188,6 +188,9 @@ export type Notifier = z.infer<typeof notifierContract> & {
 **Why split?** Zod's `z.function()` breaks type inference. Contract validates data, TypeScript enforces function
 signatures.
 
+A type whose every member is a function has no data to validate, so it has no contract const: its contract file
+exports only the type.
+
 **A library's own type is never re-declared.** An adapter returning or accepting a type the npm package owns
 imports that type through the gateway (`import type {TSESLint} from '#gateway/npm/typescript-eslint__utils'`), and a
 test builds a value of it with the gateway's stub, imported from its own file.
