@@ -26,4 +26,4 @@ export const workItemForUpsertContract = workItemContract.partial().extend({
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullable().optional(),
 });
 
-export type WorkItemForUpsert = ReturnType<typeof workItemForUpsertContract.parse>;
+export type WorkItemForUpsert = z.infer<typeof workItemForUpsertContract>;
