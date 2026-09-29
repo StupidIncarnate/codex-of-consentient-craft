@@ -52,9 +52,8 @@ export const resolvePackagePlatformLayerBroker = ({
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
   const srcDirNames = existsSync(join(packageRoot, 'src', 'widgets')) ? ['widgets'] : [];
-  const adapterDirNames = existsSync(join(packageRoot, 'src', 'adapters', 'ink')) ? ['ink'] : [];
 
-  const detectedType = packageBrowserTypeTransformer({ adapterDirNames, srcDirNames, packageJson });
+  const detectedType = packageBrowserTypeTransformer({ srcDirNames, packageJson });
   const platform: GatewayPlatform = detectedType === undefined ? 'node' : 'browser';
 
   packagePlatformCache.set(packageRoot, platform);

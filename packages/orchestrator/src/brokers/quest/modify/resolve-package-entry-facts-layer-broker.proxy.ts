@@ -13,7 +13,6 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
   setupDetectedPackage: (params: {
     packageRoot: string;
     srcDirNames?: readonly string[];
-    adapterDirNames?: readonly string[];
     packageJsonContent?: string;
   }) => void;
   setupUndetectablePackage: (params: { packageRoot: string }) => void;
@@ -59,18 +58,15 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
     setupDetectedPackage: ({
       packageRoot,
       srcDirNames = [],
-      adapterDirNames = [],
       packageJsonContent = '{}',
     }: {
       packageRoot: string;
       srcDirNames?: readonly string[];
-      adapterDirNames?: readonly string[];
       packageJsonContent?: string;
     }): void => {
       detectProxy.setupPackage({
         packageRoot,
         srcDirNames,
-        adapterDirNames,
         packageJsonContent,
       });
     },

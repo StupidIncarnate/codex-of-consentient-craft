@@ -8,12 +8,10 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
     packageRoot,
     packageJson,
     hasWidgetsFolder,
-    hasInkAdapter,
   }: {
     packageRoot: string;
     packageJson: Record<PropertyKey, unknown>;
     hasWidgetsFolder?: boolean;
-    hasInkAdapter?: boolean;
   }) => void;
   setupNoPackageRoot: ({ dirs }: { dirs: readonly string[] }) => void;
   countPackageJsonReads: ({ packageRoot }: { packageRoot: string }) => FileCount;
@@ -31,22 +29,19 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
       packageRoot,
       packageJson,
       hasWidgetsFolder = false,
-      hasInkAdapter = false,
     }: {
       packageRoot: string;
       packageJson: Record<PropertyKey, unknown>;
       hasWidgetsFolder?: boolean;
-      hasInkAdapter?: boolean;
     }): void => {
       existsProxy.returns({ path: `${packageRoot}/package.json`, exists: true });
       readProxy.returns({
         path: `${packageRoot}/package.json`,
         contents: JSON.stringify(packageJson),
       });
-      // Both checks run unconditionally in production, so both need an explicit answer here
-      // regardless of which flag is set — never only the "found" half.
+      // The check runs unconditionally in production, so it needs an explicit answer here
+      // regardless of the flag — never only the "found" half.
       existsProxy.returns({ path: `${packageRoot}/src/widgets`, exists: hasWidgetsFolder });
-      existsProxy.returns({ path: `${packageRoot}/src/adapters/ink`, exists: hasInkAdapter });
     },
 
     // existsSyncProxy ships no address-less catch-all: a walk-to-root "nothing found" test stages

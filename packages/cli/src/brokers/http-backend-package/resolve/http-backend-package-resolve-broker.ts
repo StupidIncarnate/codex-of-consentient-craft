@@ -2,8 +2,8 @@
  * PURPOSE: Finds which of @dungeonmaster/cli's own dependencies fronts an HTTP server, so
  *   CliServeResponder never hardcodes a package name a fork or a future split could rename to
  *   something else, or answer with more than one package. A published install ships no source
- *   tree, so the folder-structure signal `hasHonoOrExpressAdapterGuard` reads is unavailable here —
- *   this reads the same underlying fact (does the candidate front something over `hono`) straight
+ *   tree, so the folder-structure signals shared's package-type detection reads are unavailable here —
+ *   this reads the declared fact (does the candidate front something over `hono`) straight
  *   from that candidate's own package.json `dependencies`, which ships with every install.
  *
  * USAGE:

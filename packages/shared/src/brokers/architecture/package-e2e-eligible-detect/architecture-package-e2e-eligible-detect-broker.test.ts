@@ -19,12 +19,12 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {widgets/ + adapters/ink} => returns true', async () => {
+    it('VALID: {widgets/ + ink in dependencies} => returns true', async () => {
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { ink: '^5.0.0' } }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
@@ -53,8 +53,8 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['fetch'],
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { zod: '3.25.0' } }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
@@ -92,8 +92,8 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       const tuiProxy = architecturePackageE2eEligibleDetectBrokerProxy();
       tuiProxy.setupPackage({
         packageRoot: '/repo/packages/tui',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { ink: '^5.0.0' } }),
       });
 
       const tuiResult = await architecturePackageE2eEligibleDetectBroker({
@@ -110,12 +110,12 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
   // proving eligibility resolves correctly against the exact shapes the live detector classifies,
   // for every one of its 9 types, not just the two that should read eligible.
   describe('eligibility across every detector-classified package shape', () => {
-    it('VALID: {mirrors http-backend: adapters/hono} => returns false', async () => {
+    it('VALID: {mirrors http-backend: hono in dependencies + flows/} => returns false', async () => {
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        adapterDirNames: ['hono', 'fs'],
-        srcDirNames: ['adapters', 'flows', 'responders'],
+        srcDirNames: ['flows', 'responders'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
@@ -125,12 +125,14 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {mirrors mcp-server: adapters/@modelcontextprotocol} => returns false', async () => {
+    it('VALID: {mirrors mcp-server: MCP SDK in dependencies + flows/} => returns false', async () => {
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        adapterDirNames: ['@modelcontextprotocol'],
-        srcDirNames: ['adapters'],
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
@@ -140,12 +142,12 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {mirrors frontend-ink: widgets/ + adapters/ink} => returns true', async () => {
+    it('VALID: {mirrors frontend-ink: widgets/ + ink in dependencies} => returns true', async () => {
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink', 'fs'],
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { ink: '^5.0.0' } }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
@@ -245,17 +247,16 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       expect(result).toBe(false);
     });
 
-    it('VALID: {mirrors the priority-ordering trap: widgets + hono adapter + react} => returns true even though the detector would classify http-backend', async () => {
+    it('VALID: {mirrors the priority-ordering trap: widgets + hono dependency + react} => returns true even though the detector would classify http-backend', async () => {
       // detect-package-type-layer-broker.test.ts's own 'priority ordering' case: rule 1
-      // (hono/express) returns before rule 4 (widgets+react) is reached, so
+      // (hono/express) returns before the widgets+react rule is reached, so
       // detectPackageTypeLayerBroker classifies this exact shape 'http-backend'. This broker does
       // not consult that label, so the widgets+react signal still resolves eligible.
       const proxy = architecturePackageE2eEligibleDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: '/repo/packages/pkg',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono'],
-        packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
+        srcDirNames: ['widgets', 'flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0', react: '18.2.0' } }),
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({

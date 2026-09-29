@@ -38,7 +38,6 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
   setupPackage: ({
     packageRoot,
     srcDirNames,
-    adapterDirNames,
     packageJsonContent,
     startupFileName,
     startupFileContent,
@@ -51,7 +50,6 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
   }: {
     packageRoot: string;
     srcDirNames?: readonly string[];
-    adapterDirNames?: readonly string[];
     packageJsonContent?: string;
     startupFileName?: string;
     startupFileContent?: ContentText;
@@ -76,7 +74,6 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
     setupPackage: ({
       packageRoot,
       srcDirNames = [],
-      adapterDirNames = [],
       packageJsonContent = '{}',
       startupFileName,
       startupFileContent,
@@ -89,7 +86,6 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
     }: {
       packageRoot: string;
       srcDirNames?: readonly string[];
-      adapterDirNames?: readonly string[];
       packageJsonContent?: string;
       startupFileName?: string;
       startupFileContent?: ContentText;
@@ -104,9 +100,6 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
         fn: (dirPath: string): Dirent[] => {
           if (dirPath === `${packageRoot}/src`) {
             return srcDirNames.map((name) => makeDirDirent({ name }));
-          }
-          if (dirPath === `${packageRoot}/src/adapters`) {
-            return adapterDirNames.map((name) => makeDirDirent({ name }));
           }
           if (dirPath === `${packageRoot}/src/startup`) {
             if (startupFileName !== undefined) {

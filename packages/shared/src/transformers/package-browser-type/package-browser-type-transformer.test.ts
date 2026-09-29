@@ -12,16 +12,16 @@ describe('packageBrowserTypeTransformer', () => {
       expect(result).toBe('frontend-react');
     });
 
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink]} => returns frontend-ink', () => {
+    it('VALID: {srcDirNames: [widgets], ink in deps} => returns frontend-ink', () => {
       const result = packageBrowserTypeTransformer({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        srcDirNames: ['widgets'],
+        packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0' } }),
       });
 
       expect(result).toBe('frontend-ink');
     });
 
-    it('VALID: {srcDirNames: [widgets], ink and react in deps, no adapters folder} => returns frontend-ink', () => {
+    it('VALID: {srcDirNames: [widgets], ink and react in deps} => returns frontend-ink, the surface a run actually drives', () => {
       const result = packageBrowserTypeTransformer({
         srcDirNames: ['widgets'],
         packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0', react: '19.0.0' } }),
@@ -29,33 +29,22 @@ describe('packageBrowserTypeTransformer', () => {
 
       expect(result).toBe('frontend-ink');
     });
-
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink], react in deps} => returns frontend-ink, the surface a run actually drives', () => {
-      const result = packageBrowserTypeTransformer({
-        srcDirNames: ['widgets'],
-        adapterDirNames: ['ink'],
-        packageJson: PackageJsonStub({ dependencies: { react: '18.2.0' } }),
-      });
-
-      expect(result).toBe('frontend-ink');
-    });
   });
 
   describe('precedence trap: widgets + react + hono', () => {
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [hono], react in deps} => returns frontend-react regardless of the hono adapter', () => {
+    it('VALID: {srcDirNames: [widgets], hono and react in deps} => returns frontend-react regardless of hono', () => {
       const result = packageBrowserTypeTransformer({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono'],
-        packageJson: PackageJsonStub({ dependencies: { react: '18.2.0' } }),
+        srcDirNames: ['widgets'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0', react: '18.2.0' } }),
       });
 
       expect(result).toBe('frontend-react');
     });
 
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [hono, ink]} => returns frontend-ink regardless of the hono adapter', () => {
+    it('VALID: {srcDirNames: [widgets], hono and ink in deps} => returns frontend-ink regardless of hono', () => {
       const result = packageBrowserTypeTransformer({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono', 'ink'],
+        srcDirNames: ['widgets'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0', ink: '^5.0.0' } }),
       });
 
       expect(result).toBe('frontend-ink');
@@ -72,10 +61,9 @@ describe('packageBrowserTypeTransformer', () => {
       expect(result).toBe(undefined);
     });
 
-    it('INVALID: {srcDirNames: [widgets], adapterDirNames: [fetch]} => returns undefined without react or ink', () => {
+    it('INVALID: {srcDirNames: [widgets], zod in deps} => returns undefined without react or ink', () => {
       const result = packageBrowserTypeTransformer({
         srcDirNames: ['widgets'],
-        adapterDirNames: ['fetch'],
         packageJson: PackageJsonStub({ dependencies: { zod: '3.25.0' } }),
       });
 

@@ -5,7 +5,7 @@
  * const entries = safeReaddirLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src') });
  * // Returns Dirent[] or empty array if directory does not exist
  *
- * WHEN-TO-USE: When scanning a package's src/ and src/adapters/ layout during e2e eligibility
+ * WHEN-TO-USE: When scanning a package's src/ layout during e2e eligibility
  * detection and non-existent directories should be silently skipped
  */
 

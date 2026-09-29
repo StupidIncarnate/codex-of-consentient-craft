@@ -45,11 +45,6 @@ export const architecturePackageTypeDetectBroker = async ({
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });
   const srcDirNames = srcEntries.filter((e) => e.kind === 'directory').map((e) => e.name);
 
-  // List dirs in src/adapters/ ([] if absent)
-  const adaptersPath = absoluteFilePathContract.parse(`${packageRoot}/src/adapters`);
-  const adapterEntries = safeReaddirLayerBroker({ dirPath: adaptersPath });
-  const adapterDirNames = adapterEntries.filter((e) => e.kind === 'directory').map((e) => e.name);
-
   // Read concatenated content from every non-test startup + bin source file. Combining them lets
   // detection signals (process.argv reference, async-namespace export) surface even when argv parsing
   // lives in a thin bin entry while the startup takes the parsed command as a parameter.
@@ -88,7 +83,6 @@ export const architecturePackageTypeDetectBroker = async ({
   const binEntryCount = binEntryCountLayerBroker({ packageJson });
 
   const packageType = detectPackageTypeLayerBroker({
-    adapterDirNames,
     srcDirNames,
     packageJson,
     startupFileContent: startupFileContent === undefined ? undefined : String(startupFileContent),
@@ -104,10 +98,9 @@ export const architecturePackageTypeDetectBroker = async ({
   });
 
   // The browser question is asked a second time on purpose: the table above returns on the FIRST
-  // rule that matches, so a package whose hono or MCP adapter outranks its widgets folder never
+  // rule that matches, so a package whose hono or MCP signal outranks its widgets folder never
   // reaches the rule that would have named it browser-reachable.
   const browserPackageType = packageBrowserTypeTransformer({
-    adapterDirNames,
     srcDirNames,
     packageJson,
   });

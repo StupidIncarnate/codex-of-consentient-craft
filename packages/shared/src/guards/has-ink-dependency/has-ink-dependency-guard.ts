@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Returns true when package.json dependencies include 'ink'. The declared-dependency
- * counterpart to `hasInkAdapterGuard`: a package that renders through a `#gateway/npm/ink` wrapper
- * (or has not written one yet) carries no `src/adapters/ink/` folder, so ink detection needs both.
+ * signal for a package that renders through a `#gateway/npm/ink` wrapper (or has not written one
+ * yet).
  *
  * USAGE:
  * hasInkDependencyGuard({ packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0' } }) });

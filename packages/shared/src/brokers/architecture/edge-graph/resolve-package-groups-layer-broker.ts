@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Buckets every package under a project root into the http-backend and frontend sets
- * httpEdgesLayerBroker scans, off each package's own adapter/widgets/dependency signals — never
+ * httpEdgesLayerBroker scans, off each package's own flow/widgets/dependency signals — never
  * off a package's name. A package can land in neither set (most packages) or, since the checks
  * are independent, in both.
  *
@@ -16,7 +16,7 @@
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { hasHonoOrExpressAdapterGuard } from '../../../guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
+import { hasHonoOrExpressDependencyGuard } from '../../../guards/has-hono-or-express-dependency/has-hono-or-express-dependency-guard';
 import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
 import { matchesFlowFileNameGuard } from '../../../guards/matches-flow-file-name/matches-flow-file-name-guard';
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
@@ -59,17 +59,24 @@ export const resolvePackageGroupsLayerBroker = ({
       .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name);
 
-    const adaptersPath = absoluteFilePathContract.parse(
-      `${packageRoot}/${projectMapStatics.srcDirName}/adapters`,
+    const packageJsonPath = absoluteFilePathContract.parse(
+      `${packageRoot}/${projectMapStatics.packageJsonName}`,
     );
-    const adapterDirNames = safeReaddirLayerBroker({ dirPath: adaptersPath })
-      .filter((entry) => entry.kind === 'directory')
-      .map((entry) => entry.name);
+    const packageJsonRaw = readFileLayerBroker({ filePath: packageJsonPath });
+    let packageJson = packageJsonContract.parse({});
+    if (packageJsonRaw !== undefined) {
+      try {
+        packageJson = packageJsonContract.parse(JSON.parse(String(packageJsonRaw)) as unknown);
+      } catch {
+        // Malformed package.json — treat this candidate as carrying no dependency signals
+        // rather than crashing the whole scan over one bad file.
+      }
+    }
 
-    // A package reaching Hono through `#gateway/npm/hono` has no adapters/hono folder; the flow
-    // file that constructs the app is the signal, same as package-type detection.
+    // The flow file that constructs the app is the http-backend signal, same as package-type
+    // detection, which also accepts a declared hono/express dependency beside a flows folder.
     if (
-      hasHonoOrExpressAdapterGuard({ adapterDirNames }) ||
+      (srcDirNames.includes('flows') && hasHonoOrExpressDependencyGuard({ packageJson })) ||
       listTsFilesLayerBroker({
         dirPath: absoluteFilePathContract.parse(
           `${packageRoot}/${projectMapStatics.srcDirName}/flows`,
@@ -85,21 +92,7 @@ export const resolvePackageGroupsLayerBroker = ({
       httpBackendRoots.push(packageRoot);
     }
 
-    const packageJsonPath = absoluteFilePathContract.parse(
-      `${packageRoot}/${projectMapStatics.packageJsonName}`,
-    );
-    const packageJsonRaw = readFileLayerBroker({ filePath: packageJsonPath });
-    let packageJson = packageJsonContract.parse({});
-    if (packageJsonRaw !== undefined) {
-      try {
-        packageJson = packageJsonContract.parse(JSON.parse(String(packageJsonRaw)) as unknown);
-      } catch {
-        // Malformed package.json — treat this candidate as carrying no dependency signals
-        // rather than crashing the whole scan over one bad file.
-      }
-    }
-
-    if (isPackageE2eEligibleGuard({ adapterDirNames, srcDirNames, packageJson })) {
+    if (isPackageE2eEligibleGuard({ srcDirNames, packageJson })) {
       frontendRoots.push(packageRoot);
     }
   }

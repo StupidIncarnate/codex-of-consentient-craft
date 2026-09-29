@@ -1,6 +1,6 @@
 /**
  * PURPOSE: The disk-facing counterpart to isPackageE2eEligibleGuard — reads a package's own
- * src/adapters layout and package.json straight off disk rather than through
+ * src layout and package.json straight off disk rather than through
  * architecturePackageTypeDetectBroker's single winning PackageType label, so a package whose
  * frontend signals are shadowed by a higher-priority rule (hono/express, MCP) still reports
  * eligible here. Reach for architecturePackageTypeDetectBroker instead when the caller needs the
@@ -41,11 +41,5 @@ export const architecturePackageE2eEligibleDetectBroker = async ({
     .filter((entry) => entry.kind === 'directory')
     .map((entry) => entry.name);
 
-  const adaptersPath = absoluteFilePathContract.parse(`${packageRoot}/src/adapters`);
-  const adapterEntries = safeReaddirLayerBroker({ dirPath: adaptersPath });
-  const adapterDirNames = adapterEntries
-    .filter((entry) => entry.kind === 'directory')
-    .map((entry) => entry.name);
-
-  return Promise.resolve(isPackageE2eEligibleGuard({ adapterDirNames, srcDirNames, packageJson }));
+  return Promise.resolve(isPackageE2eEligibleGuard({ srcDirNames, packageJson }));
 };

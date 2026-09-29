@@ -33,15 +33,18 @@ export const WEB_PACKAGE_NAME = 'app';
 export const PROBE_PACKAGE_NAME = 'probe';
 export const INK_PACKAGE_NAME = 'tui';
 export const API_PACKAGE_NAME = 'api';
+export const MCP_PACKAGE_NAME = 'tools';
 
 // Every scaffolded package the clean-fixture checks cover: the two seeds whose sources this file
-// writes into (lib, app) and the two seeds that ship no hand-written source (tui: frontend-ink,
-// api: http-backend), which prove create-package's own output lints, typechecks and tests green.
+// writes into (lib, app) and the seeds that ship no hand-written source (tui: frontend-ink,
+// api: http-backend, tools: mcp-server), which prove create-package's own output lints,
+// typechecks and tests green.
 export const SEEDED_PACKAGE_NAMES = [
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
   INK_PACKAGE_NAME,
   API_PACKAGE_NAME,
+  MCP_PACKAGE_NAME,
 ];
 
 const CREATE_PACKAGE_TIMEOUT_MS = 120_000;
@@ -416,6 +419,7 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   await runCreatePackage({ consumerRoot, cliBin, name: WEB_PACKAGE_NAME, type: 'frontend-react' });
   await runCreatePackage({ consumerRoot, cliBin, name: INK_PACKAGE_NAME, type: 'frontend-ink' });
   await runCreatePackage({ consumerRoot, cliBin, name: API_PACKAGE_NAME, type: 'http-backend' });
+  await runCreatePackage({ consumerRoot, cliBin, name: MCP_PACKAGE_NAME, type: 'mcp-server' });
   await runCreatePackage({ consumerRoot, cliBin, name: PROBE_PACKAGE_NAME, type: 'library' });
 
   addGatewayDependencies({

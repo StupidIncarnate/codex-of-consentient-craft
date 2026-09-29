@@ -10,7 +10,6 @@ export const architecturePackageE2eEligibleDetectBrokerProxy = (): {
   setupPackage: (params: {
     packageRoot: string;
     srcDirNames?: readonly string[];
-    adapterDirNames?: readonly string[];
     packageJsonContent?: string;
   }) => void;
 } => {
@@ -21,12 +20,10 @@ export const architecturePackageE2eEligibleDetectBrokerProxy = (): {
     setupPackage: ({
       packageRoot,
       srcDirNames = [],
-      adapterDirNames = [],
       packageJsonContent = '{}',
     }: {
       packageRoot: string;
       srcDirNames?: readonly string[];
-      adapterDirNames?: readonly string[];
       packageJsonContent?: string;
     }): void => {
       // Exact-path addresses (not .setupImplementation's low-specificity, score-0 catch-all) — a
@@ -37,10 +34,6 @@ export const architecturePackageE2eEligibleDetectBrokerProxy = (): {
       readdirProxy.setupDirectory({
         dirPath: AbsoluteFilePathStub({ value: `${packageRoot}/src` }),
         entries: srcDirNames.map((name) => makeDirDirent({ name })),
-      });
-      readdirProxy.setupDirectory({
-        dirPath: AbsoluteFilePathStub({ value: `${packageRoot}/src/adapters` }),
-        entries: adapterDirNames.map((name) => makeDirDirent({ name })),
       });
       readFileProxy.setupReturns({
         filePath: AbsoluteFilePathStub({ value: `${packageRoot}/package.json` }),

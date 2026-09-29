@@ -16,17 +16,14 @@
 import type { PackageJson } from '../../contracts/package-json/package-json-contract';
 import { packageTypeContract } from '../../contracts/package-type/package-type-contract';
 import type { PackageType } from '../../contracts/package-type/package-type-contract';
-import { hasInkAdapterGuard } from '../../guards/has-ink-adapter/has-ink-adapter-guard';
 import { hasInkDependencyGuard } from '../../guards/has-ink-dependency/has-ink-dependency-guard';
 import { hasWidgetsFolderGuard } from '../../guards/has-widgets-folder/has-widgets-folder-guard';
 import { reactInDepsGuard } from '../../guards/react-in-deps/react-in-deps-guard';
 
 export const packageBrowserTypeTransformer = ({
-  adapterDirNames,
   srcDirNames,
   packageJson,
 }: {
-  adapterDirNames?: string[];
   srcDirNames?: string[];
   packageJson?: PackageJson;
 }): PackageType | undefined => {
@@ -37,10 +34,7 @@ export const packageBrowserTypeTransformer = ({
   // Ink before react, matching the order the detection table asks these two questions in: a package
   // carrying both renders through ink, and react is then a dependency of the ink renderer rather
   // than the surface a Playwright run drives.
-  if (
-    hasInkAdapterGuard(adapterDirNames === undefined ? {} : { adapterDirNames }) ||
-    hasInkDependencyGuard(packageJson === undefined ? {} : { packageJson })
-  ) {
+  if (hasInkDependencyGuard(packageJson === undefined ? {} : { packageJson })) {
     return packageTypeContract.parse('frontend-ink');
   }
 

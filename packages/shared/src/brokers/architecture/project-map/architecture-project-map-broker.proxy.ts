@@ -88,7 +88,6 @@ export const architectureProjectMapBrokerProxy = (): {
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
         srcDirNames: [],
-        adapterDirNames: [],
       });
     },
 
@@ -112,7 +111,6 @@ export const architectureProjectMapBrokerProxy = (): {
         packageRoot: `/project/packages/${packageName}`,
         packageJsonContent: '{}',
         srcDirNames: ['flows', 'responders', 'state', 'startup'],
-        adapterDirNames: [],
         startupFileName: 'start-app.ts',
         startupFileContent: ContentTextStub({
           value: 'export const StartApp = { run: async () => {} };',
@@ -129,9 +127,8 @@ export const architectureProjectMapBrokerProxy = (): {
     }): void => {
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
-        packageJsonContent: '{}',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        packageJsonContent: '{"dependencies":{"ink":"^5.0.0"}}',
+        srcDirNames: ['widgets'],
       });
       discoverProxy.setupPackages({
         dirPath: AbsoluteFilePathStub({
@@ -171,7 +168,6 @@ export const architectureProjectMapBrokerProxy = (): {
         packageRoot: `/project/packages/${groupName}/${packageName}`,
         packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
         srcDirNames: [],
-        adapterDirNames: [],
       });
     },
 
@@ -180,7 +176,6 @@ export const architectureProjectMapBrokerProxy = (): {
         packageRoot: '/project',
         packageJsonContent: '{}',
         srcDirNames: [],
-        adapterDirNames: [],
       });
       discoverProxy.setupMissingPackagesDir({
         dirPath: AbsoluteFilePathStub({

@@ -18,7 +18,8 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        dependencies: { hono: '^4.0.0' },
       });
       proxy.setupPackage({ repoRoot, dirName: 'shared', packageName: '@dungeonmaster/shared' });
 
@@ -65,7 +66,8 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        dependencies: { hono: '^4.0.0' },
       });
 
       const result = await laneWorkspaceResolveBroker({
@@ -86,9 +88,8 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
-        srcDirNames: ['widgets'],
-        dependencies: { react: '18.2.0' },
+        srcDirNames: ['flows', 'widgets'],
+        dependencies: { hono: '^4.0.0', react: '18.2.0' },
       });
 
       const result = await laneWorkspaceResolveBroker({
@@ -137,13 +138,15 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        dependencies: { hono: '^4.0.0' },
       });
       proxy.setupPackage({
         repoRoot,
         dirName: 'gateway',
         packageName: '@dungeonmaster/gateway',
-        adapterDirNames: ['express'],
+        srcDirNames: ['flows'],
+        dependencies: { express: '^4.0.0' },
       });
 
       const caughtError = (await laneWorkspaceResolveBroker({
@@ -171,13 +174,15 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        dependencies: { hono: '^4.0.0' },
       });
       proxy.setupPackage({
         repoRoot,
         dirName: 'gateway',
         packageName: '@dungeonmaster/gateway',
-        adapterDirNames: ['express'],
+        srcDirNames: ['flows'],
+        dependencies: { express: '^4.0.0' },
       });
 
       const caughtError = await laneWorkspaceResolveBroker({
@@ -198,7 +203,8 @@ describe('laneWorkspaceResolveBroker', () => {
         repoRoot,
         dirName: 'server',
         packageName: '@dungeonmaster/server',
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        dependencies: { hono: '^4.0.0' },
       });
 
       const result = await laneWorkspaceResolveBroker({

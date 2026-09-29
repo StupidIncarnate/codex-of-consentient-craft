@@ -68,7 +68,7 @@ describe('packageSeedServiceStatics', () => {
           fileName: 'flows.ts',
           exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
         },
-        dependencies: { '__SCOPE__/shared': '*' },
+        dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
         devDependencies: {},
         bin: {},
         compilerOptions: {},
@@ -85,19 +85,26 @@ describe('packageSeedServiceStatics', () => {
       const paths = packageSeedServiceStatics['mcp-server'].files.map((file) => file.path);
 
       expect(paths).toStrictEqual([
-        'src/contracts/tool-registration/tool-registration-contract.ts',
-        'src/contracts/tool-registration/tool-registration.stub.ts',
-        'src/contracts/tool-registration/tool-registration-contract.test.ts',
+        'src/statics/tool/tool-statics.ts',
+        'src/statics/tool/tool-statics.test.ts',
         'src/flows/__NAME__/__NAME__-flow.ts',
         'src/flows/__NAME__/__NAME__-flow.integration.test.ts',
       ]);
     });
 
-    it('VALID: {type: mcp-server} => the __NAME__-flow.ts file imports ToolRegistration, which is what the detector keys on', () => {
-      const [, , , flowFile] = packageSeedServiceStatics['mcp-server'].files;
+    it('VALID: {type: mcp-server} => no seeded file imports an npm package or the shared package', () => {
+      const importingPaths = packageSeedServiceStatics['mcp-server'].files
+        .filter((file) => /from '(?!\.)/u.test(file.contents))
+        .map((file) => file.path);
+
+      expect(importingPaths).toStrictEqual([]);
+    });
+
+    it('VALID: {type: mcp-server} => the __NAME__-flow.ts file returns the tool table under src/flows/, which the detector keys on beside the declared SDK dependency', () => {
+      const [, , flowFile] = packageSeedServiceStatics['mcp-server'].files;
 
       expect(flowFile.contents).toMatch(
-        /^import type \{ ToolRegistration \} from '\.\.\/\.\.\/contracts\/tool-registration\/tool-registration-contract';$/mu,
+        /^export const __PASCAL__Flow = \(\): typeof toolStatics\.tools => toolStatics\.tools;$/mu,
       );
     });
   });

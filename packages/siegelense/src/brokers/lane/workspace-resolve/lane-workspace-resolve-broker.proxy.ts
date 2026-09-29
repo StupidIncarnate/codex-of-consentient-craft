@@ -1,5 +1,5 @@
 // PURPOSE: Stages the two fs boundaries laneWorkspaceResolveBroker composes — the `packages/`
-// listing and each candidate's `src`, `src/adapters` and `package.json` — as PATH-SPECIFIC mock
+// listing and each candidate's `src` and `package.json` — as PATH-SPECIFIC mock
 // registrations (never the low-specificity `setupPackage` catch-all `architecturePackageTypeDetectBrokerProxy`
 // exposes), because a test staging SEVERAL candidate packages at once needs every candidate's
 // registration to coexist rather than the last one shadowing the rest. Paths are built with plain
@@ -9,7 +9,7 @@
 // SAME `${packageRoot}/src` shape internally — this mirrors that, not reinvents it.
 // USAGE: const proxy = laneWorkspaceResolveBrokerProxy();
 //        proxy.setupPackagesDir({ repoRoot, packageNames: ['server', 'web'] });
-//        proxy.setupPackage({ repoRoot, dirName: 'server', packageName: '@dungeonmaster/server', adapterDirNames: ['hono'] });
+//        proxy.setupPackage({ repoRoot, dirName: 'server', packageName: '@dungeonmaster/server', srcDirNames: ['flows'], dependencies: { hono: '^4.0.0' } });
 
 import { join } from '#gateway/node/path';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
@@ -28,7 +28,6 @@ export const laneWorkspaceResolveBrokerProxy = (): {
     repoRoot: AbsoluteFilePath;
     dirName: string;
     packageName: string;
-    adapterDirNames?: readonly string[];
     srcDirNames?: readonly string[];
     dependencies?: Record<string, string>;
   }) => void;
@@ -70,14 +69,12 @@ export const laneWorkspaceResolveBrokerProxy = (): {
       repoRoot,
       dirName,
       packageName,
-      adapterDirNames = [],
       srcDirNames = [],
       dependencies = {},
     }: {
       repoRoot: AbsoluteFilePath;
       dirName: string;
       packageName: string;
-      adapterDirNames?: readonly string[];
       srcDirNames?: readonly string[];
       dependencies?: Record<string, string>;
     }): void => {
@@ -89,10 +86,6 @@ export const laneWorkspaceResolveBrokerProxy = (): {
       readdirProxy.returns({
         path: `${packageRoot}/src`,
         entries: srcDirNames.map((name) => ({ name, kind: 'directory' as const })),
-      });
-      readdirProxy.returns({
-        path: `${packageRoot}/src/adapters`,
-        entries: adapterDirNames.map((name) => ({ name, kind: 'directory' as const })),
       });
     },
   };

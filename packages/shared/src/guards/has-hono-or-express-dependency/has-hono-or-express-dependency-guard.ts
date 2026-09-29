@@ -1,7 +1,6 @@
 /**
  * PURPOSE: Returns true when package.json dependencies include 'hono' or 'express'. The
- * declared-dependency counterpart to `hasHonoOrExpressAdapterGuard`, for a package that has no
- * `src/adapters/hono/` folder and whose flow does not construct the app itself. Callers pair it with
+ * declared-dependency signal for a package whose flow does not construct the app itself. Callers pair it with
  * a flows folder: the `@gateway/npm` package also lists hono, and has no flows.
  *
  * USAGE:

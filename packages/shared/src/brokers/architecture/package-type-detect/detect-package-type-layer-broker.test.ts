@@ -6,55 +6,10 @@ import { detectPackageTypeLayerBroker } from './detect-package-type-layer-broker
 
 describe('detectPackageTypeLayerBroker', () => {
   describe('http-backend (priority 1)', () => {
-    it('VALID: {adapterDirNames: [hono]} => returns http-backend', () => {
-      detectPackageTypeLayerBrokerProxy();
-
-      const result = detectPackageTypeLayerBroker({
-        adapterDirNames: ['hono'],
-        srcDirNames: [],
-        packageJson: PackageJsonStub(),
-        startupFileContent: undefined,
-        flowFileContent: undefined,
-        hasResponderHook: false,
-        hasBrokersRule: false,
-        hasFlowsDir: false,
-        hasRespondersDir: false,
-        hasStateDir: false,
-        hasResponderCreate: false,
-        exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
-      });
-
-      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
-    });
-
-    it('VALID: {adapterDirNames: [express]} => returns http-backend', () => {
-      detectPackageTypeLayerBrokerProxy();
-
-      const result = detectPackageTypeLayerBroker({
-        adapterDirNames: ['express'],
-        srcDirNames: [],
-        packageJson: PackageJsonStub(),
-        startupFileContent: undefined,
-        flowFileContent: undefined,
-        hasResponderHook: false,
-        hasBrokersRule: false,
-        hasFlowsDir: false,
-        hasRespondersDir: false,
-        hasStateDir: false,
-        hasResponderCreate: false,
-        exportsHasDot: false,
-        binEntryCount: FileCountStub({ value: 0 }),
-      });
-
-      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
-    });
-
     it('VALID: {flowFileContent constructs new Hono()} => returns http-backend', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: undefined,
@@ -78,7 +33,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: ['flows'],
         packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0' } }),
         startupFileContent: undefined,
@@ -100,7 +54,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: ['brokers'],
         packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0' } }),
         startupFileContent: undefined,
@@ -120,13 +73,55 @@ describe('detectPackageTypeLayerBroker', () => {
   });
 
   describe('mcp-server (priority 2)', () => {
-    it('VALID: {adapterDirNames: [@modelcontextprotocol]} => returns mcp-server', () => {
+    it('VALID: {MCP SDK in dependencies, flows folder} => returns mcp-server', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: ['@modelcontextprotocol'],
-        srcDirNames: [],
-        packageJson: PackageJsonStub(),
+        srcDirNames: ['flows'],
+        packageJson: PackageJsonStub({ dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' } }),
+        startupFileContent: undefined,
+        flowFileContent: undefined,
+        hasResponderHook: false,
+        hasBrokersRule: false,
+        hasFlowsDir: true,
+        hasRespondersDir: false,
+        hasStateDir: false,
+        hasResponderCreate: false,
+        exportsHasDot: false,
+        binEntryCount: FileCountStub({ value: 0 }),
+      });
+
+      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+    });
+
+    it('VALID: {the create-package seed flow, SDK in dependencies, flows folder} => returns mcp-server', () => {
+      detectPackageTypeLayerBrokerProxy();
+
+      const result = detectPackageTypeLayerBroker({
+        srcDirNames: ['statics', 'flows'],
+        packageJson: PackageJsonStub({ dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' } }),
+        startupFileContent: undefined,
+        flowFileContent:
+          "import { toolStatics } from '../../statics/tool/tool-statics';\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;",
+        hasResponderHook: false,
+        hasBrokersRule: false,
+        hasFlowsDir: true,
+        hasRespondersDir: false,
+        hasStateDir: false,
+        hasResponderCreate: false,
+        exportsHasDot: false,
+        binEntryCount: FileCountStub({ value: 0 }),
+      });
+
+      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+    });
+
+    it('VALID: {MCP SDK in dependencies, no flows folder} => returns library', () => {
+      detectPackageTypeLayerBrokerProxy();
+
+      const result = detectPackageTypeLayerBroker({
+        srcDirNames: ['contracts'],
+        packageJson: PackageJsonStub({ dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' } }),
         startupFileContent: undefined,
         flowFileContent: undefined,
         hasResponderHook: false,
@@ -139,14 +134,13 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+      expect(result).toBe(PackageTypeStub({ value: 'library' }));
     });
 
     it('VALID: {flowFileContent with ToolRegistration import} => returns mcp-server', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: undefined,
@@ -166,13 +160,12 @@ describe('detectPackageTypeLayerBroker', () => {
   });
 
   describe('frontend-ink (priority 3)', () => {
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink]} => returns frontend-ink', () => {
+    it('VALID: {srcDirNames: [widgets], ink in dependencies} => returns frontend-ink', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: ['ink'],
         srcDirNames: ['widgets'],
-        packageJson: PackageJsonStub(),
+        packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0' } }),
         startupFileContent: undefined,
         flowFileContent: undefined,
         hasResponderHook: false,
@@ -194,7 +187,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: ['widgets'],
         packageJson: PackageJsonStub({ dependencies: { react: '18.0.0' } }),
         startupFileContent: undefined,
@@ -218,7 +210,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: undefined,
@@ -242,7 +233,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: undefined,
@@ -266,7 +256,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: 'const args = process.argv.slice(2);',
@@ -290,7 +279,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent:
@@ -315,7 +303,6 @@ describe('detectPackageTypeLayerBroker', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: [],
         srcDirNames: [],
         packageJson: PackageJsonStub(),
         startupFileContent: undefined,
@@ -335,18 +322,17 @@ describe('detectPackageTypeLayerBroker', () => {
   });
 
   describe('priority ordering', () => {
-    it('VALID: {widgets+hono+react-in-deps} => http-backend wins over frontend-react', () => {
+    it('VALID: {widgets+flows+hono+react in deps} => http-backend wins over frontend-react', () => {
       detectPackageTypeLayerBrokerProxy();
 
       const result = detectPackageTypeLayerBroker({
-        adapterDirNames: ['hono'],
-        srcDirNames: ['widgets'],
-        packageJson: PackageJsonStub({ dependencies: { react: '18.0.0' } }),
+        srcDirNames: ['widgets', 'flows'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0', react: '18.0.0' } }),
         startupFileContent: undefined,
         flowFileContent: undefined,
         hasResponderHook: false,
         hasBrokersRule: false,
-        hasFlowsDir: false,
+        hasFlowsDir: true,
         hasRespondersDir: false,
         hasStateDir: false,
         hasResponderCreate: false,

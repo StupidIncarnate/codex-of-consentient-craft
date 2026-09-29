@@ -21,16 +21,15 @@ describe('resolvePackagePlatformLayerBroker', () => {
       expect(result).toBe('browser');
     });
 
-    it('VALID: {widgets folder + ink adapter, no react} => returns "browser"', () => {
+    it('VALID: {widgets folder + ink dependency, no react} => returns "browser"', () => {
       const proxy = resolvePackagePlatformLayerBrokerProxy();
       proxy.setupNoPackageRoot({
         dirs: ['/repo/packages/cli-a/src/widgets', '/repo/packages/cli-a/src'],
       });
       proxy.setupPackageRoot({
         packageRoot: '/repo/packages/cli-a',
-        packageJson: { name: '@dungeonmaster/cli-a' },
+        packageJson: { name: '@dungeonmaster/cli-a', dependencies: { ink: '^5.0.0' } },
         hasWidgetsFolder: true,
-        hasInkAdapter: true,
       });
 
       const result = resolvePackagePlatformLayerBroker({

@@ -4,10 +4,14 @@ import { resolvePackageGroupsLayerBroker } from './resolve-package-groups-layer-
 
 describe('resolvePackageGroupsLayerBroker', () => {
   describe('single package per group', () => {
-    it('VALID: {one http-backend package, one frontend-react package} => buckets each into its own set', () => {
+    it('VALID: {one hono-constructing package, one frontend-react package} => buckets each into its own set', () => {
       const proxy = resolvePackageGroupsLayerBrokerProxy();
       proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['server', 'web'] });
-      proxy.setupPackage({ packageRoot: '/repo/packages/server', adapterDirNames: ['hono'] });
+      proxy.setupPackage({
+        packageRoot: '/repo/packages/server',
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
+      });
       proxy.setupPackage({
         packageRoot: '/repo/packages/web',
         srcDirNames: ['widgets'],
@@ -26,7 +30,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
   });
 
   describe('a package reaching Hono through the gateway', () => {
-    it('VALID: {no adapters dir, a flow file constructing new Hono()} => buckets into httpBackendRoots', () => {
+    it('VALID: {a flow file constructing new Hono()} => buckets into httpBackendRoots', () => {
       const proxy = resolvePackageGroupsLayerBrokerProxy();
       proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['server', 'lib'] });
       proxy.setupPackage({
@@ -56,6 +60,27 @@ describe('resolvePackageGroupsLayerBroker', () => {
     });
   });
 
+  describe('a package declaring hono beside a flows folder', () => {
+    it('VALID: {hono in dependencies, flows folder, flow files that do not construct the app} => buckets into httpBackendRoots', () => {
+      const proxy = resolvePackageGroupsLayerBrokerProxy();
+      proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['api'] });
+      proxy.setupPackage({
+        packageRoot: '/repo/packages/api',
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
+      });
+
+      const result = resolvePackageGroupsLayerBroker({
+        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+      });
+
+      expect(result).toStrictEqual({
+        httpBackendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/api' })],
+        frontendRoots: [],
+      });
+    });
+  });
+
   describe('a set of two UI packages', () => {
     it('VALID: {frontend-react web, frontend-ink tui} => both land in frontendRoots', () => {
       const proxy = resolvePackageGroupsLayerBrokerProxy();
@@ -67,8 +92,8 @@ describe('resolvePackageGroupsLayerBroker', () => {
       });
       proxy.setupPackage({
         packageRoot: '/repo/packages/tui',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { ink: '^5.0.0' } }),
       });
 
       const result = resolvePackageGroupsLayerBroker({
@@ -86,7 +111,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
   });
 
   describe('a package that is neither', () => {
-    it('INVALID: {library package, no adapters, no widgets} => appears in neither set', () => {
+    it('INVALID: {library package, no flows, no widgets} => appears in neither set', () => {
       const proxy = resolvePackageGroupsLayerBrokerProxy();
       proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['shared'] });
       proxy.setupPackage({ packageRoot: '/repo/packages/shared', srcDirNames: ['contracts'] });

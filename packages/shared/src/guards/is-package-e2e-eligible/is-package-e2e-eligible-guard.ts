@@ -18,16 +18,13 @@ import type { PackageJson } from '../../contracts/package-json/package-json-cont
 import { packageBrowserTypeTransformer } from '../../transformers/package-browser-type/package-browser-type-transformer';
 
 export const isPackageE2eEligibleGuard = ({
-  adapterDirNames,
   srcDirNames,
   packageJson,
 }: {
-  adapterDirNames?: string[];
   srcDirNames?: string[];
   packageJson?: PackageJson;
 }): boolean =>
   packageBrowserTypeTransformer({
-    ...(adapterDirNames === undefined ? {} : { adapterDirNames }),
     ...(srcDirNames === undefined ? {} : { srcDirNames }),
     ...(packageJson === undefined ? {} : { packageJson }),
   }) !== undefined;

@@ -2,7 +2,7 @@
  * PURPOSE: Applies the priority-order detection table to classify a package's architecture type
  *
  * USAGE:
- * const type = detectPackageTypeLayerBroker({ adapterDirNames, srcDirNames, packageJson, ... });
+ * const type = detectPackageTypeLayerBroker({ srcDirNames, packageJson, ... });
  * // Returns: 'http-backend' as PackageType
  *
  * WHEN-TO-USE: After collecting all filesystem signals, to run the detection priority chain
@@ -11,10 +11,9 @@
 import type { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { packageTypeContract } from '../../../contracts/package-type/package-type-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
-import { hasHonoOrExpressAdapterGuard } from '../../../guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
 import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
 import { hasHonoOrExpressDependencyGuard } from '../../../guards/has-hono-or-express-dependency/has-hono-or-express-dependency-guard';
-import { hasModelcontextprotocolAdapterGuard } from '../../../guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';
+import { hasModelcontextprotocolDependencyGuard } from '../../../guards/has-modelcontextprotocol-dependency/has-modelcontextprotocol-dependency-guard';
 import { packageBrowserTypeTransformer } from '../../../transformers/package-browser-type/package-browser-type-transformer';
 import { startupReferencesArgvGuard } from '../../../guards/startup-references-argv/startup-references-argv-guard';
 import { flowReturnsToolRegistrationGuard } from '../../../guards/flow-returns-tool-registration/flow-returns-tool-registration-guard';
@@ -23,7 +22,6 @@ import { projectMapStatics } from '../../../statics/project-map/project-map-stat
 import type { FileCount } from '../../../contracts/file-count/file-count-contract';
 
 export const detectPackageTypeLayerBroker = ({
-  adapterDirNames,
   srcDirNames,
   packageJson,
   startupFileContent,
@@ -37,7 +35,6 @@ export const detectPackageTypeLayerBroker = ({
   exportsHasDot,
   binEntryCount,
 }: {
-  adapterDirNames: string[];
   srcDirNames: string[];
   packageJson: ReturnType<typeof packageJsonContract.parse>;
   startupFileContent: string | undefined;
@@ -52,7 +49,6 @@ export const detectPackageTypeLayerBroker = ({
   binEntryCount: FileCount;
 }): PackageType => {
   if (
-    hasHonoOrExpressAdapterGuard({ adapterDirNames }) ||
     flowCreatesHonoOrExpressAppGuard(flowFileContent === undefined ? {} : { flowFileContent }) ||
     (hasFlowsDir && hasHonoOrExpressDependencyGuard({ packageJson }))
   ) {
@@ -60,7 +56,7 @@ export const detectPackageTypeLayerBroker = ({
   }
 
   if (
-    hasModelcontextprotocolAdapterGuard({ adapterDirNames }) ||
+    (hasFlowsDir && hasModelcontextprotocolDependencyGuard({ packageJson })) ||
     flowReturnsToolRegistrationGuard(flowFileContent === undefined ? {} : { flowFileContent })
   ) {
     return packageTypeContract.parse('mcp-server');
@@ -71,7 +67,6 @@ export const detectPackageTypeLayerBroker = ({
   // the same question after this table has already returned something else, and two copies of
   // "widgets plus ink, else widgets plus react" would be free to drift apart.
   const browserPackageType = packageBrowserTypeTransformer({
-    adapterDirNames,
     srcDirNames,
     packageJson,
   });

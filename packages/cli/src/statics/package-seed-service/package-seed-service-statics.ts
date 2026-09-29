@@ -97,8 +97,13 @@ describe('__PASCAL__Flow', () => {
       fileName: 'flows.ts',
       exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
     },
+    // The MCP SDK is declared, never imported, and the seed carries no contract: a consumer's
+    // `@gateway/npm` starts empty (no `#gateway/npm/@modelcontextprotocol/sdk`, no
+    // `#gateway/npm/zod`) and it has no `shared` package, so a seed reaching for any of them fails
+    // install, lint or typecheck on a fresh scaffold. The detector reads the declared dependency
+    // beside the flows folder instead.
     dependencies: {
-      '__SCOPE__/shared': '*',
+      '@modelcontextprotocol/sdk': '^1.0.0',
     },
     devDependencies: {},
     bin: {},
@@ -111,68 +116,39 @@ describe('__PASCAL__Flow', () => {
     needsMswTransform: true,
     files: [
       {
-        path: 'src/contracts/tool-registration/tool-registration-contract.ts',
+        path: 'src/statics/tool/tool-statics.ts',
         contents: `/**
- * PURPOSE: Starting point for this package's MCP tool-registration shape — replace with the real
- * fields your tools need once you have some to register.
+ * PURPOSE: Starting point for this package's MCP tool table — replace with the real tools this
+ * server exposes.
  *
  * USAGE:
- * const registration = toolRegistrationContract.parse({ name: 'my-tool', description: 'does x' });
- * // Returns validated ToolRegistration with branded fields
+ * toolStatics.tools[0].name;
+ * // Returns 'example-tool'
  */
 
-import { z } from 'zod';
-
-export const toolRegistrationContract = z.object({
-  name: z.string().min(1).brand<'ToolRegistrationName'>(),
-  description: z.string().brand<'ToolRegistrationDescription'>(),
-});
-
-export type ToolRegistration = z.infer<typeof toolRegistrationContract>;
-`,
-      },
-      {
-        path: 'src/contracts/tool-registration/tool-registration.stub.ts',
-        contents: `import { toolRegistrationContract } from './tool-registration-contract';
-import type { ToolRegistration } from './tool-registration-contract';
-import type { StubArgument } from '__SCOPE__/shared/@types';
-
-export const ToolRegistrationStub = (
-  { ...props }: StubArgument<ToolRegistration> = {},
-): ToolRegistration =>
-  toolRegistrationContract.parse({
-    name: 'example-tool',
-    description: 'Starting point tool registration - replace with a real tool.',
-    ...props,
-  });
-`,
-      },
-      {
-        path: 'src/contracts/tool-registration/tool-registration-contract.test.ts',
-        contents: `import { toolRegistrationContract } from './tool-registration-contract';
-import { ToolRegistrationStub } from './tool-registration.stub';
-
-describe('toolRegistrationContract', () => {
-  it('VALID: {name: "my-tool", description: "does x"} => parses successfully', () => {
-    const result = toolRegistrationContract.parse({ name: 'my-tool', description: 'does x' });
-
-    expect(result).toStrictEqual({ name: 'my-tool', description: 'does x' });
-  });
-
-  it('INVALID: {name: ""} => throws', () => {
-    expect(() =>
-      toolRegistrationContract.parse({ name: '', description: 'does x' }),
-    ).toThrow(/at least 1 character/u);
-  });
-});
-
-describe('ToolRegistrationStub', () => {
-  it('VALID: {} => returns default stub', () => {
-    const result = ToolRegistrationStub();
-
-    expect(result).toStrictEqual({
+export const toolStatics = {
+  tools: [
+    {
       name: 'example-tool',
       description: 'Starting point tool registration - replace with a real tool.',
+    },
+  ],
+} as const;
+`,
+      },
+      {
+        path: 'src/statics/tool/tool-statics.test.ts',
+        contents: `import { toolStatics } from './tool-statics';
+
+describe('toolStatics', () => {
+  it('VALID: {} => holds the example tool', () => {
+    expect(toolStatics).toStrictEqual({
+      tools: [
+        {
+          name: 'example-tool',
+          description: 'Starting point tool registration - replace with a real tool.',
+        },
+      ],
     });
   });
 });
@@ -181,23 +157,19 @@ describe('ToolRegistrationStub', () => {
       {
         path: 'src/flows/__NAME__/__NAME__-flow.ts',
         contents: `/**
- * PURPOSE: Starting point for this package's MCP tool registrations — replace with the real tools
- * this server exposes once you have some.
+ * PURPOSE: Starting point for this package's MCP tools — replace with the real tools this server
+ * exposes. Register them on an MCP server from a responder once the \`#gateway/npm\` wrapper for
+ * \`@modelcontextprotocol/sdk\` exists: a consumer writes it under packages/@gateway/npm/src/ (the
+ * package already declares the SDK).
  *
  * USAGE:
- * const registrations = __CAMEL__Flow();
- * // Returns the array of ToolRegistration entries this package serves
+ * const tools = __CAMEL__Flow();
+ * // Returns the tool table this package serves
  */
 
-import { toolRegistrationContract } from '../../contracts/tool-registration/tool-registration-contract';
-import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
+import { toolStatics } from '../../statics/tool/tool-statics';
 
-export const __PASCAL__Flow = (): readonly ToolRegistration[] => [
-  toolRegistrationContract.parse({
-    name: 'example-tool',
-    description: 'Starting point tool registration - replace with a real tool.',
-  }),
-];
+export const __PASCAL__Flow = (): typeof toolStatics.tools => toolStatics.tools;
 `,
       },
       {
@@ -205,7 +177,7 @@ export const __PASCAL__Flow = (): readonly ToolRegistration[] => [
         contents: `import { __PASCAL__Flow } from './__NAME__-flow';
 
 describe('__PASCAL__Flow', () => {
-  it('VALID: {} => returns one example tool registration', () => {
+  it('VALID: {} => returns the example tool', () => {
     const result = __PASCAL__Flow();
 
     expect(result).toStrictEqual([

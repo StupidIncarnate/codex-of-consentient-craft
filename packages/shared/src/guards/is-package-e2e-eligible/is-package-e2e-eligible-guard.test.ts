@@ -12,20 +12,19 @@ describe('isPackageE2eEligibleGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink]} => returns true', () => {
+    it('VALID: {srcDirNames: [widgets], ink in deps} => returns true', () => {
       const result = isPackageE2eEligibleGuard({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink'],
+        srcDirNames: ['widgets'],
+        packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0' } }),
       });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink], packageJson.dependencies.react} => returns true', () => {
+    it('VALID: {srcDirNames: [widgets], ink and react in deps} => returns true', () => {
       const result = isPackageE2eEligibleGuard({
         srcDirNames: ['widgets'],
-        adapterDirNames: ['ink'],
-        packageJson: PackageJsonStub({ dependencies: { react: '18.2.0' } }),
+        packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0', react: '18.2.0' } }),
       });
 
       expect(result).toBe(true);
@@ -33,24 +32,23 @@ describe('isPackageE2eEligibleGuard', () => {
   });
 
   describe('precedence trap: widgets + react + hono', () => {
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [hono], packageJson.dependencies.react} => returns true regardless of the hono adapter', () => {
-      // detectPackageTypeLayerBroker's rule 1 (hono/express) would classify this package
-      // 'http-backend' before its rule 4 (widgets+react) is ever reached. This guard does not
+    it('VALID: {srcDirNames: [widgets], hono and react in deps} => returns true regardless of hono', () => {
+      // detectPackageTypeLayerBroker's http-backend rule would classify this package
+      // 'http-backend' before its widgets+react rule is ever reached. This guard does not
       // consult that winning label — it reads the widgets+react signals directly, so the hono
-      // adapter present alongside them cannot hide e2e eligibility.
+      // dependency present alongside them cannot hide e2e eligibility.
       const result = isPackageE2eEligibleGuard({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono'],
-        packageJson: PackageJsonStub({ dependencies: { react: '18.2.0' } }),
+        srcDirNames: ['widgets', 'flows'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0', react: '18.2.0' } }),
       });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {srcDirNames: [widgets], adapterDirNames: [hono, ink]} => returns true regardless of the hono adapter', () => {
+    it('VALID: {srcDirNames: [widgets], hono and ink in deps} => returns true regardless of hono', () => {
       const result = isPackageE2eEligibleGuard({
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono', 'ink'],
+        srcDirNames: ['widgets', 'flows'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0', ink: '^5.0.0' } }),
       });
 
       expect(result).toBe(true);
@@ -67,20 +65,19 @@ describe('isPackageE2eEligibleGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID: {srcDirNames: [widgets], adapterDirNames: [fetch]} => returns false without react or ink', () => {
+    it('INVALID: {srcDirNames: [widgets], zod in deps} => returns false without react or ink', () => {
       const result = isPackageE2eEligibleGuard({
         srcDirNames: ['widgets'],
-        adapterDirNames: ['fetch'],
         packageJson: PackageJsonStub({ dependencies: { zod: '3.25.0' } }),
       });
 
       expect(result).toBe(false);
     });
 
-    it('INVALID: {srcDirNames: [widgets], adapterDirNames: [hono]} => returns false without react or ink even with hono present', () => {
+    it('INVALID: {srcDirNames: [widgets], hono in deps} => returns false without react or ink even with hono present', () => {
       const result = isPackageE2eEligibleGuard({
         srcDirNames: ['widgets'],
-        adapterDirNames: ['hono'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0' } }),
       });
 
       expect(result).toBe(false);

@@ -57,7 +57,8 @@ export const httpEdgesLayerBrokerProxy = (): {
       for (const name of httpBackendPackageNames) {
         packageGroupsProxy.setupPackage({
           packageRoot: `/repo/packages/${name}`,
-          adapterDirNames: ['hono'],
+          srcDirNames: ['flows'],
+          packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
         });
         readFileProxy.setupReturns({
           filePath: AbsoluteFilePathStub({

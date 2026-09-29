@@ -47,9 +47,8 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.build.json',
       'jest.config.js',
       'flows.ts',
-      'src/contracts/tool-registration/tool-registration-contract.ts',
-      'src/contracts/tool-registration/tool-registration.stub.ts',
-      'src/contracts/tool-registration/tool-registration-contract.test.ts',
+      'src/statics/tool/tool-statics.ts',
+      'src/statics/tool/tool-statics.test.ts',
       'src/flows/sample-pkg/sample-pkg-flow.ts',
       'src/flows/sample-pkg/sample-pkg-flow.integration.test.ts',
     ],
@@ -557,7 +556,7 @@ describe('packageScaffoldFilesTransformer', () => {
       );
     });
 
-    it('VALID: {packageType: "mcp-server", packageName: "widgets" unscoped} => the stub imports StubArgument from @widgets/shared/@types', () => {
+    it('VALID: {packageType: "mcp-server", packageName: "widgets" unscoped} => dependencies declare only the MCP SDK, no scope-derived name', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({
           packageType: 'mcp-server',
@@ -565,12 +564,10 @@ describe('packageScaffoldFilesTransformer', () => {
           directoryName: 'widgets',
         }),
       });
-      const stubFile = files.find(
-        (file) => file.relativePath === 'src/contracts/tool-registration/tool-registration.stub.ts',
-      );
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
 
-      expect(stubFile!.contents).toMatch(
-        /^import type \{ StubArgument \} from '@widgets\/shared\/@types';$/mu,
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"dependencies": \{$\n^ {4}"@modelcontextprotocol\/sdk": "\^1\.0\.0"$\n^ {2}\},$/mu,
       );
     });
 

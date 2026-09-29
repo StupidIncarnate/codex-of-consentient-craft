@@ -8,12 +8,12 @@ const PACKAGE_ROOT = '/repo/packages/pkg';
 
 describe('architecturePackageTypeDetectBroker', () => {
   describe('http-backend detection', () => {
-    it('VALID: {adapters/hono} => returns http-backend', async () => {
+    it('VALID: {hono in dependencies + flows/} => returns http-backend', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        adapterDirNames: ['hono', 'fs'],
-        srcDirNames: ['adapters', 'flows', 'responders'],
+        srcDirNames: ['flows', 'responders'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -23,12 +23,12 @@ describe('architecturePackageTypeDetectBroker', () => {
       expect(result).toStrictEqual([PackageTypeStub({ value: 'http-backend' })]);
     });
 
-    it('VALID: {adapters/express} => returns http-backend', async () => {
+    it('VALID: {express in dependencies + flows/} => returns http-backend', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        adapterDirNames: ['express'],
-        srcDirNames: ['adapters'],
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { express: '^4.0.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -40,12 +40,14 @@ describe('architecturePackageTypeDetectBroker', () => {
   });
 
   describe('mcp-server detection', () => {
-    it('VALID: {adapters/@modelcontextprotocol} => returns mcp-server', async () => {
+    it('VALID: {MCP SDK in dependencies + flows/} => returns mcp-server', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        adapterDirNames: ['@modelcontextprotocol'],
-        srcDirNames: ['adapters'],
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -74,13 +76,54 @@ describe('architecturePackageTypeDetectBroker', () => {
     });
   });
 
-  describe('frontend-ink detection', () => {
-    it('VALID: {widgets/ + adapters/ink} => returns frontend-ink', async () => {
+  describe('mcp-server detection on the create-package seed', () => {
+    it('VALID: {the seeded mcp-server shape: SDK dependency, statics + flows folders, flow returning the tool table} => returns mcp-server', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['ink', 'fs'],
+        srcDirNames: ['statics', 'flows'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
+        flowFilePath: `${PACKAGE_ROOT}/src/flows/tools/tools-flow.ts`,
+        flowFileContent: ContentTextStub({
+          value:
+            "import { toolStatics } from '../../statics/tool/tool-statics';\n\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;\n",
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual([PackageTypeStub({ value: 'mcp-server' })]);
+    });
+
+    it('VALID: {the SDK dependency with no flows folder, as in @gateway/npm} => returns library', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['contracts'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual([PackageTypeStub({ value: 'library' })]);
+    });
+  });
+
+  describe('frontend-ink detection', () => {
+    it('VALID: {widgets/ + ink in dependencies} => returns frontend-ink', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['widgets'],
+        packageJsonContent: JSON.stringify({ dependencies: { ink: '^5.0.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -207,13 +250,12 @@ describe('architecturePackageTypeDetectBroker', () => {
   });
 
   describe('priority ordering', () => {
-    it('VALID: {widgets + react + hono adapter} => http-backend wins the label, and frontend-react is still reported behind it', async () => {
+    it('VALID: {widgets + flows + react + hono in dependencies} => http-backend wins the label, and frontend-react is still reported behind it', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono'],
-        packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
+        srcDirNames: ['widgets', 'flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0', react: '18.2.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -226,12 +268,12 @@ describe('architecturePackageTypeDetectBroker', () => {
       ]);
     });
 
-    it('VALID: {widgets + ink + hono adapter} => http-backend wins the label, and frontend-ink is still reported behind it', async () => {
+    it('VALID: {widgets + flows + ink + hono in dependencies} => http-backend wins the label, and frontend-ink is still reported behind it', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono', 'ink'],
+        srcDirNames: ['widgets', 'flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0', ink: '^5.0.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -244,7 +286,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       ]);
     });
 
-    it('VALID: {widgets + react, no shadowing adapter} => frontend-react is reported ONCE, never repeated behind itself', async () => {
+    it('VALID: {widgets + react, no shadowing http-backend signal} => frontend-react is reported ONCE, never repeated behind itself', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
@@ -333,8 +375,10 @@ describe('architecturePackageTypeDetectBroker', () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['adapters', 'flows', 'responders'],
-        adapterDirNames: ['@modelcontextprotocol'],
+        srcDirNames: ['flows', 'responders'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -366,8 +410,8 @@ describe('architecturePackageTypeDetectBroker', () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['adapters', 'flows', 'responders', 'startup'],
-        adapterDirNames: ['hono', 'ws', 'orchestrator'],
+        srcDirNames: ['flows', 'responders', 'startup'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -381,7 +425,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['adapters', 'brokers', 'contracts', 'guards', 'statics', 'transformers'],
+        srcDirNames: ['brokers', 'contracts', 'guards', 'statics', 'transformers'],
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -433,8 +477,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();
       proxy.setupPackage({
         packageRoot: PACKAGE_ROOT,
-        srcDirNames: ['widgets', 'bindings', 'adapters'],
-        adapterDirNames: ['fetch'],
+        srcDirNames: ['widgets', 'bindings'],
         packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
       });
 

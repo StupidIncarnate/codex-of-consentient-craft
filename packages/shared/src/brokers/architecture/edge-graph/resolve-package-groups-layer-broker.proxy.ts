@@ -15,7 +15,6 @@ export const resolvePackageGroupsLayerBrokerProxy = (): {
   setupPackage: (params: {
     packageRoot: string;
     srcDirNames?: readonly string[];
-    adapterDirNames?: readonly string[];
     packageJsonContent?: string;
     flowFiles?: readonly { name: string; content: string }[];
   }) => void;
@@ -41,23 +40,17 @@ export const resolvePackageGroupsLayerBrokerProxy = (): {
     setupPackage: ({
       packageRoot,
       srcDirNames = [],
-      adapterDirNames = [],
       packageJsonContent = '{}',
       flowFiles = [],
     }: {
       packageRoot: string;
       srcDirNames?: readonly string[];
-      adapterDirNames?: readonly string[];
       packageJsonContent?: string;
       flowFiles?: readonly { name: string; content: string }[];
     }): void => {
       readdirProxy.setupDirectory({
         dirPath: AbsoluteFilePathStub({ value: `${packageRoot}/src` }),
         entries: srcDirNames.map((name) => ({ name, kind: 'directory' as const })),
-      });
-      readdirProxy.setupDirectory({
-        dirPath: AbsoluteFilePathStub({ value: `${packageRoot}/src/adapters` }),
-        entries: adapterDirNames.map((name) => ({ name, kind: 'directory' as const })),
       });
       // Staged only when a test names flow files: http-edges proxies stage `src/flows` themselves
       // after this call, and an unconditional empty listing here would be what they overwrite.

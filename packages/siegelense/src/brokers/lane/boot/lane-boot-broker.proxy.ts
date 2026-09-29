@@ -191,7 +191,8 @@ export const laneBootBrokerProxy = (): {
           repoRoot,
           dirName: 'api-pkg',
           packageName: apiPackageName,
-          adapterDirNames: ['hono'],
+          srcDirNames: ['flows'],
+          dependencies: { hono: '^4.0.0' },
         });
       }
       if (webPackageName !== undefined) {

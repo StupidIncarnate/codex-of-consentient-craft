@@ -146,16 +146,15 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
       ]);
     });
 
-    it('VALID: {edit entry over a widgets+react root that ALSO carries a hono adapter} => the label is http-backend and the kind set still carries frontend-react, so the browser track keeps it', async () => {
+    it('VALID: {edit entry over a widgets+react root that ALSO carries a hono dependency and flows folder} => the label is http-backend and the kind set still carries frontend-react, so the browser track keeps it', async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
       proxy.setupLocationExists({
         packageRoot: '/home/testuser/projects/assayer/packages/storefront',
       });
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/storefront',
-        srcDirNames: ['widgets', 'adapters'],
-        adapterDirNames: ['hono'],
-        packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
+        srcDirNames: ['widgets', 'flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0', react: '18.2.0' } }),
       });
 
       const facts = await resolvePackageEntryFactsLayerBroker({
@@ -188,8 +187,8 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
       // packageRoot reads an empty shape and classifies 'library' instead.
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/core',
-        srcDirNames: ['adapters'],
-        adapterDirNames: ['hono'],
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
       });
 
       const facts = await resolvePackageEntryFactsLayerBroker({
@@ -220,8 +219,10 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
       proxy.setupLocationExists({ packageRoot: '/home/testuser/projects/assayer/packages/mcp' });
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/mcp',
-        srcDirNames: ['adapters'],
-        adapterDirNames: ['@modelcontextprotocol'],
+        srcDirNames: ['flows'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
+        }),
       });
 
       const facts = await resolvePackageEntryFactsLayerBroker({
