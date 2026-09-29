@@ -1,3 +1,5 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -122,7 +124,9 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     proxy.setupSubagentDirMissing({
       subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
-      error: new Error('ENOENT: no such directory'),
+      error: FileMissingErrorStub({
+        path: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      }),
     });
 
     const emitted: unknown[] = [];
@@ -141,6 +145,41 @@ describe('scanSubagentsDirLayerBroker', () => {
         subagentHandles: new Map(),
       }),
     ).resolves.toBe(undefined);
+
+    expect(emitted).toStrictEqual([]);
+  });
+
+  it('ERROR: {readdir throws EACCES} => rejects with the original error, emit never called', async () => {
+    const proxy = scanSubagentsDirLayerBrokerProxy();
+    const sessionFilePath = FilePathStub({
+      value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
+    });
+    const parentSessionId = SessionIdStub({ value: 'abc-123' });
+    const chatProcessId = ProcessIdStub({ value: 'scan-proc-eacces' });
+    const activeQuestId = QuestIdStub({ value: 'quest-scan-eacces' });
+    const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
+
+    proxy.setupSubagentDirMissing({
+      subagentsDir,
+      error: FsErrorStub({ code: 'EACCES', syscall: 'scandir', path: subagentsDir }),
+    });
+
+    const emitted: unknown[] = [];
+
+    await expect(
+      scanSubagentsDirLayerBroker({
+        subagentsDir,
+        sessionFilePath,
+        parentSessionId,
+        processor: chatLineProcessTransformer(),
+        chatProcessId,
+        activeQuestIdGetter: () => activeQuestId,
+        emit: (call) => {
+          emitted.push(call);
+        },
+        subagentHandles: new Map(),
+      }),
+    ).rejects.toThrow(`EACCES: scandir '${subagentsDir}'`);
 
     expect(emitted).toStrictEqual([]);
   });

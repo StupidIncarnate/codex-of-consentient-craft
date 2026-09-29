@@ -1,3 +1,4 @@
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
@@ -24,6 +25,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
     content: string;
   }) => void;
 } => {
+  isFsErrorProxy();
   const readdirProxy = readdirSyncProxy();
   // Passthrough for the real normalize the broker runs on a non-active file's first line.
   claudeLineNormalizeBrokerProxy();

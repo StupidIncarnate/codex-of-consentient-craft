@@ -119,7 +119,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   // questModifyBroker itself still runs for real below (only its findQuestPath/load/persist
   // dependencies are bypassed directly).
   const modifyProxy = questModifyBrokerProxy();
-  questOrchestrationLoopBrokerProxy();
+  const loopProxy = questOrchestrationLoopBrokerProxy();
   orchestrationEventsStateProxy();
   const stateProxy = orchestrationProcessesStateProxy();
   stateProxy.setupEmpty();
@@ -192,6 +192,9 @@ export const RecoverGuildLayerResponderProxy = (): {
     }): void => {
       guildGetProxy.setupDirectGuild({ guild: GuildStub({ id: guildId, path: guildPath }) });
       questListProxy.setupDirectList({ guildId, quests });
+      // The loop resolves its slot count from the guild path it is launched with; an unstaged
+      // config address is no longer swallowed into the default.
+      loopProxy.setupConfigResolves({ filePath: FilePathStub({ value: guildPath }) });
 
       // questModifyBroker (orphan reset, or the missing-worktree block path's get+modify) reads
       // and writes through this same chain for every quest — staged unconditionally so either

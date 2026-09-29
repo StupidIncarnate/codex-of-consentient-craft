@@ -1,6 +1,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   questContract,
+  type FilePath,
   type Quest,
   type QuestWorkItemId,
   type WorkItem,
@@ -37,6 +38,9 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupQuestBlocked: (params: { quest: QuestParam }) => void;
   setupQuestReady: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
+  setupConfigResolves: (params: { filePath: FilePath }) => void;
+  setupConfigNotFound: () => void;
+  setupConfigMalformed: (params: { message: string }) => void;
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
   setupChatDispatchThrows: (params: { quest: QuestParam }) => void;
   setupInProgressMarkFails: () => void;
@@ -98,6 +102,19 @@ export const questOrchestrationLoopBrokerProxy = (): {
 
     setupQuestNotFound: (): void => {
       getProxy.setupEmptyFolder();
+    },
+
+    // For a caller that launches the loop from a startPath other than START_PATH.
+    setupConfigResolves: ({ filePath }: { filePath: FilePath }): void => {
+      configProxy.setupResolves({ filePath, config: DungeonmasterConfigStub() });
+    },
+
+    setupConfigNotFound: (): void => {
+      configProxy.setupConfigNotFound({ filePath: START_PATH });
+    },
+
+    setupConfigMalformed: ({ message }: { message: string }): void => {
+      configProxy.setupConfigMalformed({ filePath: START_PATH, message });
     },
 
     setupNoReadyItems: ({ quest }: { quest: QuestParam }): void => {

@@ -1,3 +1,4 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -249,7 +250,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirMissing({
         sessionFilePath,
-        error: new Error('ENOENT: no such directory'),
+        error: FileMissingErrorStub({ path: SUBAGENTS_DIR }),
       });
       proxy.setupLines({
         path: '/home/user/.claude/projects/-home-user-proj/no-subdir-session.jsonl',

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file the run has written. Each file is either a NESTED sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe — a file this watcher already tailed is skipped, including one whose tail has since been stopped, because a fresh tail reads from byte 0 and would replay the whole transcript.
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file the run has written. Each file is either a NESTED sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. A missing directory (ENOENT) is tolerated (it may not exist yet during fresh sessions); any other readdir failure propagates. Idempotent: re-invoking on every poll tick is safe — a file this watcher already tailed is skipped, including one whose tail has since been stopped, because a fresh tail reads from byte 0 and would replay the whole transcript.
  *
  * USAGE:
  * await scanSubagentsDirLayerBroker({
@@ -15,7 +15,7 @@
  * // Resolves with void; each matched tail lands in `subagentHandles`
  */
 
-import { readdirSync } from '#gateway/node/fs';
+import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import {
@@ -93,9 +93,13 @@ export const scanSubagentsDirLayerBroker = async ({
       if (subagentHandles.has(agentId)) continue;
       pendingPairing.push({ agentId, fileName });
     }
-  } catch {
-    // subagents/ may not exist yet — the poll caller retries on the next tick.
-    return;
+  } catch (error: unknown) {
+    // subagents/ may not exist yet — the poll caller retries on the next tick. Any other readdir
+    // failure (EACCES on the person's own transcript directory) propagates to the caller's catch.
+    if (isFsError({ error, code: 'ENOENT' })) {
+      return;
+    }
+    throw error;
   }
 
   // Every candidate file is either a NESTED sub-agent (spawned by a sub-agent, so it never

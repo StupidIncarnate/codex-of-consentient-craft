@@ -466,4 +466,74 @@ describe('questOrchestrationLoopBroker', () => {
       ]);
     });
   });
+
+  describe('slot count config resolution', () => {
+    const terminalQuest = ({
+      questId,
+    }: {
+      questId: ReturnType<typeof QuestIdStub>;
+    }): ReturnType<typeof QuestStub> =>
+      QuestStub({
+        id: questId,
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
+            role: 'ward',
+            text: 'Ward gate (full monorepo)',
+            locked: true,
+            status: 'complete',
+          }),
+        ],
+        workItems: [
+          WorkItemStub({
+            id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+            role: 'chaoswhisperer',
+            status: 'complete',
+          }),
+        ],
+      });
+
+    it('EMPTY: {no .dungeonmaster.json => ConfigNotFoundError} => falls back to the default slot count and the loop still runs', async () => {
+      const proxy = questOrchestrationLoopBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      proxy.setupConfigNotFound();
+      proxy.setupQuestTerminal({ quest: terminalQuest({ questId }) });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).resolves.toBe(undefined);
+
+      expect(proxy.getAllPersistedQuests()[0]!.status).toBe('complete');
+    });
+
+    it('ERROR: {malformed .dungeonmaster.json => InvalidConfigError} => rejects with the config error and reads no quest', async () => {
+      const proxy = questOrchestrationLoopBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      proxy.setupConfigMalformed({ message: 'Unexpected token } in JSON at position 12' });
+      proxy.setupQuestTerminal({ quest: terminalQuest({ questId }) });
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+        }),
+      ).rejects.toThrow(
+        'Invalid configuration in /project/src: Unexpected token } in JSON at position 12',
+      );
+
+      expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
+    });
+  });
 });
