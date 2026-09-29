@@ -1,4 +1,5 @@
-import { UnitObservationStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { questWorkOutcomeDeriveTransformer } from './quest-work-outcome-derive-transformer';
 

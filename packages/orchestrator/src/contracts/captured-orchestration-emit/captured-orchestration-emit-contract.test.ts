@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { capturedOrchestrationEmitContract } from './captured-orchestration-emit-contract';
 import { CapturedOrchestrationEmitStub } from './captured-orchestration-emit.stub';

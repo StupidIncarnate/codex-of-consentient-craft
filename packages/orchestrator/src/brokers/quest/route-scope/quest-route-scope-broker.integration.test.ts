@@ -11,17 +11,15 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestPackageEntryStub,
-  QuestWorkItemIdStub,
-  UnitObservationStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { WorkPlanBatchStub } from '../../../contracts/work-plan-batch/work-plan-batch.stub';
 import { WorkPlanPieceStub } from '../../../contracts/work-plan-piece/work-plan-piece.stub';

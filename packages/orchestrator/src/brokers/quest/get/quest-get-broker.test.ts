@@ -1,15 +1,13 @@
-import {
-  DesignDecisionStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  GetQuestInputStub,
-  OperationItemStub,
-  QuestBlightLedgerEntryStub,
-  QuestContractEntryStub,
-  QuestStub,
-  ToolingRequirementStub,
-} from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
 
 import { questGetBroker } from './quest-get-broker';
 import { questGetBrokerProxy } from './quest-get-broker.proxy';

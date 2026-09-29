@@ -1,4 +1,4 @@
-import { UsageBucketStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
 
 import { usageBucketToWeightedTransformer } from './usage-bucket-to-weighted-transformer';
 

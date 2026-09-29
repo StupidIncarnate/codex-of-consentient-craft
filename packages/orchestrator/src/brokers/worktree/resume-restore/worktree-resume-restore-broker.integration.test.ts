@@ -1,11 +1,9 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  FileNameStub,
-  QuestBranchNameStub,
-  RepoRelativePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
 import { worktreeAdd } from '#gateway/bin/git';

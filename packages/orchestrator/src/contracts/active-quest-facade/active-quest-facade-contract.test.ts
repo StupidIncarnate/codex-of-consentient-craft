@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { activeQuestFacadeContract } from './active-quest-facade-contract';
 import { ActiveQuestFacadeStub } from './active-quest-facade.stub';

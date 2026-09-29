@@ -6,8 +6,9 @@
  * proxy.setupConfig({ config: GuildConfigStub({ guilds: [] }) });
  */
 
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub, type FilePath, type GuildConfig } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
+import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';

@@ -1,4 +1,5 @@
-import { RateLimitWindowStub, RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { hasRateLimitsSnapshotChangedGuard } from './has-rate-limits-snapshot-changed-guard';
 

@@ -1,4 +1,5 @@
-import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { QuestFindByWorkItemIdResponderProxy } from './quest-find-by-work-item-id-responder.proxy';
 

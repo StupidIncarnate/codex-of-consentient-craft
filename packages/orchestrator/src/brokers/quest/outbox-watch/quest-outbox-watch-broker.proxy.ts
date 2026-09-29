@@ -1,4 +1,4 @@
-import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';

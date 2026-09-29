@@ -1,4 +1,6 @@
-import { FilePathStub, GuildConfigStub, GuildStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { guildListBroker } from './guild-list-broker';
 import { guildListBrokerProxy } from './guild-list-broker.proxy';

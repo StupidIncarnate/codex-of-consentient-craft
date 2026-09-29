@@ -1,4 +1,4 @@
-import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { SpawnInstructionStub } from '../spawn-instruction/spawn-instruction.stub';
 import { nextStepContract } from './next-step-contract';

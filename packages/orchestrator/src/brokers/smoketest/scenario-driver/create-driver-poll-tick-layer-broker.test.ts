@@ -1,10 +1,8 @@
-import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
-import {
-  QuestIdStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts/work-item-role/work-item-role.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer-broker';
 import { createDriverPollTickLayerBrokerProxy } from './create-driver-poll-tick-layer-broker.proxy';

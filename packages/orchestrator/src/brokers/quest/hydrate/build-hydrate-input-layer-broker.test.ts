@@ -1,4 +1,5 @@
-import { OperationItemStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { buildHydrateInputLayerBroker } from './build-hydrate-input-layer-broker';

@@ -1,4 +1,4 @@
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';

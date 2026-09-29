@@ -1,4 +1,4 @@
-import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { orchestrationDispatchState } from './orchestration-dispatch-state';
 import { orchestrationDispatchStateProxy } from './orchestration-dispatch-state.proxy';

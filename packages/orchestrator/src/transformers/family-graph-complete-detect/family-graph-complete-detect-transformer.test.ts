@@ -1,4 +1,4 @@
-import { OperationItemStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { familyGraphCompleteDetectTransformer } from './family-graph-complete-detect-transformer';

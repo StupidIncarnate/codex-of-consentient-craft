@@ -1,7 +1,8 @@
 import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
-import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { stderr } from '#gateway/node/process';
 
 describe('questListBroker', () => {

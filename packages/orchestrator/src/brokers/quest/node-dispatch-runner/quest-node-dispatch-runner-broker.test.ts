@@ -1,4 +1,4 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 
 import { questNodeDispatchRunnerBroker } from './quest-node-dispatch-runner-broker';
 import { questNodeDispatchRunnerBrokerProxy } from './quest-node-dispatch-runner-broker.proxy';

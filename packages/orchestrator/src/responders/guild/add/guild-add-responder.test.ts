@@ -1,9 +1,7 @@
-import {
-  GuildNameStub,
-  GuildPathStub,
-  FilePathStub,
-  GuildConfigStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 
 import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 

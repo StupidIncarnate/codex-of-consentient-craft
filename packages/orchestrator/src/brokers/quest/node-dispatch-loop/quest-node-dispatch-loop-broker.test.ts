@@ -1,4 +1,4 @@
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 
 import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';

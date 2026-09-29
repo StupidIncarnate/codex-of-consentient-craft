@@ -1,5 +1,5 @@
-import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 

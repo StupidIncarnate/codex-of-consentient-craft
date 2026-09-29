@@ -1,19 +1,19 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
-import {
-  GuildStub,
-  QuestIdStub,
-  FilePathStub,
-  type AddQuestInput,
-  type AddQuestResult,
-  type Guild,
-  type GuildListItem,
-  type GuildName,
-  type GuildPath,
-  type SessionId,
+import type {
+  AddQuestInput,
+  AddQuestResult,
+  Guild,
+  GuildListItem,
+  GuildName,
+  GuildPath,
+  SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import {
   registerMock,
   registerModuleMock,

@@ -1,9 +1,7 @@
-import {
-  QuestStub,
-  UnitIdStub,
-  UnitObservationStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { unitCurrentMarkTransformer } from './unit-current-mark-transformer';
 

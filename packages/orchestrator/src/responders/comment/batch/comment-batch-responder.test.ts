@@ -1,9 +1,7 @@
-import {
-  CommentBatchEntryStub,
-  FlowStub,
-  ObservableIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts/comment-batch-entry/comment-batch-entry.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { ObservableIdStub } from '@dungeonmaster/shared/contracts/observable-id/observable-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { CommentBatchResponder } from './comment-batch-responder';
 import { CommentBatchResponderProxy } from './comment-batch-responder.proxy';

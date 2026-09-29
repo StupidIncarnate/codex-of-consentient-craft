@@ -1,9 +1,7 @@
-import {
-  OperationItemStub,
-  QuestStub,
-  RoutedGraphNodeKeyStub,
-  RoutedGraphOutcomeWordStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RoutedGraphNodeKeyStub } from '@dungeonmaster/shared/contracts/routed-graph-node-key/routed-graph-node-key.stub';
+import { RoutedGraphOutcomeWordStub } from '@dungeonmaster/shared/contracts/routed-graph-outcome-word/routed-graph-outcome-word.stub';
 
 import { agentFlowFamilyResolveTransformer } from './agent-flow-family-resolve-transformer';
 

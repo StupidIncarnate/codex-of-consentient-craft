@@ -1,8 +1,6 @@
-import {
-  OperationItemStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from './work-items-to-quest-status-transformer';

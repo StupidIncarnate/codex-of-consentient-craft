@@ -1,4 +1,4 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { wardOutputToFilePathsTransformer } from './ward-output-to-file-paths-transformer';
 

@@ -1,25 +1,23 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  AddQuestInputStub,
-  CommentBatchEntryStub,
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  GuildNameStub,
-  GuildPathStub,
-  ModifyQuestInputStub,
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestBlightLedgerEntryStub,
-  QuestContractEntryStub,
-  QuestNoteStub,
-  QuestPackageEntryStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
+import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts/comment-batch-entry/comment-batch-entry.stub';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';

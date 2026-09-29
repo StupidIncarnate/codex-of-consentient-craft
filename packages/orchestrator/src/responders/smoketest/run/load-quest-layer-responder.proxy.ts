@@ -7,7 +7,8 @@
  * (the "passthrough join composed from far away" trap).
  */
 
-import type { FilePath, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,

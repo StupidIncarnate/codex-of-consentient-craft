@@ -1,5 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { GetQuestInputStub } from '@dungeonmaster/shared/contracts';
+import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';

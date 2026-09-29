@@ -32,32 +32,32 @@
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import type {
-  AdapterResultStub,
-  DirectoryEntryStub,
   GuildId,
-  GuildListItemStub,
   GuildName,
   GuildPath,
-  GuildStub,
-  OrchestrationModeStub,
-  OrchestrationStatusStub,
   ProcessId,
   QuestId,
-  QuestListItemStub,
-  QuestProjectionStub,
-  QuestQueueEntryStub,
   QuestStatus,
-  QuestStub,
-  QuestSummaryStub,
   QuestWorkItemId,
-  RateLimitsSnapshotStub,
   SessionId,
-  SkippedQuestFileStub,
   SmoketestSuite,
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
+import type { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
+import type { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
+import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
+import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
+import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
+import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
+import type { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
+import type { SkippedQuestFileStub } from '@dungeonmaster/shared/contracts/skipped-quest-file/skipped-quest-file.stub';
 
 import { QuestGetServerConfigResultStub } from '../contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 import { QuestWorkViewStub } from '../contracts/quest-work-view/quest-work-view.stub';

@@ -1,9 +1,7 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  QuestCommentStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 
 import { commentBatchToMarkdownTransformer } from './comment-batch-to-markdown-transformer';
 

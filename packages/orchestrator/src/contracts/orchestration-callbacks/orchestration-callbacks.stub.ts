@@ -7,7 +7,7 @@
  */
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import type { z } from '#gateway/npm/zod';
 
 import { orchestrationCallbacksContract } from './orchestration-callbacks-contract';

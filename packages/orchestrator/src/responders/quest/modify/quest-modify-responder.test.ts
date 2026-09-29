@@ -1,11 +1,9 @@
-import {
-  FlowStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { QuestModifyResponderProxy } from './quest-modify-responder.proxy';

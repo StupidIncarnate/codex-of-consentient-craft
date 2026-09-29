@@ -1,10 +1,8 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  AbsoluteFilePathStub,
-  ErrorMessageStub,
-  FileNameStub,
-  QuestBranchNameStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
 import { worktreePrepareBroker } from '../prepare/worktree-prepare-broker';

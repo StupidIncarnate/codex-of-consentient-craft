@@ -1,10 +1,8 @@
-import {
-  FlowNodeStub,
-  FlowStub,
-  OperationItemStub,
-  QuestPackageEntryStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { mintNextFamilyLayerBroker } from './mint-next-family-layer-broker';
 import { mintNextFamilyLayerBrokerProxy } from './mint-next-family-layer-broker.proxy';

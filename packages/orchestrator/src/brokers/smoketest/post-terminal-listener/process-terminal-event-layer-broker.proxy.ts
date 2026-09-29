@@ -13,13 +13,9 @@
  * mocking is cleaner and matches questPauseBroker's pattern.
  */
 
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  FilePath,
-  QuestId,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { AbsoluteFilePath, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
   registerModuleMock,

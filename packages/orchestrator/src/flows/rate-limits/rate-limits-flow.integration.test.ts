@@ -1,5 +1,6 @@
 import { BaseNameStub } from '@dungeonmaster/testing';
-import { DispatchHoldStub, RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { rateLimitsWatcherHarness } from '../../../test/harnesses/rate-limits-watcher/rate-limits-watcher.harness';
 import { OrchestrationDispatchFlow } from '../orchestration-dispatch/orchestration-dispatch-flow';

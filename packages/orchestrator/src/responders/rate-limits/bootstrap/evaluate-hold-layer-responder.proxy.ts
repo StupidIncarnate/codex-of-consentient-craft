@@ -1,5 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { DispatchHoldStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { dispatchHoldEvaluateBrokerProxy } from '../../../brokers/dispatch-hold/evaluate/dispatch-hold-evaluate-broker.proxy';

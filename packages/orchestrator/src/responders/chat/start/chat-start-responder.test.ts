@@ -1,17 +1,17 @@
 import {
   AssistantAskUserQuestionStreamLineStub,
   AssistantTextStreamLineStub,
-  ExitCodeStub,
-  GuildIdStub,
-  SessionIdStub,
-  FilePathStub,
-  ProcessIdStub,
-  QuestIdStub,
-  QuestStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';

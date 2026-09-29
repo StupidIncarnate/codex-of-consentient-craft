@@ -1,7 +1,8 @@
 import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-layer-broker.proxy';
 import { createDriverPollTickLayerBrokerProxy } from './create-driver-poll-tick-layer-broker.proxy';

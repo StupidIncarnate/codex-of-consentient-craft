@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { ExecutionQueueSyncListenerBootstrapResponder } from './execution-queue-sync-listener-bootstrap-responder';
 import { ExecutionQueueSyncListenerBootstrapResponderProxy } from './execution-queue-sync-listener-bootstrap-responder.proxy';

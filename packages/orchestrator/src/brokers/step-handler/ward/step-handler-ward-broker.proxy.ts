@@ -28,16 +28,12 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  GuildIdStub,
-  ModifyQuestResultStub,
-  RepoRootCwdStub,
-  type ExitCode,
-  type FileContents,
-  type FileName,
-} from '@dungeonmaster/shared/contracts';
+import type { ExitCode, FileContents, FileName } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,

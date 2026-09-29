@@ -1,4 +1,4 @@
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import type { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';

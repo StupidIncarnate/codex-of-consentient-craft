@@ -8,7 +8,8 @@
  * const result = await QuestGetQuestWorkResponder({ questId, workItemId });
  */
 
-import type { OperationItemId, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { OperationItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetQuestWorkBrokerProxy } from '../../../brokers/quest/get-quest-work/quest-get-quest-work-broker.proxy';
 import { questGetWorkPlanBrokerProxy } from '../../../brokers/quest/get-work-plan/quest-get-work-plan-broker.proxy';

@@ -1,9 +1,7 @@
-import {
-  FilePathStub,
-  GuildConfigStub,
-  GuildStub,
-  RepoRootCwdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { smoketestEnsureGuildBroker } from './smoketest-ensure-guild-broker';
 import { smoketestEnsureGuildBrokerProxy } from './smoketest-ensure-guild-broker.proxy';

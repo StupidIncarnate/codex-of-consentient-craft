@@ -1,5 +1,6 @@
 import { setImmediate } from '#gateway/node/setImmediate';
-import { RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 

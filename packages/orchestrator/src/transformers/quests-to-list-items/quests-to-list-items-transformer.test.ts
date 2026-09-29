@@ -1,4 +1,4 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questsToListItemsTransformer } from './quests-to-list-items-transformer';
 

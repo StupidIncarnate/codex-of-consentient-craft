@@ -1,5 +1,7 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { smoketestTeardownQuestBroker } from './smoketest-teardown-quest-broker';
 import { smoketestTeardownQuestBrokerProxy } from './smoketest-teardown-quest-broker.proxy';

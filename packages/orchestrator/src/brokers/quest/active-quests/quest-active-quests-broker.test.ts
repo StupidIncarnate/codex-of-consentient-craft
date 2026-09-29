@@ -1,9 +1,7 @@
-import {
-  GuildListItemStub,
-  QuestIdStub,
-  QuestStub,
-  UrlSlugStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { questActiveQuestsBroker } from './quest-active-quests-broker';
 import { questActiveQuestsBrokerProxy } from './quest-active-quests-broker.proxy';

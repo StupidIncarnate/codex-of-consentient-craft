@@ -7,8 +7,8 @@ import {
   type FilePath,
   type FileName,
   type GuildId,
-  type QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,

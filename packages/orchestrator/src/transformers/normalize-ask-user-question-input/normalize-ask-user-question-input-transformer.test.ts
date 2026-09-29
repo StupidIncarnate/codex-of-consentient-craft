@@ -1,4 +1,4 @@
-import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { normalizeAskUserQuestionInputTransformer } from './normalize-ask-user-question-input-transformer';
 
 describe('normalizeAskUserQuestionInputTransformer', () => {

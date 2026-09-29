@@ -1,13 +1,11 @@
-import {
-  AbsoluteFilePathStub,
-  GuildIdStub,
-  OperationItemStub,
-  PackageGraphEntryStub,
-  QuestBranchNameStub,
-  QuestIdStub,
-  QuestStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';

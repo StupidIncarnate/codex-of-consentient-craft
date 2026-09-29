@@ -1,9 +1,7 @@
-import {
-  dungeonmasterHomeEnsureBrokerProxy,
-  locationsDispatchStatePathFindBrokerProxy,
-  locationsDispatchStateTmpPathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
+import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-path-find/locations-dispatch-state-path-find-broker.proxy';
+import { locationsDispatchStateTmpPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/dispatch-state-tmp-path-find/locations-dispatch-state-tmp-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';

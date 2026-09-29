@@ -1,4 +1,4 @@
-import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 

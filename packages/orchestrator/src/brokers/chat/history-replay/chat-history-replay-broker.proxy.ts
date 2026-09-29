@@ -2,17 +2,15 @@ import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.pro
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { homedir } from '#gateway/node/os';
-import {
-  claudeLineNormalizeBrokerProxy,
-  cwdResolveBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type {
-  FileNameStub,
   FilePath,
   AbsoluteFilePath,
   QuestId,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
+import type { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import {
   absoluteFilePathContract,
   filePathContract,

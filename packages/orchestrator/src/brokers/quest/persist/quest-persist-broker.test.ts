@@ -1,4 +1,6 @@
-import { FileContentsStub, FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questPersistBroker } from './quest-persist-broker';
 import { questPersistBrokerProxy } from './quest-persist-broker.proxy';

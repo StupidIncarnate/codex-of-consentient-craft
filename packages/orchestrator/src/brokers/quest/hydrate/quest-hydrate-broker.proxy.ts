@@ -13,7 +13,7 @@
  * matches the questPauseBroker / questModifyBroker pattern.
  */
 
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 

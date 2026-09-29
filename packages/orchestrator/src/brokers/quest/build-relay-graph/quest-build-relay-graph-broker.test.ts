@@ -1,10 +1,8 @@
-import {
-  OperationItemStub,
-  PackageGraphEntryStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questBuildRelayGraphBroker } from './quest-build-relay-graph-broker';

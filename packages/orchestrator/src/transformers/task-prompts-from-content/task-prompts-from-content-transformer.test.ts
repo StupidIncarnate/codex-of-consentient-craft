@@ -1,4 +1,4 @@
-import { AssistantTaskToolUseStreamLineStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTaskToolUseStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
 import { taskPromptsFromContentTransformer } from './task-prompts-from-content-transformer';
 

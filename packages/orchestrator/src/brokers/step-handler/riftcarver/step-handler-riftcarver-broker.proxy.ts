@@ -26,12 +26,8 @@ import { pushProxy } from '#gateway/bin/git/push/push.proxy';
 import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
-import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  GuildIdStub,
-  RepoRootCwdStub,
   baseBranchNameContract,
   errorMessageContract,
   exitCodeContract,
@@ -40,8 +36,12 @@ import {
   type ErrorMessage,
   type ExitCode,
   type Quest,
-  type QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 

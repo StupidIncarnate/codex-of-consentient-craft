@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { wardDetailBroker } from './ward-detail-broker';
 import { wardDetailBrokerProxy } from './ward-detail-broker.proxy';

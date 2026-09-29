@@ -1,9 +1,7 @@
-import {
-  BlightChecklistItemStub,
-  BlightChecklistStub,
-  QuestBlightLedgerEntryStub,
-  RepoRelativePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { BlightChecklistItemStub } from '@dungeonmaster/shared/contracts/blight-checklist-item/blight-checklist-item.stub';
+import { BlightChecklistStub } from '@dungeonmaster/shared/contracts/blight-checklist/blight-checklist.stub';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';

@@ -1,4 +1,5 @@
-import { QuestQueueEntryStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questExecutionQueueState } from './quest-execution-queue-state';
 import { questExecutionQueueStateProxy } from './quest-execution-queue-state.proxy';

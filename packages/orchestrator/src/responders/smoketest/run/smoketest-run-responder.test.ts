@@ -1,11 +1,10 @@
-import type { QuestSourceStub, SmoketestSuiteStub } from '@dungeonmaster/shared/contracts';
-import {
-  FilePathStub,
-  GuildIdStub,
-  QuestIdStub,
-  SmoketestRunIdStub,
-  UrlSlugStub,
-} from '@dungeonmaster/shared/contracts';
+import type { QuestSourceStub } from '@dungeonmaster/shared/contracts/quest-source/quest-source.stub';
+import type { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts/smoketest-suite/smoketest-suite.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';

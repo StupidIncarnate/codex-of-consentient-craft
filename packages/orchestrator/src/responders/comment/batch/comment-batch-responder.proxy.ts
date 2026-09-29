@@ -1,5 +1,6 @@
 import { randomUUID } from '#gateway/node/crypto';
-import { ModifyQuestResultStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';

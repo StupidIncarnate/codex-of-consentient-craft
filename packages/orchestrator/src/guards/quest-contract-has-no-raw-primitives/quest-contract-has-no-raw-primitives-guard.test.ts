@@ -1,4 +1,5 @@
-import { QuestContractEntryStub, QuestContractPropertyStub } from '@dungeonmaster/shared/contracts';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestContractPropertyStub } from '@dungeonmaster/shared/contracts/quest-contract-property/quest-contract-property.stub';
 
 import { questContractHasNoRawPrimitivesGuard } from './quest-contract-has-no-raw-primitives-guard';
 

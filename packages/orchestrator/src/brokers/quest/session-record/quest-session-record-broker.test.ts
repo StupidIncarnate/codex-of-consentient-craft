@@ -1,11 +1,9 @@
-import {
-  AbsoluteFilePathStub,
-  QuestIdStub,
-  QuestSessionStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questSessionRecordBroker } from './quest-session-record-broker';
 import { questSessionRecordBrokerProxy } from './quest-session-record-broker.proxy';

@@ -12,7 +12,8 @@ import * as fs from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
-import { GuildNameStub, guildPathContract } from '@dungeonmaster/shared/contracts';
+import { guildPathContract } from '@dungeonmaster/shared/contracts';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import type {
   FilePath,
   GuildId,

@@ -1,4 +1,6 @@
-import { FlowNodeStub, FlowObservableStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { questDuplicateObservableIdsInNodeTransformer } from './quest-duplicate-observable-ids-in-node-transformer';
 

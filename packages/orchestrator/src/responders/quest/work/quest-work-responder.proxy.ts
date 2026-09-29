@@ -11,11 +11,9 @@
  * const result = await proxy.callResponder({ questId, workItemId, payload });
  */
 
-import type {
-  AbsoluteFilePathStub,
-  OperationItemIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import type { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questWorkPlanWriteBrokerProxy } from '../../../brokers/quest/work-plan-write/quest-work-plan-write-broker.proxy';
 import { questWorkRecordBrokerProxy } from '../../../brokers/quest/work-record/quest-work-record-broker.proxy';

@@ -1,10 +1,8 @@
-import {
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 
 import { questArrayUpsertTransformer } from './quest-array-upsert-transformer';
 

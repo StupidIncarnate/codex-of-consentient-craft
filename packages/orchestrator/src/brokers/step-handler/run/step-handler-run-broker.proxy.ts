@@ -13,7 +13,9 @@
  * const result = await stepHandlerRunBroker({ handler: 'ward', args: [], questId, workItemId, onLine: () => undefined });
  */
 
-import { ExitCodeStub, FileContentsStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { CleanupAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';

@@ -1,4 +1,4 @@
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
 import { questBlockOnFailureBrokerProxy } from '../block-on-failure/quest-block-on-failure-broker.proxy';

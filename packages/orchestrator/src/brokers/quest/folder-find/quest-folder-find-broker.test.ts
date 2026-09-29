@@ -1,6 +1,8 @@
-import { FileContentsStub, FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { questFolderFindBroker } from './quest-folder-find-broker';
 import { questFolderFindBrokerProxy } from './quest-folder-find-broker.proxy';
 

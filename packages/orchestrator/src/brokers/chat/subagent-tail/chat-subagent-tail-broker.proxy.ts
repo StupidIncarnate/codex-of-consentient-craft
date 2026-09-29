@@ -5,7 +5,7 @@ import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 import { homedir } from '#gateway/node/os';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const chatSubagentTailBrokerProxy = (): {

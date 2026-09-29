@@ -5,20 +5,16 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type {
   AbsoluteFilePath,
   QuestId,
-  QuestStub as QuestStubType,
   RepoRootCwd,
   SessionId,
 } from '@dungeonmaster/shared/contracts';
-import {
-  ExitCodeStub,
-  QuestStub,
-  RepoRootCwdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
-import {
-  locationsQuestFolderPathFindBrokerProxy,
-  locationsQuestImagesPathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
+import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
+import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';

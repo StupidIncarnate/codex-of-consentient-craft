@@ -1,4 +1,6 @@
-import { FlowEdgeStub, FlowNodeStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { questDecisionNodesMissingBranchesTransformer } from './quest-decision-nodes-missing-branches-transformer';
 

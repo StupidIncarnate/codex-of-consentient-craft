@@ -1,4 +1,4 @@
-import { BlightChecklistStub } from '@dungeonmaster/shared/contracts';
+import { BlightChecklistStub } from '@dungeonmaster/shared/contracts/blight-checklist/blight-checklist.stub';
 
 import { blightCoverageOutstandingTransformer } from './blight-coverage-outstanding-transformer';
 

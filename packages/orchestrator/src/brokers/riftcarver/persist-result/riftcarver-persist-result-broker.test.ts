@@ -1,8 +1,6 @@
-import {
-  FileContentsStub,
-  FilePathStub,
-  RiftcarverResultStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
 import { riftcarverPersistResultBroker } from './riftcarver-persist-result-broker';
 import { riftcarverPersistResultBrokerProxy } from './riftcarver-persist-result-broker.proxy';

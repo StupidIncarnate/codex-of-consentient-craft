@@ -1,10 +1,8 @@
-import {
-  QuestBlightLedgerEntryStub,
-  QuestIdStub,
-  QuestPackageEntryStub,
-  QuestStub,
-  RepoRelativePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { questGetBlightChecklistBroker } from './quest-get-blight-checklist-broker';

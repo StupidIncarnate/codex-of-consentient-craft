@@ -1,8 +1,6 @@
-import {
-  PackageGraphEntryStub,
-  QuestPackageEntryStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
 import { PrepareQuestPackageGraphLayerResponderProxy } from './prepare-quest-package-graph-layer-responder.proxy';

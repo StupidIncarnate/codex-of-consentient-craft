@@ -9,7 +9,9 @@
 
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
-import { FilePathStub, GuildStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type {
   AbsoluteFilePath,
   GuildId,
@@ -17,8 +19,8 @@ import type {
   ProcessId,
   QuestBranchName,
   QuestId,
-  QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
   registerModuleMock,

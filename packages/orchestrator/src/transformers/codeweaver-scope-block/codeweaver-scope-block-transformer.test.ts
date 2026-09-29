@@ -1,12 +1,10 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-  PackageGraphEntryStub,
-  QuestPackageEntryStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { codeweaverScopeBlockTransformer } from './codeweaver-scope-block-transformer';
 

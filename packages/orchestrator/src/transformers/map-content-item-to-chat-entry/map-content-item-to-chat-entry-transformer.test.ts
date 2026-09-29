@@ -1,4 +1,4 @@
-import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
+import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { mapContentItemToChatEntryTransformer } from './map-content-item-to-chat-entry-transformer';
 import { mapContentItemToChatEntryTransformerProxy } from './map-content-item-to-chat-entry-transformer.proxy';
 

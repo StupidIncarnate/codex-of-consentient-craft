@@ -1,11 +1,9 @@
-import {
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowOffMapSignoffStub,
-  FlowStub,
-  QaChecklistItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QaChecklistItemIdStub } from '@dungeonmaster/shared/contracts/qa-checklist-item-id/qa-checklist-item-id.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { smoketestFlowSignoffApplyTransformer } from './smoketest-flow-signoff-apply-transformer';

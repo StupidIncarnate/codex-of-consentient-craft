@@ -1,10 +1,8 @@
-import {
-  GuildIdStub,
-  GuildListItemStub,
-  GuildPathStub,
-  QuestIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { OrchestrationStartupRecoveryResponder } from './orchestration-startup-recovery-responder';

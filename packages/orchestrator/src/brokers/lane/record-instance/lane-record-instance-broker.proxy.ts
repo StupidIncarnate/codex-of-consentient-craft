@@ -12,8 +12,10 @@
  * const persisted = proxy.getLastPersistedQuest();
  */
 
-import { FilePathStub, questContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';

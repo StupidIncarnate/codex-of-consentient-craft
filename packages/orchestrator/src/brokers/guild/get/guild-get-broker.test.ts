@@ -1,4 +1,6 @@
-import { GuildConfigStub, GuildIdStub, GuildStub } from '@dungeonmaster/shared/contracts';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { guildGetBroker } from './guild-get-broker';
 import { guildGetBrokerProxy } from './guild-get-broker.proxy';

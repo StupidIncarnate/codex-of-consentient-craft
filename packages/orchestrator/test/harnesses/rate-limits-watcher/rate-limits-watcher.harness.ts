@@ -27,7 +27,8 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { GuildPath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
-import type { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { ElapsedMsStub } from '../../../src/contracts/elapsed-ms/elapsed-ms.stub';
 import { orchestrationDispatchState } from '../../../src/state/orchestration-dispatch/orchestration-dispatch-state';

@@ -1,4 +1,4 @@
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { streamJsonResultContract } from './stream-json-result-contract';
 import { StreamJsonResultStub } from './stream-json-result.stub';
 

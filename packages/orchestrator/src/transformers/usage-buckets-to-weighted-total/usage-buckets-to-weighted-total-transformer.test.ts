@@ -1,4 +1,5 @@
-import { BucketStartKeyStub, UsageBucketStub } from '@dungeonmaster/shared/contracts';
+import { BucketStartKeyStub } from '@dungeonmaster/shared/contracts/bucket-start-key/bucket-start-key.stub';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
 
 import { usageBucketsToWeightedTotalTransformer } from './usage-buckets-to-weighted-total-transformer';
 

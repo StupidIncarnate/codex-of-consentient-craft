@@ -1,4 +1,5 @@
-import { QuestTitleStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestTitleStub } from '@dungeonmaster/shared/contracts/quest-title/quest-title.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questBranchStatics } from '../../statics/quest-branch/quest-branch-statics';
 

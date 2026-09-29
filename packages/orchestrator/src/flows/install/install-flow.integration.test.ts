@@ -4,7 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../../statics/slash-commands/slash-commands-statics';
 import { InstallFlow } from './install-flow';
 

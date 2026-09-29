@@ -1,4 +1,5 @@
-import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { QuestOutboxLineStub } from '../../../contracts/quest-outbox-line/quest-outbox-line.stub';
 

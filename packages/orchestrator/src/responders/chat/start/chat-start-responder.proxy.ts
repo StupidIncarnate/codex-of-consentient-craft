@@ -3,10 +3,10 @@ import type {
   OrchestrationEventType,
   ProcessId,
   Quest as QuestContract,
-  QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import type { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';

@@ -1,6 +1,6 @@
 import { questLoadBroker } from './quest-load-broker';
 import { questLoadBrokerProxy } from './quest-load-broker.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('questLoadBroker', () => {

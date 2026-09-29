@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { worktreeFailureDetailTransformer } from './worktree-failure-detail-transformer';
 

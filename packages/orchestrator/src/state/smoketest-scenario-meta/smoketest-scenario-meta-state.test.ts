@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { SmoketestScenarioMetaStub } from '../../contracts/smoketest-scenario-meta/smoketest-scenario-meta.stub';
 import { smoketestScenarioMetaState } from './smoketest-scenario-meta-state';

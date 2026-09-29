@@ -1,10 +1,8 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  QuestNoteStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questHumanVerdictRecordBroker } from './quest-human-verdict-record-broker';
 import { questHumanVerdictRecordBrokerProxy } from './quest-human-verdict-record-broker.proxy';

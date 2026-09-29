@@ -1,8 +1,6 @@
-import type {
-  ProcessIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { orchestrationProcessesState } from './orchestration-processes-state';
 import type { OrchestrationProcessStub } from '../../contracts/orchestration-process/orchestration-process.stub';

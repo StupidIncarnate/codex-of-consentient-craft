@@ -1,4 +1,5 @@
-import { UnitIdStub, UnitObservationStub } from '@dungeonmaster/shared/contracts';
+import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 
 import { deriveOutcomeTransformer } from './derive-outcome-transformer';
 

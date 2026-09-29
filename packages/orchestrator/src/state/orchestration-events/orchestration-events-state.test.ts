@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { orchestrationEventsState } from './orchestration-events-state';
 import { orchestrationEventsStateProxy } from './orchestration-events-state.proxy';

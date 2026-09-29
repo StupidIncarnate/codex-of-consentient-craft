@@ -1,4 +1,5 @@
-import { QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { QuestFindBySessionIdResponderProxy } from './quest-find-by-session-id-responder.proxy';
 

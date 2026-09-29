@@ -4,7 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { homeDirectoryMarkerHarness } from '../../../test/harnesses/home-directory-marker/home-directory-marker.harness';
 import { DirectoryFlow } from './directory-flow';

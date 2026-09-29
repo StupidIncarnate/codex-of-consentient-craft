@@ -1,16 +1,14 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  AbsoluteFilePathStub,
-  ErrorMessageStub,
-  FileContentsStub,
-  FileNameStub,
-  OperationItemStub,
-  QuestBranchNameStub,
-  QuestIdStub,
-  QuestStub,
-  QuestTitleStub,
-  RepoRelativePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestTitleStub } from '@dungeonmaster/shared/contracts/quest-title/quest-title.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { OrchestrationStartResponder } from './orchestration-start-responder';

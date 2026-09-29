@@ -1,4 +1,5 @@
-import type { FilePath, GuildConfig, GuildStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';

@@ -1,4 +1,4 @@
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 
 import { questGetServerConfigResultContract } from './quest-get-server-config-result-contract';
 import { QuestGetServerConfigResultStub } from './quest-get-server-config-result.stub';

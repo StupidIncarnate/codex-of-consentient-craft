@@ -1,5 +1,5 @@
 import { BaseNameStub } from '@dungeonmaster/testing';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questOutboxHarness } from '../../../../test/harnesses/quest-outbox/quest-outbox.harness';
 

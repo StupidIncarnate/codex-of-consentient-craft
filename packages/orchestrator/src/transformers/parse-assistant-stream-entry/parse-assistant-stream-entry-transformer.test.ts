@@ -4,7 +4,7 @@ import {
   AssistantToolResultStreamLineStub,
   AssistantMixedContentStreamLineStub,
   AssistantThinkingStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseAssistantStreamEntryTransformer } from './parse-assistant-stream-entry-transformer';
 import { parseAssistantStreamEntryTransformerProxy } from './parse-assistant-stream-entry-transformer.proxy';

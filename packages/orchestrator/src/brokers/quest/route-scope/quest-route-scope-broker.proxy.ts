@@ -25,8 +25,10 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { AbsoluteFilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import type { OperationItemId, Quest, QuestStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { OperationItemId, Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
   registerModuleMock,

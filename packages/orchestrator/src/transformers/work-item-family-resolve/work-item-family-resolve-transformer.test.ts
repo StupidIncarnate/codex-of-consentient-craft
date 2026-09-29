@@ -1,4 +1,5 @@
-import { OperationItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { workItemFamilyResolveTransformer } from './work-item-family-resolve-transformer';
 

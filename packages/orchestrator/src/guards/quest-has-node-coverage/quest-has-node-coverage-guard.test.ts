@@ -1,4 +1,6 @@
-import { FlowStub, FlowNodeStub, FlowObservableStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 
 import { questHasNodeCoverageGuard } from './quest-has-node-coverage-guard';
 

@@ -15,7 +15,7 @@
  */
 
 import type { questContract } from '@dungeonmaster/shared/contracts';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
 

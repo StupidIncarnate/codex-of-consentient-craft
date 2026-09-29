@@ -1,5 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
-import { filePathContract, GuildIdStub, questContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type {
   FileName,
   FilePath,

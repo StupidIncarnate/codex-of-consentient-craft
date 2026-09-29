@@ -1,5 +1,6 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import type { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';

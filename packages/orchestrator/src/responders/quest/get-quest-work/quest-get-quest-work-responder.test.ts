@@ -1,11 +1,9 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-  QuestStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { QuestGetQuestWorkResponder } from './quest-get-quest-work-responder';
 import { QuestGetQuestWorkResponderProxy } from './quest-get-quest-work-responder.proxy';

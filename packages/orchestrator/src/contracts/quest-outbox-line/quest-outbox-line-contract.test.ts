@@ -1,6 +1,6 @@
 import { questOutboxLineContract } from './quest-outbox-line-contract';
 import { QuestOutboxLineStub } from './quest-outbox-line.stub';
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 describe('questOutboxLineContract', () => {
   describe('valid inputs', () => {

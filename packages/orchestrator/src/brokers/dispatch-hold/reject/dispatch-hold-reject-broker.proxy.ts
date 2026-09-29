@@ -1,6 +1,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
-import { DispatchStateStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 

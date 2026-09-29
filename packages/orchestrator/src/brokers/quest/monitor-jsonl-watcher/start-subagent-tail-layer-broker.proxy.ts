@@ -1,4 +1,4 @@
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 
 export const startSubagentTailLayerBrokerProxy = (): {

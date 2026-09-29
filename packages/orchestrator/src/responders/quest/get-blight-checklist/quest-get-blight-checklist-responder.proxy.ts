@@ -9,7 +9,7 @@
  * const result = await proxy.callResponder({ questId: 'add-auth' });
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetBlightChecklistBrokerProxy } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.proxy';
 import { QuestGetBlightChecklistResponder } from './quest-get-blight-checklist-responder';

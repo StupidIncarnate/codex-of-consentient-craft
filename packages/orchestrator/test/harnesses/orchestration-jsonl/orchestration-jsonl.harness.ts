@@ -6,19 +6,15 @@
  * const response = jsonl.agentSuccessResponse({ sessionId: SessionIdStub({ value: 'sess-001' }) });
  * queue.enqueue({ queueDir, response });
  */
-import type {
-  ClaudeQueueResponseStub,
-  FilePathStub,
-  WardQueueResponseStub,
-} from '@dungeonmaster/shared/contracts';
-import {
-  ExitCodeStub,
-  ResultStreamLineStub,
-  SessionIdStub,
-  StreamJsonLineStub,
-  SystemInitStreamLineStub,
-  WardRunIdStub,
-} from '@dungeonmaster/shared/contracts';
+import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
+import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-run-id.stub';
 
 type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
 type WardQueueResponse = ReturnType<typeof WardQueueResponseStub>;

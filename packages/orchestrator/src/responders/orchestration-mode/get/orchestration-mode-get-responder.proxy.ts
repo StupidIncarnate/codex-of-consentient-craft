@@ -1,4 +1,4 @@
-import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import { OrchestrationModeStub } from '@dungeonmaster/shared/contracts/orchestration-mode/orchestration-mode.stub';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { orchestrationModeGetBroker } from '../../../brokers/orchestration-mode/get/orchestration-mode-get-broker';

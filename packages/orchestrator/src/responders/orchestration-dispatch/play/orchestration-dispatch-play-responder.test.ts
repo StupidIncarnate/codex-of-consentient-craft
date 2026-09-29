@@ -1,4 +1,5 @@
-import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { OrchestrationDispatchPlayResponder } from './orchestration-dispatch-play-responder';
 import { OrchestrationDispatchPlayResponderProxy } from './orchestration-dispatch-play-responder.proxy';

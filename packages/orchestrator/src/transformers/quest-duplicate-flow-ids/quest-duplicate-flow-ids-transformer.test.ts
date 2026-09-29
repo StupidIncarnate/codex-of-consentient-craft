@@ -1,4 +1,4 @@
-import { FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { questDuplicateFlowIdsTransformer } from './quest-duplicate-flow-ids-transformer';
 

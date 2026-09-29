@@ -1,4 +1,5 @@
-import { ErrorMessageStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { wardPersistResultBroker } from './ward-persist-result-broker';
 import { wardPersistResultBrokerProxy } from './ward-persist-result-broker.proxy';

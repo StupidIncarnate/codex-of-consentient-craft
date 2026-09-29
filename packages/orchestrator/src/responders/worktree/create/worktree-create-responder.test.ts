@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WorktreeCreateResponder } from './worktree-create-responder';
 import { WorktreeCreateResponderProxy } from './worktree-create-responder.proxy';

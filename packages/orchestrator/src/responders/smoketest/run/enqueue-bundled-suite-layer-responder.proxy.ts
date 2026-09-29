@@ -4,7 +4,8 @@
  * The responder's own test calls setupPassthrough.
  */
 
-import type { QuestId, QuestStub as QuestStubType, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBrokerProxy } from '../../../brokers/quest/hydrate/quest-hydrate-broker.proxy';

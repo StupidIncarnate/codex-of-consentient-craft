@@ -1,11 +1,9 @@
-import {
-  ChatEntryStub,
-  ProcessIdStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-  SlotIndexStub,
-} from '@dungeonmaster/shared/contracts';
+import { ChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 
 import { chatOutputEmitPayloadContract } from './chat-output-emit-payload-contract';
 import { ChatOutputEmitPayloadStub } from './chat-output-emit-payload.stub';

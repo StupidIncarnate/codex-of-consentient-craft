@@ -1,4 +1,4 @@
-import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { dispatchHoldRejectBroker } from './dispatch-hold-reject-broker';
 import { dispatchHoldRejectBrokerProxy } from './dispatch-hold-reject-broker.proxy';

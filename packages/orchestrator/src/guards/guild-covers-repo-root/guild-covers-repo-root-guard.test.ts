@@ -1,4 +1,5 @@
-import { GuildStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { guildCoversRepoRootGuard } from './guild-covers-repo-root-guard';
 

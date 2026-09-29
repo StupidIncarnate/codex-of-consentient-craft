@@ -1,12 +1,10 @@
-import {
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestIdStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  UnitObservationStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { QuestWorkInstanceStub } from '../../../contracts/quest-work-instance/quest-work-instance.stub';
 import { questWorkRecordBroker } from './quest-work-record-broker';

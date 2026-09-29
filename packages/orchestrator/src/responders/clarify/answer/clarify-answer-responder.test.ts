@@ -1,4 +1,4 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ClarificationQuestionStub } from '../../../contracts/clarification-question/clarification-question.stub';
 import { ClarifyAnswerResponder } from './clarify-answer-responder';
 import { ClarifyAnswerResponderProxy } from './clarify-answer-responder.proxy';

@@ -1,4 +1,5 @@
-import { QuestStub, RepoRelativePathStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { blightChecklistToTextTransformer } from '../../../transformers/blight-checklist-to-text/blight-checklist-to-text-transformer';

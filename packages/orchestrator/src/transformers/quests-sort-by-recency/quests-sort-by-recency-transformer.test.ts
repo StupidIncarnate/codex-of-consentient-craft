@@ -1,4 +1,4 @@
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questsSortByRecencyTransformer } from './quests-sort-by-recency-transformer';
 

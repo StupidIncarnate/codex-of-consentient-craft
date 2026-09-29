@@ -1,19 +1,17 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  ModifyQuestInputStub,
-  OperationItemStub,
-  OperationPlanStub,
-  QuestBlightLedgerEntryStub,
-  QuestCommentStub,
-  QuestNoteStub,
-  QuestPackageEntryStub,
-  QuestStub,
-  ToolingRequirementStub,
-  WardResultStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { OperationPlanStub } from '@dungeonmaster/shared/contracts/operation-plan/operation-plan.stub';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { questModifyBroker } from './quest-modify-broker';
 import { questModifyBrokerProxy } from './quest-modify-broker.proxy';

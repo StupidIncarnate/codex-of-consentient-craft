@@ -1,4 +1,5 @@
-import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
 
 import { computeReadyWorkItemsLayerBroker } from './compute-ready-work-items-layer-broker';

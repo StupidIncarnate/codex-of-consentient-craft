@@ -1,4 +1,4 @@
-import { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 
 import { questDesignDecisionsMissingRationaleTransformer } from './quest-design-decisions-missing-rationale-transformer';
 

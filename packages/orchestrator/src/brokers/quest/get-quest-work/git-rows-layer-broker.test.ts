@@ -1,4 +1,5 @@
-import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { gitRowsLayerBroker } from './git-rows-layer-broker';
 import { gitRowsLayerBrokerProxy } from './git-rows-layer-broker.proxy';

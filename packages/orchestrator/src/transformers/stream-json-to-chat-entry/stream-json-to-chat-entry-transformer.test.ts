@@ -4,16 +4,20 @@ import {
   AssistantToolResultStreamLineStub,
   AssistantToolUseStreamLineStub,
   AssistantMixedContentStreamLineStub,
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import {
   MixedTextAndToolResultStreamLineStub,
   PermissionDeniedStreamLineStub,
-  ResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
-  SystemInitStreamLineStub,
   TextOnlyUserStreamLineStub,
+} from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
+import {
   UserTextArrayStreamLineStub,
   UserTextMultiBlockStreamLineStub,
   UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { streamJsonToChatEntryTransformer } from './stream-json-to-chat-entry-transformer';
 import { streamJsonToChatEntryTransformerProxy } from './stream-json-to-chat-entry-transformer.proxy';

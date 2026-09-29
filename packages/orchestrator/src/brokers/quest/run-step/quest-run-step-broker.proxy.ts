@@ -16,7 +16,8 @@
  * `in_progress` stamp as the first of the two writes.
  */
 
-import type { Quest, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import type { StepHandlerResultStub } from '../../../contracts/step-handler-result/step-handler-result.stub';

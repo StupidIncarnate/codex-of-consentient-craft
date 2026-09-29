@@ -11,7 +11,7 @@
  * The real broker stays the default, so a caller that stages nothing gets the genuine check.
  */
 
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts';
+import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import {
   registerMock,
   registerModuleMock,

@@ -1,4 +1,4 @@
-import { UsageBucketStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
 
 import { TranscriptReadStub } from '../../../contracts/transcript-read/transcript-read.stub';
 

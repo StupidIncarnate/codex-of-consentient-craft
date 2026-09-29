@@ -1,9 +1,7 @@
-import {
-  FlowStub,
-  QuestStub,
-  UnitObservationStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { qaCheckSurfaceStatics, qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { qaChecklistBuildTransformer } from './qa-checklist-build-transformer';

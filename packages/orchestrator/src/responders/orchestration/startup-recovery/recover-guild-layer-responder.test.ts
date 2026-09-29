@@ -5,16 +5,14 @@
  * npm run ward -- --only test -- recover-guild-layer-responder.test.ts
  */
 
-import {
-  AbsoluteFilePathStub,
-  GuildIdStub,
-  GuildListItemStub,
-  GuildPathStub,
-  QuestBranchNameStub,
-  QuestIdStub,
-  QuestStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
 import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder.proxy';

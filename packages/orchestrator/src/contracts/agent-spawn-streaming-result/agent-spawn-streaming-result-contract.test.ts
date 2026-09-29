@@ -1,4 +1,5 @@
-import { ExitCodeStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { StreamTextStub } from '../stream-text/stream-text.stub';
 import { AgentSpawnStreamingResultStub } from './agent-spawn-streaming-result.stub';

@@ -9,7 +9,7 @@
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
-import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { join } from '#gateway/node/path';

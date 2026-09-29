@@ -1,4 +1,4 @@
-import { UnitObservationFieldsStub } from '@dungeonmaster/shared/contracts';
+import { UnitObservationFieldsStub } from '@dungeonmaster/shared/contracts/unit-observation-fields/unit-observation-fields.stub';
 
 import { WorkPlanFieldsStub } from '../work-plan-fields/work-plan-fields.stub';
 

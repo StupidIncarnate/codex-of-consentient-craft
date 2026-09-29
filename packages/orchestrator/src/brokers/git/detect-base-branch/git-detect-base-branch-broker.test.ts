@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { gitDetectBaseBranchBroker } from './git-detect-base-branch-broker';
 import { gitDetectBaseBranchBrokerProxy } from './git-detect-base-branch-broker.proxy';

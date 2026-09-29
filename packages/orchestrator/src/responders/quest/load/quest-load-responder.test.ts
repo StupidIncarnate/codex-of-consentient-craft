@@ -1,10 +1,8 @@
-import {
-  FileContentsStub,
-  FileNameStub,
-  FilePathStub,
-  GuildIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { QuestLoadResponderProxy } from './quest-load-responder.proxy';
 

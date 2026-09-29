@@ -1,6 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { questOutboxWatchBrokerProxy } from '../../../brokers/quest/outbox-watch/quest-outbox-watch-broker.proxy';

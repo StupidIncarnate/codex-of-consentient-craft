@@ -1,4 +1,5 @@
-import { FlowEdgeStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 
 import { questDuplicateFlowEdgeIdsTransformer } from './quest-duplicate-flow-edge-ids-transformer';
 

@@ -1,4 +1,5 @@
-import { UsageBucketStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 
 import { usageLedgerToSnapshotTransformer } from './usage-ledger-to-snapshot-transformer';
 

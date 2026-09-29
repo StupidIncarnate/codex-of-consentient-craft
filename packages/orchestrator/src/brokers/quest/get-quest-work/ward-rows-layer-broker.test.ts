@@ -1,10 +1,8 @@
-import {
-  AbsoluteFilePathStub,
-  QuestStub,
-  RiftcarverResultStub,
-  WardDetailStub,
-  WardResultStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 
 import { wardRowsLayerBroker } from './ward-rows-layer-broker';
 import { wardRowsLayerBrokerProxy } from './ward-rows-layer-broker.proxy';

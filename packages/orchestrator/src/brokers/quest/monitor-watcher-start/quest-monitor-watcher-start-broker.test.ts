@@ -1,9 +1,7 @@
-import {
-  FileNameStub,
-  QuestIdStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { questMonitorWatcherStartBroker } from './quest-monitor-watcher-start-broker';
 import { questMonitorWatcherStartBrokerProxy } from './quest-monitor-watcher-start-broker.proxy';

@@ -1,10 +1,8 @@
-import {
-  FilePathStub,
-  GuildConfigStub,
-  GuildNameStub,
-  GuildPathStub,
-  GuildStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildAddBroker } from './guild-add-broker';

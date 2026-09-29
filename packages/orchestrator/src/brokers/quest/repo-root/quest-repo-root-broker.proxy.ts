@@ -1,12 +1,11 @@
-import {
-  FileContentsStub,
-  FileNameStub,
-  FilePathStub,
-  GuildIdStub,
-  GuildStub,
-} from '@dungeonmaster/shared/contracts';
-import type { QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import type { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import {
   registerMock,
   registerModuleMock,

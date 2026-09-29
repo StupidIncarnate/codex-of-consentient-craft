@@ -22,7 +22,7 @@
  * not by which file is calling, so every caller sees the same staged behaviour globally.
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,

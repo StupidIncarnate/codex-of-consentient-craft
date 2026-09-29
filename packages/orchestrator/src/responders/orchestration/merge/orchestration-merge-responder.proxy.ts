@@ -15,8 +15,11 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { ProcessIdStub, QuestIdStub, questContract } from '@dungeonmaster/shared/contracts';
-import type { QuestWorkItemId, QuestStub } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';

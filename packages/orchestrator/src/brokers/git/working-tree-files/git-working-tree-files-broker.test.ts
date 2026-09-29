@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, RepoRelativePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { gitWorkingTreeFilesBroker } from './git-working-tree-files-broker';
 import { gitWorkingTreeFilesBrokerProxy } from './git-working-tree-files-broker.proxy';

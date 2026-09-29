@@ -21,23 +21,23 @@ import type {
   GuildPath,
   QuestId,
   FilePath,
-  FlowStub,
-  OperationItemStub,
-  QuestCommentStub,
-  QuestContractEntryStub,
-  QuestPackageEntryStub,
-  QuestStub,
   RepoRelativePath,
-  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
+import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import {
-  GuildNameStub,
-  GuildPathStub,
   absoluteFilePathContract,
   fileContentsContract,
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
+import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';

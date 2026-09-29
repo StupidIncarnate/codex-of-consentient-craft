@@ -10,12 +10,9 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  FilePath,
-  RiftcarverResultStub,
-  WardResultStub,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
+import type { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';

@@ -1,4 +1,6 @@
-import type { ProcessIdStub, QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';

@@ -1,19 +1,17 @@
-import {
-  FilePathStub,
-  FlowEdgeStub,
-  FlowIdStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowOffMapSignoffStub,
-  FlowStub,
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestIdStub,
-  QuestNoteStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowIdStub } from '@dungeonmaster/shared/contracts/flow-id/flow-id.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { invalidationApplyLayerBroker } from './invalidation-apply-layer-broker';
 import { invalidationApplyLayerBrokerProxy } from './invalidation-apply-layer-broker.proxy';

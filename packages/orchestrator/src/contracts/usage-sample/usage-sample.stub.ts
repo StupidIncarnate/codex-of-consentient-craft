@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { UsageBucketStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
 
 import { usageSampleContract } from './usage-sample-contract';
 import type { UsageSample } from './usage-sample-contract';

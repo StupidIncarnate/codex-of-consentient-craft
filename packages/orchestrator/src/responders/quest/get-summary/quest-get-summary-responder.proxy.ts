@@ -8,7 +8,7 @@
  * const summary = await proxy.callResponder({ questId: 'add-auth' });
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetSummaryBrokerProxy } from '../../../brokers/quest/get-summary/quest-get-summary-broker.proxy';
 import { QuestGetSummaryResponder } from './quest-get-summary-responder';

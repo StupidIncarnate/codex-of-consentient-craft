@@ -1,4 +1,6 @@
-import { QuestIdStub, QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { OrchestrationLoopSummaryStub } from '../../contracts/orchestration-loop-summary/orchestration-loop-summary.stub';
 import { orchestrationLoopSummaryTransformer } from './orchestration-loop-summary-transformer';

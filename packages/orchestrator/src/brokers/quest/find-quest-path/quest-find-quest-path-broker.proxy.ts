@@ -2,12 +2,9 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { join } from '#gateway/node/path';
 
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import {
-  FileContentsStub,
-  fileNameContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
+import { fileNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import type {
   AbsoluteFilePath,
   FileContents,

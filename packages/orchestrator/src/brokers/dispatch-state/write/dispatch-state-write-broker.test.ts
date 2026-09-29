@@ -1,4 +1,5 @@
-import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { dispatchStateWriteBroker } from './dispatch-state-write-broker';
 import { dispatchStateWriteBrokerProxy } from './dispatch-state-write-broker.proxy';

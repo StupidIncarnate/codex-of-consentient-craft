@@ -1,11 +1,9 @@
-import {
-  AddQuestInputStub,
-  GuildIdStub,
-  GuildListItemStub,
-  GuildStub,
-  QuestIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questMcpCreateBroker } from './quest-mcp-create-broker';
 import { questMcpCreateBrokerProxy } from './quest-mcp-create-broker.proxy';

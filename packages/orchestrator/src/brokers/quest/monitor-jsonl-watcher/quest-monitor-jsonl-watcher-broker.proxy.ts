@@ -1,7 +1,8 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FileNameStub, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
 type FileName = ReturnType<typeof FileNameStub>;

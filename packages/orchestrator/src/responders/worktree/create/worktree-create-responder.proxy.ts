@@ -1,12 +1,8 @@
-import {
-  cwdResolveBrokerProxy,
-  locationsWorktreePathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
-import {
-  BaseBranchNameStub,
-  QuestBranchNameStub,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { BaseBranchNameStub } from '@dungeonmaster/shared/contracts/base-branch-name/base-branch-name.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';

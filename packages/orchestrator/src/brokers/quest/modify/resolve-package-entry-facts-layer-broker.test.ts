@@ -1,4 +1,5 @@
-import { QuestPackageEntryStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { resolvePackageEntryFactsLayerBroker } from './resolve-package-entry-facts-layer-broker';
 import { resolvePackageEntryFactsLayerBrokerProxy } from './resolve-package-entry-facts-layer-broker.proxy';

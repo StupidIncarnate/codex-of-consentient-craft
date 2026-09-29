@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { PromptTextStub } from '../../contracts/prompt-text/prompt-text.stub';
 import { claudeSpawnCommandBuildTransformer } from './claude-spawn-command-build-transformer';

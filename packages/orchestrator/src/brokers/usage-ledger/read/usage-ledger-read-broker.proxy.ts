@@ -1,5 +1,5 @@
-import { locationsUsageLedgerPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsUsageLedgerPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 

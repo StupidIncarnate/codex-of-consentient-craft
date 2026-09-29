@@ -1,15 +1,15 @@
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-  FileNameStub,
-  GuildConfigStub,
-  GuildIdStub,
-  GuildStub,
-  QuestIdStub,
-  SessionIdStub,
-  TaskToolResultStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { TaskToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 
 import { chatHistoryReplayBroker } from './chat-history-replay-broker';
 import { chatHistoryReplayBrokerProxy } from './chat-history-replay-broker.proxy';

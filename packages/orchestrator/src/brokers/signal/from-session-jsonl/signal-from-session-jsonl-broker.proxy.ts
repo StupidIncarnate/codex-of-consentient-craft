@@ -1,12 +1,11 @@
 import type { FsError } from '#gateway/node/fs';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
-import {
-  claudeLineNormalizeBrokerProxy,
-  locationsClaudeSessionFilePathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
+import { locationsClaudeSessionFilePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker.proxy';
 import { locationsClaudeSessionFilePathFindBroker } from '@dungeonmaster/shared/brokers';
-import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 export const signalFromSessionJsonlBrokerProxy = (): {
   setupFileContent: (params: { content: string }) => void;

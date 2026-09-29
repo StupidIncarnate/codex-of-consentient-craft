@@ -1,4 +1,4 @@
-import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 
 import { questPackageEntryViolationsTransformer } from './quest-package-entry-violations-transformer';
 

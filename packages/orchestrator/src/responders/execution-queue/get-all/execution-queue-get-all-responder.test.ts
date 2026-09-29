@@ -1,11 +1,9 @@
-import {
-  GuildListItemStub,
-  QuestIdStub,
-  QuestStub,
-  SessionIdStub,
-  UrlSlugStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { ExecutionQueueGetAllResponder } from './execution-queue-get-all-responder';
 import { ExecutionQueueGetAllResponderProxy } from './execution-queue-get-all-responder.proxy';

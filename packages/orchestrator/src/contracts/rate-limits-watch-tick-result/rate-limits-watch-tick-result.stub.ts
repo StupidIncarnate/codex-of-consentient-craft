@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { rateLimitsWatchTickResultContract } from './rate-limits-watch-tick-result-contract';
 import type { RateLimitsWatchTickResult } from './rate-limits-watch-tick-result-contract';

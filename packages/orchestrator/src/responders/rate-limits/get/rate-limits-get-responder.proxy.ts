@@ -1,4 +1,4 @@
-import { UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { usageLedgerScanBroker } from '../../../brokers/usage-ledger/scan/usage-ledger-scan-broker';

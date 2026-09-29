@@ -3,8 +3,9 @@ import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exi
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { dirname, resolve } from '#gateway/node/path';
 
-import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 export const resolvePackageEntryFactsLayerBrokerProxy = (): {

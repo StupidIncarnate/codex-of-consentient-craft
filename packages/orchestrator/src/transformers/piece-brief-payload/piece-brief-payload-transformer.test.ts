@@ -1,4 +1,4 @@
-import { UnitIdStub } from '@dungeonmaster/shared/contracts';
+import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 
 import { WorkPlanPayloadSiegemasterStub } from '../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster.stub';
 import { WorkPlanPieceStub } from '../../contracts/work-plan-piece/work-plan-piece.stub';

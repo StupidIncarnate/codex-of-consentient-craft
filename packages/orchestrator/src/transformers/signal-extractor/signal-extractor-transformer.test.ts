@@ -1,8 +1,8 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-  OperationItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
 import { signalExtractorTransformer } from './signal-extractor-transformer';

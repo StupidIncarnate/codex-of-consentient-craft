@@ -1,4 +1,4 @@
-import { UnitIdStub } from '@dungeonmaster/shared/contracts';
+import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
 
 import { signalGateResultContract } from './signal-gate-result-contract';
 import { SignalGateResultStub } from './signal-gate-result.stub';

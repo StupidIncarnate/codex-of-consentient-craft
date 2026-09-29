@@ -1,5 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 

@@ -1,5 +1,7 @@
-import { FilePathStub, GuildIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { QuestListWithSkipsResponderProxy } from './quest-list-with-skips-responder.proxy';
 

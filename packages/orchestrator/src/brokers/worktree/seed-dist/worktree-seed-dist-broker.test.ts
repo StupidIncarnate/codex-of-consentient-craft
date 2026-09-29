@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { worktreeSeedDistBroker } from './worktree-seed-dist-broker';
 import { worktreeSeedDistBrokerProxy } from './worktree-seed-dist-broker.proxy';

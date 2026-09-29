@@ -8,7 +8,7 @@
  * const projection = await proxy.callResponder({ questId: 'add-auth' });
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetProjectionBrokerProxy } from '../../../brokers/quest/get-projection/quest-get-projection-broker.proxy';
 import { QuestGetProjectionResponder } from './quest-get-projection-responder';

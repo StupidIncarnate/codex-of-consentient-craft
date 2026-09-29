@@ -1,4 +1,5 @@
-import { UsageBucketStub, WeightedTokensStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
+import { WeightedTokensStub } from '@dungeonmaster/shared/contracts/weighted-tokens/weighted-tokens.stub';
 
 import { usageWindowRecoveryAtTransformer } from './usage-window-recovery-at-transformer';
 

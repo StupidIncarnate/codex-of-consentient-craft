@@ -9,7 +9,7 @@
  */
 
 import { BaseNameStub, installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 

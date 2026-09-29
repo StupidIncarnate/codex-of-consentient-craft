@@ -1,11 +1,8 @@
 import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import {
-  AbsoluteFilePathStub,
-  type AbsoluteFilePath,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
-import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
 import { cpRunProxy } from '#gateway/bin/cp/cp-run/cp-run.proxy';
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';

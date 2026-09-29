@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { worktreeVerifyLinksBroker } from './worktree-verify-links-broker';
 import { worktreeVerifyLinksBrokerProxy } from './worktree-verify-links-broker.proxy';

@@ -1,4 +1,6 @@
-import { FlowStub, FlowNodeStub, FlowEdgeStub } from '@dungeonmaster/shared/contracts';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
 
 import { questHasNoOrphanFlowNodesGuard } from './quest-has-no-orphan-flow-nodes-guard';
 

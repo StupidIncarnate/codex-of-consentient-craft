@@ -1,5 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { AbsoluteFilePathStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,

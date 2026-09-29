@@ -1,9 +1,7 @@
-import {
-  ContentTextStub,
-  QuestWorkItemIdStub,
-  StepNameStub,
-  UnitObservationStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 
 import { commitMessageBuildTransformer } from './commit-message-build-transformer';
 

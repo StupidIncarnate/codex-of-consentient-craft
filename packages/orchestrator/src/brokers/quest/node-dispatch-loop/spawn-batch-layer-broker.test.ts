@@ -1,4 +1,6 @@
-import { AdapterResultStub, QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';

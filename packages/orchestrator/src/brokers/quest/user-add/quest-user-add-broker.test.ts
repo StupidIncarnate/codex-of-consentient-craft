@@ -1,9 +1,7 @@
-import {
-  AddQuestInputStub,
-  FilePathStub,
-  GuildIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AddQuestInputStub } from '@dungeonmaster/shared/contracts/add-quest-input/add-quest-input.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questUserAddBroker } from './quest-user-add-broker';
 import { questUserAddBrokerProxy } from './quest-user-add-broker.proxy';

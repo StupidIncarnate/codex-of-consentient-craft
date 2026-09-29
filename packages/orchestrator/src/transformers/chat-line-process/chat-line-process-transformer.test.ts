@@ -3,12 +3,14 @@ import {
   AssistantNullStopReasonStreamLineStub,
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
+import {
   MixedArrayToolResultStreamLineStub,
-  ResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
-  SystemInitStreamLineStub,
   ToolReferenceArrayToolResultStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
+import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
 import { TaskAgentToolPromptStub } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt.stub';

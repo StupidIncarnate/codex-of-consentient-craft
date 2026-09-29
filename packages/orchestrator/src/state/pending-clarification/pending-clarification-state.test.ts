@@ -1,4 +1,6 @@
-import { ProcessIdStub, SessionIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { pendingClarificationState } from './pending-clarification-state';
 import { pendingClarificationStateProxy } from './pending-clarification-state.proxy';

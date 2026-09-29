@@ -1,11 +1,9 @@
-import {
-  AbsoluteFilePathStub,
-  QuestIdStub,
-  QuestSessionStub,
-  QuestStub,
-  RepoRootCwdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questCwdResolveBroker } from './quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from './quest-cwd-resolve-broker.proxy';

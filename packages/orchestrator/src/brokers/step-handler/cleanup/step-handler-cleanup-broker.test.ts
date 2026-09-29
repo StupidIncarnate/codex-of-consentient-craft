@@ -1,9 +1,7 @@
-import {
-  ContentTextStub,
-  ExitCodeStub,
-  QuestIdStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { CleanupAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
 import { stepHandlerCleanupBroker } from './step-handler-cleanup-broker';

@@ -1,4 +1,5 @@
-import { QuestBlightLedgerEntryStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { QuestGetPlanningNotesResponderProxy } from './quest-get-planning-notes-responder.proxy';
 

@@ -1,14 +1,12 @@
-import {
-  ProcessIdStub,
-  SessionIdStub,
-  GuildIdStub,
-  GuildConfigStub,
-  GuildStub,
-  FilePathStub,
-  FileNameStub,
-  QuestStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import type { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';

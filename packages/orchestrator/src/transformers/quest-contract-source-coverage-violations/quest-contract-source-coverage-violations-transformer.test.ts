@@ -1,8 +1,6 @@
-import {
-  QuestContractEntryStub,
-  QuestPackageEntryStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { packageForPathTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questContractSourceCoverageViolationsTransformer } from './quest-contract-source-coverage-violations-transformer';

@@ -1,4 +1,4 @@
-import { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questQueueSyncListenerBroker } from './quest-queue-sync-listener-broker';
 import { questQueueSyncListenerBrokerProxy } from './quest-queue-sync-listener-broker.proxy';

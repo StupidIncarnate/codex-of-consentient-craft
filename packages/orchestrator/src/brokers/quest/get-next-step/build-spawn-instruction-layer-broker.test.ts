@@ -1,13 +1,11 @@
-import {
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestIdStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  RelatedDataItemStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';

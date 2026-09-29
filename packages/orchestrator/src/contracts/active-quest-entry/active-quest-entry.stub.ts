@@ -1,5 +1,7 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { GuildIdStub, QuestStub, UrlSlugStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { activeQuestEntryContract } from './active-quest-entry-contract';
 import type { ActiveQuestEntry } from './active-quest-entry-contract';

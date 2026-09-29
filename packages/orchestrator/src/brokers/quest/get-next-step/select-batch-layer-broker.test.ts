@@ -1,4 +1,6 @@
-import { QuestWorkItemIdStub, StepNameStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { selectBatchLayerBroker } from './select-batch-layer-broker';
 import { selectBatchLayerBrokerProxy } from './select-batch-layer-broker.proxy';

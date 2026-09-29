@@ -1,9 +1,7 @@
-import {
-  ContentTextStub,
-  QuestIdStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { stepHandlerRiftcarverBroker } from './step-handler-riftcarver-broker';
 import { stepHandlerRiftcarverBrokerProxy } from './step-handler-riftcarver-broker.proxy';

@@ -1,5 +1,5 @@
-import { locationsRateLimitsSnapshotPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsRateLimitsSnapshotPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/rate-limits-snapshot-path-find/locations-rate-limits-snapshot-path-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FsError } from '#gateway/node/fs';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 

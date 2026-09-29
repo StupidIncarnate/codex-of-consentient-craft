@@ -7,7 +7,7 @@
  */
 
 import { agentPromptGetBrokerProxy } from '../../../brokers/agent-prompt/get/agent-prompt-get-broker.proxy';
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 type Quest = ReturnType<typeof QuestStub>;
 

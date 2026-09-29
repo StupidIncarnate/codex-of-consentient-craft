@@ -1,5 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
-import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath, Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
 import {

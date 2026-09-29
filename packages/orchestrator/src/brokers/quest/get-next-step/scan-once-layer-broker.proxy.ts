@@ -1,10 +1,7 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePathStub,
-  GuildListItem,
-  QuestBranchName,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import type { GuildListItem, QuestBranchName } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { worktreeEnsureQuestBranchBrokerProxy } from '../../worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';

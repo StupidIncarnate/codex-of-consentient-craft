@@ -11,7 +11,7 @@
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 const JSON_INDENT_SPACES = 2;
 const GUILD_ID = 'c96589ee-fb08-28c0-b179-095bcd0cef5f';

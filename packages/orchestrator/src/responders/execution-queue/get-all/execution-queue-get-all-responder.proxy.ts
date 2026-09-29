@@ -1,4 +1,5 @@
-import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questActiveQuestsBrokerProxy } from '../../../brokers/quest/active-quests/quest-active-quests-broker.proxy';
 

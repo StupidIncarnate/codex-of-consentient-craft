@@ -1,4 +1,5 @@
-import type { GuildConfig, GuildId, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig, GuildId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { guildRemoveBrokerProxy } from '../../../brokers/guild/remove/guild-remove-broker.proxy';
 import { questListBrokerProxy } from '../../../brokers/quest/list/quest-list-broker.proxy';

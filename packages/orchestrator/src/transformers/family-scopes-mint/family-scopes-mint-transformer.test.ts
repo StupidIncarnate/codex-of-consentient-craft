@@ -1,12 +1,10 @@
-import {
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowStub,
-  OperationItemStub,
-  QuestPackageEntryStub,
-  QuestStub,
-  StepNameStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 
 import { familyScopesMintTransformer } from './family-scopes-mint-transformer';
 import { familyScopesMintTransformerProxy } from './family-scopes-mint-transformer.proxy';

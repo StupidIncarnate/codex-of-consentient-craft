@@ -1,4 +1,5 @@
-import { SmoketestRunIdStub, SmoketestSuiteStub } from '@dungeonmaster/shared/contracts';
+import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
+import { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts/smoketest-suite/smoketest-suite.stub';
 
 import { IsoTimestampStub } from '../iso-timestamp/iso-timestamp.stub';
 import { activeSmoketestRunContract } from './active-smoketest-run-contract';

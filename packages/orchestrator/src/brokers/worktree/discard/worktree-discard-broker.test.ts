@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, QuestBranchNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreeDiscardBroker } from './worktree-discard-broker';
 import { worktreeDiscardBrokerProxy } from './worktree-discard-broker.proxy';

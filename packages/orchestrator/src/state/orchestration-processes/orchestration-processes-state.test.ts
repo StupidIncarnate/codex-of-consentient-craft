@@ -1,4 +1,6 @@
-import { ProcessIdStub, QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
 import { orchestrationProcessesState } from './orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from './orchestration-processes-state.proxy';

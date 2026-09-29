@@ -8,7 +8,7 @@
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
-import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';

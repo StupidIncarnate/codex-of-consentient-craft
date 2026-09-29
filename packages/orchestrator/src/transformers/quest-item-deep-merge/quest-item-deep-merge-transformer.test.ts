@@ -1,15 +1,13 @@
-import {
-  FlowEdgeStub,
-  FlowNodeStub,
-  FlowObservableStub,
-  FlowOffMapSignoffStub,
-  FlowStub,
-  ItemWithIdStub,
-  QuestWorkItemIdStub,
-  SessionIdStub,
-  WorkItemForUpsertStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { FlowEdgeStub } from '@dungeonmaster/shared/contracts/flow-edge/flow-edge.stub';
+import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
+import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
+import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
+import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
+import { ItemWithIdStub } from '@dungeonmaster/shared/contracts/item-with-id/item-with-id.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemForUpsertStub } from '@dungeonmaster/shared/contracts/work-item-for-upsert/work-item-for-upsert.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';

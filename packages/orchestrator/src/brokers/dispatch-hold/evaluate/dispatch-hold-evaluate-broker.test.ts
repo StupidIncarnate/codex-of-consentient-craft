@@ -1,8 +1,6 @@
-import {
-  DispatchHoldStub,
-  RateLimitWindowStub,
-  RateLimitsSnapshotStub,
-} from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
+import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts/rate-limit-window/rate-limit-window.stub';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { dispatchHoldEvaluateBroker } from './dispatch-hold-evaluate-broker';
 import { dispatchHoldEvaluateBrokerProxy } from './dispatch-hold-evaluate-broker.proxy';

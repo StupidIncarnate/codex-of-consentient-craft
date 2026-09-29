@@ -1,4 +1,4 @@
-import { OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 
 import { streamSignalContract } from './stream-signal-contract';
 import { StreamSignalStub } from './stream-signal.stub';

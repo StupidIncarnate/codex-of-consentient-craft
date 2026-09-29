@@ -7,7 +7,8 @@
  * await OrchestrationStartupRecoveryResponder({guildItems});
  */
 
-import type { GuildId, GuildPath, ProcessId, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildPath, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { RecoverGuildLayerResponderProxy } from './recover-guild-layer-responder.proxy';

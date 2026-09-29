@@ -1,6 +1,6 @@
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
-import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '@dungeonmaster/shared/contracts';
 

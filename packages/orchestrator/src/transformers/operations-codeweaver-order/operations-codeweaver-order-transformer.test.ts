@@ -1,4 +1,5 @@
-import { OperationItemStub, PackageGraphEntryStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
 
 import { operationsCodeweaverOrderTransformer } from './operations-codeweaver-order-transformer';
 

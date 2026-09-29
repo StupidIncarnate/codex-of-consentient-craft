@@ -1,10 +1,8 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  UsageLedgerStub,
-} from '@dungeonmaster/shared/contracts';
-import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
+import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker.proxy';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { walkFilesSyncProxy } from '#gateway/node/fs/walk-files-sync/walk-files-sync.proxy';
 

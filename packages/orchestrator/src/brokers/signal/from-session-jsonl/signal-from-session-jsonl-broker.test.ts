@@ -1,5 +1,6 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { signalFromSessionJsonlBroker } from './signal-from-session-jsonl-broker';
 import { signalFromSessionJsonlBrokerProxy } from './signal-from-session-jsonl-broker.proxy';

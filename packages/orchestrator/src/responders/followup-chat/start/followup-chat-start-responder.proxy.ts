@@ -1,14 +1,12 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
-import {
-  ExitCodeStub,
-  QuestIdStub,
-  QuestStub,
-  SessionIdStub,
-  WorkItemStub,
-  questContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';

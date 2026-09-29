@@ -1,4 +1,5 @@
-import { QuestWorkItemIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { QuestMonitorWatcherStartResponder } from './quest-monitor-watcher-start-responder';
 import { QuestMonitorWatcherStartResponderProxy } from './quest-monitor-watcher-start-responder.proxy';

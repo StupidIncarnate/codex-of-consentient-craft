@@ -1,4 +1,4 @@
-import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { rateLimitsState } from '../../../state/rate-limits/rate-limits-state';

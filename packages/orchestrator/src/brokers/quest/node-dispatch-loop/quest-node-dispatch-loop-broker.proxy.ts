@@ -1,6 +1,6 @@
 import { NextStepStub } from '../../../contracts/next-step/next-step.stub';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
-import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub } from '@dungeonmaster/shared/contracts/adapter-result/adapter-result.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questGetNextStepBroker } from '../get-next-step/quest-get-next-step-broker';

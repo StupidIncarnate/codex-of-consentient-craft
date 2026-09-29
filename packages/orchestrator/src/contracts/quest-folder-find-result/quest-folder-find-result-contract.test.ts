@@ -1,4 +1,5 @@
-import { FilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questFolderFindResultContract } from './quest-folder-find-result-contract';
 import {

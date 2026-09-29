@@ -1,12 +1,10 @@
-import {
-  FileNameStub,
-  FilePathStub,
-  GuildConfigStub,
-  GuildIdStub,
-  GuildStub,
-  QuestIdStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { smoketestClearPriorQuestsBroker } from './smoketest-clear-prior-quests-broker';
 import { smoketestClearPriorQuestsBrokerProxy } from './smoketest-clear-prior-quests-broker.proxy';

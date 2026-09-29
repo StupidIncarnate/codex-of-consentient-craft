@@ -1,4 +1,4 @@
-import { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 
 import { questDuplicateDesignDecisionIdsTransformer } from './quest-duplicate-design-decision-ids-transformer';
 

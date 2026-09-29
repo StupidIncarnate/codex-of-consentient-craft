@@ -1,4 +1,5 @@
-import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import type { ElapsedMsStub } from '../../../contracts/elapsed-ms/elapsed-ms.stub';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';

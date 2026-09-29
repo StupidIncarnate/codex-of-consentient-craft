@@ -1,13 +1,13 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
   questContract,
-  RepoRootCwdStub,
   type ErrorMessage,
-  type QuestStub,
   type QuestWorkItemId,
   type RepoRootCwd,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 

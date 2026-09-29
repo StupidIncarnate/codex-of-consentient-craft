@@ -1,4 +1,5 @@
-import { FileContentsStub, RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { rateLimitsWatchTickLayerBroker } from './rate-limits-watch-tick-layer-broker';

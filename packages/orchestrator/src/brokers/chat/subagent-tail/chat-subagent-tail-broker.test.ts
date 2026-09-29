@@ -1,5 +1,7 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { ProcessIdStub, RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { ChatLineAgentDetectedStub } from '../../../contracts/chat-line-output/chat-line-output.stub';

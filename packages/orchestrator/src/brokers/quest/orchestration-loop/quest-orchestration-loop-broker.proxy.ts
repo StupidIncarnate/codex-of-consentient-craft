@@ -1,13 +1,13 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import {
-  FilePathStub,
   questContract,
   type Quest,
-  type QuestStub,
   type QuestWorkItemId,
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';

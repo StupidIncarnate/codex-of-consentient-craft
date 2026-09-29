@@ -7,7 +7,7 @@
  * const result = await proxy.callResponder({ questId: 'add-auth' });
  */
 
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questGetPlanningNotesBrokerProxy } from '../../../brokers/quest/get-planning-notes/quest-get-planning-notes-broker.proxy';
 import { QuestGetPlanningNotesResponder } from './quest-get-planning-notes-responder';

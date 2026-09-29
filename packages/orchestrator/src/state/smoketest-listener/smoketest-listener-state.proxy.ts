@@ -1,4 +1,4 @@
-import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
+import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import type { SmoketestListenerEntryStub } from '../../contracts/smoketest-listener-entry/smoketest-listener-entry.stub';
 import { smoketestListenerState } from './smoketest-listener-state';

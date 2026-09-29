@@ -1,14 +1,12 @@
 import {
   type FilePath,
   type GuildConfig,
-  type GuildIdStub,
   repoRootCwdContract,
   type RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
-import {
-  cwdResolveBrokerProxy,
-  dungeonmasterHomeFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import {
   registerMock,
   registerModuleMock,

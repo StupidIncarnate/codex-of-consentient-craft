@@ -4,7 +4,7 @@
  * USAGE: npm run ward -- --only unit -- packages/orchestrator/src/contracts/orchestration-callbacks/orchestration-callbacks-contract.test.ts
  */
 
-import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
+import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { orchestrationCallbacksContract } from './orchestration-callbacks-contract';
 import { OrchestrationCallbacksParamsStub } from './orchestration-callbacks.stub';

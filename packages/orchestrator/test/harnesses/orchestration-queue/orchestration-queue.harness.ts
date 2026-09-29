@@ -10,7 +10,8 @@ import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
-import { ArrayIndexStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;

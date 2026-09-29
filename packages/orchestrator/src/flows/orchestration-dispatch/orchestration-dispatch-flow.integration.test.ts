@@ -1,6 +1,6 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
 import { BaseNameStub } from '@dungeonmaster/testing';
-import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { rateLimitsWatcherHarness } from '../../../test/harnesses/rate-limits-watcher/rate-limits-watcher.harness';
 import { RateLimitsFlow } from '../rate-limits/rate-limits-flow';

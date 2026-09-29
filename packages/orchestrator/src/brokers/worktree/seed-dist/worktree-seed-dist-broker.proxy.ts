@@ -1,5 +1,6 @@
 import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
-import { AbsoluteFilePathStub, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { copyRecursiveProxy } from '#gateway/bin/cp/copy-recursive/copy-recursive.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';

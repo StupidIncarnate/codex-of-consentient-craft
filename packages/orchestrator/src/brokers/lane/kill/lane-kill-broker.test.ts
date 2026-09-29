@@ -1,4 +1,4 @@
-import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts';
+import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
 
 import { laneKillBrokerProxy } from './lane-kill-broker.proxy';
 

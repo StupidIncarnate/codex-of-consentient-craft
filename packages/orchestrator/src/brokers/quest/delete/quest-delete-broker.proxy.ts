@@ -2,8 +2,8 @@ import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { join } from '#gateway/node/path';
 
 import type { FsError } from '#gateway/node/fs';
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';

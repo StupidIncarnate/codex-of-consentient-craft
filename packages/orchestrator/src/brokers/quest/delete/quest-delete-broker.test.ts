@@ -1,4 +1,6 @@
-import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questDeleteBroker } from './quest-delete-broker';
 import { questDeleteBrokerProxy } from './quest-delete-broker.proxy';

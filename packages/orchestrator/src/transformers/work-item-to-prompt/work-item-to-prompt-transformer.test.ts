@@ -1,15 +1,13 @@
-import {
-  OperationItemIdStub,
-  OperationItemStub,
-  QuestIdStub,
-  QuestPackageEntryStub,
-  QuestStub,
-  QuestWorkItemIdStub,
-  RelatedDataItemStub,
-  WardResultStub,
-  WardRunIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
+import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
+import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
+import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-run-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mcpToolResultStatics, workItemRoleStatics } from '@dungeonmaster/shared/statics';
 

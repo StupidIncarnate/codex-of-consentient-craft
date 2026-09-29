@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  GuildConfigStub,
-  GuildStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { guildConfigWriteBroker } from './guild-config-write-broker';
 import { guildConfigWriteBrokerProxy } from './guild-config-write-broker.proxy';

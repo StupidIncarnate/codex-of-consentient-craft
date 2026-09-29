@@ -1,10 +1,8 @@
 import { questToListItemTransformer } from './quest-to-list-item-transformer';
-import {
-  OperationItemStub,
-  QuestStub,
-  SessionIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 describe('questToListItemTransformer', () => {
   describe('valid transformations', () => {

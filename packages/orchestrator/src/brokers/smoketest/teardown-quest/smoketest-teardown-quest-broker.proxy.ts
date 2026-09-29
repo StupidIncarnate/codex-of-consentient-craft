@@ -1,11 +1,9 @@
 import type { FsError } from '#gateway/node/fs';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
-import {
-  FileContentsStub,
-  FileNameStub,
-  FilePathStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { AbsoluteFilePath, FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';

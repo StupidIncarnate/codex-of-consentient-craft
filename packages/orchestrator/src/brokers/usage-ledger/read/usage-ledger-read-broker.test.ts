@@ -1,4 +1,4 @@
-import { UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 
 import { usageLedgerReadBroker } from './usage-ledger-read-broker';
 import { usageLedgerReadBrokerProxy } from './usage-ledger-read-broker.proxy';

@@ -1,10 +1,8 @@
-import {
-  OperationItemStub,
-  QuestStub,
-  StepNameStub,
-  UnitIdStub,
-  WorkItemStub,
-} from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
+import { UnitIdStub } from '@dungeonmaster/shared/contracts/unit-id/unit-id.stub';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { MintedWorkItemStub } from '../../contracts/minted-work-item/minted-work-item.stub';
 import { mintNextActionTransformer } from './mint-next-action-transformer';

@@ -1,7 +1,7 @@
 import {
   AssistantToolUseStreamLineStub,
   AssistantTextStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { contentItemAgentIdAtIndexTransformer } from '../content-item-agent-id-at-index/content-item-agent-id-at-index-transformer';

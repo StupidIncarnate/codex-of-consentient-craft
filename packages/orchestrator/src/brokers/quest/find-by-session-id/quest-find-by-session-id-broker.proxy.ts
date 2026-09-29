@@ -1,4 +1,5 @@
-import type { GuildListItem, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';

@@ -1,7 +1,7 @@
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 
 import { streamJsonToTextTransformer } from './stream-json-to-text-transformer';

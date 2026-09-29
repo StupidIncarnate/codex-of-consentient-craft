@@ -1,4 +1,5 @@
-import { UsageBucketStub, UsageLedgerStub } from '@dungeonmaster/shared/contracts';
+import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
+import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 
 import { RateLimitsGetResponder } from './rate-limits-get-responder';
 import { RateLimitsGetResponderProxy } from './rate-limits-get-responder.proxy';

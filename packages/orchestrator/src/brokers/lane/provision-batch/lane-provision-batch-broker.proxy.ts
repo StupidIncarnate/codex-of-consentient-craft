@@ -18,14 +18,13 @@
 import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import {
-  absoluteFilePathContract,
-  FileContentsStub,
-  FileNameStub,
-  FilePathStub,
-  GuildIdStub,
-} from '@dungeonmaster/shared/contracts';
-import type { QuestStub, questContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import type { questContract } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { laneRecordInstanceBrokerProxy } from '../record-instance/lane-record-instance-broker.proxy';

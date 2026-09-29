@@ -1,4 +1,6 @@
-import { QuestIdStub, QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { questRepoRootBroker } from './quest-repo-root-broker';
 import { questRepoRootBrokerProxy } from './quest-repo-root-broker.proxy';

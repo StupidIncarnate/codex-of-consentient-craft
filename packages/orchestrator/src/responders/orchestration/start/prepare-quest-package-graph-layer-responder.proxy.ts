@@ -19,7 +19,7 @@
 import { existsSync, readFileSync, readdirSync } from '#gateway/node/fs';
 import { join, resolve } from '#gateway/node/path';
 
-import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 // This file lives at packages/orchestrator/src/responders/orchestration/start/, so the workspace

@@ -1,10 +1,8 @@
-import {
-  ModifyQuestInputStub,
-  OperationPlanStub,
-  QuestBlightLedgerEntryStub,
-  QuestNoteStub,
-  UnitObservationStub,
-} from '@dungeonmaster/shared/contracts';
+import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
+import { OperationPlanStub } from '@dungeonmaster/shared/contracts/operation-plan/operation-plan.stub';
+import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 
 import { questInputServerTimestampsTransformer } from './quest-input-server-timestamps-transformer';
 

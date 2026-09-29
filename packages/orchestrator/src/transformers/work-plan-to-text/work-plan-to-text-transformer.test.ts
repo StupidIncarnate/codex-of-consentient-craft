@@ -1,4 +1,4 @@
-import { OperationItemStub } from '@dungeonmaster/shared/contracts';
+import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 
 import { QuestWorkViewStub } from '../../contracts/quest-work-view/quest-work-view.stub';
 import { WorkPlanBatchStub } from '../../contracts/work-plan-batch/work-plan-batch.stub';

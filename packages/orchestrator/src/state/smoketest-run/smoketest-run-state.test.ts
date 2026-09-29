@@ -1,4 +1,4 @@
-import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts';
+import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
 
 import { smoketestRunState } from './smoketest-run-state';
 

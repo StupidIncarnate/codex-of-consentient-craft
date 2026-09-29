@@ -1,4 +1,4 @@
-import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
 import { dispatchStateReadBroker } from './dispatch-state-read-broker';
 import { dispatchStateReadBrokerProxy } from './dispatch-state-read-broker.proxy';

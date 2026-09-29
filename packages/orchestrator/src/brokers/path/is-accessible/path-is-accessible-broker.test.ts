@@ -1,4 +1,4 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { pathIsAccessibleBroker } from './path-is-accessible-broker';
 import { pathIsAccessibleBrokerProxy } from './path-is-accessible-broker.proxy';

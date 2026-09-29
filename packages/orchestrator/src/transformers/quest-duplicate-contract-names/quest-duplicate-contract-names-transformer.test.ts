@@ -1,4 +1,4 @@
-import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
 
 import { questDuplicateContractNamesTransformer } from './quest-duplicate-contract-names-transformer';
 

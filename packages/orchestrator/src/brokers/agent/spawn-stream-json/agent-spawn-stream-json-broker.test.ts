@@ -1,11 +1,9 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { setImmediate } from '#gateway/node/setImmediate';
-import {
-  AbsoluteFilePathStub,
-  ExitCodeStub,
-  RepoRootCwdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';

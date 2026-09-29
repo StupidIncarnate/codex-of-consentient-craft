@@ -1,4 +1,6 @@
-import { ProcessIdStub, RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { setImmediate } from '#gateway/node/setImmediate';
 
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';

@@ -1,4 +1,4 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { processStaleWatchBroker } from './process-stale-watch-broker';

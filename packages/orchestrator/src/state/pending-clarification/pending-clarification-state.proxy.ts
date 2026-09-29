@@ -1,5 +1,5 @@
-import type { SessionIdStub } from '@dungeonmaster/shared/contracts';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { pendingClarificationState } from './pending-clarification-state';
 import type { PendingClarificationEntryStub } from '../../contracts/pending-clarification-entry/pending-clarification-entry.stub';

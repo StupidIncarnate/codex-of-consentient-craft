@@ -1,10 +1,7 @@
-import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  type AbsoluteFilePath,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FsError } from '#gateway/node/fs';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 

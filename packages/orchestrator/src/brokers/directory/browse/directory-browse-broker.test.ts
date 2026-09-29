@@ -1,4 +1,5 @@
-import { FilePathStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { directoryBrowseBroker } from './directory-browse-broker';
 import { directoryBrowseBrokerProxy } from './directory-browse-broker.proxy';

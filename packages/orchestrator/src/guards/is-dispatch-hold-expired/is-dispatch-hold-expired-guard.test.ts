@@ -1,4 +1,4 @@
-import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
+import { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 
 import { isDispatchHoldExpiredGuard } from './is-dispatch-hold-expired-guard';
 

@@ -1,4 +1,4 @@
-import { QuestStatusStub } from '@dungeonmaster/shared/contracts';
+import { QuestStatusStub } from '@dungeonmaster/shared/contracts/quest-status/quest-status.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { questHasValidStatusTransitionGuard } from './quest-has-valid-status-transition-guard';

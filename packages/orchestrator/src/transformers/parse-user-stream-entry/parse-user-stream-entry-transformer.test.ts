@@ -3,10 +3,12 @@ import {
   SuccessfulToolResultStreamLineStub,
   MixedTextAndToolResultStreamLineStub,
   TextOnlyUserStreamLineStub,
+} from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
+import {
   UserTextArrayStreamLineStub,
   UserTextMultiBlockStreamLineStub,
   UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+} from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import { snakeKeysToCamelKeysTransformer } from '@dungeonmaster/shared/transformers';
 import { parseUserStreamEntryTransformer } from './parse-user-stream-entry-transformer';
 import { parseUserStreamEntryTransformerProxy } from './parse-user-stream-entry-transformer.proxy';
