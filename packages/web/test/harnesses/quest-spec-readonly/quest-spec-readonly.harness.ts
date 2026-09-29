@@ -14,7 +14,7 @@
  * });
  * // quest.json on disk now carries both arrays; re-navigating (or a fresh mount) renders them
  */
-import { promises as fsPromises } from '#gateway/node/fs';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 
 import type { DesignDecision, ToolingRequirement } from '@dungeonmaster/shared/contracts';
 
@@ -36,13 +36,10 @@ export const questSpecReadonlyHarness = (): {
     designDecisions: DesignDecision[];
     toolingRequirements: ToolingRequirement[];
   }): Promise<void> => {
-    const quest = JSON.parse(await fsPromises.readFile(questFilePath, 'utf8')) as Record<
-      PropertyKey,
-      unknown
-    >;
+    const quest = JSON.parse(await readFile(questFilePath)) as Record<PropertyKey, unknown>;
     quest.designDecisions = designDecisions;
     quest.toolingRequirements = toolingRequirements;
-    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
   };
 
   return { seedDesignDecisionsAndTooling };

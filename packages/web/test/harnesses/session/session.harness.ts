@@ -6,7 +6,9 @@
  * await sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
  * // afterEach: cleans session directory
  */
-import * as fs from 'fs';
+import { rm } from 'fs/promises';
+import { existsSync } from '#gateway/node/fs';
+import { appendFile, ensureDir, readdir, unlink } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
@@ -1154,8 +1156,8 @@ export const sessionHarness = ({
     // try to start the watcher before Claude CLI has created either the session
     // directory or the subagent directory; this matches that real-world race by
     // creating the dir on append rather than requiring the test to pre-seed it.
-    await fs.promises.mkdir(subagentDir, { recursive: true });
-    await fs.promises.appendFile(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
+    await ensureDir(subagentDir);
+    await appendFile(path.join(subagentDir, `agent-${agentId}.jsonl`), `${line}\n`);
   };
 
   // RAW ON PURPOSE — same framework gap as appendSubagentLine above: this appends to a
@@ -1169,11 +1171,11 @@ export const sessionHarness = ({
     line: string;
   }): Promise<void> => {
     const jsonlDir = getJsonlDir();
-    await fs.promises.mkdir(jsonlDir, { recursive: true });
+    await ensureDir(jsonlDir);
     // Appends to the PARENT session's own `<sessionId>.jsonl`, which the quest-driven watcher
     // tails from `end` — so only lines written AFTER the watcher starts emit. That is exactly the
     // shape of a live intake conversation: the agent writes a turn, the browser panel renders it.
-    await fs.promises.appendFile(path.join(jsonlDir, `${sessionId}.jsonl`), `${line}\n`);
+    await appendFile(path.join(jsonlDir, `${sessionId}.jsonl`), `${line}\n`);
   };
 
   const createSessionWithRedactedThinking = async ({
@@ -1210,11 +1212,9 @@ export const sessionHarness = ({
   const cleanSessionFiles = async (): Promise<void> => {
     const jsonlDir = getJsonlDir();
     try {
-      const files = await fs.promises.readdir(jsonlDir);
+      const files = await readdir(jsonlDir);
       const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
-      await Promise.all(
-        jsonlFiles.map(async (file) => fs.promises.unlink(path.join(jsonlDir, file))),
-      );
+      await Promise.all(jsonlFiles.map(async (file) => unlink(path.join(jsonlDir, file))));
     } catch {
       // Directory may not exist
     }
@@ -1236,7 +1236,7 @@ export const sessionHarness = ({
   // write landed inside that window; the retry budget rides out the write.
   const cleanSessionDirectory = async (): Promise<void> => {
     const jsonlDir = getJsonlDir();
-    await fs.promises.rm(jsonlDir, {
+    await rm(jsonlDir, {
       recursive: true,
       force: true,
       maxRetries: 5,
@@ -1297,7 +1297,7 @@ export const sessionHarness = ({
   // a synchronous boolean to a Promise, touching every caller for a call that is fundamentally a
   // fs.existsSync check on a path this harness already knows how to encode.
   const sessionFileExists = ({ sessionId }: { sessionId: string }): boolean =>
-    fs.existsSync(path.join(getJsonlDir(), `${sessionId}.jsonl`));
+    existsSync(path.join(getJsonlDir(), `${sessionId}.jsonl`));
 
   return {
     beforeEach: cleanSessionDirectory,

@@ -17,7 +17,8 @@
  * const counts = await elapsed.readIntervalCounts();
  * // { registered: 1, cleared: 0, live: 1 }
  */
-import { appendFileSync, promises as fsPromises } from 'fs';
+import { appendFileSync } from '#gateway/node/fs';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { dirname } from '#gateway/node/path';
 
 import type { Page } from '#gateway/npm/playwright__test';
@@ -70,9 +71,7 @@ export const elapsedDurationHarness = ({
       status?: string;
     }[];
   }): Promise<void> => {
-    const persisted = JSON.parse(
-      await fsPromises.readFile(questFilePath, 'utf8'),
-    ) as PersistedQuestInput;
+    const persisted = JSON.parse(await readFile(questFilePath)) as PersistedQuestInput;
     const workItems = Array.isArray(persisted.workItems)
       ? (persisted.workItems as PersistedWorkItemInput[])
       : [];
@@ -90,7 +89,7 @@ export const elapsedDurationHarness = ({
       };
     });
 
-    await fsPromises.writeFile(
+    await writeFile(
       questFilePath,
       JSON.stringify({ ...persisted, workItems: stamped }, null, JSON_INDENT),
     );

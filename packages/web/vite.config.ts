@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 import react from '#gateway/npm/vitejs__plugin-react';
 import { defineConfig } from 'vite';

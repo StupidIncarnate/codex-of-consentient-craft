@@ -10,6 +10,7 @@
  * harness.report({ testPath: testInfo.file });
  * // Appends one JSON line per timer the spec left armed, or nothing when ward did not ask
  */
+import { getEnv } from '#gateway/node/process';
 import { openHandleReportBroker, openHandleTrackingBroker } from '@dungeonmaster/testing/brokers';
 
 // The same variable the jest side reads. Unset means ward did not ask, and then nothing is patched
@@ -20,11 +21,9 @@ export const openHandleWatchHarness = (): {
   beforeEach: () => void;
   report: ({ testPath }: { testPath: string }) => void;
 } => {
-  const reportPath = process.env[REPORT_PATH_VAR];
-
   return {
     beforeEach: (): void => {
-      if (reportPath === undefined) {
+      if (getEnv(REPORT_PATH_VAR) === undefined) {
         return;
       }
       openHandleTrackingBroker.watch();
@@ -33,6 +32,7 @@ export const openHandleWatchHarness = (): {
     // Per TEST, not per spec file: a Playwright worker runs many specs in one process, so a report
     // taken once at the end would hand every leak to whichever spec happened to finish last.
     report: ({ testPath }: { testPath: string }): void => {
+      const reportPath = getEnv(REPORT_PATH_VAR);
       if (reportPath === undefined) {
         return;
       }

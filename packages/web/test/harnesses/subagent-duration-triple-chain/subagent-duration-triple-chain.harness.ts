@@ -31,7 +31,7 @@
  * // <sessionId>/subagents/agent-<agentId>.jsonl stub per chain. Omitting `notification`, or
  * // omitting `durationMs` inside one, omits the corresponding tag/line entirely.
  */
-import * as fs from 'fs';
+import { ensureDirSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -109,7 +109,7 @@ export const subagentDurationTripleChainHarness = ({
     });
 
   const cleanSessionDirectory = (): void => {
-    fs.rmSync(getJsonlDir(), { recursive: true, force: true });
+    rmSync(getJsonlDir(), { recursive: true, force: true });
   };
 
   const seedSiblingChains = ({
@@ -198,11 +198,11 @@ export const subagentDurationTripleChainHarness = ({
       }
     });
 
-    fs.mkdirSync(jsonlDir, { recursive: true });
-    fs.writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
+    ensureDirSync(jsonlDir);
+    writeFileSync(path.join(jsonlDir, `${sessionId}.jsonl`), `${mainLines.join('\n')}\n`);
 
     const subagentDir = path.join(jsonlDir, sessionId, 'subagents');
-    fs.mkdirSync(subagentDir, { recursive: true });
+    ensureDirSync(subagentDir);
 
     chains.forEach((chain, index) => {
       const line = JSON.stringify({
@@ -212,7 +212,7 @@ export const subagentDurationTripleChainHarness = ({
         uuid: `${sessionId}-subagent-${String(index)}`,
         timestamp: chain.taskToolUseAt,
       });
-      fs.writeFileSync(path.join(subagentDir, `agent-${chain.agentId}.jsonl`), `${line}\n`);
+      writeFileSync(path.join(subagentDir, `agent-${chain.agentId}.jsonl`), `${line}\n`);
     });
   };
 

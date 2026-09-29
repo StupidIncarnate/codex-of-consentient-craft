@@ -14,7 +14,14 @@
  * const states = await send.readComposerSendStates();
  * const posts = send.readPosts();
  */
-import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
+import { statSync } from 'fs';
+import {
+  existsSync,
+  readFileBytesSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
 import type { Page } from '#gateway/npm/playwright__test';
@@ -481,7 +488,7 @@ export const composerSendHarness = ({
     },
 
     readImageFileBase64: ({ filePath }: { filePath: string }): unknown =>
-      readFileSync(filePath).toString('base64'),
+      readFileBytesSync(filePath).toString('base64'),
 
     dispatchEnterKeydown: async (): Promise<boolean> =>
       page.evaluate(DISPATCH_ENTER_KEYDOWN_BROWSER_FN, { chatInputTestId: CHAT_INPUT_TEST_ID }),

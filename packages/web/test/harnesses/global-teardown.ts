@@ -1,4 +1,4 @@
-import { rmSync } from 'fs';
+import { rmSync } from '#gateway/node/fs';
 import * as os from '#gateway/node/os';
 import * as path from '#gateway/node/path';
 import { getEnv, pid } from '#gateway/node/process';

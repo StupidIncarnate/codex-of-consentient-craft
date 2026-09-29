@@ -1,6 +1,6 @@
 import React from '#gateway/npm/react';
 
-import { render } from '@testing-library/react';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 
 import { NodeMeasureLayerWidget } from './node-measure-layer-widget';
 import { NodeMeasureLayerWidgetProxy } from './node-measure-layer-widget.proxy';
@@ -11,11 +11,11 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      render(
-        React.createElement(NodeMeasureLayerWidget, {
+      mantineRenderMiddleware({
+        ui: React.createElement(NodeMeasureLayerWidget, {
           nodeIds: 'press-begin\nobs:press-begin:one',
         }),
-      );
+      });
 
       expect(proxy.getForcedMeasureIds()).toStrictEqual([['press-begin', 'obs:press-begin:one']]);
     });
@@ -24,7 +24,9 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupMeasuredGraph();
 
-      render(React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }));
+      mantineRenderMiddleware({
+        ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
+      });
 
       expect(proxy.getForcedMeasureIds()).toStrictEqual([]);
     });
@@ -33,7 +35,7 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      render(React.createElement(NodeMeasureLayerWidget, { nodeIds: '' }));
+      mantineRenderMiddleware({ ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: '' }) });
 
       expect(proxy.getForcedMeasureIds()).toStrictEqual([]);
     });
@@ -42,9 +44,9 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      const { rerender } = render(
-        React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
-      );
+      const { rerender } = mantineRenderMiddleware({
+        ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
+      });
       rerender(React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }));
       rerender(React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }));
 
@@ -55,9 +57,9 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupUnmeasuredGraph();
 
-      const { rerender } = render(
-        React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
-      );
+      const { rerender } = mantineRenderMiddleware({
+        ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
+      });
       rerender(
         React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin\ncheck-startable' }),
       );
@@ -72,11 +74,16 @@ describe('NodeMeasureLayerWidget', () => {
       const proxy = NodeMeasureLayerWidgetProxy();
       proxy.setupMeasuredGraph();
 
-      const { container } = render(
-        React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
-      );
+      const { container } = mantineRenderMiddleware({
+        ui: React.createElement(NodeMeasureLayerWidget, { nodeIds: 'press-begin' }),
+      });
 
-      expect(container.innerHTML).toBe('');
+      // The only children are the two <style> tags MantineProvider itself renders.
+      expect(
+        Array.from(container.children).map(
+          (child) => `${child.tagName}:${String(child.getAttribute('data-mantine-styles'))}`,
+        ),
+      ).toStrictEqual(['STYLE:true', 'STYLE:classes']);
     });
   });
 });

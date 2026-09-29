@@ -23,7 +23,9 @@
  * const children = await images.readBubbleChildren({ page });
  * // [{ tag: 'span', text: 'A', testId: 'CHAT_MESSAGE_TEXT', src: '' }, { tag: 'img', ... }, ...]
  */
-import fs, { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { mkdtempSync, writeFileSync as writeBytesFileSync } from 'fs';
+import { ensureDirSync, existsSync, readdirSync, rmSync, writeFileSync } from '#gateway/node/fs';
+import { ensureDir, writeFile, writeFileBytes } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
 import { crc32, deflateSync } from '#gateway/node/zlib';
@@ -653,10 +655,10 @@ export const transcriptImagesHarness = (): {
     const dir = mkdtempSync(join(tmpdir(), TEMP_DIR_PREFIX));
     createdDirs.push(dir);
     const imagesDir = join(dir, locationsStatics.quest.imagesDir);
-    mkdirSync(imagesDir, { recursive: true });
+    ensureDirSync(imagesDir);
     writeFileSync(join(dir, locationsStatics.quest.questFile), QUEST_FILE_EXISTENCE_ONLY_CONTENT);
     const imagePath = join(imagesDir, fileName);
-    writeFileSync(imagePath, bytes);
+    writeBytesFileSync(imagePath, bytes);
     return { imagePath, bytes };
   };
 
@@ -708,13 +710,13 @@ export const transcriptImagesHarness = (): {
       // Same images-subdirectory placement and quest-file marker as seedPngFileToTemp above, and
       // for the same reason.
       const imagesDir = join(dir, locationsStatics.quest.imagesDir);
-      await fs.promises.mkdir(imagesDir, { recursive: true });
-      await fs.promises.writeFile(
+      await ensureDir(imagesDir);
+      await writeFile(
         join(dir, locationsStatics.quest.questFile),
         QUEST_FILE_EXISTENCE_ONLY_CONTENT,
       );
       const imagePath = join(imagesDir, fileName);
-      await fs.promises.writeFile(imagePath, bytes);
+      await writeFileBytes(imagePath, bytes);
       return { imagePath, bytes };
     },
 

@@ -21,7 +21,7 @@
  * const prevented = await composer.pasteImage({ dataUrl });
  * // prevented === false — dispatchEvent returns false once preventDefault fired
  */
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
@@ -1136,7 +1136,7 @@ export const composerPasteHarness = ({
       return [];
     }
     return readdirSync(imagesDirPath).map(
-      (fileName) => statSync(join(imagesDirPath, fileName)).size,
+      (fileName) => statSync(join(imagesDirPath, fileName)).sizeBytes,
     );
   },
 });

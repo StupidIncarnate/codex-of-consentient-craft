@@ -6,7 +6,8 @@
  * const created = await quests.createQuest({ guildId: 'abc', title: 'My Quest', userRequest: 'Build it' });
  * await quests.writeQuestFile({ questId: 'id', questFolder: 'folder', questFilePath: '/path', status: 'complete', workItems: [...] });
  */
-import { existsSync, promises as fsPromises } from 'fs';
+import { existsSync } from '#gateway/node/fs';
+import { appendFile, ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
@@ -889,14 +890,14 @@ export const questHarness = ({
       ...(baseBranch === undefined ? {} : { baseBranch }),
     });
 
-    await fsPromises.mkdir(dirname(questFilePath), { recursive: true });
-    await fsPromises.writeFile(questFilePath, JSON.stringify(rawQuest, null, JSON_INDENT));
+    await ensureDir(dirname(questFilePath));
+    await writeFile(questFilePath, JSON.stringify(rawQuest, null, JSON_INDENT));
 
     // Append a quest-modified event to the outbox so the HTTP server's quest-driven watcher
     // reactor reconciles immediately, exactly as questPersistBroker does in production — see
     // writeQuestFile's own broker route, which gets this for free through dmRegistryBroker.
     const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    await fsPromises.appendFile(
+    await appendFile(
       `${dungeonmasterHome}/event-outbox.jsonl`,
       `${JSON.stringify({ questId, timestamp: new Date().toISOString() })}\n`,
     );
@@ -944,7 +945,7 @@ export const questHarness = ({
       ],
     };
 
-    await fsPromises.writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
+    await writeFile(questFilePath, JSON.stringify(quest, null, JSON_INDENT));
   };
 
   const writeWardResultDetail = async ({
@@ -959,8 +960,8 @@ export const questHarness = ({
     // The server's ward-detail endpoint reads <questFolder>/ward-results/<id>.json. The quest
     // folder is the directory holding quest.json.
     const wardResultsDir = join(dirname(questFilePath), 'ward-results');
-    await fsPromises.mkdir(wardResultsDir, { recursive: true });
-    await fsPromises.writeFile(
+    await ensureDir(wardResultsDir);
+    await writeFile(
       join(wardResultsDir, `${wardResultId}.json`),
       JSON.stringify(detail, null, JSON_INDENT),
     );
@@ -1151,17 +1152,12 @@ export const questHarness = ({
     questFilePath: string;
     status: string;
   }): Promise<void> => {
-    const persisted = JSON.parse(
-      await fsPromises.readFile(questFilePath, 'utf8'),
-    ) as PersistedQuestInput;
+    const persisted = JSON.parse(await readFile(questFilePath)) as PersistedQuestInput;
 
-    await fsPromises.writeFile(
-      questFilePath,
-      JSON.stringify({ ...persisted, status }, null, JSON_INDENT),
-    );
+    await writeFile(questFilePath, JSON.stringify({ ...persisted, status }, null, JSON_INDENT));
 
     const dungeonmasterHome = dirname(dirname(dirname(dirname(questFilePath))));
-    await fsPromises.appendFile(
+    await appendFile(
       `${dungeonmasterHome}/event-outbox.jsonl`,
       `${JSON.stringify({ questId: String(persisted.id), timestamp: new Date().toISOString() })}\n`,
     );

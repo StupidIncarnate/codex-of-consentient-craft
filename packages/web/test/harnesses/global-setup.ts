@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
+import { ensureDirSync, readdirSync, rmSync, statSync, writeFileSync } from '#gateway/node/fs';
 import * as os from '#gateway/node/os';
 import * as path from '#gateway/node/path';
 
@@ -53,7 +53,7 @@ export default function globalSetup(): void {
       continue;
     }
     try {
-      if (nowMs - statSync(entryPath).mtimeMs >= STALE_SANDBOX_MS) {
+      if (nowMs - statSync(entryPath).modifiedAtMs >= STALE_SANDBOX_MS) {
         rmSync(entryPath, { recursive: true, force: true });
       }
     } catch (error: unknown) {
@@ -63,9 +63,9 @@ export default function globalSetup(): void {
     }
   }
 
-  mkdirSync(TEST_HOME, { recursive: true });
-  mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir), { recursive: true });
-  mkdirSync(path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir), { recursive: true });
+  ensureDirSync(TEST_HOME);
+  ensureDirSync(path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir));
+  ensureDirSync(path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir));
   writeFileSync(path.join(TEST_HOME, '.gitconfig'), GIT_CONFIG_CONTENTS);
 
   // An empty ledger stamped NOW, so the first guardrail poll after boot finds a measurement inside

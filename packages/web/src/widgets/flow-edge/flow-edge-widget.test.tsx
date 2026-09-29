@@ -1,6 +1,7 @@
 import React from '#gateway/npm/react';
 
-import { render, screen } from '@testing-library/react';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { FlowEdgeStub } from '@dungeonmaster/shared/contracts';
 
@@ -23,8 +24,8 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: LONG_LABEL });
 
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -36,7 +37,7 @@ describe('FlowEdgeWidget', () => {
           targetPosition: 'top',
           data: { label },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').textContent).toBe(LONG_LABEL);
     });
@@ -45,8 +46,8 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: LONG_LABEL });
 
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -58,7 +59,7 @@ describe('FlowEdgeWidget', () => {
           targetPosition: 'top',
           data: { label },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').getAttribute('title')).toBe(LONG_LABEL);
     });
@@ -66,8 +67,8 @@ describe('FlowEdgeWidget', () => {
     it('EMPTY: {no data.label} => no FLOW_EDGE_LABEL rendered', () => {
       FlowEdgeWidgetProxy();
 
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -79,7 +80,7 @@ describe('FlowEdgeWidget', () => {
           targetPosition: 'top',
           data: {},
         }),
-      );
+      });
 
       expect(screen.queryByTestId('FLOW_EDGE_LABEL')).toBe(null);
     });
@@ -92,8 +93,8 @@ describe('FlowEdgeWidget', () => {
 
       // An L-shaped route (down, then across). midIndex = (3-1)>>1 = 1, so the label sits at the
       // midpoint of segment [pt1 -> pt2] = ((100+100)/2, (0+80)/2) = (100, 40).
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -112,7 +113,7 @@ describe('FlowEdgeWidget', () => {
             ],
           },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
         /^translate\(-50%, -50%\) translate\(100px, 40px\)$/u,
@@ -124,8 +125,8 @@ describe('FlowEdgeWidget', () => {
       const { label } = FlowEdgeStub({ label: 'yes' });
 
       // Two points, one segment. midIndex = (2-1)>>1 = 0, midpoint of [pt0 -> pt1] = (30, 0).
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -143,7 +144,7 @@ describe('FlowEdgeWidget', () => {
             ],
           },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
         /^translate\(-50%, -50%\) translate\(30px, 0px\)$/u,
@@ -155,8 +156,8 @@ describe('FlowEdgeWidget', () => {
       const { label } = FlowEdgeStub({ label: 'no' });
 
       // No route, so the mock's getBezierPath (labelX = labelY = 0) pins the midpoint at (0, 0).
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -168,7 +169,7 @@ describe('FlowEdgeWidget', () => {
           targetPosition: 'top',
           data: { label },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
         /^translate\(-50%, -50%\) translate\(0px, 0px\)$/u,
@@ -184,8 +185,8 @@ describe('FlowEdgeWidget', () => {
       // Source (400) sits below target (0), so it is a loop: it arcs out to the right by loop.detour
       // (max(0,0)+60 = 60), giving points [(0,400),(60,400),(60,0),(0,0)]. The label rides the
       // vertical run at x=60, y=(400+0)/2 = 200.
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'loop-1',
           source: 'tail',
           target: 'head',
@@ -197,7 +198,7 @@ describe('FlowEdgeWidget', () => {
           targetPosition: 'right',
           data: { label },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').style.transform).toMatch(
         /^translate\(-50%, -50%\) translate\(60px, 200px\)$/u,
@@ -210,8 +211,8 @@ describe('FlowEdgeWidget', () => {
       FlowEdgeWidgetProxy();
       const { label } = FlowEdgeStub({ label: 'yes' });
 
-      render(
-        React.createElement(EdgeComponent, {
+      mantineRenderMiddleware({
+        ui: React.createElement(EdgeComponent, {
           id: 'edge-1',
           source: 'node-a',
           target: 'node-b',
@@ -224,7 +225,7 @@ describe('FlowEdgeWidget', () => {
           markerEnd: 'url(#arrowclosed)',
           data: { label },
         }),
-      );
+      });
 
       expect(screen.getByTestId('FLOW_EDGE_LABEL').textContent).toBe(label);
     });

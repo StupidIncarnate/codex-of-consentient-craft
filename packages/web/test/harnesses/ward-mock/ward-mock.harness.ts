@@ -11,7 +11,14 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
-import * as fs from 'fs';
+import {
+  ensureDirSync,
+  existsSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
@@ -48,7 +55,7 @@ const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
 
 const getCounter = ({ queueDir }: { queueDir: string }) => {
   const metaPath = getMetadataPath({ queueDir });
-  if (fs.existsSync(metaPath)) {
+  if (existsSync(metaPath)) {
     return queueMetadataReadBroker({ metadataPath: metaPath }).counter;
   }
   return COUNTER_START;
@@ -61,7 +68,7 @@ const setCounter = ({
   queueDir: string;
   counter: ReturnType<typeof getCounter>;
 }): void => {
-  fs.writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
+  writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };
 
 const queueWardResponse = ({
@@ -71,23 +78,23 @@ const queueWardResponse = ({
   queueDir: string;
   response: WardQueueResponse;
 }): void => {
-  fs.mkdirSync(queueDir, { recursive: true });
+  ensureDirSync(queueDir);
   const counter = getCounter({ queueDir });
   const filePath = path.join(queueDir, `${String(counter).padStart(PAD_LENGTH, '0')}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(response));
+  writeFileSync(filePath, JSON.stringify(response));
   setCounter({ queueDir, counter: counter + 1 });
 };
 
 const clearWardQueue = ({ queueDir }: { queueDir: string }): void => {
-  if (!fs.existsSync(queueDir)) {
+  if (!existsSync(queueDir)) {
     return;
   }
 
-  const files = fs.readdirSync(queueDir);
+  const files = readdirSync(queueDir);
   for (const file of files) {
     const full = path.join(queueDir, file);
-    if (fs.statSync(full).isFile()) {
-      fs.unlinkSync(full);
+    if (statSync(full).kind === 'file') {
+      unlinkSync(full);
     }
   }
 };

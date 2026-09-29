@@ -13,6 +13,7 @@
  * const plan = recipe({ name: 'seed-guild' }, () => [dmRegistryBroker.guilds.add(1, ...)])();
  * await dmRegistryBroker.run(plan, dmTarget.apiTarget());
  */
+import { getEnv } from '#gateway/node/process';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmTargetContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -37,19 +38,21 @@ export const dmTargetHarness = ({
   // isolate a write route from the real machine"). playwright.config.ts:32 sets this at module
   // scope, re-run in every spec worker, so it is already correct by the time any spec runs — but
   // a config refactor that drops that line breaks every `write` route with no symptom besides a
-  // write landing in the real machine's ~/.dungeonmaster. Asserting it here, once, turns that
-  // into a named throw instead.
-  const dungeonmasterHome = process.env.DUNGEONMASTER_HOME;
-  if (dungeonmasterHome === undefined) {
-    throw new Error(
-      'dmTargetHarness: process.env.DUNGEONMASTER_HOME is unset — playwright.config.ts:32 sets ' +
-        'it at module scope for every spec worker; a target built without it is not isolated ' +
-        'from the real machine',
-    );
-  }
-
-  const writeTarget = (): DmTarget =>
-    dmTargetContract.parse({ home: dungeonmasterHome, claudeHome: dungeonmasterHome });
+  // write landing in the real machine's ~/.dungeonmaster. Asserting it on every target build,
+  // before any route can run, turns that into a named throw instead. The read sits in the target
+  // builder rather than the constructor body because enforce-harness-patterns allows no call
+  // there but a lifecycle hook or a child harness.
+  const writeTarget = (): DmTarget => {
+    const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
+    if (dungeonmasterHome === undefined) {
+      throw new Error(
+        'dmTargetHarness: process.env.DUNGEONMASTER_HOME is unset — playwright.config.ts:32 sets ' +
+          'it at module scope for every spec worker; a target built without it is not isolated ' +
+          'from the real machine',
+      );
+    }
+    return dmTargetContract.parse({ home: dungeonmasterHome, claudeHome: dungeonmasterHome });
+  };
 
   const apiTarget = (): DmTarget => {
     // Playwright's OWN resolved `baseURL` fixture — the WEB port `playwright.config.ts`'s
@@ -62,11 +65,7 @@ export const dmTargetHarness = ({
     if (baseURL === undefined) {
       throw new Error('dmTargetHarness.apiTarget: Playwright supplied no baseURL');
     }
-    return dmTargetContract.parse({
-      home: dungeonmasterHome,
-      claudeHome: dungeonmasterHome,
-      baseUrl: baseURL,
-    });
+    return dmTargetContract.parse({ ...writeTarget(), baseUrl: baseURL });
   };
 
   // Sequential deletes: concurrent DELETEs corrupt config.json (race on read-modify-write) —

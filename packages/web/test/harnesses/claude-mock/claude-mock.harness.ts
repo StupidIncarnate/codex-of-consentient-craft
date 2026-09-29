@@ -11,7 +11,15 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
-import * as fs from 'fs';
+import {
+  ensureDirSync,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 import { z } from '#gateway/npm/zod';
 
@@ -69,7 +77,7 @@ const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
 
 const getCounter = ({ queueDir }: { queueDir: string }) => {
   const metaPath = getMetadataPath({ queueDir });
-  if (fs.existsSync(metaPath)) {
+  if (existsSync(metaPath)) {
     return queueMetadataReadBroker({ metadataPath: metaPath }).counter;
   }
   return COUNTER_START;
@@ -82,7 +90,7 @@ const setCounter = ({
   queueDir: string;
   counter: ReturnType<typeof getCounter>;
 }): void => {
-  fs.writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
+  writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };
 
 const queueClaudeResponse = ({
@@ -92,23 +100,23 @@ const queueClaudeResponse = ({
   queueDir: string;
   response: ClaudeQueueResponse;
 }): void => {
-  fs.mkdirSync(queueDir, { recursive: true });
+  ensureDirSync(queueDir);
   const counter = getCounter({ queueDir });
   const filePath = path.join(queueDir, `${String(counter).padStart(PAD_LENGTH, '0')}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(response));
+  writeFileSync(filePath, JSON.stringify(response));
   setCounter({ queueDir, counter: counter + 1 });
 };
 
 const clearClaudeQueue = ({ queueDir }: { queueDir: string }): void => {
-  if (!fs.existsSync(queueDir)) {
+  if (!existsSync(queueDir)) {
     return;
   }
 
-  const files = fs.readdirSync(queueDir);
+  const files = readdirSync(queueDir);
   for (const file of files) {
     const full = path.join(queueDir, file);
-    if (fs.statSync(full).isFile()) {
-      fs.unlinkSync(full);
+    if (statSync(full).kind === 'file') {
+      unlinkSync(full);
     }
   }
 };
@@ -157,11 +165,10 @@ export const claudeMockHarness = ({
         getScopedQueueDir({ guildPath: spawnCwd }),
         INVOCATIONS_FILE,
       );
-      if (!fs.existsSync(invocationsPath)) {
+      if (!existsSync(invocationsPath)) {
         return [];
       }
-      return fs
-        .readFileSync(invocationsPath, 'utf8')
+      return readFileSync(invocationsPath)
         .split('\n')
         .filter((line) => line.trim().length > 0)
         .map((line) => claudeInvocationContract.parse(JSON.parse(line)));

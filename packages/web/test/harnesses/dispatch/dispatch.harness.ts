@@ -21,7 +21,7 @@
  * dispatcher paused but PLAYABLE.
  */
 
-import * as fs from 'fs';
+import { writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
@@ -172,7 +172,7 @@ export const dispatchHarness = ({
       throw new Error('DUNGEONMASTER_HOME env var is not set');
     }
 
-    fs.writeFileSync(
+    writeFileSync(
       path.join(home, DISPATCH_STATE_FILE),
       JSON.stringify({ mode: 'paused', updatedAt: new Date().toISOString() }),
     );

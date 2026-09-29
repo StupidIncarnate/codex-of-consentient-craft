@@ -17,7 +17,8 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import { appendFileSync, readFileSync, promises as fsPromises } from 'fs';
+import { appendFileSync, readFileSync } from '#gateway/node/fs';
+import { writeFile } from '#gateway/node/fs__promises';
 import { dirname } from '#gateway/node/path';
 
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
@@ -164,15 +165,12 @@ export const followupHarness = ({
     // flowrider bundle runs concurrently against this same seed helper, so a real (or
     // deliberately dangling) worktree is patched onto the already-written JSON directly.
     if (worktreePath !== undefined) {
-      const questJson = JSON.parse(readFileSync(String(questFilePath), 'utf8')) as Record<
+      const questJson = JSON.parse(readFileSync(String(questFilePath))) as Record<
         PropertyKey,
         unknown
       >;
       questJson.worktreePath = worktreePath;
-      await fsPromises.writeFile(
-        String(questFilePath),
-        JSON.stringify(questJson, null, JSON_INDENT),
-      );
+      await writeFile(String(questFilePath), JSON.stringify(questJson, null, JSON_INDENT));
     }
 
     await nav.navigateToQuest({ urlSlug: String(urlSlug), questId: String(questId) });
@@ -224,12 +222,9 @@ export const followupHarness = ({
     questFilePath: string;
     status: string;
   }): Promise<void> => {
-    const questJson = JSON.parse(readFileSync(questFilePath, 'utf8')) as Record<
-      PropertyKey,
-      unknown
-    >;
+    const questJson = JSON.parse(readFileSync(questFilePath)) as Record<PropertyKey, unknown>;
     questJson.status = status;
-    await fsPromises.writeFile(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
+    await writeFile(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
 
     // questFilePath shape: <DUNGEONMASTER_HOME>/guilds/<guildId>/quests/<questFolder>/quest.json —
     // four levels up is DUNGEONMASTER_HOME, where the event outbox lives.

@@ -25,7 +25,8 @@
  * const rateLimits = rateLimitsHarness();
  * await rateLimits.await writeLedger({ spendTokens: 4200, fiveHourCeiling: 10_000, sevenDayCeiling: 21_000 });
  */
-import * as fs from 'fs';
+import { rmSync } from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
 import type { FilePath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
@@ -76,8 +77,8 @@ export const rateLimitsHarness = (): {
   }): Promise<void> => {
     const nowMs = Date.now();
     const ledgerPath = resolveHomeFile({ filename: LEDGER_FILENAME });
-    await fs.promises.mkdir(path.dirname(ledgerPath), { recursive: true });
-    await fs.promises.writeFile(
+    await ensureDir(path.dirname(ledgerPath));
+    await writeFile(
       ledgerPath,
       JSON.stringify(
         UsageLedgerStub({
@@ -98,12 +99,12 @@ export const rateLimitsHarness = (): {
   };
 
   const reset = async (): Promise<void> => {
-    fs.rmSync(resolveHomeFile({ filename: SNAPSHOT_FILENAME }), { force: true });
+    rmSync(resolveHomeFile({ filename: SNAPSHOT_FILENAME }), { force: true });
     await writeLedger({ spendTokens: 0, fiveHourCeiling: null, sevenDayCeiling: null });
 
     const statePath = resolveHomeFile({ filename: DISPATCH_STATE_FILENAME });
-    await fs.promises.mkdir(path.dirname(statePath), { recursive: true });
-    await fs.promises.writeFile(
+    await ensureDir(path.dirname(statePath));
+    await writeFile(
       statePath,
       `${JSON.stringify(DispatchStateStub({ mode: 'paused', hold: null }))}\n`,
     );
@@ -116,8 +117,8 @@ export const rateLimitsHarness = (): {
 
     writeSnapshot: async ({ snapshot }: { snapshot: RateLimitsSnapshot }): Promise<void> => {
       const snapshotPath = resolveHomeFile({ filename: SNAPSHOT_FILENAME });
-      await fs.promises.mkdir(path.dirname(snapshotPath), { recursive: true });
-      await fs.promises.writeFile(snapshotPath, JSON.stringify(snapshot));
+      await ensureDir(path.dirname(snapshotPath));
+      await writeFile(snapshotPath, JSON.stringify(snapshot));
     },
 
     writeLedger,
