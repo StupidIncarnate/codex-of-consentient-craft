@@ -95,10 +95,14 @@ describe('__PASCAL__PanelWidget', () => {
       fileName: 'widgets.ts',
       exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
     },
+    // `ink` is declared, never imported: a consumer's `@gateway/npm` starts empty, so a seed that
+    // imported it through `#gateway/npm/ink` would fail lint and typecheck until someone wrote that
+    // wrapper. The detector reads the declared dependency beside the widgets folder.
     dependencies: {
       '__SCOPE__/node': '*',
       ink: '^5.0.0',
       react: '^19.0.0',
+      '@types/react': '^19.0.0',
     },
     devDependencies: {},
     bin: {},
@@ -113,142 +117,38 @@ describe('__PASCAL__PanelWidget', () => {
     needsMswTransform: false,
     files: [
       {
-        path: 'src/adapters/ink/render/ink-render-adapter.ts',
-        contents: `/**
- * PURPOSE: Starting point wrapping ink's render behind this package's own adapter boundary, so
- * callers unmount through a semantic handle instead of reaching into ink's Instance directly.
- * Replace with the package's real ink usage once one exists.
- *
- * USAGE:
- * const { unmount } = inkRenderAdapter({ node: <SomePanelWidget /> });
- * unmount();
- */
-
-import { render } from 'ink';
-
-export const inkRenderAdapter = ({
-  node,
-}: {
-  node: React.ReactElement;
-}): { unmount: () => void } => {
-  const instance = render(node);
-  return {
-    unmount: (): void => {
-      instance.unmount();
-    },
-  };
-};
-`,
-      },
-      {
-        path: 'src/adapters/ink/render/ink-render-adapter.proxy.ts',
-        contents: `export const inkRenderAdapterProxy = (): Record<PropertyKey, never> => ({});
-`,
-      },
-      {
-        path: 'src/adapters/ink/render/ink-render-adapter.test.ts',
-        contents: `import { createElement } from 'react';
-import { Text } from 'ink';
-
-import { inkRenderAdapter } from './ink-render-adapter';
-import { inkRenderAdapterProxy } from './ink-render-adapter.proxy';
-
-describe('inkRenderAdapter', () => {
-  it('VALID: {node} => returns an object exposing an unmount function', () => {
-    inkRenderAdapterProxy();
-
-    const result = inkRenderAdapter({ node: createElement(Text, {}, '__NAME__') });
-
-    expect(result).toStrictEqual({ unmount: expect.any(Function) });
-  });
-});
-`,
-      },
-      {
-        path: 'src/adapters/ink/text/ink-text-adapter.ts',
-        contents: `/**
- * PURPOSE: Provides ink's Text component behind this package's own adapter boundary. widgets/ may
- * import react directly but not ink, so every ink primitive a widget renders needs its own adapter
- * wrapper here, one per component, following the same shape as inkRenderAdapter.
- *
- * USAGE:
- * const Text = inkTextAdapter();
- * <Text>Hello</Text>
- */
-
-import { Text } from 'ink';
-
-export const inkTextAdapter = (): typeof Text => Text;
-`,
-      },
-      {
-        path: 'src/adapters/ink/text/ink-text-adapter.proxy.ts',
-        contents: `export const inkTextAdapterProxy = (): Record<PropertyKey, never> => ({});
-`,
-      },
-      {
-        path: 'src/adapters/ink/text/ink-text-adapter.test.ts',
-        contents: `import { Text } from 'ink';
-
-import { inkTextAdapter } from './ink-text-adapter';
-import { inkTextAdapterProxy } from './ink-text-adapter.proxy';
-
-describe('inkTextAdapter', () => {
-  it('VALID: {} => returns the ink Text component', () => {
-    inkTextAdapterProxy();
-
-    expect(inkTextAdapter()).toBe(Text);
-  });
-});
-`,
-      },
-      {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         contents: `/**
- * PURPOSE: Starting point for this package's ink UI, wired into the root widgets.ts barrel so a
- * fresh frontend-ink package already renders something real in a terminal. Replace with the
- * package's real ink screen once one exists.
+ * PURPOSE: Starting point for this package's ink UI, wired into the root widgets.ts barrel. It
+ * returns a bare fragment because ink's \`Text\` is an npm value and a consumer's \`@gateway/npm\`
+ * starts empty: write \`packages/@gateway/npm/src/ink/ink.ts\`, then wrap this content in
+ * \`<Text>\` imported from \`#gateway/npm/ink\`. The package already declares \`ink\`.
  *
  * USAGE:
  * <__PASCAL__PanelWidget />
- * // Renders an ink Text node
+ * // Renders a fragment holding the package name
  */
 
-import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
-
-export const __PASCAL__PanelWidget = (): React.JSX.Element => {
-  const Text = inkTextAdapter();
-  return <Text>__NAME__</Text>;
-};
+export const __PASCAL__PanelWidget = (): React.JSX.Element => <>__NAME__</>;
 `,
       },
       {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.proxy.tsx',
-        contents: `import { inkTextAdapterProxy } from '../../adapters/ink/text/ink-text-adapter.proxy';
-
-export const __PASCAL__PanelWidgetProxy = (): Record<PropertyKey, never> => {
-  inkTextAdapterProxy();
-  return {};
-};
+        contents: `export const __PASCAL__PanelWidgetProxy = (): Record<PropertyKey, never> => ({});
 `,
       },
       {
         path: 'src/widgets/__NAME__-panel/__NAME__-panel-widget.test.tsx',
-        contents: `import { inkTextAdapter } from '../../adapters/ink/text/ink-text-adapter';
-
-import { __PASCAL__PanelWidget } from './__NAME__-panel-widget';
+        contents: `import { __PASCAL__PanelWidget } from './__NAME__-panel-widget';
 import { __PASCAL__PanelWidgetProxy } from './__NAME__-panel-widget.proxy';
 
 describe('__PASCAL__PanelWidget', () => {
-  it('VALID: {} => builds an ink Text element wrapping the package name', () => {
+  it('VALID: {} => builds a fragment whose only child is the package name', () => {
     __PASCAL__PanelWidgetProxy();
 
     const element = __PASCAL__PanelWidget();
 
-    expect({ type: element.type, props: element.props }).toStrictEqual({
-      type: inkTextAdapter(),
-      props: { children: '__NAME__' },
-    });
+    expect(element.props).toStrictEqual({ children: '__NAME__' });
   });
 });
 `,

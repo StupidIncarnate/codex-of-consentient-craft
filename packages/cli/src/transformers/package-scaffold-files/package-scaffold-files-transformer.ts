@@ -10,6 +10,10 @@
  * repo, which has no such repo-root file). The caller decides which by checking disk; this function
  * stays pure and only branches on the boolean it is handed, which is what keeps `--dry-run` truthful.
  *
+ * `workspaceScope` is the npm scope the repo's `packages/@gateway/*` were named from. It fills
+ * `__SCOPE__` and the `#gateway/*` imports field; when absent the scope derives from the request's
+ * package name.
+ *
  * USAGE:
  * packageScaffoldFilesTransformer({ request: CreatePackageRequestStub() });
  * // Returns the ordered ScaffoldFile[] for that request's packageType, every relativePath relative
@@ -25,8 +29,12 @@ import { packageSeedFrontendStatics } from '../../statics/package-seed-frontend/
 import { packageScaffoldConfigStatics } from '../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
 import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
+import {
+  gatewayImportsFieldTransformer,
+  packageScopeFromNameTransformer,
+} from '@dungeonmaster/shared/transformers';
 import { kebabCaseVariantsTransformer } from '../kebab-case-variants/kebab-case-variants-transformer';
 
 // No `satisfies Record<string, PackageSeed>` here: the seeds' `as const` literals are readonly
@@ -41,9 +49,11 @@ const SEED_TABLE = {
 export const packageScaffoldFilesTransformer = ({
   request,
   usesPublishedJestBase = false,
+  workspaceScope,
 }: {
   request: CreatePackageRequest;
   usesPublishedJestBase?: boolean;
+  workspaceScope?: PathSegment;
 }): readonly ScaffoldFile[] => {
   // `PackageType` carries zod's phantom brand, which TypeScript refuses as an index into a
   // literal-keyed object — matched over entries instead, same workaround as
@@ -60,14 +70,15 @@ export const packageScaffoldFilesTransformer = ({
 
   const { directoryName } = request;
   const { camel, pascal, testId } = kebabCaseVariantsTransformer({ kebab: directoryName });
-  // A seed reaches the workspace's shared contracts through this, because the alternative is raw
-  // `string` types and `@dungeonmaster/ban-primitives` rejects those. An unscoped repo substitutes
-  // an empty string, which turns the import into a bare 'shared/...' specifier — so a seed that
-  // needs shared contracts also declares '__SCOPE__/shared' among its dependencies, and an
-  // unscoped repo has to supply that package itself.
-  const scope = String(request.packageName).startsWith('@')
-    ? String(request.packageName).split('/')[0]
-    : '';
+  // A seed reaches the workspace's shared contracts and gateway packages through this scope, because
+  // the alternative is raw `string` types and `@dungeonmaster/ban-primitives` rejects those.
+  // `workspaceScope` is the scope `dungeonmaster init` named `packages/@gateway/*` from, so it wins
+  // when the caller has it. Without it the scope comes off the package name, and an unscoped name
+  // becomes its own scope (`foo` gives `@foo`), the rule `packageScopeFromNameTransformer` applies to
+  // an unscoped root. It is never an empty string, which would turn '__SCOPE__/node' into '/node'.
+  const scope = String(
+    workspaceScope ?? packageScopeFromNameTransformer({ rootPackageName: request.packageName }),
+  );
   // No explicit tuple-array type here: `String(...)` unbrands every value up front so every pair
   // is a plain [string, string] and TypeScript infers the array shape on its own — an explicit
   // annotation would have to spell the word "string", which `@dungeonmaster/ban-primitives` bans
@@ -77,7 +88,7 @@ export const packageScaffoldFilesTransformer = ({
     ['__CAMEL__', String(camel)] as const,
     ['__PASCAL__', String(pascal)] as const,
     ['__TESTID__', String(testId)] as const,
-    ['__SCOPE__', scope ?? ''] as const,
+    ['__SCOPE__', scope] as const,
   ];
 
   const barrelStem = seed.barrel === null ? null : seed.barrel.fileName.replace(/\.ts$/u, '');
@@ -136,7 +147,7 @@ export const packageScaffoldFilesTransformer = ({
     ]),
   );
   const gatewayImports = gatewayImportsFieldTransformer({
-    scope: pathSegmentContract.parse(scope ?? ''),
+    scope: pathSegmentContract.parse(scope),
   });
 
   const scriptsField = {

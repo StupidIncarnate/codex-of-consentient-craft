@@ -1,6 +1,7 @@
 import { packageScaffoldFilesTransformer } from './package-scaffold-files-transformer';
 import { CreatePackageRequestStub } from '../../contracts/create-package-request/create-package-request.stub';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 
 // No explicit tuple-array annotation: writing the word "string" here trips
 // `@dungeonmaster/ban-primitives` (it only exempts a function's own parameter/return position).
@@ -60,10 +61,11 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'adapters.ts',
-      'src/adapters/hono/app-create/hono-app-create-adapter.ts',
-      'src/adapters/hono/app-create/hono-app-create-adapter.proxy.ts',
-      'src/adapters/hono/app-create/hono-app-create-adapter.test.ts',
+      'flows.ts',
+      'src/statics/route/route-statics.ts',
+      'src/statics/route/route-statics.test.ts',
+      'src/flows/sample-pkg/sample-pkg-flow.ts',
+      'src/flows/sample-pkg/sample-pkg-flow.integration.test.ts',
     ],
   ] as const,
   [
@@ -93,12 +95,6 @@ const RELATIVE_PATHS_BY_TYPE = [
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
       'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
       'widgets.ts',
-      'src/adapters/ink/render/ink-render-adapter.ts',
-      'src/adapters/ink/render/ink-render-adapter.proxy.ts',
-      'src/adapters/ink/render/ink-render-adapter.test.ts',
-      'src/adapters/ink/text/ink-text-adapter.ts',
-      'src/adapters/ink/text/ink-text-adapter.proxy.ts',
-      'src/adapters/ink/text/ink-text-adapter.test.ts',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.proxy.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.test.tsx',
@@ -448,7 +444,7 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageType: "http-backend"} => dependencies carries the seed hono pin', () => {
+    it('VALID: {packageType: "http-backend"} => dependencies carry only the seed hono pin', () => {
       const files = packageScaffoldFilesTransformer({
         request: CreatePackageRequestStub({ packageType: 'http-backend' }),
       });
@@ -466,11 +462,11 @@ describe('packageScaffoldFilesTransformer', () => {
           '#gateway/bin/*': '@acme/bin/*',
         },
         exports: {
-          './adapters': {
-            source: './adapters.ts',
-            import: './dist/adapters.js',
-            require: './dist/adapters.js',
-            types: './dist/adapters.d.ts',
+          './flows': {
+            source: './flows.ts',
+            import: './dist/flows.js',
+            require: './dist/flows.js',
+            types: './dist/flows.d.ts',
           },
         },
         files: ['dist/**/*'],
@@ -526,6 +522,76 @@ describe('packageScaffoldFilesTransformer', () => {
         );
       },
     );
+
+    it.each(['frontend-react', 'frontend-ink', 'mcp-server'] as const)(
+      'VALID: {packageType: %s, packageName: "widgets" unscoped} => imports name the derived @widgets scope and no dependency name starts with a slash',
+      (packageType) => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({
+            packageType,
+            packageName: 'widgets',
+            directoryName: 'widgets',
+          }),
+        });
+        const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+        expect(packageJsonFile!.contents).toMatch(
+          /^ {2}"imports": \{$\n^ {4}"#gateway\/npm\/\*": "@widgets\/npm\/\*",$\n^ {4}"#gateway\/node\/\*": "@widgets\/node\/\*",$\n^ {4}"#gateway\/browser\/\*": "@widgets\/browser\/\*",$\n^ {4}"#gateway\/bin\/\*": "@widgets\/bin\/\*"$\n^ {2}\},$/mu,
+        );
+        expect(packageJsonFile!.contents.match(/^ {4}"\/[a-z]+":/gmu)).toBe(null);
+      },
+    );
+
+    it('VALID: {packageType: "frontend-ink", packageName: "widgets" unscoped} => dependencies name @widgets/node, not /node', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({
+          packageType: 'frontend-ink',
+          packageName: 'widgets',
+          directoryName: 'widgets',
+        }),
+      });
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"dependencies": \{$\n^ {4}"@widgets\/node": "\*",$\n^ {4}"ink": "\^5\.0\.0",$\n^ {4}"react": "\^19\.0\.0",$\n^ {4}"@types\/react": "\^19\.0\.0"$\n^ {2}\},$/mu,
+      );
+    });
+
+    it('VALID: {packageType: "mcp-server", packageName: "widgets" unscoped} => the stub imports StubArgument from @widgets/shared/@types', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({
+          packageType: 'mcp-server',
+          packageName: 'widgets',
+          directoryName: 'widgets',
+        }),
+      });
+      const stubFile = files.find(
+        (file) => file.relativePath === 'src/contracts/tool-registration/tool-registration.stub.ts',
+      );
+
+      expect(stubFile!.contents).toMatch(
+        /^import type \{ StubArgument \} from '@widgets\/shared\/@types';$/mu,
+      );
+    });
+
+    it('VALID: {packageName: "@other-scope/widgets", workspaceScope: "@acme"} => the workspace scope wins, so imports and seed dependencies agree with the real @gateway packages', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({
+          packageType: 'frontend-ink',
+          packageName: '@other-scope/widgets',
+          directoryName: 'widgets',
+        }),
+        workspaceScope: PathSegmentStub({ value: '@acme' }),
+      });
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"imports": \{$\n^ {4}"#gateway\/npm\/\*": "@acme\/npm\/\*",$\n^ {4}"#gateway\/node\/\*": "@acme\/node\/\*",$\n^ {4}"#gateway\/browser\/\*": "@acme\/browser\/\*",$\n^ {4}"#gateway\/bin\/\*": "@acme\/bin\/\*"$\n^ {2}\},$/mu,
+      );
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"dependencies": \{$\n^ {4}"@acme\/node": "\*",$\n^ {4}"ink": "\^5\.0\.0",$\n^ {4}"react": "\^19\.0\.0",$\n^ {4}"@types\/react": "\^19\.0\.0"$\n^ {2}\},$/mu,
+      );
+    });
 
     it('VALID: {packageName: "@other-scope/widgets"} => package.json imports substitutes that scope, not a hardcoded one', () => {
       const files = packageScaffoldFilesTransformer({

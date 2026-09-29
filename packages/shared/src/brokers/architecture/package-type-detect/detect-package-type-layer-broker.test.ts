@@ -73,6 +73,52 @@ describe('detectPackageTypeLayerBroker', () => {
     });
   });
 
+  describe('http-backend by declared dependency', () => {
+    it('VALID: {hono in dependencies, flows folder} => returns http-backend', () => {
+      detectPackageTypeLayerBrokerProxy();
+
+      const result = detectPackageTypeLayerBroker({
+        adapterDirNames: [],
+        srcDirNames: ['flows'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0' } }),
+        startupFileContent: undefined,
+        flowFileContent: undefined,
+        hasResponderHook: false,
+        hasBrokersRule: false,
+        hasFlowsDir: true,
+        hasRespondersDir: false,
+        hasStateDir: false,
+        hasResponderCreate: false,
+        exportsHasDot: false,
+        binEntryCount: FileCountStub({ value: 0 }),
+      });
+
+      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
+    });
+
+    it('VALID: {hono in dependencies, no flows folder} => returns library', () => {
+      detectPackageTypeLayerBrokerProxy();
+
+      const result = detectPackageTypeLayerBroker({
+        adapterDirNames: [],
+        srcDirNames: ['brokers'],
+        packageJson: PackageJsonStub({ dependencies: { hono: '^4.0.0' } }),
+        startupFileContent: undefined,
+        flowFileContent: undefined,
+        hasResponderHook: false,
+        hasBrokersRule: false,
+        hasFlowsDir: false,
+        hasRespondersDir: false,
+        hasStateDir: false,
+        hasResponderCreate: false,
+        exportsHasDot: false,
+        binEntryCount: FileCountStub({ value: 0 }),
+      });
+
+      expect(result).toBe(PackageTypeStub({ value: 'library' }));
+    });
+  });
+
   describe('mcp-server (priority 2)', () => {
     it('VALID: {adapterDirNames: [@modelcontextprotocol]} => returns mcp-server', () => {
       detectPackageTypeLayerBrokerProxy();

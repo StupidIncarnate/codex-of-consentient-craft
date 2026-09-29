@@ -12,9 +12,13 @@
 export const packageSeedServiceStatics = {
   'http-backend': {
     barrel: {
-      fileName: 'adapters.ts',
-      exportPaths: ['./src/adapters/hono/app-create/hono-app-create-adapter'],
+      fileName: 'flows.ts',
+      exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
     },
+    // `hono` is declared, never imported, and the seed carries no contract: a consumer's
+    // `@gateway/npm` starts empty (no `#gateway/npm/hono`, no `#gateway/npm/zod`) and it has no
+    // `shared` package, so a seed reaching for any of them fails install, lint or typecheck on a
+    // fresh scaffold. The detector reads the declared dependency beside the flows folder instead.
     dependencies: {
       hono: '^4.0.0',
     },
@@ -29,38 +33,59 @@ export const packageSeedServiceStatics = {
     needsMswTransform: false,
     files: [
       {
-        path: 'src/adapters/hono/app-create/hono-app-create-adapter.ts',
+        path: 'src/statics/route/route-statics.ts',
         contents: `/**
- * PURPOSE: Starting point for this package's Hono app — replace with real route registrations
- * once you have handlers to mount.
+ * PURPOSE: Starting point for this package's HTTP route table — replace with the real routes this
+ * service serves.
  *
  * USAGE:
- * const app = honoAppCreateAdapter();
- * // Returns a fresh Hono instance
+ * routeStatics.routes[0].path;
+ * // Returns '/health'
  */
 
-import { Hono } from 'hono';
-
-export const honoAppCreateAdapter = (): Hono => new Hono();
+export const routeStatics = {
+  routes: [{ method: 'GET', path: '/health' }],
+} as const;
 `,
       },
       {
-        path: 'src/adapters/hono/app-create/hono-app-create-adapter.proxy.ts',
-        contents: `export const honoAppCreateAdapterProxy = (): Record<PropertyKey, never> => ({});
+        path: 'src/statics/route/route-statics.test.ts',
+        contents: `import { routeStatics } from './route-statics';
+
+describe('routeStatics', () => {
+  it('VALID: {} => holds the health route', () => {
+    expect(routeStatics).toStrictEqual({ routes: [{ method: 'GET', path: '/health' }] });
+  });
+});
 `,
       },
       {
-        path: 'src/adapters/hono/app-create/hono-app-create-adapter.test.ts',
-        contents: `import { honoAppCreateAdapter } from './hono-app-create-adapter';
-import { honoAppCreateAdapterProxy } from './hono-app-create-adapter.proxy';
+        path: 'src/flows/__NAME__/__NAME__-flow.ts',
+        contents: `/**
+ * PURPOSE: Starting point for this package's HTTP routes — replace with the real routes this
+ * service serves. Mount them on a Hono app from a responder once \`#gateway/npm/hono\` exists: a
+ * consumer writes that wrapper under packages/@gateway/npm/src/hono/ (the package already declares
+ * \`hono\`).
+ *
+ * USAGE:
+ * const routes = __CAMEL__Flow();
+ * // Returns the route table this package serves
+ */
 
-describe('honoAppCreateAdapter', () => {
-  it('VALID: {} => returns a fresh Hono app with no routes registered', () => {
-    honoAppCreateAdapterProxy();
+import { routeStatics } from '../../statics/route/route-statics';
 
-    const app = honoAppCreateAdapter();
+export const __PASCAL__Flow = (): typeof routeStatics.routes => routeStatics.routes;
+`,
+      },
+      {
+        path: 'src/flows/__NAME__/__NAME__-flow.integration.test.ts',
+        contents: `import { __PASCAL__Flow } from './__NAME__-flow';
 
-    expect(app.routes).toStrictEqual([]);
+describe('__PASCAL__Flow', () => {
+  it('VALID: {} => returns the health route', () => {
+    const result = __PASCAL__Flow();
+
+    expect(result).toStrictEqual([{ method: 'GET', path: '/health' }]);
   });
 });
 `,

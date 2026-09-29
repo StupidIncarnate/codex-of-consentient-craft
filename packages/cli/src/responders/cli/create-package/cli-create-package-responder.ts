@@ -92,7 +92,11 @@ export const CliCreatePackageResponder = async ({
     scope,
     interactive,
   });
-  const files = packageScaffoldFilesTransformer({ request, usesPublishedJestBase });
+  const files = packageScaffoldFilesTransformer({
+    request,
+    usesPublishedJestBase,
+    workspaceScope: scope,
+  });
   const packageRoot = filePathContract.parse(
     join(context.targetProjectRoot, request.packagesDir, request.directoryName),
   );

@@ -53,7 +53,12 @@ describe('packageSeedFrontendStatics', () => {
           fileName: 'widgets.ts',
           exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
         },
-        dependencies: { '__SCOPE__/node': '*', ink: '^5.0.0', react: '^19.0.0' },
+        dependencies: {
+          '__SCOPE__/node': '*',
+          ink: '^5.0.0',
+          react: '^19.0.0',
+          '@types/react': '^19.0.0',
+        },
         devDependencies: {},
         bin: {},
         compilerOptions: { jsx: 'react-jsx' },
@@ -66,22 +71,28 @@ describe('packageSeedFrontendStatics', () => {
       });
     });
 
-    it('VALID: {type: frontend-ink} => seeds exactly the ink render adapter trio, the ink text adapter trio, then the panel widget trio', () => {
+    it('VALID: {type: frontend-ink} => seeds exactly the panel widget trio', () => {
       expect(files.map((file) => file.path)).toStrictEqual([
-        'src/adapters/ink/render/ink-render-adapter.ts',
-        'src/adapters/ink/render/ink-render-adapter.proxy.ts',
-        'src/adapters/ink/render/ink-render-adapter.test.ts',
-        'src/adapters/ink/text/ink-text-adapter.ts',
-        'src/adapters/ink/text/ink-text-adapter.proxy.ts',
-        'src/adapters/ink/text/ink-text-adapter.test.ts',
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.proxy.tsx',
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.test.tsx',
       ]);
     });
 
-    it('VALID: {type: frontend-ink} => the first seeded file is under src/adapters/ink/, which the detector keys on ahead of react', () => {
-      expect(files[0].path).toBe('src/adapters/ink/render/ink-render-adapter.ts');
+    it('VALID: {type: frontend-ink} => no seeded file lives under an adapters folder', () => {
+      const adapterPaths = files
+        .map((file) => file.path)
+        .filter((path) => path.includes('adapters/'));
+
+      expect(adapterPaths).toStrictEqual([]);
+    });
+
+    it('VALID: {type: frontend-ink} => no seeded file imports ink', () => {
+      const importingPaths = files
+        .filter((file) => file.contents.includes("from 'ink'"))
+        .map((file) => file.path);
+
+      expect(importingPaths).toStrictEqual([]);
     });
   });
 });

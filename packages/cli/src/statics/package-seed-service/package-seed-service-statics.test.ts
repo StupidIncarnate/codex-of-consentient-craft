@@ -7,8 +7,8 @@ describe('packageSeedServiceStatics', () => {
 
       expect(rest).toStrictEqual({
         barrel: {
-          fileName: 'adapters.ts',
-          exportPaths: ['./src/adapters/hono/app-create/hono-app-create-adapter'],
+          fileName: 'flows.ts',
+          exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
         },
         dependencies: { hono: '^4.0.0' },
         devDependencies: {},
@@ -27,16 +27,35 @@ describe('packageSeedServiceStatics', () => {
       const paths = packageSeedServiceStatics['http-backend'].files.map((file) => file.path);
 
       expect(paths).toStrictEqual([
-        'src/adapters/hono/app-create/hono-app-create-adapter.ts',
-        'src/adapters/hono/app-create/hono-app-create-adapter.proxy.ts',
-        'src/adapters/hono/app-create/hono-app-create-adapter.test.ts',
+        'src/statics/route/route-statics.ts',
+        'src/statics/route/route-statics.test.ts',
+        'src/flows/__NAME__/__NAME__-flow.ts',
+        'src/flows/__NAME__/__NAME__-flow.integration.test.ts',
       ]);
     });
 
-    it('VALID: {type: http-backend} => seeds a src/adapters/hono/ file first, which is what the detector keys on', () => {
-      const [honoAdapterFile] = packageSeedServiceStatics['http-backend'].files;
+    it('VALID: {type: http-backend} => no seeded file lives under an adapters folder', () => {
+      const adapterPaths = packageSeedServiceStatics['http-backend'].files
+        .map((file) => file.path)
+        .filter((path) => path.includes('adapters/'));
 
-      expect(honoAdapterFile.path).toBe('src/adapters/hono/app-create/hono-app-create-adapter.ts');
+      expect(adapterPaths).toStrictEqual([]);
+    });
+
+    it('VALID: {type: http-backend} => no seeded file imports an npm package or the shared package', () => {
+      const importingPaths = packageSeedServiceStatics['http-backend'].files
+        .filter((file) => /from '(?!\.)/u.test(file.contents))
+        .map((file) => file.path);
+
+      expect(importingPaths).toStrictEqual([]);
+    });
+
+    it('VALID: {type: http-backend} => the __NAME__-flow.ts file returns the route table under src/flows/, which the detector keys on beside the declared hono dependency', () => {
+      const [, , flowFile] = packageSeedServiceStatics['http-backend'].files;
+
+      expect(flowFile.contents).toMatch(
+        /^export const __PASCAL__Flow = \(\): typeof routeStatics\.routes => routeStatics\.routes;$/mu,
+      );
     });
   });
 

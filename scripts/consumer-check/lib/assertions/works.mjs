@@ -16,6 +16,7 @@ import {
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
   PROBE_PACKAGE_NAME,
+  SEEDED_PACKAGE_NAMES,
   scaffoldFixturePackages,
 } from '../sample-sources.mjs';
 
@@ -45,7 +46,7 @@ const assertScopeDetection = ({ report, consumerRoot, gt }) => {
   }
   const correctImports = gt.gatewayImportsFieldTransformer({ scope: correctScope });
 
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
+  for (const packageName of SEEDED_PACKAGE_NAMES) {
     const packageJsonPath = join(consumerRoot, 'packages', packageName, 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
     const actualImports = packageJson.imports ?? {};
@@ -63,7 +64,7 @@ const assertScopeDetection = ({ report, consumerRoot, gt }) => {
 // `@dungeonmaster/testing/jest-config-base` instead of the repo-relative path this checkout's own
 // packages use.
 const assertJestConfigBase = ({ report, consumerRoot }) => {
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
+  for (const packageName of SEEDED_PACKAGE_NAMES) {
     const jestConfigPath = join(consumerRoot, 'packages', packageName, 'jest.config.js');
     if (!existsSync(jestConfigPath)) {
       report.check(`packages/${packageName}/jest.config.js exists (F6)`, false, jestConfigPath);
@@ -82,7 +83,7 @@ const assertJestConfigBase = ({ report, consumerRoot }) => {
 };
 
 const assertTypecheck = async ({ report, consumerRoot }) => {
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
+  for (const packageName of SEEDED_PACKAGE_NAMES) {
     const cwd = join(consumerRoot, 'packages', packageName);
     const result = await runTsc({ consumerRoot, cwd });
     report.check(
@@ -113,7 +114,7 @@ const runEslintForPackage = ({ consumerRoot, packageDir }) =>
   runEslint({ consumerRoot, cwd: packageDir, args: ['.'] });
 
 const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, PROBE_PACKAGE_NAME]) {
+  for (const packageName of [...SEEDED_PACKAGE_NAMES, PROBE_PACKAGE_NAME]) {
     const packageDir = join(consumerRoot, 'packages', packageName);
     const result = await runEslintForPackage({ consumerRoot, packageDir });
     const eslintJson = parseEslintJson({ report, result, label: `consumer lint (packages/${packageName})` });
@@ -297,8 +298,7 @@ const assertWardCleanFixture = async ({ report, consumerRoot }) => {
       '--only',
       'lint,typecheck,unit,integration',
       '--',
-      join('packages', LIB_PACKAGE_NAME),
-      join('packages', WEB_PACKAGE_NAME),
+      ...SEEDED_PACKAGE_NAMES.map((packageName) => join('packages', packageName)),
       join('packages', '@gateway', 'browser'),
       join('packages', '@gateway', 'npm'),
       join('packages', '@gateway', 'bin'),

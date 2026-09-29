@@ -21,6 +21,15 @@ describe('packageBrowserTypeTransformer', () => {
       expect(result).toBe('frontend-ink');
     });
 
+    it('VALID: {srcDirNames: [widgets], ink and react in deps, no adapters folder} => returns frontend-ink', () => {
+      const result = packageBrowserTypeTransformer({
+        srcDirNames: ['widgets'],
+        packageJson: PackageJsonStub({ dependencies: { ink: '^5.0.0', react: '19.0.0' } }),
+      });
+
+      expect(result).toBe('frontend-ink');
+    });
+
     it('VALID: {srcDirNames: [widgets], adapterDirNames: [ink], react in deps} => returns frontend-ink, the surface a run actually drives', () => {
       const result = packageBrowserTypeTransformer({
         srcDirNames: ['widgets'],

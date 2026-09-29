@@ -53,8 +53,12 @@ source templates. Templates carry `__NAME__` / `__CAMEL__` / `__PASCAL__` / `__T
 `packageScaffoldFilesTransformer` substitutes.
 
 **Each seed exists to satisfy that type's rule in `architecturePackageTypeDetectBroker`**, so a scaffolded package is
-detected as the type it was asked for — `src/adapters/hono/` for `http-backend`, `src/widgets/` plus a react dependency
-for `frontend-react`, a bin entry plus `process.argv` for `cli-tool`, and so on. Changing a seed's folder names breaks
+detected as the type it was asked for — a `src/flows/` folder plus a `hono` dependency for `http-backend`, `src/widgets/`
+plus a react dependency for `frontend-react` (an ink dependency for `frontend-ink`), a bin entry plus `process.argv` for
+`cli-tool`, and so on. A seed imports no npm package: a consumer's `@gateway/npm` starts empty, so the seed declares the
+dependency and the consumer writes the `#gateway/npm/<subpath>` wrapper when it first needs the value. A seed holds no
+`adapters/` folder. `__SCOPE__` is the workspace scope `create-package` read from the root package.json (or, without one
+passed in, the scope derived from the package name), never an empty string. Changing a seed's folder names breaks
 that round-trip, and `packages/cli/src/transformers/package-scaffold-files/package-scaffold-files-transformer.test.ts`
 is what catches it.
 
