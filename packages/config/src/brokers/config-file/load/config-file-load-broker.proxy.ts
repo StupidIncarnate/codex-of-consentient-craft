@@ -1,6 +1,6 @@
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 export const configFileLoadBrokerProxy = (): {
   setupValidConfig: (params: { configPath: FilePath; config: Record<string, unknown> }) => void;

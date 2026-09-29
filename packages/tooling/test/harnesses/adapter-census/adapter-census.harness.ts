@@ -14,20 +14,25 @@ import { execFileSync } from '#gateway/node/child_process';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
-import { CommandResultStub } from '../../../src/contracts/command-result/command-result.stub';
-import { ExitCodeStub } from '../../../src/contracts/exit-code/exit-code.stub';
-import { ProcessOutputStub } from '../../../src/contracts/process-output/process-output.stub';
 import { FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
-import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error.stub';
 import { cwd } from '#gateway/node/process';
 
-type ExecError = ReturnType<typeof ExecErrorStub>;
+interface RunResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
+
+interface ExecError {
+  status: number;
+  stdout?: { toString: () => string };
+  stderr?: { toString: () => string };
+}
 
 const PACKAGE_DIR = FilePathStub({ value: cwd() });
 const ENTRY_PATH = FilePathStub({ value: path.join(cwd(), 'bin', 'adapter-census.ts') });
 const MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
-const DEFAULT_EXIT_CODE = 1;
 const TIMEOUT_MS = CensusCountStub({ value: 300_000 });
 
 const isExecError = (error: unknown): error is ExecError =>
@@ -37,15 +42,11 @@ const isExecError = (error: unknown): error is ExecError =>
   typeof (error as Record<PropertyKey, unknown>).status === 'number';
 
 export const adapterCensusHarness = (): {
-  runCensus: (params: { args: readonly string[] }) => ReturnType<typeof CommandResultStub>;
+  runCensus: (params: { args: readonly string[] }) => RunResult;
   installFixture: (params: { testbed: InstallTestbed }) => void;
   timeoutMs: ReturnType<typeof CensusCountStub>;
 } => {
-  const runCensus = ({
-    args,
-  }: {
-    args: readonly string[];
-  }): ReturnType<typeof CommandResultStub> => {
+  const runCensus = ({ args }: { args: readonly string[] }): RunResult => {
     try {
       const stdout = execFileSync(
         'npx',
@@ -57,20 +58,16 @@ export const adapterCensusHarness = (): {
           maxBuffer: MAX_OUTPUT_BYTES,
         },
       );
-      return CommandResultStub({
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdout: ProcessOutputStub({ value: stdout }),
-        stderr: ProcessOutputStub({ value: '' }),
-      });
+      return { exitCode: 0, stdout, stderr: '' };
     } catch (error) {
       if (!isExecError(error)) {
         throw error;
       }
-      return CommandResultStub({
-        exitCode: ExitCodeStub({ value: error.status ?? DEFAULT_EXIT_CODE }),
-        stdout: ProcessOutputStub({ value: error.stdout?.toString() ?? '' }),
-        stderr: ProcessOutputStub({ value: error.stderr?.toString() ?? '' }),
-      });
+      return {
+        exitCode: error.status,
+        stdout: error.stdout?.toString() ?? '',
+        stderr: error.stderr?.toString() ?? '',
+      };
     }
   };
 

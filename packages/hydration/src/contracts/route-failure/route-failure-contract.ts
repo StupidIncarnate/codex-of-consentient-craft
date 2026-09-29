@@ -14,9 +14,9 @@ import { z } from '#gateway/npm/zod';
 const HTTP_STATUS_MIN = 100;
 const HTTP_STATUS_MAX = 599;
 
-// Re-derives the 'Url', 'HttpStatus' and 'ResponseBody' brands `hydration-target-contract.ts` and
-// `http-response-contract.ts` each keep private (one exported schema per contract file) — the
-// literal brand argument, not an import, is what makes these structurally identical.
+// Re-derives the 'Url' brand `hydration-target-contract.ts` keeps private (one exported schema per
+// contract file) — the literal brand argument, not an import, is what makes the two structurally
+// identical.
 const urlLikeContract = z.url().brand<'Url'>();
 const httpStatusContract = z
   .number()

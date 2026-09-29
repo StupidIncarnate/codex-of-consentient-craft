@@ -141,6 +141,17 @@ describe('stepInterpolateTransformer', () => {
     });
   });
 
+  describe('bindings that are not a valid store', () => {
+    it('INVALID: {a binding name holding a dot} => throws before any placeholder is substituted', () => {
+      expect(() =>
+        stepInterpolateTransformer({
+          step: StepStub({ step: 'goto', path: '/{g.guildSlug}' }),
+          bindings: Object.assign(SeedBindingsStub(), { 'g.x': { a: 'b' } }),
+        }),
+      ).toThrow(/Invalid key in record/u);
+    });
+  });
+
   describe('values that would break the document they land in', () => {
     it('EDGE: {an id carrying a quote} => is JSON-escaped rather than terminating the string', () => {
       const result = stepInterpolateTransformer({

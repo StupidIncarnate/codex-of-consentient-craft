@@ -34,7 +34,6 @@ import { getEnv, setEnv, stderr } from '#gateway/node/process';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { bufferLineCountContract } from '../../../contracts/buffer-line-count/buffer-line-count-contract';
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -49,6 +48,7 @@ import type { StepCandidate } from '../../../contracts/step-candidate/step-candi
 import type { DomField } from '../../../contracts/dom-field/dom-field-contract';
 import type { DomReading } from '../../../contracts/dom-reading/dom-reading-contract';
 import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode-contract';
+import { bufferLineCountContract } from '../../../contracts/buffer-line-count/buffer-line-count-contract';
 import type {
   BrowserSession,
   BufferLengths,

@@ -36,9 +36,11 @@ import type {
   HydrationPlan,
   Plan,
 } from '../../../contracts/hydration-plan/hydration-plan-contract';
+import { hydrationTargetContract } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { HydrationTarget } from '../../../contracts/hydration-target/hydration-target-contract';
 import type { IngredientConfigData } from '../../../contracts/ingredient-config/ingredient-config-contract';
 import type { IngredientName } from '../../../contracts/ingredient-name/ingredient-name-contract';
+import { hydrationRunStateContract } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 import type { HydrationRunState } from '../../../contracts/hydration-run-state/hydration-run-state-contract';
 
 export const planRunBroker = async <TOut = HydrationRunResult>({
@@ -50,6 +52,9 @@ export const planRunBroker = async <TOut = HydrationRunResult>({
   target: HydrationTarget;
   ingredients: readonly IngredientConfigData[];
 }): Promise<TOut> => {
+  // Validates `baseUrl` only: the repo owns the rest of its target's shape, so the parsed copy
+  // (which strips those keys) is discarded and every route still receives the caller's own target.
+  hydrationTargetContract.parse(target);
   const routePlan = planPreflightBroker({ plan, target, ingredients });
   const foldedPlan = planFoldWritesTransformer({ plan });
 
@@ -58,7 +63,7 @@ export const planRunBroker = async <TOut = HydrationRunResult>({
   );
 
   const state: HydrationRunState = {
-    recipeName: plan.recipeName,
+    ...hydrationRunStateContract.parse({ recipeName: plan.recipeName }),
     records: new Map(),
     saved: new Map(),
   };

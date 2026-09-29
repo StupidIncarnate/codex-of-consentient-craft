@@ -20,8 +20,6 @@ export * from './field-values/field-values-contract';
 
 export * from './filter-expect/filter-expect-contract';
 
-export * from './http-response/http-response-contract';
-
 export * from './hydration-collection/hydration-collection-contract';
 
 export * from './hydration-op/hydration-op-contract';
@@ -87,7 +85,5 @@ export * from './saved-record-name/saved-record-name-contract';
 export * from './saved-ref/saved-ref-contract';
 
 export * from './transition-spec/transition-spec-contract';
-
-export * from './type-diagnostic/type-diagnostic-contract';
 
 export * from './write-failure/write-failure-contract';

@@ -15,10 +15,6 @@ export * from './dungeonmaster-config/dungeonmaster-config-contract';
 
 export * from './dev-server-e2e-process/dev-server-e2e-process-contract';
 
-export * from './file-contents/file-contents-contract';
-
-export * from './file-path/file-path-contract';
-
 export * from './folder-config/folder-config-contract';
 
 export * from './framework-presets/framework-presets-contract';

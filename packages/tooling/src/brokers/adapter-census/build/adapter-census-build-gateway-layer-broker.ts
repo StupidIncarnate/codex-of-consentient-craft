@@ -15,6 +15,7 @@ import { importTargetResolveTransformer } from '../../../transformers/import-tar
 import type { CensusPath } from '../../../contracts/census-path/census-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
+import { gatewayImplementationContract } from '../../../contracts/gateway-implementation/gateway-implementation-contract';
 import type { GatewayImplementation } from '../../../contracts/gateway-implementation/gateway-implementation-contract';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
@@ -65,7 +66,9 @@ export const adapterCensusBuildGatewayLayerBroker = ({
             }).outsideCalls;
 
       for (const name of reExport.names) {
-        implementations.push({ importPath, name, moduleDir, outsideCalls });
+        implementations.push(
+          gatewayImplementationContract.parse({ importPath, name, moduleDir, outsideCalls }),
+        );
       }
     }
   }

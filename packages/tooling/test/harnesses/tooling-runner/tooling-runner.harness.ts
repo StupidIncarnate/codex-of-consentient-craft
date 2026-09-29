@@ -12,13 +12,19 @@ import { execSync } from '#gateway/node/child_process';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
-import { CommandResultStub } from '../../../src/contracts/command-result/command-result.stub';
-import { ExitCodeStub } from '../../../src/contracts/exit-code/exit-code.stub';
-import { ProcessOutputStub } from '../../../src/contracts/process-output/process-output.stub';
-import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error.stub';
 import { cwd } from '#gateway/node/process';
 
-type ExecError = ReturnType<typeof ExecErrorStub>;
+interface RunResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
+
+interface ExecError {
+  status: number;
+  stdout?: { toString: () => string };
+  stderr?: { toString: () => string };
+}
 
 // Runs the source entry under plain tsx — no `--conditions=source`, matching this package's own
 // "detect-duplicates" npm script (package.json: `tsx src/index.ts`). That script's own target,
@@ -36,14 +42,10 @@ const isExecError = (error: unknown): error is ExecError =>
   typeof (error as Record<PropertyKey, unknown>).status === 'number';
 
 export const toolingRunnerHarness = (): {
-  runStartup: (params: { args: readonly string[] }) => ReturnType<typeof CommandResultStub>;
+  runStartup: (params: { args: readonly string[] }) => RunResult;
   entryPath: FilePath;
 } => {
-  const runStartup = ({
-    args,
-  }: {
-    args: readonly string[];
-  }): ReturnType<typeof CommandResultStub> => {
+  const runStartup = ({ args }: { args: readonly string[] }): RunResult => {
     const command = `npx tsx ${String(ENTRY_PATH)} ${args.join(' ')}`;
 
     try {
@@ -52,25 +54,16 @@ export const toolingRunnerHarness = (): {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: cwd(),
       });
-      return CommandResultStub({
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdout: ProcessOutputStub({ value: stdout }),
-        stderr: ProcessOutputStub({ value: '' }),
-      });
+      return { exitCode: 0, stdout, stderr: '' };
     } catch (error) {
       if (!isExecError(error)) {
         throw error;
       }
-      const execError = error;
-      const DEFAULT_EXIT_CODE = 1;
-      const exitCode = execError.status ?? DEFAULT_EXIT_CODE;
-      const stdout = execError.stdout?.toString() ?? '';
-      const stderr = execError.stderr?.toString() ?? '';
-      return CommandResultStub({
-        exitCode: ExitCodeStub({ value: exitCode }),
-        stdout: ProcessOutputStub({ value: stdout }),
-        stderr: ProcessOutputStub({ value: stderr }),
-      });
+      return {
+        exitCode: error.status,
+        stdout: error.stdout?.toString() ?? '',
+        stderr: error.stderr?.toString() ?? '',
+      };
     }
   };
 

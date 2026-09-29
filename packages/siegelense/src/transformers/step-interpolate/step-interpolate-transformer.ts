@@ -26,6 +26,7 @@
  * // Returns the same step with its path reading '/siege-guild'
  */
 
+import { seedBindingsContract } from '../../contracts/seed-bindings/seed-bindings-contract';
 import type { SeedBindings } from '../../contracts/seed-bindings/seed-bindings-contract';
 import { stepContract } from '../../contracts/step/step-contract';
 import type { Step } from '../../contracts/step/step-contract';
@@ -55,15 +56,17 @@ export const stepInterpolateTransformer = ({
     return step;
   }
 
+  const knownBindings = seedBindingsContract.parse(bindings);
+
   const substituted = serialised.replace(
     new RegExp(seedPlaceholderStatics.pattern.source, 'gu'),
     (placeholder, binding: string, field: string) => {
-      const bound = Object.entries(bindings).find(([name]) => name === binding)?.[1];
+      const bound = Object.entries(knownBindings).find(([name]) => name === binding)?.[1];
       if (bound === undefined) {
         throw new SeedBindingUnknownError({
           placeholder,
           binding,
-          knownBindings: Object.keys(bindings),
+          knownBindings: Object.keys(knownBindings),
           knownFields: null,
         });
       }
@@ -73,7 +76,7 @@ export const stepInterpolateTransformer = ({
         throw new SeedBindingUnknownError({
           placeholder,
           binding,
-          knownBindings: Object.keys(bindings),
+          knownBindings: Object.keys(knownBindings),
           knownFields: Object.keys(bound),
         });
       }

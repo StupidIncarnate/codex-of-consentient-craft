@@ -18,31 +18,32 @@ import type { Server } from '#gateway/node/http';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';
-import { HttpResponseStub } from '../../../src/contracts/http-response/http-response.stub';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
-import type { HttpResponse } from '../../../src/contracts/http-response/http-response-contract';
+
+const DEFAULT_STATUS = 200;
+const DEFAULT_BODY = '{"id":"g1"}';
 
 interface ApiTargetHarness {
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;
   answerNext: ({ status, body }: { status: number; body: string }) => void;
   target: () => HydrationTarget;
-  url: ({ path }: { path: string }) => HttpResponse['url'];
-  refusedUrl: ({ path }: { path: string }) => HttpResponse['url'];
+  url: ({ path }: { path: string }) => string;
+  refusedUrl: ({ path }: { path: string }) => string;
 }
 
 export const apiTargetHarness = (): ApiTargetHarness => {
   let server: Server | null = null;
   let listeningPort: NetworkPort | null = null;
   let closedPort: NetworkPort | null = null;
-  let nextStatus: HttpResponse['status'] = HttpResponseStub().status;
-  let nextBody: HttpResponse['body'] = HttpResponseStub().body;
+  let nextStatus = DEFAULT_STATUS;
+  let nextBody = DEFAULT_BODY;
 
   return {
     beforeEach: async (): Promise<void> =>
       new Promise((resolve, reject) => {
-        nextStatus = HttpResponseStub().status;
-        nextBody = HttpResponseStub().body;
+        nextStatus = DEFAULT_STATUS;
+        nextBody = DEFAULT_BODY;
 
         const created = createServer((request, response) => {
           request.resume();
@@ -100,9 +101,8 @@ export const apiTargetHarness = (): ApiTargetHarness => {
       }),
 
     answerNext: ({ status, body }: { status: number; body: string }): void => {
-      const answered = HttpResponseStub({ status, body });
-      nextStatus = answered.status;
-      nextBody = answered.body;
+      nextStatus = status;
+      nextBody = body;
     },
 
     target: (): HydrationTarget => {
@@ -112,18 +112,18 @@ export const apiTargetHarness = (): ApiTargetHarness => {
       return HydrationTargetStub({ baseUrl: `http://127.0.0.1:${String(listeningPort)}` });
     },
 
-    url: ({ path }: { path: string }): HttpResponse['url'] => {
+    url: ({ path }: { path: string }): string => {
       if (listeningPort === null) {
         throw new Error('apiTargetHarness.url: called before beforeEach ran');
       }
-      return HttpResponseStub({ url: `http://127.0.0.1:${String(listeningPort)}${path}` }).url;
+      return `http://127.0.0.1:${String(listeningPort)}${path}`;
     },
 
-    refusedUrl: ({ path }: { path: string }): HttpResponse['url'] => {
+    refusedUrl: ({ path }: { path: string }): string => {
       if (closedPort === null) {
         throw new Error('apiTargetHarness.refusedUrl: called before beforeEach ran');
       }
-      return HttpResponseStub({ url: `http://127.0.0.1:${String(closedPort)}${path}` }).url;
+      return `http://127.0.0.1:${String(closedPort)}${path}`;
     },
   };
 };

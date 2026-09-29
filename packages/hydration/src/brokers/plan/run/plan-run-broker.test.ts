@@ -21,6 +21,60 @@ describe('planRunBroker', () => {
   // record carries both `id` and `title`: IngredientConfigStub's own default `record` contract
   // requires both, and these tests reuse that default rather than declaring a new zod schema —
   // only `contracts/` files may import `zod` at all.
+  describe('the target the caller hands in', () => {
+    it("VALID: {a target carrying a key beyond baseUrl} => the route receives the caller's whole target", async () => {
+      planRunBrokerProxy();
+      let receivedTarget: unknown = null;
+      const guildConfig = IngredientConfigStub({
+        name: 'guild',
+        routes: {
+          write: ({ target }: { target: unknown }): unknown => {
+            receivedTarget = target;
+            return { id: 'g1', title: 'Guild' };
+          },
+        },
+      });
+      const plan = HydrationPlanStub({
+        ops: [OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', ancestors: [], fields: {} })],
+      });
+
+      await planRunBroker({
+        plan,
+        target: Object.assign(HydrationTargetStub({}), { home: '/tmp/dm-home' }),
+        ingredients: [guildConfig],
+      });
+
+      expect(receivedTarget).toStrictEqual({ home: '/tmp/dm-home' });
+    });
+
+    it('INVALID: {baseUrl is not a URL} => throws before any route runs', async () => {
+      planRunBrokerProxy();
+      const recorded: string[] = [];
+      const guildConfig = IngredientConfigStub({
+        name: 'guild',
+        routes: {
+          write: (): unknown => {
+            recorded.push('guild ran');
+            return { id: 'g1', title: 'Guild' };
+          },
+        },
+      });
+      const plan = HydrationPlanStub({
+        ops: [OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', ancestors: [], fields: {} })],
+      });
+
+      await expect(
+        planRunBroker({
+          plan,
+          target: Object.assign(HydrationTargetStub({}), { baseUrl: 'not a url' }),
+          ingredients: [guildConfig],
+        }),
+      ).rejects.toThrow(/Invalid URL/u);
+
+      expect(recorded).toStrictEqual([]);
+    });
+  });
+
   describe('the walk — depth-first, in declaration order', () => {
     it('VALID: {two sibling adds} => the routes ran in declaration order', async () => {
       planRunBrokerProxy();

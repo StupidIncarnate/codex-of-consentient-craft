@@ -1,5 +1,4 @@
 import { routeFailureTransformer } from './route-failure-transformer';
-import { HttpResponseStub } from '../../contracts/http-response/http-response.stub';
 import { HttpEnvelopeFailureError } from '../../errors/http-envelope-failure/http-envelope-failure-error';
 
 describe('routeFailureTransformer', () => {
@@ -23,13 +22,13 @@ describe('routeFailureTransformer', () => {
 
   describe('a route that answered 2xx-5xx with a readable body', () => {
     it('VALID: {cause: an HttpResponse-shaped throw} => returns its url, status and body', () => {
-      const cause = HttpResponseStub({
-        url: 'http://localhost:3737/api/guilds',
-        status: 500,
-        body: '{"error":"database unavailable"}',
+      const result = routeFailureTransformer({
+        cause: {
+          url: 'http://localhost:3737/api/guilds',
+          status: 500,
+          body: '{"error":"database unavailable"}',
+        },
       });
-
-      const result = routeFailureTransformer({ cause });
 
       expect(result).toStrictEqual({
         url: 'http://localhost:3737/api/guilds',
