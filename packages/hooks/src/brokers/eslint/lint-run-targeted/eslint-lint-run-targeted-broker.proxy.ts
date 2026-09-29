@@ -12,8 +12,6 @@ import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
   setupLintResults: (params: {
@@ -35,13 +33,8 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   getLintTextCallsFor: (params: { content: string }) => readonly unknown[][];
   getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
 } => {
-  cwdProxy();
+  const cwdGateway = cwdProxy();
   const stderrGateway = stderrProxy();
-  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
-  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
-  // the real process.cwd(), so a test built on it never depends on where jest runs.
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
 
   const eslint = ESLintProxy();
 
@@ -67,6 +60,9 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     // than by content alone — this is what a caller that omits `cwd` actually resolves and lints
     // against, so a broker that stops calling cwd() on that branch fails whatever test stages this.
     returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
+      // A fixed directory, not the real process.cwd(), so a test on the no-cwd branch never
+      // depends on where jest runs.
+      cwdGateway.setupCwd({ value: '/default/cwd' });
       const absolutePath = resolve('/default/cwd', filePath);
       eslint.lintTextReturns({ text: content, filePath: absolutePath, results });
     },

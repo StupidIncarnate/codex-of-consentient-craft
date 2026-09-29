@@ -13,8 +13,6 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLintRunWithFixBrokerProxy = (): {
   returnsLintResults: (params: {
@@ -32,13 +30,8 @@ export const eslintLintRunWithFixBrokerProxy = (): {
   }) => readonly unknown[][];
   getStderrText: ReturnType<typeof stderrProxy>['getWrittenText'];
 } => {
-  cwdProxy();
+  const cwdGateway = cwdProxy();
   const stderrGateway = stderrProxy();
-  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
-  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
-  // the real process.cwd(), so a test built on it never depends on where jest runs.
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
   readFileProxy();
 
   const eslint = ESLintProxy();
@@ -58,6 +51,9 @@ export const eslintLintRunWithFixBrokerProxy = (): {
     // against, so a broker that stops calling cwd() on that branch fails whatever test stages
     // this.
     returnsLintResultsForDefaultCwd: ({ filePath, results }): void => {
+      // A fixed directory, not the real process.cwd(), so a test on the no-cwd branch never
+      // depends on where jest runs.
+      cwdGateway.setupCwd({ value: '/default/cwd' });
       const absolutePath = resolve('/default/cwd', filePath);
       eslint.lintFilesReturns({ files: [absolutePath], results });
       eslint.outputFixesResolves({ results });

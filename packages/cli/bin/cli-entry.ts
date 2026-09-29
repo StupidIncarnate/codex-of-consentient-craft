@@ -9,10 +9,9 @@
  * node cli-entry.js                                       // Launches HTTP server and opens browser
  */
 
-import { resolve } from 'path';
-
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { cwd } from '#gateway/node/process';
+import { resolve } from '#gateway/node/path';
+import { argv, cwd, exit, stderr } from '#gateway/node/process';
 
 import { StartCli } from '../src/startup/start-cli';
 
@@ -31,7 +30,7 @@ const DIRNAME_TO_ROOT_DEPTH = __filename.endsWith('.ts') ? '../../..' : '../../.
 // browser) must NOT fire. esbuild emits this entry at the bundle's top level, so `module` and
 // `require.main` here are the real Node CommonJS values, not a wrapped-module shim.
 if (require.main === module) {
-  const [command, ...args] = process.argv.slice(COMMAND_ARG_START_INDEX);
+  const [command, ...args] = argv.slice(COMMAND_ARG_START_INDEX);
 
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
   const targetProjectRoot = filePathContract.parse(cwd());
@@ -39,8 +38,8 @@ if (require.main === module) {
   StartCli({ command, args, context: { dungeonmasterRoot, targetProjectRoot } }).catch(
     (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`Error: ${errorMessage}\n`);
-      process.exit(1);
+      stderr.write(`Error: ${errorMessage}\n`);
+      exit(1);
     },
   );
 }

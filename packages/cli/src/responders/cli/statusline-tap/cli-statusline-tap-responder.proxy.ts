@@ -1,6 +1,6 @@
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { readStdinToEndProxy } from '#gateway/node/process/read-stdin-to-end/read-stdin-to-end.proxy';
 import { rateLimitsSnapshotWriteBrokerProxy } from '../../../brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker.proxy';
 import { rateLimitsHistoryAppendBrokerProxy } from '../../../brokers/rate-limits/history-append/rate-limits-history-append-broker.proxy';
@@ -21,7 +21,7 @@ export const CliStatuslineTapResponderProxy = (): {
   const historyProxy = rateLimitsHistoryAppendBrokerProxy();
   const stdout = stdoutProxy();
   const stderr = stderrProxy();
-  const nowHandle = registerSpyOn({ object: Date, method: 'now' });
+  const clock = nowProxy();
 
   return {
     setupStdin: ({ data }: { data: string }): void => {
@@ -34,9 +34,8 @@ export const CliStatuslineTapResponderProxy = (): {
     setupThrottledWrite: ({ mtimeMs }: { mtimeMs: number }): void => {
       writeProxy.setupThrottledWrite({ mtimeMs });
     },
-    // Date.now takes no argument, so the empty tuple is its exact address.
     setupNow: ({ nowMs }: { nowMs: number }): void => {
-      nowHandle.calledWith([]).returns(nowMs);
+      clock.setupNow({ ms: nowMs });
     },
     getStdoutWrites: (): readonly unknown[] => stdout.getWrites(),
     getStderrWrites: (): readonly unknown[] => stderr.getWrites(),

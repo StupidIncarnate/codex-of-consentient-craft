@@ -14,6 +14,7 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { now } from '#gateway/node/Date';
 import { readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 
 import { rateLimitsHistoryAppendBroker } from '../../../brokers/rate-limits/history-append/rate-limits-history-append-broker';
@@ -29,7 +30,7 @@ export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
     const parsed = JSON.parse(inputData) as unknown;
     const validated = statuslineInputContract.parse(parsed);
 
-    const nowMs = Date.now();
+    const nowMs = now();
     const nowIso = new Date(nowMs).toISOString();
 
     const snapshot = statuslineToSnapshotTransformer({ input: validated, nowIso });

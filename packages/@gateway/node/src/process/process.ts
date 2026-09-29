@@ -31,5 +31,6 @@ export { removeAllListeners } from './remove-all-listeners/remove-all-listeners'
 export { setEnv } from './set-env/set-env';
 export { setExitCode } from './set-exit-code/set-exit-code';
 export { stderr } from './stderr/stderr';
+export { stdin } from './stdin/stdin';
 export { stdinIsTty } from './stdin-is-tty/stdin-is-tty';
 export { stdout } from './stdout/stdout';
