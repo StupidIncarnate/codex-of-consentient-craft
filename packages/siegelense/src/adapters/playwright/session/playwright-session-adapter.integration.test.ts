@@ -1,7 +1,15 @@
+import { z } from 'zod';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { RefStub } from '../../../contracts/ref/ref.stub';
 import { playwrightSessionAdapter } from './playwright-session-adapter';
+
+const consoleLineShape = z
+  .object({
+    type: z.string().brand<'ConsoleType'>(),
+    text: z.string().brand<'ConsoleText'>(),
+  })
+  .strip();
 
 const EVIDENCE_PATH = AbsoluteFilePathStub({ value: '/tmp/siegelense-integration' });
 const BASE_URL = 'http://localhost';
@@ -370,6 +378,35 @@ describe('playwrightSessionAdapter against a real Chromium', () => {
           candidateTexts: ['BROWSE', 'CREATE'],
           candidateWithins: ['[data-testid="MAP_FRAME"]', '[data-testid="MAP_FRAME"]'],
         });
+      },
+      BROWSER_TIMEOUT_MS,
+    );
+  });
+
+  describe('console capture at every level', () => {
+    it(
+      'VALID: {page logs at log, info, warn, error} => readConsoleSince returns each probe line with its level, in order',
+      async () => {
+        const session = await playwrightSessionAdapter({
+          baseUrl: BASE_URL,
+          evidencePath: EVIDENCE_PATH,
+        });
+        await session.goto({ url: SECOND_URL });
+        await session.evaluateSource({
+          source:
+            'console.log("siegelense-probe-log");console.info("siegelense-probe-info");console.warn("siegelense-probe-warn");console.error("siegelense-probe-error");"ok"',
+        });
+
+        const lines = session.readConsoleSince({ fromIndex: 0 });
+        await session.close();
+        const captured = lines.map((line) => consoleLineShape.parse(JSON.parse(line) as unknown));
+
+        expect(captured).toStrictEqual([
+          { type: 'log', text: 'siegelense-probe-log' },
+          { type: 'info', text: 'siegelense-probe-info' },
+          { type: 'warning', text: 'siegelense-probe-warn' },
+          { type: 'error', text: 'siegelense-probe-error' },
+        ]);
       },
       BROWSER_TIMEOUT_MS,
     );
