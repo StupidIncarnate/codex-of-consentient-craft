@@ -56,7 +56,10 @@ source templates. Templates carry `__NAME__` / `__CAMEL__` / `__PASCAL__` / `__T
 detected as the type it was asked for — a `src/flows/` folder plus a `hono` dependency for `http-backend`, `src/widgets/`
 plus a react dependency for `frontend-react` (an ink dependency for `frontend-ink`), a bin entry plus `process.argv` for
 `cli-tool`, and so on. A seed imports no npm package: a consumer's `@gateway/npm` starts empty, so the seed declares the
-dependency and the consumer writes the `#gateway/npm/<subpath>` wrapper when it first needs the value. A seed holds no
+dependency and the consumer writes the `#gateway/npm/<subpath>` wrapper when it first needs the value. A consumer has no
+`shared` package either, so a seed never depends on `__SCOPE__/shared`; a seed that reads argv or writes to a stream
+imports it from `#gateway/node/process` and declares `__SCOPE__/node`, and one that needs no platform value touches no
+global at all. A seed holds no
 `adapters/` folder. `__SCOPE__` is the workspace scope `create-package` read from the root package.json (or, without one
 passed in, the scope derived from the package name), never an empty string. Changing a seed's folder names breaks
 that round-trip, and `packages/cli/src/transformers/package-scaffold-files/package-scaffold-files-transformer.test.ts`

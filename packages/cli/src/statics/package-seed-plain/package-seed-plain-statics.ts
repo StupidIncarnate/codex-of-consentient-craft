@@ -62,7 +62,7 @@ describe('__CAMEL__Statics', () => {
       fileName: 'flows.ts',
       exportPaths: ['./__NAME__/__NAME__-flow'],
     },
-    dependencies: { '__SCOPE__/shared': '*' },
+    dependencies: {},
     devDependencies: {},
     bin: {},
     compilerOptions: {},
@@ -77,24 +77,24 @@ describe('__CAMEL__Statics', () => {
         path: 'src/state/__NAME__/__NAME__-state.ts',
         contents: `/**
  * PURPOSE: Starting point for this package's in-memory state — replace with real storage as the
- * package grows.
+ * package grows. It holds one boolean flag because a keyed store needs a branded key type, and a
+ * consumer has no shared contracts package: write the contracts this state needs, then key it.
  *
  * USAGE:
- * __CAMEL__State.set({ key: pathSegmentContract.parse('a'), value: contentTextContract.parse('b') });
- * __CAMEL__State.get({ key: pathSegmentContract.parse('a') });
+ * __CAMEL__State.markRan();
+ * __CAMEL__State.hasRan();
+ * // Returns true
  */
 
-import type { PathSegment, ContentText } from '__SCOPE__/shared/contracts';
-
-const __TESTID___STORE = new Map<PathSegment, ContentText>();
+const __TESTID___FLAGS = { ran: false };
 
 export const __CAMEL__State = {
-  set: ({ key, value }: { key: PathSegment; value: ContentText }): void => {
-    __TESTID___STORE.set(key, value);
+  markRan: (): void => {
+    __TESTID___FLAGS.ran = true;
   },
-  get: ({ key }: { key: PathSegment }): ContentText | undefined => __TESTID___STORE.get(key),
+  hasRan: (): boolean => __TESTID___FLAGS.ran,
   clear: (): void => {
-    __TESTID___STORE.clear();
+    __TESTID___FLAGS.ran = false;
   },
 };
 `,
@@ -103,7 +103,7 @@ export const __CAMEL__State = {
         path: 'src/state/__NAME__/__NAME__-state.proxy.ts',
         contents: `/**
  * PURPOSE: Starting point test proxy for __CAMEL__State — replace with real mocks as the package
- * grows. Clears the module-level store directly, with no workspace testing import, so each test
+ * grows. Clears the module-level flag directly, with no workspace testing import, so each test
  * starts from empty.
  *
  * USAGE:
@@ -124,31 +124,24 @@ export const __CAMEL__StateProxy = (): {
       },
       {
         path: 'src/state/__NAME__/__NAME__-state.test.ts',
-        contents: `import { PathSegmentStub } from '__SCOPE__/shared/contracts/path-segment/path-segment.stub';
-import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
-import { __CAMEL__State } from './__NAME__-state';
+        contents: `import { __CAMEL__State } from './__NAME__-state';
 import { __CAMEL__StateProxy } from './__NAME__-state.proxy';
 
 describe('__CAMEL__State', () => {
-  it('VALID: {key: "a", value: "b"} => get returns "b"', () => {
+  it('VALID: {markRan called} => hasRan returns true', () => {
     const proxy = __CAMEL__StateProxy();
     proxy.setupEmpty();
 
-    __CAMEL__State.set({
-      key: PathSegmentStub({ value: 'a' }),
-      value: ContentTextStub({ value: 'b' }),
-    });
+    __CAMEL__State.markRan();
 
-    expect(__CAMEL__State.get({ key: PathSegmentStub({ value: 'a' }) })).toBe(
-      ContentTextStub({ value: 'b' }),
-    );
+    expect(__CAMEL__State.hasRan()).toBe(true);
   });
 
-  it('EMPTY: {key: "missing"} => get returns undefined', () => {
+  it('EMPTY: {nothing marked} => hasRan returns false', () => {
     const proxy = __CAMEL__StateProxy();
     proxy.setupEmpty();
 
-    expect(__CAMEL__State.get({ key: PathSegmentStub({ value: 'missing' }) })).toBe(undefined);
+    expect(__CAMEL__State.hasRan()).toBe(false);
   });
 });
 `,
@@ -157,72 +150,54 @@ describe('__CAMEL__State', () => {
         path: 'src/responders/__NAME__/run/__NAME__-run-responder.ts',
         contents: `/**
  * PURPOSE: Starting point run responder — replace with real orchestration as the package grows.
+ * It reports whether it was handed any input and touches no platform global, so a consumer's lint
+ * passes on the fresh scaffold.
  *
  * USAGE:
  * await __PASCAL__RunResponder({ input: 'example' });
+ * // Returns { handled: true }
  */
 
 export const __PASCAL__RunResponder = ({
   input,
 }: {
   input: string;
-}): Promise<{ handled: boolean }> => {
-  process.stdout.write(\`__NAME__ run: \${input}\\n\`);
-
-  return Promise.resolve({ handled: true });
-};
+}): Promise<{ handled: boolean }> => Promise.resolve({ handled: input.length > 0 });
 `,
       },
       {
         path: 'src/responders/__NAME__/run/__NAME__-run-responder.proxy.ts',
         contents: `/**
- * PURPOSE: Starting point test proxy for __PASCAL__RunResponder — replace with real mocks as the
- * package grows. Captures stdout writes directly, with no workspace testing import, so the
- * colocated test can assert the exact line.
+ * PURPOSE: Starting point empty proxy for __PASCAL__RunResponder — replace with real mocks as the
+ * package grows.
  *
  * USAGE:
  * const proxy = __PASCAL__RunResponderProxy();
- * await proxy.callResponder({ input: 'example' });
- * proxy.capturedOutput();
  */
 
-import { contentTextContract, type ContentText } from '__SCOPE__/shared/contracts';
-import { __PASCAL__RunResponder } from './__NAME__-run-responder';
-
-export const __PASCAL__RunResponderProxy = (): {
-  callResponder: (params: { input: string }) => Promise<void>;
-  capturedOutput: () => readonly ContentText[];
-} => {
-  const output: ContentText[] = [];
-  const originalWrite = process.stdout.write.bind(process.stdout);
-
-  return {
-    callResponder: async (params: { input: string }): Promise<void> => {
-      process.stdout.write = ((chunk: string): boolean => {
-        output.push(contentTextContract.parse(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write;
-
-      await __PASCAL__RunResponder(params);
-
-      process.stdout.write = originalWrite;
-    },
-    capturedOutput: (): readonly ContentText[] => output,
-  };
-};
+export const __PASCAL__RunResponderProxy = (): Record<PropertyKey, never> => ({});
 `,
       },
       {
         path: 'src/responders/__NAME__/run/__NAME__-run-responder.test.ts',
-        contents: `import { __PASCAL__RunResponderProxy } from './__NAME__-run-responder.proxy';
+        contents: `import { __PASCAL__RunResponder } from './__NAME__-run-responder';
+import { __PASCAL__RunResponderProxy } from './__NAME__-run-responder.proxy';
 
 describe('__PASCAL__RunResponder', () => {
-  it('VALID: {input: "example"} => writes "__NAME__ run: example" to stdout', async () => {
-    const proxy = __PASCAL__RunResponderProxy();
+  it('VALID: {input: "example"} => resolves handled true', async () => {
+    __PASCAL__RunResponderProxy();
 
-    await proxy.callResponder({ input: 'example' });
+    const result = await __PASCAL__RunResponder({ input: 'example' });
 
-    expect(proxy.capturedOutput()).toStrictEqual(['__NAME__ run: example\\n']);
+    expect(result).toStrictEqual({ handled: true });
+  });
+
+  it('EMPTY: {input: ""} => resolves handled false', async () => {
+    __PASCAL__RunResponderProxy();
+
+    const result = await __PASCAL__RunResponder({ input: '' });
+
+    expect(result).toStrictEqual({ handled: false });
   });
 });
 `,
@@ -248,24 +223,13 @@ export const __PASCAL__Flow = ({
       },
       {
         path: 'src/flows/__NAME__/__NAME__-flow.integration.test.ts',
-        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
-import { __PASCAL__Flow } from './__NAME__-flow';
+        contents: `import { __PASCAL__Flow } from './__NAME__-flow';
 
 describe('__PASCAL__Flow', () => {
-  it('VALID: {input: "example"} => writes "__NAME__ run: example" to stdout', async () => {
-    const output: ReturnType<typeof ContentTextStub>[] = [];
-    const originalWrite = process.stdout.write.bind(process.stdout);
+  it('VALID: {input: "example"} => resolves handled true', async () => {
+    const result = await __PASCAL__Flow({ input: 'example' });
 
-    process.stdout.write = ((chunk: string): boolean => {
-      output.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
-
-    await __PASCAL__Flow({ input: 'example' });
-
-    process.stdout.write = originalWrite;
-
-    expect(output).toStrictEqual(['__NAME__ run: example\\n']);
+    expect(result).toStrictEqual({ handled: true });
   });
 });
 `,
@@ -278,37 +242,28 @@ describe('__PASCAL__Flow', () => {
  *
  * USAGE:
  * await Start__PASCAL__.run({ input: 'example' });
+ * // Returns { handled: true }
  */
 
 import { __PASCAL__Flow } from '../flows/__NAME__/__NAME__-flow';
 
 export const Start__PASCAL__ = {
-  run: async ({ input }: { input: string }): Promise<void> => {
-    await __PASCAL__Flow({ input });
+  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {
+    const result = await __PASCAL__Flow({ input });
+    return result;
   },
 };
 `,
       },
       {
         path: 'src/startup/start-__NAME__.integration.test.ts',
-        contents: `import { ContentTextStub } from '__SCOPE__/shared/contracts/content-text/content-text.stub';
-import { Start__PASCAL__ } from './start-__NAME__';
+        contents: `import { Start__PASCAL__ } from './start-__NAME__';
 
 describe('Start__PASCAL__', () => {
-  it('VALID: {input: "example"} => writes "__NAME__ run: example" to stdout', async () => {
-    const output: ReturnType<typeof ContentTextStub>[] = [];
-    const originalWrite = process.stdout.write.bind(process.stdout);
+  it('VALID: {input: "example"} => resolves handled true', async () => {
+    const result = await Start__PASCAL__.run({ input: 'example' });
 
-    process.stdout.write = ((chunk: string): boolean => {
-      output.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
-
-    await Start__PASCAL__.run({ input: 'example' });
-
-    process.stdout.write = originalWrite;
-
-    expect(output).toStrictEqual(['__NAME__ run: example\\n']);
+    expect(result).toStrictEqual({ handled: true });
   });
 });
 `,
@@ -318,7 +273,7 @@ describe('Start__PASCAL__', () => {
 
   'eslint-plugin': {
     barrel: null,
-    dependencies: { '__SCOPE__/shared': '*' },
+    dependencies: {},
     devDependencies: {},
     bin: {},
     compilerOptions: {},
@@ -339,19 +294,16 @@ describe('Start__PASCAL__', () => {
  * rule__PASCAL__Broker().meta;
  */
 
-import { contentTextContract, type ContentText } from '__SCOPE__/shared/contracts';
-
 const RULE_TYPE = 'problem';
-const RULE_MESSAGE_ID = 'default';
-const RULE_MESSAGE = contentTextContract.parse('Replace this starting-point rule with a real one.');
+const RULE_MESSAGES = { default: 'Replace this starting-point rule with a real one.' } as const;
 
 export const rule__PASCAL__Broker = (): {
-  meta: { type: 'problem'; messages: Record<PropertyKey, ContentText> };
+  meta: { type: 'problem'; messages: typeof RULE_MESSAGES };
   create: () => Record<PropertyKey, never>;
 } => ({
   meta: {
     type: RULE_TYPE,
-    messages: { [RULE_MESSAGE_ID]: RULE_MESSAGE },
+    messages: RULE_MESSAGES,
   },
   create: (): Record<PropertyKey, never> => ({}),
 });
@@ -473,7 +425,9 @@ describe('index', () => {
 
   'hook-handlers': {
     barrel: null,
-    dependencies: { '__SCOPE__/shared': '*' },
+    // The bin entries read argv and write stderr through the node gateway (`#gateway/node/process`),
+    // and `gateway-dependency-declared` requires the importing package.json to list it.
+    dependencies: { '__SCOPE__/node': '*' },
     devDependencies: {},
     bin: {
       '__NAME__-pre-tool-use': './dist/bin/__NAME__-pre-tool-use.js',
@@ -491,73 +445,54 @@ describe('index', () => {
         path: 'src/responders/hook/pre-tool-use/hook-pre-tool-use-responder.ts',
         contents: `/**
  * PURPOSE: Starting point pre-tool-use hook responder — replace with real hook logic as the
- * package grows.
+ * package grows. It reports whether it was handed a payload and touches no platform global, so a
+ * consumer's lint passes on the fresh scaffold.
  *
  * USAGE:
  * await HookPreToolUseResponder({ payload: '{}' });
+ * // Returns { handled: true }
  */
 
 export const HookPreToolUseResponder = ({
   payload,
 }: {
   payload: string;
-}): Promise<{ handled: boolean }> => {
-  process.stdout.write(\`__NAME__ pre-tool-use: \${payload}\\n\`);
-
-  return Promise.resolve({ handled: true });
-};
+}): Promise<{ handled: boolean }> => Promise.resolve({ handled: payload.length > 0 });
 `,
       },
       {
         path: 'src/responders/hook/pre-tool-use/hook-pre-tool-use-responder.proxy.ts',
         contents: `/**
- * PURPOSE: Starting point test proxy for HookPreToolUseResponder — replace with real mocks as the
- * package grows. Captures stdout writes directly, with no workspace testing import, so the
- * colocated test can assert the exact line.
+ * PURPOSE: Starting point empty proxy for HookPreToolUseResponder — replace with real mocks as the
+ * package grows.
  *
  * USAGE:
  * const proxy = HookPreToolUseResponderProxy();
- * await proxy.callResponder({ payload: '{}' });
- * proxy.capturedOutput();
  */
 
-import { contentTextContract, type ContentText } from '__SCOPE__/shared/contracts';
-import { HookPreToolUseResponder } from './hook-pre-tool-use-responder';
-
-export const HookPreToolUseResponderProxy = (): {
-  callResponder: (params: { payload: string }) => Promise<void>;
-  capturedOutput: () => readonly ContentText[];
-} => {
-  const output: ContentText[] = [];
-  const originalWrite = process.stdout.write.bind(process.stdout);
-
-  return {
-    callResponder: async (params: { payload: string }): Promise<void> => {
-      process.stdout.write = ((chunk: string): boolean => {
-        output.push(contentTextContract.parse(chunk));
-        return true;
-      }) as unknown as typeof process.stdout.write;
-
-      await HookPreToolUseResponder(params);
-
-      process.stdout.write = originalWrite;
-    },
-    capturedOutput: (): readonly ContentText[] => output,
-  };
-};
+export const HookPreToolUseResponderProxy = (): Record<PropertyKey, never> => ({});
 `,
       },
       {
         path: 'src/responders/hook/pre-tool-use/hook-pre-tool-use-responder.test.ts',
-        contents: `import { HookPreToolUseResponderProxy } from './hook-pre-tool-use-responder.proxy';
+        contents: `import { HookPreToolUseResponder } from './hook-pre-tool-use-responder';
+import { HookPreToolUseResponderProxy } from './hook-pre-tool-use-responder.proxy';
 
 describe('HookPreToolUseResponder', () => {
-  it('VALID: {payload: "{}"} => writes "__NAME__ pre-tool-use: {}" to stdout', async () => {
-    const proxy = HookPreToolUseResponderProxy();
+  it('VALID: {payload: "{}"} => resolves handled true', async () => {
+    HookPreToolUseResponderProxy();
 
-    await proxy.callResponder({ payload: '{}' });
+    const result = await HookPreToolUseResponder({ payload: '{}' });
 
-    expect(proxy.capturedOutput()).toStrictEqual(['__NAME__ pre-tool-use: {}\\n']);
+    expect(result).toStrictEqual({ handled: true });
+  });
+
+  it('EMPTY: {payload: ""} => resolves handled false', async () => {
+    HookPreToolUseResponderProxy();
+
+    const result = await HookPreToolUseResponder({ payload: '' });
+
+    expect(result).toStrictEqual({ handled: false });
   });
 });
 `,
@@ -574,17 +509,18 @@ describe('HookPreToolUseResponder', () => {
  * node __NAME__-pre-tool-use.js '{"tool":"example"}'
  */
 
+import { argv, exit, stderr } from '#gateway/node/process';
 import { HookPreToolUseResponder } from '../src/responders/hook/pre-tool-use/hook-pre-tool-use-responder';
 
 const PAYLOAD_ARG_START_INDEX = 2;
 
 if (require.main === module) {
-  const [payload] = process.argv.slice(PAYLOAD_ARG_START_INDEX);
+  const [payload] = argv.slice(PAYLOAD_ARG_START_INDEX);
 
   HookPreToolUseResponder({ payload: payload ?? '' }).catch((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    process.stderr.write(\`Error: \${errorMessage}\\n\`);
-    process.exit(1);
+    stderr.write(\`Error: \${errorMessage}\\n\`);
+    exit(1);
   });
 }
 `,
@@ -601,17 +537,18 @@ if (require.main === module) {
  * node __NAME__-session-start.js '{"session":"example"}'
  */
 
+import { argv, exit, stderr } from '#gateway/node/process';
 import { HookPreToolUseResponder } from '../src/responders/hook/pre-tool-use/hook-pre-tool-use-responder';
 
 const PAYLOAD_ARG_START_INDEX = 2;
 
 if (require.main === module) {
-  const [payload] = process.argv.slice(PAYLOAD_ARG_START_INDEX);
+  const [payload] = argv.slice(PAYLOAD_ARG_START_INDEX);
 
   HookPreToolUseResponder({ payload: payload ?? '' }).catch((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    process.stderr.write(\`Error: \${errorMessage}\\n\`);
-    process.exit(1);
+    stderr.write(\`Error: \${errorMessage}\\n\`);
+    exit(1);
   });
 }
 `,

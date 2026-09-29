@@ -66,7 +66,7 @@ describe('packageSeedPlainStatics', () => {
           fileName: 'flows.ts',
           exportPaths: ['./__NAME__/__NAME__-flow'],
         },
-        dependencies: { '__SCOPE__/shared': '*' },
+        dependencies: {},
         devDependencies: {},
         bin: {},
         compilerOptions: {},
@@ -134,7 +134,7 @@ describe('packageSeedPlainStatics', () => {
         needsMswTransform: eslintPlugin.needsMswTransform,
       }).toStrictEqual({
         barrel: null,
-        dependencies: { '__SCOPE__/shared': '*' },
+        dependencies: {},
         devDependencies: {},
         bin: {},
         compilerOptions: {},
@@ -195,7 +195,7 @@ describe('packageSeedPlainStatics', () => {
         needsMswTransform: hookHandlers.needsMswTransform,
       }).toStrictEqual({
         barrel: null,
-        dependencies: { '__SCOPE__/shared': '*' },
+        dependencies: { '__SCOPE__/node': '*' },
         devDependencies: {},
         bin: {
           '__NAME__-pre-tool-use': './dist/bin/__NAME__-pre-tool-use.js',
@@ -223,20 +223,47 @@ describe('packageSeedPlainStatics', () => {
       ]);
     });
 
-    it('VALID: {type: hook-handlers} => both bin files carry the literal process.argv the detector keys on (bin entry count is already asserted above)', () => {
+    it('VALID: {type: hook-handlers} => both bin files read argv from the node gateway, which the detector keys on (bin entry count is already asserted above)', () => {
       const hookHandlers = packageSeedPlainStatics['hook-handlers'];
       const PRE_TOOL_USE_BIN_INDEX = 3;
       const SESSION_START_BIN_INDEX = 4;
+      const ARGV_IMPORT = "import { argv, exit, stderr } from '#gateway/node/process';";
 
       expect({
-        preToolUseHasProcessArgv:
-          hookHandlers.files[PRE_TOOL_USE_BIN_INDEX].contents.includes('process.argv'),
-        sessionStartHasProcessArgv:
-          hookHandlers.files[SESSION_START_BIN_INDEX].contents.includes('process.argv'),
+        preToolUseReadsArgv:
+          hookHandlers.files[PRE_TOOL_USE_BIN_INDEX].contents.includes(ARGV_IMPORT),
+        sessionStartReadsArgv:
+          hookHandlers.files[SESSION_START_BIN_INDEX].contents.includes(ARGV_IMPORT),
       }).toStrictEqual({
-        preToolUseHasProcessArgv: true,
-        sessionStartHasProcessArgv: true,
+        preToolUseReadsArgv: true,
+        sessionStartReadsArgv: true,
       });
+    });
+
+    it('VALID: {type: hook-handlers} => no seeded file touches the process global', () => {
+      const processPaths = packageSeedPlainStatics['hook-handlers'].files
+        .filter((file) => /\bprocess\./u.test(file.contents))
+        .map((file) => file.path);
+
+      expect(processPaths).toStrictEqual([]);
+    });
+  });
+
+  describe('every plain seed', () => {
+    it('VALID: {types: programmatic-service, eslint-plugin, hook-handlers} => no seeded file or dependency names the shared package or a raw npm package', () => {
+      const seeds = [
+        packageSeedPlainStatics['programmatic-service'],
+        packageSeedPlainStatics['eslint-plugin'],
+        packageSeedPlainStatics['hook-handlers'],
+      ];
+      const offenders = seeds.flatMap((seed) => [
+        ...Object.keys(seed.dependencies).filter((name) => name.includes('/shared')),
+        ...seed.files
+          .filter((file) => /^import [^\n]* from '(?!\.|#gateway\/)/mu.test(file.contents))
+          .map((file) => file.path),
+      ]);
+
+      expect(offenders).toStrictEqual([]);
     });
   });
 });

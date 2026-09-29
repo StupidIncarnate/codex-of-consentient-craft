@@ -115,7 +115,7 @@ describe('packageSeedServiceStatics', () => {
 
       expect(rest).toStrictEqual({
         barrel: null,
-        dependencies: {},
+        dependencies: { '__SCOPE__/node': '*' },
         devDependencies: {},
         bin: { __NAME__: './dist/bin/__NAME__-entry.js' },
         compilerOptions: {},
@@ -138,12 +138,28 @@ describe('packageSeedServiceStatics', () => {
       ]);
     });
 
-    it('VALID: {type: cli-tool} => the bin/__NAME__-entry.ts file contains the literal text process.argv, which is what the detector keys on', () => {
+    it('VALID: {type: cli-tool} => the bin/__NAME__-entry.ts file imports argv from the node gateway, which is what the detector keys on', () => {
       const [binFile] = packageSeedServiceStatics['cli-tool'].files;
 
       expect(binFile.contents).toMatch(
-        /^ {2}const \[command\] = process\.argv\.slice\(COMMAND_ARG_START_INDEX\);$/mu,
+        /^import \{ argv, exit, stderr \} from '#gateway\/node\/process';$/mu,
       );
+    });
+
+    it('VALID: {type: cli-tool} => no seeded file touches the process global', () => {
+      const processPaths = packageSeedServiceStatics['cli-tool'].files
+        .filter((file) => /\bprocess\./u.test(file.contents))
+        .map((file) => file.path);
+
+      expect(processPaths).toStrictEqual([]);
+    });
+
+    it('VALID: {type: cli-tool} => no seeded file imports outside the package except the node gateway', () => {
+      const importingPaths = packageSeedServiceStatics['cli-tool'].files
+        .filter((file) => /^import [^\n]* from '(?!\.|#gateway\/node\/)/mu.test(file.contents))
+        .map((file) => file.path);
+
+      expect(importingPaths).toStrictEqual([]);
     });
   });
 });

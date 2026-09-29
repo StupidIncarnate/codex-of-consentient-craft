@@ -41,6 +41,8 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
     packageJsonContent,
     startupFileName,
     startupFileContent,
+    binFileName,
+    binFileContent,
     flowFilePath,
     flowFileContent,
     responderDirNames,
@@ -53,6 +55,8 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
     packageJsonContent?: string;
     startupFileName?: string;
     startupFileContent?: ContentText;
+    binFileName?: string;
+    binFileContent?: ContentText;
     flowFilePath?: string;
     flowFileContent?: ContentText;
     responderDirNames?: readonly string[];
@@ -77,6 +81,8 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
       packageJsonContent = '{}',
       startupFileName,
       startupFileContent,
+      binFileName,
+      binFileContent,
       flowFilePath,
       flowFileContent,
       responderDirNames = [],
@@ -89,6 +95,8 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
       packageJsonContent?: string;
       startupFileName?: string;
       startupFileContent?: ContentText;
+      binFileName?: string;
+      binFileContent?: ContentText;
       flowFilePath?: string;
       flowFileContent?: ContentText;
       responderDirNames?: readonly string[];
@@ -106,6 +114,9 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
               return [makeFileDirent({ name: startupFileName })];
             }
             return [];
+          }
+          if (dirPath === `${packageRoot}/bin`) {
+            return binFileName === undefined ? [] : [makeFileDirent({ name: binFileName })];
           }
           if (dirPath === `${packageRoot}/src/flows`) {
             if (flowFilePath !== undefined) {
@@ -146,6 +157,13 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
               return startupFileContent;
             }
             throw new Error('ENOENT');
+          }
+          if (
+            binFileName !== undefined &&
+            binFileContent !== undefined &&
+            String(filePath) === `${packageRoot}/bin/${binFileName}`
+          ) {
+            return binFileContent;
           }
           if (flowFilePath !== undefined && String(filePath) === flowFilePath) {
             if (flowFileContent !== undefined) {

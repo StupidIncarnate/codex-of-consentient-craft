@@ -360,7 +360,7 @@ describe('packageScaffoldFilesTransformer', () => {
           ward: 'dungeonmaster-ward',
           postbuild: 'chmod +x dist/bin/*.js 2>/dev/null || true',
         },
-        dependencies: { '@acme/shared': '*' },
+        dependencies: { '@acme/node': '*' },
         devDependencies: {
           '@types/node': '^20.11.0',
           typescript: '^5.3.3',
@@ -410,6 +410,7 @@ describe('packageScaffoldFilesTransformer', () => {
           ward: 'dungeonmaster-ward',
           postbuild: 'chmod +x dist/bin/*.js 2>/dev/null || true',
         },
+        dependencies: { '@acme/node': '*' },
         devDependencies: {
           '@types/node': '^20.11.0',
           typescript: '^5.3.3',
@@ -455,7 +456,6 @@ describe('packageScaffoldFilesTransformer', () => {
           lint: 'dungeonmaster-ward --only lint',
           ward: 'dungeonmaster-ward',
         },
-        dependencies: { '@acme/shared': '*' },
         devDependencies: {
           '@types/node': '^20.11.0',
           typescript: '^5.3.3',
@@ -790,9 +790,7 @@ module.exports = {
         (file) => file.relativePath === 'src/state/foo-bar/foo-bar-state.ts',
       );
 
-      expect(stateFile!.contents).toMatch(
-        /^const FOO_BAR_STORE = new Map<PathSegment, ContentText>\(\);$/mu,
-      );
+      expect(stateFile!.contents).toMatch(/^const FOO_BAR_FLAGS = \{ ran: false \};$/mu);
     });
 
     it('VALID: {directoryName: "foo-bar"} => the state file substitutes __CAMEL__', () => {

@@ -116,6 +116,103 @@ describe('architecturePackageTypeDetectBroker', () => {
     });
   });
 
+  describe('detection on the create-package seeds that import nothing outside their package', () => {
+    it('VALID: {the seeded programmatic-service shape: no dependencies, flows + responders + state + startup, startup exporting an async namespace} => returns programmatic-service', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['flows', 'responders', 'startup', 'state'],
+        packageJsonContent: JSON.stringify({ exports: { './package.json': './package.json' } }),
+        startupFileName: 'start-jobs.ts',
+        startupFileContent: ContentTextStub({
+          value:
+            "import { JobsFlow } from '../flows/jobs/jobs-flow';\n\nexport const StartJobs = {\n  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {\n    const result = await JobsFlow({ input });\n    return result;\n  },\n};\n",
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual(['programmatic-service']);
+    });
+
+    it('VALID: {the seeded eslint-plugin shape: no dependencies, brokers/rule, responders/config/create, a . export, no bin} => returns eslint-plugin', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['brokers', 'responders'],
+        brokerDirNames: ['rule'],
+        responderDirNames: ['config'],
+        responderDomainSubDirs: { config: ['create'] },
+        packageJsonContent: JSON.stringify({
+          exports: {
+            '.': { source: './src/index.ts', require: './dist/index.js' },
+            './package.json': './package.json',
+          },
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual(['eslint-plugin']);
+    });
+
+    it('VALID: {the seeded hook-handlers shape: the node gateway dependency, responders/hook, two bin entries} => returns hook-handlers', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['responders'],
+        responderDirNames: ['hook'],
+        responderHookSubDirs: ['pre-tool-use'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@acme/node': '*' },
+          bin: {
+            'hooks-pre-tool-use': './dist/bin/hooks-pre-tool-use.js',
+            'hooks-session-start': './dist/bin/hooks-session-start.js',
+          },
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual(['hook-handlers']);
+    });
+
+    it('VALID: {the seeded cli-tool shape: a bin entry whose bin source reads argv from the node gateway, a . export} => returns cli-tool', async () => {
+      const proxy = architecturePackageTypeDetectBrokerProxy();
+      proxy.setupPackage({
+        packageRoot: PACKAGE_ROOT,
+        srcDirNames: ['startup'],
+        packageJsonContent: JSON.stringify({
+          dependencies: { '@acme/node': '*' },
+          exports: { '.': { source: './src/startup/start-runner.ts' } },
+          bin: { runner: './dist/bin/runner-entry.js' },
+        }),
+        startupFileName: 'start-runner.ts',
+        startupFileContent: ContentTextStub({
+          value:
+            'export const StartRunner = ({ command }: { command: string | undefined }): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });\n',
+        }),
+        binFileName: 'runner-entry.ts',
+        binFileContent: ContentTextStub({
+          value:
+            "import { argv, exit, stderr } from '#gateway/node/process';\nimport { StartRunner } from '../src/startup/start-runner';\n",
+        }),
+      });
+
+      const result = await architecturePackageTypeDetectBroker({
+        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      });
+
+      expect(result).toStrictEqual(['cli-tool']);
+    });
+  });
+
   describe('frontend-ink detection', () => {
     it('VALID: {widgets/ + ink in dependencies} => returns frontend-ink', async () => {
       const proxy = architecturePackageTypeDetectBrokerProxy();

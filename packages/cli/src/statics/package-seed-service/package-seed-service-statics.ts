@@ -191,7 +191,11 @@ describe('__PASCAL__Flow', () => {
   },
   'cli-tool': {
     barrel: null,
-    dependencies: {},
+    // The bin entry reads argv and writes stderr through the node gateway (`#gateway/node/process`),
+    // and `gateway-dependency-declared` requires the importing package.json to list it.
+    dependencies: {
+      '__SCOPE__/node': '*',
+    },
     devDependencies: {},
     bin: {
       __NAME__: './dist/bin/__NAME__-entry.js',
@@ -217,17 +221,18 @@ describe('__PASCAL__Flow', () => {
  * // Runs Start__PASCAL__({ command: 'hello' })
  */
 
+import { argv, exit, stderr } from '#gateway/node/process';
 import { Start__PASCAL__ } from '../src/startup/start-__NAME__';
 
 const COMMAND_ARG_START_INDEX = 2;
 
 if (require.main === module) {
-  const [command] = process.argv.slice(COMMAND_ARG_START_INDEX);
+  const [command] = argv.slice(COMMAND_ARG_START_INDEX);
 
   Start__PASCAL__({ command }).catch((error: unknown) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    process.stderr.write('Error: ' + errorMessage + '\\n');
-    process.exit(1);
+    stderr.write('Error: ' + errorMessage + '\\n');
+    exit(1);
   });
 }
 `,
@@ -236,22 +241,18 @@ if (require.main === module) {
         path: 'src/startup/start-__NAME__.ts',
         contents: `/**
  * PURPOSE: Starting point CLI startup — replace with real command dispatch once you have commands
- * to route.
+ * to route. It reports whether a command was given and touches no platform global.
  *
  * USAGE:
  * const result = await Start__PASCAL__({ command: 'hello' });
- * // Writes a line naming the command and resolves { handled: true }
+ * // Resolves { handled: true }
  */
 
 export const Start__PASCAL__ = ({
   command,
 }: {
   command: string | undefined;
-}): Promise<{ handled: boolean }> => {
-  process.stdout.write('Running command: ' + String(command) + '\\n');
-
-  return Promise.resolve({ handled: true });
-};
+}): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });
 `,
       },
       {
@@ -259,23 +260,16 @@ export const Start__PASCAL__ = ({
         contents: `import { Start__PASCAL__ } from './start-__NAME__';
 
 describe('Start__PASCAL__', () => {
-  it('VALID: {command: "hello"} => writes the command name to stdout and resolves handled true', async () => {
-    const originalWrite = process.stdout.write;
-    let captured = '';
-
-    Object.assign(process.stdout, {
-      write: (chunk: string): boolean => {
-        captured += chunk;
-        return true;
-      },
-    });
-
+  it('VALID: {command: "hello"} => resolves handled true', async () => {
     const result = await Start__PASCAL__({ command: 'hello' });
 
-    Object.assign(process.stdout, { write: originalWrite });
-
-    expect(captured).toBe('Running command: hello\\n');
     expect(result).toStrictEqual({ handled: true });
+  });
+
+  it('EMPTY: {command: undefined} => resolves handled false', async () => {
+    const result = await Start__PASCAL__({ command: undefined });
+
+    expect(result).toStrictEqual({ handled: false });
   });
 });
 `,

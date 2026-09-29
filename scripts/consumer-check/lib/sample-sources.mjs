@@ -34,10 +34,15 @@ export const PROBE_PACKAGE_NAME = 'probe';
 export const INK_PACKAGE_NAME = 'tui';
 export const API_PACKAGE_NAME = 'api';
 export const MCP_PACKAGE_NAME = 'tools';
+export const SERVICE_PACKAGE_NAME = 'jobs';
+export const PLUGIN_PACKAGE_NAME = 'rules';
+export const HOOKS_PACKAGE_NAME = 'hooks';
+export const CLI_PACKAGE_NAME = 'runner';
 
 // Every scaffolded package the clean-fixture checks cover: the two seeds whose sources this file
 // writes into (lib, app) and the seeds that ship no hand-written source (tui: frontend-ink,
-// api: http-backend, tools: mcp-server), which prove create-package's own output lints,
+// api: http-backend, tools: mcp-server, jobs: programmatic-service, rules: eslint-plugin,
+// hooks: hook-handlers, runner: cli-tool), which prove create-package's own output lints,
 // typechecks and tests green.
 export const SEEDED_PACKAGE_NAMES = [
   LIB_PACKAGE_NAME,
@@ -45,7 +50,18 @@ export const SEEDED_PACKAGE_NAMES = [
   INK_PACKAGE_NAME,
   API_PACKAGE_NAME,
   MCP_PACKAGE_NAME,
+  SERVICE_PACKAGE_NAME,
+  PLUGIN_PACKAGE_NAME,
+  HOOKS_PACKAGE_NAME,
+  CLI_PACKAGE_NAME,
 ];
+
+// The seeds whose package type has no folder-type barrel: their `exports` holds no `./<folderType>`
+// key at all, so the layout check must not demand one.
+export const NO_BARREL_PACKAGE_NAMES = [PLUGIN_PACKAGE_NAME, HOOKS_PACKAGE_NAME, CLI_PACKAGE_NAME];
+
+// The seeds whose package type has an entry, so `exports` carries a `.` key (and no other seed's does).
+export const DOT_ENTRY_PACKAGE_NAMES = [PLUGIN_PACKAGE_NAME, CLI_PACKAGE_NAME];
 
 const CREATE_PACKAGE_TIMEOUT_MS = 120_000;
 
@@ -420,6 +436,15 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   await runCreatePackage({ consumerRoot, cliBin, name: INK_PACKAGE_NAME, type: 'frontend-ink' });
   await runCreatePackage({ consumerRoot, cliBin, name: API_PACKAGE_NAME, type: 'http-backend' });
   await runCreatePackage({ consumerRoot, cliBin, name: MCP_PACKAGE_NAME, type: 'mcp-server' });
+  await runCreatePackage({
+    consumerRoot,
+    cliBin,
+    name: SERVICE_PACKAGE_NAME,
+    type: 'programmatic-service',
+  });
+  await runCreatePackage({ consumerRoot, cliBin, name: PLUGIN_PACKAGE_NAME, type: 'eslint-plugin' });
+  await runCreatePackage({ consumerRoot, cliBin, name: HOOKS_PACKAGE_NAME, type: 'hook-handlers' });
+  await runCreatePackage({ consumerRoot, cliBin, name: CLI_PACKAGE_NAME, type: 'cli-tool' });
   await runCreatePackage({ consumerRoot, cliBin, name: PROBE_PACKAGE_NAME, type: 'library' });
 
   addGatewayDependencies({

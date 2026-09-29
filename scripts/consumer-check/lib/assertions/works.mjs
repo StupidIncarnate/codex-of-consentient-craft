@@ -17,6 +17,8 @@ import {
   WEB_PACKAGE_NAME,
   PROBE_PACKAGE_NAME,
   SEEDED_PACKAGE_NAMES,
+  NO_BARREL_PACKAGE_NAMES,
+  DOT_ENTRY_PACKAGE_NAMES,
   scaffoldFixturePackages,
 } from '../sample-sources.mjs';
 
@@ -85,7 +87,8 @@ const assertJestConfigBase = ({ report, consumerRoot }) => {
 // Rule 13 (EPIC.md): every scaffolded package has the workspace layout and nothing else. Barrels sit
 // at `src/<folderType>/<folderType>.ts`, one explicit `exports` key each (a two-star pattern breaks
 // declaration emit, concession 22); `./*.proxy` and `./*.stub` carry only `source`; there is no root
-// barrel, no `testing.ts` and no `./testing` key.
+// barrel, no `testing.ts` and no `./testing` key. A type with an entry (eslint-plugin, cli-tool) also
+// exports `.`, and a type with no folder-type barrel (those two and hook-handlers) exports none.
 const ROOT_TS_ALLOWED = new Set(['playwright.config.ts']);
 const PACKAGE_JSON_SUBPATH = './package.json';
 const PROXY_STUB_KEYS = ['./*.proxy', './*.stub'];
@@ -125,10 +128,21 @@ const assertScaffoldedLayout = ({ report, consumerRoot }) => {
         existsSync(join(packageDir, 'src', folderType, `${folderType}.ts`))
       );
     });
+    const expectsBarrel = !NO_BARREL_PACKAGE_NAMES.includes(packageName);
     report.check(
       `packages/${packageName} has one explicit barrel key per folder type, each at src/<ft>/<ft>.ts (no ./testing, no two-star key)`,
-      barrelKeys.length > 0 && barrelsAreExplicit && !keys.includes('./testing') && !keys.includes('./*'),
+      (expectsBarrel ? barrelKeys.length > 0 : barrelKeys.length === 0) &&
+        barrelsAreExplicit &&
+        !keys.includes('./testing') &&
+        !keys.includes('./*'),
       JSON.stringify(barrelKeys),
+    );
+
+    const expectsDot = DOT_ENTRY_PACKAGE_NAMES.includes(packageName);
+    report.check(
+      `packages/${packageName} ${expectsDot ? 'exports a . entry' : 'exports no . entry'}`,
+      keys.includes('.') === expectsDot,
+      JSON.stringify(keys),
     );
 
     const strayRootFiles = readdirSync(packageDir).filter(
