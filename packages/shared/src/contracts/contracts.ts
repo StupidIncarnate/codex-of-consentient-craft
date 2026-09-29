@@ -161,7 +161,6 @@ export * from './operation-item/operation-item-contract';
 
 // Process & Orchestration Contracts
 export * from './process-id/process-id-contract';
-export * from './process-signal/process-signal-contract';
 
 export * from './orchestration-slot/orchestration-slot-contract';
 
