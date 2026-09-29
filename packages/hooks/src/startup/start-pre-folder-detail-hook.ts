@@ -11,7 +11,6 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreFolderDetailFlow } from '../flows/hook-pre-folder-detail/hook-pre-folder-detail-flow';
 
@@ -19,11 +18,11 @@ export const StartPreFolderDetailHook = async ({
   inputData,
 }: {
   inputData: string;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const result = await HookPreFolderDetailFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()

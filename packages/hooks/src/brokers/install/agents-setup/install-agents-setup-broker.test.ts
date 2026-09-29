@@ -25,9 +25,7 @@ describe('installAgentsSetupBroker', () => {
     proxy.setupFileExists({ filePath: claudeMdPath, exists: true });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: false });
 
-    const result = await installAgentsSetupBroker({ targetProjectRoot });
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(installAgentsSetupBroker({ targetProjectRoot })).resolves.toBe(undefined);
 
     const hooksPath = FilePathStub({
       value: `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.hooksJson}`,
@@ -76,9 +74,7 @@ describe('installAgentsSetupBroker', () => {
     proxy.setupFileExists({ filePath: claudeMdPath, exists: true });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: true });
 
-    const result = await installAgentsSetupBroker({ targetProjectRoot });
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(installAgentsSetupBroker({ targetProjectRoot })).resolves.toBe(undefined);
     expect(proxy.getWrittenFor({ filepath: agentsMdPath })).toBe(undefined);
   });
 
@@ -97,9 +93,7 @@ describe('installAgentsSetupBroker', () => {
     proxy.setupFileExists({ filePath: claudeMdPath, exists: false });
     proxy.setupFileExists({ filePath: agentsMdPath, exists: false });
 
-    const result = await installAgentsSetupBroker({ targetProjectRoot });
-
-    expect(result).toStrictEqual({ success: true });
+    await expect(installAgentsSetupBroker({ targetProjectRoot })).resolves.toBe(undefined);
     expect(proxy.getWrittenFor({ filepath: agentsMdPath })).toBe(undefined);
   });
 });

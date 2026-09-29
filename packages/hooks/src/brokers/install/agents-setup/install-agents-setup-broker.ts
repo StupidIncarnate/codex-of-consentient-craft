@@ -7,7 +7,6 @@
  * // Writes .agents files and AGENTS.md if CLAUDE.md exists
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
@@ -23,7 +22,7 @@ export const installAgentsSetupBroker = async ({
   targetProjectRoot,
 }: {
   targetProjectRoot: FilePath;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   // 1. .agents/hooks.json
   const hooksPath = join(
     targetProjectRoot,
@@ -65,6 +64,4 @@ export const installAgentsSetupBroker = async ({
     const agentsMdContent = agentsMdCreatorTransformer();
     await writeFileCreatingParent(agentsMdPath, agentsMdContent);
   }
-
-  return { success: true };
 };

@@ -10,17 +10,18 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookWorktreeCreateFlow } from '../flows/hook-worktree-create/hook-worktree-create-flow';
 
-export const StartWorktreeCreateHook = ({ inputData }: { inputData: string }): AdapterResult => {
+export const StartWorktreeCreateHook = ({ inputData }: { inputData: string }): void => {
   const result = HookWorktreeCreateFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()
-  .then((inputData) => StartWorktreeCreateHook({ inputData }))
+  .then((inputData) => {
+    StartWorktreeCreateHook({ inputData });
+  })
   .catch(() => exit(1));

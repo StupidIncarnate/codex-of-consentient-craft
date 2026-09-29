@@ -8,18 +8,13 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { HookAgyPreToolFlow } from '../flows/hook-agy-pre-tool/hook-agy-pre-tool-flow';
 
-export const StartAgyPreToolHook = async ({
-  inputData,
-}: {
-  inputData: string;
-}): Promise<AdapterResult> => {
+export const StartAgyPreToolHook = async ({ inputData }: { inputData: string }): Promise<void> => {
   const result = await HookAgyPreToolFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()

@@ -12,7 +12,6 @@
  */
 
 import { argv, exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookSessionSnippetFlow } from '../flows/hook-session-snippet/hook-session-snippet-flow';
 
@@ -24,12 +23,12 @@ export const StartSessionSnippetHook = async ({
 }: {
   snippetKeyArg: string | undefined;
   inputData: string;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const hookInput: unknown = JSON.parse(inputData);
   const result = await HookSessionSnippetFlow({ snippetKey: snippetKeyArg, hookInput });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()

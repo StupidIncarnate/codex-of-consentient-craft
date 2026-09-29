@@ -8,17 +8,18 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreSearchFlow } from '../flows/hook-pre-search/hook-pre-search-flow';
 
-export const StartPreSearchHook = ({ inputData }: { inputData: string }): AdapterResult => {
+export const StartPreSearchHook = ({ inputData }: { inputData: string }): void => {
   const result = HookPreSearchFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()
-  .then((inputData) => StartPreSearchHook({ inputData }))
+  .then((inputData) => {
+    StartPreSearchHook({ inputData });
+  })
   .catch(() => exit(1));

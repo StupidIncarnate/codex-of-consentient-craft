@@ -8,19 +8,14 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPostEditFlow } from '../flows/hook-post-edit/hook-post-edit-flow';
 
-export const StartPostEditHook = async ({
-  inputData,
-}: {
-  inputData: string;
-}): Promise<AdapterResult> => {
+export const StartPostEditHook = async ({ inputData }: { inputData: string }): Promise<void> => {
   const result = await HookPostEditFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()

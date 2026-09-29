@@ -8,17 +8,18 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreBashFlow } from '../flows/hook-pre-bash/hook-pre-bash-flow';
 
-export const StartPreBashHook = ({ inputData }: { inputData: string }): AdapterResult => {
+export const StartPreBashHook = ({ inputData }: { inputData: string }): void => {
   const result = HookPreBashFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()
-  .then((inputData) => StartPreBashHook({ inputData }))
+  .then((inputData) => {
+    StartPreBashHook({ inputData });
+  })
   .catch(() => exit(1));

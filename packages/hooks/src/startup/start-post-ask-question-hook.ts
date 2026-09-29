@@ -8,7 +8,6 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPostAskQuestionFlow } from '../flows/hook-post-ask-question/hook-post-ask-question-flow';
 import { hookExitCodeStatics } from '../statics/hook-exit-code/hook-exit-code-statics';
@@ -17,10 +16,10 @@ export const StartPostAskQuestionHook = async ({
   inputData,
 }: {
   inputData: string;
-}): Promise<AdapterResult> => {
+}): Promise<void> => {
   const result = await HookPostAskQuestionFlow({ inputData });
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()

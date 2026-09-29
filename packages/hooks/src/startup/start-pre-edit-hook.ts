@@ -8,19 +8,14 @@
  */
 
 import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreEditFlow } from '../flows/hook-pre-edit/hook-pre-edit-flow';
 
-export const StartPreEditHook = async ({
-  inputData,
-}: {
-  inputData: string;
-}): Promise<AdapterResult> => {
+export const StartPreEditHook = async ({ inputData }: { inputData: string }): Promise<void> => {
   const result = await HookPreEditFlow({ inputData });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
-  return exit(result.exitCode);
+  exit(result.exitCode);
 };
 
 readStdinToEnd()
