@@ -3,6 +3,9 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+
+const anyPath = (value: unknown): boolean => typeof value === 'string';
 
 export const readFileContentsLayerBrokerProxy = (): {
   setupReturns: ({
@@ -17,17 +20,6 @@ export const readFileContentsLayerBrokerProxy = (): {
 } => {
   const gatewayProxy = readFileSyncProxy();
   const handle = registerMock({ fn: readFileSync });
-  // Composing proxies elsewhere in this package instantiate several sibling proxies over this
-  // same fs mock purely so their code paths don't crash on files their own test never describes.
-  // This blind, lowest-specificity fallback keeps that working: a path-specific setupReturns/
-  // setupMissing (routed through the gateway's own proxy) always outranks it. Kept on the raw,
-  // 0-arg handle rather than the gateway's returnsMatchingPath: that method always addresses both
-  // real args (`[path, 'utf8']`), which scores higher than this 0-arg registration and would
-  // permanently outrank setupImplementation's own 0-arg registration below regardless of call
-  // order — setupImplementation's computed, per-path virtual-tree responses (used across this
-  // package, e.g. import-edges-layer-broker.proxy.ts) depend on winning that tie by being staged
-  // later, not by scoring higher.
-  handle.calledWith([]).returns('' as never);
 
   return {
     setupReturns: ({
@@ -41,11 +33,11 @@ export const readFileContentsLayerBrokerProxy = (): {
     },
 
     setupMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      gatewayProxy.throws({ path: filePath, error: new Error('ENOENT') });
+      gatewayProxy.throws({ path: filePath, error: FileMissingErrorStub({ path: filePath }) });
     },
 
     setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
-      handle.calledWith([]).implement(fn as never);
+      handle.calledWith([anyPath]).implement(fn as never);
     },
   };
 };

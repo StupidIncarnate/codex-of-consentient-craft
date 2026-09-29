@@ -2,6 +2,7 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import type { DirEntrySync } from '#gateway/node/fs';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const makeDirEntry = ({ name, isDir }: { name: string; isDir: boolean }): DirEntrySync => ({
   name,
@@ -59,7 +60,10 @@ export const discoverPackagesLayerBrokerProxy = (): {
     },
 
     setupMissingPackagesDir: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
-      gatewayProxy.throws({ path: String(dirPath), error: new Error('ENOENT') });
+      gatewayProxy.throws({
+        path: String(dirPath),
+        error: FileMissingErrorStub({ path: String(dirPath) }),
+      });
     },
   };
 };

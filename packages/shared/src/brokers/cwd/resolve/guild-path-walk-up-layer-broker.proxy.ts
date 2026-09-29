@@ -33,9 +33,8 @@ export const guildPathWalkUpLayerBrokerProxy = (): {
   });
   const joinHandle = registerMock({ fn: join });
   const dirnameHandle = registerMock({ fn: dirname });
-  // Sticky real-passthrough default for every OTHER call this test never describes.
+  // Sticky real-passthrough default for every OTHER join call this test never describes.
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  dirnameHandle.calledWith([]).implement((inputPath: never) => realPath.dirname(inputPath));
 
   const guildConfigPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
     const { guildConfigFile } = locationsStatics.dungeonmasterHome;

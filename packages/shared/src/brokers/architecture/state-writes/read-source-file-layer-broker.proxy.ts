@@ -1,6 +1,7 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const readSourceFileLayerBrokerProxy = (): {
   setupReturns: ({
@@ -26,7 +27,10 @@ export const readSourceFileLayerBrokerProxy = (): {
     },
 
     setupMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      gatewayProxy.throws({ path: String(filePath), error: new Error('ENOENT') });
+      gatewayProxy.throws({
+        path: String(filePath),
+        error: FileMissingErrorStub({ path: String(filePath) }),
+      });
     },
   };
 };

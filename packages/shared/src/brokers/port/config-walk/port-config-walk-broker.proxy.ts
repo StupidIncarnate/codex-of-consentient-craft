@@ -1,4 +1,5 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
@@ -38,13 +39,13 @@ export const portConfigWalkBrokerProxy = (): {
 
     setupConfigMissing: ({ dir, parentDir }: { dir: string; parentDir: string }): void => {
       const configPath = configPathFor({ dirPath: dir });
-      fsReadProxy.throws({ path: configPath, error: new Error('ENOENT') });
+      fsReadProxy.throws({ path: configPath, error: FileMissingErrorStub({ path: configPath }) });
       dirnameHandle.calledWith([dir]).returns(parentDir);
     },
 
     setupWalkToRoot: ({ startDir }: { startDir: string }): void => {
       const configPath = configPathFor({ dirPath: startDir });
-      fsReadProxy.throws({ path: configPath, error: new Error('ENOENT') });
+      fsReadProxy.throws({ path: configPath, error: FileMissingErrorStub({ path: configPath }) });
       dirnameHandle.calledWith([startDir]).returns(startDir);
     },
 
@@ -58,7 +59,10 @@ export const portConfigWalkBrokerProxy = (): {
       port: number;
     }): void => {
       const startConfigPath = configPathFor({ dirPath: startDir });
-      fsReadProxy.throws({ path: startConfigPath, error: new Error('ENOENT') });
+      fsReadProxy.throws({
+        path: startConfigPath,
+        error: FileMissingErrorStub({ path: startConfigPath }),
+      });
       dirnameHandle.calledWith([startDir]).returns(parentDir);
 
       const parentConfigPath = configPathFor({ dirPath: parentDir });

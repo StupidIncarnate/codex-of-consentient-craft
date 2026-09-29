@@ -36,7 +36,6 @@ export const projectRootFindBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const dirnameHandle = registerMock({ fn: dirname });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  dirnameHandle.calledWith([]).implement((inputPath: never) => realPath.dirname(inputPath));
 
   const packageJsonPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
     const packageJsonFile = questsFolderStatics.files.packageJson;

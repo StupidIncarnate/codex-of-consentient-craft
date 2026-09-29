@@ -5,6 +5,8 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import type { DirEntrySync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
+const anyPath = (value: unknown): boolean => typeof value === 'string';
+
 export const safeReaddirLayerBrokerProxy = (): {
   setupDirectory: ({
     dirPath,
@@ -39,7 +41,7 @@ export const safeReaddirLayerBrokerProxy = (): {
     // call from one function, with the gateway's own real `.map()` into `{name, kind}` still
     // running for real underneath.
     setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
-      handle.calledWith([]).implement(fn as never);
+      handle.calledWith([anyPath]).implement(fn as never);
     },
   };
 };

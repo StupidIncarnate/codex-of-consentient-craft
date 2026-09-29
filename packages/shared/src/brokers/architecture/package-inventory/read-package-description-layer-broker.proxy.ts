@@ -3,6 +3,9 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+
+const anyPath = (value: unknown): boolean => typeof value === 'string';
 
 export const readPackageDescriptionLayerBrokerProxy = (): {
   setupDescription: ({
@@ -33,11 +36,14 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
     },
 
     setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: AbsoluteFilePath }): void => {
-      gatewayProxy.throws({ path: packageJsonPath, error: new Error('ENOENT') });
+      gatewayProxy.throws({
+        path: packageJsonPath,
+        error: FileMissingErrorStub({ path: packageJsonPath }),
+      });
     },
 
     setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
-      handle.calledWith([]).implement(fn as never);
+      handle.calledWith([anyPath]).implement(fn as never);
     },
   };
 };

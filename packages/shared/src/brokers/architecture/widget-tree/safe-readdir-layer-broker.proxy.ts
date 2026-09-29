@@ -4,6 +4,8 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
+const anyPath = (value: unknown): boolean => typeof value === 'string';
+
 export const safeReaddirLayerBrokerProxy = (): {
   setupFiles: ({ dirPath, names }: { dirPath: AbsoluteFilePath; names: string[] }) => void;
   setupDirs: ({ dirPath, names }: { dirPath: AbsoluteFilePath; names: string[] }) => void;
@@ -33,7 +35,7 @@ export const safeReaddirLayerBrokerProxy = (): {
     },
 
     setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
-      handle.calledWith([]).implement(fn as never);
+      handle.calledWith([anyPath]).implement(fn as never);
     },
   };
 };
