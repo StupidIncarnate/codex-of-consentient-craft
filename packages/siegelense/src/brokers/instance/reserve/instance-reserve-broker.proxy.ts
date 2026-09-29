@@ -4,7 +4,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
-import { freePortPair } from '#gateway/node/net';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
@@ -50,13 +49,7 @@ export const instanceReserveBrokerProxy = (): {
   const cwdRecorder = cwdProxy();
   pidProxy();
   const clockProxy = nowProxy();
-  // Constructed for enforce-proxy-child-creation only: its own `.returns({server, web})` answers
-  // the FIRST call with `server` and every later call with `web` — it cannot express N distinct
-  // upfront candidate pairs in call order, which this broker needs (it asks the OS for
-  // `claimAttempts` pairs before ever reading the registry). `freePortPair` itself is staged
-  // directly below instead, with `onceFor` queuing one resolution per candidate.
-  freePortPairProxy();
-  const freePortPairHandle = registerMock({ fn: freePortPair });
+  const portPairProxy = freePortPairProxy();
 
   registerMock({ fn: randomUUID }).calledWith([]).returns(UUID_VALUE);
 
@@ -101,16 +94,15 @@ export const instanceReserveBrokerProxy = (): {
       capturedDirsState.evidencePath = evidencePath;
     },
 
-    // freePortPair() takes no arguments, so `onceFor([])` is the honest address — queued once per
-    // candidate, in the SAME order this broker asks the OS for them (upfront, before it ever reads
-    // the registry), so pairs[0] answers the first call, pairs[1] the second, and so on.
+    // Staged in the SAME order this broker asks the OS for candidates (upfront, before it ever
+    // reads the registry), so pairs[0] answers the first call, pairs[1] the second, and so on.
     setupPortCandidates: ({
       pairs,
     }: {
       pairs: readonly { api: NetworkPort; web: NetworkPort }[];
     }): void => {
-      pairs.forEach(({ api, web }) => {
-        freePortPairHandle.onceFor([]).resolves({ firstPort: api, secondPort: web });
+      portPairProxy.returnsSequence({
+        pairs: pairs.map(({ api, web }) => ({ server: api, web })),
       });
     },
 
