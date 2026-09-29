@@ -13,6 +13,15 @@
 | Split | Operator splits by rule folder, 2-4 files per agent (one rule folder is usually one rule broker plus its guards/transformers plus its test) |
 | Runs alone | No — runs with [B05](b05-other-library-type-copies.md) |
 
+## L0 stubs available
+
+L0 (2026-09-29) finished the gateway stubs this item's swaps need. `#gateway/npm/typescript-eslint__utils/<kebab-node>/<kebab-node>.stub`
+now covers every node type the swap sources use: 51 stubs were added to the 14 that existed, and each takes
+`{ code }` (`CallExpressionStub({ code: "describe.each(table)('name', fn);" })`). The `rootTypesWithoutGatewayStub`
+gap list in `phase34-scripts/libcopy-census/stub-map.json` is closed. `RuleContextStub` and `FlatConfigStub`
+(`flat-config/flat-config.stub`, `files`, `ignores` and `rules` only) sit beside them. Stub paths for the other
+libraries are in [B05](b05-other-library-type-copies.md), "Stub paths (from L0)".
+
 ## Why
 
 `eslint-plugin/src/contracts/tsestree/tsestree-contract.ts` is a 597-line hand copy of TSESTree, and
