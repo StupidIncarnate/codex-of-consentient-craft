@@ -1,4 +1,5 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { QuestSummaryResponderProxy } from './quest-summary-responder.proxy';
@@ -53,10 +54,10 @@ describe('QuestSummaryResponder', () => {
 
     it('ERROR: {orchestrator throws an Error carrying a cause} => returns 404 with the cause unwound into the reason', async () => {
       const proxy = QuestSummaryResponderProxy();
-      const notFound = new Error('Quest with id "q-gone" not found in any guild', {
+      proxy.setupQuestNotFound({
+        message: 'Quest with id "q-gone" not found in any guild',
         cause: FileMissingErrorStub({ path: '/home/user/.dungeonmaster/guilds/g1/quests/q-gone' }),
       });
-      proxy.setupQuestNotFoundWithCause({ error: notFound });
 
       const result = await proxy.callResponder({ params: { questId: VALID_QUEST_ID } });
 
@@ -65,6 +66,28 @@ describe('QuestSummaryResponder', () => {
         data: {
           error:
             'Quest with id "q-gone" not found in any guild | cause: ENOENT: open \'/home/user/.dungeonmaster/guilds/g1/quests/q-gone\'',
+        },
+      });
+    });
+  });
+
+  describe('quest load failure that is not a missing quest', () => {
+    it('ERROR: {orchestrator fails with EACCES} => returns 500 carrying that reason, not 404', async () => {
+      const proxy = QuestSummaryResponderProxy();
+      proxy.setupQuestLoadFails({
+        error: FsErrorStub({
+          code: 'EACCES',
+          syscall: 'open',
+          path: '/home/user/.dungeonmaster/guilds/g1/quests/q-locked/quest.json',
+        }),
+      });
+
+      const result = await proxy.callResponder({ params: { questId: VALID_QUEST_ID } });
+
+      expect(result).toStrictEqual({
+        status: 500,
+        data: {
+          error: "EACCES: open '/home/user/.dungeonmaster/guilds/g1/quests/q-locked/quest.json'",
         },
       });
     });

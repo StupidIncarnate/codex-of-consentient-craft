@@ -2,11 +2,11 @@
  * PURPOSE: Handles GET requests for one quest's projected execution remainder — validates the
  * questId param and returns the orchestrator's computed QuestProjection (every MINTED scope's real
  * work items, continued forward through `agentFlowStatics`'s `routes.done` edge). Returns 404 when
- * the quest cannot be loaded.
+ * no guild holds the quest and 500 for any other load failure.
  *
  * USAGE:
  * const result = await QuestProjectionResponder({ params: { questId } });
- * // Returns { status: 200, data: QuestProjection } or { status: 400/404, data: { error } }
+ * // Returns { status: 200, data: QuestProjection } or { status: 400/404/500, data: { error } }
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -38,8 +38,14 @@ export const QuestProjectionResponder = async ({
       data: projection,
     });
   } catch (error: unknown) {
+    // Matched on `name`: the orchestrator barrel does not export QuestNotFoundError, so the class
+    // cannot be `instanceof`-checked from here. Every other failure (an unreadable or invalid
+    // quest file, a permission error) is a server fault, not a missing quest.
+    const isQuestGone = error instanceof Error && error.name === 'QuestNotFoundError';
     return responderResultContract.parse({
-      status: httpStatusStatics.clientError.notFound,
+      status: isQuestGone
+        ? httpStatusStatics.clientError.notFound
+        : httpStatusStatics.serverError.internal,
       data: { error: errorFormatReasonTransformer({ error }) },
     });
   }

@@ -12,8 +12,8 @@ const SUMMARY_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111
 
 export const QuestSummaryResponderProxy = (): {
   setupSummary: (params: { summary: QuestSummary }) => void;
-  setupQuestNotFound: (params: { message: string }) => void;
-  setupQuestNotFoundWithCause: (params: { error: Error }) => void;
+  setupQuestNotFound: (params: { message: string; cause?: Error }) => void;
+  setupQuestLoadFails: (params: { error: Error }) => void;
   callResponder: typeof QuestSummaryResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -22,12 +22,17 @@ export const QuestSummaryResponderProxy = (): {
     setupSummary: ({ summary }: { summary: QuestSummary }): void => {
       orchestrator.getQuestSummaryReturns({ questId: SUMMARY_QUEST_ID, summary });
     },
-    setupQuestNotFound: ({ message }: { message: string }): void => {
-      orchestrator.getQuestSummaryThrows({ questId: SUMMARY_QUEST_ID, error: new Error(message) });
+    // The orchestrator's missing-quest error is named QuestNotFoundError; its class is not exported
+    // from the orchestrator barrel, so the staged error carries the same name.
+    setupQuestNotFound: ({ message, cause }: { message: string; cause?: Error }): void => {
+      orchestrator.getQuestSummaryThrows({
+        questId: SUMMARY_QUEST_ID,
+        error: Object.assign(new Error(message, cause === undefined ? undefined : { cause }), {
+          name: 'QuestNotFoundError',
+        }),
+      });
     },
-    // A load failure that wraps its own root cause — the shape the responder's reason formatter
-    // unwinds one level of, so the browser sees the fs error behind the missing quest.
-    setupQuestNotFoundWithCause: ({ error }: { error: Error }): void => {
+    setupQuestLoadFails: ({ error }: { error: Error }): void => {
       orchestrator.getQuestSummaryThrows({ questId: SUMMARY_QUEST_ID, error });
     },
     callResponder: QuestSummaryResponder,

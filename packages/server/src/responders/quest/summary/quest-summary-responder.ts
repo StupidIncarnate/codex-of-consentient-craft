@@ -3,11 +3,11 @@
  * and returns the orchestrator's computed QuestSummary (per-flow/per-track mark counts, the
  * observables added after approval, every unit carrying debt — `cant-meet` or `unmet` — with its
  * evidence and next action, the `verifyByHuman` criteria no track can settle, and the side-channel
- * notes grouped by kind). Returns 404 when the quest cannot be loaded.
+ * notes grouped by kind). Returns 404 when no guild holds the quest and 500 for any other load failure.
  *
  * USAGE:
  * const result = await QuestSummaryResponder({ params: { questId } });
- * // Returns { status: 200, data: QuestSummary } or { status: 400/404, data: { error } }
+ * // Returns { status: 200, data: QuestSummary } or { status: 400/404/500, data: { error } }
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -36,8 +36,14 @@ export const QuestSummaryResponder = async ({
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: summary });
   } catch (error: unknown) {
+    // Matched on `name`: the orchestrator barrel does not export QuestNotFoundError, so the class
+    // cannot be `instanceof`-checked from here. Every other failure (an unreadable or invalid
+    // quest file, a permission error) is a server fault, not a missing quest.
+    const isQuestGone = error instanceof Error && error.name === 'QuestNotFoundError';
     return responderResultContract.parse({
-      status: httpStatusStatics.clientError.notFound,
+      status: isQuestGone
+        ? httpStatusStatics.clientError.notFound
+        : httpStatusStatics.serverError.internal,
       data: { error: errorFormatReasonTransformer({ error }) },
     });
   }
