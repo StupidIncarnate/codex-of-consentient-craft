@@ -1,3 +1,5 @@
+import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+
 import { CompareAnswerStub } from '../../contracts/compare-answer/compare-answer.stub';
 import { CountDeltaStub } from '../../contracts/count-delta/count-delta.stub';
 import { ElementDeltaStub } from '../../contracts/element-delta/element-delta.stub';
@@ -6,9 +8,12 @@ import { KeyRowStub } from '../../contracts/key-row/key-row.stub';
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { compareAnswerRenderTransformer } from './compare-answer-render-transformer';
 
+const NOT_COMPARED =
+  "ELEMENTS: not compared between the two runs (each run's own last element delta is in --json)";
+
 describe('compareAnswerRenderTransformer', () => {
   describe('standard compare answer', () => {
-    it('VALID: {runs, deltas, pixels string} => renders concise human view', () => {
+    it('VALID: {runs, deltas, no new lines, pixels string} => renders concise human view', () => {
       const answer = CompareAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         runA: RunIdStub({ value: 'run_4' }),
@@ -25,14 +30,75 @@ describe('compareAnswerRenderTransformer', () => {
           errors: CountDeltaStub({ value: '+1' }),
           new: [],
         },
-        pixels: 'last capture differs 12%',
+        pixels: 'last capture differs 12% (run_4: /r/run_4/step1.png, run_5: /r/run_5/step1.png)',
         elements: { runA: null, runB: null },
       });
 
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12% (run_4: /r/run_4/step1.png, run_5: /r/run_5/step1.png)\n${NOT_COMPARED}\n`,
+      );
+    });
+  });
+
+  describe('new lines', () => {
+    it('VALID: {3 new console errors, 1 new server error, 2 new failed requests} => lists each one under its count', () => {
+      const answer = CompareAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        runA: RunIdStub({ value: 'run_16' }),
+        runB: RunIdStub({ value: 'run_33' }),
+        console: {
+          errors: CountDeltaStub({ value: '+3' }),
+          new: [
+            ContentTextStub({ value: 'GET /api/guilds 500' }),
+            ContentTextStub({ value: 'GET /api/quests/queue 500' }),
+            ContentTextStub({ value: 'use-quest-queue failed' }),
+          ],
+        },
+        server: {
+          errors: CountDeltaStub({ value: '+1' }),
+          new: [ContentTextStub({ value: 'ENOENT guilds.json' })],
+        },
+        network: {
+          errors: CountDeltaStub({ value: '+2' }),
+          new: [
+            ContentTextStub({ value: 'GET /api/guilds 500' }),
+            ContentTextStub({ value: 'GET /api/quests/queue 500' }),
+          ],
+        },
+        pixels: null,
+        elements: { runA: null, runB: null },
+      });
+
+      const rendered = compareAnswerRenderTransformer({ answer });
+
+      expect(rendered).toBe(
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_16 -> run_33\nCONSOLE ERRORS: +3\n  GET /api/guilds 500\n  GET /api/quests/queue 500\n  use-quest-queue failed\nSERVER ERRORS: +1\n  ENOENT guilds.json\nNETWORK NON-2XX: +2\n  GET /api/guilds 500\n  GET /api/quests/queue 500\nPIXEL DELTA: none\n${NOT_COMPARED}\n`,
+      );
+    });
+
+    it('EDGE: {7 new console errors, cap 5} => lists the first 5 and names the 2 left in --json', () => {
+      const answer = CompareAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        runA: RunIdStub({ value: 'run_4' }),
+        runB: RunIdStub({ value: 'run_5' }),
+        console: {
+          errors: CountDeltaStub({ value: '+7' }),
+          new: Array.from({ length: 7 }, (_unused, index) =>
+            ContentTextStub({ value: `error ${String(index + 1)}` }),
+          ),
+        },
+        server: { errors: CountDeltaStub({ value: '+0' }), new: [] },
+        network: { errors: CountDeltaStub({ value: '+0' }), new: [] },
+        pixels: null,
+        elements: { runA: null, runB: null },
+      });
+
+      const rendered = compareAnswerRenderTransformer({ answer });
+
+      expect(rendered).toBe(
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +7\n  error 1\n  error 2\n  error 3\n  error 4\n  error 5\n  ... 2 more in --json\nSERVER ERRORS: +0\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\n${NOT_COMPARED}\n`,
       );
     });
   });
@@ -50,7 +116,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\n  Cannot read properties of null\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\n  POST /api/guilds 500\nPIXEL DELTA: none\n${NOT_COMPARED}\n`,
       );
     });
   });
@@ -68,7 +134,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: 42 pixels changed\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\n  Cannot read properties of null\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\n  POST /api/guilds 500\nPIXEL DELTA: 42 pixels changed\n${NOT_COMPARED}\n`,
       );
     });
   });
@@ -79,6 +145,8 @@ describe('compareAnswerRenderTransformer', () => {
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         runA: RunIdStub({ value: 'run_4' }),
         runB: RunIdStub({ value: 'run_5' }),
+        console: { errors: CountDeltaStub({ value: '+2' }), new: [] },
+        network: { errors: CountDeltaStub({ value: '+1' }), new: [] },
         consoleErrorDelta: 3,
         serverErrorDelta: -1,
         networkNon2xxDelta: 0,
@@ -89,20 +157,28 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +3\nSERVER ERRORS: -1\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +3\nSERVER ERRORS: -1\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\n${NOT_COMPARED}\n`,
       );
     });
   });
 
   describe('element deltas', () => {
-    it('VALID: {runA recorded none, runB recorded 2 appeared and 1 changed} => renders the real counts on each side', () => {
+    it('VALID: {runA recorded 22 appeared, runB recorded 2 appeared and 1 changed} => prints no counts, only the not-compared line', () => {
       const answer = CompareAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         runA: RunIdStub({ value: 'run_4' }),
         runB: RunIdStub({ value: 'run_5' }),
+        console: { errors: CountDeltaStub({ value: '+0' }), new: [] },
+        network: { errors: CountDeltaStub({ value: '+0' }), new: [] },
         pixels: null,
         elements: {
-          runA: null,
+          runA: ElementDeltaStub({
+            appeared: Array.from({ length: 22 }, (_unused, index) =>
+              KeyRowStub({ testId: `E${String(index)}` }),
+            ),
+            disappeared: [],
+            changed: [],
+          }),
           runB: ElementDeltaStub({
             appeared: [KeyRowStub({ testId: 'A' }), KeyRowStub({ testId: 'B' })],
             disappeared: [],
@@ -119,32 +195,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: +2 -0 ~1\n',
-      );
-    });
-
-    it('VALID: {runA recorded 22 appeared, runB recorded none} => labels both lines WITHIN its own run, never as a diff against the other run', () => {
-      const answer = CompareAnswerStub({
-        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
-        runA: RunIdStub({ value: 'run_1' }),
-        runB: RunIdStub({ value: 'run_2' }),
-        pixels: null,
-        elements: {
-          runA: ElementDeltaStub({
-            appeared: Array.from({ length: 22 }, (_unused, index) =>
-              KeyRowStub({ testId: `E${String(index)}` }),
-            ),
-            disappeared: [],
-            changed: [],
-          }),
-          runB: null,
-        },
-      });
-
-      const rendered = compareAnswerRenderTransformer({ answer });
-
-      expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_1 -> run_2\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: +22 -0 ~0\nELEMENTS WITHIN RUN B: none\n',
+        `INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +0\nSERVER ERRORS: +0\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\n${NOT_COMPARED}\n`,
       );
     });
   });

@@ -632,7 +632,7 @@ describe('SiegelenseFlow', () => {
           console: { errors: '+1', new: tree.consoleRun2ErrorRows() },
           server: { errors: '-1', new: tree.serverRun2ErrorRows() },
           network: { errors: '+1', new: tree.networkRun2NonSuccessRows() },
-          pixels: 'last capture differs 50%',
+          pixels: `last capture differs 50% (run_1: ${tree.killedInstanceEvidenceDir()}/runs/run_1/step1.png, run_2: ${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png)`,
           elements: { runA: null, runB: null },
         });
       });
