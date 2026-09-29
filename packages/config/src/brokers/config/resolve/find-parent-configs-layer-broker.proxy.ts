@@ -1,3 +1,5 @@
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { dirname } from '#gateway/node/path';
 import { configFileFindBrokerProxy } from '../../config-file/find/config-file-find-broker.proxy';
 import { configFileLoadBrokerProxy } from '../../config-file/load/config-file-load-broker.proxy';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
@@ -21,6 +23,8 @@ export const findParentConfigsLayerBrokerProxy = (): {
 } => {
   const configFileFindProxy = configFileFindBrokerProxy();
   const configFileLoadProxy = configFileLoadBrokerProxy();
+  const realPath = requireActual<{ dirname: typeof dirname }>({ module: 'path' });
+  const dirnameHandle = registerMock({ fn: dirname });
 
   return {
     setupSameConfigFound: ({
@@ -83,10 +87,9 @@ export const findParentConfigsLayerBrokerProxy = (): {
         configPath: parentConfigPath as never,
         config: parentConfig,
       });
-      // dirname is real here (#gateway/node/path is a plain pass-through with no proxy of its
-      // own), so grandparentPath must be the actual dirname of parentConfigPath — the recursive
-      // call is only reached with the staged startPath below when the broker computes that
-      // argument correctly.
+      // The broker computes dirname(parentConfigPath) to recurse; that one call is a real
+      // passthrough, so grandparentPath must be the actual dirname of parentConfigPath.
+      dirnameHandle.calledWith([parentConfigPath]).implement(realPath.dirname);
       // Second level: finds a monorepo config, so recursion stops here with no further dirname
       // call.
       configFileFindProxy.setupConfigFound({

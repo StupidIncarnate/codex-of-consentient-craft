@@ -379,10 +379,13 @@ export const instanceStartBrokerProxy = (): {
     // instead of reaching the sticky real-passthrough default. Must mirror the real
     // cliPackageBinResolveAdapter's own require.resolve('@dungeonmaster/cli') +
     // join(dirname(...), ...) exactly.
-    const expectedDriverBinPath = join(
-      dirname(require.resolve('@dungeonmaster/cli')),
-      CLI_BIN_RELATIVE_VALUE,
-    );
+    // dirname is mocked by shared proxies composed above; the one path this scenario walks is
+    // staged as an exact-address real passthrough, which serves this call and the adapter's.
+    const cliEntryPath = require.resolve('@dungeonmaster/cli');
+    registerMock({ fn: dirname })
+      .calledWith([cliEntryPath])
+      .implement(requireActual<{ dirname: typeof dirname }>({ module: 'path' }).dirname);
+    const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
     readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
 
