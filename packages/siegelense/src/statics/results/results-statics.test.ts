@@ -18,6 +18,19 @@ describe('resultsStatics', () => {
     });
   });
 
+  describe('render.emptyNouns', () => {
+    it('VALID: {emptyNouns} => names one noun for every kind', () => {
+      expect(resultsStatics.render.emptyNouns).toStrictEqual({
+        console: 'console lines',
+        network: 'network requests',
+        ws: 'websocket frames',
+        server: 'server log lines',
+        screenshots: 'screenshots',
+        steps: 'step readings',
+      });
+    });
+  });
+
   describe('patterns.consoleError', () => {
     it('VALID: {listenersLayerAdapter console error line} => matches', () => {
       const { source, flags } = resultsStatics.patterns.consoleError;

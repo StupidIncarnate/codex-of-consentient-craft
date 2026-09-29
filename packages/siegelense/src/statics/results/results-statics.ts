@@ -44,6 +44,16 @@ export const resultsStatics = {
     // The human text view's per-row body trim for `--kind network` — long enough that a real error
     // body's shape still reads, short enough that a screenful of rows stays a screenful.
     bodyTrimChars: 200,
+    // What an EMPTY answer calls the thing it found none of, per kind — "0 network requests during
+    // run_7" says what was looked for and where, where "none found" says neither.
+    emptyNouns: {
+      console: 'console lines',
+      network: 'network requests',
+      ws: 'websocket frames',
+      server: 'server log lines',
+      screenshots: 'screenshots',
+      steps: 'step readings',
+    },
   },
   patterns: {
     // Copied verbatim from run-index-compute-transformer.ts's CONSOLE_ERROR_PATTERN (line 28),

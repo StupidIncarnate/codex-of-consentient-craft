@@ -8,6 +8,12 @@
  * when the query named no `step` and no `kind` (line 2229). Reach for this over RunResult: a
  * RunResult is what `run` itself returns for the batch it just executed, while a ResultsAnswer is
  * what a LATER, narrower `results` query returns, against an instance that may be long dead.
+ * `latestRunWithRows` and `serverWindow` say what an EMPTY answer covered, so "clean" is never
+ * confused with "not recorded" or "wrong run": a console/network/ws read that matched nothing names
+ * the latest run holding lines of that kind on this instance (`null` when none ever did), and a
+ * server read that matched nothing names the `api-server.log` byte range its steps covered (`null`
+ * when no step recorded one). Both are absent on an answer that matched rows, or on a kind they do
+ * not describe.
  *
  * USAGE:
  * resultsAnswerContract.parse({
@@ -29,6 +35,7 @@ import { readingCountContract } from '../reading-count/reading-count-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { runIdContract } from '../run-id/run-id-contract';
 import { runResultContract } from '../run-result/run-result-contract';
+import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
 
@@ -46,6 +53,11 @@ export const resultsAnswerContract = z.object({
   truncated: z.boolean(),
   rows: z.array(contentTextContract).readonly(),
   storedReturn: runResultContract.nullable(),
+  latestRunWithRows: z
+    .object({ runId: runIdContract, rows: readingCountContract })
+    .nullable()
+    .optional(),
+  serverWindow: serverLogWindowContract.nullable().optional(),
 });
 
 export type ResultsAnswer = z.infer<typeof resultsAnswerContract>;

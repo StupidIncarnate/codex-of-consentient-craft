@@ -263,6 +263,57 @@ describe('stepDispatchBroker', () => {
   });
 
   describe('a waitFor with no shot', () => {
+    it('ERROR: {waitFor hits its ceiling, shotPath: null, a failureShotPath} => the failure still screenshots the page there and reports it captured', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.laneRejectingWaitForMatch({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub(),
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+      const failureShotPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
+      proxy.stagesShotFrame({ shotPath: failureShotPath, width: 4, height: 2, pixels });
+
+      const error = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        failureShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        name: error.name,
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        lastShotPath: proxy.lastShotPath(),
+      }).toStrictEqual({
+        name: 'StepFailureCaptureError',
+        captured: true,
+        blank: true,
+        blankColour: '#0d0907',
+        lastShotPath:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+    });
+
     it('EDGE: {shotPath: null} => pixelChange, blank and blankColour are all null and lastShotPath is unchanged', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();

@@ -9,6 +9,7 @@ import { ResultWhereStub } from '../../../contracts/result-where/result-where.st
 import { ResultsQueryStub } from '../../../contracts/results-query/results-query.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
+import { ServerLogByteCountStub } from '../../../contracts/server-log-byte-count/server-log-byte-count.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';
 import { ShotListingStub } from '../../../contracts/shot-listing/shot-listing.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
@@ -742,6 +743,73 @@ describe('resultsReadBroker', () => {
     expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
       { matched: 0, returned: 0, rows: [] },
     );
+  });
+
+  it('VALID: {kind: network, run_2 made no requests, run_1 made two} => the empty answer names run_1 as the latest run holding network lines', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({
+          runId: RUN_1,
+          step: 1,
+          text: networkText({ method: 'GET', url: '/', status: 200 }),
+        }) +
+        bufferLine({
+          runId: RUN_1,
+          step: 1,
+          text: networkText({ method: 'GET', url: '/api/guilds', status: 200 }),
+        }),
+    });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'network' }),
+    });
+
+    expect({
+      matched: result.matched,
+      rows: result.rows,
+      latestRunWithRows: result.latestRunWithRows,
+    }).toStrictEqual({ matched: 0, rows: [], latestRunWithRows: { runId: 'run_1', rows: 2 } });
+  });
+
+  it('VALID: {kind: server, run_2 steps wrote nothing to the log} => the empty answer names the byte window its steps covered', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const reading = StepReadingStub({
+      step: StepIndexStub({ value: 1 }),
+      serverWindow: ServerLogWindowStub({
+        fromByte: ServerLogByteCountStub({ value: 2048 }),
+        toByte: ServerLogByteCountStub({ value: 2048 }),
+      }),
+    });
+    proxy.setupTranscript({ evidencePath, runId: RUN_2, content: `${JSON.stringify(reading)}\n` });
+    proxy.setupServerLog({ evidencePath, content: 'x'.repeat(2048) });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'server' }),
+    });
+
+    expect({
+      matched: result.matched,
+      rows: result.rows,
+      serverWindow: result.serverWindow,
+    }).toStrictEqual({ matched: 0, rows: [], serverWindow: { fromByte: 2048, toByte: 2048 } });
   });
 
   it('VALID: {kind: server, a real run whose transcript holds no steps} => matched: 0 stays a legitimate empty, not a refusal', async () => {

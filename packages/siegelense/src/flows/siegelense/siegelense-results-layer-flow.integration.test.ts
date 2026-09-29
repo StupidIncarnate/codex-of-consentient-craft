@@ -181,6 +181,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         truncated: false,
         rows: [],
         storedReturn: null,
+        latestRunWithRows: null,
       });
     });
   });

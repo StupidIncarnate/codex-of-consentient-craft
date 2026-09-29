@@ -11,6 +11,7 @@ import { instanceStateResolveBrokerProxy } from '../../instance/state-resolve/in
 import { locationsBufferPathsFindBrokerProxy } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
+import { bufferLatestRunLayerBrokerProxy } from './buffer-latest-run-layer-broker.proxy';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 import { runListLayerBrokerProxy } from './run-list-layer-broker.proxy';
 import { runMissingCheckLayerBrokerProxy } from './run-missing-check-layer-broker.proxy';
@@ -67,6 +68,7 @@ export const resultsReadBrokerProxy = (): {
   const runListProxy = runListLayerBrokerProxy();
   const transcriptProxy = transcriptReadLayerBrokerProxy();
   const bufferProxy = bufferReadLayerBrokerProxy();
+  bufferLatestRunLayerBrokerProxy();
   const serverWindowProxy = serverWindowReadLayerBrokerProxy();
   // The stored-return read is now the SAME `readFile` mock runMissingCheckLayerBroker probes, so
   // this composes THAT child proxy rather than fsReadFileAdapterProxy directly — matching

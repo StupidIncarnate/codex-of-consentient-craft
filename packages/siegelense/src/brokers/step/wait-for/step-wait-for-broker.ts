@@ -10,7 +10,11 @@
  * failure"), never a passing-looking reading, so this broker matches the other driving steps: it lets
  * a failure propagate rather than catching it into a return value. `stepDispatchBroker`'s existing
  * `expect: 'error'` inversion is what decides whether that finding halts the batch or is the attack
- * an adversarial step declared it wanted. `within` and `timeoutMs` stay nullable, matching
+ * an adversarial step declared it wanted. A ceiling hit also carries what the page held at that
+ * moment, through `stepMissEvidenceBroker`: the page's key always, and the testIds ranked by
+ * likeness to the target when the target matched nothing — the misremembered-testId case, which
+ * otherwise reads as a bare timeout. Each of those reads degrades on its own failure and is logged,
+ * never thrown: evidence must not replace the ceiling hit it explains. `within` and `timeoutMs` stay nullable, matching
  * `stepContract`'s own `waitFor` member, for the same reason `step-click-broker.ts` gives.
  *
  * **A resolved locator state is not page-wide quiescence, so this settles too.** All four
@@ -40,6 +44,7 @@ import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wai
 import { isPlaywrightStrictModeViolationErrorGuard } from '../../../guards/is-playwright-strict-mode-violation-error/is-playwright-strict-mode-violation-error-guard';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
+import { stepMissEvidenceBroker } from '../miss-evidence/step-miss-evidence-broker';
 
 export const stepWaitForBroker = async ({
   session,
@@ -70,12 +75,30 @@ export const stepWaitForBroker = async ({
       const candidates = await session.describeMatches(describeParams);
       throw new StepAmbiguousError({ target, within, candidates });
     }
+    const countParams = within === null ? { target } : { target, within };
+    const [matchCount, evidence] = await Promise.all([
+      session.countMatches(countParams).catch((countError: unknown) => {
+        process.stderr.write(
+          `[step-wait-for] match count after the ceiling failed for ${target}: ${String(countError)}\n`,
+        );
+        return null;
+      }),
+      stepMissEvidenceBroker({ session, target }).catch((evidenceError: unknown) => {
+        process.stderr.write(
+          `[step-wait-for] near-miss read after the ceiling failed for ${target}: ${String(evidenceError)}\n`,
+        );
+        return null;
+      }),
+    ]);
     throw new WaitForCeilingHitError({
       target,
       within,
       state,
       timeoutMs: resolvedTimeoutMs,
       cause: error,
+      nearest: matchCount === 0 && evidence !== null ? evidence.nearest : null,
+      more: matchCount === 0 && evidence !== null ? evidence.more : 0,
+      key: evidence === null ? null : evidence.key,
     });
   }
 
