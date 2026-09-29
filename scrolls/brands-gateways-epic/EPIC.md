@@ -115,17 +115,19 @@ eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonma
 
 Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
 operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
-agent past about 300k tokens hands off to a fresh one): A13 SL-A (siegelense net, spawn-detached, lock brokers) and
-SL-B (stat, the other write-file callers, http-request with a fetch statusText gap); ward (B11, B12); web (B10,
-B11; web batches commit in groups after a full web e2e run); a fresh agent on hooks-B08 to B10, C2 and cli-B04.
+agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
+hooks (a call-time `getStdin()` replacing the `stdin` export, which opened a pipe at import; then hooks-B10 and
+cli-B04); web (B18, B19); orchestrator (B01 with chat-spawn's proxy); server (B01); siegelense (A18 re-census, then
+its batches, T04 and T05).
 
-A18 done so far: cli B01 to B03; hooks B01 to B07; ward B01 to B10; web B01 to B09. Gateway units added this
-session, all built: GN6 (stdout/stderr recording proxies, `stdinIsTty`), GN7 (`#gateway/node/Date` `now`, fetch
-`getCallsFor`), GN8 (unix socket request/serve fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple),
-`getPlatform`, `setupCwd`, `stdin`, and `@gateway/bin` npm and git not-installed error proxies and `setupNotFound`.
-C2 decided: a `tsx` resolver in `@gateway/npm`. Still open: C3 (web's vite config). Queued gateway gaps: GB4
-(browser console and crypto proxies, a browser clock), `dynamicImport` staging by module path (cli serve), a
-recorded ESLint failure stub.
+A18 done so far: ward (all); cli B01 to B03; hooks B01 to B09; web B01 to B17. Phase 2 is complete (A13 7cb5ff272).
+Gateway units added this session, all built: GN5 to GN9 (stream/http/zlib; stdout/stderr recording proxies and
+`stdinIsTty`; `#gateway/node/Date` `now` and fetch `getCallsFor`; unix socket fakes, `spawnDetached` by args,
+`rejectsOnce`, `kill` by tuple; `spawnPiped`), `getPlatform`, `setupCwd`, fetchWithStatus `statusText`, C2's
+`tsxCliPath`, and `@gateway/bin` npm and git not-installed error proxies, `setupNotFound` and `diffFiles`
+`excludeDeleted`. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser console and crypto proxies,
+a browser clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Lockfile
+refresh pending for hydration-recipes' `@dungeonmaster/npm` and `@gateway/npm`'s `tsx`.
 
 Earlier notes from this session, kept for the record:
 
