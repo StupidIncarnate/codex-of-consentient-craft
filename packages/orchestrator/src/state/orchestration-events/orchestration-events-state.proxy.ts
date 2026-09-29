@@ -2,11 +2,11 @@ import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
-import type { CapturedOrchestrationEmit } from '../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationEventsState } from './orchestration-events-state';
 
 type OnCallArgs = Parameters<typeof orchestrationEventsState.on>[0];
 type EventHandler = OnCallArgs['handler'];
+type CapturedOrchestrationEmit = Parameters<EventHandler>[0];
 
 export const orchestrationEventsStateProxy = (): {
   setupEmpty: () => void;
@@ -58,7 +58,7 @@ export const orchestrationEventsStateProxy = (): {
       orchestrationEventsState.on({
         type,
         handler: ({ processId, payload }) => {
-          captured.push({ processId, payload } as CapturedOrchestrationEmit);
+          captured.push({ processId, payload });
         },
       });
       return captured;

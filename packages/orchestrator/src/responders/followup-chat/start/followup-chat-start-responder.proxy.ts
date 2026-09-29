@@ -12,7 +12,6 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 import { chatSpawnBrokerProxy } from '../../../brokers/chat/spawn/chat-spawn-broker.proxy';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
-import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { FollowupChatStartResponder } from './followup-chat-start-responder';
@@ -40,6 +39,10 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 // can never collide with (or shadow) this proxy's own tavernkeeper-quest reads.
 const CWD_STAGING_QUEST_ID = QuestIdStub({ value: 'followup-cwd-staging-quest' });
 const CWD_STAGING_SESSION_ID = SessionIdStub({ value: 'followup-cwd-staging-session' });
+
+type CapturedOrchestrationEmit = ReturnType<
+  ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
+>[number];
 
 export const FollowupChatStartResponderProxy = (): {
   callResponder: typeof FollowupChatStartResponder;

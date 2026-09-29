@@ -28,7 +28,6 @@ import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker
 import { questModifyBrokerProxy } from '../../../brokers/quest/modify/quest-modify-broker.proxy';
 import { questOrchestrationLoopBrokerProxy } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker.proxy';
 import { worktreeEnsureQuestBranchBrokerProxy } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.proxy';
-import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -46,6 +45,10 @@ type Quest = ReturnType<typeof QuestStub>;
 type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 type QuestBranchName = ReturnType<typeof QuestBranchNameStub>;
 type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
+
+type CapturedOrchestrationEmit = ReturnType<
+  ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
+>[number];
 
 export const OrchestrationResumeResponderProxy = (): {
   callResponder: typeof OrchestrationResumeResponder;

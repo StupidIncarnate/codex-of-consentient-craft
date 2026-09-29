@@ -38,6 +38,25 @@ describe('pendingClarificationState', () => {
     });
   });
 
+  describe('setForProcess with no questions', () => {
+    it('INVALID: {questions: []} => throws and stores nothing to promote', () => {
+      const proxy = pendingClarificationStateProxy();
+      proxy.setupEmpty();
+      const processId = ProcessIdStub({ value: 'proc-no-questions' });
+      const questId = QuestIdStub({ value: 'quest-no-questions' });
+
+      expect(() => {
+        pendingClarificationState.setForProcess({ processId, questId, questions: [] });
+      }).toThrow(/questions/u);
+      expect(
+        pendingClarificationState.promoteToSession({
+          processId,
+          sessionId: SessionIdStub({ value: 'session-no-questions' }),
+        }),
+      ).toBe(false);
+    });
+  });
+
   describe('promoteToSession', () => {
     it('VALID: {existing processId, sessionId} => moves entry to session map and returns true', () => {
       const proxy = pendingClarificationStateProxy();

@@ -36,16 +36,15 @@ describe('smoketestBlueprintsStatics', () => {
 
   // `questModifyBroker`'s Contract Source Resolution check resolves this path against the quest's
   // own project root and refuses a 'new' contract whose source already resolves there. The
-  // placeholder contract IS a committed file in the repo every smoketest quest targets, so
+  // declared contract IS a committed file in the repo every smoketest quest targets, so
   // 'existing' is the only status that clears the check — and reading the declared status back off
   // disk here is what catches a drift to 'new' before it refuses the whole suite's hydrate.
-  it("VALID: {minimal.contracts[0]} => the placeholder contract is declared 'existing' against its committed source path", () => {
+  it("VALID: {minimal.contracts[0]} => the declared contract is declared 'existing' against its committed source path", () => {
     const [contract] = smoketestBlueprintsStatics.minimal.contracts;
 
     expect({ status: contract?.status, source: contract?.source }).toStrictEqual({
       status: 'existing',
-      source:
-        'packages/orchestrator/src/contracts/smoketest-placeholder/smoketest-placeholder-contract.ts',
+      source: 'packages/orchestrator/src/contracts/agent-family-name/agent-family-name-contract.ts',
     });
   });
 

@@ -3,8 +3,7 @@
  * many event types (chat-output, phase-change, etc.), so per-variant payload shapes are validated by
  * their own consumer at the boundary rather than here. A caller reading a known key (e.g.
  * `'questId'`, `'chatProcessId'`) re-parses it through this contract to index the branded `Record`
- * `orchestrationEventEnvelopeContract`'s and `capturedOrchestrationEmitContract`'s `payload` fields
- * return.
+ * `orchestrationEventEnvelopeContract`'s `payload` field returns.
  *
  * USAGE:
  * orchestrationEventPayloadKeyContract.parse('questId');

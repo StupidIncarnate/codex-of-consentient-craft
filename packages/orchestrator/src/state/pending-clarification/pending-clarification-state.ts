@@ -10,6 +10,7 @@
 
 import type { ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
 
+import { pendingClarificationEntryContract } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 import type { PendingClarificationEntry } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 
 const processQuestions = new Map<ProcessId, PendingClarificationEntry>();
@@ -23,7 +24,10 @@ export const pendingClarificationState = {
   }: {
     processId: ProcessId;
   } & PendingClarificationEntry): void => {
-    processQuestions.set(processId, { questId, questions });
+    processQuestions.set(
+      processId,
+      pendingClarificationEntryContract.parse({ questId, questions }),
+    );
   },
 
   promoteToSession: ({

@@ -41,8 +41,8 @@ export const smoketestBlueprintsStatics = {
     ],
     contracts: [
       {
-        id: 'smoketest-placeholder',
-        name: 'SmoketestPlaceholder',
+        id: 'smoketest-agent-family-name',
+        name: 'AgentFamilyName',
         kind: 'data',
         // `existing`, because the file at `source` below is committed in this repo — the repo
         // every smoketest quest targets, since `smoketestEnsureGuildBroker` resolves the guild
@@ -54,14 +54,14 @@ export const smoketestBlueprintsStatics = {
         // does that, the same way it seeds each declared package location.
         status: 'existing',
         source:
-          'packages/orchestrator/src/contracts/smoketest-placeholder/smoketest-placeholder-contract.ts',
+          'packages/orchestrator/src/contracts/agent-family-name/agent-family-name-contract.ts',
         nodeId: 'emit-signal',
         properties: [
           {
             name: 'value',
-            type: 'SmoketestPlaceholder',
+            type: 'AgentFamilyName',
             description:
-              'Placeholder branded non-empty string used only to satisfy contract requirements',
+              'Branded non-empty string naming an agent family, declared to satisfy contract requirements',
           },
         ],
       },

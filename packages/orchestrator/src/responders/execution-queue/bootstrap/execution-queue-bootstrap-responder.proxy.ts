@@ -1,6 +1,5 @@
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
-import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
@@ -8,6 +7,10 @@ import { questExecutionQueueStateProxy } from '../../../state/quest-execution-qu
 // Bootstrap responder is idempotent and wires module-scoped state. The proxy
 // composes child proxies per enforce-proxy-child-creation so tests that exercise
 // wiring can reset all transitive state in one call.
+type CapturedOrchestrationEmit = ReturnType<
+  ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
+>[number];
+
 export const ExecutionQueueBootstrapResponderProxy = (): {
   reset: () => void;
   // Real-bus scenario — see orchestrationEventsStateProxy.captureEmits. Subscribes a genuine

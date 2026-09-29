@@ -146,7 +146,19 @@ describe('smoketestScenarioState', () => {
     });
   });
 
-  it('INVALID: {register same questId twice} => throws duplicate-registration error', () => {
+  it('INVALID: {register with an unknown prompt name} => throws and stores nothing', () => {
+    const questId = QuestIdStub({ value: 'unknown-prompt-quest' });
+
+    expect(() => {
+      smoketestScenarioState.register({
+        questId,
+        scripts: { codeweaver: ['not-a-smoketest-prompt' as never] },
+      });
+    }).toThrow(/codeweaver/u);
+    expect(smoketestScenarioState.getActive({ questId })).toBe(null);
+  });
+
+  it('INVALID: {register same questId twice}=> throws duplicate-registration error', () => {
     const questId = QuestIdStub({ value: 'duplicate-register-quest' });
 
     smoketestScenarioState.register({

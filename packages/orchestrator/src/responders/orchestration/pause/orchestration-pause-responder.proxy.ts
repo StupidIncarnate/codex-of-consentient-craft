@@ -3,13 +3,16 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub
 import type { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
 import { questGetBrokerProxy } from '../../../brokers/quest/get/quest-get-broker.proxy';
 import { questPauseBrokerProxy } from '../../../brokers/quest/pause/quest-pause-broker.proxy';
-import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { OrchestrationPauseResponder } from './orchestration-pause-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
 type PauseArgs = Parameters<typeof questPauseBroker>[0];
+
+type CapturedOrchestrationEmit = ReturnType<
+  ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
+>[number];
 
 export const OrchestrationPauseResponderProxy = (): {
   callResponder: typeof OrchestrationPauseResponder;

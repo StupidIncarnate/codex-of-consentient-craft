@@ -26,7 +26,7 @@ import type { BaseNameStub } from '@dungeonmaster/testing';
 import type { GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { QuestOutboxLineStub } from '../../../src/contracts/quest-outbox-line/quest-outbox-line.stub';
-import { ElapsedMsStub } from '../../../src/contracts/elapsed-ms/elapsed-ms.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 type BaseName = ReturnType<typeof BaseNameStub>;
 
@@ -34,11 +34,11 @@ const OUTBOX_FILENAME = 'event-outbox.jsonl';
 
 // A deadline, not a sleep — awaitQuestIds resolves the instant the count arrives, so this costs
 // wall clock only when a line genuinely never reaches the listener.
-const POLL_TIMEOUT_MS = ElapsedMsStub({ value: 8000 });
-const POLL_STEP_MS = ElapsedMsStub({ value: 20 });
+const POLL_TIMEOUT_MS = TimeoutMsStub({ value: 8000 });
+const POLL_STEP_MS = TimeoutMsStub({ value: 20 });
 // inotify delivery plus a readline drain. Long enough that "nothing further arrived" means
 // something, short enough to pay for several times in one suite.
-const QUIET_WINDOW_MS = ElapsedMsStub({ value: 300 });
+const QUIET_WINDOW_MS = TimeoutMsStub({ value: 300 });
 
 export const questOutboxHarness = (): {
   begin: ({ name }: { name: BaseName }) => { homeDir: GuildPath; end: () => Promise<void> };

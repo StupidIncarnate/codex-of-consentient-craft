@@ -1,11 +1,14 @@
 import { questNodeDispatchLoopBrokerProxy } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy';
 import { questNodeDispatchRunnerBrokerProxy } from '../../../brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker.proxy';
-import type { CapturedOrchestrationEmit } from '../../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
 import { orchestrationDispatchState } from '../../../state/orchestration-dispatch/orchestration-dispatch-state';
 import { orchestrationDispatchStateProxy } from '../../../state/orchestration-dispatch/orchestration-dispatch-state.proxy';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { questExecutionQueueStateProxy } from '../../../state/quest-execution-queue/quest-execution-queue-state.proxy';
+
+type CapturedOrchestrationEmit = ReturnType<
+  ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
+>[number];
 
 export const OrchestrationDispatchBootstrapResponderProxy = (): {
   reset: () => void;

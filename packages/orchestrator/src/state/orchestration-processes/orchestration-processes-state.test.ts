@@ -1,3 +1,4 @@
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -5,6 +6,7 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { orchestrationProcessesState } from './orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from './orchestration-processes-state.proxy';
 import { OrchestrationProcessStub } from '../../contracts/orchestration-process/orchestration-process.stub';
+import { ProcessPidStub } from '../../contracts/process-pid/process-pid.stub';
 
 describe('orchestrationProcessesState', () => {
   describe('register', () => {
@@ -340,6 +342,91 @@ describe('orchestrationProcessesState', () => {
       const result = orchestrationProcessesState.getAll();
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('register parse', () => {
+    it('INVALID: {questId: 123} => throws before anything is stored', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const processId = ProcessIdStub({ value: 'proc-invalid' });
+
+      expect(() => {
+        orchestrationProcessesState.register({
+          orchestrationProcess: { processId, questId: 123 as never, kill: jest.fn() },
+        });
+      }).toThrow(/questId/u);
+      expect(orchestrationProcessesState.getAll()).toStrictEqual([]);
+    });
+
+    it('VALID: {kill} => the stored process still calls the registered kill function', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const processId = ProcessIdStub({ value: 'proc-kill-kept' });
+      const questId = QuestIdStub({ value: 'quest-kill-kept' });
+      const kill = jest.fn();
+
+      orchestrationProcessesState.register({ orchestrationProcess: { processId, questId, kill } });
+      orchestrationProcessesState.get({ processId })?.kill();
+
+      expect(kill).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('activity', () => {
+    it('VALID: {register} => seeds activity with a Date and no metadata', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      const orchestrationProcess = OrchestrationProcessStub();
+      proxy.setupWithProcess({ orchestrationProcess });
+
+      const activity = orchestrationProcessesState.getActivity({
+        processId: orchestrationProcess.processId,
+      });
+
+      expect(activity?.lastActivityAt).toBeInstanceOf(Date);
+      expect(activity).toStrictEqual({ lastActivityAt: activity?.lastActivityAt });
+    });
+
+    it('VALID: {setMetadata osPid and sessionJsonlPath} => activity carries both beside lastActivityAt', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      const orchestrationProcess = OrchestrationProcessStub();
+      proxy.setupWithProcess({ orchestrationProcess });
+      const { processId } = orchestrationProcess;
+      const before = orchestrationProcessesState.getActivity({ processId });
+
+      orchestrationProcessesState.setMetadata({
+        processId,
+        osPid: ProcessPidStub({ value: 4321 }),
+        sessionJsonlPath: AbsoluteFilePathStub({ value: '/home/user/.claude/projects/x/s.jsonl' }),
+      });
+
+      expect(orchestrationProcessesState.getActivity({ processId })).toStrictEqual({
+        lastActivityAt: before?.lastActivityAt,
+        osPid: 4321,
+        sessionJsonlPath: '/home/user/.claude/projects/x/s.jsonl',
+      });
+    });
+
+    it('VALID: {re-register after setMetadata} => activity keeps osPid', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      const orchestrationProcess = OrchestrationProcessStub();
+      proxy.setupWithProcess({ orchestrationProcess });
+      const { processId } = orchestrationProcess;
+      orchestrationProcessesState.setMetadata({ processId, osPid: ProcessPidStub({ value: 99 }) });
+
+      orchestrationProcessesState.register({ orchestrationProcess });
+
+      expect(orchestrationProcessesState.getActivity({ processId })?.osPid).toBe(99);
+    });
+
+    it('EMPTY: {setMetadata for unregistered processId} => stores nothing', () => {
+      const proxy = orchestrationProcessesStateProxy();
+      proxy.setupEmpty();
+      const processId = ProcessIdStub({ value: 'proc-unregistered' });
+
+      orchestrationProcessesState.setMetadata({ processId, osPid: ProcessPidStub({ value: 5 }) });
+
+      expect(orchestrationProcessesState.getActivity({ processId })).toBe(undefined);
     });
   });
 });

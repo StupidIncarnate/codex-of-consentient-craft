@@ -19,6 +19,7 @@ import {
   type WorkItemRole,
 } from '@dungeonmaster/shared/contracts';
 
+import { scenarioInstanceContract } from '../../contracts/scenario-instance/scenario-instance-contract';
 import type { ScenarioInstance } from '../../contracts/scenario-instance/scenario-instance-contract';
 import type { SmoketestPromptName } from '../../statics/smoketest-prompts/smoketest-prompts-statics';
 
@@ -37,7 +38,7 @@ export const smoketestScenarioState = {
     if (state.instances.has(questId)) {
       throw new Error(`smoketestScenarioState.register: quest "${questId}" is already registered`);
     }
-    state.instances.set(questId, { scripts, callOrdinals: {} });
+    state.instances.set(questId, scenarioInstanceContract.parse({ scripts, callOrdinals: {} }));
   },
 
   dispense: ({

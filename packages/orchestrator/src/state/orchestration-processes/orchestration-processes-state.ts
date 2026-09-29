@@ -20,7 +20,9 @@ import type {
   QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 
+import { orchestrationProcessContract } from '../../contracts/orchestration-process/orchestration-process-contract';
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
+import { processActivityContract } from '../../contracts/process-activity/process-activity-contract';
 import type { ProcessActivity } from '../../contracts/process-activity/process-activity-contract';
 import type { ProcessPid } from '../../contracts/process-pid/process-pid-contract';
 
@@ -31,15 +33,23 @@ const state = {
 
 export const orchestrationProcessesState = {
   register: ({ orchestrationProcess }: { orchestrationProcess: OrchestrationProcess }): void => {
-    state.processes.set(orchestrationProcess.processId, orchestrationProcess);
+    // `kill` is a function the schema cannot check, so it is re-attached beside the parsed data.
+    const registered: OrchestrationProcess = {
+      ...orchestrationProcessContract.parse(orchestrationProcess),
+      kill: orchestrationProcess.kill,
+    };
+    state.processes.set(registered.processId, registered);
     // Seed activity to "now" so the watchdog has a baseline before any line streams.
     // Preserves osPid / sessionJsonlPath if a prior setMetadata call landed before register.
-    const prior = state.activity.get(orchestrationProcess.processId);
-    state.activity.set(orchestrationProcess.processId, {
-      lastActivityAt: new Date(),
-      ...(prior?.osPid !== undefined && { osPid: prior.osPid }),
-      ...(prior?.sessionJsonlPath !== undefined && { sessionJsonlPath: prior.sessionJsonlPath }),
-    });
+    const prior = state.activity.get(registered.processId);
+    state.activity.set(
+      registered.processId,
+      processActivityContract.parse({
+        lastActivityAt: new Date(),
+        ...(prior?.osPid !== undefined && { osPid: prior.osPid }),
+        ...(prior?.sessionJsonlPath !== undefined && { sessionJsonlPath: prior.sessionJsonlPath }),
+      }),
+    );
   },
 
   recordActivity: ({ processId }: { processId: ProcessId }): void => {
@@ -59,8 +69,14 @@ export const orchestrationProcessesState = {
   }): void => {
     const entry = state.activity.get(processId);
     if (entry === undefined) return;
-    if (osPid !== undefined) entry.osPid = osPid;
-    if (sessionJsonlPath !== undefined) entry.sessionJsonlPath = sessionJsonlPath;
+    state.activity.set(
+      processId,
+      processActivityContract.parse({
+        ...entry,
+        ...(osPid !== undefined && { osPid }),
+        ...(sessionJsonlPath !== undefined && { sessionJsonlPath }),
+      }),
+    );
   },
 
   getActivity: ({ processId }: { processId: ProcessId }): ProcessActivity | undefined =>
