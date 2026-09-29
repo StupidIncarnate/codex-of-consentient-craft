@@ -6,12 +6,9 @@
  * Each console line is the JSON `listenersLayerAdapter` builds — `"kind":"pageerror"` for an uncaught
  * exception, `"kind":"console","type":"error"|"warning"` for a console message — and JSON.stringify's
  * fixed key order (`at`, `kind`, `type`, ...) is what makes a plain substring match safe rather than a
- * full parse. Network lines are classified by `isNetworkLineNon2xxGuard` — the literal [200, 300)
- * HTTP-range boundary this run's own index reports as `network.non2xx`. `compareReadBroker`'s
- * `network.errors` does NOT read this count: it derives its own, narrower reading (a 4xx/5xx status,
- * or no response at all) from the same rows independently, because a run's index and a compare
- * reading answer different questions — this one "how much non-2xx traffic did this run see," that one
- * "what in here is worth a look." Every console/server pattern is built from `resultsStatics.patterns`
+ * full parse. Network lines are classified by `isNetworkLineFailedGuard` — a 4xx/5xx status or no
+ * response at all — into `network.failed`, the same rule `compareReadBroker` counts `network.errors`
+ * by; a redirect or a 304 cache hit is ordinary traffic, not a failure. Every console/server pattern is built from `resultsStatics.patterns`
  * rather than a locally declared regex, so this count and a `results { where: { level } }` query can
  * never classify the same line differently (chunk-03-read-path-and-perception.md §3.A: "One error
  * pattern, one place"). Reach for this over reading the buffers directly inside `runExecuteBroker`:
@@ -31,7 +28,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import { runIndexContract } from '../../contracts/run-index/run-index-contract';
 import type { RunIndex } from '../../contracts/run-index/run-index-contract';
-import { isNetworkLineNon2xxGuard } from '../../guards/is-network-line-non2xx/is-network-line-non2xx-guard';
+import { isNetworkLineFailedGuard } from '../../guards/is-network-line-failed/is-network-line-failed-guard';
 import { resultsStatics } from '../../statics/results/results-statics';
 
 const CONSOLE_ERROR_PATTERN = new RegExp(
@@ -59,7 +56,7 @@ export const runIndexComputeTransformer = ({
   const consoleErrors = consoleLines.filter((line) => CONSOLE_ERROR_PATTERN.test(line)).length;
   const consoleWarnings = consoleLines.filter((line) => CONSOLE_WARNING_PATTERN.test(line)).length;
 
-  const networkNon2xx = networkLines.filter((line) => isNetworkLineNon2xxGuard({ line })).length;
+  const networkFailed = networkLines.filter((line) => isNetworkLineFailedGuard({ line })).length;
 
   const serverErrors = serverLines.filter((line) => SERVER_ERROR_PATTERN.test(line)).length;
 
@@ -71,7 +68,7 @@ export const runIndexComputeTransformer = ({
     server: { errors: readingCountContract.parse(serverErrors) },
     network: {
       exchanges: readingCountContract.parse(networkLines.length),
-      non2xx: readingCountContract.parse(networkNon2xx),
+      failed: readingCountContract.parse(networkFailed),
     },
   });
 };

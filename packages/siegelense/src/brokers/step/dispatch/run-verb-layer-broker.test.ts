@@ -311,7 +311,7 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe(
-        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
       );
     });
   });

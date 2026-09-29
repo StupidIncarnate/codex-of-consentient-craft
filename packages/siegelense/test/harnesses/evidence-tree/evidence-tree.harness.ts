@@ -413,7 +413,7 @@ export const evidenceTreeHarness = (): {
       index: {
         console: { errors: 2, warnings: 1 },
         server: { errors: 2 },
-        network: { exchanges: 2, non2xx: 1 },
+        network: { exchanges: 2, failed: 1 },
       },
       shots: [
         ShotListingStub({
@@ -439,7 +439,7 @@ export const evidenceTreeHarness = (): {
       index: {
         console: { errors: 3, warnings: 0 },
         server: { errors: 1 },
-        network: { exchanges: 2, non2xx: 2 },
+        network: { exchanges: 2, failed: 2 },
       },
       shots: [
         ShotListingStub({

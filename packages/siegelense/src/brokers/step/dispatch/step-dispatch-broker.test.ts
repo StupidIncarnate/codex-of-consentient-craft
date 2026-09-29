@@ -115,7 +115,7 @@ describe('stepDispatchBroker', () => {
         node: null,
         ok: true,
         expected: 'ok',
-        reading: 'clicked [data-testid="GUILD_ADD"]',
+        reading: 'clicked [data-testid="GUILD_ADD"] — page is BLANK (#0d0907)',
         shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         pixelChange: null,
         blank: true,
@@ -125,6 +125,79 @@ describe('stepDispatchBroker', () => {
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
+      });
+    });
+  });
+
+  describe('a goto whose capture is blank', () => {
+    it('VALID: {goto /x-does-not-exist onto a fully #ffffff frame} => the reading says the page is BLANK', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      const step = StepStub({ step: 'goto', path: '/x-does-not-exist' });
+      const shotPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step1.png',
+      });
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect(result).toStrictEqual({
+        step: 1,
+        verb: 'goto',
+        node: null,
+        ok: true,
+        expected: 'ok',
+        reading: '/x-does-not-exist — page is BLANK (#ffffff)',
+        shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step1.png',
+        pixelChange: null,
+        blank: true,
+        blankColour: '#ffffff',
+        previousReading: KeyListingStub(),
+        delta: ElementDeltaStub(),
+        serverWindow: { fromByte: 0, toByte: 0 },
+        startedAtMs: FIXED_NOW_MS,
+        endedAtMs: FIXED_NOW_MS,
+      });
+    });
+
+    it('VALID: {look onto a blank frame} => a reading step keeps its own reading untouched', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      const step = StepStub({ step: 'look' });
+      const shotPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step2.png',
+      });
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 2 }),
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect({ reading: result.reading, blank: result.blank }).toStrictEqual({
+        reading: 'key: (no addressable elements on this page)',
+        blank: true,
       });
     });
   });
@@ -1124,7 +1197,7 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
       );
       expect(captureCallArgs()).toStrictEqual([
         [

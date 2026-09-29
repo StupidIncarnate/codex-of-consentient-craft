@@ -20,6 +20,11 @@ describe('healthStatics', () => {
         consoleClean: 'console clean',
         no5xx: 'no 5xx',
         serverClean: 'server log clean',
+        windowSeparator: ' — ',
+        windowSinceLoad: 'judged since page load of',
+        windowLoadedThisRun: '(this run)',
+        windowLoadedEarlierRun: '(an earlier run)',
+        windowNoLoad: 'judged this run only (no page load recorded)',
         verdictPaddedLength: 10,
       },
     });

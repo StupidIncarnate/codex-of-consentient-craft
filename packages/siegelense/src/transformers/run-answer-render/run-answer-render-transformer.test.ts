@@ -1,5 +1,6 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
+import { HexColourStub } from '../../contracts/hex-colour/hex-colour.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
@@ -164,6 +165,63 @@ describe('runAnswerRenderTransformer', () => {
       expect(output).toBe(
         'RUN: run_1 (status: done, steps: 1, duration: 0ms)\n' +
           'SCREENSHOTS: step1.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png)\n',
+      );
+    });
+
+    it('VALID: {one blank shot, one not} => flags only the blank shot BLANK with its colour', () => {
+      const blankShot = ShotListingStub({
+        step: StepIndexStub({ value: 1 }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step1.png',
+        }),
+        blank: true,
+        blankColour: HexColourStub({ value: '#ffffff' }),
+      });
+      const paintedShot = ShotListingStub({
+        step: StepIndexStub({ value: 2 }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step2.png',
+        }),
+        blank: false,
+      });
+      const result = RunResultStub({
+        runId: RunIdStub({ value: 'run_25' }),
+        status: RunStatusStub({ value: 'done' }),
+        stepsRun: StepIndexStub({ value: 2 }),
+        stoppedAt: null,
+        shots: [blankShot, paintedShot],
+      });
+
+      const output = runAnswerRenderTransformer({ result });
+
+      expect(output).toBe(
+        'RUN: run_25 (status: done, steps: 2, duration: 0ms)\n' +
+          'SCREENSHOTS: step1.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step1.png) BLANK (#ffffff), step2.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step2.png)\n',
+      );
+    });
+
+    it('VALID: {blank shot with no colour} => flags BLANK alone', () => {
+      const shot = ShotListingStub({
+        step: StepIndexStub({ value: 1 }),
+        path: AbsoluteFilePathStub({
+          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step1.png',
+        }),
+        blank: true,
+        blankColour: null,
+      });
+      const result = RunResultStub({
+        runId: RunIdStub({ value: 'run_25' }),
+        status: RunStatusStub({ value: 'done' }),
+        stepsRun: StepIndexStub({ value: 1 }),
+        stoppedAt: null,
+        shots: [shot],
+      });
+
+      const output = runAnswerRenderTransformer({ result });
+
+      expect(output).toBe(
+        'RUN: run_25 (status: done, steps: 1, duration: 0ms)\n' +
+          'SCREENSHOTS: step1.png (/repo/.dungeonmaster-assets/siegelense-assets/runs/run_25/step1.png) BLANK\n',
       );
     });
 

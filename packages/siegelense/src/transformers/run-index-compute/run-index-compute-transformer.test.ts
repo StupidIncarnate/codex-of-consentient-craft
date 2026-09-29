@@ -43,7 +43,7 @@ describe('runIndexComputeTransformer', () => {
       expect(result).toStrictEqual({
         console: { errors: 0, warnings: 0 },
         server: { errors: 0 },
-        network: { exchanges: 0, non2xx: 0 },
+        network: { exchanges: 0, failed: 0 },
       });
     });
   });
@@ -75,7 +75,7 @@ describe('runIndexComputeTransformer', () => {
   });
 
   describe('network counting', () => {
-    it('VALID: {200, 404, 500, null} => exchanges 4, non2xx 3', () => {
+    it('VALID: {200, 404, 500, null} => exchanges 4, failed 3', () => {
       const result = runIndexComputeTransformer({
         consoleLines: [],
         networkLines: [
@@ -87,17 +87,37 @@ describe('runIndexComputeTransformer', () => {
         serverLines: [],
       });
 
-      expect(result.network).toStrictEqual({ exchanges: 4, non2xx: 3 });
+      expect(result.network).toStrictEqual({ exchanges: 4, failed: 3 });
     });
 
-    it('EDGE: {status 299 and 300} => 299 is 2xx, 300 is non2xx', () => {
+    it('VALID: {eight 200s and one 304 cache hit} => exchanges 9, failed 0', () => {
       const result = runIndexComputeTransformer({
         consoleLines: [],
-        networkLines: [networkLine({ status: 299 }), networkLine({ status: 300 })],
+        networkLines: [
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 200 }),
+          networkLine({ status: 304 }),
+        ],
         serverLines: [],
       });
 
-      expect(result.network).toStrictEqual({ exchanges: 2, non2xx: 1 });
+      expect(result.network).toStrictEqual({ exchanges: 9, failed: 0 });
+    });
+
+    it('EDGE: {status 399 and 400} => 399 is not a failure, 400 is', () => {
+      const result = runIndexComputeTransformer({
+        consoleLines: [],
+        networkLines: [networkLine({ status: 399 }), networkLine({ status: 400 })],
+        serverLines: [],
+      });
+
+      expect(result.network).toStrictEqual({ exchanges: 2, failed: 1 });
     });
   });
 

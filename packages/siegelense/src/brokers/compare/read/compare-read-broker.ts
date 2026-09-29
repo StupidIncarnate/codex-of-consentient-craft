@@ -21,15 +21,10 @@
  * `new:` list surfaces — and `network.errors` matches that pattern instead of being the one field that
  * didn't.
  *
- * `resultA.index.network.non2xx` / `resultB.index.network.non2xx` — the literal HTTP-range tally
- * `runIndexComputeTransformer` persists on every `RunResult`, and what `run` and `results` still show
- * — is deliberately NOT read here. Reusing it for `network.errors` would put back the exact
- * contradiction this field exists to avoid: a name promising "what's worth a look" computed from a set
- * that includes ordinary 3xx traffic. `run`'s own reading is unaffected by this file and keeps its
- * wider meaning; `compare` computes its own narrower one independently, over the same rows
- * `network.new` already filters. `isNetworkLineNon2xxGuard` stays out of both: its [200, 300) boundary
- * is wider than the 4xx/5xx-or-no-response floor this file applies, and reusing it here would move
- * `RunIndex.network.non2xx` too.
+ * The filter is `isNetworkLineFailedGuard`, the same rule `runIndexComputeTransformer` counts into
+ * `RunIndex.network.failed`, so `compare` and `run` never classify one line differently. The stored
+ * `index.network.failed` is not read here: `network.new` needs the rows themselves, and counting the
+ * same filtered rows is what keeps the count and the list from disagreeing.
  *
  * An id with no registry row at all — `instanceStateResolveBroker`'s own `'unknown'` state — throws
  * `InstanceUnknownError` before any file is touched, rather than letting `fsReadFileAdapter` bubble a
@@ -58,8 +53,8 @@ import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-err
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
+import { isNetworkLineFailedGuard } from '../../../guards/is-network-line-failed/is-network-line-failed-guard';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import { resultsStatics } from '../../../statics/results/results-statics';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
@@ -78,16 +73,6 @@ const ERROR_WHERE = resultWhereContract.parse({
   level: 'error',
   steps: null,
 });
-
-// The same status extraction `isNetworkLineNon2xxGuard` runs, reused here for a DIFFERENT boundary:
-// that guard's [200, 300) floor/ceiling feeds the persisted `RunIndex.network.non2xx` `run` shows, a
-// reading this file leaves untouched. `NETWORK_ATTENTION_FLOOR` decides BOTH `network.errors` and
-// `network.new` below — one floor, so the count and the list can never disagree.
-const NETWORK_STATUS_PATTERN = new RegExp(
-  resultsStatics.patterns.networkStatus.source,
-  resultsStatics.patterns.networkStatus.flags,
-);
-const NETWORK_ATTENTION_FLOOR = 400;
 
 export const compareReadBroker = async ({
   query,
@@ -265,18 +250,12 @@ export const compareReadBroker = async ({
   // sets are narrowed here, after the read, to what `network.errors` counts and `network.new` lists:
   // a 4xx/5xx status, or no status at all (a request that never got a response). A 3xx never reaches
   // either — a redirect or a 304 cache revalidation is ordinary traffic on any page reload.
-  const networkFailureRowsA = networkAnswerA.rows.filter((line) => {
-    const match = NETWORK_STATUS_PATTERN.exec(line);
-    return (
-      match?.[1] === undefined || match[1] === 'null' || Number(match[1]) >= NETWORK_ATTENTION_FLOOR
-    );
-  });
-  const networkFailureRowsB = networkAnswerB.rows.filter((line) => {
-    const match = NETWORK_STATUS_PATTERN.exec(line);
-    return (
-      match?.[1] === undefined || match[1] === 'null' || Number(match[1]) >= NETWORK_ATTENTION_FLOOR
-    );
-  });
+  const networkFailureRowsA = networkAnswerA.rows.filter((line) =>
+    isNetworkLineFailedGuard({ line }),
+  );
+  const networkFailureRowsB = networkAnswerB.rows.filter((line) =>
+    isNetworkLineFailedGuard({ line }),
+  );
 
   return compareAnswerContract.parse({
     instanceId,
