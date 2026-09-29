@@ -2,6 +2,7 @@ import * as questListBrokerModule from '../../brokers/quest/list/quest-list-brok
 
 import type { QuestListItemStub, SkippedQuestFileStub } from '@dungeonmaster/shared/contracts';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questListBrokerProxy } from '../../brokers/quest/list/quest-list-broker.proxy';
@@ -41,7 +42,7 @@ export const useQuestsBindingProxy = (): {
   // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
   // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
   const consoleErrorHandle = registerSpyOn({
-    object: globalThis.console,
+    object: console,
     method: 'error',
     passthrough: true,
   });

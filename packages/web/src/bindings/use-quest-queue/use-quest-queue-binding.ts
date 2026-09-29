@@ -7,7 +7,9 @@
  * // errorEntry = head only if head has `error` set, else undefined
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
@@ -28,7 +30,7 @@ export const useQuestQueueBinding = (): {
       const entries = await questQueueBroker();
       setAllEntries(entries);
     } catch (error: unknown) {
-      globalThis.console.error('[use-quest-queue]', error);
+      console.error('[use-quest-queue]', error);
     } finally {
       setIsLoading(false);
     }
@@ -36,12 +38,12 @@ export const useQuestQueueBinding = (): {
 
   useEffect(() => {
     refresh().catch((error: unknown) => {
-      globalThis.console.error('[use-quest-queue]', error);
+      console.error('[use-quest-queue]', error);
     });
 
     const subscription = webSocketChannelState.executionQueueChanged$().subscribe(() => {
       refresh().catch((error: unknown) => {
-        globalThis.console.error('[use-quest-queue]', error);
+        console.error('[use-quest-queue]', error);
       });
     });
 

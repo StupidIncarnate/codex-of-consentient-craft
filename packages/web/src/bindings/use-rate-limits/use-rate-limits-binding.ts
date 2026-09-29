@@ -6,7 +6,9 @@
  * // snapshot = RateLimitsSnapshot | null. Null until first read or when statusline-tap hasn't run yet.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 
@@ -25,7 +27,7 @@ export const useRateLimitsBinding = (): {
       const next = await rateLimitsGetBroker();
       setSnapshot(next);
     } catch (error: unknown) {
-      globalThis.console.error('[use-rate-limits]', error);
+      console.error('[use-rate-limits]', error);
     } finally {
       setIsLoading(false);
     }
@@ -33,12 +35,12 @@ export const useRateLimitsBinding = (): {
 
   useEffect(() => {
     refresh().catch((error: unknown) => {
-      globalThis.console.error('[use-rate-limits]', error);
+      console.error('[use-rate-limits]', error);
     });
 
     const subscription = webSocketChannelState.rateLimitsChanged$().subscribe(() => {
       refresh().catch((error: unknown) => {
-        globalThis.console.error('[use-rate-limits]', error);
+        console.error('[use-rate-limits]', error);
       });
     });
 

@@ -8,7 +8,9 @@
  * `skipped` is its own field rather than an `error`: the request succeeds with a 200, so `error`
  * never fires for a dropped quest file. A consumer renders the list and the omission together.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { GuildId, QuestListItem, SkippedQuestFile } from '@dungeonmaster/shared/contracts';
 
@@ -54,7 +56,7 @@ export const useQuestsBinding = ({
 
   useEffect(() => {
     fetchQuests().catch((catchError: unknown) => {
-      globalThis.console.error('[use-quests]', catchError);
+      console.error('[use-quests]', catchError);
     });
   }, [fetchQuests]);
 

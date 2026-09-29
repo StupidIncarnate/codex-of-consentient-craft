@@ -6,6 +6,7 @@ import {
   QuestSummaryTrackCountsStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { setTimeout } from '#gateway/browser/setTimeout';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestSummaryBinding } from './use-quest-summary-binding';
 import { useQuestSummaryBindingProxy } from './use-quest-summary-binding.proxy';

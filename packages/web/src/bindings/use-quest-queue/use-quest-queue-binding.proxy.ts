@@ -1,3 +1,4 @@
+import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questQueueBrokerProxy } from '../../brokers/quest/queue/quest-queue-broker.proxy';
@@ -13,7 +14,7 @@ export const useQuestQueueBindingProxy = (): ReturnType<typeof questQueueBrokerP
   // composing this binding without staging a queue response would otherwise throw here.
   // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
   // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
-  registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
+  registerSpyOn({ object: console, method: 'error', passthrough: true })
     .calledWith(['[use-quest-queue]'])
     .returns(undefined);
 

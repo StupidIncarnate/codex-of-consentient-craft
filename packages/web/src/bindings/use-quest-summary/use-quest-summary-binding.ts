@@ -16,7 +16,9 @@
  * client SUBSCRIBED TO THAT QUEST, and `webSocketChannelState` routes it to `questUpdated$`.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { QuestId, QuestSummary } from '@dungeonmaster/shared/contracts';
 
@@ -58,7 +60,7 @@ export const useQuestSummaryBinding = ({
 
   useEffect(() => {
     refresh().catch((catchError: unknown) => {
-      globalThis.console.error('[use-quest-summary]', catchError);
+      console.error('[use-quest-summary]', catchError);
     });
 
     // Filtered on the quest id: one browser tab holds one shared socket, and a `quest-modified` for
@@ -68,7 +70,7 @@ export const useQuestSummaryBinding = ({
       .pipe(filter((quest) => quest.id === questId))
       .subscribe((): void => {
         refresh().catch((catchError: unknown) => {
-          globalThis.console.error('[use-quest-summary]', catchError);
+          console.error('[use-quest-summary]', catchError);
         });
       });
 

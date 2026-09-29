@@ -4,6 +4,7 @@ import {
   SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { console } from '#gateway/browser/console';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useQuestsBinding } from './use-quests-binding';
@@ -157,7 +158,7 @@ describe('useQuestsBinding', () => {
 
       act(() => {
         refresh().catch((error: unknown) => {
-          globalThis.console.error('[test] refresh failed', error);
+          console.error('[test] refresh failed', error);
         });
       });
 
@@ -197,7 +198,7 @@ describe('useQuestsBinding', () => {
 
       act(() => {
         refresh().catch((error: unknown) => {
-          globalThis.console.error('[test] refresh failed', error);
+          console.error('[test] refresh failed', error);
         });
       });
 
@@ -234,7 +235,7 @@ describe('useQuestsBinding', () => {
 
       act(() => {
         refresh().catch((error: unknown) => {
-          globalThis.console.error('[test] refresh failed', error);
+          console.error('[test] refresh failed', error);
         });
       });
 
