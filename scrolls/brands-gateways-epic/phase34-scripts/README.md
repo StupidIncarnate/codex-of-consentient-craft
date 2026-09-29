@@ -46,6 +46,8 @@ printing only the diagnostics the overlay added.
 | `t05-recorded-failures/run.cjs [pkg ...] [--sample-out=d] [apply]` | T05 (SD11) | A code-carrying hand-made error (`Object.assign(new Error(..), { code })`) staged on a proxy becomes the `@gateway/node` proxy's named recorded failure, or `FileMissingErrorStub` / `FsErrorStub`, with the import; gated per file by the type check. Recorded stubs change the message text, so run unit tests. | 24 of 33 in 6 packages (2026-09-29). `leftovers.txt`: 9 errors handed to the code under test. |
 | `sd1-retype-residue/pipeline.cjs [--work=d] [--narrow]` (steps: `run`, `residue`, `tests`, `malformed`, `leftovers`) | SD1, for L2 | The residue `feasibility/b04/` leaves, on copies only: after the retype, a field read that fails on a union gets its `AST_NODE_TYPES` (or `in`) check, placed as an `&&` guard where the loose copy's undefined read was falsy and as `(check ? x.f : undefined)` elsewhere; `const { a } = x` splits per field; a read of a field no member has drops its `?? x.dead`; `Set<Identifier>`/`Map<Identifier,_>` of the name brand becomes `string`; dead conditions (`!a`, `a && b`, `x === undefined`, `if (!a) return`, `?.`, `??`) go, with constant folding; 771 of 916 `TsestreeStub` trees print (helper builders, `.map`, spreads, plain-object nodes, template literals, JSX, classes, `parent` chains by slot search) and 381 `EslintContextStub` swap; 75 malformed trees go to a deletion list | Re-measured 2026-09-29: 226 type errors in 90 files to 39 in 28; 218 unprinted trees to 59 by hand plus 75 on the deletion list; 101 lint-shaped dead conditions (eslint-plugin) to 8 | `sd1-retype-residue/hand-queue.md` (98 entries in 56 files: the 39 errors, the 59 trees); `sd1-retype-residue/malformed-tests-deletion-list.md` (74 tests, 65 delete whole, 9 edit); the 59 partly converted test files still hold `Tsestree` tokens beside real nodes and carry hybrid type errors until their hand edits finish |
 
+| `b18-adapter-result/run.cjs [--pkgs=..] [--sample-out=d] [--leftovers=f]` (SD10, 2026-09-29; grows `feasibility/b18/`) | B18 split (b) | Every `AdapterResult` / `{ success: true }` function becomes void with its constant returns, callers, forwarders, function types it flows into and callback-typed wrappers; tests and proxies follow the typechecker (`.toBeUndefined()` where the subject is void now, `undefined` where a mock is rejected by a converted signature). Cross-package links resolved by rounds | 172 functions (was 156: derived and anonymous ones included), **161 convert** in 213 files, 175 discarding callers and 50 forwarders, 11 function types retyped, 168 assertions and 4 mocks rewritten; 213 of 213 rewritten files add no diagnostic, 1 diagnostic left (a stub) | `b18-adapter-result/leftovers.json`: 11 functions (cli's dynamic-module chain 4 plus `CliSiegelenseResponder`; the `guildRemove*` chain across hydration-recipes and orchestrator; `driverHeartbeatTickBroker`), the stub and proxy files that assign the constant, 19 files whose comments name `AdapterResult`, 51 `{ success: true }` asserts on subjects that are not void (other contracts, left alone) |
+
 ## Proofs on a copy
 
 The `sample-out/` folders hold `.ts` and `.test.ts` copies laid out as repo paths; delete them
@@ -95,7 +97,7 @@ Each rewrite script was run with `--sample-out` and its output checked with `lib
 | B12, B13 autofixes | neither rule exists yet under `packages/eslint-plugin/src/brokers/rule/` | Built as eslint autofixes by design; ward's lint `--fix` applies them |
 | B14, B16 | judgement per item | each flagged shape needs a new contract or an owner decision |
 | B17 remainder | F53: 8 violations | hand fixes |
-| B18 split (b) | 9 `return { success: true }` in 8 production files | hand fixes |
+| B18 split (b) leftovers | 11 functions, 3 stubs, 4 proxies, 19 comment-only files | see `b18-adapter-result/leftovers.json`; each next pattern is under about 20 edits |
 | B15 `z.unknown()`/`z.any()` in contracts | 128 in 88 files | each needs a replacement contract chosen |
 | B15 dropping a brand's TYPE and its production `.parse` | — | a per-file gate cannot see what an exported signature change does to the rest of the package, and removing a parse drops a runtime check; the test-side half is `b15-stub-unwrap` |
 
@@ -116,6 +118,13 @@ Each rewrite script was run with `--sample-out` and its output checked with `lib
   A test can still change meaning: an assertion that compared a stub's branded value now compares a
   literal, and a cast that silenced an `any` flow is gone. Run the package's unit tests, not only
   typecheck.
+- `b18-adapter-result` proves types, not behaviour. A caller that read the value into a variable and branched on it is left to
+  hand (`caller uses the value`), but a caller it could not see (a dynamic `import()`, a function reached through `any`, a
+  mock built from an untyped `jest.fn()`) keeps compiling and may now assert or branch on `undefined`; a converted
+  function's untyped mock still resolving `{ success: true }` passes silently. Deleting `const ok = ...` aliases assumes
+  every use is a `return`. Test rewrites decide by the subject's type after conversion, so an `expect` on a variable
+  whose type the checker cannot resolve stays as it was (listed under `testLeft`). Comments that name `AdapterResult`
+  are not touched. Run each converted package's unit tests, not only typecheck.
 - `b15-rename` renames symbols, not text: a brand string, a snapshot, a fixture string or a doc naming
   the old identifier keeps the old name (`out/leftovers.txt` lists the same-text hits).
 - `b17-json-parse` moves a parse without moving its meaning only for the single-use and multi-parse rewrites. The

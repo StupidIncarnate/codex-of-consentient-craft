@@ -1,0 +1,388 @@
+{
+ "blocked": [
+  {
+   "pkg": "cli",
+   "file": "packages/cli/src/flows/cli/cli-flow.ts",
+   "name": "CliFlow",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "cli",
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.ts",
+   "name": "CliCreatePackageResponder",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "cli",
+   "file": "packages/cli/src/responders/cli/siegelense/cli-siegelense-responder.ts",
+   "name": "CliSiegelenseResponder",
+   "reason": "return adapterResultContract.parse(result)"
+  },
+  {
+   "pkg": "cli",
+   "file": "packages/cli/src/startup/start-cli.ts",
+   "name": "StartCli",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "hydration-recipes",
+   "file": "packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.ts",
+   "name": "guildRemoveRouteBroker",
+   "reason": "linked to packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.ts#guildRemoveBroker which cannot convert"
+  },
+  {
+   "pkg": "orchestrator",
+   "file": "packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.ts",
+   "name": "guildRemoveBroker",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "orchestrator",
+   "file": "packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.ts",
+   "name": "questDeleteBroker",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "orchestrator",
+   "file": "packages/orchestrator/src/flows/guild/guild-flow.ts",
+   "name": "anon:packages/orchestrator/src/flows/guild/guild-flow.ts:39",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "orchestrator",
+   "file": "packages/orchestrator/src/responders/guild/remove/guild-remove-responder.ts",
+   "name": "GuildRemoveResponder",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "orchestrator",
+   "file": "packages/orchestrator/src/startup/start-orchestrator.ts",
+   "name": "anon:packages/orchestrator/src/startup/start-orchestrator.ts:121",
+   "reason": "linked to another package that cannot convert"
+  },
+  {
+   "pkg": "siegelense",
+   "file": "packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.ts",
+   "name": "driverHeartbeatTickBroker",
+   "reason": "caller uses the value: firstBeat = driverHeartbeatTickBroker({ instanceId, guildId,"
+  }
+ ],
+ "slotsBlocked": [
+  {
+   "pkg": "hydration-recipes",
+   "name": "<slot packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.ts:35>",
+   "reason": "linked to another package that cannot convert"
+  }
+ ],
+ "testLeft": [
+  {
+   "file": "packages/cli/src/contracts/siegelense-module/siegelense-module-contract.test.ts",
+   "line": 18,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/contracts/start-server-module/start-server-module-contract.test.ts",
+   "line": 18,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts",
+   "line": 39,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts",
+   "line": 87,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts",
+   "line": 132,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts",
+   "line": 178,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts",
+   "line": 356,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.test.ts",
+   "line": 17,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.test.ts",
+   "line": 41,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.test.ts",
+   "line": 57,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/mcp/src/contracts/get-quest-status-result/get-quest-status-result-contract.test.ts",
+   "line": 11,
+   "why": "expect subject is not void",
+   "text": "expect(parsed).toStrictEqual({\n        success: true,\n      })"
+  },
+  {
+   "file": "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts",
+   "line": 652,
+   "why": "expect subject is not void",
+   "text": "expect(actual).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts",
+   "line": 713,
+   "why": "expect subject is not void",
+   "text": "expect(actual).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/mcp/src/flows/mcp-server/mcp-server-flow.integration.test.ts",
+   "line": 781,
+   "why": "expect subject is not void",
+   "text": "expect(actual).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.test.ts",
+   "line": 22,
+   "why": "expect subject is not void",
+   "text": "expect(guildRemoveBroker({ guildId })).resolves.toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/guild/remove/guild-remove-broker.test.ts",
+   "line": 43,
+   "why": "expect subject is not void",
+   "text": "expect(guildRemoveBroker({ guildId })).resolves.toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.test.ts",
+   "line": 20,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.test.ts",
+   "line": 39,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 810,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 835,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 875,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 912,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1154,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1197,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1234,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1273,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1319,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1358,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 1400,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 2840,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 2976,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 3077,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 3140,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 3268,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.test.ts",
+   "line": 3335,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/modify-or-throw/quest-modify-or-throw-broker.test.ts",
+   "line": 13,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/work-item-insert/quest-work-item-insert-broker.test.ts",
+   "line": 35,
+   "why": "expect subject is not void",
+   "text": "expect(\n        questWorkItemInsertBroker({\n          questId: QuestIdStub({ value: 'test-"
+  },
+  {
+   "file": "packages/orchestrator/src/brokers/quest/work-item-insert/quest-work-item-insert-broker.test.ts",
+   "line": 110,
+   "why": "expect subject is not void",
+   "text": "expect(\n        questWorkItemInsertBroker({\n          questId: QuestIdStub({ value: 'test-"
+  },
+  {
+   "file": "packages/orchestrator/src/responders/guild/remove/guild-remove-responder.test.ts",
+   "line": 16,
+   "why": "expect subject is not void",
+   "text": "expect(proxy.callResponder({ guildId })).resolves.toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/orchestrator/src/transformers/content-item-agent-id-set-at-index/content-item-agent-id-set-at-index-transformer.test.ts",
+   "line": 19,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/shared/src/contracts/adapter-result/adapter-result-contract.test.ts",
+   "line": 9,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/shared/src/contracts/add-quest-result/add-quest-result-contract.test.ts",
+   "line": 38,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({\n      success: true,\n    })"
+  },
+  {
+   "file": "packages/shared/src/contracts/modify-quest-result/modify-quest-result-contract.test.ts",
+   "line": 13,
+   "why": "expect subject is not void",
+   "text": "expect(parsed).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.test.ts",
+   "line": 36,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.test.ts",
+   "line": 114,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts",
+   "line": 517,
+   "why": "expect subject is not void",
+   "text": "expect(logKindResult).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts",
+   "line": 540,
+   "why": "expect subject is not void",
+   "text": "expect(shotKindResult).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts",
+   "line": 561,
+   "why": "expect subject is not void",
+   "text": "expect(transcriptKindResult).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts",
+   "line": 582,
+   "why": "expect subject is not void",
+   "text": "expect(videoKindResult).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/siegelense/src/flows/siegelense/siegelense-prune-layer-flow.integration.test.ts",
+   "line": 605,
+   "why": "expect subject is not void",
+   "text": "expect(videoDefaultWindowResult).toStrictEqual({ success: true })"
+  },
+  {
+   "file": "packages/web/src/contracts/quest-modify-response/quest-modify-response-contract.test.ts",
+   "line": 11,
+   "why": "expect subject is not void",
+   "text": "expect(result).toStrictEqual({\n        success: true,\n      })"
+  }
+ ],
+ "diagnostics": [
+  "packages/orchestrator/src/contracts/node-dispatch-runner/node-dispatch-runner.stub.ts:10 TS2322: Type 'Promise<{ success: true; }>' is not assignable to type 'Promise<void>'.   Type '{ success: true; }' is not assignable"
+ ]
+}
