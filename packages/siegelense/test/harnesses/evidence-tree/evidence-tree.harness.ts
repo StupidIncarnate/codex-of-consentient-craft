@@ -196,6 +196,7 @@ export const evidenceTreeHarness = (): {
   serverInsideWindowRow: () => ContentText;
   serverOutsideWindowRow: () => ContentText;
   serverRun2ErrorRows: () => readonly ContentText[];
+  serverLogAllRows: () => readonly ContentText[];
   networkRun1NonSuccessRows: () => readonly ContentText[];
   networkRun2NonSuccessRows: () => readonly ContentText[];
   // Read-path calls. `flows/` (and its colocated .integration.test.ts) may not import
@@ -674,6 +675,12 @@ export const evidenceTreeHarness = (): {
     serverInsideWindowRow: () => SERVER_LINE_STEP2,
     serverOutsideWindowRow: () => SERVER_LINE_STEP3,
     serverRun2ErrorRows: () => [SERVER_LINE_RUN2],
+    serverLogAllRows: () => [
+      SERVER_LINE_STEP1,
+      SERVER_LINE_STEP2,
+      SERVER_LINE_STEP3,
+      SERVER_LINE_RUN2,
+    ],
     networkRun1NonSuccessRows: () => [NETWORK_RUN1_BAD],
     networkRun2NonSuccessRows: () => [NETWORK_RUN2_BAD_A, NETWORK_RUN2_BAD_B],
     readResults: async ({ query }: { query: ResultsQuery }): Promise<ResultsAnswer> =>

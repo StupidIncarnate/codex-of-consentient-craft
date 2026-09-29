@@ -14,7 +14,7 @@
  * // Returns ['console', 'network', 'ws', 'server', 'screenshots', 'steps']
  *
  * resultsStatics.kinds.sinceBootEligible;
- * // Returns ['console', 'network', 'ws'] — the only kinds a `since: 'boot'` read can answer
+ * // Returns ['console', 'network', 'ws', 'server'] — the only kinds a `since: 'boot'` read can answer
  *
  * new RegExp(resultsStatics.patterns.consoleError.source, resultsStatics.patterns.consoleError.flags)
  *   .test('{"at":1,"kind":"console","type":"error", ...}');
@@ -25,11 +25,11 @@ export const resultsStatics = {
   kinds: {
     // siegelense-tooling.md line 2593-2594's own order.
     all: ['console', 'network', 'ws', 'server', 'screenshots', 'steps'],
-    // console.jsonl/network.jsonl/ws.jsonl are the only per-instance files that hold every run's
-    // lines end to end (siegelense-tooling.md:122-124's own `kind`+`since: 'boot'` pairing) —
-    // server/screenshots/steps each resolve through ONE run's transcript, so there is no
+    // console.jsonl/network.jsonl/ws.jsonl and api-server.log are the per-instance files that hold
+    // every run's lines end to end (siegelense-tooling.md:122-124's own `kind`+`since: 'boot'`
+    // pairing) — screenshots/steps each resolve through ONE run's transcript, so there is no
     // "whole timeline" a boot-wide read can answer for them.
-    sinceBootEligible: ['console', 'network', 'ws'],
+    sinceBootEligible: ['console', 'network', 'ws', 'server'],
   },
   since: {
     boot: 'boot',

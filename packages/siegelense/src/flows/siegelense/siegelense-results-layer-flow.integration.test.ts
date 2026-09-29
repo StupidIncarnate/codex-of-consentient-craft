@@ -484,6 +484,44 @@ describe('SiegelenseResultsLayerFlow', () => {
     });
   });
 
+  describe('the --since boot flag, kind server', () => {
+    it('VALID: {callArgs: [..., --since, boot, --kind, server, --json]} => every api-server.log line across both runs', async () => {
+      const expectedAnswer = await tree.readResults({
+        query: ResultsQueryStub({
+          instanceId: tree.killedInstanceId(),
+          kind: 'server',
+          since: 'boot',
+        }),
+      });
+
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseResultsLayerFlow({
+        callArgs: [
+          '--instance',
+          tree.killedInstanceId(),
+          '--since',
+          'boot',
+          '--kind',
+          'server',
+          '--json',
+        ],
+      });
+
+      process.stdout.write = originalWrite;
+
+      const [wholeOutput] = writes;
+
+      expect(JSON.parse(wholeOutput!)).toStrictEqual(expectedAnswer);
+      expect(expectedAnswer.rows).toStrictEqual(tree.serverLogAllRows());
+    });
+  });
+
   describe('the --kind flag: server, exercised again through --where-level', () => {
     it('VALID: {callArgs: [..., --kind, server, --where-level, error, --json]} => both server error lines in the run', async () => {
       const expectedAnswer = await tree.readResults({
@@ -635,9 +673,9 @@ describe('SiegelenseResultsLayerFlow', () => {
       ).rejects.toThrow(
         new RegExp(
           `^results against instance ${tree.killedInstanceId()} with since: 'boot' and no kind ` +
-            `cannot answer: boot spans every run, and only console, network, ws hold lines for the ` +
-            `whole timeline\\. Name one with --kind <kind>, or drop --since boot to read a single ` +
-            `run's steps, server or screenshots\\.$`,
+            `cannot answer: boot spans every run, and only console, network, ws, server hold lines ` +
+            `for the whole timeline\\. Name one with --kind <kind>, or drop --since boot to read a ` +
+            `single run's steps or screenshots\\.$`,
           'u',
         ),
       );

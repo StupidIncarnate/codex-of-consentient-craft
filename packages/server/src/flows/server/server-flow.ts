@@ -11,6 +11,7 @@ import { Hono } from 'hono';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
+import { RequestLogFlow } from '../request-log/request-log-flow';
 
 export const ServerFlow = ({
   subApps,
@@ -20,6 +21,8 @@ export const ServerFlow = ({
   serveWebBundle?: boolean;
 }): AdapterResult => {
   const app = new Hono();
+
+  app.route('', RequestLogFlow());
 
   for (const sub of subApps) {
     app.route('', sub);

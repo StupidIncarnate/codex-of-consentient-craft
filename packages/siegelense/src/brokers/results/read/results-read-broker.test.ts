@@ -438,6 +438,69 @@ describe('resultsReadBroker', () => {
     expect(result.rows).toStrictEqual([wsText]);
   });
 
+  it('VALID: {kind: server, since: boot} => every api-server.log line, boot lines outside any step window included', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_5.jsonl', 'run_5.json'] });
+    proxy.setupServerLog({
+      evidencePath,
+      content:
+        'Server listening on http://dungeonmaster.localhost:39887\n' +
+        '[http] info GET /api/guilds 200 3ms\n' +
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}\n',
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, kind: 'server', since: 'boot' }),
+    });
+
+    expect({
+      runId: result.runId,
+      kind: result.kind,
+      matched: result.matched,
+      rows: result.rows,
+    }).toStrictEqual({
+      runId: null,
+      kind: 'server',
+      matched: 3,
+      rows: [
+        'Server listening on http://dungeonmaster.localhost:39887',
+        '[http] info GET /api/guilds 200 3ms',
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}',
+      ],
+    });
+  });
+
+  it('VALID: {kind: server, since: boot, where: {level: error}} => only the error lines of the whole log', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_5.jsonl', 'run_5.json'] });
+    proxy.setupServerLog({
+      evidencePath,
+      content:
+        'Server listening on http://dungeonmaster.localhost:39887\n' +
+        '[http] info GET /api/guilds 200 3ms\n' +
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}\n',
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        kind: 'server',
+        since: 'boot',
+        where: ResultWhereStub({ level: 'error' }),
+      }),
+    });
+
+    expect(result.rows).toStrictEqual([
+      '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}',
+    ]);
+  });
+
   it('VALID: {kind: console, since: boot} => entries from run_1 AND run_2 AND the untagged between-runs entry', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
@@ -600,7 +663,7 @@ describe('resultsReadBroker', () => {
     await expect(
       resultsReadBroker({ query: ResultsQueryStub({ instanceId: INSTANCE_ID, since: 'boot' }) }),
     ).rejects.toThrow(
-      /^results against instance inst_7f3a9c21 with since: 'boot' and no kind cannot answer: boot spans every run, and only console, network, ws hold lines for the whole timeline\. Name one with --kind <kind>, or drop --since boot to read a single run's steps, server or screenshots\.$/u,
+      /^results against instance inst_7f3a9c21 with since: 'boot' and no kind cannot answer: boot spans every run, and only console, network, ws, server hold lines for the whole timeline\. Name one with --kind <kind>, or drop --since boot to read a single run's steps or screenshots\.$/u,
     );
   });
 

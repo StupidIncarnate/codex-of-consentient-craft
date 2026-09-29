@@ -13,8 +13,13 @@ describe('resultsStatics', () => {
       ]);
     });
 
-    it('VALID: {kinds.sinceBootEligible} => is exactly the three buffer kinds a boot-wide read can answer', () => {
-      expect(resultsStatics.kinds.sinceBootEligible).toStrictEqual(['console', 'network', 'ws']);
+    it('VALID: {kinds.sinceBootEligible} => is exactly the three buffer kinds plus the server log, the kinds a boot-wide read can answer', () => {
+      expect(resultsStatics.kinds.sinceBootEligible).toStrictEqual([
+        'console',
+        'network',
+        'ws',
+        'server',
+      ]);
     });
   });
 

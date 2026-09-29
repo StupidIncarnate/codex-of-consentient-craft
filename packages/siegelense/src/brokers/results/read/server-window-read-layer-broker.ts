@@ -8,13 +8,15 @@
  * `resultsStatics.patterns.serverError` — the SAME pattern `runIndexComputeTransformer` classifies a
  * server line with; `'warn'`/`'info'` have no server-log classification in this codebase and pass
  * every line through unfiltered. A target step with no matching window (an out-of-range `step`)
- * answers `[]` rather than falling back to the whole log.
+ * answers `[]` rather than falling back to the whole log. `sinceBoot: true` ignores the windows and
+ * reads the WHOLE log — `api-server.log` is one file per instance, spanning every run from the
+ * server's first boot line on, so it is the one server read `since: 'boot'` can answer.
  *
  * USAGE:
  * await serverWindowReadLayerBroker({
  *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../inst_1' }),
  *   readings: [StepReadingStub({ step: 7, serverWindow: { fromByte: 900, toByte: 1400 } })],
- *   step: null, where: ResultWhereStub({ steps: '6-8', level: 'error' }),
+ *   step: null, where: ResultWhereStub({ steps: '6-8', level: 'error' }), sinceBoot: false,
  * });
  * // Returns the error lines inside the byte windows of steps 6 through 8
  */
@@ -37,11 +39,13 @@ export const serverWindowReadLayerBroker = async ({
   readings,
   step,
   where,
+  sinceBoot,
 }: {
   evidencePath: AbsoluteFilePath;
   readings: readonly StepReading[];
   step: StepIndex | null;
   where: ResultWhere | null;
+  sinceBoot: boolean;
 }): Promise<readonly ContentText[]> => {
   const stepRange = where?.steps ?? null;
 
@@ -56,12 +60,9 @@ export const serverWindowReadLayerBroker = async ({
     .filter((reading) => targetSteps.includes(reading.step))
     .map((reading) => reading.serverWindow);
 
-  if (targetWindows.length === 0) {
+  if (!sinceBoot && targetWindows.length === 0) {
     return [];
   }
-
-  const fromByte = Math.min(...targetWindows.map((window) => window.fromByte));
-  const toByte = Math.max(...targetWindows.map((window) => window.toByte));
 
   const logPath = absoluteFilePathContract.parse(
     pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.apiLog] }),
@@ -88,7 +89,14 @@ export const serverWindowReadLayerBroker = async ({
     return [];
   }
 
-  const sliced = Buffer.from(content, 'utf8').subarray(fromByte, toByte).toString('utf8');
+  const sliced = sinceBoot
+    ? content
+    : Buffer.from(content, 'utf8')
+        .subarray(
+          Math.min(...targetWindows.map((window) => window.fromByte)),
+          Math.max(...targetWindows.map((window) => window.toByte)),
+        )
+        .toString('utf8');
   const lines = sliced
     .split('\n')
     .filter((line) => line.length > 0)
