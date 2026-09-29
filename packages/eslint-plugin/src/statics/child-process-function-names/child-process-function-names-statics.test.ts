@@ -11,6 +11,7 @@ describe('childProcessFunctionNamesStatics', () => {
         'spawnDetached',
         'spawnLongLived',
         'spawnLive',
+        'spawnPiped',
         'runFireAndForget',
       ],
       rawFunctionNames: ['spawn', 'exec', 'execSync', 'execFile', 'execFileSync', 'spawnSync'],

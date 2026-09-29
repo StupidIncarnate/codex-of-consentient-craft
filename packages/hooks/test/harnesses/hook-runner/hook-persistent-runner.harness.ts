@@ -19,9 +19,12 @@
  * const result = await runner.runHook({ hookData: someData });
  * // result.exitCode, result.stdout, result.stderr
  */
-import * as path from 'path';
-import { spawn, type ChildProcess } from 'child_process';
-import * as readline from 'readline';
+import { spawnPiped } from '#gateway/node/child_process';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { join, resolve } from '#gateway/node/path';
+import { envSnapshot } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { tsxCliPath } from '#gateway/npm/tsx';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -40,7 +43,10 @@ type HookName =
   | 'start-agy-pre-tool-hook'
   | 'start-agy-stop-hook';
 
-const WORKER_PATH = path.join(__dirname, 'hook-persistent-worker.ts');
+const PACKAGE_DIR = resolve(__dirname, '../../..');
+const WORKER_PATH = join(__dirname, 'hook-persistent-worker.ts');
+const STARTUP_TIMEOUT_MS = 30000;
+const STOP_TIMEOUT_MS = 5000;
 
 export const hookPersistentRunnerHarness = (): {
   start: (params: { hookName: HookName; warmupHookData?: unknown }) => Promise<void>;
@@ -54,22 +60,24 @@ export const hookPersistentRunnerHarness = (): {
     args?: readonly string[];
   }) => Promise<ReturnType<typeof ExecResultStub>>;
 } => {
-  let child: ChildProcess | null = null;
-  let rl: readline.Interface | null = null;
-  let responseQueue: {
-    resolve: (value: ReturnType<typeof ExecResultStub>) => void;
-    reject: (error: Error) => void;
-  }[] = [];
+  const state: { child: ReturnType<typeof spawnPiped> | null } = { child: null };
+  const exitState: { exited: boolean; waiters: (() => void)[] } = { exited: false, waiters: [] };
+  const queueState: {
+    responseQueue: {
+      resolve: (value: ReturnType<typeof ExecResultStub>) => void;
+      reject: (error: Error) => void;
+    }[];
+  } = { responseQueue: [] };
 
   const resolveFlowPath = ({ hookName }: { hookName: HookName }): FilePath => {
     const flowName = hookName.replace('start-', 'hook-').replace(/-hook$/u, '');
     return FilePathStub({
-      value: path.join(process.cwd(), 'src', 'flows', flowName, `${flowName}-flow`),
+      value: join(PACKAGE_DIR, 'src', 'flows', flowName, `${flowName}-flow`),
     });
   };
 
   const handleResponse = (line: string): void => {
-    const pending = responseQueue.shift();
+    const pending = queueState.responseQueue.shift();
     if (pending) {
       try {
         const parsed: unknown = JSON.parse(line);
@@ -85,13 +93,14 @@ export const hookPersistentRunnerHarness = (): {
     rawInput?: string;
     args?: readonly string[];
   }): Promise<ReturnType<typeof ExecResultStub>> => {
+    const { child } = state;
     if (!child) {
       throw new Error('Worker not started. Call start() first.');
     }
 
-    return new Promise((resolve, reject) => {
-      responseQueue.push({ resolve, reject });
-      child!.stdin!.write(`${JSON.stringify(envelope)}\n`);
+    return new Promise((resolvePending, rejectPending) => {
+      queueState.responseQueue.push({ resolve: resolvePending, reject: rejectPending });
+      child.writeLine(JSON.stringify(envelope));
     });
   };
 
@@ -108,53 +117,59 @@ export const hookPersistentRunnerHarness = (): {
     // jest.config.base.js) so this worker child — and the flow module it dynamically imports —
     // resolves `@dungeonmaster/*` imports to the same TypeScript source jest runs in-process,
     // not whatever `dist/` was last built.
-    child = spawn('npx', ['tsx', '--conditions=source', WORKER_PATH, String(flowPath)], {
-      cwd: process.cwd(),
-      stdio: ['pipe', 'pipe', 'pipe'],
+    const child = spawnPiped({
+      command: 'node',
+      args: [tsxCliPath(), '--conditions=source', WORKER_PATH, String(flowPath)],
+      cwd: PACKAGE_DIR,
       // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
       // ESLint-ignored paths so violation detection is still exercised.
-      env: { ...process.env, DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
+      env: { ...envSnapshot(), DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS: 'true' },
     });
+    state.child = child;
+    exitState.exited = false;
 
-    rl = readline.createInterface({
-      input: child.stdout!,
-      terminal: false,
+    const readyState: { ready: boolean; stderr: ReturnType<typeof ExecResultStub>['stderr'] } = {
+      ready: false,
+      stderr: ExecResultStub({ stderr: '' }).stderr,
+    };
+    child.onStderrLine((line) => {
+      readyState.stderr = ExecResultStub({ stderr: `${readyState.stderr}${line}\n` }).stderr;
+    });
+    child.onExit(() => {
+      exitState.exited = true;
+      for (const waiter of exitState.waiters) {
+        waiter();
+      }
+      exitState.waiters = [];
     });
 
     // Wait for READY signal
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolveReady, rejectReady) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Worker startup timeout (30s)'));
-      }, 30000);
+        rejectReady(new Error('Worker startup timeout (30s)'));
+      }, STARTUP_TIMEOUT_MS);
 
-      const onLine = (line: string): void => {
+      child.onStdoutLine((line) => {
+        if (readyState.ready) {
+          handleResponse(line);
+          return;
+        }
         if (line === 'READY') {
           clearTimeout(timeout);
-          // Switch to normal response handling
-          rl!.removeListener('line', onLine);
-          rl!.on('line', handleResponse);
-          resolve();
+          readyState.ready = true;
+          resolveReady();
         }
-      };
+      });
 
-      child!.on('error', (err: Error) => {
+      child.onExit(({ code, error }) => {
+        if (readyState.ready) {
+          return;
+        }
         clearTimeout(timeout);
-        reject(err);
+        rejectReady(
+          error ?? new Error(`Worker exited with code ${String(code)}: ${readyState.stderr}`),
+        );
       });
-
-      let stderrOutput = '';
-      child!.stderr!.on('data', (chunk: Buffer) => {
-        stderrOutput += chunk.toString();
-      });
-
-      child!.on('close', (code: number | null) => {
-        if (code !== null && code !== 0) {
-          clearTimeout(timeout);
-          reject(new Error(`Worker exited with code ${String(code)}: ${stderrOutput}`));
-        }
-      });
-
-      rl!.on('line', onLine);
     });
 
     if (warmupHookData !== undefined) {
@@ -163,28 +178,27 @@ export const hookPersistentRunnerHarness = (): {
   };
 
   const stop = async (): Promise<void> => {
-    const currentChild = child;
-    const currentRl = rl;
+    const currentChild = state.child;
 
-    child = null;
-    rl = null;
-    responseQueue = [];
+    state.child = null;
+    queueState.responseQueue = [];
 
     if (currentChild) {
-      currentChild.stdin!.end();
-      await new Promise<void>((resolve) => {
+      currentChild.endStdin();
+      await new Promise<void>((resolveStop) => {
+        if (exitState.exited) {
+          resolveStop();
+          return;
+        }
         const killTimeout = setTimeout(() => {
           currentChild.kill();
-          resolve();
-        }, 5000);
-        currentChild.on('close', () => {
+          resolveStop();
+        }, STOP_TIMEOUT_MS);
+        exitState.waiters.push(() => {
           clearTimeout(killTimeout);
-          resolve();
+          resolveStop();
         });
       });
-    }
-    if (currentRl) {
-      currentRl.close();
     }
   };
 
