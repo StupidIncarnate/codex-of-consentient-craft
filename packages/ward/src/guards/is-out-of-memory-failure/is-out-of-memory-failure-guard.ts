@@ -30,7 +30,7 @@ export const isOutOfMemoryFailureGuard = ({ rawOutput }: { rawOutput?: RawOutput
     outOfMemoryStatics.output.banner,
   );
   const aborted = Number(rawOutput.exitCode) === outOfMemoryStatics.exitCodes.abort;
-  const signal = String(rawOutput.signal ?? '');
+  const signal = rawOutput.signal ?? '';
   const killed =
     signal === outOfMemoryStatics.signals.kill || signal === outOfMemoryStatics.signals.abort;
 

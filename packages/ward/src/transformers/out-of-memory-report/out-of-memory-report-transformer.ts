@@ -25,7 +25,7 @@ export const outOfMemoryReportTransformer = ({
   projectFolder: ProjectFolder;
   rawOutput: RawOutput;
 }): OutOfMemoryReport => {
-  const signal = String(rawOutput.signal ?? '');
+  const signal = rawOutput.signal ?? '';
   const died = signal === '' ? `exit ${String(rawOutput.exitCode)}` : signal;
 
   const printedBanner = `${String(rawOutput.stdout)}${String(rawOutput.stderr)}`.includes(
