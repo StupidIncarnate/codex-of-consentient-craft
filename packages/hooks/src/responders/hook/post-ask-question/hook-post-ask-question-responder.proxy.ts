@@ -6,7 +6,7 @@
  * const proxy = HookPostAskQuestionResponderProxy();
  * proxy.setupHappyPath({ sessionId: 'session-abc', questId: 'quest-abc-123' });
  * // ... call responder ...
- * proxy.getPatchedBody();
+ * proxy.getPatchedBody({ questId: 'quest-abc-123' });
  */
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
@@ -14,26 +14,12 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fetchWithStatusProxy } from '#gateway/node/fetch/fetch-with-status/fetch-with-status.proxy';
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
+import { ConnectionRefusedRecordedErrorStub } from '#gateway/node/net/connection-refused-recorded-error/connection-refused-recorded-error.stub';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 const DEFAULT_NOW_MS = 0;
 const MOCK_PORT = '3737';
 const MOCK_BASE_URL = `http://${environmentStatics.hostname}:${MOCK_PORT}`;
-
-const buildResponse = ({
-  ok,
-  status,
-  bodyText,
-}: {
-  ok: boolean;
-  status: number;
-  bodyText: string;
-}): Response =>
-  ({
-    ok,
-    status,
-    text: async () => Promise.resolve(bodyText),
-  }) as never;
 
 export const HookPostAskQuestionResponderProxy = (): {
   setupHappyPath: (params: { sessionId: string; questId: string }) => void;
@@ -41,60 +27,49 @@ export const HookPostAskQuestionResponderProxy = (): {
   setupServerUnreachable: (params: { sessionId: string }) => void;
   setupServer5xx: (params: { sessionId: string; status: number; bodyText: string }) => void;
   setupInvalidResponseShape: (params: { sessionId: string }) => void;
-  setupPatchFails: (params: { sessionId: string; questId: string; error: Error }) => void;
-  getPatchedBody: () => unknown;
-  getPatchUrl: () => unknown;
+  setupPatchFails: (params: { sessionId: string; questId: string }) => Promise<void>;
+  getPatchedBody: (params: { questId: string }) => unknown;
+  getPatchUrl: (params: { questId: string }) => unknown;
+  getLookupUrls: (params: { sessionId: string }) => readonly unknown[];
   setNowMs: (params: { value: number }) => void;
 } => {
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: MOCK_PORT });
 
-  // Child proxies required by enforce-proxy-child-creation; they no longer stage any behaviour
-  // of their own (each mocked call must now be described explicitly), so they contribute nothing
-  // to the shared fetch spy below — only the direct registration in this file stages responses.
-  fetchWithStatusProxy();
-  fetchJsonProxy();
+  // Every fetch proxy shares the one spy on the global fetch; each stage is keyed on a URL, so a
+  // GET lookup and the PATCH that follows it are answered independently of call order.
+  const fetchWithStatus = fetchWithStatusProxy();
+  const fetchJson = fetchJsonProxy();
   stderrProxy();
 
+  // Read-back only: the gateway's fetchJson and fetchWithStatus proxies record no calls, so this
+  // spy shares their stubbing and reads what the responder actually sent.
   const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
   const nowHandle = registerSpyOn({ object: Date, method: 'now' });
-  // Date.now() takes no arguments to key on, so a bare calledWith([]) is the honest
-  // description, not a lazy fallback.
   nowHandle.calledWith([]).returns(DEFAULT_NOW_MS);
 
   return {
-    // The URL is the address — GET (lookup) and PATCH (persist) share one fetch spy, so staging
-    // by call order would silently answer the PATCH with the GET's response (or vice versa) the
-    // moment either test shape changed. Each URL is built the same way the responder itself
-    // builds it (see hook-post-ask-question-responder.ts), so staging always describes the exact
-    // call production makes.
     setupHappyPath: ({ sessionId, questId }: { sessionId: string; questId: string }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-      const patchUrl = `${MOCK_BASE_URL}/api/quests/${questId}`;
-
-      fetchHandle
-        .calledWith([lookupUrl])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify({ questId }) }));
-      fetchHandle
-        .calledWith([patchUrl])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: '{}' }));
+      fetchWithStatus.setupResponse({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        status: 200,
+        bodyText: JSON.stringify({ questId }),
+      });
+      fetchJson.setupSuccess({ url: `${MOCK_BASE_URL}/api/quests/${questId}`, body: {} });
     },
     setupQuestNotFound: ({ sessionId }: { sessionId: string }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-
-      fetchHandle.calledWith([lookupUrl]).resolves(
-        buildResponse({
-          ok: false,
-          status: 404,
-          bodyText: JSON.stringify({ error: 'No quest found for session' }),
-        }),
-      );
+      fetchWithStatus.setupResponse({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        status: 404,
+        bodyText: JSON.stringify({ error: 'No quest found for session' }),
+      });
     },
     setupServerUnreachable: ({ sessionId }: { sessionId: string }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-
-      fetchHandle.calledWith([lookupUrl]).rejects(new TypeError('fetch failed'));
+      fetchWithStatus.setupRefused({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        cause: ConnectionRefusedRecordedErrorStub({ port: Number(MOCK_PORT) }),
+      });
     },
     setupServer5xx: ({
       sessionId,
@@ -105,60 +80,47 @@ export const HookPostAskQuestionResponderProxy = (): {
       status: number;
       bodyText: string;
     }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-
-      fetchHandle.calledWith([lookupUrl]).resolves(buildResponse({ ok: false, status, bodyText }));
+      fetchWithStatus.setupResponse({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        status,
+        bodyText,
+      });
     },
     setupInvalidResponseShape: ({ sessionId }: { sessionId: string }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-
-      fetchHandle.calledWith([lookupUrl]).resolves(
-        buildResponse({
-          ok: true,
-          status: 200,
-          bodyText: JSON.stringify({ wrongField: 'no questId here' }),
-        }),
-      );
+      fetchWithStatus.setupResponse({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        status: 200,
+        bodyText: JSON.stringify({ wrongField: 'no questId here' }),
+      });
     },
-    setupPatchFails: ({
+    setupPatchFails: async ({
       sessionId,
       questId,
-      error,
     }: {
       sessionId: string;
       questId: string;
-      error: Error;
-    }): void => {
-      const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;
-      const patchUrl = `${MOCK_BASE_URL}/api/quests/${questId}`;
-
+    }): Promise<void> => {
+      fetchWithStatus.setupResponse({
+        url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
+        status: 200,
+        bodyText: JSON.stringify({ questId }),
+      });
+      await fetchJson.setupConnectionRefused({ url: `${MOCK_BASE_URL}/api/quests/${questId}` });
+    },
+    getPatchedBody: ({ questId }: { questId: string }): unknown => {
+      const lastPatchCall = fetchHandle
+        .callsMatching([`${MOCK_BASE_URL}/api/quests/${questId}`])
+        .at(-1);
+      const init = lastPatchCall?.[1] as { body?: unknown } | undefined;
+      if (typeof init?.body !== 'string') return init?.body;
+      return JSON.parse(init.body) as unknown;
+    },
+    getPatchUrl: ({ questId }: { questId: string }): unknown =>
+      fetchHandle.callsMatching([`${MOCK_BASE_URL}/api/quests/${questId}`]).at(-1)?.[0],
+    getLookupUrls: ({ sessionId }: { sessionId: string }): readonly unknown[] =>
       fetchHandle
-        .calledWith([lookupUrl])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify({ questId }) }));
-      fetchHandle.calledWith([patchUrl]).rejects(error);
-    },
-    // A test asserting "no PATCH happened" doesn't know a questId to build the PATCH URL from —
-    // there may be no PATCH call at all. `method: 'PATCH'` is a structural property of the call
-    // itself (GET calls never carry it), so it identifies the PATCH call among this spy's calls
-    // without depending on knowing the URL or on call order.
-    getPatchedBody: (): unknown => {
-      const patchCalls = fetchHandle.callsMatching([(): boolean => true, { method: 'PATCH' }]);
-      const lastPatchCall = patchCalls.at(-1);
-      if (!lastPatchCall) return undefined;
-      const init = lastPatchCall[1] as { body?: unknown } | undefined;
-      if (!init?.body) return undefined;
-      const rawBody = init.body;
-      if (typeof rawBody !== 'string') return rawBody;
-      try {
-        return JSON.parse(rawBody) as unknown;
-      } catch {
-        return rawBody;
-      }
-    },
-    getPatchUrl: (): unknown => {
-      const patchCalls = fetchHandle.callsMatching([(): boolean => true, { method: 'PATCH' }]);
-      return patchCalls.at(-1)?.[0];
-    },
+        .callsMatching([`${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`])
+        .map((call) => call[0]),
     setNowMs: ({ value }: { value: number }): void => {
       nowHandle.calledWith([]).returns(value);
     },

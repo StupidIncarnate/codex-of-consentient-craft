@@ -7,12 +7,12 @@ describe('HookPostAskQuestionResponder', () => {
   describe('non-AskUserQuestion tool', () => {
     it('VALID: {tool_name: Write} => returns exitCode 0 without calling any server', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      const stub = PostToolUseHookStub({ tool_name: 'Write' as never });
+      const stub = PostToolUseHookStub({ tool_name: 'Write' });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: stub.session_id })).toStrictEqual([]);
     });
   });
 
@@ -34,22 +34,22 @@ describe('HookPostAskQuestionResponder', () => {
       });
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which naming style do you prefer?': 'Smart title case' },
-        } as never,
-        session_id: 'session-xyz' as never,
+        },
+        session_id: 'session-xyz',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchUrl()).toBe(
+      expect(proxy.getPatchUrl({ questId: 'quest-abc-123' })).toBe(
         'http://dungeonmaster.localhost:3737/api/quests/quest-abc-123',
       );
-      expect(proxy.getPatchedBody()).toStrictEqual({
+      expect(proxy.getPatchedBody({ questId: 'quest-abc-123' })).toStrictEqual({
         designDecisions: [
           {
             id: 'naming-style-999',
@@ -83,19 +83,19 @@ describe('HookPostAskQuestionResponder', () => {
       });
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which packages are affected?': ['hooks', 'shared'] },
-        } as never,
-        session_id: 'session-multi' as never,
+        },
+        session_id: 'session-multi',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toStrictEqual({
+      expect(proxy.getPatchedBody({ questId: 'quest-multi' })).toStrictEqual({
         designDecisions: [
           {
             id: 'packages-42',
@@ -126,19 +126,19 @@ describe('HookPostAskQuestionResponder', () => {
       });
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'What is the primary goal?': 'Performance' },
-        } as never,
-        session_id: 'session-noheader' as never,
+        },
+        session_id: 'session-noheader',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toStrictEqual({
+      expect(proxy.getPatchedBody({ questId: 'quest-noheader' })).toStrictEqual({
         designDecisions: [
           {
             id: 'what-is-the-primary-goal-7',
@@ -169,21 +169,21 @@ describe('HookPostAskQuestionResponder', () => {
       });
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: {
             'Which naming style do you prefer?': 'Something totally custom the user typed',
           },
-        } as never,
-        session_id: 'session-other' as never,
+        },
+        session_id: 'session-other',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toStrictEqual({
+      expect(proxy.getPatchedBody({ questId: 'quest-other' })).toStrictEqual({
         designDecisions: [
           {
             id: 'naming-style-1',
@@ -204,19 +204,21 @@ describe('HookPostAskQuestionResponder', () => {
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which option do you prefer?': 'Option A' },
-        } as never,
-        session_id: 'no-session' as never,
+        },
+        session_id: 'no-session',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: 'no-session' })).toStrictEqual([
+        `http://dungeonmaster.localhost:3737/api/quests/by-session/no-session`,
+      ]);
     });
   });
 
@@ -228,19 +230,21 @@ describe('HookPostAskQuestionResponder', () => {
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which option do you prefer?': 'Option A' },
-        } as never,
-        session_id: 'session-down' as never,
+        },
+        session_id: 'session-down',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: 'session-down' })).toStrictEqual([
+        `http://dungeonmaster.localhost:3737/api/quests/by-session/session-down`,
+      ]);
     });
   });
 
@@ -256,13 +260,13 @@ describe('HookPostAskQuestionResponder', () => {
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which option do you prefer?': 'Option A' },
-        } as never,
-        session_id: 'session-broken-server' as never,
+        },
+        session_id: 'session-broken-server',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
@@ -273,7 +277,9 @@ describe('HookPostAskQuestionResponder', () => {
           'quest lookup failed at http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server: status 500',
         exitCode: 2,
       });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: 'session-broken-server' })).toStrictEqual([
+        `http://dungeonmaster.localhost:3737/api/quests/by-session/session-broken-server`,
+      ]);
     });
   });
 
@@ -285,13 +291,13 @@ describe('HookPostAskQuestionResponder', () => {
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which option do you prefer?': 'Option A' },
-        } as never,
-        session_id: 'session-bad-shape' as never,
+        },
+        session_id: 'session-bad-shape',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
@@ -303,36 +309,36 @@ describe('HookPostAskQuestionResponder', () => {
         ),
         exitCode: 2,
       });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: 'session-bad-shape' })).toStrictEqual([
+        `http://dungeonmaster.localhost:3737/api/quests/by-session/session-bad-shape`,
+      ]);
     });
   });
 
   describe('PATCH fails', () => {
     it('ERROR: {PATCH network error} => returns exitCode 2 with PATCH failure message', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
-      proxy.setupPatchFails({
-        sessionId: 'session-patch-fail',
-        questId: 'q-1',
-        error: new Error('connection reset'),
-      });
+      await proxy.setupPatchFails({ sessionId: 'session-patch-fail', questId: 'q-1' });
 
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
         tool_response: {
           questions: questionInput.questions,
           answers: { 'Which option do you prefer?': 'Option A' },
-        } as never,
-        session_id: 'session-patch-fail' as never,
+        },
+        session_id: 'session-patch-fail',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({
         stdout: '',
-        stderr: 'PATCH /api/quests/q-1 failed: connection reset',
+        stderr: expect.stringMatching(
+          /^PATCH \/api\/quests\/q-1 failed: Error: connect ECONNREFUSED 127\.0\.0\.1:\d+$/u,
+        ),
         exitCode: 2,
       });
     });
@@ -345,10 +351,10 @@ describe('HookPostAskQuestionResponder', () => {
       const questionInput = AskUserQuestionStub();
 
       const stub = PostToolUseHookStub({
-        tool_name: 'AskUserQuestion' as never,
-        tool_input: questionInput as never,
-        tool_response: { questions: questionInput.questions } as never,
-        session_id: 'session-no-answers' as never,
+        tool_name: 'AskUserQuestion',
+        tool_input: questionInput,
+        tool_response: { questions: questionInput.questions },
+        session_id: 'session-no-answers',
       });
 
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
@@ -358,7 +364,7 @@ describe('HookPostAskQuestionResponder', () => {
         stderr: 'invalid AskUserQuestion tool_response shape (see stderr above)',
         exitCode: 2,
       });
-      expect(proxy.getPatchedBody()).toBe(undefined);
+      expect(proxy.getLookupUrls({ sessionId: stub.session_id })).toStrictEqual([]);
     });
   });
 });
