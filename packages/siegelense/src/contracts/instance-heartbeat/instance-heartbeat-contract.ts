@@ -7,7 +7,7 @@
  * gone. `rssMB` is `.nullable()`, never `.optional()`, because it round-trips through
  * `JSON.stringify` the same way every other field here does, and because a dead instance's own pgids
  * are usually gone by the time anyone asks — this beat is the last chance to have measured them, so a
- * post-mortem's `rssAtLastBeat` is a fact this file already recorded rather than a number `status`
+ * post-mortem's `memory` (`measured: 'at-last-beat'`) is a fact this file already recorded rather than a number `status`
  * would otherwise have to invent. `heartbeatWriteBroker` writes both in one call.
  *
  * USAGE:

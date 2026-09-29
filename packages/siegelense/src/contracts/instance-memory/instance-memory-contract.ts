@@ -3,8 +3,8 @@
  * `measured: 'live'` is a reading of the running lane's process groups taken for this answer,
  * `measured: 'at-last-beat'` is the figure the instance's own heartbeat file last recorded, which
  * for a dead or killed instance is its footprint when it ended. Reach for this over a bare
- * `Megabytes` in a status row: two nullable numbers for the same quantity made a dead instance read
- * `rssMB: null` beside `rssAtLastBeat: 529`, and a reader could not tell which one to believe.
+ * `Megabytes` in a status row: two nullable numbers for one quantity leave a reader unsure which
+ * one to believe, and this carries the figure and its moment together.
  *
  * USAGE:
  * instanceMemoryContract.parse({ megabytes: 529, measured: 'at-last-beat' });

@@ -10,7 +10,7 @@
  * listing never carries a run or an evidence path for an instance the caller has not already named
  * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). A named `evidence` is the directory
  * plus EVERY file `evidenceTreeLayerBroker` finds under it, each an absolute path — never a fixed set
- * of known names, which is how a recorded video went unlisted. `memory` is the live process-group
+ * of known names, so a file kind nobody named (a recorded video) still shows. `memory` is the live process-group
  * reading while `state` is `'alive'` and the heartbeat file's last figure once it is not, tagged
  * with which one it is. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`, and
  * `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
