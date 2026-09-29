@@ -1,3 +1,5 @@
+import { console } from '#gateway/browser/console';
+import { clear, readItem, writeItem } from '#gateway/browser/localStorage';
 import { keysProxy } from '#gateway/browser/localStorage/keys/keys.proxy';
 import { readItemProxy } from '#gateway/browser/localStorage/read-item/read-item.proxy';
 import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remove-item.proxy';
@@ -32,7 +34,7 @@ export const commentQueueStateProxy = (): {
   // passthrough: true — console.error is a shared sink; React's own internal warnings also flow
   // through it and must keep printing normally, not throw for being unstaged.
   const consoleErrorHandle = registerSpyOn({
-    object: globalThis.console,
+    object: console,
     method: 'error',
     passthrough: true,
   });
@@ -43,26 +45,26 @@ export const commentQueueStateProxy = (): {
 
   return {
     setupEmptyStorage: (): void => {
-      localStorage.clear();
+      clear();
       commentQueueState.resetSubscribers();
     },
 
     seedQueue: ({ questId, entries }: { questId: QuestId; entries: CommentQueueEntry[] }): void => {
-      localStorage.setItem(
-        `${commentQueueStatics.storage.keyPrefix}${questId}`,
-        JSON.stringify(entries),
-      );
+      writeItem({
+        key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
+        value: JSON.stringify(entries),
+      });
     },
 
     seedRawValue: ({ questId, value }: { questId: QuestId; value: string }): void => {
-      localStorage.setItem(`${commentQueueStatics.storage.keyPrefix}${questId}`, value);
+      writeItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}`, value });
     },
 
     // The key equal to the bare prefix, carrying no questId at all. Nothing in the app writes it —
     // a hand-edited or foreign-tab localStorage can. It exists here so a test can prove the scan
     // skips it rather than slicing an empty questId out of it.
     seedPrefixOnlyKey: ({ value }: { value: string }): void => {
-      localStorage.setItem(commentQueueStatics.storage.keyPrefix, value);
+      writeItem({ key: commentQueueStatics.storage.keyPrefix, value });
     },
 
     // A storage that throws reading this quest's key — the shape private browsing / a locked-down
@@ -106,11 +108,11 @@ export const commentQueueStateProxy = (): {
     scanFailureLogs: (): unknown[] => consoleErrorHandle.callsMatching([SCAN_FAILURE_LOG_PREFIX]),
 
     readRawValue: ({ questId }: { questId: QuestId }): unknown =>
-      localStorage.getItem(`${commentQueueStatics.storage.keyPrefix}${questId}`),
+      readItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}` }),
 
-    readPrefixOnlyValue: (): unknown => localStorage.getItem(commentQueueStatics.storage.keyPrefix),
+    readPrefixOnlyValue: (): unknown => readItem({ key: commentQueueStatics.storage.keyPrefix }),
 
     hasKey: ({ questId }: { questId: QuestId }): boolean =>
-      localStorage.getItem(`${commentQueueStatics.storage.keyPrefix}${questId}`) !== null,
+      readItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}` }) !== null,
   };
 };

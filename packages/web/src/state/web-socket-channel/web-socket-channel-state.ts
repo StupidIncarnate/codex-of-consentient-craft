@@ -18,6 +18,8 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
+import { clearTimeout } from '#gateway/browser/clearTimeout';
+import { setTimeout } from '#gateway/browser/setTimeout';
 import { connect } from '#gateway/browser/WebSocket';
 import type { Observable } from '#gateway/npm/rxjs';
 import { merge, of, Subject } from '#gateway/npm/rxjs';
@@ -89,7 +91,7 @@ export const webSocketChannelState = {
   disconnect: (): void => {
     internalState.shouldReconnect = false;
     if (internalState.reconnectTimer !== null) {
-      globalThis.clearTimeout(internalState.reconnectTimer);
+      clearTimeout(internalState.reconnectTimer);
       internalState.reconnectTimer = null;
     }
     if (internalState.socket !== null) {
@@ -111,7 +113,7 @@ export const webSocketChannelState = {
     // fresh connection attempt starts, `reconnectTimer` is never revisited again on this cycle,
     // so anywhere else is too late.
     if (internalState.reconnectTimer !== null) {
-      globalThis.clearTimeout(internalState.reconnectTimer);
+      clearTimeout(internalState.reconnectTimer);
       internalState.reconnectTimer = null;
     }
 
@@ -130,7 +132,7 @@ export const webSocketChannelState = {
         // this callback (the shape this replaced) discards the only reference to the still-real,
         // still-scheduled timer the instant a test replays this callback early instead of waiting
         // out RECONNECT_DELAY_MS_VALUE, which is exactly what left it armed after the test ended.
-        internalState.reconnectTimer = globalThis.setTimeout(() => {
+        internalState.reconnectTimer = setTimeout(() => {
           webSocketChannelState.openConnection();
         }, RECONNECT_DELAY_MS_VALUE);
       },
@@ -269,7 +271,7 @@ export const webSocketChannelState = {
   clear: (): void => {
     internalState.shouldReconnect = false;
     if (internalState.reconnectTimer !== null) {
-      globalThis.clearTimeout(internalState.reconnectTimer);
+      clearTimeout(internalState.reconnectTimer);
       internalState.reconnectTimer = null;
     }
     if (internalState.socket !== null) {

@@ -15,6 +15,7 @@
  * // unsubscribe() stops further notifications for that listener
  */
 
+import { console } from '#gateway/browser/console';
 import { keys, readItem, removeItem, writeItem } from '#gateway/browser/localStorage';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -64,7 +65,7 @@ const state = {
         ? removeItem({ key })
         : writeItem({ key, value: JSON.stringify(entries) });
     if (!result.success) {
-      globalThis.console.error('[comment-queue] failed to persist the queue', result.error);
+      console.error('[comment-queue] failed to persist the queue', result.error);
     }
   },
 
@@ -120,7 +121,7 @@ export const commentQueueState = {
     // and take the whole route mount down with it.
     const scan = keys();
     if (!scan.success) {
-      globalThis.console.error('[comment-queue] failed to scan storage for expiry', scan.error);
+      console.error('[comment-queue] failed to scan storage for expiry', scan.error);
       return;
     }
     const matchingKeys = scan.keys.filter(

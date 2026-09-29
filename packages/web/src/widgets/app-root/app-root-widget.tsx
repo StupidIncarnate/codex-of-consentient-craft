@@ -7,10 +7,10 @@
  * <AppRootWidget>{children}</AppRootWidget>
  * // Wraps children in BrowserRouter, MantineProvider (dark), and Notifications
  */
-import { createTheme, MantineProvider } from '@mantine/core';
-import { BrowserRouter } from 'react-router-dom';
-
+import { createTheme, MantineProvider } from '#gateway/npm/mantine__core';
 import { Notifications } from '#gateway/npm/mantine__notifications';
+import { BrowserRouter } from '#gateway/npm/react-router-dom';
+
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const theme = createTheme({ fontFamily: 'monospace', defaultRadius: 2 });

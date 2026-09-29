@@ -10,6 +10,9 @@
  * // Returns readonly ComposerSegment[] built from the editor's current children
  */
 
+import { Element } from '#gateway/browser/Element';
+import { Text } from '#gateway/browser/Text';
+
 import type {
   ComposerSegment,
   ComposerSegmentInput,

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '#gateway/npm/testing-library__react';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 
 import { AppRootWidget } from './app-root-widget';
 import { AppRootWidgetProxy } from './app-root-widget.proxy';
@@ -8,11 +9,13 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => renders children within provider tree', () => {
       AppRootWidgetProxy();
 
-      render(
-        <AppRootWidget>
-          <span data-testid="CHILD_ELEMENT">Test Content</span>
-        </AppRootWidget>,
-      );
+      mantineRenderMiddleware({
+        ui: (
+          <AppRootWidget>
+            <span data-testid="CHILD_ELEMENT">Test Content</span>
+          </AppRootWidget>
+        ),
+      });
 
       expect(screen.getByTestId('CHILD_ELEMENT')).toBeInTheDocument();
     });
@@ -20,11 +23,13 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => applies dark background color from theme statics', () => {
       AppRootWidgetProxy();
 
-      render(
-        <AppRootWidget>
-          <span>Content</span>
-        </AppRootWidget>,
-      );
+      mantineRenderMiddleware({
+        ui: (
+          <AppRootWidget>
+            <span>Content</span>
+          </AppRootWidget>
+        ),
+      });
 
       const bgDiv = screen.getByTestId('APP_ROOT_BG');
 
@@ -34,11 +39,13 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => applies min-height of 100vh', () => {
       AppRootWidgetProxy();
 
-      render(
-        <AppRootWidget>
-          <span>Content</span>
-        </AppRootWidget>,
-      );
+      mantineRenderMiddleware({
+        ui: (
+          <AppRootWidget>
+            <span>Content</span>
+          </AppRootWidget>
+        ),
+      });
 
       const bgDiv = screen.getByTestId('APP_ROOT_BG');
 
@@ -63,11 +70,13 @@ describe('AppRootWidget', () => {
     it('VALID: {children} => declares palette ::selection and a dimmed React Flow attribution', () => {
       AppRootWidgetProxy();
 
-      render(
-        <AppRootWidget>
-          <span>Content</span>
-        </AppRootWidget>,
-      );
+      mantineRenderMiddleware({
+        ui: (
+          <AppRootWidget>
+            <span>Content</span>
+          </AppRootWidget>
+        ),
+      });
 
       expect(screen.getByTestId('APP_ROOT_GLOBAL_CSS').textContent).toBe(
         '::selection { background-color: #ff6b35; color: #0d0907; }' +

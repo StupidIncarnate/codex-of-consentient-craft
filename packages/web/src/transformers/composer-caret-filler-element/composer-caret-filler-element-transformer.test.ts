@@ -1,3 +1,4 @@
+import { document } from '#gateway/browser/document';
 import { composerCaretFillerElementTransformer } from './composer-caret-filler-element-transformer';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 

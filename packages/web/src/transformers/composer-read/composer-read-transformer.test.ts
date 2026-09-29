@@ -1,3 +1,4 @@
+import { document } from '#gateway/browser/document';
 import { composerReadTransformer } from './composer-read-transformer';
 import { AttachmentIdStub } from '../../contracts/attachment-id/attachment-id.stub';
 import { ComposerSegmentStub } from '../../contracts/composer-segment/composer-segment.stub';

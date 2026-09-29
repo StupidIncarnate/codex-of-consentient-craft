@@ -1,3 +1,4 @@
+import { readItem, writeItem } from '#gateway/browser/localStorage';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
@@ -477,7 +478,7 @@ describe('commentQueueState', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
-      localStorage.setItem('dungeonmaster-chat-draft', 'my draft');
+      writeItem({ key: 'dungeonmaster-chat-draft', value: 'my draft' });
       proxy.seedQueue({
         questId,
         entries: [
@@ -487,7 +488,7 @@ describe('commentQueueState', () => {
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
 
-      expect(localStorage.getItem('dungeonmaster-chat-draft')).toBe('my draft');
+      expect(readItem({ key: 'dungeonmaster-chat-draft' })).toBe('my draft');
     });
   });
 

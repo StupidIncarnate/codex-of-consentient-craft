@@ -117,9 +117,9 @@ holds every earlier handoff.
 
 - **Phase 2 is complete.** No package has an `adapters/` folder (A13 done, 7cb5ff272). F76 is done.
 - **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
-  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B27; orchestrator B01, B02; server B01, B02;
+  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01, B02; server B01, B02;
     siegelense S01 to S04 (siegelense uses its own re-census, not the plan's section; see below).
-  - Hand batches left: web B28 onward (about 90; B28 green and uncommitted at the time of writing), orchestrator B03
+  - Hand batches left: web B31 onward (about 87), orchestrator B03
     onward (52), server B03 onward (8), siegelense S05 onward (29), and every batch for shared (16), testing (12,
     re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
     config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
@@ -153,7 +153,7 @@ last report; uncommitted work in that area is that agent's.
 
 | Agent | Work | State |
 |---|---|---|
-| web | B29, B30 (B28 green, uncommitted, needs a full web e2e before commit) | running |
+| web | B28 to B30 | done, committed ||
 | orchestrator | B03, widened: `isSpawnedStdout` accessor in B02's stream-json proxy | running |
 | server | B03 plus `server-init-responder.proxy.ts` clock staging | running |
 | GN11 | `@gateway/node` `setTimeout` proxy; moves siegelense `instance-kill` and `step-hold` proxies onto it | running |

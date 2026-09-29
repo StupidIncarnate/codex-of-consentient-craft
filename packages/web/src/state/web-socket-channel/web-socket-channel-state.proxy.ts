@@ -11,13 +11,16 @@
  * proxy.getSentMessages();     // outbound JSON parsed messages
  */
 
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-
+import { clearTimeoutProxy } from '#gateway/browser/clearTimeout/clear-timeout/clear-timeout.proxy';
+import { setTimeoutProxy } from '#gateway/browser/setTimeout/set-timeout/set-timeout.proxy';
+import { TimeoutHandleStub } from '#gateway/browser/setTimeout/timeout-handle.stub';
 import { connectProxy } from '#gateway/browser/WebSocket/connect/connect.proxy';
 
 import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
 import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from './web-socket-channel-state';
+
+const RECONNECT_DELAY_MS = 3000;
 
 export const webSocketChannelStateProxy = ({
   url: defaultUrl = WsUrlStub(),
@@ -36,11 +39,9 @@ export const webSocketChannelStateProxy = ({
   // passes the real jsdom-derived URL because that responder computes its own url and never
   // accepts one from the caller.
   const wsProxy = connectProxy({ url: defaultUrl });
-  const setTimeoutSpy = registerSpyOn({
-    object: globalThis,
-    method: 'setTimeout',
-    passthrough: true,
-  });
+  const timerProxy = setTimeoutProxy();
+  clearTimeoutProxy();
+  timerProxy.stageHandle({ delay: RECONNECT_DELAY_MS, handle: TimeoutHandleStub() });
 
   return {
     setupEmpty: (): void => {
@@ -63,7 +64,9 @@ export const webSocketChannelStateProxy = ({
     // the last recorded call is the one. `.map()` reads the complete call history into callbacks
     // first, so picking the tail is not an unaddressed peek.
     triggerReconnectFlush: () => {
-      const callbacks = setTimeoutSpy.callsMatching([]).map((call) => call[0] as () => void);
+      const callbacks = timerProxy
+        .getCallsFor({ delay: RECONNECT_DELAY_MS })
+        .map((call) => call[0] as () => void);
       const lastCallback = callbacks.at(-1);
       if (lastCallback) {
         lastCallback();
