@@ -581,6 +581,7 @@ export * from './routed-graph/routed-graph-contract';
 // Gateway Lint Config Contracts (the `gateway` key of `.dungeonmaster.json` — parsed once by
 // `configDungeonmasterBroker`'s caller and passed into the three gateway lint rules as a rule option)
 export * from './gateway-lint-config/gateway-lint-config-contract';
+export * from './gateway-lint-config-file/gateway-lint-config-file-contract';
 
 // Gateway Imports Map Contracts (a package.json `imports` field's `#gateway/<folder>/*` shape —
 // every scaffolder that writes this field, and the merge step that reconciles it into an existing

@@ -16,11 +16,11 @@
  */
 import {
   filePathContract,
+  gatewayLintConfigFileContract,
   type FilePath,
   type GatewayLintConfig,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 
