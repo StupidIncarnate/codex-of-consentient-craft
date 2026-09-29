@@ -1,4 +1,4 @@
-import { SavedRefStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRefStub } from '@dungeonmaster/hydration/contracts/saved-ref/saved-ref.stub';
 
 import { workItemAttachArgsContract } from './work-item-attach-args-contract';
 import { WorkItemAttachArgsStub } from './work-item-attach-args.stub';

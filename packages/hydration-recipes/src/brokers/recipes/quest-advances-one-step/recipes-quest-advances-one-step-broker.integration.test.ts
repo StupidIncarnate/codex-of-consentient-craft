@@ -1,6 +1,6 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';

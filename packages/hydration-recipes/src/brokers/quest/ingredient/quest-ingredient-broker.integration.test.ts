@@ -1,5 +1,6 @@
 import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
-import { SavedRecordNameStub, FieldNameStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
+import { FieldNameStub } from '@dungeonmaster/hydration/contracts/field-name/field-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 

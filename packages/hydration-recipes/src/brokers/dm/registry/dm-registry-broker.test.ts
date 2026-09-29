@@ -1,6 +1,7 @@
 import { dmRegistryBrokerProxy } from './dm-registry-broker.proxy';
 import { dmRegistryBroker } from './dm-registry-broker';
-import { HydrationPlanStub, OpCreateStub } from '@dungeonmaster/hydration/contracts';
+import { HydrationPlanStub } from '@dungeonmaster/hydration/contracts/hydration-plan/hydration-plan.stub';
+import { OpCreateStub } from '@dungeonmaster/hydration/contracts/op-create/op-create.stub';
 import type { HydrationCollectionData } from '@dungeonmaster/hydration/contracts';
 
 describe('dmRegistryBroker', () => {

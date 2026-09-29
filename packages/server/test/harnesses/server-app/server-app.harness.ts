@@ -26,7 +26,7 @@ import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { z } from '#gateway/npm/zod';
 
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type {
   Base64ImageData,

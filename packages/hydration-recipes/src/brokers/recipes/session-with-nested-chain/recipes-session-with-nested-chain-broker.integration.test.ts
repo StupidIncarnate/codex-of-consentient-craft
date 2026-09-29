@@ -1,6 +1,6 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { subagentQueryRouteBroker } from '../../subagent/query-route/subagent-query-route-broker';

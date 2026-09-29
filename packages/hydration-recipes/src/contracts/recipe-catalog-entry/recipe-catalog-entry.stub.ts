@@ -9,7 +9,8 @@
  */
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { HydrationRunResultStub, PlanRunsResultStub } from '@dungeonmaster/hydration/contracts';
+import { HydrationRunResultStub } from '@dungeonmaster/hydration/contracts/hydration-run-result/hydration-run-result.stub';
+import { PlanRunsResultStub } from '@dungeonmaster/hydration/contracts/plan-runs-result/plan-runs-result.stub';
 
 import { recipeCatalogEntryContract } from './recipe-catalog-entry-contract';
 import type { RecipeCatalogEntry } from './recipe-catalog-entry-contract';

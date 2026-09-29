@@ -1,5 +1,5 @@
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
+import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 import { guildQueryRouteBroker } from '../../guild/query-route/guild-query-route-broker';
