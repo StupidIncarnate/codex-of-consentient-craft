@@ -18,7 +18,6 @@ export const FrameworkPresetStub = ({
     transformers: [],
     errors: [],
     middleware: [],
-    adapters: ['*'],
     startup: ['*'],
     ...props,
   });
@@ -35,7 +34,6 @@ const FRONTEND_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -51,7 +49,6 @@ const BACKEND_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -67,7 +64,6 @@ const NODE_LIBRARY_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -82,7 +78,6 @@ const REACT_LIBRARY_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -98,7 +93,6 @@ const CLI_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -113,7 +107,6 @@ const INK_CLI_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 };
 
@@ -221,7 +214,6 @@ export const FRAMEWORK_PRESETS = {
     transformers: [],
     errors: [],
     middleware: [],
-    adapters: ['*'],
     startup: ['*'],
   }),
 } as const satisfies Record<string, FrameworkPreset>;

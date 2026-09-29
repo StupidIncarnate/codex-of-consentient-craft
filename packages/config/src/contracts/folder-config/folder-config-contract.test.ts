@@ -25,7 +25,6 @@ describe('folderConfigContract', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -52,7 +51,6 @@ describe('folderConfigContract', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -79,7 +77,6 @@ describe('folderConfigContract', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -96,7 +93,6 @@ describe('folderConfigContract', () => {
         transformers: ['lodash'],
         errors: ['boom'],
         middleware: ['cors'],
-        adapters: ['axios'],
         startup: ['dotenv'],
       });
 
@@ -120,7 +116,6 @@ describe('folderConfigContract', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         });
       }).toThrow(/expected array/u);
@@ -139,7 +134,6 @@ describe('folderConfigContract', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         });
       }).toThrow(/expected array/u);
@@ -158,7 +152,6 @@ describe('folderConfigContract', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
         });
       }).toThrow(/received undefined/u);
     });

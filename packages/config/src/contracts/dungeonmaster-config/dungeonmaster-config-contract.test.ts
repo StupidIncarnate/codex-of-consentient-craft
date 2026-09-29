@@ -172,9 +172,6 @@ describe('dungeonmaster-config-contract', () => {
             brokers: {
               add: ['prisma', 'mongoose'],
             },
-            adapters: {
-              add: ['redis', 'bullmq'],
-            },
             middleware: {
               add: ['helmet', 'cors'],
             },
@@ -193,9 +190,6 @@ describe('dungeonmaster-config-contract', () => {
           overrides: {
             brokers: {
               add: ['prisma', 'mongoose'],
-            },
-            adapters: {
-              add: ['redis', 'bullmq'],
             },
             middleware: {
               add: ['helmet', 'cors'],

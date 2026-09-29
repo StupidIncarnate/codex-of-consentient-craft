@@ -19,7 +19,6 @@ const FRONTEND_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -35,7 +34,6 @@ const BACKEND_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -51,7 +49,6 @@ const NODE_LIBRARY_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -66,7 +63,6 @@ const REACT_LIBRARY_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -82,7 +78,6 @@ const CLI_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -97,7 +92,6 @@ const INK_CLI_BASE_PRESET = {
   transformers: [],
   errors: [],
   middleware: [],
-  adapters: ['*'],
   startup: ['*'],
 } as const;
 
@@ -205,7 +199,6 @@ export const frameworkPresetsDataStatics = {
       transformers: [],
       errors: [],
       middleware: [],
-      adapters: ['*'],
       startup: ['*'],
     },
   } as const,

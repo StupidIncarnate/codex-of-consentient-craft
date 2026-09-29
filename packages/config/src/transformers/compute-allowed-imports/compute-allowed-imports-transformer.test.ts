@@ -22,7 +22,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -46,7 +45,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -71,7 +69,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -96,7 +93,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -121,7 +117,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -145,7 +140,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -176,7 +170,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -202,7 +195,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -227,7 +219,6 @@ describe('computeAllowedImportsTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });

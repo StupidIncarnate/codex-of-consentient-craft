@@ -9,10 +9,8 @@
 
 import { configResolveBroker } from './src/brokers/config/resolve/config-resolve-broker';
 import { computeAllowedImportsTransformer } from './src/transformers/compute-allowed-imports/compute-allowed-imports-transformer';
-import { isValidArchitectureFolderGuard } from './src/guards/is-valid-architecture-folder/is-valid-architecture-folder-guard';
 import { dungeonmasterConfigContract } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { architectureFolderStatics } from './src/statics/architecture-folder/architecture-folder-statics';
 import type { DungeonmasterConfig } from './src/contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import type { DevServerE2eProcess } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process-contract';
 import type { AllowedExternalImports } from './src/contracts/folder-config/folder-config-contract';
@@ -23,9 +21,6 @@ export { DungeonmasterConfigStub } from './src/contracts/dungeonmaster-config/du
 export { DevServerE2eProcessStub } from './src/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 export { configDefaultsStatics } from './src/statics/config-defaults/config-defaults-statics';
 export { e2eProcessPlaceholderStatics } from './src/statics/e2e-process-placeholder/e2e-process-placeholder-statics';
-
-export type ArchitectureFolder =
-  typeof architectureFolderStatics.folders.all extends readonly (infer U)[] ? U : never;
 
 /**
  * Main entry point for ESLint rules - resolves config for a specific file
@@ -44,12 +39,6 @@ export const resolveConfigForFile = async ({
  */
 export const validateConfig = ({ config }: { config: unknown }): DungeonmasterConfig =>
   dungeonmasterConfigContract.parse(config);
-
-/**
- * Check if a folder name is valid in the architecture
- */
-export const checkArchitectureFolder = (folder: string): folder is ArchitectureFolder =>
-  isValidArchitectureFolderGuard({ folder });
 
 // Re-export types for consumers
 export type { DungeonmasterConfig, DevServerE2eProcess, AllowedExternalImports, FrameworkPreset };

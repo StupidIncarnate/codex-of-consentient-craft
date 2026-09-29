@@ -381,7 +381,7 @@ describe('mergeConfigsTransformer', () => {
         schema: 'zod',
         architecture: {
           overrides: {
-            adapters: { add: ['axios'] },
+            errors: { add: ['axios'] },
             middleware: { add: ['helmet'] },
           },
         },
@@ -418,7 +418,7 @@ describe('mergeConfigsTransformer', () => {
         schema: 'zod',
         architecture: {
           overrides: {
-            adapters: { add: ['axios'] },
+            errors: { add: ['axios'] },
             brokers: { add: ['mongoose'] },
             transformers: { add: ['lodash'] },
             middleware: { add: ['express-rate-limit'] },

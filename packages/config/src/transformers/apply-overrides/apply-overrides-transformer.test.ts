@@ -16,7 +16,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -38,7 +37,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -55,7 +53,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -81,7 +78,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -98,7 +94,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -123,7 +118,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -142,7 +136,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -169,7 +162,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -186,7 +178,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -213,7 +204,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -230,7 +220,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -257,7 +246,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -274,7 +262,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -301,7 +288,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -318,7 +304,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -345,7 +330,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -362,7 +346,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -389,7 +372,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -406,7 +388,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -433,7 +414,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -450,7 +430,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -477,7 +456,6 @@ describe('applyOverridesTransformer', () => {
         transformers: ['lodash', 'ramda'],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -494,7 +472,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -521,7 +498,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: ['http-errors', 'boom'],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -538,7 +514,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -565,12 +540,11 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: ['helmet', 'cors'],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
 
-    it('VALID: adapters override with add => adds packages to adapters array', () => {
+    it('VALID: legacy adapters override key => ignored, preset returned unchanged', () => {
       const preset = FrameworkPresetStub({
         widgets: null,
         bindings: null,
@@ -582,7 +556,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -609,7 +582,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*', 'axios', 'node-fetch'],
         startup: ['*'],
       });
     });
@@ -626,7 +598,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -653,7 +624,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*', 'dotenv', 'config'],
       });
     });
@@ -672,7 +642,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -701,7 +670,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -718,7 +686,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -736,7 +703,6 @@ describe('applyOverridesTransformer', () => {
             transformers: { add: ['lodash'] },
             errors: { add: ['boom'] },
             middleware: { add: ['helmet'] },
-            adapters: { add: ['axios'] },
             startup: { add: ['dotenv'] },
           },
         },
@@ -755,7 +721,6 @@ describe('applyOverridesTransformer', () => {
         transformers: ['lodash'],
         errors: ['boom'],
         middleware: ['helmet'],
-        adapters: ['*', 'axios'],
         startup: ['*', 'dotenv'],
       });
     });
@@ -774,7 +739,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -801,7 +765,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -818,7 +781,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -845,7 +807,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -862,7 +823,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -889,7 +849,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -906,7 +865,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -933,7 +891,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -950,7 +907,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -981,7 +937,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -1000,7 +955,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -1028,7 +982,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -1045,7 +998,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -1073,7 +1025,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -1090,7 +1041,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
 
@@ -1117,7 +1067,6 @@ describe('applyOverridesTransformer', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });

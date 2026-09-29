@@ -20,7 +20,6 @@ describe('frameworkPresetsContract', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -64,13 +63,13 @@ describe('frameworkPresetsContract', () => {
       }).toThrow(/Invalid input: expected array/u);
     });
 
-    it('INVALID: adapters not array => throws validation error', () => {
-      expect(() => {
-        return frameworkPresetsContract.parse({
-          ...FrameworkPresetStub(),
-          adapters: null,
-        });
-      }).toThrow(/Invalid input: expected array/u);
+    it('VALID: legacy adapters key => stripped from the parsed preset', () => {
+      const result = frameworkPresetsContract.parse({
+        ...FrameworkPresetStub(),
+        adapters: ['*'],
+      });
+
+      expect(result).toStrictEqual(FrameworkPresetStub());
     });
   });
 });
@@ -120,7 +119,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         vue: {
@@ -134,7 +132,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         angular: {
@@ -148,7 +145,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         svelte: {
@@ -162,7 +158,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         solid: {
@@ -176,7 +171,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         preact: {
@@ -190,7 +184,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         express: {
@@ -204,7 +197,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         fastify: {
@@ -218,7 +210,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         koa: {
@@ -232,7 +223,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         hapi: {
@@ -246,7 +236,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nestjs: {
@@ -260,7 +249,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nextjs: {
@@ -274,7 +262,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nuxtjs: {
@@ -288,7 +275,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         remix: {
@@ -302,7 +288,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'node-library': {
@@ -316,7 +301,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'react-library': {
@@ -330,7 +314,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         cli: {
@@ -344,7 +327,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'ink-cli': {
@@ -358,7 +340,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         monorepo: {
@@ -372,7 +353,6 @@ describe('FRAMEWORK_PRESETS', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
       });
@@ -394,7 +374,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -413,7 +392,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -432,7 +410,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -451,7 +428,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -470,7 +446,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -489,7 +464,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -510,7 +484,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -529,7 +502,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -548,7 +520,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -567,7 +538,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -586,7 +556,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -607,7 +576,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -626,7 +594,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -645,7 +612,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -666,7 +632,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -685,7 +650,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -706,7 +670,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -725,7 +688,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -746,14 +708,13 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
   });
 
   describe('preset structure validation', () => {
-    it('VALID: React preset has wildcard adapters and startup => correct arrays', () => {
+    it('VALID: React preset has wildcard startup => correct arrays', () => {
       const reactPreset = FRAMEWORK_PRESETS.react;
 
       expect(reactPreset).toStrictEqual({
@@ -767,7 +728,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });
@@ -786,7 +746,6 @@ describe('FRAMEWORK_PRESETS', () => {
         transformers: [],
         errors: [],
         middleware: [],
-        adapters: ['*'],
         startup: ['*'],
       });
     });

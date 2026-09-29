@@ -62,12 +62,6 @@ describe('isFrameworkPresetKeyGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: "adapters" => returns true', () => {
-      const result = isFrameworkPresetKeyGuard('adapters');
-
-      expect(result).toBe(true);
-    });
-
     it('VALID: "startup" => returns true', () => {
       const result = isFrameworkPresetKeyGuard('startup');
 
@@ -78,6 +72,12 @@ describe('isFrameworkPresetKeyGuard', () => {
   describe('invalid keys', () => {
     it('INVALID: "invalid" => returns false', () => {
       const result = isFrameworkPresetKeyGuard('invalid');
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: "adapters" => returns false', () => {
+      const result = isFrameworkPresetKeyGuard('adapters');
 
       expect(result).toBe(false);
     });

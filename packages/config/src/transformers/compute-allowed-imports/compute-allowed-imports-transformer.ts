@@ -42,7 +42,6 @@ export const computeAllowedImportsTransformer = ({
     transformers: [...preset.transformers],
     errors: [...preset.errors],
     middleware: [...preset.middleware],
-    adapters: [...preset.adapters],
     startup: [...preset.startup],
   });
 

@@ -24,7 +24,6 @@ export const folderConfigContract = z.object({
   transformers: packageNameArrayContract,
   errors: packageNameArrayContract,
   middleware: packageNameArrayContract,
-  adapters: packageNameArrayContract,
   startup: packageNameArrayContract,
 });
 

@@ -15,7 +15,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         vue: {
@@ -29,7 +28,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         angular: {
@@ -43,7 +41,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         svelte: {
@@ -57,7 +54,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         solid: {
@@ -71,7 +67,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         preact: {
@@ -85,7 +80,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         express: {
@@ -99,7 +93,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         fastify: {
@@ -113,7 +106,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         koa: {
@@ -127,7 +119,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         hapi: {
@@ -141,7 +132,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nestjs: {
@@ -155,7 +145,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nextjs: {
@@ -169,7 +158,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         nuxtjs: {
@@ -183,7 +171,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         remix: {
@@ -197,7 +184,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'node-library': {
@@ -211,7 +197,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'react-library': {
@@ -225,7 +210,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         cli: {
@@ -239,7 +223,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         'ink-cli': {
@@ -253,7 +236,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
         monorepo: {
@@ -267,7 +249,6 @@ describe('frameworkPresetsDataStatics', () => {
           transformers: [],
           errors: [],
           middleware: [],
-          adapters: ['*'],
           startup: ['*'],
         },
       },

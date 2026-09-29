@@ -16,7 +16,6 @@ export const FolderConfigStub = ({
     transformers: [],
     errors: [],
     middleware: [],
-    adapters: ['*'],
     startup: ['*'],
     ...props,
   });
