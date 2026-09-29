@@ -1,9 +1,12 @@
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { freePortPair } from '#gateway/node/net';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
@@ -32,6 +35,7 @@ export const instanceReserveBrokerProxy = (): {
   setupPortCandidates: (params: {
     pairs: readonly { api: NetworkPort; web: NetworkPort }[];
   }) => void;
+  setupCwd: (params: { value: string }) => void;
   setupBranch: (params: { branch: string | null }) => void;
   setupBranchFailure: (params: { exitCode: number; output: string }) => void;
   getWrittenRegistry: () => unknown;
@@ -41,7 +45,9 @@ export const instanceReserveBrokerProxy = (): {
   const evidenceProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const mkdirProxy = ensureDirProxy();
   const branchProxy = currentBranchProxy();
-  cwdProxy();
+  const cwdRecorder = cwdProxy();
+  pidProxy();
+  const clockProxy = nowProxy();
   // Constructed for enforce-proxy-child-creation only: its own `.returns({server, web})` answers
   // the FIRST call with `server` and every later call with `web` — it cannot express N distinct
   // upfront candidate pairs in call order, which this broker needs (it asks the OS for
@@ -50,8 +56,7 @@ export const instanceReserveBrokerProxy = (): {
   freePortPairProxy();
   const freePortPairHandle = registerMock({ fn: freePortPair });
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(UUID_VALUE);
-  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(NOW_MS_VALUE);
+  registerMock({ fn: randomUUID }).calledWith([]).returns(UUID_VALUE);
 
   // The two paths setupEvidenceDir stages ensureDir for, captured so getCreatedDirs can read both
   // back afterward — a const holder whose fields mutate, not a reassigned let.
@@ -109,7 +114,12 @@ export const instanceReserveBrokerProxy = (): {
 
     // currentBranchProxy has no single "branch or null" method — a detached HEAD and a named
     // branch are staged through its two separate scenario methods.
+    setupCwd: ({ value }: { value: string }): void => {
+      cwdRecorder.setupCwd({ value });
+    },
+
     setupBranch: ({ branch }: { branch: string | null }): void => {
+      clockProxy.setupNow({ ms: NOW_MS_VALUE });
       if (branch === null) {
         branchProxy.setupDetached();
         return;
@@ -118,6 +128,7 @@ export const instanceReserveBrokerProxy = (): {
     },
 
     setupBranchFailure: ({ exitCode, output }: { exitCode: number; output: string }): void => {
+      clockProxy.setupNow({ ms: NOW_MS_VALUE });
       branchProxy.setupFailure({ exitCode, output });
     },
 

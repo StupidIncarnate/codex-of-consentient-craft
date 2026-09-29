@@ -1,3 +1,4 @@
+import { pid } from '#gateway/node/process';
 import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceReserveBroker } from './instance-reserve-broker';
@@ -58,7 +59,7 @@ describe('instanceReserveBroker', () => {
         // process.pid is a plain data property, not a function or an accessor, so
         // registerSpyOn (which wraps jest.spyOn) cannot stage it — every assertion in this file
         // compares against the REAL process.pid rather than a staged one.
-        owner: InstanceOwnerStub({ value: String(process.pid) }),
+        owner: InstanceOwnerStub({ value: String(pid) }),
         questId: null,
         guildId: null,
         specName,
@@ -129,7 +130,7 @@ describe('instanceReserveBroker', () => {
       expect(result).toStrictEqual(
         RegistryEntryStub({
           id: proxy.mintedInstanceId(),
-          owner: InstanceOwnerStub({ value: String(process.pid) }),
+          owner: InstanceOwnerStub({ value: String(pid) }),
           questId,
           guildId,
           specName,
@@ -204,7 +205,7 @@ describe('instanceReserveBroker', () => {
       // check — this reads the row back through the registry proxy to close that hole.
       const expectedWrittenEntry = RegistryEntryStub({
         id: proxy.mintedInstanceId(),
-        owner: InstanceOwnerStub({ value: String(process.pid) }),
+        owner: InstanceOwnerStub({ value: String(pid) }),
         questId: null,
         guildId: null,
         specName,
@@ -254,6 +255,7 @@ describe('instanceReserveBroker', () => {
   describe('git failure', () => {
     it('ERROR: {git rev-parse fails for a reason other than "not a git repository"} => the reservation rejects with the git failure', async () => {
       const proxy = instanceReserveBrokerProxy();
+      proxy.setupCwd({ value: '/work/repo' });
       proxy.setupBranchFailure({
         exitCode: 128,
         output: 'fatal: detected dubious ownership in repository',
@@ -269,7 +271,7 @@ describe('instanceReserveBroker', () => {
         }),
       ).rejects.toStrictEqual(
         new Error(
-          `git rev-parse --abbrev-ref HEAD failed in ${process.cwd()} with exit code 128: fatal: detected dubious ownership in repository`,
+          `git rev-parse --abbrev-ref HEAD failed in /work/repo with exit code 128: fatal: detected dubious ownership in repository`,
         ),
       );
     });

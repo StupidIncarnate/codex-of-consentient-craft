@@ -27,7 +27,9 @@
  */
 
 import { currentBranch } from '#gateway/bin/git';
-import { cwd } from '#gateway/node/process';
+import { randomUUID } from '#gateway/node/crypto';
+import { now } from '#gateway/node/Date';
+import { cwd, pid } from '#gateway/node/process';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { freePortPair } from '#gateway/node/net';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
@@ -58,15 +60,15 @@ export const instanceReserveBroker = async ({
   questId: QuestId | null;
   guildId: GuildId | null;
 }): Promise<RegistryEntry> => {
-  // crypto.randomUUID() dashes stripped — the whole hex payload, comfortably above
+  // randomUUID() dashes stripped — the whole hex payload, comfortably above
   // instanceIdContract's 4-char minimum, with no length arithmetic to hold a magic number.
   // split/join, not a regex: regex literals are confined to contracts/guards/transformers.
-  const entropyHex = crypto.randomUUID().split('-').join('');
+  const entropyHex = randomUUID().split('-').join('');
   const resolvedInstanceId = instanceIdContract.parse(
     `${instanceLifecycleStatics.ids.instancePrefix}${entropyHex}`,
   );
-  const resolvedOwner = instanceOwnerContract.parse(String(process.pid));
-  const resolvedReservedAtMs = epochMsContract.parse(Date.now());
+  const resolvedOwner = instanceOwnerContract.parse(String(pid));
+  const resolvedReservedAtMs = epochMsContract.parse(now());
 
   // Independent calls — the branch read and the port-candidate fan-out share no data — so they
   // run together rather than the branch read adding its own latency in front of the ports.
