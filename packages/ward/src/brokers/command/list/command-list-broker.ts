@@ -6,6 +6,7 @@
  * // Writes error list to stdout, or error message if no result found
  */
 
+import { stderr, stdout } from '#gateway/node/process';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -25,12 +26,12 @@ export const commandListBroker = async ({
   const wardResult = await storageLoadBroker(loadArgs);
 
   if (!wardResult) {
-    process.stderr.write('No ward results found\n');
+    stderr.write('No ward results found\n');
     return result;
   }
 
   const list = resultToListTransformer({ wardResult });
 
-  process.stdout.write(`${list}\n`);
+  stdout.write(`${list}\n`);
   return result;
 };

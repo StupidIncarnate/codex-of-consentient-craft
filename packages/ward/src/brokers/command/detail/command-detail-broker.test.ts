@@ -131,8 +131,7 @@ describe('commandDetailBroker', () => {
         json: true,
       });
 
-      const stdoutCalls = proxy.getStdoutCalls();
-      const parsed: unknown = JSON.parse(stdoutCalls[0] as never);
+      const parsed: unknown = JSON.parse(String(proxy.getStdoutCalls()[0]));
 
       expect(parsed).toStrictEqual({
         runId: '1739625600000-a3f1',
@@ -194,8 +193,7 @@ describe('commandDetailBroker', () => {
         json: true,
       });
 
-      const stdoutCalls = proxy.getStdoutCalls();
-      const parsed: unknown = JSON.parse(stdoutCalls[0] as never);
+      const parsed: unknown = JSON.parse(String(proxy.getStdoutCalls()[0]));
 
       expect(parsed).toStrictEqual({
         runId: '1739625600000-a3f1',

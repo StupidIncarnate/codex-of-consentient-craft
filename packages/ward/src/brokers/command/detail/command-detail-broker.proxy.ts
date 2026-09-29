@@ -1,20 +1,17 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { storageLoadBrokerProxy } from '../../storage/load/storage-load-broker.proxy';
 
 export const commandDetailBrokerProxy = (): {
   setupWithResult: (params: { content: string }) => void;
   setupNoResult: () => void;
-  getStdoutCalls: () => unknown[];
-  getStderrCalls: () => unknown[];
+  getStdoutCalls: () => readonly unknown[];
+  getStderrCalls: () => readonly unknown[];
 } => {
-  // write()'s return value never varies by content — what was written is read back via
-  // callsMatching below, so the catch-all stays unaddressed.
-  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.calledWith([]).returns(true);
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrSpy.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
+  const stderr = stderrProxy();
 
   const storageProxy = storageLoadBrokerProxy();
   // Every test in this file exercises rootPath '/project' and the default RunIdStub().
@@ -28,7 +25,7 @@ export const commandDetailBrokerProxy = (): {
     setupNoResult: (): void => {
       storageProxy.setupReadFail({ rootPath, runId });
     },
-    getStdoutCalls: (): unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
-    getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+    getStdoutCalls: (): readonly unknown[] => stdout.getWrites(),
+    getStderrCalls: (): readonly unknown[] => stderr.getWrites(),
   };
 };
