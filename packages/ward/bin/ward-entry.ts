@@ -10,10 +10,12 @@
  * node ward-entry.js raw      // Shows raw tool output
  */
 
+import { argv, exit, stderr } from '#gateway/node/process';
+
 import { StartWard } from '../src/startup/start-ward';
 
-StartWard({ args: process.argv }).catch((error: unknown) => {
+StartWard({ args: argv }).catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`Error: ${errorMessage}\n`);
-  process.exit(1);
+  stderr.write(`Error: ${errorMessage}\n`);
+  exit(1);
 });

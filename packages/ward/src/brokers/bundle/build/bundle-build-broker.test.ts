@@ -1,3 +1,4 @@
+import { pid } from '#gateway/node/process';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { bundleBuildBroker } from './bundle-build-broker';
@@ -8,7 +9,7 @@ import { bundleBuildBrokerProxy } from './bundle-build-broker.proxy';
 const BUNDLE_HASH = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
 const BUNDLE_PARENT = '/project/packages/web/.ward/bundle';
 const BUNDLE_DIR = `${BUNDLE_PARENT}/${BUNDLE_HASH}`;
-const TEMP_DIR = `${BUNDLE_PARENT}/.tmp-${String(process.pid)}`;
+const TEMP_DIR = `${BUNDLE_PARENT}/.tmp-${String(pid)}`;
 
 describe('bundleBuildBroker', () => {
   describe('a bundle for these inputs already exists', () => {
@@ -31,7 +32,7 @@ describe('bundleBuildBroker', () => {
 
       await bundleBuildBroker({ packageRoot });
 
-      expect(proxy.getSpawnedArgs()).toBe(undefined);
+      expect(proxy.getBuildCalls()).toStrictEqual([]);
     });
   });
 
@@ -59,10 +60,15 @@ describe('bundleBuildBroker', () => {
 
       await bundleBuildBroker({ packageRoot });
 
-      // The proxy stages this exact call under cwd '/project/packages/web' (WEB_ROOT) — a build
-      // spawned with any other cwd would match no staged call and throw before this assertion runs,
-      // so reaching this args check already proves the cwd was passed through correctly.
-      expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'build', '--', '--outDir', TEMP_DIR]);
+      expect(proxy.getBuildCalls()).toStrictEqual([
+        [
+          {
+            command: 'npm',
+            args: ['run', 'build', '--', '--outDir', TEMP_DIR],
+            cwd: '/project/packages/web',
+          },
+        ],
+      ]);
     });
 
     // Publishing is a rename ONTO the hash directory, never a write INSIDE one. A concurrent run
@@ -134,6 +140,38 @@ describe('bundleBuildBroker', () => {
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
       proxy.setupBuildFails({ output: 'Could not resolve ./missing' });
+
+      await bundleBuildBroker({ packageRoot });
+
+      expect(proxy.getRemovedTempPaths()).toStrictEqual([
+        [TEMP_DIR, { recursive: true, force: true }],
+        [TEMP_DIR, { recursive: true, force: true }],
+      ]);
+    });
+  });
+
+  describe('npm is not installed', () => {
+    it('ERROR: {npm never starts} => returns no bundle and an empty build output', async () => {
+      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const proxy = bundleBuildBrokerProxy();
+      proxy.setupWorkspace();
+      proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
+      proxy.setupNpmMissing();
+
+      const result = await bundleBuildBroker({ packageRoot });
+
+      expect(result).toStrictEqual({
+        bundleDir: null,
+        error: 'bundle build failed in /project/packages/web:\n',
+      });
+    });
+
+    it('ERROR: {npm never starts} => leaves no temp directory behind', async () => {
+      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const proxy = bundleBuildBrokerProxy();
+      proxy.setupWorkspace();
+      proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
+      proxy.setupNpmMissing();
 
       await bundleBuildBroker({ packageRoot });
 

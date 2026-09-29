@@ -16,9 +16,10 @@
  * // no build script, and { bundleDir: null, error } when its build failed
  */
 
-import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
+import { pid } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -76,22 +77,25 @@ export const bundleBuildBroker = async ({
   // at once never share a write target. A pid recurs across reboots, so any leftover of the same
   // name is a dead run's and is taken first — building into it would ship both runs' output.
   const tempDir = filePathContract.parse(
-    `${bundleParent}/${bundleStatics.tempPrefix}${String(process.pid)}`,
+    `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`,
   );
   await rm(String(tempDir), { recursive: true, force: true });
 
-  // A missing build binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // A missing npm rejects `runScript` with NpmNotInstalledError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
   // for an ENOENT, so a machine without it reads as a failing build below, exactly as it always has.
-  const result = await run({
-    command: bundleStatics.buildCommand,
-    args: [...bundleStatics.buildArgs, String(tempDir)],
-    cwd: packageRoot,
+  // The script name and its forwarded args are the tail of bundleStatics.buildArgs (`run` is
+  // runScript's own).
+  const [, script, ...forwardedArgs] = bundleStatics.buildArgs;
+  const result = await runScript({
+    cwd: String(packageRoot),
+    script,
+    args: [...forwardedArgs, String(tempDir)],
   }).catch((error: unknown) => {
-    if (!(error instanceof RunNotFoundError)) {
+    if (!(error instanceof NpmNotInstalledError)) {
       throw error;
     }
-    return { exitCode: 1, output: '', signal: null, timedOut: false };
+    return { exitCode: 1, output: '' };
   });
 
   if (result.exitCode !== exitCodeContract.parse(0)) {

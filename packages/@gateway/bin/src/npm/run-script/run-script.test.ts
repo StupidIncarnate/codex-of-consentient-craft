@@ -1,3 +1,4 @@
+import { NpmNotInstalledError } from '../npm-run/npm-not-installed.error';
 import { runScript } from './run-script';
 import { runScriptProxy } from './run-script.proxy';
 
@@ -38,6 +39,19 @@ describe('runScript()', () => {
     const result = await runScript({ cwd: '/repo', script: 'missing' });
 
     expect(result).toStrictEqual({ exitCode: 1, output: 'npm ERR! Missing script' });
+  });
+
+  it('ERROR: {setupNotFound, script + args} => rejects with NpmNotInstalledError naming the full command', async () => {
+    const proxy = runScriptProxy();
+    proxy.setupNotFound({ script: 'build', args: ['--outDir', '/tmp/out'] });
+
+    await expect(
+      runScript({ cwd: '/repo', script: 'build', args: ['--outDir', '/tmp/out'] }),
+    ).rejects.toStrictEqual(
+      new NpmNotInstalledError(
+        'npm run build --outDir /tmp/out could not start in /repo: "npm" never started: ENOENT: open \'npm\'',
+      ),
+    );
   });
 
   describe('tolerant addressing', () => {

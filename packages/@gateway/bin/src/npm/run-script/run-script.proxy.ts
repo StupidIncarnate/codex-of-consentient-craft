@@ -9,6 +9,7 @@ export const runScriptProxy = (): {
     exitCode: number;
     output: string;
   }) => void;
+  setupNotFound: (params: { script: string; workspace?: string; args?: string[] }) => void;
   returnsMatchingScript: (params: {
     script: ArgMatcher;
     workspace?: string;
@@ -47,6 +48,25 @@ export const runScriptProxy = (): {
         ],
         exitCode,
         output,
+      });
+    },
+
+    setupNotFound: ({
+      script,
+      workspace,
+      args,
+    }: {
+      script: string;
+      workspace?: string;
+      args?: string[];
+    }): void => {
+      runProxy.setupNotFound({
+        args: [
+          'run',
+          script,
+          ...(workspace === undefined ? [] : [`--workspace=${workspace}`]),
+          ...(args ?? []),
+        ],
       });
     },
 

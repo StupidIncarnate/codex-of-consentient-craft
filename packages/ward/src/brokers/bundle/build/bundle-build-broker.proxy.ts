@@ -1,7 +1,9 @@
+import { NpmNotInstalledErrorProxy } from '#gateway/bin/npm/npm-run/npm-not-installed.error.proxy';
+import { runScriptProxy } from '#gateway/bin/npm/run-script/run-script.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
-import { runProxy } from '#gateway/node/child_process/run/run.proxy';
-import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { pid } from '#gateway/node/process';
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
@@ -33,11 +35,12 @@ export const bundleBuildBrokerProxy = (): {
   setupNoCachedBundle: (params: { hash: string }) => void;
   setupBuildSucceeds: () => void;
   setupBuildFails: (params: { output: string }) => void;
+  setupNpmMissing: () => void;
   setupPublishWins: (params: { hash: string }) => void;
   setupPublishLoses: (params: { hash: string }) => void;
   setupCachedSinglePackageBundle: (params: { packageRoot: AbsoluteFilePath; hash: string }) => void;
   bundleDirFor: (params: { packageRoot: AbsoluteFilePath; hash: string }) => AbsoluteFilePath;
-  getSpawnedArgs: () => unknown;
+  getBuildCalls: () => readonly unknown[][];
   getRemovedTempPaths: () => readonly unknown[][];
   getPublishCalls: () => readonly unknown[][];
 } => {
@@ -47,13 +50,14 @@ export const bundleBuildBrokerProxy = (): {
   const mkdirProxy = ensureDirProxy();
   const rm = rmProxy();
   const rename = renameProxy();
-  const run = runProxy();
-  RunNotFoundErrorProxy();
+  const run = runScriptProxy();
+  pidProxy();
+  NpmNotInstalledErrorProxy();
   const readProxy = readFileProxy();
 
   const bundleParent = `${String(WEB_ROOT)}/${bundleStatics.parentDir}`;
   const tempPath = filePathContract.parse(
-    `${bundleParent}/${bundleStatics.tempPrefix}${String(process.pid)}`,
+    `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`,
   );
 
   const hashDirFor = ({
@@ -132,31 +136,29 @@ export const bundleBuildBrokerProxy = (): {
       });
     },
 
-    // Addressed by command, args AND cwd (all known ahead of time: the build command is fixed, the
-    // args are the fixed buildArgs plus this proxy's own computed tempPath, and every test here
-    // builds WEB_ROOT) — staging the exact cwd is what proves it was passed through correctly: a
-    // broker that built with the WRONG cwd would match no staged call and throw, rather than
-    // silently succeed.
+    // Staged by script and exact args (the fixed buildArgs tail plus this proxy's own computed
+    // tempPath). The cwd is not stageable through runScript's proxy, so getBuildCalls reads it back
+    // and the test asserts it: a broker that built in the WRONG directory shows up there.
     setupBuildSucceeds: (): void => {
-      run.setupSuccess({
-        command: bundleStatics.buildCommand,
-        args: [...bundleStatics.buildArgs, String(tempPath)],
-        cwd: String(WEB_ROOT),
+      run.setupResult({
+        script: 'build',
+        args: ['--', '--outDir', String(tempPath)],
         exitCode: 0,
-        stdout: 'built in 9.7s',
-        stderr: '',
+        output: 'built in 9.7s',
       });
     },
 
     setupBuildFails: ({ output }: { output: string }): void => {
-      run.setupSuccess({
-        command: bundleStatics.buildCommand,
-        args: [...bundleStatics.buildArgs, String(tempPath)],
-        cwd: String(WEB_ROOT),
+      run.setupResult({
+        script: 'build',
+        args: ['--', '--outDir', String(tempPath)],
         exitCode: 1,
-        stdout: output,
-        stderr: '',
+        output,
       });
+    },
+
+    setupNpmMissing: (): void => {
+      run.setupNotFound({ script: 'build', args: ['--', '--outDir', String(tempPath)] });
     },
 
     setupPublishWins: ({ hash }: { hash: string }): void => {
@@ -228,7 +230,8 @@ export const bundleBuildBrokerProxy = (): {
       hash: string;
     }): AbsoluteFilePath => hashDirFor({ packageRoot, hash }),
 
-    getSpawnedArgs: (): unknown => run.getCallsFor({ command: bundleStatics.buildCommand }).at(-1),
+    getBuildCalls: (): readonly unknown[][] =>
+      run.getCallsFor({ script: 'build', args: ['--', '--outDir', String(tempPath)] }),
 
     getRemovedTempPaths: (): readonly unknown[][] => rm.getCallsFor({ path: String(tempPath) }),
 
