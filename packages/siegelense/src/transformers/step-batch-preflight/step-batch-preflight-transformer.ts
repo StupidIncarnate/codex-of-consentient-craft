@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Names every unknown step verb and every stray key in a raw `--steps` batch in words the
- * caller can act on — `Unknown step "scroll". Known steps: goto, waitFor, …` and `goto has no key
+ * caller can act on — `Unknown step "teleport". Known steps: goto, waitFor, …` and `goto has no key
  * "bogus". It takes: path, node, expect` — where the validator's own text names neither the typed
  * value nor the accepted ones ("Invalid discriminator value", "Unrecognized key(s)"). Run it BEFORE
  * `runArgsContract.parse`; an empty answer means the batch has no unknown verb or key, and every other
@@ -9,8 +9,8 @@
  * added there is accepted and listed here with no second edit.
  *
  * USAGE:
- * stepBatchPreflightTransformer({ steps: [{ step: 'scroll' }] });
- * // Returns ['steps.0: Unknown step "scroll". Known steps: goto, waitFor, click, …']
+ * stepBatchPreflightTransformer({ steps: [{ step: 'teleport' }] });
+ * // Returns ['steps.0: Unknown step "teleport". Known steps: goto, waitFor, click, …']
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';

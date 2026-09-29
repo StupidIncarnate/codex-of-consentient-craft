@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
+import { ScrollReadingStub } from '../../../contracts/scroll-reading/scroll-reading.stub';
 import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
@@ -333,6 +334,71 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe('resized to 1280x720');
+    });
+  });
+
+  describe('a scroll step', () => {
+    it('VALID: {scroll by 400} => moves without resolving a handle and returns the new position', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 400, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', by: 400 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['evaluateSource', 'evaluateSource']);
+      expect(reading).toBe(
+        'scroll position x=0 y=400; page 1280x900; viewport 1280x500; max scroll x=0 y=400',
+      );
+    });
+
+    it('VALID: {scroll to a target} => resolves the target to one match before moving', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 200, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', target: SelectorStub() });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['countMatches', 'evaluateSource', 'evaluateSource']);
+      expect(reading).toBe(
+        'scroll position x=0 y=200; page 1280x900; viewport 1280x500; max scroll x=0 y=400',
+      );
+    });
+
+    it('VALID: {scroll to a ref} => checks the ref is live before moving', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 300, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', ref: 26 });
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['refState', 'evaluateSource', 'evaluateSource']);
     });
   });
 

@@ -16,6 +16,7 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { RecipeInputKeyStub } from '../../../contracts/recipe-input-key/recipe-input-key.stub';
 import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
+import type { ScrollReadingStub } from '../../../contracts/scroll-reading/scroll-reading.stub';
 import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
 import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
@@ -30,6 +31,7 @@ import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepRequestBrokerProxy } from '../request/step-request-broker.proxy';
 import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
+import { stepScrollBrokerProxy } from '../scroll/step-scroll-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepSnapshotBrokerProxy } from '../snapshot/step-snapshot-broker.proxy';
 import { stepResetBrokerProxy } from '../reset/step-reset-broker.proxy';
@@ -46,10 +48,16 @@ import { stepWaitForBrokerProxy } from '../wait-for/step-wait-for-broker.proxy';
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const TWO_MATCHES_COUNT = 2;
 
+type ScrollReading = ReturnType<typeof ScrollReadingStub>;
+
 export const runVerbLayerBrokerProxy = (): {
   sessionWithOneMatch: () => {
     lane: LaneSession;
     session: BrowserSession;
+    callOrder: () => readonly ContentText[];
+  };
+  sessionWithScroll: (params: { reading: ScrollReading }) => {
+    lane: LaneSession;
     callOrder: () => readonly ContentText[];
   };
   sessionWithTargetAppearingLater: () => {
@@ -98,6 +106,7 @@ export const runVerbLayerBrokerProxy = (): {
   const requestProxy = stepRequestBrokerProxy();
   const fileProxy = stepFileBrokerProxy();
   stepScreenshotBrokerProxy();
+  stepScrollBrokerProxy();
   stepStorageBrokerProxy();
   stepPasteBrokerProxy();
   stepTargetResolveBrokerProxy();
@@ -157,6 +166,38 @@ export const runVerbLayerBrokerProxy = (): {
       return {
         lane: LaneSessionStub({ browser: session }),
         session,
+        callOrder: (): readonly ContentText[] => order,
+      };
+    },
+
+    // One match for a handle scroll, `true` for the move, and the chosen geometry for the read that
+    // follows — `callOrder` names each call in the order the layer made it.
+    sessionWithScroll: ({
+      reading,
+    }: {
+      reading: ScrollReading;
+    }): { lane: LaneSession; callOrder: () => readonly ContentText[] } => {
+      const order: ContentText[] = [];
+      const session = BrowserSessionStub({
+        countMatches: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('countMatches'));
+          return Promise.resolve(matchCountContract.parse(1));
+        }),
+        refState: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('refState'));
+          return Promise.resolve(RefResolutionStub({ state: 'live' }));
+        }),
+        evaluateSource: jest.fn().mockImplementation(async ({ source }: { source: string }) => {
+          order.push(contentTextContract.parse('evaluateSource'));
+          return Promise.resolve(
+            contentTextContract.parse(
+              source.includes('scrollWidth') ? JSON.stringify(reading) : 'true',
+            ),
+          );
+        }),
+      });
+      return {
+        lane: LaneSessionStub({ browser: session }),
         callOrder: (): readonly ContentText[] => order,
       };
     },
