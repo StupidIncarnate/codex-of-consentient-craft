@@ -17,4 +17,22 @@ describe('now', () => {
 
     expect({ first, second: now() }).toStrictEqual({ first: 10, second: 20 });
   });
+
+  it('VALID: {three one-shots staged} => successive reads get successive staged values', () => {
+    const proxy = nowProxy();
+    proxy.setupNowOnce({ ms: 100 });
+    proxy.setupNowOnce({ ms: 200 });
+    proxy.setupNowOnce({ ms: 300 });
+
+    expect([now(), now(), now()]).toStrictEqual([100, 200, 300]);
+  });
+
+  it('VALID: {one-shots then setupNow} => setupNow answers once the one-shots are spent', () => {
+    const proxy = nowProxy();
+    proxy.setupNow({ ms: 999 });
+    proxy.setupNowOnce({ ms: 1 });
+    proxy.setupNowOnce({ ms: 2 });
+
+    expect([now(), now(), now(), now()]).toStrictEqual([1, 2, 999, 999]);
+  });
 });

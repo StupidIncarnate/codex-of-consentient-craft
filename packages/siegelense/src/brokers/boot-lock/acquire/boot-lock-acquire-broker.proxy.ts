@@ -1,3 +1,5 @@
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -6,8 +8,6 @@ import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-e
 import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
 import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
 import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -98,14 +98,15 @@ export const bootLockAcquireBrokerProxy = (): {
   const writeProxy = writeFileExclusiveProxy();
   const unlinkProxy = unlinkIfExistsProxy();
   const eexistError = FileExistsRecordedErrorStub({ path: BOOT_LOCK_VALUE });
-  const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
+  const clockProxy = nowProxy();
+  pidProxy();
 
   return {
     bootLockPath,
     rootPath,
 
     setupNow: ({ nowMs }: { nowMs: EpochMs }): void => {
-      dateHandle.calledWith([]).returns(nowMs);
+      clockProxy.setupNow({ ms: nowMs });
     },
 
     setupLockHeldBy: ({
@@ -267,8 +268,8 @@ export const bootLockAcquireBrokerProxy = (): {
       });
 
       // call 1: startedAtMs (broker entry). call 2: nowMs, already at the wait ceiling.
-      dateHandle.onceFor([]).returns(startedAtMs);
-      dateHandle.onceFor([]).returns(nowMs);
+      clockProxy.setupNowOnce({ ms: startedAtMs });
+      clockProxy.setupNowOnce({ ms: nowMs });
 
       return {
         startedAtMs,
@@ -321,9 +322,9 @@ export const bootLockAcquireBrokerProxy = (): {
 
       // call 1: startedAtMs (broker entry). call 2: nowMs for the first (failed) attempt. call 3:
       // nowMs for the retry, already at the wait ceiling.
-      dateHandle.onceFor([]).returns(startedAtMs);
-      dateHandle.onceFor([]).returns(nowMsFirstAttempt);
-      dateHandle.onceFor([]).returns(nowMsSecondAttempt);
+      clockProxy.setupNowOnce({ ms: startedAtMs });
+      clockProxy.setupNowOnce({ ms: nowMsFirstAttempt });
+      clockProxy.setupNowOnce({ ms: nowMsSecondAttempt });
 
       return {
         expectedError: new BootLockHeldError({

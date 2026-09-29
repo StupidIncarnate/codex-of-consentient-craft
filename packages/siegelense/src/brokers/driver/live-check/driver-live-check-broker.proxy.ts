@@ -1,3 +1,4 @@
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBrokerProxy } from '../socket-request/driver-socket-request-broker.proxy';
@@ -13,6 +14,7 @@ export const driverLiveCheckBrokerProxy = (): {
   setupSocketAnswers: (params: { socketPath: AbsoluteFilePath }) => void;
   setupSocketUnreachable: (params: { socketPath: AbsoluteFilePath }) => void;
 } => {
+  pidProxy();
   const isAliveProxy = processIsAliveBrokerProxy();
   const socketProxy = driverSocketRequestBrokerProxy();
 

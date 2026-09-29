@@ -29,6 +29,7 @@
  * // Fresh lock held by another instance: polls until it frees or throws BootLockHeldError.
  */
 
+import { now } from '#gateway/node/Date';
 import { isFsError } from '#gateway/node/fs';
 import { pid } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
@@ -58,10 +59,10 @@ export const bootLockAcquireBroker = async ({
   waitStartedAtMs?: EpochMs;
   tookOverStaleSoFar?: boolean;
 }): Promise<{ lock: BootLock; tookOverStale: boolean }> => {
-  const startedAtMs = waitStartedAtMs ?? epochMsContract.parse(Date.now());
+  const startedAtMs = waitStartedAtMs ?? epochMsContract.parse(now());
   const rootPath = locationsRootPathFindBroker();
   const bootLockPath = locationsBootLockPathFindBroker();
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = epochMsContract.parse(now());
   const tookOverStale = tookOverStaleSoFar ?? false;
 
   const newLock = bootLockContract.parse({
