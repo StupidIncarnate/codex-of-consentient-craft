@@ -103,13 +103,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-adhoc-types': 'error',
     '@dungeonmaster/enforce-contract-usage-in-tests': 'error',
     '@dungeonmaster/ban-jest-mock-in-tests': 'error',
-    '@dungeonmaster/ban-primitives': [
-      'error',
-      {
-        allowPrimitiveInputs: true,
-        allowPrimitiveReturns: false,
-      },
-    ],
     '@dungeonmaster/enforce-file-metadata': 'error',
     '@dungeonmaster/enforce-folder-return-types': 'error',
     '@dungeonmaster/enforce-hydration-recipes-structure': 'error',
@@ -135,7 +128,6 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/no-multiple-property-assertions': 'error',
     '@dungeonmaster/no-mutable-state-in-proxy-factory': 'error',
     '@dungeonmaster/require-contract-validation': 'error',
-    '@dungeonmaster/require-zod-on-primitives': 'error',
     '@dungeonmaster/ban-fetch-in-proxies': 'error',
     '@dungeonmaster/ban-silent-catch': 'error',
     '@dungeonmaster/ban-startup-branching': 'error',
@@ -199,11 +191,19 @@ export const configDungeonmasterBroker = ({
     // R1: reads every workspace package once to index which contracts production code parses, so it
     // is a ward-only rule, not an editor one. Off here; the repo's lint pass turns it on.
     '@dungeonmaster/require-contract-parse': 'off',
+    // R2: the syntax half of the brand rules (B1, B2, B3), with an autofix that writes the derived
+    // text. Off until the brand migration has branded every contract: it flags every object contract
+    // that has no brand yet. Reads only the linted file, so it is tagged 'pre-edit'.
+    '@dungeonmaster/require-object-contract-brands': 'off',
     // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): built
     // and scanned over the whole repo; off until the proxy fixes it flags are split per package and
     // applied — turning it on now would fail every proxy the scan already found.
     '@dungeonmaster/ban-proxy-catch-all-defaults': 'off',
     '@dungeonmaster/ban-invented-failures': 'off',
+    // R3 (scrolls/brands-gateways-epic/items/b14-type-alias-and-adhoc-type-rules.md): B5 and C2's
+    // alias refusals. Off until the aliases it flags are migrated. `ban-adhoc-types` above takes the
+    // B9 half as its `checkModuleLevelShapes` option, also off, so it keeps its bare 'error'.
+    '@dungeonmaster/ban-type-aliases': 'off',
     // Same T05 item. Needs the type checker (fn's real signature), the same ward-only gate as
     // raw-import-ban and platform-globals-ban above — so it carries no entry in
     // dungeonmasterRuleEnforceOnStatics and stays out of this list (a key here, even 'off', would
@@ -252,12 +252,11 @@ export const configDungeonmasterBroker = ({
   // behind each omission. Every other rule — the file header, no silent catch, the
   // typescript-eslint set, forbid-type-reexport, and everything else — still applies unchanged.
   //
-  // ban-primitives and enforce-stub-usage are NOT in this list even though the gateway
-  // structurally can't satisfy either: the TEST rule block (dungeonmasterCustomRules shared with
-  // testConfig) is not carved out by file glob, so a gateway `.test.ts` still needs each rule to
-  // recognize the gateway on its own — each rule's own file-gate calls isGatewayFileGuard
-  // directly, covering implementation AND test with one mechanism, so the config-level omission
-  // here would be redundant for those two.
+  // enforce-stub-usage is NOT in this list even though the gateway structurally can't satisfy it:
+  // the TEST rule block (dungeonmasterCustomRules shared with testConfig) is not carved out by
+  // file glob, so a gateway `.test.ts` still needs the rule to recognize the gateway on its own —
+  // its own file-gate calls isGatewayFileGuard directly, covering implementation AND test with one
+  // mechanism, so the config-level omission here would be redundant.
   const {
     '@dungeonmaster/enforce-project-structure': _gatewayOmitEnforceProjectStructure,
     '@dungeonmaster/enforce-object-destructuring-params':

@@ -142,13 +142,37 @@ describe('configDungeonmasterBroker', () => {
       ).toStrictEqual(['error', { allow: [] }]);
     });
 
-    it('VALID: {} => ruleEnforceOn contains ban-primitives as pre-edit', () => {
+    it('VALID: {} => ruleEnforceOn contains require-object-contract-brands as pre-edit', () => {
       configDungeonmasterBrokerProxy();
 
       const { ruleEnforceOn } = configDungeonmasterBroker();
 
-      expect(ruleEnforceOn['@dungeonmaster/ban-primitives']).toBe('pre-edit');
+      expect(ruleEnforceOn['@dungeonmaster/require-object-contract-brands']).toBe('pre-edit');
     });
+
+    it('VALID: {} => typescript config lands require-object-contract-brands off', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(
+        typescript.rules?.[
+          EslintRuleNameStub({ value: '@dungeonmaster/require-object-contract-brands' })
+        ],
+      ).toBe('off');
+    });
+
+    it.each(['@dungeonmaster/ban-primitives', '@dungeonmaster/require-zod-on-primitives'])(
+      'VALID: {} => typescript config and ruleEnforceOn no longer carry %s',
+      (ruleName) => {
+        configDungeonmasterBrokerProxy();
+
+        const { typescript, ruleEnforceOn } = configDungeonmasterBroker();
+
+        expect(typescript.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe(undefined);
+        expect(Reflect.has(ruleEnforceOn, ruleName)).toBe(false);
+      },
+    );
 
     it('VALID: {} => ruleEnforceOn contains enforce-object-destructuring-params as pre-edit', () => {
       configDungeonmasterBrokerProxy();
@@ -199,6 +223,27 @@ describe('configDungeonmasterBroker', () => {
         typescript.rules?.[
           EslintRuleNameStub({ value: '@dungeonmaster/ban-contract-type-predicates' })
         ],
+      ).toBe('error');
+    });
+
+    it('VALID: {} => ruleEnforceOn contains ban-type-aliases as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
+      expect(ruleEnforceOn['@dungeonmaster/ban-type-aliases']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => typescript config registers ban-type-aliases off and ban-adhoc-types with no options', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(
+        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-type-aliases' })],
+      ).toBe('off');
+      expect(
+        typescript.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-adhoc-types' })],
       ).toBe('error');
     });
 
@@ -277,20 +322,6 @@ describe('configDungeonmasterBroker', () => {
       const { gateway } = configDungeonmasterBroker();
 
       expect(gateway.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe('error');
-    });
-
-    // ban-primitives stays configured 'error' (with options) in the gateway config too — its
-    // OWN file-gate calls isGatewayFileGuard directly (rule-ban-primitives-broker.ts), because
-    // the TEST rule block that also carries this key is not carved out by file glob, so the
-    // rule has to recognize the gateway itself, in both implementation and test files.
-    it('VALID: {} => gateway rules still apply ban-primitives configured', () => {
-      configDungeonmasterBrokerProxy();
-
-      const { gateway } = configDungeonmasterBroker();
-
-      expect(
-        gateway.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/ban-primitives' })],
-      ).toStrictEqual(['error', { allowPrimitiveInputs: true, allowPrimitiveReturns: false }]);
     });
 
     it('VALID: {} => typescript config defaults gatewayLintConfig to an empty option', () => {

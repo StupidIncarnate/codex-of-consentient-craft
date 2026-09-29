@@ -596,3 +596,187 @@ ruleTester.run('ban-adhoc-types', ruleBanAdhocTypesBroker(), {
     },
   ],
 });
+
+// checkModuleLevelShapes: an object type that can leave a function is a contract
+ruleTester.run('ban-adhoc-types with checkModuleLevelShapes', ruleBanAdhocTypesBroker(), {
+  valid: [
+    // Off by default: the same shapes pass with no option
+    {
+      code: `type CarveResult = { ok: true } | { ok: false };`,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+    },
+    {
+      code: `export const kebab = (): { camel: string } => ({ camel: 'a' });`,
+      filename: '/project/src/transformers/kebab/kebab-transformer.ts',
+      options: [{ checkModuleLevelShapes: false }],
+    },
+
+    // A method set stays inline
+    {
+      code: `export const timerBroker = (): { stop: () => void; flush: () => Promise<void> } => x;`,
+      filename: '/project/src/brokers/timer/start/timer-start-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+    {
+      code: `type Handle = { stop(): void; hasRef?: () => boolean; onDone: (() => void) | undefined };`,
+      filename: '/project/src/brokers/timer/start/timer-start-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // A contract type, a reference without an object literal, an indexed type
+    {
+      code: `
+        import type { CarveResult } from '../../../contracts/carve-result/carve-result-contract';
+        export const carveBroker = async (): Promise<CarveResult> => x;
+      `,
+      filename: '/project/src/brokers/quest/carve/quest-carve-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+    {
+      code: `type Handle = ReturnType<typeof spawnDetached>;`,
+      filename: '/project/src/brokers/quest/carve/quest-carve-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+    {
+      code: `export const idBroker = ({ questId }: { questId: Quest['id'] }): Quest['id'] => questId;`,
+      filename: '/project/src/brokers/quest/id/quest-id-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // A parameter's type is the repo's convention, so an object literal there is left alone
+    {
+      code: `export const limitBroker = ({ questId, limit }: { questId: string; limit: number }): boolean => true;`,
+      filename: '/project/src/brokers/quest/limit/quest-limit-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // A shape that stays inside one function never leaves it
+    {
+      code: `
+        export const totalsBroker = (): boolean => {
+          const totals: { passed: number; failed: number } = { passed: 0, failed: 0 };
+          type Local = { a: string };
+          const seen = items.reduce<{ seen: string[] }>((acc) => acc, { seen: [] });
+          const inner = (): { a: string } => ({ a: 'x' });
+          return totals.passed === 0 && seen.seen.length === 0 && inner().a === 'x';
+        };
+      `,
+      filename: '/project/src/brokers/quest/totals/quest-totals-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // A callback at module level is not a module-level function's return type
+    {
+      code: `export const names = items.map((item): { a: string } => ({ a: item }));`,
+      filename: '/project/src/brokers/quest/names/quest-names-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // Proxies are exempt
+    {
+      code: `export const xBrokerProxy = (): { setupReturns: () => void; child: ChildProxy } => x;`,
+      filename: '/project/src/brokers/x/x-broker.proxy.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+
+    // contracts/ and widgets/ stay exempt by folder
+    {
+      code: `export type CarveResult = { ok: true } | { ok: false };`,
+      filename: '/project/src/contracts/carve-result/carve-result-contract.ts',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+    {
+      code: `export const CardWidget = (): { title: string } => x;`,
+      filename: '/project/src/widgets/card/card-widget.tsx',
+      options: [{ checkModuleLevelShapes: true }],
+    },
+  ],
+  invalid: [
+    {
+      code: `type CarveResult = { ok: true } | { ok: false };`,
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [{ messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'type alias' } }],
+    },
+    {
+      code: `export type WorktreeProvisionResult = { ok: true } | { ok: false; error: string };`,
+      filename: '/project/src/brokers/worktree/provision/worktree-provision-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [{ messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'type alias' } }],
+    },
+    {
+      code: `export const kebab = (): { camel: string; pascal: string } => ({ camel: 'a', pascal: 'A' });`,
+      filename: '/project/src/transformers/kebab/kebab-transformer.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'transformers', where: 'return type' } },
+      ],
+    },
+    {
+      code: `export async function cleanup(): Promise<{ removed: boolean }> { return { removed: true }; }`,
+      filename: '/project/src/brokers/quest/cleanup/quest-cleanup-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'return type' } },
+      ],
+    },
+    {
+      code: `export const f = function (): { a: string }[] { return []; };`,
+      filename: '/project/src/brokers/quest/list/quest-list-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'return type' } },
+      ],
+    },
+    {
+      code: `const cache: { entries: Entry[] } = { entries: [] };`,
+      filename: '/project/src/state/cache/cache-state.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'state', where: 'variable type' } },
+      ],
+    },
+    {
+      code: `const seen = new Map<string, { at: number }>();`,
+      filename: '/project/src/state/seen/seen-state.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'state', where: 'type argument' } },
+      ],
+    },
+    {
+      code: `const seen = build<readonly { at: number }[]>();`,
+      filename: '/project/src/state/seen/seen-state.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'state', where: 'type argument' } },
+      ],
+    },
+    {
+      code: `type LooseHandle = Record<string, unknown> & { operations: string[] };`,
+      filename: '/project/src/transformers/x/x-transformer.test.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [
+        { messageId: 'noAdhocShape', data: { folderType: 'transformers', where: 'type alias' } },
+      ],
+    },
+    {
+      code: `type Mixed = { stop: () => void; name: string };`,
+      filename: '/project/src/brokers/timer/start/timer-start-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [{ messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'type alias' } }],
+    },
+    {
+      code: `type Handle = { send: SendFn };`,
+      filename: '/project/src/brokers/timer/start/timer-start-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [{ messageId: 'noAdhocShape', data: { folderType: 'brokers', where: 'type alias' } }],
+    },
+    {
+      code: `interface Foo { a: string }`,
+      filename: '/project/src/brokers/timer/start/timer-start-broker.ts',
+      options: [{ checkModuleLevelShapes: true }],
+      errors: [{ messageId: 'noAdhocInterface' }],
+    },
+  ],
+});

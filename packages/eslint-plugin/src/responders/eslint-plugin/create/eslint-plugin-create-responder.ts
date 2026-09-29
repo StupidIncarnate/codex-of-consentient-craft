@@ -88,6 +88,8 @@ import { ruleBanProxyCatchAllDefaultsBroker } from '../../../brokers/rule/ban-pr
 import { ruleBanProxyEmptyCalledWithBroker } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker';
 import { ruleBanInventedFailuresBroker } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker';
 import { ruleBanContractTypePredicatesBroker } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker';
+import { ruleRequireObjectContractBrandsBroker } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker';
+import { ruleBanTypeAliasesBroker } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -176,6 +178,8 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-invented-failures': EslintRule;
     readonly 'enforce-gateway-schema-fields': EslintRule;
     readonly 'ban-contract-type-predicates': EslintRule;
+    readonly 'require-object-contract-brands': EslintRule;
+    readonly 'ban-type-aliases': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -269,6 +273,8 @@ export const EslintPluginCreateResponder = (): {
       'ban-invented-failures': ruleBanInventedFailuresBroker(),
       'enforce-gateway-schema-fields': ruleEnforceGatewaySchemaFieldsBroker(),
       'ban-contract-type-predicates': ruleBanContractTypePredicatesBroker(),
+      'require-object-contract-brands': ruleRequireObjectContractBrandsBroker(),
+      'ban-type-aliases': ruleBanTypeAliasesBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

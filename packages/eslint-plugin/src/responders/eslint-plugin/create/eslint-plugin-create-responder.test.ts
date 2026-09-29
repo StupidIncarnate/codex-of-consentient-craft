@@ -3,7 +3,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 83 rule names', () => {
+    it('VALID: {} => returns plugin with all 84 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -37,6 +37,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-startup-branching',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
+        'ban-type-aliases',
         'ban-typeof-assertions',
         'ban-unanchored-to-match',
         'ban-unknown-payload-in-discriminated-union',
@@ -89,6 +90,7 @@ describe('EslintPluginCreateResponder', () => {
         'raw-import-ban',
         'require-contract-parse',
         'require-contract-validation',
+        'require-object-contract-brands',
         'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',
       ]);

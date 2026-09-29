@@ -35,6 +35,7 @@ describe('EslintPluginFlow', () => {
         'ban-startup-branching',
         'ban-string-includes-in-expect',
         'ban-tautological-assertions',
+        'ban-type-aliases',
         'ban-typeof-assertions',
         'ban-unanchored-to-match',
         'ban-unknown-payload-in-discriminated-union',
@@ -87,6 +88,7 @@ describe('EslintPluginFlow', () => {
         'raw-import-ban',
         'require-contract-parse',
         'require-contract-validation',
+        'require-object-contract-brands',
         'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',
       ]);

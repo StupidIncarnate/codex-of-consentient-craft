@@ -172,6 +172,8 @@ type TsestreeSelf = z.infer<typeof tsestreeFields> & {
   // `'#GatewayWalkedFile'` in `.brand<'#GatewayWalkedFile'>()`; `literal` is the inner Literal node,
   // whose own `value` (already on this interface) carries the actual string/number/boolean.
   literal?: TsestreeSelf | null | undefined;
+  // TSUnionType / TSIntersectionType properties — the members joined by `|` or `&`
+  types?: TsestreeSelf[] | undefined;
 };
 
 // The four recursive shapes every getter below returns, spelled out once each.
@@ -325,6 +327,9 @@ export const tsestreeContract = z.object({
   },
   get literal(): TsestreeNodeSchema {
     return tsestreeContract.nullable().optional();
+  },
+  get types(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
   },
 });
 

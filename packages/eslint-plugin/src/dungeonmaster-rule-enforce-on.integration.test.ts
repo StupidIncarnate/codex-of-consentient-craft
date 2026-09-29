@@ -11,9 +11,8 @@ import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config
 // program `parserServices` expose), so it cannot run pre-edit (the hook parses one file in
 // isolation, no program) and 'post-edit' would fail the fs-operation check below (these rules read
 // no file — they call the type checker, not fsExistsSyncAdapter/fsReadFileSyncAdapter). BR row 2194:
-// `enforce-folder-return-types` "loses its tag" once R1 lands, the same way `ban-primitives` and
-// `require-zod-on-primitives` are slated to "leave the map" later — dropped entirely, not given a
-// third timing value.
+// `enforce-folder-return-types` "loses its tag" once R1 lands, and `ban-primitives` and
+// `require-zod-on-primitives` have left the map — dropped entirely, not given a third timing value.
 const WARD_ONLY_TYPE_CHECKED_RULES = [
   '@dungeonmaster/enforce-folder-return-types',
   '@dungeonmaster/raw-import-ban',

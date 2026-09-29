@@ -3,7 +3,7 @@
  *
  * USAGE:
  * import { dungeonmasterRuleEnforceOnStatics } from './statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics';
- * const timing = dungeonmasterRuleEnforceOnStatics['@dungeonmaster/ban-primitives'];
+ * const timing = dungeonmasterRuleEnforceOnStatics['@dungeonmaster/ban-adhoc-types'];
  * // Returns 'pre-edit'
  *
  * WHEN-TO-USE: When determining if a rule should run before or after file write in Claude Code hooks
@@ -28,13 +28,11 @@ export const dungeonmasterRuleEnforceOnStatics = {
   'jest/no-conditional-in-test': 'pre-edit',
   'jest/require-to-throw-message': 'pre-edit',
 
-  // @dungeonmaster - PRE-EDIT (38 rules)
+  // @dungeonmaster - PRE-EDIT
   '@dungeonmaster/ban-adhoc-types': 'pre-edit',
   '@dungeonmaster/enforce-contract-usage-in-tests': 'pre-edit',
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
-  '@dungeonmaster/ban-primitives': 'pre-edit',
   '@dungeonmaster/enforce-file-metadata': 'pre-edit',
-  '@dungeonmaster/require-zod-on-primitives': 'pre-edit',
   '@dungeonmaster/require-contract-validation': 'pre-edit',
   '@dungeonmaster/enforce-object-destructuring-params': 'pre-edit',
   '@dungeonmaster/enforce-optional-guard-params': 'pre-edit',
@@ -94,6 +92,8 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-workspace-export-mocks': 'pre-edit',
   '@dungeonmaster/enforce-gateway-schema-fields': 'pre-edit',
   '@dungeonmaster/ban-contract-type-predicates': 'pre-edit',
+  '@dungeonmaster/require-object-contract-brands': 'pre-edit',
+  '@dungeonmaster/ban-type-aliases': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

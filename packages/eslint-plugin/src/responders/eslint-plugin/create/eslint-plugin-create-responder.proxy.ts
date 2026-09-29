@@ -82,6 +82,8 @@ import { ruleBanProxyEmptyCalledWithBrokerProxy } from '../../../brokers/rule/ba
 import { ruleBanInventedFailuresBrokerProxy } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker.proxy';
 import { ruleEnforceGatewaySchemaFieldsBrokerProxy } from '../../../brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.proxy';
 import { ruleBanContractTypePredicatesBrokerProxy } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy';
+import { ruleRequireObjectContractBrandsBrokerProxy } from '../../../brokers/rule/require-object-contract-brands/rule-require-object-contract-brands-broker.proxy';
+import { ruleBanTypeAliasesBrokerProxy } from '../../../brokers/rule/ban-type-aliases/rule-ban-type-aliases-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -171,6 +173,8 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanInventedFailuresBrokerProxy();
   ruleEnforceGatewaySchemaFieldsBrokerProxy();
   ruleBanContractTypePredicatesBrokerProxy();
+  ruleRequireObjectContractBrandsBrokerProxy();
+  ruleBanTypeAliasesBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {
