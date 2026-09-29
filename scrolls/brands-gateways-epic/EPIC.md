@@ -767,8 +767,8 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | R5 | `enforce-stub-usage` C5 extension | 3.5 | 1 agent | todo | |
 | R6 | [Owner index](items/b10-owner-index.md) | R1 | 1 agent | done (the R6 commit) | `ownerIndexBuildBroker` in shared, built on R1's index: per object contract its owner, keys and each key's kind (own brand, owner reuse, brand ref, contract ref, plain); name matching by camelCase words (longest owner-plus-key wins), reachability by direct workspace dependency, brand declarers, and reuse-versus-copy per owner key. Real tree: 617 object contracts, 337 standalone brands; owner found for 19 of 21 rows of 4.0's table 2.2 (the two misses are rows 4.0 already flags). Top-level keys only: nested brands and `.extend()` contracts are not seen. Gate 1790691332510-4665. |
 | R7 | `require-object-contract-brands-indexed` | R6 | 1 agent | todo | lands off |
-| R8 | [`enforce-owner-field-reuse` with autofix](items/b13-owner-field-reuse.md) | R6 | 1 agent | todo | lands off |
-| R9 | [`enforce-unique-contract-names`](items/b11-unique-contract-names.md) | R6 | 1 agent | todo | |
+| R8 | [`enforce-owner-field-reuse` with autofix](items/b13-owner-field-reuse.md) | R6 | 1 agent | active | agent R8 (lands off) |
+| R9 | [`enforce-unique-contract-names`](items/b11-unique-contract-names.md) | R6 | 1 agent | active | agent R9 (object contracts only; on at W10) |
 | W1 | [Plain brands](items/b15-brand-migration.md): 153 never-a-field brands go plain | R2, 4.0 | script | todo | fan-out 3,761 |
 | W2 | B11 object-contract merges | R9, 4.0 | script plus agent | todo | 14 names |
 | W3 | Owned-id brands become their owner's `id` | W1, R8 | script plus R8 autofix | todo | |
