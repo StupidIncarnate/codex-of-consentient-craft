@@ -110,7 +110,8 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-proxy-patterns': 'error',
     '@dungeonmaster/enforce-regex-usage': 'error',
     '@dungeonmaster/enforce-stub-patterns': 'error',
-    '@dungeonmaster/enforce-stub-usage': 'error',
+    // The outside-type-cast check stays off until its scan reads 0; W10 drops the option.
+    '@dungeonmaster/enforce-stub-usage': ['error', { outsideTypeCasts: false }],
     '@dungeonmaster/enforce-test-colocation': 'error',
     '@dungeonmaster/enforce-test-creation-of-proxy': 'error',
     '@dungeonmaster/enforce-test-proxy-imports': 'error',

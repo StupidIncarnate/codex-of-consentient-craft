@@ -5,6 +5,52 @@ const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
   valid: [
+    // ✅ Outside type from its gateway stub - nothing to cast
+    {
+      code: `
+        import { ChildProcessStub } from '#gateway/node/child_process/child-process/child-process.stub';
+        const child = ChildProcessStub();
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+
+    // ✅ Cast to never is not a cast to an outside type
+    {
+      code: `
+        import type { TSESLint } from '@typescript-eslint/utils';
+        const c = { report: jest.fn() } as never;
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+
+    // ✅ Cast to a locally declared type
+    {
+      code: `
+        type Local = { a: number };
+        const c = { a: 1 } as Local;
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+
+    // ✅ Outside cast in a production file - rule does not apply
+    {
+      code: `
+        import type { TSESTree } from '@typescript-eslint/utils';
+        const node = { type: 'CallExpression' } as TSESTree.CallExpression;
+      `,
+      filename: '/project/src/brokers/user/user-broker.ts',
+    },
+
+    // ✅ Option off - the cast check does not run
+    {
+      code: `
+        import type { TSESTree } from '@typescript-eslint/utils';
+        const node = { type: 'CallExpression' } as TSESTree.CallExpression;
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      options: [{ outsideTypeCasts: false }],
+    },
+
     // ✅ Using stub function - allowed
     {
       code: `
@@ -134,6 +180,59 @@ ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
   ],
 
   invalid: [
+    // ❌ Outside type cast in a proxy
+    {
+      code: `
+        import type { TSESTree } from '@typescript-eslint/utils';
+        const node = { type: 'CallExpression' } as TSESTree.CallExpression;
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+      errors: [{ messageId: 'outsideTypeCast', data: { typeName: 'TSESTree' } }],
+    },
+
+    // ❌ Outside type cast through unknown in a stub
+    {
+      code: `
+        import type * as ts from 'typescript';
+        const sourceFile = { fileName: 'x.ts' } as unknown as ts.SourceFile;
+      `,
+      filename: '/project/src/contracts/user/user.stub.ts',
+      errors: [{ messageId: 'outsideTypeCast', data: { typeName: 'ts' } }],
+    },
+
+    // ❌ Outside type cast through Partial in a test
+    {
+      code: `
+        import type { TSESLint } from '@typescript-eslint/utils';
+        const context = { report: jest.fn() } as Partial<TSESLint.RuleContext<string, []>>;
+      `,
+      filename: '/project/src/brokers/user/user-broker.test.ts',
+      errors: [
+        { messageId: 'useStubInsteadOfTypedLiteral', data: { typeName: 'Object' } },
+        { messageId: 'outsideTypeCast', data: { typeName: 'TSESLint' } },
+      ],
+    },
+
+    // ❌ Outside type cast in a harness
+    {
+      code: `
+        import type { ChildProcess } from 'child_process';
+        const child = { pid: 1 } as ChildProcess;
+      `,
+      filename: '/project/test/harnesses/child/child.harness.ts',
+      errors: [{ messageId: 'outsideTypeCast', data: { typeName: 'ChildProcess' } }],
+    },
+
+    // ❌ Same cast in a gateway proxy - the gateway is not exempt
+    {
+      code: `
+        import type { ChildProcess } from 'child_process';
+        const child = { pid: 1 } as ChildProcess;
+      `,
+      filename: '/repo/packages/@gateway/node/src/child_process/stream/stream.proxy.ts',
+      errors: [{ messageId: 'outsideTypeCast', data: { typeName: 'ChildProcess' } }],
+    },
+
     // ❌ Typed object literal in test
     {
       code: `

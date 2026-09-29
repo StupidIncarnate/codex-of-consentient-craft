@@ -355,13 +355,22 @@ describe('configDungeonmasterBroker', () => {
       '@dungeonmaster/forbid-non-exported-functions',
       '@dungeonmaster/no-bare-process-cwd',
       '@typescript-eslint/no-explicit-any',
-      '@dungeonmaster/enforce-stub-usage',
     ])('VALID: {} => gateway rules still apply %s as "error"', (ruleName) => {
       configDungeonmasterBrokerProxy();
 
       const { gateway } = configDungeonmasterBroker();
 
       expect(gateway.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe('error');
+    });
+
+    it('VALID: {} => typescript and gateway rules set enforce-stub-usage with the outside-type-cast check off', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript, gateway } = configDungeonmasterBroker();
+      const ruleName = EslintRuleNameStub({ value: '@dungeonmaster/enforce-stub-usage' });
+
+      expect(typescript.rules?.[ruleName]).toStrictEqual(['error', { outsideTypeCasts: false }]);
+      expect(gateway.rules?.[ruleName]).toStrictEqual(['error', { outsideTypeCasts: false }]);
     });
 
     it('VALID: {} => typescript config defaults gatewayLintConfig to an empty option', () => {
