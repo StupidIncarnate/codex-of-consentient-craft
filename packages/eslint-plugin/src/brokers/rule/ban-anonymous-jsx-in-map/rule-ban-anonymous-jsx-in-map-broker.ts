@@ -10,31 +10,30 @@
  * // Reports `items.map((i) => <Box><Text/></Box>)`, passes `items.map((i) => <RowWidget item={i} />)`
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { arrayRenderStatics } from '../../../statics/array-render/array-render-statics';
 import { isJsxStructuralChildGuard } from '../../../guards/is-jsx-structural-child/is-jsx-structural-child-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
-export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid an anonymous JSX tree, or a variable declaration, inside a rendering array callback',
-      },
-      messages: {
-        anonymousJsxTree:
-          'This `.map` returns an anonymous JSX tree. Move it to its own widget and call that instead — `items.map((item) => <ThingLayerWidget item={item} />)`. A tree with no name cannot be tested, reused, or found by anyone reading the list.',
-        declarationInMapCallback:
-          '`{{kind}} {{name}}` is declared inside a rendering `.map`. Put the value inline on the prop, or compute it above the map — a row callback that needs its own variables is a widget that has not been extracted yet.',
-      },
-      schema: [],
+export const ruleBanAnonymousJsxInMapBroker = (): TSESLint.RuleModule<
+  'anonymousJsxTree' | 'declarationInMapCallback'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid an anonymous JSX tree, or a variable declaration, inside a rendering array callback',
     },
-  }),
+    messages: {
+      anonymousJsxTree:
+        'This `.map` returns an anonymous JSX tree. Move it to its own widget and call that instead — `items.map((item) => <ThingLayerWidget item={item} />)`. A tree with no name cannot be tested, reused, or found by anyone reading the list.',
+      declarationInMapCallback:
+        '`{{kind}} {{name}}` is declared inside a rendering `.map`. Put the value inline on the prop, or compute it above the map — a row callback that needs its own variables is a widget that has not been extracted yet.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

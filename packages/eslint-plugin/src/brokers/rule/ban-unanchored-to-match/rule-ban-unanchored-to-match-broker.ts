@@ -7,8 +7,6 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to prevent partial regex matching that hides bugs
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -16,21 +14,20 @@ import { hasRegexAnchorGuard } from '../../../guards/has-regex-anchor/has-regex-
 import { regexMatchMethodsStatics } from '../../../statics/regex-match-methods/regex-match-methods-statics';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 
-export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Require both anchors (^ and $) in regex patterns passed to toMatch(), toHaveText(), toContainText(), and expect.stringMatching().',
-      },
-      messages: {
-        unanchoredRegex:
-          '{{method}}() regex must have both anchors (^ and $) to prevent partial matching',
-      },
-      schema: [],
+export const ruleBanUnanchoredToMatchBroker = (): TSESLint.RuleModule<'unanchoredRegex'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Require both anchors (^ and $) in regex patterns passed to toMatch(), toHaveText(), toContainText(), and expect.stringMatching().',
     },
-  }),
+    messages: {
+      unanchoredRegex:
+        '{{method}}() regex must have both anchors (^ and $) to prevent partial matching',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const isTestFile = isTestFileGuard({ filename: ctx.filename });

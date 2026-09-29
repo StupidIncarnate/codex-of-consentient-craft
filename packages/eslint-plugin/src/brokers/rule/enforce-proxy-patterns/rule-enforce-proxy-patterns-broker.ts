@@ -5,8 +5,6 @@
  * const rule = ruleEnforceProxyPatternsBroker();
  * // Returns ESLint rule that validates proxy files return objects, use jest.mocked(), setup mocks in constructor, etc.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
@@ -23,42 +21,54 @@ import { proxyPathToImplementationPathTransformer } from '../../../transformers/
 import { tsToTsxPathTransformer } from '../../../transformers/ts-to-tsx-path/ts-to-tsx-path-transformer';
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 
-export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce proxy file internal patterns for .proxy.ts files',
-      },
-      messages: {
-        proxyMustReturnObject:
-          'Proxy function must return an object, not void, primitive, or array. Expected: export const fooProxy = () => ({ method: () => {} })',
-        proxyNoBootstrapMethod:
-          'Proxy returned object must NOT have a "bootstrap" property/method. Use constructor setup instead.',
-        jestMockMustBeModuleLevel:
-          'jest.mock() calls must be at module level (outside functions). Move jest.mock() call to top of file.',
-        jestMockedOnlyNpmPackages:
-          'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
-        adapterProxyMustSetupMocks:
-          'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result.',
-        childProxyMustBeInConstructor:
-          'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
-        childProxyMustBeInsideFunction:
-          'Child proxy {{proxyName}} must be created inside the proxy function, not at module level. Move it inside the create*Proxy function body.',
-        proxyNoContractImports:
-          'Proxies must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
-        proxyHelperNoMockInName:
-          'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
-        proxyConstructorNoSideEffects:
-          'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), handle.calledWith([...]), handle.onceFor([...]), handle.callsMatching([...]), jest.mocked(...), jest.spyOn(...)',
-        proxyNotColocated:
-          'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
-        exposedChildProxy:
-          'Proxy must not expose child proxy "{{proxyName}}" in return object. Create semantic methods that delegate to child proxies instead. Example: setupQuestFile: ({questJson}) => { {{proxyName}}.setupQuestFile({questJson}); }',
-      },
-      schema: [],
+export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
+  | 'proxyMustReturnObject'
+  | 'proxyNoBootstrapMethod'
+  | 'jestMockMustBeModuleLevel'
+  | 'jestMockedOnlyNpmPackages'
+  | 'adapterProxyMustSetupMocks'
+  | 'childProxyMustBeInConstructor'
+  | 'childProxyMustBeInsideFunction'
+  | 'proxyNoContractImports'
+  | 'proxyHelperNoMockInName'
+  | 'proxyConstructorNoSideEffects'
+  | 'proxyNotColocated'
+  | 'exposedChildProxy'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce proxy file internal patterns for .proxy.ts files',
     },
-  }),
+    messages: {
+      proxyMustReturnObject:
+        'Proxy function must return an object, not void, primitive, or array. Expected: export const fooProxy = () => ({ method: () => {} })',
+      proxyNoBootstrapMethod:
+        'Proxy returned object must NOT have a "bootstrap" property/method. Use constructor setup instead.',
+      jestMockMustBeModuleLevel:
+        'jest.mock() calls must be at module level (outside functions). Move jest.mock() call to top of file.',
+      jestMockedOnlyNpmPackages:
+        'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
+      adapterProxyMustSetupMocks:
+        'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result.',
+      childProxyMustBeInConstructor:
+        'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
+      childProxyMustBeInsideFunction:
+        'Child proxy {{proxyName}} must be created inside the proxy function, not at module level. Move it inside the create*Proxy function body.',
+      proxyNoContractImports:
+        'Proxies must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
+      proxyHelperNoMockInName:
+        'Proxy helper "{{name}}" uses forbidden word "{{forbiddenWord}}". Use "returns", "throws", or describe the action instead. Proxies abstract implementation details.',
+      proxyConstructorNoSideEffects:
+        'Proxy constructor must only create child proxies and setup mocks. Found side effect: {{type}}. Move to setup methods instead. Allowed: const childProxy = create...(), handle.calledWith([...]), handle.onceFor([...]), handle.callsMatching([...]), jest.mocked(...), jest.spyOn(...)',
+      proxyNotColocated:
+        'Proxy file must be colocated with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
+      exposedChildProxy:
+        'Proxy must not expose child proxy "{{proxyName}}" in return object. Create semantic methods that delegate to child proxies instead. Example: setupQuestFile: ({questJson}) => { {{proxyName}}.setupQuestFile({questJson}); }',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

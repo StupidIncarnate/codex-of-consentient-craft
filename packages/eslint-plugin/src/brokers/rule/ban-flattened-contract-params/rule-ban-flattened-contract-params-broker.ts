@@ -7,10 +7,8 @@
  *
  * USAGE:
  * const rule = ruleBanFlattenedContractParamsBroker();
- * // Returns EslintRule reporting `{ a: Quest['id']; b: Quest['status'] }` and passing `{ a: Quest['id'] }`
+ * // Returns RuleModule reporting `{ a: Quest['id']; b: Quest['status'] }` and passing `{ a: Quest['id'] }`
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
@@ -20,8 +18,8 @@ import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isPartialOverrideBlockGuard } from '../../../guards/is-partial-override-block/is-partial-override-block-guard';
 
-export const ruleBanFlattenedContractParamsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanFlattenedContractParamsBroker =
+  (): TSESLint.RuleModule<'flattenedContract'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -34,111 +32,111 @@ export const ruleBanFlattenedContractParamsBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
-    const ctx = context;
-    const { filename } = ctx;
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      const { filename } = ctx;
 
-    if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
-      return {};
-    }
+      if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
+        return {};
+      }
 
-    // A proxy builds test scenarios out of whichever pieces a scenario needs, so taking two fields
-    // off one object there is the job rather than a flattened contract. The exclusion guard above
-    // lets proxies through deliberately, so this is a second, separate check.
-    if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
-      return {};
-    }
+      // A proxy builds test scenarios out of whichever pieces a scenario needs, so taking two fields
+      // off one object there is the job rather than a flattened contract. The exclusion guard above
+      // lets proxies through deliberately, so this is a second, separate check.
+      if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
+        return {};
+      }
 
-    // block node -> host type text -> property text -> the node to report at.
-    // Accumulated across visits and drained at Program:exit, because a block is only a violation
-    // once every one of its members has been seen.
-    const blocks = new Map<TSESTree.Node, Map<Identifier, Map<Identifier, TSESTree.Node>>>();
+      // block node -> host type text -> property text -> the node to report at.
+      // Accumulated across visits and drained at Program:exit, because a block is only a violation
+      // once every one of its members has been seen.
+      const blocks = new Map<TSESTree.Node, Map<Identifier, Map<Identifier, TSESTree.Node>>>();
 
-    return {
-      TSIndexedAccessType: (node: TSESTree.TSIndexedAccessType): void => {
-        const source = ctx.sourceCode;
+      return {
+        TSIndexedAccessType: (node: TSESTree.TSIndexedAccessType): void => {
+          const source = ctx.sourceCode;
 
-        const host = identifierContract.parse(source.getText(node.objectType));
+          const host = identifierContract.parse(source.getText(node.objectType));
 
-        // The exemption is decided on the BASE name, never the rendered text. `ReturnType<typeof
-        // fooProxy>` is a ReturnType and must stay exempt, and `React.AriaAttributes` is a React
-        // type — matching the whole text lets both through the net.
-        const baseName = host.split('<')[0] ?? host;
-        const rootSegment = baseName.split('.')[0] ?? baseName;
+          // The exemption is decided on the BASE name, never the rendered text. `ReturnType<typeof
+          // fooProxy>` is a ReturnType and must stay exempt, and `React.AriaAttributes` is a React
+          // type — matching the whole text lets both through the net.
+          const baseName = host.split('<')[0] ?? host;
+          const rootSegment = baseName.split('.')[0] ?? baseName;
 
-        // A DOM ref or an attribute bag has no whole object to pass instead.
-        const { names, prefixes, suffixes } = flattenedContractParamsStatics.exemptHosts;
-        const isExempt =
-          names.some((name) => name === baseName || name === rootSegment) ||
-          prefixes.some((prefix) => baseName.startsWith(prefix)) ||
-          suffixes.some((suffix) => baseName.endsWith(suffix));
-        if (isExempt) {
-          return;
-        }
+          // A DOM ref or an attribute bag has no whole object to pass instead.
+          const { names, prefixes, suffixes } = flattenedContractParamsStatics.exemptHosts;
+          const isExempt =
+            names.some((name) => name === baseName || name === rootSegment) ||
+            prefixes.some((prefix) => baseName.startsWith(prefix)) ||
+            suffixes.some((suffix) => baseName.endsWith(suffix));
+          if (isExempt) {
+            return;
+          }
 
-        // The NEAREST enclosing type block owns this access, so a nested literal is judged on its
-        // own members rather than its parent's.
-        const block = source
-          .getAncestors(node)
-          .filter(
-            (ancestor) =>
-              ancestor.type === AST_NODE_TYPES.TSTypeLiteral ||
-              ancestor.type === AST_NODE_TYPES.TSInterfaceBody,
-          )
-          .at(-1);
-        if (block === undefined) {
-          return;
-        }
+          // The NEAREST enclosing type block owns this access, so a nested literal is judged on its
+          // own members rather than its parent's.
+          const block = source
+            .getAncestors(node)
+            .filter(
+              (ancestor) =>
+                ancestor.type === AST_NODE_TYPES.TSTypeLiteral ||
+                ancestor.type === AST_NODE_TYPES.TSInterfaceBody,
+            )
+            .at(-1);
+          if (block === undefined) {
+            return;
+          }
 
-        const property = identifierContract.parse(source.getText(node.indexType));
+          const property = identifierContract.parse(source.getText(node.indexType));
 
-        const hostsInBlock =
-          blocks.get(block) ?? new Map<Identifier, Map<Identifier, TSESTree.Node>>();
-        const propertiesForHost = hostsInBlock.get(host) ?? new Map<Identifier, TSESTree.Node>();
-        // First occurrence wins the report position, so the message points at the top of the run.
-        if (!propertiesForHost.has(property)) {
-          propertiesForHost.set(property, node);
-        }
-        hostsInBlock.set(host, propertiesForHost);
-        blocks.set(block, hostsInBlock);
-      },
+          const hostsInBlock =
+            blocks.get(block) ?? new Map<Identifier, Map<Identifier, TSESTree.Node>>();
+          const propertiesForHost = hostsInBlock.get(host) ?? new Map<Identifier, TSESTree.Node>();
+          // First occurrence wins the report position, so the message points at the top of the run.
+          if (!propertiesForHost.has(property)) {
+            propertiesForHost.set(property, node);
+          }
+          hostsInBlock.set(host, propertiesForHost);
+          blocks.set(block, hostsInBlock);
+        },
 
-      'Program:exit': (): void => {
-        const { minimumDistinctProperties } = flattenedContractParamsStatics.limits;
+        'Program:exit': (): void => {
+          const { minimumDistinctProperties } = flattenedContractParamsStatics.limits;
 
-        blocks.forEach((hostsInBlock, block) => {
-          hostsInBlock.forEach((propertiesForHost, host) => {
-            if (propertiesForHost.size < minimumDistinctProperties) {
-              return;
-            }
-            // A builder's override bag names the same properties, and has no whole object to pass
-            // instead — the fields the caller omits are exactly what the builder supplies.
-            if (
-              isPartialOverrideBlockGuard({
-                block,
-                hostCount: hostsInBlock.size,
-                distinctPropertyCount: propertiesForHost.size,
-              })
-            ) {
-              return;
-            }
-            const [reportAt] = propertiesForHost.values();
-            if (reportAt === undefined) {
-              return;
-            }
-            ctx.report({
-              node: reportAt,
-              messageId: 'flattenedContract',
-              data: {
-                host,
-                count: String(propertiesForHost.size),
-                properties: [...propertiesForHost.keys()].join(', '),
-              },
+          blocks.forEach((hostsInBlock, block) => {
+            hostsInBlock.forEach((propertiesForHost, host) => {
+              if (propertiesForHost.size < minimumDistinctProperties) {
+                return;
+              }
+              // A builder's override bag names the same properties, and has no whole object to pass
+              // instead — the fields the caller omits are exactly what the builder supplies.
+              if (
+                isPartialOverrideBlockGuard({
+                  block,
+                  hostCount: hostsInBlock.size,
+                  distinctPropertyCount: propertiesForHost.size,
+                })
+              ) {
+                return;
+              }
+              const [reportAt] = propertiesForHost.values();
+              if (reportAt === undefined) {
+                return;
+              }
+              ctx.report({
+                node: reportAt,
+                messageId: 'flattenedContract',
+                data: {
+                  host,
+                  count: String(propertiesForHost.size),
+                  properties: [...propertiesForHost.keys()].join(', '),
+                },
+              });
             });
           });
-        });
-      },
-    };
-  },
-});
+        },
+      };
+    },
+  });

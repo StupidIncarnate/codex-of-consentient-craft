@@ -5,26 +5,23 @@
  * const rule = ruleBanSilentCatchBroker();
  * // Returns ESLint rule that prevents .catch(() => undefined), .catch(() => {}), and similar patterns
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSilentBodyLayerBroker } from './is-silent-body-layer-broker';
 
-export const ruleBanSilentCatchBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban silent .catch() handlers that swallow errors without logging, re-throwing, or taking action.',
-      },
-      messages: {
-        banSilentCatch: 'Never silently consume errors. Always bubble them up.',
-      },
-      schema: [],
+export const ruleBanSilentCatchBroker = (): TSESLint.RuleModule<'banSilentCatch'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban silent .catch() handlers that swallow errors without logging, re-throwing, or taking action.',
     },
-  }),
+    messages: {
+      banSilentCatch: 'Never silently consume errors. Always bubble them up.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 

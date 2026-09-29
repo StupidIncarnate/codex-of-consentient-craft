@@ -5,31 +5,30 @@
  * const rule = ruleEnforceFileMetadataBroker();
  * // Returns ESLint rule that requires implementation files to have PURPOSE: ... USAGE: ...
  **/
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isImplementationFileGuard } from '../../../guards/is-implementation-file/is-implementation-file-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { extractFileMetadataTransformer } from '../../../transformers/extract-file-metadata/extract-file-metadata-transformer';
 
-export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce file metadata comments with PURPOSE and USAGE fields in implementation files',
-      },
-      messages: {
-        missingMetadata:
-          'Implementation file must have a metadata comment with PURPOSE and USAGE fields. Example:\n\n/**\n * PURPOSE: [One-line description]\n *\n * USAGE:\n * [Code example]\n * // [Comment explaining return]\n *\n */',
-        metadataNotBeforeImports: 'Metadata comment must appear before all import statements.',
-      },
-      schema: [],
-      fixable: 'code',
+export const ruleEnforceFileMetadataBroker = (): TSESLint.RuleModule<
+  'missingMetadata' | 'metadataNotBeforeImports'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce file metadata comments with PURPOSE and USAGE fields in implementation files',
     },
-  }),
+    messages: {
+      missingMetadata:
+        'Implementation file must have a metadata comment with PURPOSE and USAGE fields. Example:\n\n/**\n * PURPOSE: [One-line description]\n *\n * USAGE:\n * [Code example]\n * // [Comment explaining return]\n *\n */',
+      metadataNotBeforeImports: 'Metadata comment must appear before all import statements.',
+    },
+    schema: [],
+    fixable: 'code',
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

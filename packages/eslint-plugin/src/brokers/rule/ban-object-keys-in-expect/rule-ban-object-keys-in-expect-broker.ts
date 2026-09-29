@@ -7,29 +7,26 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce asserting both keys and values
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isAstObjectKeysCallGuard } from '../../../guards/is-ast-object-keys-call/is-ast-object-keys-call-guard';
 
-export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban expect(Object.keys(...)) — assert full object shape with .toStrictEqual() instead of just keys.',
-      },
-      messages: {
-        noObjectKeysInExpect:
-          'Do not use Object.keys() inside expect(). Assert the full object shape with .toStrictEqual() to verify both keys and values.',
-      },
-      schema: [],
+export const ruleBanObjectKeysInExpectBroker = (): TSESLint.RuleModule<'noObjectKeysInExpect'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban expect(Object.keys(...)) — assert full object shape with .toStrictEqual() instead of just keys.',
     },
-  }),
+    messages: {
+      noObjectKeysInExpect:
+        'Do not use Object.keys() inside expect(). Assert the full object shape with .toStrictEqual() to verify both keys and values.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const isTestFile = isTestFileGuard({ filename: ctx.filename });

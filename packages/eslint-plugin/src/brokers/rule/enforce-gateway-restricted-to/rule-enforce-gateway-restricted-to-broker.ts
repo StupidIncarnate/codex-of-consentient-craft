@@ -17,29 +17,28 @@
  * // Flags `import { spawn } from '#gateway/bin/spawn'` from any package other than orchestrator
  */
 import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
 
-export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Confine a gateway subpath (or one named export of it) to the packages listed under gateway.restrictedTo in .dungeonmaster.json.',
-      },
-      messages: {
-        restrictedSubpath:
-          '"{{subpath}}" is restricted to {{packages}} — this file is in the "{{ownPackage}}" package. {{reason}}',
-        restrictedExport:
-          '"{{name}}" from "{{subpath}}" is restricted to {{packages}} — this file is in the "{{ownPackage}}" package. {{reason}}',
-      },
-      schema: [{ type: 'object' }],
+export const ruleEnforceGatewayRestrictedToBroker = (): TSESLint.RuleModule<
+  'restrictedSubpath' | 'restrictedExport'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Confine a gateway subpath (or one named export of it) to the packages listed under gateway.restrictedTo in .dungeonmaster.json.',
     },
-  }),
+    messages: {
+      restrictedSubpath:
+        '"{{subpath}}" is restricted to {{packages}} — this file is in the "{{ownPackage}}" package. {{reason}}',
+      restrictedExport:
+        '"{{name}}" from "{{subpath}}" is restricted to {{packages}} — this file is in the "{{ownPackage}}" package. {{reason}}',
+    },
+    schema: [{ type: 'object' }],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const [rawOptions] = ctx.options;

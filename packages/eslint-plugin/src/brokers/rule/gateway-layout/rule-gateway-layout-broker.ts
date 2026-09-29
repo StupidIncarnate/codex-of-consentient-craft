@@ -16,28 +16,25 @@
  * const rule = ruleGatewayLayoutBroker();
  * // Flags packages/@gateway/node/src/URL/URL.ts if a sibling packages/@gateway/node/src/url/ also exists
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
 import { readdirEntriesSync } from '#gateway/node/fs';
 
-export const ruleGatewayLayoutBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban two sibling gateway folders whose names differ only by case (node10 resolution and forceConsistentCasingInFileNames both refuse the ambiguity).',
-      },
-      messages: {
-        caseCollision:
-          'Gateway folder "{{folderName}}" differs from sibling "{{siblingFolderName}}" only by case, under "{{parentDir}}". Two sibling folders may never differ only by case — fold the global into the same-named module\'s pass-through instead.',
-      },
-      schema: [],
+export const ruleGatewayLayoutBroker = (): TSESLint.RuleModule<'caseCollision'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban two sibling gateway folders whose names differ only by case (node10 resolution and forceConsistentCasingInFileNames both refuse the ambiguity).',
     },
-  }),
+    messages: {
+      caseCollision:
+        'Gateway folder "{{folderName}}" differs from sibling "{{siblingFolderName}}" only by case, under "{{parentDir}}". Two sibling folders may never differ only by case — fold the global into the same-named module\'s pass-through instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

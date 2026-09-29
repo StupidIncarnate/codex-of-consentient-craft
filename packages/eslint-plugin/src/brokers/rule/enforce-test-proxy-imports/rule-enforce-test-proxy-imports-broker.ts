@@ -3,12 +3,10 @@
  *
  * USAGE:
  * const rule = ruleEnforceTestProxyImportsBroker();
- * // Returns EslintRule that validates test files import only their matching proxy (e.g., user-broker.test.ts imports ./user-broker.proxy)
+ * // Returns RuleModule that validates test files import only their matching proxy (e.g., user-broker.test.ts imports ./user-broker.proxy)
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce test-proxy coupling and prevent cross-test dependencies
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
@@ -17,25 +15,26 @@ import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suf
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { normalizeImportPathTransformer } from '../../../transformers/normalize-import-path/normalize-import-path-transformer';
 
-export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ensure test files only import their colocated proxy file, not other proxies. Integration tests cannot import proxies at all.',
-      },
-      messages: {
-        nonColocatedProxyImport:
-          'Test files can only import their colocated proxy file. Import {{colocatedProxyPath}} instead of {{importPath}}.',
-        multipleProxyImports:
-          'Test files should only import one proxy file (their colocated proxy). Found imports: {{proxyImports}}.',
-        integrationTestNoProxy:
-          'Integration tests cannot import proxy files. Remove {{importPath}} import.',
-      },
-      schema: [],
+export const ruleEnforceTestProxyImportsBroker = (): TSESLint.RuleModule<
+  'nonColocatedProxyImport' | 'multipleProxyImports' | 'integrationTestNoProxy'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ensure test files only import their colocated proxy file, not other proxies. Integration tests cannot import proxies at all.',
     },
-  }),
+    messages: {
+      nonColocatedProxyImport:
+        'Test files can only import their colocated proxy file. Import {{colocatedProxyPath}} instead of {{importPath}}.',
+      multipleProxyImports:
+        'Test files should only import one proxy file (their colocated proxy). Found imports: {{proxyImports}}.',
+      integrationTestNoProxy:
+        'Integration tests cannot import proxy files. Remove {{importPath}} import.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

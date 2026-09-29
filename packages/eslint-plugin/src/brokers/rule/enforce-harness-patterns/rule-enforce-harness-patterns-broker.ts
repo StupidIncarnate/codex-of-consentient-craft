@@ -5,35 +5,37 @@
  * const rule = ruleEnforceHarnessPatternsBroker();
  * // Returns ESLint rule that validates harness files export factory functions returning objects
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isHarnessFileGuard } from '../../../guards/is-harness-file/is-harness-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { validateHarnessConstructorSideEffectsLayerBroker } from './validate-harness-constructor-side-effects-layer-broker';
 
-export const ruleEnforceHarnessPatternsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce harness file patterns for .harness.ts files: factory function returning object, no proxy imports, no contract value imports.',
-      },
-      messages: {
-        harnessMustReturnObject:
-          'Harness function must return an object, not void, primitive, or array. Expected: export const fooHarness = () => ({ method: () => {} })',
-        harnessNoProxyImports:
-          'Harness files must not import proxy files ({{importPath}}). Harnesses and proxies use different mock mechanisms.',
-        harnessNoContractImports:
-          'Harness files must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
-        harnessConstructorNoSideEffects:
-          'Harness constructor must only register lifecycle hooks, create child harnesses, and use node builtins (fs/path/os). Found side effect: {{type}}',
-      },
-      schema: [],
+export const ruleEnforceHarnessPatternsBroker = (): TSESLint.RuleModule<
+  | 'harnessMustReturnObject'
+  | 'harnessNoProxyImports'
+  | 'harnessNoContractImports'
+  | 'harnessConstructorNoSideEffects'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce harness file patterns for .harness.ts files: factory function returning object, no proxy imports, no contract value imports.',
     },
-  }),
+    messages: {
+      harnessMustReturnObject:
+        'Harness function must return an object, not void, primitive, or array. Expected: export const fooHarness = () => ({ method: () => {} })',
+      harnessNoProxyImports:
+        'Harness files must not import proxy files ({{importPath}}). Harnesses and proxies use different mock mechanisms.',
+      harnessNoContractImports:
+        'Harness files must not import from contract files ({{importPath}}). Import from stub files (.stub.ts) instead.',
+      harnessConstructorNoSideEffects:
+        'Harness constructor must only register lifecycle hooks, create child harnesses, and use node builtins (fs/path/os). Found side effect: {{type}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

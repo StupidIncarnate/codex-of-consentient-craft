@@ -28,8 +28,6 @@
  * const rule = ruleEnforceProxyChildCreationBroker();
  * // Returns ESLint rule that ensures proxy creates child proxy for each dependency imported by implementation
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { readFileSyncIfExists, existsSync } from '#gateway/node/fs';
@@ -53,25 +51,26 @@ import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/tra
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
-export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce that proxies create all child proxies based on implementation file imports',
-      },
-      messages: {
-        missingProxyImport:
-          'Implementation imports {{implementationName}} but proxy does not import its corresponding proxy from {{proxyPath}}.',
-        missingProxyCreation:
-          'Implementation imports {{implementationName}} but proxy does not create {{proxyName}} in constructor.',
-        phantomProxyCreation:
-          'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
-      },
-      schema: [],
+export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
+  'missingProxyImport' | 'missingProxyCreation' | 'phantomProxyCreation'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce that proxies create all child proxies based on implementation file imports',
     },
-  }),
+    messages: {
+      missingProxyImport:
+        'Implementation imports {{implementationName}} but proxy does not import its corresponding proxy from {{proxyPath}}.',
+      missingProxyCreation:
+        'Implementation imports {{implementationName}} but proxy does not create {{proxyName}} in constructor.',
+      phantomProxyCreation:
+        'Proxy creates {{proxyName}} but {{implementationFile}} does not import {{implementationName}}. Remove the phantom proxy creation or add the import to the implementation.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

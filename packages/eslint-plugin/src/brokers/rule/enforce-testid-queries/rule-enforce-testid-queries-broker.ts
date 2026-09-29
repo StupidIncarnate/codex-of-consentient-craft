@@ -7,29 +7,28 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce accessible, stable test queries
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { bannedQueryMethodsStatics } from '../../../statics/banned-query-methods/banned-query-methods-statics';
 
-export const ruleEnforceTestidQueriesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce use of testid and role queries instead of content-based queries in React component tests.',
-      },
-      messages: {
-        contentBasedQuery:
-          'Use {{replacement}} instead of content-based query {{method}} in test files',
-        containerQuery: 'Use screen.getByTestId instead of container.{{method}}',
-      },
-      schema: [],
+export const ruleEnforceTestidQueriesBroker = (): TSESLint.RuleModule<
+  'contentBasedQuery' | 'containerQuery'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce use of testid and role queries instead of content-based queries in React component tests.',
     },
-  }),
+    messages: {
+      contentBasedQuery:
+        'Use {{replacement}} instead of content-based query {{method}} in test files',
+      containerQuery: 'Use screen.getByTestId instead of container.{{method}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

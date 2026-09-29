@@ -11,8 +11,6 @@
  * // Flags `export type CliSignalAction = CliSignal['action'];` and
  * // `import type { Stats } from '#gateway/node/fs'; export type FileStats = Stats;`
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
@@ -21,23 +19,24 @@ import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 
-export const ruleBanTypeAliasesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban exported type aliases of a field's type and exported aliases that give a library type a second name.",
-      },
-      messages: {
-        noFieldTypeAlias:
-          "Exported alias \"{{name}}\" renames a field's type. Write the indexed type (Owner['field']) where it is used instead of naming it.",
-        noLibraryTypeAlias:
-          'Exported alias "{{name}}" gives the library type "{{library}}" a second name. Import the library type through the gateway where it is used instead of aliasing it.',
-      },
-      schema: [],
+export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
+  'noFieldTypeAlias' | 'noLibraryTypeAlias'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban exported type aliases of a field's type and exported aliases that give a library type a second name.",
     },
-  }),
+    messages: {
+      noFieldTypeAlias:
+        "Exported alias \"{{name}}\" renames a field's type. Write the indexed type (Owner['field']) where it is used instead of naming it.",
+      noLibraryTypeAlias:
+        'Exported alias "{{name}}" gives the library type "{{library}}" a second name. Import the library type through the gateway where it is used instead of aliasing it.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

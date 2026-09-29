@@ -21,28 +21,27 @@ import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const ruleBanContractTypePredicatesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'A type predicate may narrow to a library type, never to one of our contract types or an indexed type off one — parse through the contract instead.',
-      },
-      messages: {
-        contractTypePredicate:
-          '{{typeName}}, imported from "{{importSource}}", is one of our contract types. A type predicate mints it with no check — parse it through its own contract\'s .safeParse/.parse instead, and read the parsed data on success.',
-        indexedTypePredicate:
-          '{{typeName}} indexes into a type for one field. A predicate cannot check a branded field safely — parse the owning contract and read the field off the parsed result.',
-      },
-      schema: [],
+export const ruleBanContractTypePredicatesBroker = (): TSESLint.RuleModule<
+  'contractTypePredicate' | 'indexedTypePredicate'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'A type predicate may narrow to a library type, never to one of our contract types or an indexed type off one — parse through the contract instead.',
     },
-  }),
+    messages: {
+      contractTypePredicate:
+        '{{typeName}}, imported from "{{importSource}}", is one of our contract types. A type predicate mints it with no check — parse it through its own contract\'s .safeParse/.parse instead, and read the parsed data on success.',
+      indexedTypePredicate:
+        '{{typeName}} indexes into a type for one field. A predicate cannot check a branded field safely — parse the owning contract and read the field off the parsed result.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 

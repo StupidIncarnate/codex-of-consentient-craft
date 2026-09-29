@@ -18,29 +18,26 @@
  * // Flags `registerMock({ fn: StartOrchestrator.getQuest })` in a `server` or `mcp` file, where
  * // `StartOrchestrator` is imported (any subpath) from '@dungeonmaster/orchestrator'
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
 import type { ModulePath, PackageName } from '@dungeonmaster/shared/contracts';
 
-export const ruleBanWorkspaceExportMocksBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban registerMock/registerModuleMock of another workspace package's export. Compose that package's own shipped proxy instead.",
-      },
-      messages: {
-        composeProxy:
-          '"{{name}}" comes from workspace package "{{specifier}}". Compose that package\'s own proxy instead of mocking it directly with {{mockFunction}}.',
-      },
-      schema: [{ type: 'object' }],
+export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'composeProxy'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban registerMock/registerModuleMock of another workspace package's export. Compose that package's own shipped proxy instead.",
     },
-  }),
+    messages: {
+      composeProxy:
+        '"{{name}}" comes from workspace package "{{specifier}}". Compose that package\'s own proxy instead of mocking it directly with {{mockFunction}}.',
+    },
+    schema: [{ type: 'object' }],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { workspacePackageNames?: PackageName[] }[];

@@ -8,8 +8,6 @@
 export { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Export contracts for advanced usage
-export type { EslintRule } from './contracts/eslint-rule/eslint-rule-contract';
-export { eslintRuleContract } from './contracts/eslint-rule/eslint-rule-contract';
 export type { EslintConfig } from './contracts/eslint-config/eslint-config-contract';
 export type { TsconfigOptions } from './contracts/tsconfig-options/tsconfig-options-contract';
 export type { AstNode } from './contracts/ast-node/ast-node-contract';

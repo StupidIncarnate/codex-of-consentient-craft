@@ -7,8 +7,6 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to close the nesting evasion gap for banned matchers
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -27,23 +25,24 @@ const enclosingMatchers = new Set(['toStrictEqual', 'toBe']);
 
 const maxParentDepth = 20;
 
-export const ruleBanWeakAsymmetricMatchersBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban weak asymmetric matchers (expect.any(X), expect.objectContaining(), etc.) nested inside toStrictEqual() or toBe() arguments.',
-      },
-      messages: {
-        bannedNestedAny:
-          'expect.any({{type}}) nested in assertion proves nothing about shape. Assert the exact value instead.',
-        bannedNestedAsymmetric:
-          'expect.{{method}}() nested in assertion is a partial match that hides missing/extra keys. Assert the complete value instead.',
-      },
-      schema: [],
+export const ruleBanWeakAsymmetricMatchersBroker = (): TSESLint.RuleModule<
+  'bannedNestedAny' | 'bannedNestedAsymmetric'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban weak asymmetric matchers (expect.any(X), expect.objectContaining(), etc.) nested inside toStrictEqual() or toBe() arguments.',
     },
-  }),
+    messages: {
+      bannedNestedAny:
+        'expect.any({{type}}) nested in assertion proves nothing about shape. Assert the exact value instead.',
+      bannedNestedAsymmetric:
+        'expect.{{method}}() nested in assertion is a partial match that hides missing/extra keys. Assert the complete value instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const isTestFile = isTestFileGuard({ filename: ctx.filename });

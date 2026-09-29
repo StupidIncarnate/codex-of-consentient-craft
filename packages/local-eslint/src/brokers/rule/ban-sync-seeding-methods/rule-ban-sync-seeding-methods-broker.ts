@@ -7,27 +7,24 @@
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { isBanSyncSeedingMethodsScopeFileGuard } from '../../../guards/is-ban-sync-seeding-methods-scope-file/is-ban-sync-seeding-methods-scope-file-guard';
 import { banSyncSeedingMethodsStatics } from '../../../statics/ban-sync-seeding-methods/ban-sync-seeding-methods-statics';
 
-export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforces that harness seeding methods must be async and return a Promise.',
-      },
-      messages: {
-        syncSeeding:
-          "Harness seeding method '{{methodName}}' must be async and return a Promise. All seeding operations must be asynchronous.",
-      },
-      schema: [],
+export const ruleBanSyncSeedingMethodsBroker = (): TSESLint.RuleModule<'syncSeeding'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforces that harness seeding methods must be async and return a Promise.',
     },
-  }),
+    messages: {
+      syncSeeding:
+        "Harness seeding method '{{methodName}}' must be async and return a Promise. All seeding operations must be asynchronous.",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

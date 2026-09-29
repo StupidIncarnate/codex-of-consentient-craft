@@ -5,42 +5,39 @@
  * const rule = ruleBanPrimitivesBroker();
  * // Returns ESLint rule that prevents `string` and `number` types, requiring branded types like EmailAddress, FilePath
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
 
-export const ruleBanPrimitivesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Ban raw string and number types in favor of Zod contract types',
-      },
-      messages: {
-        banPrimitive:
-          'Raw {{typeName}} type is not allowed. Use the discover endpoint to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            allowPrimitiveInputs: {
-              type: 'boolean',
-              description: 'Allow raw primitives in function parameters',
-            },
-            allowPrimitiveReturns: {
-              type: 'boolean',
-              description: 'Allow raw primitives in function return types',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBanPrimitivesBroker = (): TSESLint.RuleModule<'banPrimitive'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Ban raw string and number types in favor of Zod contract types',
     },
-  }),
+    messages: {
+      banPrimitive:
+        'Raw {{typeName}} type is not allowed. Use the discover endpoint to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          allowPrimitiveInputs: {
+            type: 'boolean',
+            description: 'Allow raw primitives in function parameters',
+          },
+          allowPrimitiveReturns: {
+            type: 'boolean',
+            description: 'Allow raw primitives in function return types',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { allowPrimitiveInputs?: boolean; allowPrimitiveReturns?: boolean }[];

@@ -5,31 +5,30 @@
  * const rule = ruleBanWaitForTimeoutBroker();
  * // Returns ESLint rule that prevents waitForTimeout() and setTimeout() delays in *.e2e.ts files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
-export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban arbitrary delay patterns (waitForTimeout, setTimeout) in e2e and integration test files to prevent flaky tests.',
-      },
-      messages: {
-        noWaitForTimeout:
-          'Do not use waitForTimeout() in e2e tests — it causes flaky tests. Wait for specific elements or events instead: await expect(locator).toBeVisible({timeout})',
-        noSetTimeout:
-          "Do not use setTimeout() or test.setTimeout() in tests — arbitrary delays cause flaky tests. Use the testing framework's built-in wait mechanisms instead: await expect(locator).toBeVisible({timeout})",
-      },
-      schema: [],
+export const ruleBanWaitForTimeoutBroker = (): TSESLint.RuleModule<
+  'noWaitForTimeout' | 'noSetTimeout'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban arbitrary delay patterns (waitForTimeout, setTimeout) in e2e and integration test files to prevent flaky tests.',
     },
-  }),
+    messages: {
+      noWaitForTimeout:
+        'Do not use waitForTimeout() in e2e tests — it causes flaky tests. Wait for specific elements or events instead: await expect(locator).toBeVisible({timeout})',
+      noSetTimeout:
+        "Do not use setTimeout() or test.setTimeout() in tests — arbitrary delays cause flaky tests. Use the testing framework's built-in wait mechanisms instead: await expect(locator).toBeVisible({timeout})",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

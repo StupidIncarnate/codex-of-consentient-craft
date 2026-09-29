@@ -7,29 +7,25 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce positive assertions instead of negated checks
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 
-export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban .not.* matcher usage in test files. Assert the positive expected value instead.',
-      },
-      messages: {
-        noNegatedMatcher:
-          'Do not use .not.{{matcher}}(). Assert the actual expected value instead.',
-      },
-      schema: [],
+export const ruleBanNegatedMatchersBroker = (): TSESLint.RuleModule<'noNegatedMatcher'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban .not.* matcher usage in test files. Assert the positive expected value instead.',
     },
-  }),
+    messages: {
+      noNegatedMatcher: 'Do not use .not.{{matcher}}(). Assert the actual expected value instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

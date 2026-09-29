@@ -3,13 +3,11 @@
  *
  * USAGE:
  * const rule = ruleForbidNonExportedFunctionsBroker();
- * // Returns EslintRule that enforces all functions must be the primary export of their file
+ * // Returns RuleModule that enforces all functions must be the primary export of their file
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce architectural pattern where each function gets its own file
  * WHEN-NOT-TO-USE: Does not apply to test, stub, or proxy files which are automatically excluded
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { isAstNodeInsideFunctionGuard } from '../../../guards/is-ast-node-inside-function/is-ast-node-inside-function-guard';
@@ -18,23 +16,24 @@ import { astFunctionTypeTransformer } from '../../../transformers/ast-function-t
 import { functionViolationSuggestionTransformer } from '../../../transformers/function-violation-suggestion/function-violation-suggestion-transformer';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
-export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid non-exported functions and nested functions to prevent hidden helper functions',
-      },
-      messages: {
-        nonExportedFunction:
-          'Non-exported functions are forbidden. All functions must be the primary export of their file. {{suggestion}}',
-        nestedFunction:
-          'Nested functions are forbidden. Functions cannot be declared inside other functions. {{suggestion}}',
-      },
-      schema: [],
+export const ruleForbidNonExportedFunctionsBroker = (): TSESLint.RuleModule<
+  'nonExportedFunction' | 'nestedFunction'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid non-exported functions and nested functions to prevent hidden helper functions',
     },
-  }),
+    messages: {
+      nonExportedFunction:
+        'Non-exported functions are forbidden. All functions must be the primary export of their file. {{suggestion}}',
+      nestedFunction:
+        'Nested functions are forbidden. Functions cannot be declared inside other functions. {{suggestion}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

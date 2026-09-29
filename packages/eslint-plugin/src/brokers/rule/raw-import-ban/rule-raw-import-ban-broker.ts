@@ -16,15 +16,13 @@
  *
  * USAGE:
  * const rule = ruleRawImportBanBroker();
- * // Returns an EslintRule that flags `import fs from 'fs'` outside packages/@gateway/node/src/**,
+ * // Returns an RuleModule that flags `import fs from 'fs'` outside packages/@gateway/node/src/**,
  * // etc., naming the exact gateway replacement in the report message
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
 import { importPathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
@@ -39,35 +37,36 @@ import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-reso
 // (which demands one) stop fighting each other over this declaration.
 const defaultScopeCache: { value?: PackageName } = {};
 
-export const ruleRawImportBanBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban raw imports, exports, require() and require.resolve() of non-workspace packages outside the gateway packages.',
-      },
-      messages: {
-        rawImport:
-          'Import "{{importSource}}" through the gateway: "{{gatewayPath}}". If that subpath does not export what you need, add a wrapper there; never import the raw package.',
-        scopedGatewayImport:
-          'Import the gateway through its alias, "{{gatewayPath}}", not its package name "{{importSource}}".',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            scope: {
-              type: 'string',
-              description:
-                'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope read from the repo root package.json at rule module load.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
+  'rawImport' | 'scopedGatewayImport'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban raw imports, exports, require() and require.resolve() of non-workspace packages outside the gateway packages.',
     },
-  }),
+    messages: {
+      rawImport:
+        'Import "{{importSource}}" through the gateway: "{{gatewayPath}}". If that subpath does not export what you need, add a wrapper there; never import the raw package.',
+      scopedGatewayImport:
+        'Import the gateway through its alias, "{{gatewayPath}}", not its package name "{{importSource}}".',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          scope: {
+            type: 'string',
+            description:
+              'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope read from the repo root package.json at rule module load.',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { scope?: PackageName }[];

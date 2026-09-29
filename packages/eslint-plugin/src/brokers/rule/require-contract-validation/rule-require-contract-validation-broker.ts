@@ -3,36 +3,35 @@
  *
  * USAGE:
  * const rule = ruleRequireContractValidationBroker();
- * // Returns EslintRule that enforces require(filePathContract.parse(path)) pattern for dynamic imports
+ * // Returns RuleModule that enforces require(filePathContract.parse(path)) pattern for dynamic imports
  *
  * WHEN-TO-USE: When registering ESLint rules to ensure dynamic module paths are validated
  * WHEN-NOT-TO-USE: String literals with valid file paths (./, ../, /) are automatically allowed
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 
-export const ruleRequireContractValidationBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Require contract.parse() validation for require() and import() calls',
-      },
-      messages: {
-        requireNeedsContract:
-          'require() must use path contract validation or file path literals. Valid: require("./file.ts") OR require(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
-        importNeedsContract:
-          'import() must use path contract validation or file path literals. Valid: import("./file.ts") OR import(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
-        stringLiteralAllowed:
-          'require/import string literals must be file paths (./, ../, /), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts") OR require(filePathContract.parse(dynamicPath)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
-      },
-      schema: [],
+export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
+  'requireNeedsContract' | 'importNeedsContract' | 'stringLiteralAllowed'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Require contract.parse() validation for require() and import() calls',
     },
-  }),
+    messages: {
+      requireNeedsContract:
+        'require() must use path contract validation or file path literals. Valid: require("./file.ts") OR require(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+      importNeedsContract:
+        'import() must use path contract validation or file path literals. Valid: import("./file.ts") OR import(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+      stringLiteralAllowed:
+        'require/import string literals must be file paths (./, ../, /), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts") OR require(filePathContract.parse(dynamicPath)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

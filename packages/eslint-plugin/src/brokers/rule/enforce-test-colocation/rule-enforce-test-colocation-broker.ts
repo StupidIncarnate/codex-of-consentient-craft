@@ -3,12 +3,10 @@
  *
  * USAGE:
  * const rule = ruleEnforceTestColocationBroker();
- * // Returns EslintRule that validates test files have matching implementation files in same directory
+ * // Returns RuleModule that validates test files have matching implementation files in same directory
  *
  * WHEN-TO-USE: When registering ESLint rules to ensure test files follow co-location pattern
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -17,20 +15,19 @@ import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test
 import { testFilePathToImplementationPathTransformer } from '../../../transformers/test-file-path-to-implementation-path/test-file-path-to-implementation-path-transformer';
 import { filePathWithTypeInfixTransformer } from '../../../transformers/file-path-with-type-infix/file-path-with-type-infix-transformer';
 
-export const ruleEnforceTestColocationBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce test files are co-located with source files',
-      },
-      messages: {
-        testNotColocated:
-          'Test file must be co-located with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
-      },
-      schema: [],
+export const ruleEnforceTestColocationBroker = (): TSESLint.RuleModule<'testNotColocated'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce test files are co-located with source files',
     },
-  }),
+    messages: {
+      testNotColocated:
+        'Test file must be co-located with its implementation file. Expected implementation file "{{expectedPath}}" not found in the same directory.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

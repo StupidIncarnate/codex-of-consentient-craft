@@ -5,27 +5,24 @@
  * const rule = ruleBanPageRouteInE2eBroker();
  * // Returns ESLint rule that prevents page.route() in .e2e.ts files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 
-export const ruleBanPageRouteInE2eBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban page.route() in e2e spec files — intercepting server responses bypasses the real server and hides bugs.',
-      },
-      messages: {
-        noPageRoute:
-          'Do not use page.route() in e2e tests — intercepting server responses bypasses the real server and hides bugs. Use request.patch() or request.post() to drive real state instead.',
-      },
-      schema: [],
+export const ruleBanPageRouteInE2eBroker = (): TSESLint.RuleModule<'noPageRoute'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban page.route() in e2e spec files — intercepting server responses bypasses the real server and hides bugs.',
     },
-  }),
+    messages: {
+      noPageRoute:
+        'Do not use page.route() in e2e tests — intercepting server responses bypasses the real server and hides bugs. Use request.patch() or request.post() to drive real state instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

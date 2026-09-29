@@ -16,8 +16,6 @@
  */
 import { filePathContract, gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { dirname } from '#gateway/node/path';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkGatewaySubpathExistsLayerBroker } from './check-gateway-subpath-exists-layer-broker';
@@ -26,23 +24,24 @@ import { checkGatewayExportNameExistsLayerBroker } from './check-gateway-export-
 const ANCHOR_FILE_SUFFIX =
   'packages/config/src/contracts/dungeonmaster-config/dungeonmaster-config-contract.ts';
 
-export const ruleEnforceGatewayConfigNamesExistBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Check every gateway.bannedExports/restrictedTo subpath, name, and package in .dungeonmaster.json against the gateway's real exports and the real workspace package list.",
-      },
-      messages: {
-        unknownSubpath: '"{{subpath}}" is not a real gateway subpath.',
-        unknownName: '"{{name}}" is not a real export of "{{subpath}}".',
-        unknownPackage:
-          '"{{packageName}}" (named in restrictedTo for "{{subpath}}") is not a real workspace package.',
-      },
-      schema: [{ type: 'object' }],
+export const ruleEnforceGatewayConfigNamesExistBroker = (): TSESLint.RuleModule<
+  'unknownSubpath' | 'unknownName' | 'unknownPackage'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Check every gateway.bannedExports/restrictedTo subpath, name, and package in .dungeonmaster.json against the gateway's real exports and the real workspace package list.",
     },
-  }),
+    messages: {
+      unknownSubpath: '"{{subpath}}" is not a real gateway subpath.',
+      unknownName: '"{{name}}" is not a real export of "{{subpath}}".',
+      unknownPackage:
+        '"{{packageName}}" (named in restrictedTo for "{{subpath}}") is not a real workspace package.',
+    },
+    schema: [{ type: 'object' }],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

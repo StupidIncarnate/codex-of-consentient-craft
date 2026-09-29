@@ -26,8 +26,6 @@
  */
 import { gatewayLocationsStatics, nodeBuiltinStatics } from '@dungeonmaster/shared/statics';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
@@ -48,20 +46,20 @@ import { enclosingFunctionBindingNamesLayerBroker } from './enclosing-function-b
 // gateway's file instead — the one exemption the design doc carves out of the globals rule by name.
 const EXEMPT_NAMES = new Set(['require', '__dirname', '__filename', 'module']);
 
-export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban a runtime use of a platform global (a browser or Node ambient) outside the gateway. Import the wrapped replacement from the gateway package for the current platform instead.',
-      },
-      messages: {
-        platformGlobal:
-          'Platform global "{{name}}" is not allowed outside the gateway. Import it from "{{gatewayPath}}" instead.',
-      },
+export const rulePlatformGlobalsBanBroker = (): TSESLint.RuleModule<'platformGlobal'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban a runtime use of a platform global (a browser or Node ambient) outside the gateway. Import the wrapped replacement from the gateway package for the current platform instead.',
     },
-  }),
+    messages: {
+      platformGlobal:
+        'Platform global "{{name}}" is not allowed outside the gateway. Import it from "{{gatewayPath}}" instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

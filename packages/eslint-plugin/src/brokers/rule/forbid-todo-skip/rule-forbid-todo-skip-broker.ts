@@ -3,32 +3,29 @@
  *
  * USAGE:
  * const rule = ruleForbidTodoSkipBroker();
- * // Returns EslintRule that reports errors on test.todo(), it.skip(), describe.skip() etc.
+ * // Returns RuleModule that reports errors on test.todo(), it.skip(), describe.skip() etc.
  *
  * WHEN-TO-USE: When registering ESLint rules to prevent incomplete or disabled tests in test files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
 
-export const ruleForbidTodoSkipBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid .todo and .skip on all Jest test methods (test, it, describe). All tests must be complete and runnable.',
-      },
-      messages: {
-        noTodoOrSkip:
-          'Test files must not use {{method}}.{{suffix}}(). All tests must be complete and runnable. Remove .{{suffix}} and implement the test.',
-      },
-      schema: [],
+export const ruleForbidTodoSkipBroker = (): TSESLint.RuleModule<'noTodoOrSkip'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid .todo and .skip on all Jest test methods (test, it, describe). All tests must be complete and runnable.',
     },
-  }),
+    messages: {
+      noTodoOrSkip:
+        'Test files must not use {{method}}.{{suffix}}(). All tests must be complete and runnable. Remove .{{suffix}} and implement the test.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

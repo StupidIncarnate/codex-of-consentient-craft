@@ -16,8 +16,6 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
@@ -37,38 +35,49 @@ import { astObjectBrandAnchorTransformer } from '../../../transformers/ast-objec
 import { astZodRootMethodTransformer } from '../../../transformers/ast-zod-root-method/ast-zod-root-method-transformer';
 import { brandTextDeriveTransformer } from '../../../transformers/brand-text-derive/brand-text-derive-transformer';
 
-export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      fixable: 'code',
-      docs: {
-        description:
-          "Every object schema in a contract carries a brand whose text is the owner's name plus the field key; a brand sits only on an object contract or one of its fields",
-      },
-      messages: {
-        objectNoBrand: "z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().",
-        fieldListBranded:
-          "{{name}} is a field list spread into {{owner}}. It carries no brand of its own: the owner's brand is the only one on the object.",
-        wrongBrandText: "Brand text '{{actual}}' must be '{{expected}}'.",
-        localIdBrandText: "Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.",
-        brandOnUnbrandable: '{{key}} is an enum, literal or boolean. Remove the brand.',
-        brandElsewhere:
-          'A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.',
-        unknownSchema:
-          "{{key}} is z.unknown(), which checks nothing. Use the value's contract, or z.json() when it is any JSON value.",
-        lazySchema:
-          'A contract that holds itself uses an annotated getter, not z.lazy. See "A contract that holds itself".',
-        zodTypeGetter:
-          'A getter\'s return type wraps z.core.$ZodType<Self>, never z.ZodType<Self>. See "A contract that holds itself".',
-        selfTypeBrand:
-          "The local type of a self-referencing contract ends in z.$brand<'{{expected}}'>, the owner's brand, so the getter's elements carry it.",
-        reuseAddsCheck:
-          '{{key}} reuses {{source}}. Add no check to it: one brand text means one check.',
-      },
-      schema: [],
+export const ruleRequireObjectContractBrandsBroker = (): TSESLint.RuleModule<
+  | 'objectNoBrand'
+  | 'fieldListBranded'
+  | 'wrongBrandText'
+  | 'localIdBrandText'
+  | 'brandOnUnbrandable'
+  | 'brandElsewhere'
+  | 'unknownSchema'
+  | 'lazySchema'
+  | 'zodTypeGetter'
+  | 'selfTypeBrand'
+  | 'reuseAddsCheck'
+> => ({
+  meta: {
+    type: 'problem',
+    fixable: 'code',
+    docs: {
+      description:
+        "Every object schema in a contract carries a brand whose text is the owner's name plus the field key; a brand sits only on an object contract or one of its fields",
     },
-  }),
+    messages: {
+      objectNoBrand: "z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().",
+      fieldListBranded:
+        "{{name}} is a field list spread into {{owner}}. It carries no brand of its own: the owner's brand is the only one on the object.",
+      wrongBrandText: "Brand text '{{actual}}' must be '{{expected}}'.",
+      localIdBrandText: "Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.",
+      brandOnUnbrandable: '{{key}} is an enum, literal or boolean. Remove the brand.',
+      brandElsewhere:
+        'A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.',
+      unknownSchema:
+        "{{key}} is z.unknown(), which checks nothing. Use the value's contract, or z.json() when it is any JSON value.",
+      lazySchema:
+        'A contract that holds itself uses an annotated getter, not z.lazy. See "A contract that holds itself".',
+      zodTypeGetter:
+        'A getter\'s return type wraps z.core.$ZodType<Self>, never z.ZodType<Self>. See "A contract that holds itself".',
+      selfTypeBrand:
+        "The local type of a self-referencing contract ends in z.$brand<'{{expected}}'>, the owner's brand, so the getter's elements carry it.",
+      reuseAddsCheck:
+        '{{key}} reuses {{source}}. Add no check to it: one brand text means one check.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

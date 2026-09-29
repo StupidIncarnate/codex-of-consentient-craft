@@ -15,13 +15,11 @@
 import { ownerIndexBuildBroker } from '@dungeonmaster/shared/brokers';
 import { repoRootFromSourcePathTransformer } from '@dungeonmaster/shared/transformers';
 
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
-export const ruleEnforceUniqueContractNamesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleEnforceUniqueContractNamesBroker =
+  (): TSESLint.RuleModule<'duplicateContractName'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -34,43 +32,43 @@ export const ruleEnforceUniqueContractNamesBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
-    'Program:exit': (node: TSESTree.Program): void => {
-      const { filename } = context;
-      if (
-        !filename ||
-        !isFileInFolderTypeGuard({ filename, folderType: 'contracts', suffix: 'contract' })
-      ) {
-        return;
-      }
-
-      const rootDir = repoRootFromSourcePathTransformer({ filePath: filename });
-      if (rootDir === undefined) {
-        return;
-      }
-
-      const { owners } = ownerIndexBuildBroker({ rootDir });
-      for (const owner of owners.filter((candidate) => candidate.filePath === filename)) {
-        const otherPackages = [
-          ...new Set(
-            owners
-              .filter(
-                (candidate) =>
-                  candidate.contractName === owner.contractName &&
-                  candidate.packageName !== owner.packageName,
-              )
-              .map((candidate) => String(candidate.packageName)),
-          ),
-        ];
-        if (otherPackages.length > 0) {
-          context.report({
-            node,
-            messageId: 'duplicateContractName',
-            data: { name: owner.contractName, otherPackage: otherPackages.join(', ') },
-          });
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
+      'Program:exit': (node: TSESTree.Program): void => {
+        const { filename } = context;
+        if (
+          !filename ||
+          !isFileInFolderTypeGuard({ filename, folderType: 'contracts', suffix: 'contract' })
+        ) {
+          return;
         }
-      }
-    },
-  }),
-});
+
+        const rootDir = repoRootFromSourcePathTransformer({ filePath: filename });
+        if (rootDir === undefined) {
+          return;
+        }
+
+        const { owners } = ownerIndexBuildBroker({ rootDir });
+        for (const owner of owners.filter((candidate) => candidate.filePath === filename)) {
+          const otherPackages = [
+            ...new Set(
+              owners
+                .filter(
+                  (candidate) =>
+                    candidate.contractName === owner.contractName &&
+                    candidate.packageName !== owner.packageName,
+                )
+                .map((candidate) => String(candidate.packageName)),
+            ),
+          ];
+          if (otherPackages.length > 0) {
+            context.report({
+              node,
+              messageId: 'duplicateContractName',
+              data: { name: owner.contractName, otherPackage: otherPackages.join(', ') },
+            });
+          }
+        }
+      },
+    }),
+  });

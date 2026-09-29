@@ -47,8 +47,6 @@
  * // barrelReexportsTestSupportFile
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
@@ -65,54 +63,66 @@ import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
 import { barrelNoTestSupportReexportLayerBroker } from './barrel-no-test-support-reexport-layer-broker';
 import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
 
-export const ruleGatewayColocationBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Enforce the gateway's own colocation shape: a wrapper file needs a test and a proxy, a subpath barrel holds only re-exports.",
-      },
-      messages: {
-        missingTestFile:
-          'Gateway file "{{fileName}}" needs a colocated {{testFileName}} (or an .integration.test.ts variant).',
-        missingProxyFile: 'Gateway file "{{fileName}}" needs a colocated {{proxyFileName}}.',
-        passThroughNotPureReexport:
-          'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
-        missingStub:
-          'Gateway subpath "{{subpathName}}" needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
-        errorFileMultipleExports:
-          'Gateway error file "{{fileName}}" may hold only imports plus exactly one exported class extending Error. Move any other export into its own wrapper file.',
-        errorFileNotErrorClass:
-          'Gateway error file "{{fileName}}" must export exactly one class extending Error.',
-        errorFileNameMismatch:
-          'Gateway error file "{{fileName}}" exports "{{actualName}}", but its filename requires the class "{{expectedName}}".',
-        errorClassOutsideErrorFile:
-          'Class "{{className}}" extends Error but is declared in "{{fileName}}" — move it into its own .error.ts file beside this wrapper.',
-        barrelMissingReexport:
-          'Subpath barrel "{{fileName}}" is missing a re-export for "{{name}}", exported by "{{wrapperFile}}". Add a named re-export for it to the barrel.',
-        barrelStaleReexport:
-          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", but no such export exists there any more. Remove the stale re-export or restore the wrapper.',
-        reexportOutsideOwnSubpath:
-          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", which reaches outside its own subpath folder. A barrel may only re-export from its own folder tree.',
-        barrelReexportsTestSupportFile:
-          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", a test-support file. A production barrel may not re-export a .proxy.ts or .stub.ts — each is imported from its own file.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            requireStub: {
-              type: 'boolean',
-              description:
-                'When true, every subpath barrel must have at least one .stub.ts file somewhere under its folder. Off by default until every subpath has one (G18).',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleGatewayColocationBroker = (): TSESLint.RuleModule<
+  | 'missingTestFile'
+  | 'missingProxyFile'
+  | 'passThroughNotPureReexport'
+  | 'missingStub'
+  | 'errorFileMultipleExports'
+  | 'errorFileNotErrorClass'
+  | 'errorFileNameMismatch'
+  | 'errorClassOutsideErrorFile'
+  | 'barrelMissingReexport'
+  | 'barrelStaleReexport'
+  | 'reexportOutsideOwnSubpath'
+  | 'barrelReexportsTestSupportFile'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Enforce the gateway's own colocation shape: a wrapper file needs a test and a proxy, a subpath barrel holds only re-exports.",
     },
-  }),
+    messages: {
+      missingTestFile:
+        'Gateway file "{{fileName}}" needs a colocated {{testFileName}} (or an .integration.test.ts variant).',
+      missingProxyFile: 'Gateway file "{{fileName}}" needs a colocated {{proxyFileName}}.',
+      passThroughNotPureReexport:
+        'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
+      missingStub:
+        'Gateway subpath "{{subpathName}}" needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
+      errorFileMultipleExports:
+        'Gateway error file "{{fileName}}" may hold only imports plus exactly one exported class extending Error. Move any other export into its own wrapper file.',
+      errorFileNotErrorClass:
+        'Gateway error file "{{fileName}}" must export exactly one class extending Error.',
+      errorFileNameMismatch:
+        'Gateway error file "{{fileName}}" exports "{{actualName}}", but its filename requires the class "{{expectedName}}".',
+      errorClassOutsideErrorFile:
+        'Class "{{className}}" extends Error but is declared in "{{fileName}}" — move it into its own .error.ts file beside this wrapper.',
+      barrelMissingReexport:
+        'Subpath barrel "{{fileName}}" is missing a re-export for "{{name}}", exported by "{{wrapperFile}}". Add a named re-export for it to the barrel.',
+      barrelStaleReexport:
+        'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", but no such export exists there any more. Remove the stale re-export or restore the wrapper.',
+      reexportOutsideOwnSubpath:
+        'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", which reaches outside its own subpath folder. A barrel may only re-export from its own folder tree.',
+      barrelReexportsTestSupportFile:
+        'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", a test-support file. A production barrel may not re-export a .proxy.ts or .stub.ts — each is imported from its own file.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          requireStub: {
+            type: 'boolean',
+            description:
+              'When true, every subpath barrel must have at least one .stub.ts file somewhere under its folder. Off by default until every subpath has one (G18).',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { requireStub?: boolean }[];

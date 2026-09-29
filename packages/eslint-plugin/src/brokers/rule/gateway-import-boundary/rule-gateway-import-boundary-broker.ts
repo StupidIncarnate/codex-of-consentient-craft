@@ -19,7 +19,7 @@
  *
  * USAGE:
  * const rule = ruleGatewayImportBoundaryBroker();
- * // Returns an EslintRule that flags `import {x} from '@dungeonmaster/shared/contracts'` inside
+ * // Returns an RuleModule that flags `import {x} from '@dungeonmaster/shared/contracts'` inside
  * // packages/@gateway/node/src/**, but allows `import {y} from '@dungeonmaster/npm/glob'` (or the
  * // '#gateway/npm/glob' import-alias form) there
  */
@@ -27,8 +27,6 @@ import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
@@ -39,8 +37,8 @@ import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-reso
 // unit test (every RuleTester case passes `scope` explicitly).
 const defaultScopeCache: { value?: PackageName } = {};
 
-export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleGatewayImportBoundaryBroker =
+  (): TSESLint.RuleModule<'workspacePackageImport'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -65,171 +63,174 @@ export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
         },
       ],
     },
-  }),
-  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
-    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
-      options?: { scope?: PackageName }[];
-    };
-    const { filename } = ctx;
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
+        options?: { scope?: PackageName }[];
+      };
+      const { filename } = ctx;
 
-    const isGatewayFile = gatewayLocationsStatics.packageGlobs.some((glob) =>
-      minimatch(filename, `**/${glob}`, { dot: true }),
-    );
+      const isGatewayFile = gatewayLocationsStatics.packageGlobs.some((glob) =>
+        minimatch(filename, `**/${glob}`, { dot: true }),
+      );
 
-    if (filename.length === 0 || !isGatewayFile) {
-      return {};
-    }
-
-    const optionScope = ctx.options[0]?.scope;
-
-    const scope = ((): PackageName => {
-      if (optionScope !== undefined) {
-        return optionScope;
+      if (filename.length === 0 || !isGatewayFile) {
+        return {};
       }
 
-      if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = repoScopeResolveBroker({
-          startDir: filePathContract.parse(__dirname),
-        });
-      }
+      const optionScope = ctx.options[0]?.scope;
 
-      return defaultScopeCache.value;
-    })();
-
-    return {
-      'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
-        node:
-          | TSESTree.ImportDeclaration
-          | TSESTree.ExportNamedDeclaration
-          | TSESTree.ExportAllDeclaration
-          | TSESTree.ImportExpression,
-      ): void => {
-        const importSource =
-          node.source?.type === AST_NODE_TYPES.Literal ? node.source.value : undefined;
-
-        if (typeof importSource !== 'string') {
-          return;
+      const scope = ((): PackageName => {
+        if (optionScope !== undefined) {
+          return optionScope;
         }
 
-        const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage =
-          importSource === scope ||
-          importSource.startsWith(`${scope}/`) ||
-          importSource === gatewayLocationsStatics.importPrefix ||
-          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
-
-        if (isRelative || !isWorkspacePackage) {
-          return;
+        if (defaultScopeCache.value === undefined) {
+          defaultScopeCache.value = repoScopeResolveBroker({
+            startDir: filePathContract.parse(__dirname),
+          });
         }
 
-        // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
-        // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
-        // consumer repo resolves identically — either one names another gateway package, never a
-        // different workspace package, so both count the same way here.
-        const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
-          const gatewayPackageName = `${scope}/${folder}`;
-          const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
-          return (
-            importSource === gatewayPackageName ||
-            importSource.startsWith(`${gatewayPackageName}/`) ||
-            importSource === gatewayAliasPackageName ||
-            importSource.startsWith(`${gatewayAliasPackageName}/`)
+        return defaultScopeCache.value;
+      })();
+
+      return {
+        'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
+          node:
+            | TSESTree.ImportDeclaration
+            | TSESTree.ExportNamedDeclaration
+            | TSESTree.ExportAllDeclaration
+            | TSESTree.ImportExpression,
+        ): void => {
+          const importSource =
+            node.source?.type === AST_NODE_TYPES.Literal ? node.source.value : undefined;
+
+          if (typeof importSource !== 'string') {
+            return;
+          }
+
+          const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
+          const isWorkspacePackage =
+            importSource === scope ||
+            importSource.startsWith(`${scope}/`) ||
+            importSource === gatewayLocationsStatics.importPrefix ||
+            importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
+
+          if (isRelative || !isWorkspacePackage) {
+            return;
+          }
+
+          // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
+          // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
+          // consumer repo resolves identically — either one names another gateway package, never a
+          // different workspace package, so both count the same way here.
+          const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
+            const gatewayPackageName = `${scope}/${folder}`;
+            const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
+            return (
+              importSource === gatewayPackageName ||
+              importSource.startsWith(`${gatewayPackageName}/`) ||
+              importSource === gatewayAliasPackageName ||
+              importSource.startsWith(`${gatewayAliasPackageName}/`)
+            );
+          });
+
+          if (isGatewayPackage) {
+            return;
+          }
+
+          const testingPackageName = `${scope}/testing`;
+          const isTestingPackage =
+            importSource === testingPackageName ||
+            importSource.startsWith(`${testingPackageName}/`);
+          const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
+            filename.endsWith(suffix),
           );
-        });
 
-        if (isGatewayPackage) {
-          return;
-        }
+          if (isTestingPackage && isTestSupportFile) {
+            return;
+          }
 
-        const testingPackageName = `${scope}/testing`;
-        const isTestingPackage =
-          importSource === testingPackageName || importSource.startsWith(`${testingPackageName}/`);
-        const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
-          filename.endsWith(suffix),
-        );
+          ctx.report({
+            node,
+            messageId: 'workspacePackageImport',
+            data: { importSource, scope },
+          });
+        },
 
-        if (isTestingPackage && isTestSupportFile) {
-          return;
-        }
+        CallExpression: (node: TSESTree.CallExpression): void => {
+          const { callee } = node;
+          const args = node.arguments;
+          const [firstArg] = args;
 
-        ctx.report({
-          node,
-          messageId: 'workspacePackageImport',
-          data: { importSource, scope },
-        });
-      },
+          const isRequireCall =
+            callee.type === AST_NODE_TYPES.Identifier && callee.name === 'require';
+          const isRequireResolveCall =
+            callee.type === AST_NODE_TYPES.MemberExpression &&
+            callee.object.type === AST_NODE_TYPES.Identifier &&
+            callee.object.name === 'require' &&
+            callee.property.type === AST_NODE_TYPES.Identifier &&
+            callee.property.name === 'resolve';
 
-      CallExpression: (node: TSESTree.CallExpression): void => {
-        const { callee } = node;
-        const args = node.arguments;
-        const [firstArg] = args;
+          if (!isRequireCall && !isRequireResolveCall) {
+            return;
+          }
 
-        const isRequireCall =
-          callee.type === AST_NODE_TYPES.Identifier && callee.name === 'require';
-        const isRequireResolveCall =
-          callee.type === AST_NODE_TYPES.MemberExpression &&
-          callee.object.type === AST_NODE_TYPES.Identifier &&
-          callee.object.name === 'require' &&
-          callee.property.type === AST_NODE_TYPES.Identifier &&
-          callee.property.name === 'resolve';
+          const importSource =
+            firstArg?.type === AST_NODE_TYPES.Literal ? firstArg.value : undefined;
 
-        if (!isRequireCall && !isRequireResolveCall) {
-          return;
-        }
+          if (typeof importSource !== 'string') {
+            return;
+          }
 
-        const importSource = firstArg?.type === AST_NODE_TYPES.Literal ? firstArg.value : undefined;
+          const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
+          const isWorkspacePackage =
+            importSource === scope ||
+            importSource.startsWith(`${scope}/`) ||
+            importSource === gatewayLocationsStatics.importPrefix ||
+            importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
-        if (typeof importSource !== 'string') {
-          return;
-        }
+          if (isRelative || !isWorkspacePackage) {
+            return;
+          }
 
-        const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage =
-          importSource === scope ||
-          importSource.startsWith(`${scope}/`) ||
-          importSource === gatewayLocationsStatics.importPrefix ||
-          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
+          // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
+          // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
+          // consumer repo resolves identically — either one names another gateway package, never a
+          // different workspace package, so both count the same way here.
+          const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
+            const gatewayPackageName = `${scope}/${folder}`;
+            const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
+            return (
+              importSource === gatewayPackageName ||
+              importSource.startsWith(`${gatewayPackageName}/`) ||
+              importSource === gatewayAliasPackageName ||
+              importSource.startsWith(`${gatewayAliasPackageName}/`)
+            );
+          });
 
-        if (isRelative || !isWorkspacePackage) {
-          return;
-        }
+          if (isGatewayPackage) {
+            return;
+          }
 
-        // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
-        // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
-        // consumer repo resolves identically — either one names another gateway package, never a
-        // different workspace package, so both count the same way here.
-        const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
-          const gatewayPackageName = `${scope}/${folder}`;
-          const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
-          return (
-            importSource === gatewayPackageName ||
-            importSource.startsWith(`${gatewayPackageName}/`) ||
-            importSource === gatewayAliasPackageName ||
-            importSource.startsWith(`${gatewayAliasPackageName}/`)
+          const testingPackageName = `${scope}/testing`;
+          const isTestingPackage =
+            importSource === testingPackageName ||
+            importSource.startsWith(`${testingPackageName}/`);
+          const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
+            filename.endsWith(suffix),
           );
-        });
 
-        if (isGatewayPackage) {
-          return;
-        }
+          if (isTestingPackage && isTestSupportFile) {
+            return;
+          }
 
-        const testingPackageName = `${scope}/testing`;
-        const isTestingPackage =
-          importSource === testingPackageName || importSource.startsWith(`${testingPackageName}/`);
-        const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
-          filename.endsWith(suffix),
-        );
-
-        if (isTestingPackage && isTestSupportFile) {
-          return;
-        }
-
-        ctx.report({
-          node,
-          messageId: 'workspacePackageImport',
-          data: { importSource, scope },
-        });
-      },
-    };
-  },
-});
+          ctx.report({
+            node,
+            messageId: 'workspacePackageImport',
+            data: { importSource, scope },
+          });
+        },
+      };
+    },
+  });

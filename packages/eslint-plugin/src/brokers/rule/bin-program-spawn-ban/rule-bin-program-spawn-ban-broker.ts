@@ -18,14 +18,12 @@
  *
  * USAGE:
  * const rule = ruleBinProgramSpawnBanBroker();
- * // Returns an EslintRule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
+ * // Returns an RuleModule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
  * // naming currentBranch() from #gateway/bin/git in the report message
  */
 import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -38,33 +36,32 @@ import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-lay
 // case passes `scope` explicitly, so the real filesystem walk only ever runs for a real ESLint run.
 const defaultScopeCache: { value?: PackageName } = {};
 
-export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban a direct spawn of a program that has a home in @<scope>/bin. Use that program's own wrapper there instead.",
-      },
-      messages: {
-        binProgramSpawn:
-          'Spawning "{{program}}" directly is not allowed. Use {{binFunction}}() from "{{gatewayPath}}" instead.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            scope: {
-              type: 'string',
-              description:
-                'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope read from the repo root package.json at rule module load.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramSpawn'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban a direct spawn of a program that has a home in @<scope>/bin. Use that program's own wrapper there instead.",
     },
-  }),
+    messages: {
+      binProgramSpawn:
+        'Spawning "{{program}}" directly is not allowed. Use {{binFunction}}() from "{{gatewayPath}}" instead.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          scope: {
+            type: 'string',
+            description:
+              'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope read from the repo root package.json at rule module load.',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { scope?: PackageName }[];

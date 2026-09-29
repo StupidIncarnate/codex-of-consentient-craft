@@ -11,14 +11,12 @@
  * // leaves `mock.calledWith([filePath]).returns(content)`, and the same literal inside a returned
  * // opt-in scenario method, alone
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
-export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanProxyCatchAllDefaultsBroker =
+  (): TSESLint.RuleModule<'catchAllProxyDefault'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -31,107 +29,107 @@ export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
-    const ctx = context;
-    const { filename } = ctx;
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      const { filename } = ctx;
 
-    if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
-      return {};
-    }
+      if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
+        return {};
+      }
 
-    let currentProxyFunction: TSESTree.Node | null = null;
-    let foundReturnStatement = false;
+      let currentProxyFunction: TSESTree.Node | null = null;
+      let foundReturnStatement = false;
 
-    return {
-      // Track when we enter a proxy function, the same selector enforce-proxy-patterns uses
-      'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node: TSESTree.ArrowFunctionExpression): void => {
-          const ancestors = ctx.sourceCode.getAncestors(node);
-          for (const ancestor of ancestors) {
-            if (
-              ancestor.type === AST_NODE_TYPES.VariableDeclarator &&
-              ancestor.id.type === AST_NODE_TYPES.Identifier &&
-              ancestor.id.name.endsWith('Proxy')
-            ) {
-              currentProxyFunction = node;
-              foundReturnStatement = false;
-              break;
+      return {
+        // Track when we enter a proxy function, the same selector enforce-proxy-patterns uses
+        'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
+          (node: TSESTree.ArrowFunctionExpression): void => {
+            const ancestors = ctx.sourceCode.getAncestors(node);
+            for (const ancestor of ancestors) {
+              if (
+                ancestor.type === AST_NODE_TYPES.VariableDeclarator &&
+                ancestor.id.type === AST_NODE_TYPES.Identifier &&
+                ancestor.id.name.endsWith('Proxy')
+              ) {
+                currentProxyFunction = node;
+                foundReturnStatement = false;
+                break;
+              }
             }
+          },
+
+        'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression:exit':
+          (): void => {
+            currentProxyFunction = null;
+            foundReturnStatement = false;
+          },
+
+        // ESLint visits a ReturnStatement before descending into its own argument, so an address
+        // written inside a returned scenario method already reads foundReturnStatement === true.
+        ReturnStatement: (): void => {
+          if (currentProxyFunction !== null) {
+            foundReturnStatement = true;
           }
         },
 
-      'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression:exit':
-        (): void => {
-          currentProxyFunction = null;
-          foundReturnStatement = false;
-        },
+        CallExpression: (node: TSESTree.CallExpression): void => {
+          if (currentProxyFunction === null || foundReturnStatement) {
+            return;
+          }
 
-      // ESLint visits a ReturnStatement before descending into its own argument, so an address
-      // written inside a returned scenario method already reads foundReturnStatement === true.
-      ReturnStatement: (): void => {
-        if (currentProxyFunction !== null) {
-          foundReturnStatement = true;
-        }
-      },
+          const { callee } = node;
 
-      CallExpression: (node: TSESTree.CallExpression): void => {
-        if (currentProxyFunction === null || foundReturnStatement) {
-          return;
-        }
-
-        const { callee } = node;
-
-        if (
-          callee.type !== AST_NODE_TYPES.MemberExpression ||
-          (callee.property.type === AST_NODE_TYPES.Identifier ||
-          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
-            ? callee.property.name
-            : undefined) !== 'calledWith'
-        ) {
-          return;
-        }
-
-        const [addressArgument] = node.arguments;
-
-        if (addressArgument?.type !== AST_NODE_TYPES.ArrayExpression) {
-          return;
-        }
-
-        const hasCatchAllElement = addressArgument.elements.some((element): boolean => {
           if (
-            element === null ||
-            (element.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
-              element.type !== AST_NODE_TYPES.FunctionExpression)
+            callee.type !== AST_NODE_TYPES.MemberExpression ||
+            (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+              ? callee.property.name
+              : undefined) !== 'calledWith'
           ) {
-            return false;
+            return;
           }
 
-          const { body } = element;
+          const [addressArgument] = node.arguments;
 
-          if (body.type !== AST_NODE_TYPES.BlockStatement) {
-            return body.type === AST_NODE_TYPES.Literal && body.value === true;
+          if (addressArgument?.type !== AST_NODE_TYPES.ArrayExpression) {
+            return;
           }
 
-          const statements = Array.isArray(body.body) ? body.body : [];
+          const hasCatchAllElement = addressArgument.elements.some((element): boolean => {
+            if (
+              element === null ||
+              (element.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+                element.type !== AST_NODE_TYPES.FunctionExpression)
+            ) {
+              return false;
+            }
 
-          if (statements.length !== 1) {
-            return false;
+            const { body } = element;
+
+            if (body.type !== AST_NODE_TYPES.BlockStatement) {
+              return body.type === AST_NODE_TYPES.Literal && body.value === true;
+            }
+
+            const statements = Array.isArray(body.body) ? body.body : [];
+
+            if (statements.length !== 1) {
+              return false;
+            }
+
+            const [onlyStatement] = statements;
+
+            return (
+              onlyStatement?.type === AST_NODE_TYPES.ReturnStatement &&
+              onlyStatement.argument?.type === AST_NODE_TYPES.Literal &&
+              onlyStatement.argument.value === true
+            );
+          });
+
+          if (hasCatchAllElement) {
+            ctx.report({ node, messageId: 'catchAllProxyDefault' });
           }
-
-          const [onlyStatement] = statements;
-
-          return (
-            onlyStatement?.type === AST_NODE_TYPES.ReturnStatement &&
-            onlyStatement.argument?.type === AST_NODE_TYPES.Literal &&
-            onlyStatement.argument.value === true
-          );
-        });
-
-        if (hasCatchAllElement) {
-          ctx.report({ node, messageId: 'catchAllProxyDefault' });
-        }
-      },
-    };
-  },
-});
+        },
+      };
+    },
+  });

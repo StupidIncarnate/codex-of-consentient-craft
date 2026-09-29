@@ -5,31 +5,30 @@
  * const rule = ruleBanJestMockInTestsBroker();
  * // Returns ESLint rule that prevents jest.mock(), jest.clearAllMocks(), etc. in test files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { jestTestingStatics } from '../../../statics/jest-testing/jest-testing-statics';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
-export const ruleBanJestMockInTestsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban all Jest mocking and module system manipulation in test files. Use proxy files instead.',
-      },
-      messages: {
-        noMockingInTests:
-          'Test files must not use {{mockFunction}}(). All mocking and module system manipulation must be done in proxy files (.proxy.ts).',
-        noCleanupFunctions:
-          'Never use {{mockFunction}}() - @dungeonmaster/testing handles mock cleanup globally. Manual cleanup causes issues across tests.',
-      },
-      schema: [],
+export const ruleBanJestMockInTestsBroker = (): TSESLint.RuleModule<
+  'noMockingInTests' | 'noCleanupFunctions'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban all Jest mocking and module system manipulation in test files. Use proxy files instead.',
     },
-  }),
+    messages: {
+      noMockingInTests:
+        'Test files must not use {{mockFunction}}(). All mocking and module system manipulation must be done in proxy files (.proxy.ts).',
+      noCleanupFunctions:
+        'Never use {{mockFunction}}() - @dungeonmaster/testing handles mock cleanup globally. Manual cleanup causes issues across tests.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

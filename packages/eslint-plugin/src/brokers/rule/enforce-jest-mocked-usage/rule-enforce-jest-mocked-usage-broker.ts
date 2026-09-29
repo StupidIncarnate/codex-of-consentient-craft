@@ -5,8 +5,6 @@
  * const rule = ruleEnforceJestMockedUsageBroker();
  * // Returns ESLint rule that requires jest.mocked() for modules with jest.mock(), prevents jest.spyOn() on imports
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
@@ -17,32 +15,33 @@ import type { ModulePath } from '@dungeonmaster/shared/contracts';
 import { modulePathContract } from '@dungeonmaster/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
-export const ruleEnforceJestMockedUsageBroker = (): EslintRule => {
+export const ruleEnforceJestMockedUsageBroker = (): TSESLint.RuleModule<
+  'useJestMocked' | 'spyOnModuleImport' | 'nonAdapterNoJestMocked' | 'mockWithoutImport'
+> => {
   // Track jest.mock() calls (module path -> node for reporting) and imported module names
   const jestMockedModules = new Map<ModulePath, TSESTree.Node>();
   const importedModuleNames = new Map<string, ModulePath>(); // local name -> module source
   const variablesWithJestMocked = new Set<string>();
 
   return {
-    ...eslintRuleContract.parse({
-      meta: {
-        type: 'problem',
-        docs: {
-          description: 'Enforce proper Jest mocking patterns in proxy files',
-        },
-        messages: {
-          useJestMocked:
-            'When using jest.mock(), access the mocked module with jest.mocked(). Use: const mock = jest.mocked({{moduleName}})',
-          spyOnModuleImport:
-            'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
-          nonAdapterNoJestMocked:
-            'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
-          mockWithoutImport:
-            "jest.mock('{{modulePath}}') has no corresponding import. Either import something from '{{modulePath}}' to use with jest.mocked(), or remove this jest.mock() call and delegate to child adapter proxies.",
-        },
-        schema: [],
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce proper Jest mocking patterns in proxy files',
       },
-    }),
+      messages: {
+        useJestMocked:
+          'When using jest.mock(), access the mocked module with jest.mocked(). Use: const mock = jest.mocked({{moduleName}})',
+        spyOnModuleImport:
+          'jest.spyOn() should only be used for global objects (Date, crypto, console, Math). Use jest.mock() + jest.mocked() for module imports instead.',
+        nonAdapterNoJestMocked:
+          'Non-adapter proxies cannot use jest.mocked(). Only adapters (I/O boundaries) and state proxies (for external systems) should be mocked. Brokers, widgets, and responders must run real code.',
+        mockWithoutImport:
+          "jest.mock('{{modulePath}}') has no corresponding import. Either import something from '{{modulePath}}' to use with jest.mocked(), or remove this jest.mock() call and delegate to child adapter proxies.",
+      },
+      schema: [],
+    },
+    defaultOptions: [],
     create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context;
       // Reset state for each file

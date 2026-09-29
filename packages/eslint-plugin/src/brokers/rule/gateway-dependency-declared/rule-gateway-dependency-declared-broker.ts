@@ -9,36 +9,35 @@
  *
  * USAGE:
  * const rule = ruleGatewayDependencyDeclaredBroker();
- * // Returns an EslintRule that flags `import {glob} from '#gateway/npm/glob'` in a file whose
+ * // Returns an RuleModule that flags `import {glob} from '#gateway/npm/glob'` in a file whose
  * // nearest package.json omits "@dungeonmaster/npm" from dependencies
  */
 import { importPathContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateGatewaySpecifierLayerBroker } from './validate-gateway-specifier-layer-broker';
 
 const gatewaySpecifierPrefix = `${gatewayLocationsStatics.importPrefix}/`;
 
-export const ruleGatewayDependencyDeclaredBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Require a "#gateway/<folder>/..." specifier to be mapped by the importing package\'s own "imports" field, and its resolved target package to be a declared dependency.',
-      },
-      messages: {
-        unmappedSpecifier:
-          '"{{specifier}}" is not mapped by the "imports" field of {{packageJsonPath}}. Add "#gateway/{{folder}}/*": "{{scope}}/{{folder}}/*".',
-        missingDependency:
-          '{{packageJsonPath}} must list "{{targetPackage}}" in {{location}}, because this file imports "{{specifier}}".',
-      },
-      schema: [],
+export const ruleGatewayDependencyDeclaredBroker = (): TSESLint.RuleModule<
+  'unmappedSpecifier' | 'missingDependency'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Require a "#gateway/<folder>/..." specifier to be mapped by the importing package\'s own "imports" field, and its resolved target package to be a declared dependency.',
     },
-  }),
+    messages: {
+      unmappedSpecifier:
+        '"{{specifier}}" is not mapped by the "imports" field of {{packageJsonPath}}. Add "#gateway/{{folder}}/*": "{{scope}}/{{folder}}/*".',
+      missingDependency:
+        '{{packageJsonPath}} must list "{{targetPackage}}" in {{location}}, because this file imports "{{specifier}}".',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

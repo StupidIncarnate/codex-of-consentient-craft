@@ -21,8 +21,6 @@
  * // Flags `JSON.parse(text) as T` inside packages/@gateway/node/src/fetch/fetch-json/fetch-json.ts;
  * // leaves alone the same cast against `unknown`, or against a real interface
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -31,25 +29,26 @@ import { isTypeNameReferencedLayerBroker } from './is-type-name-referenced-layer
 import { checkAnyLeakReturnLayerBroker } from './check-any-leak-return-layer-broker';
 import { isJsonParseOrDynamicImportCallLayerBroker } from './is-json-parse-or-dynamic-import-call-layer-broker';
 
-export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Refuse a gateway function that casts or declares its return as a type its caller picked, instead of `unknown` or a real declared type.',
-      },
-      messages: {
-        castToCallerType:
-          'This cast names "{{typeParameterName}}", this function\'s own type parameter — the caller\'s picked type, not a checked one. Cast to `unknown`, or to a type this function or the outside package declares.',
-        bareReturnTypeParameter:
-          'The return type is bare type parameter "{{typeParameterName}}" — nothing in this function derived it from an input of that same type. Return `unknown`, or a type this function or the outside package declares.',
-        anyLeakNoReturnType:
-          "This function has no declared return type, so the untyped `any` from JSON.parse or import() leaves unchecked. Declare a return type — `unknown` for the caller's own data, or a real type.",
-      },
-      schema: [],
+export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): TSESLint.RuleModule<
+  'castToCallerType' | 'bareReturnTypeParameter' | 'anyLeakNoReturnType'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Refuse a gateway function that casts or declares its return as a type its caller picked, instead of `unknown` or a real declared type.',
     },
-  }),
+    messages: {
+      castToCallerType:
+        'This cast names "{{typeParameterName}}", this function\'s own type parameter — the caller\'s picked type, not a checked one. Cast to `unknown`, or to a type this function or the outside package declares.',
+      bareReturnTypeParameter:
+        'The return type is bare type parameter "{{typeParameterName}}" — nothing in this function derived it from an input of that same type. Return `unknown`, or a type this function or the outside package declares.',
+      anyLeakNoReturnType:
+        "This function has no declared return type, so the untyped `any` from JSON.parse or import() leaves unchecked. Declare a return type — `unknown` for the caller's own data, or a real type.",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

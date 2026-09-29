@@ -11,8 +11,6 @@
  * // Registered with options: [{ checkModuleLevelShapes: true }] it also refuses
  * // `type CarveResult = { ok: true }` and `(): { camel: string } => …` at module level
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
@@ -20,31 +18,32 @@ import { folderConfigTransformer } from '../../../transformers/folder-config/fol
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isModuleLevelShapeGuard } from '../../../guards/is-module-level-shape/is-module-level-shape-guard';
 
-export const ruleBanAdhocTypesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban ad-hoc interface definitions and inline type assertions. Use shared contracts instead.',
-      },
-      messages: {
-        noAdhocInterface:
-          "Ad-hoc interface definitions are forbidden in {{folderType}}/ files. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
-        noAdhocShape:
-          "An object type in a module-level {{where}} is forbidden in {{folderType}}/ files: it leaves the function as data. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
-        noInlineTypeAssertion:
-          'Inline type assertions creating structural types (as {{"{"}}{"{"}}) are forbidden in {{folderType}}/ files. Use proper contracts from contracts/ folder.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: { checkModuleLevelShapes: { type: 'boolean' } },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBanAdhocTypesBroker = (): TSESLint.RuleModule<
+  'noAdhocInterface' | 'noAdhocShape' | 'noInlineTypeAssertion'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban ad-hoc interface definitions and inline type assertions. Use shared contracts instead.',
     },
-  }),
+    messages: {
+      noAdhocInterface:
+        "Ad-hoc interface definitions are forbidden in {{folderType}}/ files. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
+      noAdhocShape:
+        "An object type in a module-level {{where}} is forbidden in {{folderType}}/ files: it leaves the function as data. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
+      noInlineTypeAssertion:
+        'Inline type assertions creating structural types (as {{"{"}}{"{"}}) are forbidden in {{folderType}}/ files. Use proper contracts from contracts/ folder.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: { checkModuleLevelShapes: { type: 'boolean' } },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const [option] = ctx.options;

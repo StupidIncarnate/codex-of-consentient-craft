@@ -14,25 +14,22 @@
  * // Flags `import { readFileSync } from '#gateway/node/fs'`
  */
 import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const ruleBanGatewayExportBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban a named import of a gateway export listed under gateway.bannedExports in .dungeonmaster.json.',
-      },
-      messages: {
-        bannedExport: '"{{name}}" from "{{subpath}}" is banned — use "{{use}}" instead. {{reason}}',
-      },
-      schema: [{ type: 'object' }],
+export const ruleBanGatewayExportBroker = (): TSESLint.RuleModule<'bannedExport'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban a named import of a gateway export listed under gateway.bannedExports in .dungeonmaster.json.',
     },
-  }),
+    messages: {
+      bannedExport: '"{{name}}" from "{{subpath}}" is banned — use "{{use}}" instead. {{reason}}',
+    },
+    schema: [{ type: 'object' }],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const [rawOptions] = ctx.options;

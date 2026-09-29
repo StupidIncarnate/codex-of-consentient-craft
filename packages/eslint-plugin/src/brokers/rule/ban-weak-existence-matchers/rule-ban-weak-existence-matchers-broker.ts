@@ -7,8 +7,6 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to prevent weak assertions that hide bugs
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -24,20 +22,19 @@ const bannedMatchers = {
 
 const bannedMatcherNames = Object.keys(bannedMatchers);
 
-export const ruleBanWeakExistenceMatchersBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban weak existence matchers in test files. Use explicit value assertions instead.',
-      },
-      messages: {
-        weakMatcher: 'Use {{replacement}} instead of .{{matcher}}()',
-      },
-      schema: [],
+export const ruleBanWeakExistenceMatchersBroker = (): TSESLint.RuleModule<'weakMatcher'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban weak existence matchers in test files. Use explicit value assertions instead.',
     },
-  }),
+    messages: {
+      weakMatcher: 'Use {{replacement}} instead of .{{matcher}}()',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

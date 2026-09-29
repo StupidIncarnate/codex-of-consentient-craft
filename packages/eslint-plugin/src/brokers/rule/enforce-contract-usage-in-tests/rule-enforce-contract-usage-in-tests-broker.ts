@@ -5,8 +5,6 @@
  * const rule = ruleEnforceContractUsageInTestsBroker();
  * // Contract test files must import both contract and stub. Other test files cannot import contracts.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
@@ -14,27 +12,28 @@ import { contractPathToStubPathTransformer } from '../../../transformers/contrac
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
-export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforces contract test files import both contract and stub; bans contract imports in other test files',
-      },
-      messages: {
-        useStubInTest:
-          'Test files must not import from contracts (including types). Use {{stubPath}} instead.',
-        useStubFromShared:
-          'Test files must not import contracts from @dungeonmaster/shared/contracts. Import stubs (ending in "Stub") from @dungeonmaster/shared/contracts instead.',
-        contractTestMissingStub:
-          'Contract test files must import the stub. Add: import { XxxStub } from "{{stubPath}}";',
-        contractTestMissingContract:
-          'Contract test files must import the contract. Add: import { xxxContract } from "{{contractPath}}";',
-      },
-      schema: [],
+export const ruleEnforceContractUsageInTestsBroker = (): TSESLint.RuleModule<
+  'useStubInTest' | 'useStubFromShared' | 'contractTestMissingStub' | 'contractTestMissingContract'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforces contract test files import both contract and stub; bans contract imports in other test files',
     },
-  }),
+    messages: {
+      useStubInTest:
+        'Test files must not import from contracts (including types). Use {{stubPath}} instead.',
+      useStubFromShared:
+        'Test files must not import contracts from @dungeonmaster/shared/contracts. Import stubs (ending in "Stub") from @dungeonmaster/shared/contracts instead.',
+      contractTestMissingStub:
+        'Contract test files must import the stub. Add: import { XxxStub } from "{{stubPath}}";',
+      contractTestMissingContract:
+        'Contract test files must import the contract. Add: import { xxxContract } from "{{contractPath}}";',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 

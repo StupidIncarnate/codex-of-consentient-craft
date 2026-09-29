@@ -7,28 +7,25 @@
  *
  * WHEN-TO-USE: When enforcing that all mocking in proxy files uses registerMock from @dungeonmaster/testing
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
-export const ruleBanJestMockInProxiesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban jest.mock(), jest.mocked(), jest.spyOn() and other Jest mocking in proxy files. Use registerMock from @dungeonmaster/testing/register-mock instead.',
-      },
-      messages: {
-        useRegisterMock:
-          'Proxy files must not use {{mockFunction}}(). Use registerMock({ fn }) from @dungeonmaster/testing/register-mock instead.',
-      },
-      schema: [],
+export const ruleBanJestMockInProxiesBroker = (): TSESLint.RuleModule<'useRegisterMock'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban jest.mock(), jest.mocked(), jest.spyOn() and other Jest mocking in proxy files. Use registerMock from @dungeonmaster/testing/register-mock instead.',
     },
-  }),
+    messages: {
+      useRegisterMock:
+        'Proxy files must not use {{mockFunction}}(). Use registerMock({ fn }) from @dungeonmaster/testing/register-mock instead.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 

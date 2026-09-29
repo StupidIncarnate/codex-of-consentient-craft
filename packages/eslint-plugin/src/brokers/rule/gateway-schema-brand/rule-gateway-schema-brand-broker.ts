@@ -19,8 +19,6 @@
  */
 import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
 import { dirname } from '#gateway/node/path';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -29,25 +27,26 @@ import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-roo
 import { checkSchemaBrandTextLayerBroker } from './check-schema-brand-text-layer-broker';
 import { buildGatewayTypeDeclarationIndexLayerBroker } from './build-gateway-type-declaration-index-layer-broker';
 
-export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Enforce BR C9 in the gateway: no bare z.custom<T>() with no check, a schema's .brand<'…'>() text must be #Gateway plus the type name it checks, and no two gateway modules export a same-named type.",
-      },
-      messages: {
-        bareCustomSchema:
-          'z.custom<{{typeName}}>() has no check function, so it accepts a missing field or any junk at runtime. Pass a check: z.custom<{{typeName}}>((value) => is{{typeName}}(value)).',
-        wrongBrandText:
-          'Brand text "{{brandText}}" does not match "{{expectedBrandText}}" — the brand is #Gateway plus the exact type name this schema checks, derived, not chosen.',
-        duplicateTypeName:
-          '"{{name}}" is also declared in {{otherFile}}. A type name must be unique across the four gateway packages, so one brand text (#Gateway{{name}}) always means one check.',
-      },
-      schema: [],
+export const ruleGatewaySchemaBrandBroker = (): TSESLint.RuleModule<
+  'bareCustomSchema' | 'wrongBrandText' | 'duplicateTypeName'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Enforce BR C9 in the gateway: no bare z.custom<T>() with no check, a schema's .brand<'…'>() text must be #Gateway plus the type name it checks, and no two gateway modules export a same-named type.",
     },
-  }),
+    messages: {
+      bareCustomSchema:
+        'z.custom<{{typeName}}>() has no check function, so it accepts a missing field or any junk at runtime. Pass a check: z.custom<{{typeName}}>((value) => is{{typeName}}(value)).',
+      wrongBrandText:
+        'Brand text "{{brandText}}" does not match "{{expectedBrandText}}" — the brand is #Gateway plus the exact type name this schema checks, derived, not chosen.',
+      duplicateTypeName:
+        '"{{name}}" is also declared in {{otherFile}}. A type name must be unique across the four gateway packages, so one brand text (#Gateway{{name}}) always means one check.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

@@ -14,8 +14,6 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
@@ -28,21 +26,20 @@ import { propertyReusedIdOwnerTransformer } from '../../../transformers/property
 
 const CONTRACT_SUFFIX = 'Contract';
 
-export const ruleBanJoinIdBesideChildBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban an object contract that holds a child contract whole and also holds the child's id as a separate key",
-      },
-      messages: {
-        joinIdBesideChild:
-          '{{idKey}} copies {{childKey}}.id, and nothing checks that they match. Remove {{idKey}} and read {{childKey}}.id.',
-      },
-      schema: [],
+export const ruleBanJoinIdBesideChildBroker = (): TSESLint.RuleModule<'joinIdBesideChild'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban an object contract that holds a child contract whole and also holds the child's id as a separate key",
     },
-  }),
+    messages: {
+      joinIdBesideChild:
+        '{{idKey}} copies {{childKey}}.id, and nothing checks that they match. Remove {{idKey}} and read {{childKey}}.id.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

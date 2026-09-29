@@ -5,8 +5,6 @@
  * const rule = ruleEnforceProjectStructureBroker();
  * // Returns ESLint rule that validates folder location, depth, kebab-case filenames, and export naming conventions
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -20,13 +18,31 @@ import { validateFilenameLayerBroker } from './validate-filename-layer-broker';
 import { collectExportsLayerBroker } from './collect-exports-layer-broker';
 import { validateExportLayerBroker } from './validate-export-layer-broker';
 
-export const ruleEnforceProjectStructureBroker = (): EslintRule => {
+export const ruleEnforceProjectStructureBroker = (): TSESLint.RuleModule<
+  | 'forbiddenFolder'
+  | 'unknownFolder'
+  | 'invalidFolderDepth'
+  | 'invalidFileSuffix'
+  | 'invalidFileSuffixWithLayer'
+  | 'invalidFilenameCase'
+  | 'invalidFilenameCaseWithLayer'
+  | 'noDefaultExport'
+  | 'noNamespaceExport'
+  | 'noReExport'
+  | 'missingExpectedExport'
+  | 'multipleValueExports'
+  | 'invalidExportSuffix'
+  | 'invalidExportCase'
+  | 'filenameMismatch'
+  | 'proxyMustBeArrowFunction'
+  | 'layerFilesNotAllowed'
+> => {
   const layerAllowedFolders = Object.entries(folderConfigStatics)
     .filter(([, config]) => config.allowsLayerFiles)
     .map(([folderType]) => `${folderType}/`)
     .join(', ');
 
-  const parsedMeta = eslintRuleContract.parse({
+  return {
     meta: {
       type: 'problem',
       docs: {
@@ -74,10 +90,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
       },
       schema: [],
     },
-  });
-
-  return {
-    ...parsedMeta,
+    defaultOptions: [],
     create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context;
       const { filename } = ctx;

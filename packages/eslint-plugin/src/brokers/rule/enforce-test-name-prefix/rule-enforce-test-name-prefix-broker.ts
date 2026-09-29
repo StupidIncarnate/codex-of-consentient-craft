@@ -7,28 +7,25 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce consistent test naming across all test types
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { hasValidTestNamePrefixGuard } from '../../../guards/has-valid-test-name-prefix/has-valid-test-name-prefix-guard';
 import { testNamePrefixStatics } from '../../../statics/test-name-prefix/test-name-prefix-statics';
 
-export const ruleEnforceTestNamePrefixBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce that all test names start with VALID:, INVALID:, ERROR:, EDGE:, or EMPTY: prefix.',
-      },
-      messages: {
-        missingPrefix: 'Test name must start with {{prefixes}} — found: "{{name}}"',
-      },
-      schema: [],
+export const ruleEnforceTestNamePrefixBroker = (): TSESLint.RuleModule<'missingPrefix'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce that all test names start with VALID:, INVALID:, ERROR:, EDGE:, or EMPTY: prefix.',
     },
-  }),
+    messages: {
+      missingPrefix: 'Test name must start with {{prefixes}} — found: "{{name}}"',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const isTestFile = isTestFileGuard({ filename: ctx.filename });

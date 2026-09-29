@@ -7,19 +7,19 @@
  *   valid: ['const foo = (): string => "bar"'],
  *   invalid: [{ code: 'const foo = () => "bar"', errors: [{ messageId: 'missingReturnType' }] }],
  * });
- * // Returns a RuleTester whose run method accepts an EslintRule
+ * // Returns a RuleTester whose run method accepts a TSESLint rule module
  */
 import { RuleTester } from '#gateway/npm/eslint';
 import type { Linter, Rule } from '#gateway/npm/eslint';
 import * as tsParser from '#gateway/npm/typescript-eslint__parser';
-import type { EslintRule } from '../../../src/contracts/eslint-rule/eslint-rule-contract';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 interface GlobalWithRuleTester {
   RuleTester?: typeof RuleTester;
 }
 
 export const ruleTesterHarness = (): {
-  run: (name: string, rule: EslintRule, tests: unknown) => void;
+  run: (name: string, rule: TSESLint.AnyRuleModule, tests: unknown) => void;
 } => {
   const tsParserAsLinterParser = tsParser as unknown as Linter.Parser;
 
@@ -37,7 +37,7 @@ export const ruleTesterHarness = (): {
   });
 
   return {
-    run: (name: string, rule: EslintRule, tests: unknown): void => {
+    run: (name: string, rule: TSESLint.AnyRuleModule, tests: unknown): void => {
       // Marks the run as a RuleTester test for @dungeonmaster/testing's assertion check;
       // RuleTester.run() creates its own assertions internally.
       const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;

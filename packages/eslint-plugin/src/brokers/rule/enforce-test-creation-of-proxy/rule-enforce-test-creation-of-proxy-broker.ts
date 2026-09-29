@@ -3,14 +3,12 @@
  *
  * USAGE:
  * const rule = ruleEnforceTestCreationOfProxyBroker();
- * // Returns EslintRule that validates proxy instances are created fresh in each it/test block
+ * // Returns RuleModule that validates proxy instances are created fresh in each it/test block
  * // For unit tests: requires proxy creation before implementation calls
  * // For integration/e2e tests: errors if any proxy is imported (integration tests use real code)
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce test isolation by preventing shared proxy instances
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -25,33 +23,40 @@ import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 import { astCalleeRootNameTransformer } from '../../../transformers/ast-callee-root-name/ast-callee-root-name-transformer';
 
-export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ensure proxies are created inside each test (it/test block), not at module level or in beforeEach/afterEach hooks',
-      },
-      messages: {
-        proxyMustBeInTest:
-          'Proxy instance {{name}} must be created inside each test (it/test block), not at module level or in beforeEach/afterEach hooks. Use: const {{name}} = {{proxyFunction}}() inside the test.',
-        noExportProxy:
-          'Do not export proxy instances from test files. Create proxies fresh in each test instead.',
-        proxyNotCreated:
-          'Implementation {{implementationName}} called without creating {{proxyName}} first. Create the proxy before calling the implementation: const proxy = {{proxyName}}(); proxy.setup(...); {{implementationName}}();',
-        noProxyInIntegrationTest:
-          'Integration and e2e tests must not import proxy files. Integration tests run real code without mocking. Remove the proxy import: {{importSource}}',
-        noHarnessInUnitTest:
-          'Unit tests must not import harness files. Harness files are for integration/e2e tests. Use proxy files (.proxy.ts) for unit test mocking instead. Remove the harness import: {{importSource}}',
-        harnessMustBeInDescribe:
-          'Harness instance {{name}} must be created inside a describe block (not at module level or inside it/test). Harnesses register beforeEach/afterEach hooks that must be scoped to a describe block.',
-        harnessNeedsWireInSpec:
-          'Harness call {{name}} in spec file must be wrapped with wireHarnessLifecycle({ harness: {{name}}(), testObj: test }) to register lifecycle hooks with Playwright.',
-      },
-      schema: [],
+export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
+  | 'proxyMustBeInTest'
+  | 'noExportProxy'
+  | 'proxyNotCreated'
+  | 'noProxyInIntegrationTest'
+  | 'noHarnessInUnitTest'
+  | 'harnessMustBeInDescribe'
+  | 'harnessNeedsWireInSpec'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ensure proxies are created inside each test (it/test block), not at module level or in beforeEach/afterEach hooks',
     },
-  }),
+    messages: {
+      proxyMustBeInTest:
+        'Proxy instance {{name}} must be created inside each test (it/test block), not at module level or in beforeEach/afterEach hooks. Use: const {{name}} = {{proxyFunction}}() inside the test.',
+      noExportProxy:
+        'Do not export proxy instances from test files. Create proxies fresh in each test instead.',
+      proxyNotCreated:
+        'Implementation {{implementationName}} called without creating {{proxyName}} first. Create the proxy before calling the implementation: const proxy = {{proxyName}}(); proxy.setup(...); {{implementationName}}();',
+      noProxyInIntegrationTest:
+        'Integration and e2e tests must not import proxy files. Integration tests run real code without mocking. Remove the proxy import: {{importSource}}',
+      noHarnessInUnitTest:
+        'Unit tests must not import harness files. Harness files are for integration/e2e tests. Use proxy files (.proxy.ts) for unit test mocking instead. Remove the harness import: {{importSource}}',
+      harnessMustBeInDescribe:
+        'Harness instance {{name}} must be created inside a describe block (not at module level or inside it/test). Harnesses register beforeEach/afterEach hooks that must be scoped to a describe block.',
+      harnessNeedsWireInSpec:
+        'Harness call {{name}} in spec file must be wrapped with wireHarnessLifecycle({ harness: {{name}}(), testObj: test }) to register lifecycle hooks with Playwright.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const filename = ctx.filename ? ctx.filename : '';

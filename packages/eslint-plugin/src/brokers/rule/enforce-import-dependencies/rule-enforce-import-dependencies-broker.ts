@@ -5,8 +5,6 @@
  * const rule = ruleEnforceImportDependenciesBroker();
  * // Returns ESLint rule that prevents brokers from importing from responders, enforces entry files, etc.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
@@ -20,26 +18,27 @@ import { filepathResolveRelativeImportTransformer } from '../../../transformers/
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { validateExternalImportLayerBroker } from './validate-external-import-layer-broker';
 
-export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce folder-level import restrictions based on architecture',
-      },
-      messages: {
-        forbiddenImport:
-          '{{folderType}}/ cannot import from {{importedFolder}}/. Allowed imports: {{allowed}}',
-        forbiddenExternalImport:
-          '{{folderType}}/ cannot import external package "{{packageName}}". Only internal imports allowed.',
-        nonEntryFileImport:
-          'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
-        unnecessaryCategoryInPath:
-          'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
-      },
-      schema: [],
+export const ruleEnforceImportDependenciesBroker = (): TSESLint.RuleModule<
+  'forbiddenImport' | 'forbiddenExternalImport' | 'nonEntryFileImport' | 'unnecessaryCategoryInPath'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce folder-level import restrictions based on architecture',
     },
-  }),
+    messages: {
+      forbiddenImport:
+        '{{folderType}}/ cannot import from {{importedFolder}}/. Allowed imports: {{allowed}}',
+      forbiddenExternalImport:
+        '{{folderType}}/ cannot import external package "{{packageName}}". Only internal imports allowed.',
+      nonEntryFileImport:
+        'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
+      unnecessaryCategoryInPath:
+        'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

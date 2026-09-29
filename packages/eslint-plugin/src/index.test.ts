@@ -10,7 +10,11 @@ describe('index', () => {
   it('VALID: {default export rules} => includes ban-primitives rule with meta and create', () => {
     const plugin = StartEslintPlugin();
 
-    expect(Object.keys(plugin.rules['ban-primitives']).sort()).toStrictEqual(['create', 'meta']);
+    expect(Object.keys(plugin.rules['ban-primitives']).sort()).toStrictEqual([
+      'create',
+      'defaultOptions',
+      'meta',
+    ]);
     expect(plugin.rules['ban-primitives'].create).toStrictEqual(expect.any(Function));
   });
 

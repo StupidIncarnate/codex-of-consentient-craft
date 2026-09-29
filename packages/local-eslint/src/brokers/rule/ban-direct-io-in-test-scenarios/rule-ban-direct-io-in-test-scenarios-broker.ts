@@ -6,28 +6,25 @@
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { isBanDirectIoScopeFileGuard } from '../../../guards/is-ban-direct-io-scope-file/is-ban-direct-io-scope-file-guard';
 import { banDirectIoInTestScenariosStatics } from '../../../statics/ban-direct-io-in-test-scenarios/ban-direct-io-in-test-scenarios-statics';
 
-export const ruleBanDirectIoInTestScenariosBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Bans direct I/O, network mutations, and direct recipe seeding in test scenario files.',
-      },
-      messages: {
-        directIo:
-          'Direct I/O, direct network mutations, and direct recipe seeding are banned in test scenario files. All domain state setup and transitions must go through test harnesses (*Harness).',
-      },
-      schema: [],
+export const ruleBanDirectIoInTestScenariosBroker = (): TSESLint.RuleModule<'directIo'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Bans direct I/O, network mutations, and direct recipe seeding in test scenario files.',
     },
-  }),
+    messages: {
+      directIo:
+        'Direct I/O, direct network mutations, and direct recipe seeding are banned in test scenario files. All domain state setup and transitions must go through test harnesses (*Harness).',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

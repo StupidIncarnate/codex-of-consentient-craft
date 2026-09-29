@@ -3,12 +3,10 @@
  *
  * USAGE:
  * const rule = ruleEnforceStubPatternsBroker();
- * // Returns EslintRule object that validates stub files use proper patterns
+ * // Returns RuleModule that validates stub files use proper patterns
  *
  * WHEN-TO-USE: When registering ESLint rules in the plugin startup to enforce stub function coding standards
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -18,24 +16,25 @@ import { isAstParamSpreadOperatorGuard } from '../../../guards/is-ast-param-spre
 import { isAstParamStubArgumentTypeGuard } from '../../../guards/is-ast-param-stub-argument-type/is-ast-param-stub-argument-type-guard';
 import { isAstFunctionUsesContractParseGuard } from '../../../guards/is-ast-function-uses-contract-parse/is-ast-function-uses-contract-parse-guard';
 
-export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce stub function patterns: spread operator and StubArgument type',
-      },
-      messages: {
-        useSpreadOperator:
-          'Stub functions must use spread operator in parameters: ({ ...props }: StubArgument<Type> = {})',
-        useStubArgumentType:
-          'Stub functions must use StubArgument<Type> from @dungeonmaster/shared/@types',
-        useContractParse:
-          'Stub functions must return contract.parse() to validate and brand the output',
-      },
-      schema: [],
+export const ruleEnforceStubPatternsBroker = (): TSESLint.RuleModule<
+  'useSpreadOperator' | 'useStubArgumentType' | 'useContractParse'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce stub function patterns: spread operator and StubArgument type',
     },
-  }),
+    messages: {
+      useSpreadOperator:
+        'Stub functions must use spread operator in parameters: ({ ...props }: StubArgument<Type> = {})',
+      useStubArgumentType:
+        'Stub functions must use StubArgument<Type> from @dungeonmaster/shared/@types',
+      useContractParse:
+        'Stub functions must return contract.parse() to validate and brand the output',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

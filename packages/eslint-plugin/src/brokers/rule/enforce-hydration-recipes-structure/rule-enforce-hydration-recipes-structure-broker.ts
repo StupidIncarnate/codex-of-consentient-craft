@@ -5,31 +5,30 @@
  * const rule = ruleEnforceHydrationRecipesStructureBroker();
  * // Returns ESLint rule that verifies required files in hydration-recipes and forbids direct broker imports
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { hydrationRecipesStructureStatics } from '../../../statics/hydration-recipes-structure/hydration-recipes-structure-statics';
 
-export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce @dungeonmaster/hydration-recipes package structure and ban direct imports from its brokers',
-      },
-      messages: {
-        noBrokerImport:
-          'Do not import from @dungeonmaster/hydration-recipes/brokers. Use @dungeonmaster/hydration-recipes or @dungeonmaster/hydration-recipes/responders instead.',
-        missingStructure:
-          'Package packages/hydration-recipes is missing required architectural file: {{filePath}}',
-      },
-      schema: [],
+export const ruleEnforceHydrationRecipesStructureBroker = (): TSESLint.RuleModule<
+  'noBrokerImport' | 'missingStructure'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce @dungeonmaster/hydration-recipes package structure and ban direct imports from its brokers',
     },
-  }),
+    messages: {
+      noBrokerImport:
+        'Do not import from @dungeonmaster/hydration-recipes/brokers. Use @dungeonmaster/hydration-recipes or @dungeonmaster/hydration-recipes/responders instead.',
+      missingStructure:
+        'Package packages/hydration-recipes is missing required architectural file: {{filePath}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const { filename } = context;
     if (!filename || filename === '<text>' || filename === '<input>') {

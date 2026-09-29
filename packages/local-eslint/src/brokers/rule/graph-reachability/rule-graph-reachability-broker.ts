@@ -19,9 +19,7 @@
 import { routedGraphContract } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 import { graphReachabilityViolationsTransformer } from '@dungeonmaster/shared/transformers';
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { graphReachabilityStatics } from '../../../statics/graph-reachability/graph-reachability-statics';
 import { isGraphReachabilityScopeFileGuard } from '../../../guards/is-graph-reachability-scope-file/is-graph-reachability-scope-file-guard';
 
@@ -40,20 +38,19 @@ const graphViolations = Object.entries(questFlowStatics).flatMap(([questType, fa
   });
 });
 
-export const ruleGraphReachabilityBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Refuse a family graph (questFlowStatics) a route cannot reach, or that reaches no terminal. agentFlowStatics is checked at server boot instead of here.',
-      },
-      messages: {
-        graphViolation: '{{violation}}',
-      },
-      schema: [],
+export const ruleGraphReachabilityBroker = (): TSESLint.RuleModule<'graphViolation'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Refuse a family graph (questFlowStatics) a route cannot reach, or that reaches no terminal. agentFlowStatics is checked at server boot instead of here.',
     },
-  }),
+    messages: {
+      graphViolation: '{{violation}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

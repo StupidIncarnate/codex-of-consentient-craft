@@ -5,27 +5,24 @@
  * const rule = ruleBanFetchInProxiesBroker();
  * // Returns ESLint rule that prevents globalThis.fetch, fetch(), and jest.spyOn(globalThis, 'fetch') in proxy files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
-export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban direct fetch usage and fetch mocking in proxy files. Use StartEndpointMock from @dungeonmaster/testing instead.',
-      },
-      messages: {
-        noFetchInProxy:
-          'Use StartEndpointMock from @dungeonmaster/testing to mock HTTP endpoints. Direct fetch mocking in proxy files is not allowed.',
-      },
-      schema: [],
+export const ruleBanFetchInProxiesBroker = (): TSESLint.RuleModule<'noFetchInProxy'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban direct fetch usage and fetch mocking in proxy files. Use StartEndpointMock from @dungeonmaster/testing instead.',
     },
-  }),
+    messages: {
+      noFetchInProxy:
+        'Use StartEndpointMock from @dungeonmaster/testing to mock HTTP endpoints. Direct fetch mocking in proxy files is not allowed.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

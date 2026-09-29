@@ -7,28 +7,25 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce value-level assertions over type-level checks
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 
-export const ruleBanTypeofAssertionsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban typeof assertions in test files. Tests should assert actual values, not just types.',
-      },
-      messages: {
-        noTypeofAssertion:
-          'Assert actual value instead of checking typeof. typeof checks verify type but not content — use .toBe(), .toStrictEqual(), or .toMatch() with the expected value',
-      },
-      schema: [],
+export const ruleBanTypeofAssertionsBroker = (): TSESLint.RuleModule<'noTypeofAssertion'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban typeof assertions in test files. Tests should assert actual values, not just types.',
     },
-  }),
+    messages: {
+      noTypeofAssertion:
+        'Assert actual value instead of checking typeof. typeof checks verify type but not content — use .toBe(), .toStrictEqual(), or .toMatch() with the expected value',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {

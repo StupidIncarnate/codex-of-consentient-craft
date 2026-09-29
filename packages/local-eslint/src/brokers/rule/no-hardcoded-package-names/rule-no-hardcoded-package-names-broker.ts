@@ -10,10 +10,8 @@
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the standing "never hardcode on a package name" constraint — every such decision goes through `packageType`, resolved from the target repo's own disk, and every consumer handles a set.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 
 import { packageNameLiteralStatics } from '../../../statics/package-name-literal/package-name-literal-statics';
 import { bannedPackagePathNamesTransformer } from '../../../transformers/banned-package-path-names/banned-package-path-names-transformer';
@@ -22,23 +20,24 @@ import { isPackageNameLiteralAllowlistedGuard } from '../../../guards/is-package
 import { isPackageNameComparisonOperandGuard } from '../../../guards/is-package-name-comparison-operand/is-package-name-comparison-operand-guard';
 import { isMembershipTestUsageGuard } from '../../../guards/is-membership-test-usage/is-membership-test-usage-guard';
 
-export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban a frontend/backend package name from executable strings and from branch conditions. Resolve the package from its packageType instead, and handle a set of packages rather than one.',
-      },
-      messages: {
-        hardcodedPackagePath:
-          "Do not hardcode the package name '{{packageName}}' in an executable string. This system also runs in repos where that package has a different name, and where more than one package answers to the same role. Resolve the package from its `packageType` — `isPackageE2eEligibleGuard` / `architecturePackageE2eEligibleDetectBroker` for the frontend question — and handle a SET, never a singleton. In agent-facing prose, write a placeholder such as `<ui-package>`. Comments and JSDoc are exempt; this string is code.",
-        packageNameDiscriminator:
-          "Do not branch on the package name '{{packageName}}'. What a package IS is its `packageType`, detected from the target repo's own disk; its name is an accident of that repo. Compare on `packageType` (or on `isPackageE2eEligibleGuard`) and handle a SET of packages, never a singleton.",
-      },
-      schema: [],
+export const ruleNoHardcodedPackageNamesBroker = (): TSESLint.RuleModule<
+  'hardcodedPackagePath' | 'packageNameDiscriminator'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban a frontend/backend package name from executable strings and from branch conditions. Resolve the package from its packageType instead, and handle a set of packages rather than one.',
     },
-  }),
+    messages: {
+      hardcodedPackagePath:
+        "Do not hardcode the package name '{{packageName}}' in an executable string. This system also runs in repos where that package has a different name, and where more than one package answers to the same role. Resolve the package from its `packageType` — `isPackageE2eEligibleGuard` / `architecturePackageE2eEligibleDetectBroker` for the frontend question — and handle a SET, never a singleton. In agent-facing prose, write a placeholder such as `<ui-package>`. Comments and JSDoc are exempt; this string is code.",
+      packageNameDiscriminator:
+        "Do not branch on the package name '{{packageName}}'. What a package IS is its `packageType`, detected from the target repo's own disk; its name is an accident of that repo. Compare on `packageType` (or on `isPackageE2eEligibleGuard`) and handle a SET of packages, never a singleton.",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

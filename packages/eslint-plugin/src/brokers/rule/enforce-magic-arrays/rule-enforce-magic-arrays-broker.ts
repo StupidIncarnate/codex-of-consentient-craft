@@ -5,28 +5,25 @@
  * const rule = ruleEnforceMagicArraysBroker();
  * // Returns ESLint rule that prevents `const x = ['a', 'b']` and requires moving arrays to statics files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
-export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid inline string/number array const declarations - use statics files instead',
-      },
-      messages: {
-        forbidMagicArray:
-          'Magic {{arrayType}} arrays must be defined in statics files (statics/{{domain}}/{{domain}}-statics.ts), not scattered inline. Move this array to a statics file and reference it.',
-      },
-      schema: [],
+export const ruleEnforceMagicArraysBroker = (): TSESLint.RuleModule<'forbidMagicArray'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid inline string/number array const declarations - use statics files instead',
     },
-  }),
+    messages: {
+      forbidMagicArray:
+        'Magic {{arrayType}} arrays must be defined in statics files (statics/{{domain}}/{{domain}}-statics.ts), not scattered inline. Move this array to a statics file and reference it.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

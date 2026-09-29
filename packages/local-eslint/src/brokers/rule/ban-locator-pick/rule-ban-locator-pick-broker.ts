@@ -18,30 +18,27 @@
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the
  * standing "nothing ever silently picks a match" constraint over the step-command implementations.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { locatorPickStatics } from '../../../statics/locator-pick/locator-pick-statics';
 import { isLocatorPickScopeFileGuard } from '../../../guards/is-locator-pick-scope-file/is-locator-pick-scope-file-guard';
 
-export const ruleBanLocatorPickBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban '.first()'/'.last()' and a literal '.nth()' on a locator inside the step-command broker implementations only (packages/siegelense/src/brokers/step/**) — ambiguity there must throw, never silently resolve to one match.",
-      },
-      messages: {
-        locatorPick:
-          "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.{{method}}()' here — it silently resolves an ambiguity the caller did not resolve. Let the target-resolve broker throw instead, or narrow with `within`.",
-        literalNth:
-          "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.nth({{argument}})' with a literal index — '.nth(0)' written as a literal is '.first()' with extra steps. '.nth()' is allowed only when its index comes from caller input (a parameter or a variable).",
-      },
-      schema: [],
+export const ruleBanLocatorPickBroker = (): TSESLint.RuleModule<'locatorPick' | 'literalNth'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban '.first()'/'.last()' and a literal '.nth()' on a locator inside the step-command broker implementations only (packages/siegelense/src/brokers/step/**) — ambiguity there must throw, never silently resolve to one match.",
     },
-  }),
+    messages: {
+      locatorPick:
+        "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.{{method}}()' here — it silently resolves an ambiguity the caller did not resolve. Let the target-resolve broker throw instead, or narrow with `within`.",
+      literalNth:
+        "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.nth({{argument}})' with a literal index — '.nth(0)' written as a literal is '.first()' with extra steps. '.nth()' is allowed only when its index comes from caller input (a parameter or a variable).",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

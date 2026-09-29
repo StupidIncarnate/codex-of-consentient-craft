@@ -5,8 +5,6 @@
  * const rule = ruleRequireValidationOnUntypedPropertyAccessBroker();
  * // Returns ESLint rule that flags Reflect.get and post-JSON.parse property access lacking a contract.parse() chain
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
@@ -14,23 +12,24 @@ import { checkBindingInitializerLayerBroker } from './check-binding-initializer-
 import { checkIsValidatedExpressionLayerBroker } from './check-is-validated-expression-layer-broker';
 import { checkIsJsonParseCallLayerBroker } from './check-is-json-parse-call-layer-broker';
 
-export const ruleRequireValidationOnUntypedPropertyAccessBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Require Zod-contract validation before property access on untyped values; flag Reflect.get and JSON.parse(...).field access lacking validation',
-      },
-      messages: {
-        reflectGetWithoutValidation:
-          'Reflect.get(...) requires its first argument to be the result of a Zod contract `.parse()` (inline or same-block alias). Validate the value through a contract before accessing properties.',
-        jsonParseWithoutValidation:
-          'JSON.parse(...) result must be validated by a Zod contract `.parse()` before property access. Wrap the parsed value in `someContract.parse(...)`.',
-      },
-      schema: [],
+export const ruleRequireValidationOnUntypedPropertyAccessBroker = (): TSESLint.RuleModule<
+  'reflectGetWithoutValidation' | 'jsonParseWithoutValidation'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Require Zod-contract validation before property access on untyped values; flag Reflect.get and JSON.parse(...).field access lacking validation',
     },
-  }),
+    messages: {
+      reflectGetWithoutValidation:
+        'Reflect.get(...) requires its first argument to be the result of a Zod contract `.parse()` (inline or same-block alias). Validate the value through a contract before accessing properties.',
+      jsonParseWithoutValidation:
+        'JSON.parse(...) result must be validated by a Zod contract `.parse()` before property access. Wrap the parsed value in `someContract.parse(...)`.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

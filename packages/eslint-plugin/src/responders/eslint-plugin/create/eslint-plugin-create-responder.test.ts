@@ -111,9 +111,11 @@ describe('EslintPluginCreateResponder', () => {
     it('VALID: {} => returns all rules with meta.docs.description as string', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
-      const descriptions = Object.values(plugin.rules).map((rule) => rule.meta.docs.description);
+      const namesWithoutDescription = Object.entries(plugin.rules)
+        .filter(([, rule]) => !(Number(rule.meta.docs?.description.length) > 0))
+        .map(([name]) => name);
 
-      expect(descriptions.every((desc) => desc.length > 0)).toBe(true);
+      expect(namesWithoutDescription).toStrictEqual([]);
     });
 
     it('VALID: {} => returns all rules with create function', () => {
@@ -155,6 +157,7 @@ describe('EslintPluginCreateResponder', () => {
             },
           ],
         },
+        defaultOptions: [],
         create: expect.any(Function),
       });
     });

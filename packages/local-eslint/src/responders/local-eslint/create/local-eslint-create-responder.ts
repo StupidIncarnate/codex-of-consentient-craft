@@ -3,11 +3,10 @@
  *
  * USAGE:
  * const plugin = LocalEslintCreateResponder();
- * // Returns { rules: { 'ban-quest-status-literals': EslintRule, 'no-bare-location-literals': EslintRule, 'no-hardcoded-package-names': EslintRule, 'ban-locator-pick': EslintRule, 'ban-sync-seeding-methods': EslintRule, 'ban-direct-io-in-test-scenarios': EslintRule, 'graph-reachability': EslintRule } }
+ * // Returns { rules: { 'ban-quest-status-literals': RuleModule, 'no-bare-location-literals': RuleModule, 'no-hardcoded-package-names': RuleModule, 'ban-locator-pick': RuleModule, 'ban-sync-seeding-methods': RuleModule, 'ban-direct-io-in-test-scenarios': RuleModule, 'graph-reachability': RuleModule } }
  *
  * WHEN-TO-USE: Internal to the dungeonmaster monorepo only — this plugin is never published to npm.
  */
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { ruleBanQuestStatusLiteralsBroker } from '../../../brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker';
 import { ruleNoBareLocationLiteralsBroker } from '../../../brokers/rule/no-bare-location-literals/rule-no-bare-location-literals-broker';
 import { ruleNoHardcodedPackageNamesBroker } from '../../../brokers/rule/no-hardcoded-package-names/rule-no-hardcoded-package-names-broker';
@@ -18,13 +17,15 @@ import { ruleGraphReachabilityBroker } from '../../../brokers/rule/graph-reachab
 
 export const LocalEslintCreateResponder = (): {
   readonly rules: {
-    readonly 'ban-quest-status-literals': EslintRule;
-    readonly 'no-bare-location-literals': EslintRule;
-    readonly 'no-hardcoded-package-names': EslintRule;
-    readonly 'ban-locator-pick': EslintRule;
-    readonly 'ban-sync-seeding-methods': EslintRule;
-    readonly 'ban-direct-io-in-test-scenarios': EslintRule;
-    readonly 'graph-reachability': EslintRule;
+    readonly 'ban-quest-status-literals': ReturnType<typeof ruleBanQuestStatusLiteralsBroker>;
+    readonly 'no-bare-location-literals': ReturnType<typeof ruleNoBareLocationLiteralsBroker>;
+    readonly 'no-hardcoded-package-names': ReturnType<typeof ruleNoHardcodedPackageNamesBroker>;
+    readonly 'ban-locator-pick': ReturnType<typeof ruleBanLocatorPickBroker>;
+    readonly 'ban-sync-seeding-methods': ReturnType<typeof ruleBanSyncSeedingMethodsBroker>;
+    readonly 'ban-direct-io-in-test-scenarios': ReturnType<
+      typeof ruleBanDirectIoInTestScenariosBroker
+    >;
+    readonly 'graph-reachability': ReturnType<typeof ruleGraphReachabilityBroker>;
   };
 } =>
   ({

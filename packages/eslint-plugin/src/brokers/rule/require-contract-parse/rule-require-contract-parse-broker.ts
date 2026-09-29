@@ -14,26 +14,23 @@
 import { contractIndexBuildBroker } from '@dungeonmaster/shared/brokers';
 import { repoRootFromSourcePathTransformer } from '@dungeonmaster/shared/transformers';
 
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
-export const ruleRequireContractParseBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Require every contract to be parsed by production code, directly or through a parsed contract that nests it',
-      },
-      messages: {
-        contractNeverParsed:
-          'Contract {{contractNames}} is never parsed by production code. Parse it at the boundary that receives the value, or delete it.',
-      },
-      schema: [],
+export const ruleRequireContractParseBroker = (): TSESLint.RuleModule<'contractNeverParsed'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Require every contract to be parsed by production code, directly or through a parsed contract that nests it',
     },
-  }),
+    messages: {
+      contractNeverParsed:
+        'Contract {{contractNames}} is never parsed by production code. Parse it at the boundary that receives the value, or delete it.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
     'Program:exit': (node: TSESTree.Program): void => {
       const { filename } = context;

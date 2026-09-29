@@ -11,9 +11,7 @@
  */
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { locationLiteralStatics } from '../../../statics/location-literal/location-literal-statics';
 import { locationLiteralKeyPathsTransformer } from '../../../transformers/location-literal-key-paths/location-literal-key-paths-transformer';
 import { isLocationLiteralAllowlistedGuard } from '../../../guards/is-location-literal-allowlisted/is-location-literal-allowlisted-guard';
@@ -25,21 +23,20 @@ const bannedLiteralKeyPaths = locationLiteralKeyPathsTransformer({
   excludedLiterals: locationLiteralStatics.excludedLiterals,
 });
 
-export const ruleNoBareLocationLiteralsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban raw filename / dirname literals that belong to `locationsStatics`. Compose paths via the resolver brokers under @dungeonmaster/shared/brokers/locations instead.',
-      },
-      messages: {
-        bareLocationLiteral:
-          "Do not use the raw location literal '{{literal}}'. It belongs to `{{keyPath}}` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal.",
-      },
-      schema: [],
+export const ruleNoBareLocationLiteralsBroker = (): TSESLint.RuleModule<'bareLocationLiteral'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban raw filename / dirname literals that belong to `locationsStatics`. Compose paths via the resolver brokers under @dungeonmaster/shared/brokers/locations instead.',
     },
-  }),
+    messages: {
+      bareLocationLiteral:
+        "Do not use the raw location literal '{{literal}}'. It belongs to `{{keyPath}}` — compose the absolute path via the corresponding resolver under @dungeonmaster/shared/brokers/locations instead of hardcoding the literal.",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]>;
     const { filename } = ctx;

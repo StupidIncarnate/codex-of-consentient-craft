@@ -17,8 +17,6 @@ import {
   ownerIndexNameMatchTransformer,
   repoRootFromSourcePathTransformer,
 } from '@dungeonmaster/shared/transformers';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstNameImportedGuard } from '../../../guards/is-ast-name-imported/is-ast-name-imported-guard';
@@ -37,23 +35,24 @@ import { ownerIndexImportSourceTransformer } from '../../../transformers/owner-i
 import { propertyReusedFieldTransformer } from '../../../transformers/property-reused-field/property-reused-field-transformer';
 import { valueReuseFixTextTransformer } from '../../../transformers/value-reuse-fix-text/value-reuse-fix-text-transformer';
 
-export const ruleEnforceOwnerFieldReuseBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      fixable: 'code',
-      docs: {
-        description:
-          "A key or parameter named for another owner's field reuses that field: `ownerContract.shape.key` in a contract, `Owner['key']` as a parameter type",
-      },
-      messages: {
-        contractKeyNotReused:
-          "{{key}} holds {{owner}}'s {{field}}. Use {{ownerContract}}.shape.{{field}}.",
-        paramNotOwnerType: "{{name}} holds {{owner}}'s {{field}}. Type it {{Owner}}['{{field}}'].",
-      },
-      schema: [],
+export const ruleEnforceOwnerFieldReuseBroker = (): TSESLint.RuleModule<
+  'contractKeyNotReused' | 'paramNotOwnerType'
+> => ({
+  meta: {
+    type: 'problem',
+    fixable: 'code',
+    docs: {
+      description:
+        "A key or parameter named for another owner's field reuses that field: `ownerContract.shape.key` in a contract, `Owner['key']` as a parameter type",
     },
-  }),
+    messages: {
+      contractKeyNotReused:
+        "{{key}} holds {{owner}}'s {{field}}. Use {{ownerContract}}.shape.{{field}}.",
+      paramNotOwnerType: "{{name}} holds {{owner}}'s {{field}}. Type it {{Owner}}['{{field}}'].",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;

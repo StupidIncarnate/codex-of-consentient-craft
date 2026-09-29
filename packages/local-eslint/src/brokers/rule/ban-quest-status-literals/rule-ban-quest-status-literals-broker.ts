@@ -10,10 +10,8 @@
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 import { classifyStatusLiteralTransformer } from '../../../transformers/classify-status-literal/classify-status-literal-transformer';
@@ -21,44 +19,50 @@ import { statusLiteralMessageIdTransformer } from '../../../transformers/status-
 import { isStatusMemberExpressionLayerBroker } from './is-status-member-expression-layer-broker';
 import { hasInlineStatusSetElementsLayerBroker } from './has-inline-status-set-elements-layer-broker';
 
-export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban syntactic `.status === literal` / switch-on-status / .startsWith(seek_|explore_|review_) / inline status-membership sets. Use the shared quest-status / work-item-status guards instead.',
-      },
-      messages: {
-        questStatusLiteral:
-          "Do not compare .status to the quest-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard, etc.) — hardcoded literal reads silently compute the wrong answer when status values change.",
-        workItemStatusLiteral:
-          "Do not compare .status to the work-item-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActiveWorkItemStatusGuard, isCompleteWorkItemStatusGuard, isTerminalWorkItemStatusGuard, etc.).",
-        ambiguousStatusLiteral:
-          "The literal '{{literal}}' belongs to both quest-status and work-item-status. Pick based on context: quest-status => isActivelyExecutingQuestStatusGuard / isPreExecutionQuestStatusGuard / etc.; work-item-status => isActiveWorkItemStatusGuard / isCompleteWorkItemStatusGuard / isPendingWorkItemStatusGuard / etc.",
-        bannedStartsWithPrefix:
-          "Do not use .startsWith('{{prefix}}') to detect status groups. Prefix checks encode assumptions about status naming that silently break when status values change. Use the shared guard instead (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard).",
-        switchOnStatus:
-          'Do not switch on .status with known status case literals. Replace the switch with explicit calls to shared status guards / transformers (e.g., nextApprovalQuestStatusTransformer, displayHeaderQuestStatusTransformer).',
-        inlineStatusSet:
-          'Do not build an inline set/array of known status literals. Use the metadata-backed shared guards (e.g., isTerminalQuestStatusGuard, isAnyAgentRunningQuestStatusGuard) instead of duplicating the enum.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            extraStatusHolders: {
-              type: 'array',
-              items: { type: 'string' },
-              description:
-                'Additional identifier names (beyond quest/workItem/wi/item/input/postResult and /Quest$|Item$/) whose `.status` reads should be treated as quest-or-work-item status.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBanQuestStatusLiteralsBroker = (): TSESLint.RuleModule<
+  | 'questStatusLiteral'
+  | 'workItemStatusLiteral'
+  | 'ambiguousStatusLiteral'
+  | 'bannedStartsWithPrefix'
+  | 'switchOnStatus'
+  | 'inlineStatusSet'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban syntactic `.status === literal` / switch-on-status / .startsWith(seek_|explore_|review_) / inline status-membership sets. Use the shared quest-status / work-item-status guards instead.',
     },
-  }),
+    messages: {
+      questStatusLiteral:
+        "Do not compare .status to the quest-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard, etc.) — hardcoded literal reads silently compute the wrong answer when status values change.",
+      workItemStatusLiteral:
+        "Do not compare .status to the work-item-status literal '{{literal}}'. Use the appropriate shared guard (e.g., isActiveWorkItemStatusGuard, isCompleteWorkItemStatusGuard, isTerminalWorkItemStatusGuard, etc.).",
+      ambiguousStatusLiteral:
+        "The literal '{{literal}}' belongs to both quest-status and work-item-status. Pick based on context: quest-status => isActivelyExecutingQuestStatusGuard / isPreExecutionQuestStatusGuard / etc.; work-item-status => isActiveWorkItemStatusGuard / isCompleteWorkItemStatusGuard / isPendingWorkItemStatusGuard / etc.",
+      bannedStartsWithPrefix:
+        "Do not use .startsWith('{{prefix}}') to detect status groups. Prefix checks encode assumptions about status naming that silently break when status values change. Use the shared guard instead (e.g., isActivelyExecutingQuestStatusGuard, isAnyAgentRunningQuestStatusGuard).",
+      switchOnStatus:
+        'Do not switch on .status with known status case literals. Replace the switch with explicit calls to shared status guards / transformers (e.g., nextApprovalQuestStatusTransformer, displayHeaderQuestStatusTransformer).',
+      inlineStatusSet:
+        'Do not build an inline set/array of known status literals. Use the metadata-backed shared guards (e.g., isTerminalQuestStatusGuard, isAnyAgentRunningQuestStatusGuard) instead of duplicating the enum.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          extraStatusHolders: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Additional identifier names (beyond quest/workItem/wi/item/input/postResult and /Quest$|Item$/) whose `.status` reads should be treated as quest-or-work-item status.',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { extraStatusHolders?: unknown }[];
