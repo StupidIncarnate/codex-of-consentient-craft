@@ -1,8 +1,4 @@
-import {
-  AbsoluteFilePathStub,
-  BaseBranchNameStub,
-  QuestBranchNameStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, QuestBranchNameStub } from '@dungeonmaster/shared/contracts';
 
 import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { worktreePrepareBrokerProxy } from './worktree-prepare-broker.proxy';
@@ -14,7 +10,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
 
@@ -42,7 +38,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       const sha = 'fedcba9876543210fedcba9876543210fedcba98';
       proxy.setupAttachExistingBranch({ repoRoot, worktreePath, branchName, sha });
 
@@ -67,7 +63,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       proxy.setupAttachExistingBranchHeadShaFails({ worktreePath, branchName });
 
       const error = await worktreePrepareBroker({
@@ -97,7 +93,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       proxy.setupWorktreeAddFails({
         worktreePath,
         branchName,
@@ -129,7 +125,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardSucceeds({ worktreePath, branchName, baseBranch });
 
       const error = await worktreePrepareBroker({
@@ -159,7 +155,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardAlsoFails({
         worktreePath,
         branchName,
@@ -195,7 +191,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupDistSeeded({ repoRoot, worktreePath, packageName: 'ward' });
@@ -220,7 +216,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupUnbuiltMainCheckout({ repoRoot, worktreePath, packageName: 'ward' });
@@ -246,7 +242,7 @@ describe('worktreePrepareBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      const baseBranch = BaseBranchNameStub({ value: 'main' });
+      const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupLeakingLink({

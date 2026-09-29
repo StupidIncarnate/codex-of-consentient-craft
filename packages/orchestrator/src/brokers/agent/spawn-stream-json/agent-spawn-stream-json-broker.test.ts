@@ -8,7 +8,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
-import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { agentSpawnStreamJsonBroker } from './agent-spawn-stream-json-broker';
 import { agentSpawnStreamJsonBrokerProxy } from './agent-spawn-stream-json-broker.proxy';
@@ -24,7 +23,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       const result = agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(result).toStrictEqual({ process: mockProcess, stdout: mockProcess.stdout });
@@ -51,7 +50,7 @@ describe('agentSpawnStreamJsonBroker', () => {
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
-        model: ClaudeModelStub({ value: 'opus' }),
+        model: 'opus',
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -82,7 +81,7 @@ describe('agentSpawnStreamJsonBroker', () => {
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
         addDir,
       });
 
@@ -110,7 +109,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
@@ -136,7 +135,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
-        model: ClaudeModelStub({ value: 'haiku' }),
+        model: 'haiku',
       });
 
       expect(proxy.getSettingsReads()).toStrictEqual([['/repo/.claude/settings.json', 'utf8']]);
@@ -157,7 +156,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'haiku' }),
+        model: 'haiku',
       });
 
       expect(proxy.getSettingsReads()).toStrictEqual([]);
@@ -180,7 +179,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
-        model: ClaudeModelStub({ value: 'haiku' }),
+        model: 'haiku',
         disableToolSearch: true,
       });
 
@@ -206,7 +205,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
         cwd: RepoRootCwdStub({ value: '/repo' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(proxy.getSpawnedCwd()).toBe('/repo');
@@ -218,7 +217,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(proxy.getSpawnedCwd()).toBe(undefined);
@@ -230,7 +229,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(proxy.getSpawnedStdinMode()).toBe('inherit');
@@ -243,7 +242,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
         stdinMode: 'ignore',
       });
 
@@ -257,7 +256,7 @@ describe('agentSpawnStreamJsonBroker', () => {
         value: 'Look at /home/user/.dungeonmaster/quests/q-1/images/shot.png please',
       });
 
-      agentSpawnStreamJsonBroker({ prompt, model: ClaudeModelStub({ value: 'sonnet' }) });
+      agentSpawnStreamJsonBroker({ prompt, model: 'sonnet' });
 
       expect(proxy.getSpawnedArgs()).toStrictEqual([
         '-p',
@@ -278,7 +277,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
 
       expect(proxy.getSpawnedEnvValue({ name: 'CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS' })).toBe('0');
@@ -290,7 +289,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'haiku' }),
+        model: 'haiku',
         disableToolSearch: true,
       });
 
@@ -306,7 +305,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
         onStderrLine,
       });
       mockProcess.stderr?.push('first stderr line\nsecond stderr line\n');
@@ -332,7 +331,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
         onStderrLine,
       });
       mockProcess.stderr?.push('one\ntwo\n');
@@ -358,7 +357,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       expect(() =>
         agentSpawnStreamJsonBroker({
           prompt: PromptTextStub({ value: 'Hello' }),
-          model: ClaudeModelStub({ value: 'sonnet' }),
+          model: 'sonnet',
         }),
       ).toThrow(/^claude not installed$/u);
     });
@@ -391,7 +390,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       const { process: child } = agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        model: ClaudeModelStub({ value: 'sonnet' }),
+        model: 'sonnet',
       });
       child.on('exit', onExit);
       await new Promise<undefined>((resolve) => {

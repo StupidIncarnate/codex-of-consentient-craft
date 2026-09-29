@@ -2,7 +2,6 @@ import {
   GuildIdStub,
   ProcessIdStub,
   QuestIdStub,
-  QuestStatusStub,
   QuestStub,
   QuestWorkItemIdStub,
   WorkItemStub,
@@ -52,7 +51,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls,
       });
 
@@ -77,7 +76,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls,
       });
 
@@ -102,7 +101,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'blocked' }),
+        previousStatus: 'blocked',
         processControls,
       });
 
@@ -128,7 +127,7 @@ describe('questPauseBroker', () => {
       await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls,
       });
 
@@ -148,7 +147,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'merging' }),
+        previousStatus: 'merging',
         processControls,
       });
 
@@ -186,7 +185,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'merging' }),
+        previousStatus: 'merging',
         processControls,
       });
 
@@ -209,7 +208,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls,
       });
 
@@ -230,7 +229,7 @@ describe('questPauseBroker', () => {
       const result = await questPauseBroker({
         questId,
         guildId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls,
       });
 

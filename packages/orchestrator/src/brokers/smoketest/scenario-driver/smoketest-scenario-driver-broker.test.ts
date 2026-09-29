@@ -1,8 +1,8 @@
+import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -13,7 +13,7 @@ import { setImmediate } from '#gateway/node/setImmediate';
 const QUEST_ID = QuestIdStub({ value: 'driver-test-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-driver-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: '31096472-cad7-761a-94b1-19c2c934957e' });
-const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
+const CODEWEAVER_ROLE = 'codeweaver';
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.
 const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';
 

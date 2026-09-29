@@ -1,9 +1,9 @@
+import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import {
   ProcessIdStub,
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -16,7 +16,7 @@ import { AbortController } from '#gateway/node/AbortController';
 const QUEST_ID = QuestIdStub({ value: 'layer-handler-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-layer-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: 'e59cd261-9611-1e18-9d70-6c8ab7d46bd2' });
-const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
+const CODEWEAVER_ROLE = 'codeweaver';
 const EMITTED_PROCESS_ID = ProcessIdStub({ value: 'layer-handler-proc' });
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.
 const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';

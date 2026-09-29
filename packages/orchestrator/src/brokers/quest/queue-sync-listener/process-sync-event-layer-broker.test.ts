@@ -1,7 +1,6 @@
 import {
   QuestIdStub,
   QuestStub,
-  QuestStatusStub,
   SessionIdStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
@@ -40,7 +39,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-abandoned' });
-      const status = QuestStatusStub({ value: 'abandoned' });
+      const status = 'abandoned';
       const quest = QuestStub({ id: questId, status });
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
@@ -66,7 +65,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-complete' });
-      const status = QuestStatusStub({ value: 'complete' });
+      const status = 'complete';
       const quest = QuestStub({ id: questId, status });
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
@@ -92,7 +91,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-blocked' });
-      const status = QuestStatusStub({ value: 'blocked' });
+      const status = 'blocked';
       const quest = QuestStub({ id: questId, status });
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
@@ -118,7 +117,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-running-empty' });
-      const status = QuestStatusStub({ value: 'in_progress' });
+      const status = 'in_progress';
       const quest = QuestStub({ id: questId, status, workItems: [] });
       const loadQuest = jest.fn().mockResolvedValue(quest);
       const removeByQuestId = jest.fn();
@@ -146,7 +145,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-pending-work' });
-      const status = QuestStatusStub({ value: 'in_progress' });
+      const status = 'in_progress';
       const pending = WorkItemStub({ status: 'pending' });
       const quest = QuestStub({ id: questId, status, workItems: [pending] });
       const loadQuest = jest.fn().mockResolvedValue(quest);
@@ -175,7 +174,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-smoketest-orch' });
-      const status = QuestStatusStub({ value: 'in_progress' });
+      const status = 'in_progress';
       const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
       const codeweaver = WorkItemStub({
         role: 'codeweaver',
@@ -209,7 +208,7 @@ describe('processSyncEventLayerBroker', () => {
       const proxy = processSyncEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-drained' });
-      const status = QuestStatusStub({ value: 'in_progress' });
+      const status = 'in_progress';
       const failed = WorkItemStub({ status: 'failed' });
       const skipped = WorkItemStub({ status: 'skipped' });
       const quest = QuestStub({ id: questId, status, workItems: [failed, skipped] });

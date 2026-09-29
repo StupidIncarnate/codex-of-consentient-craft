@@ -1,10 +1,9 @@
+import type { QuestSourceStub, SmoketestSuiteStub } from '@dungeonmaster/shared/contracts';
 import {
   FilePathStub,
   GuildIdStub,
   QuestIdStub,
-  QuestSourceStub,
   SmoketestRunIdStub,
-  SmoketestSuiteStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -57,11 +56,11 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       smoketestRunState.start({
         runId: SmoketestRunIdStub(),
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
       });
 
       const promise = SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'signals' }),
+        suite: 'signals',
         startPath: FilePathStub({ value: '/tmp' }),
       });
 
@@ -90,15 +89,15 @@ describe('SmoketestRunResponder', () => {
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord });
 
       const result = await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       expect(extractQuestSources({ calls: proxy.getClearPriorCallArgs() })).toStrictEqual([
-        QuestSourceStub({ value: 'smoketest-mcp' }),
+        'smoketest-mcp',
       ]);
       expect(extractBundledSuites({ calls: proxy.getEnqueueBundledCallArgs() })).toStrictEqual([
-        SmoketestSuiteStub({ value: 'mcp' }),
+        'mcp',
       ]);
       expect(proxy.getEnqueueOrchestrationCallArgs()).toStrictEqual([]);
       expect(result).toStrictEqual({
@@ -116,7 +115,7 @@ describe('SmoketestRunResponder', () => {
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord: null });
 
       const result = await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
@@ -135,15 +134,15 @@ describe('SmoketestRunResponder', () => {
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord });
 
       const result = await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'signals' }),
+        suite: 'signals',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       expect(extractQuestSources({ calls: proxy.getClearPriorCallArgs() })).toStrictEqual([
-        QuestSourceStub({ value: 'smoketest-signals' }),
+        'smoketest-signals',
       ]);
       expect(extractBundledSuites({ calls: proxy.getEnqueueBundledCallArgs() })).toStrictEqual([
-        SmoketestSuiteStub({ value: 'signals' }),
+        'signals',
       ]);
       expect(result.enqueued).toStrictEqual([bundledRecord]);
     });
@@ -165,12 +164,12 @@ describe('SmoketestRunResponder', () => {
       proxy.setupHappyPath({ guildId, guildSlug, orchestrationRecords });
 
       const result = await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'orchestration' }),
+        suite: 'orchestration',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       expect(extractQuestSources({ calls: proxy.getClearPriorCallArgs() })).toStrictEqual([
-        QuestSourceStub({ value: 'smoketest-orchestration' }),
+        'smoketest-orchestration',
       ]);
       expect(proxy.getEnqueueBundledCallArgs()).toStrictEqual([]);
 
@@ -210,18 +209,18 @@ describe('SmoketestRunResponder', () => {
       });
 
       const result = await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'all' }),
+        suite: 'all',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       expect(extractQuestSources({ calls: proxy.getClearPriorCallArgs() })).toStrictEqual([
-        QuestSourceStub({ value: 'smoketest-mcp' }),
-        QuestSourceStub({ value: 'smoketest-signals' }),
-        QuestSourceStub({ value: 'smoketest-orchestration' }),
+        'smoketest-mcp',
+        'smoketest-signals',
+        'smoketest-orchestration',
       ]);
       expect(extractBundledSuites({ calls: proxy.getEnqueueBundledCallArgs() })).toStrictEqual([
-        SmoketestSuiteStub({ value: 'mcp' }),
-        SmoketestSuiteStub({ value: 'signals' }),
+        'mcp',
+        'signals',
       ]);
 
       const orchCallCount = proxy.getEnqueueOrchestrationCallArgs().length;
@@ -241,7 +240,7 @@ describe('SmoketestRunResponder', () => {
       proxy.setupOrchestrationLayerRejectsOnce({ error: new Error('layer failure') });
 
       const promise = SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'orchestration' }),
+        suite: 'orchestration',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
@@ -264,14 +263,14 @@ describe('SmoketestRunResponder', () => {
       });
 
       await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       const active = smoketestRunState.getActive();
       smoketestRunState.end();
 
-      expect(active?.suite).toBe(SmoketestSuiteStub({ value: 'mcp' }));
+      expect(active?.suite).toBe('mcp');
     });
 
     it('ERROR: {back-to-back calls — first left state active} => second call rejects without enqueuing', async () => {
@@ -289,14 +288,14 @@ describe('SmoketestRunResponder', () => {
       });
 
       await SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 
       const bundledCallsBefore = proxy.getEnqueueBundledCallArgs().length;
 
       const secondPromise = SmoketestRunResponder({
-        suite: SmoketestSuiteStub({ value: 'signals' }),
+        suite: 'signals',
         startPath: FilePathStub({ value: '/tmp/proj' }),
       });
 

@@ -1,8 +1,4 @@
-import {
-  QuestIdStub,
-  SmoketestRunIdStub,
-  SmoketestSuiteStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, SmoketestRunIdStub } from '@dungeonmaster/shared/contracts';
 
 import { SmoketestListenerEntryStub } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry.stub';
 import { SmoketestScenarioMetaStub } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta.stub';
@@ -21,7 +17,7 @@ describe('DrainListenerLayerResponder', () => {
       smoketestScenarioMetaState.register({ questId, meta: SmoketestScenarioMetaStub() });
       smoketestRunState.start({
         runId: SmoketestRunIdStub(),
-        suite: SmoketestSuiteStub({ value: 'mcp' }),
+        suite: 'mcp',
       });
 
       DrainListenerLayerResponder({ questId });
@@ -49,7 +45,7 @@ describe('DrainListenerLayerResponder', () => {
       smoketestScenarioMetaState.register({ questId: questIdB, meta: SmoketestScenarioMetaStub() });
       smoketestRunState.start({
         runId: SmoketestRunIdStub(),
-        suite: SmoketestSuiteStub({ value: 'orchestration' }),
+        suite: 'orchestration',
       });
 
       DrainListenerLayerResponder({ questId: questIdA });

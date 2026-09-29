@@ -1,3 +1,4 @@
+import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import {
   FlowEdgeStub,
   FlowNodeStub,
@@ -8,7 +9,6 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
@@ -21,8 +21,8 @@ import { AbortController } from '#gateway/node/AbortController';
 const QUEST_ID = QuestIdStub({ value: 'sweep-layer-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });
 const WI_PENDING_TWO = QuestWorkItemIdStub({ value: '35d68034-9fe7-7b90-b8d4-3f275d8de0d8' });
-const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
-const SIEGEMASTER_ROLE = WorkItemRoleStub({ value: 'siegemaster' });
+const CODEWEAVER_ROLE = 'codeweaver';
+const SIEGEMASTER_ROLE = 'siegemaster';
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.
 const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';
 

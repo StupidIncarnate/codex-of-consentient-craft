@@ -1,10 +1,5 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import {
-  GetQuestInputStub,
-  GuildNameStub,
-  GuildPathStub,
-  QuestStatusStub,
-} from '@dungeonmaster/shared/contracts';
+import { GetQuestInputStub, GuildNameStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -70,7 +65,7 @@ describe('preStampInProgressLayerBroker (integration — real disk, real concurr
     const [pauseResult, stampResult] = await Promise.all([
       questPauseBroker({
         questId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls: buildNoopProcessControls(),
       }),
       preStampInProgressLayerBroker({ questId, workItemId: workItem.id }),

@@ -1,8 +1,8 @@
+import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
 import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
-  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -13,7 +13,7 @@ import { AbortController } from '#gateway/node/AbortController';
 
 const QUEST_ID = QuestIdStub({ value: 'poll-tick-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });
-const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
+const CODEWEAVER_ROLE = 'codeweaver';
 
 const questWithPendingCodeweaver = QuestStub({
   id: QUEST_ID,

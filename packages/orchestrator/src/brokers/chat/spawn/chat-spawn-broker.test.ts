@@ -7,7 +7,6 @@ import {
   QuestIdStub,
   QuestStub,
   AssistantTextStreamLineStub,
-  WorkItemRoleStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -40,7 +39,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer + message, no sessionId} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 
@@ -59,7 +58,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session} => calls registerProcess with kill function', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const registerProcess = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -88,7 +87,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session, message carries an image token} => spawns with the image path inside -p', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
       const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
 
@@ -126,7 +125,7 @@ describe('chatSpawnBroker', () => {
     it("VALID: {chaoswhisperer new session, message carries an image token} => spawns with --add-dir naming that quest's own images directory", async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const ABSOLUTE_IMAGE_PATH = '/home/user/.dungeonmaster/guilds/g1/quests/q1/images/2f6d.png';
       const message = `here is the mock ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH}) build me this`;
@@ -158,7 +157,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer + sessionId} => returns chatProcessId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'existing-session-123' });
       const questId = QuestIdStub({ value: 'existing-quest-resume' });
 
@@ -183,7 +182,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer process exits} => calls onComplete', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onComplete = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -211,7 +210,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer resume exits} => calls onComplete with provided sessionId', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-session-789' });
       const questId = QuestIdStub({ value: 'existing-quest-resume-completion' });
       const onComplete = jest.fn();
@@ -249,7 +248,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session} => calls onQuestCreated', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onQuestCreated = jest.fn();
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
@@ -277,7 +276,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer resume session} => does not call onQuestCreated', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'existing-session-999' });
       const questId = QuestIdStub({ value: 'existing-quest-resume-no-create' });
       const onQuestCreated = jest.fn();
@@ -304,7 +303,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {quest creation fails} => throws error', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
 
       proxy.setupQuestCreationFailure();
 
@@ -325,7 +324,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {stdout emits assistant text line} => calls onEntries with parsed entry', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onEntries = jest.fn();
       const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
 
@@ -359,7 +358,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {chaoswhisperer new session extracts sessionId} => calls questSessionWriteLayerBroker', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onComplete = jest.fn();
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-xyz' });
 
@@ -396,7 +395,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {sessionId$ resolves, new session} => invokes onSessionIdExtracted', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onSessionIdExtracted = jest.fn();
       const sessionLine = JSON.stringify({ session_id: 'extracted-session-abc' });
 
@@ -445,7 +444,7 @@ describe('chatSpawnBroker', () => {
     it('EMPTY: {resumed session} => does NOT invoke onSessionIdExtracted', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resumed-session-xyz' });
       const questId = QuestIdStub({ value: 'existing-quest-resume-no-extract' });
       const onSessionIdExtracted = jest.fn();
@@ -487,7 +486,7 @@ describe('chatSpawnBroker', () => {
     it('ERROR: {questModifyBroker rejects during session link} => writes error to stderr', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionLine = JSON.stringify({ session_id: 'link-fail-session' });
       const stderrSpy = proxy.setupStderrCapture();
 
@@ -551,7 +550,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {process killed with null exit code} => calls onComplete with null exitCode', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const onComplete = jest.fn();
 
       proxy.setupNewSession({ exitCode: null as never });
@@ -586,7 +585,7 @@ describe('chatSpawnBroker', () => {
     it('EDGE: {SUBAGENT_DEBUG env var not set} => does not write SUBAGENT-TRACE lines to stderr', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const stderrSpy = proxy.setupStderrCapture();
       const assistantLine = JSON.stringify(AssistantTextStreamLineStub());
 
@@ -623,7 +622,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {quest records a worktreePath} => the chat child is launched with that worktree path as cwd', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-with-worktree' });
       const questId = QuestIdStub({ value: 'quest-with-worktree' });
       const worktreePath = AbsoluteFilePathStub({
@@ -662,7 +661,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {quest records no worktreePath} => the chat child is launched with the resolved repo root as cwd', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-no-worktree' });
       const questId = QuestIdStub({ value: 'quest-no-worktree' });
       const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/testuser' });
@@ -695,7 +694,7 @@ describe('chatSpawnBroker', () => {
     it("ERROR: {quest's recorded worktree is missing} => rejects with a message naming the absolute path, and no child is launched", async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-missing-worktree' });
       const questId = QuestIdStub({ value: 'quest-missing-worktree' });
       const worktreePath = AbsoluteFilePathStub({
@@ -725,7 +724,7 @@ describe('chatSpawnBroker', () => {
     it('VALID: {bughunt + message, no sessionId} => chatProcessId carries the chat prefix', async () => {
       const proxy = chatSpawnBrokerProxy();
       const guildId = GuildIdStub();
-      const role = WorkItemRoleStub({ value: 'bughunt' });
+      const role = 'bughunt';
 
       proxy.setupNewSession({ exitCode: ExitCodeStub({ value: 0 }) });
 

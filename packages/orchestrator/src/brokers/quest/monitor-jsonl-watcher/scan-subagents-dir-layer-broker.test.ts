@@ -6,8 +6,6 @@ import {
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { ChatLineSourceStub } from '../../../contracts/chat-line-source/chat-line-source.stub';
-
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
@@ -43,7 +41,7 @@ const seedOutstandingTask = ({
         content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: { prompt } }],
       },
     },
-    source: ChatLineSourceStub({ value: 'session' }),
+    source: 'session',
   });
 };
 

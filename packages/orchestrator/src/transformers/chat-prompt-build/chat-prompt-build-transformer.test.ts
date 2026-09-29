@@ -1,4 +1,4 @@
-import { QuestIdStub, SessionIdStub, WorkItemRoleStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { tavernkeeperPromptStatics } from '../../statics/tavernkeeper-prompt/tavernkeeper-prompt-statics';
@@ -9,7 +9,7 @@ describe('chatPromptBuildTransformer', () => {
   describe('chaoswhisperer role', () => {
     it('VALID: {chaoswhisperer + message + questId} => returns prompt with chaoswhisperer template', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const questId = QuestIdStub({ value: 'abc-123' });
 
       const result = chatPromptBuildTransformer({
@@ -36,7 +36,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {chaoswhisperer + questId} => embeds the pre-created questId and does NOT tell the agent to mint a new quest', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const questId = QuestIdStub({ value: 'abc-123' });
 
       const result = chatPromptBuildTransformer({
@@ -55,7 +55,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {chaoswhisperer + sessionId} => returns raw message as prompt', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'session-123' });
 
       const result = chatPromptBuildTransformer({
@@ -70,7 +70,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {chaoswhisperer + no questId} => uses the mint bootstrap with no quest ID to fill', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
 
       const result = chatPromptBuildTransformer({
         role,
@@ -96,7 +96,7 @@ describe('chatPromptBuildTransformer', () => {
   describe('tavernkeeper role', () => {
     it('VALID: {tavernkeeper + message + questId} => returns prompt with tavernkeeper template', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const role = 'tavernkeeper';
       const questId = QuestIdStub({ value: 'followup-quest-789' });
 
       const result = chatPromptBuildTransformer({
@@ -117,7 +117,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {tavernkeeper + sessionId} => returns raw message as prompt', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const role = 'tavernkeeper';
       const sessionId = SessionIdStub({ value: 'session-789' });
 
       const result = chatPromptBuildTransformer({
@@ -132,7 +132,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {tavernkeeper} => builds from the tavernkeeper template, not an intake template', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'tavernkeeper' });
+      const role = 'tavernkeeper';
       const questId = QuestIdStub({ value: 'followup-quest-789' });
 
       const result = chatPromptBuildTransformer({
@@ -165,7 +165,7 @@ describe('chatPromptBuildTransformer', () => {
   describe('non-chat role', () => {
     it('ERROR: {codeweaver} => throws naming the role', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'codeweaver' });
+      const role = 'codeweaver';
 
       expect(() =>
         chatPromptBuildTransformer({
@@ -180,7 +180,7 @@ describe('chatPromptBuildTransformer', () => {
   describe('pasted image trailer', () => {
     it('VALID: {sessionId, message carrying one image token} => returns the message with the trailer appended once', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'session-images-1' });
       const message = 'Look at this bug: ![Pasted Image 1](/tmp/screenshot-1.png)';
 
@@ -198,7 +198,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {sessionId, message carrying two image tokens} => appends the sentinel exactly once', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'session-images-2' });
       const message =
         'Compare these: ![Pasted Image 1](/tmp/screenshot-1.png) and ![Pasted Image 2](/tmp/screenshot-2.png)';
@@ -217,7 +217,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {sessionId, message carrying no image token} => returns the message unchanged', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'session-no-images' });
       const message = 'Just continue please';
 
@@ -233,7 +233,7 @@ describe('chatPromptBuildTransformer', () => {
 
     it('VALID: {no sessionId, chaoswhisperer role, message carrying an image token} => composed template prompt ends with the trailer', () => {
       chatPromptBuildTransformerProxy();
-      const role = WorkItemRoleStub({ value: 'chaoswhisperer' });
+      const role = 'chaoswhisperer';
       const questId = QuestIdStub({ value: 'quest-with-images' });
       const ABSOLUTE_IMAGE_PATH = '/tmp/screenshot-1.png';
       const message = `Build auth ![Pasted Image 1](${ABSOLUTE_IMAGE_PATH})`;

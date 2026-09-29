@@ -1,9 +1,4 @@
-import {
-  QuestQueueEntryStub,
-  QuestSourceStub,
-  QuestStatusStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { QuestQueueEntryStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { questExecutionQueueState } from './quest-execution-queue-state';
 import { questExecutionQueueStateProxy } from './quest-execution-queue-state.proxy';
@@ -65,8 +60,8 @@ describe('questExecutionQueueState', () => {
     it('VALID: {three entries, two match source} => removes only matches and returns count', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const smoketestSource = QuestSourceStub({ value: 'smoketest-orchestration' });
-      const userSource = QuestSourceStub({ value: 'user' });
+      const smoketestSource = 'smoketest-orchestration';
+      const userSource = 'user';
       const a = QuestQueueEntryStub({ questId: 'q-a' as never, questSource: smoketestSource });
       const b = QuestQueueEntryStub({ questId: 'q-b' as never, questSource: userSource });
       const c = QuestQueueEntryStub({ questId: 'q-c' as never, questSource: smoketestSource });
@@ -84,13 +79,13 @@ describe('questExecutionQueueState', () => {
     it('EMPTY: {no matching entries} => removes 0 and leaves queue unchanged', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const userSource = QuestSourceStub({ value: 'user' });
+      const userSource = 'user';
       const a = QuestQueueEntryStub({ questId: 'q-a' as never, questSource: userSource });
 
       questExecutionQueueState.enqueue({ entry: a });
 
       const removed = questExecutionQueueState.clearBySource({
-        questSource: QuestSourceStub({ value: 'smoketest-mcp' }),
+        questSource: 'smoketest-mcp',
       });
 
       expect(removed).toBe(0);
@@ -125,7 +120,7 @@ describe('questExecutionQueueState', () => {
     it('VALID: {handler registered} => fires on clearBySource when entries removed', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const source = QuestSourceStub({ value: 'smoketest-signals' });
+      const source = 'smoketest-signals';
       questExecutionQueueState.enqueue({ entry: QuestQueueEntryStub({ questSource: source }) });
       const handler = jest.fn();
 
@@ -275,7 +270,7 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
@@ -283,7 +278,7 @@ describe('questExecutionQueueState', () => {
 
       const changed = questExecutionQueueState.updateEntryStatus({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'abandoned' }),
+        status: 'abandoned',
       });
 
       expect(changed).toBe(true);
@@ -296,18 +291,18 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
       const b = QuestQueueEntryStub({
         questId: 'q-b' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
 
       questExecutionQueueState.updateEntryStatus({
         questId: 'q-b' as never,
-        status: QuestStatusStub({ value: 'complete' }),
+        status: 'complete',
       });
 
       const [head, second] = questExecutionQueueState.getAll();
@@ -321,7 +316,7 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
@@ -329,7 +324,7 @@ describe('questExecutionQueueState', () => {
 
       const changed = questExecutionQueueState.updateEntryStatus({
         questId: 'q-missing' as never,
-        status: QuestStatusStub({ value: 'complete' }),
+        status: 'complete',
       });
 
       expect(changed).toBe(false);
@@ -341,7 +336,7 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
@@ -349,7 +344,7 @@ describe('questExecutionQueueState', () => {
 
       const changed = questExecutionQueueState.updateEntryStatus({
         questId: 'q-a' as never,
-        status: QuestStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
 
       expect(changed).toBe(false);

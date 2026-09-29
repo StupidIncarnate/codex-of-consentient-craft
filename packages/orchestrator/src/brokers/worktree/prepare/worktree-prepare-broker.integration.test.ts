@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   ErrorMessageStub,
   FileContentsStub,
   FileNameStub,
@@ -47,7 +46,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       value: `${testbed.guildPath}/worktrees/add-auth-11112222`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/add-auth-11112222' });
-    const baseBranch = BaseBranchNameStub({ value: 'main' });
+    const baseBranch = 'main';
 
     const { baseRef } = await worktreePrepareBroker({
       repoRoot: repoPath,
@@ -127,7 +126,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       value: `${testbed.guildPath}/worktrees/no-leak-33334444`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/no-leak-33334444' });
-    const baseBranch = BaseBranchNameStub({ value: 'main' });
+    const baseBranch = 'main';
 
     await worktreePrepareBroker({
       repoRoot: repoPath,
@@ -166,7 +165,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     });
 
     const branchName = QuestBranchNameStub({ value: 'quest/reattach-88889999' });
-    const baseBranch = BaseBranchNameStub({ value: 'main' });
+    const baseBranch = 'main';
     await git.createBranchAt({
       repoPath,
       branchName: FileNameStub({ value: 'quest/reattach-88889999' }),

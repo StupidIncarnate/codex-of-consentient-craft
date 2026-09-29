@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   FileContentsStub,
   FileNameStub,
   QuestBranchNameStub,
@@ -39,7 +38,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 
@@ -88,7 +87,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 

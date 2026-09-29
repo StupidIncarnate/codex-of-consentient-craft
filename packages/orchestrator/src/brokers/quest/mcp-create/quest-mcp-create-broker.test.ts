@@ -4,7 +4,6 @@ import {
   GuildListItemStub,
   GuildStub,
   QuestIdStub,
-  QuestTypeStub,
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -255,7 +254,7 @@ describe('questMcpCreateBroker', () => {
     it('VALID: {questType provided} => forwards questType inside the quest input', async () => {
       const proxy = questMcpCreateBrokerProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const questType = QuestTypeStub({ value: 'bug-hunt' });
+      const questType = 'bug-hunt';
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
         name: 'Guild' as never,

@@ -32,7 +32,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
         guildId: GuildIdStub(),
         questId,
         sessionId: SessionIdStub({ value: 'sess-resume' }),
@@ -62,7 +62,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+        role: 'tavernkeeper',
         guildId: GuildIdStub(),
         questId,
         message: 'one more thing',
@@ -96,7 +96,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+        role: 'tavernkeeper',
         guildId: GuildIdStub(),
         questId,
         message: 'still there?',
@@ -130,7 +130,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+        role: 'tavernkeeper',
         guildId: GuildIdStub(),
         questId,
         sessionId: SessionIdStub({ value: 'sess-tavern' }),
@@ -149,7 +149,7 @@ describe('resolveChatQuestLayerBroker', () => {
 
       await expect(
         resolveChatQuestLayerBroker({
-          role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+          role: 'tavernkeeper',
           guildId: GuildIdStub(),
           message: 'one more thing',
         }),
@@ -171,7 +171,7 @@ describe('resolveChatQuestLayerBroker', () => {
 
       await expect(
         resolveChatQuestLayerBroker({
-          role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+          role: 'tavernkeeper',
           guildId: GuildIdStub(),
           questId,
           message: 'one more thing',
@@ -186,7 +186,7 @@ describe('resolveChatQuestLayerBroker', () => {
 
       await expect(
         resolveChatQuestLayerBroker({
-          role: WorkItemRoleStub({ value: 'tavernkeeper' }),
+          role: 'tavernkeeper',
           guildId: GuildIdStub(),
           questId,
           message: 'one more thing',
@@ -203,7 +203,7 @@ describe('resolveChatQuestLayerBroker', () => {
       resolveChatQuestLayerBrokerProxy();
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
         guildId: GuildIdStub(),
         sessionId: SessionIdStub({ value: 'sess-no-quest' }),
         message: 'continue',
@@ -227,7 +227,7 @@ describe('resolveChatQuestLayerBroker', () => {
       const mintedQuestId = QuestIdStub({ value: '99999999-9999-4999-8999-999999999999' });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
         guildId: GuildIdStub(),
         mintedQuestId,
         message: 'first [Pasted Image 1]',
@@ -257,7 +257,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
         guildId: GuildIdStub(),
         existingQuestId: questId,
         message: 'one more thing',
@@ -280,7 +280,7 @@ describe('resolveChatQuestLayerBroker', () => {
       });
 
       const result = await resolveChatQuestLayerBroker({
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
         guildId: GuildIdStub(),
         existingQuestId,
         questId: QuestIdStub({ value: 'unrelated-resume-hint-quest' }),
@@ -302,7 +302,7 @@ describe('resolveChatQuestLayerBroker', () => {
 
       await expect(
         resolveChatQuestLayerBroker({
-          role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+          role: 'chaoswhisperer',
           guildId: GuildIdStub(),
           existingQuestId,
           message: 'one more thing',
@@ -324,7 +324,7 @@ describe('resolveChatQuestLayerBroker', () => {
 
       await expect(
         resolveChatQuestLayerBroker({
-          role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+          role: 'chaoswhisperer',
           guildId: GuildIdStub(),
           existingQuestId,
           message: 'one more thing',

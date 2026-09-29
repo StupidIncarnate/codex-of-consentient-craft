@@ -4,7 +4,6 @@ import {
   GuildNameStub,
   GuildPathStub,
   ModifyQuestInputStub,
-  QuestStatusStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
@@ -86,12 +85,12 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
     const results = await Promise.all([
       questPauseBroker({
         questId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls: buildNoopProcessControls(),
       }),
       questPauseBroker({
         questId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls: buildNoopProcessControls(),
       }),
     ]);
@@ -178,7 +177,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
       }),
       questPauseBroker({
         questId,
-        previousStatus: QuestStatusStub({ value: 'in_progress' }),
+        previousStatus: 'in_progress',
         processControls: buildNoopProcessControls(),
       }),
     ]);

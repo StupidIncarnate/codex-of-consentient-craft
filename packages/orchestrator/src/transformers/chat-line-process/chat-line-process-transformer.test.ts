@@ -11,7 +11,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { AgentIdStub } from '../../contracts/agent-id/agent-id.stub';
-import { ChatLineSourceStub } from '../../contracts/chat-line-source/chat-line-source.stub';
 import { TaskAgentToolPromptStub } from '../../contracts/task-agent-tool-prompt/task-agent-tool-prompt.stub';
 import { ToolUseIdStub } from '../../contracts/tool-use-id/tool-use-id.stub';
 import { chatLineProcessTransformer } from './chat-line-process-transformer';
@@ -32,7 +31,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(AssistantNullStopReasonStreamLineStub());
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed, source });
 
@@ -62,7 +61,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(AssistantTextStreamLineStub());
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed, source });
 
@@ -88,7 +87,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
 
       const result = processor.processLine({ parsed, source });
 
@@ -119,7 +118,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(ToolReferenceArrayToolResultStreamLineStub());
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed, source });
 
@@ -146,7 +145,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const parsed = normalize(MixedArrayToolResultStreamLineStub());
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed, source });
 
@@ -176,7 +175,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_01' });
       const agentId = AgentIdStub({ value: 'agent-abc' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const userParsed = normalize({
         ...SuccessfulToolResultStreamLineStub({
@@ -229,7 +228,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_02' });
       const agentId = AgentIdStub({ value: 'agent-xyz' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const assistantParsed = normalize(
         AssistantToolUseStreamLineStub({
@@ -282,7 +281,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_03' });
       const agentId = AgentIdStub({ value: 'agent-123' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const userParsed = normalize({
         ...SuccessfulToolResultStreamLineStub({
@@ -331,7 +330,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_04' });
       const agentId = AgentIdStub({ value: 'agent-new-cli' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const assistantParsed = normalize(
         AssistantToolUseStreamLineStub({
@@ -384,7 +383,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_agent_05' });
       const agentId = AgentIdStub({ value: 'agent-forward' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const userParsed = normalize({
         ...SuccessfulToolResultStreamLineStub({
@@ -437,7 +436,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-explicit' });
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
       const parsed = normalize(AssistantTextStreamLineStub());
 
       const result = processor.processLine({ parsed, source, agentId });
@@ -465,7 +464,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const agentId = AgentIdStub({ value: 'agent-subagent-internal' });
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
       const result = processor.processLine({ parsed, source, agentId });
@@ -493,7 +492,7 @@ describe('chatLineProcessTransformer', () => {
   describe('filtered entry types', () => {
     it('EMPTY: {system init line} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize(SystemInitStreamLineStub());
 
       const result = processor.processLine({ parsed, source });
@@ -503,7 +502,7 @@ describe('chatLineProcessTransformer', () => {
 
     it('EMPTY: {result type line} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize(ResultStreamLineStub());
 
       const result = processor.processLine({ parsed, source });
@@ -515,7 +514,7 @@ describe('chatLineProcessTransformer', () => {
   describe('non-object parsed input', () => {
     it('ERROR: {parsed: null} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed: null, source });
 
@@ -524,7 +523,7 @@ describe('chatLineProcessTransformer', () => {
 
     it('ERROR: {parsed: 42} => returns empty array', () => {
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({ parsed: 42, source });
 
@@ -537,7 +536,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize({
         ...SuccessfulToolResultStreamLineStub(),
         toolUseResult: { agentId: 123 },
@@ -569,7 +568,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize({
         ...SuccessfulToolResultStreamLineStub(),
         toolUseResult: 'completed',
@@ -599,7 +598,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize({
         ...SuccessfulToolResultStreamLineStub(),
         toolUseResult: ['completed'],
@@ -637,7 +636,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_task_map_wins' });
       const realAgentId = AgentIdStub({ value: 'agent-from-map' });
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
 
       const userParsed = normalize({
         ...SuccessfulToolResultStreamLineStub({
@@ -651,7 +650,7 @@ describe('chatLineProcessTransformer', () => {
 
       processor.processLine({
         parsed: userParsed,
-        source: ChatLineSourceStub({ value: 'session' }),
+        source: 'session',
       });
 
       const assistantParsed = normalize(
@@ -701,7 +700,7 @@ describe('chatLineProcessTransformer', () => {
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
       const orphanAgentId = AgentIdStub({ value: 'agent-orphan-subagent' });
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
 
       const assistantParsed = normalize(
         AssistantTextStreamLineStub({
@@ -749,7 +748,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const parsed = normalize({
         type: 'assistant',
@@ -789,7 +788,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const parsed = normalize({
         type: 'user',
@@ -839,7 +838,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const preSeededToolUseId = ToolUseIdStub({ value: 'toolu_preseed_01' });
       const realAgentId = AgentIdStub({ value: 'agent-preseeded' });
-      const source = ChatLineSourceStub({ value: 'subagent' });
+      const source = 'subagent';
 
       processor.registerAgentTranslation({
         agentId: realAgentId,
@@ -908,7 +907,7 @@ describe('chatLineProcessTransformer', () => {
       const processor = chatLineProcessTransformer();
       const toolUseId = ToolUseIdStub({ value: 'toolu_live_populated' });
       const realAgentId = AgentIdStub({ value: 'agent-live' });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const userParsed = normalize({
         ...SuccessfulToolResultStreamLineStub({
@@ -951,7 +950,7 @@ describe('chatLineProcessTransformer', () => {
       });
       const streamingResult = streamingProcessor.processLine({
         parsed: streamingParsed,
-        source: ChatLineSourceStub({ value: 'session' }),
+        source: 'session',
       });
 
       // Path B: file source with pre-seeded map — caller passes realAgentId param,
@@ -967,7 +966,7 @@ describe('chatLineProcessTransformer', () => {
       });
       const fileResult = fileProcessor.processLine({
         parsed: fileParsed,
-        source: ChatLineSourceStub({ value: 'subagent' }),
+        source: 'subagent',
         agentId: realAgentId,
       });
 
@@ -999,7 +998,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const parsed = normalize(SuccessfulToolResultStreamLineStub());
 
       const result = processor.processLine({ parsed, source });
@@ -1028,7 +1027,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1078,7 +1077,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1113,7 +1112,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1163,7 +1162,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1195,7 +1194,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1256,8 +1255,8 @@ describe('chatLineProcessTransformer', () => {
       const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
       const realA = AgentIdStub({ value: 'real-a' });
       const realB = AgentIdStub({ value: 'real-b' });
-      const sessionSource = ChatLineSourceStub({ value: 'session' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const sessionSource = 'session';
+      const subagentSource = 'subagent';
 
       // Step 1: establish A's chain via the session's completion tool_result for A
       processor.processLine({
@@ -1323,8 +1322,8 @@ describe('chatLineProcessTransformer', () => {
 
       const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
       const realA = AgentIdStub({ value: 'real-a' });
-      const sessionSource = ChatLineSourceStub({ value: 'session' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const sessionSource = 'session';
+      const subagentSource = 'subagent';
 
       // Establish A's chain
       processor.processLine({
@@ -1374,7 +1373,7 @@ describe('chatLineProcessTransformer', () => {
 
       const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
       const realB = AgentIdStub({ value: 'real-b' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const subagentSource = 'subagent';
 
       processor.registerAgentTranslation({ agentId: realB, toolUseId: toluB });
       processor.registerParentChain({
@@ -1420,8 +1419,8 @@ describe('chatLineProcessTransformer', () => {
       const toluA = ToolUseIdStub({ value: 'toolu_chain_a' });
       const toluB = ToolUseIdStub({ value: 'toolu_chain_b' });
       const realA = AgentIdStub({ value: 'real-a' });
-      const sessionSource = ChatLineSourceStub({ value: 'session' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const sessionSource = 'session';
+      const subagentSource = 'subagent';
 
       // Establish A's chain via the session tool_result (reverse map: realA → toluA)
       processor.processLine({
@@ -1488,8 +1487,8 @@ describe('chatLineProcessTransformer', () => {
       const realA = AgentIdStub({ value: 'real-a' });
       const realB = AgentIdStub({ value: 'real-b' });
       const unknownId = AgentIdStub({ value: 'never-seen' });
-      const sessionSource = ChatLineSourceStub({ value: 'session' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const sessionSource = 'session';
+      const subagentSource = 'subagent';
 
       // Establish A's chain and then B's chain via A's transcript tool_result
       processor.processLine({
@@ -1529,7 +1528,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1566,7 +1565,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1600,7 +1599,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1630,7 +1629,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1657,7 +1656,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const taskToolUseId = ToolUseIdStub({ value: 'toolu_pair_01' });
       const realAgentId = AgentIdStub({ value: 'real-paired-agent' });
 
@@ -1725,7 +1724,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1, UUID2] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
       const taskToolUseId = ToolUseIdStub({ value: 'toolu_pair_done' });
       const completedReal = AgentIdStub({ value: 'real-completed' });
       const lateReal = AgentIdStub({ value: 'real-late' });
@@ -1777,8 +1776,8 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1, UUID2, UUID3] });
       const processor = chatLineProcessTransformer();
-      const sessionSource = ChatLineSourceStub({ value: 'session' });
-      const subagentSource = ChatLineSourceStub({ value: 'subagent' });
+      const sessionSource = 'session';
+      const subagentSource = 'subagent';
       const toolA = ToolUseIdStub({ value: 'toolu_parent_a' });
       const realA = AgentIdStub({ value: 'real-parent-a' });
       const toolB = ToolUseIdStub({ value: 'toolu_child_b' });
@@ -1833,7 +1832,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer({ serverBaseUrl: BASE_URL });
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {
@@ -1864,7 +1863,7 @@ describe('chatLineProcessTransformer', () => {
       const proxy = chatLineProcessTransformerProxy();
       proxy.setupUuids({ uuids: [UUID1] });
       const processor = chatLineProcessTransformer();
-      const source = ChatLineSourceStub({ value: 'session' });
+      const source = 'session';
 
       const result = processor.processLine({
         parsed: {

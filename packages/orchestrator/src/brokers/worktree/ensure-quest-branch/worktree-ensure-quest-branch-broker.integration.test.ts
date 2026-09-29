@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   FileNameStub,
   QuestBranchNameStub,
   QuestIdStub,
@@ -11,7 +10,6 @@ import {
 
 import { worktreeAdd } from '#gateway/bin/git';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
-import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 import { worktreeEnsureQuestBranchBroker } from './worktree-ensure-quest-branch-broker';
 
@@ -41,7 +39,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
@@ -58,7 +56,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
         kind: 'worktree',
         cwd: RepoRootCwdStub({ value: worktreeValue }),
       }),
-      trigger: QuestResumeTriggerStub({ value: 'dispatch-scan' }),
+      trigger: 'dispatch-scan',
     });
 
     const branchAfter = await git.gitCurrentBranchName({ repoPath: worktreePath });
@@ -96,7 +94,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
@@ -111,7 +109,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
         kind: 'repo-root',
         cwd: RepoRootCwdStub({ value: repoPath }),
       }),
-      trigger: QuestResumeTriggerStub({ value: 'dispatch-scan' }),
+      trigger: 'dispatch-scan',
     });
 
     const branchAfter = await git.gitCurrentBranchName({ repoPath: worktreePath });
@@ -150,7 +148,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
     await git.checkoutBranch({ repoPath: worktreePath, branchName: strayBranch });
@@ -165,7 +163,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
         kind: 'worktree',
         cwd: RepoRootCwdStub({ value: worktreeValue }),
       }),
-      trigger: QuestResumeTriggerStub({ value: 'orchestration-resume' }),
+      trigger: 'orchestration-resume',
     });
 
     const branchAfter = await git.gitCurrentBranchName({ repoPath: worktreePath });

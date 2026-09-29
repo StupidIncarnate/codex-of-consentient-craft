@@ -1,6 +1,5 @@
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   OperationItemStub,
   QuestBranchNameStub,
   QuestIdStub,
@@ -357,7 +356,7 @@ describe('questOperationsUpdateBroker', () => {
         });
         proxy.setupQuestFound({ quest });
 
-        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const baseBranch = 'main';
 
         await questOperationsUpdateBroker({
           questId: QuestIdStub({ value: 'add-auth' }),
@@ -384,7 +383,7 @@ describe('questOperationsUpdateBroker', () => {
           id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
           status: 'pending',
         });
-        const baseBranch = BaseBranchNameStub({ value: 'master' });
+        const baseBranch = 'master';
         const quest = QuestStub({
           id: 'add-auth',
           folder: '001-add-auth',
@@ -530,7 +529,7 @@ describe('questOperationsUpdateBroker', () => {
         proxy.setupQuestFound({ quest });
 
         const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const baseBranch = 'main';
         const worktreePath = AbsoluteFilePathStub({
           value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
         });

@@ -1,4 +1,4 @@
-import { OrchestrationEventTypeStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationEventsState } from './orchestration-events-state';
 import { orchestrationEventsStateProxy } from './orchestration-events-state.proxy';
@@ -8,7 +8,7 @@ describe('orchestrationEventsState', () => {
     it('VALID: {registered handler} => handler receives event', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const type = 'phase-change';
       const processId = ProcessIdStub({ value: 'proc-123' });
       const handler = jest.fn();
 
@@ -21,7 +21,7 @@ describe('orchestrationEventsState', () => {
     it('VALID: {multiple handlers} => all handlers receive event', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type = OrchestrationEventTypeStub({ value: 'progress-update' });
+      const type = 'progress-update';
       const processId = ProcessIdStub({ value: 'proc-456' });
       const handler1 = jest.fn();
       const handler2 = jest.fn();
@@ -37,7 +37,7 @@ describe('orchestrationEventsState', () => {
     it('EMPTY: {no handlers for type} => returns undefined', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type = OrchestrationEventTypeStub({ value: 'slot-update' });
+      const type = 'slot-update';
       const processId = ProcessIdStub({ value: 'proc-789' });
 
       orchestrationEventsState.emit({ type, processId, payload: {} });
@@ -53,8 +53,8 @@ describe('orchestrationEventsState', () => {
     it('VALID: {different event types} => only matching handler fires', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const phaseType = OrchestrationEventTypeStub({ value: 'phase-change' });
-      const progressType = OrchestrationEventTypeStub({ value: 'progress-update' });
+      const phaseType = 'phase-change';
+      const progressType = 'progress-update';
       const processId = ProcessIdStub({ value: 'proc-abc' });
       const phaseHandler = jest.fn();
       const progressHandler = jest.fn();
@@ -72,7 +72,7 @@ describe('orchestrationEventsState', () => {
     it('VALID: {removed handler} => handler no longer fires', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const type = 'phase-change';
       const processId = ProcessIdStub({ value: 'proc-off' });
       const handler = jest.fn();
 
@@ -88,7 +88,7 @@ describe('orchestrationEventsState', () => {
     it('EMPTY: {captureHandlers never called} => getCapturedHandler returns undefined', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const type = 'phase-change';
 
       expect(proxy.getCapturedHandler({ type })).toBe(undefined);
       expect(proxy.getCapturedHandlers()).toStrictEqual(new Map());
@@ -98,7 +98,7 @@ describe('orchestrationEventsState', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
       proxy.captureHandlers();
-      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const type = 'phase-change';
       const handler = jest.fn();
 
       orchestrationEventsState.on({ type, handler });
@@ -110,7 +110,7 @@ describe('orchestrationEventsState', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
       proxy.captureHandlers();
-      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const type = 'phase-change';
       const processId = ProcessIdStub({ value: 'proc-stub-on' });
       const handler = jest.fn();
 
@@ -125,8 +125,8 @@ describe('orchestrationEventsState', () => {
     it('VALID: {listeners registered} => all listeners cleared', () => {
       const proxy = orchestrationEventsStateProxy();
       proxy.setupEmpty();
-      const type1 = OrchestrationEventTypeStub({ value: 'phase-change' });
-      const type2 = OrchestrationEventTypeStub({ value: 'slot-update' });
+      const type1 = 'phase-change';
+      const type2 = 'slot-update';
       const processId = ProcessIdStub({ value: 'proc-clear' });
       const handler1 = jest.fn();
       const handler2 = jest.fn();

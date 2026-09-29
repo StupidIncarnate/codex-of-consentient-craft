@@ -17,7 +17,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
     it('VALID: {worktree drifted onto another branch} => checks the quest branch back out and reports it restored', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
       const branchName = QuestBranchNameStub({ value: 'quest/ensure-drift-11112222' });
-      const trigger = QuestResumeTriggerStub({ value: 'dispatch-scan' });
+      const trigger = 'dispatch-scan';
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-drift' }),
         branchName,
@@ -52,7 +52,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
     it('VALID: {worktree already on the quest branch} => probes the branch once and runs no checkout', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
       const branchName = QuestBranchNameStub({ value: 'quest/ensure-on-branch-33334444' });
-      const trigger = QuestResumeTriggerStub({ value: 'orchestration-resume' });
+      const trigger = 'orchestration-resume';
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-on-branch' }),
         branchName,
@@ -83,7 +83,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
     it('ERROR: {git rev-parse itself exits non-zero} => reports restored false and never reaches a checkout', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
       const branchName = QuestBranchNameStub({ value: 'quest/ensure-revparse-fail-bbbbcccc' });
-      const trigger = QuestResumeTriggerStub({ value: 'recover-guild-layer-responder' });
+      const trigger = 'recover-guild-layer-responder';
       const questId = QuestIdStub({ value: 'ensure-revparse-fail' });
       const quest = QuestStub({
         id: questId,
@@ -178,7 +178,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
           kind: 'repo-root',
           cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
         }),
-        trigger: QuestResumeTriggerStub({ value: 'dispatch-scan' }),
+        trigger: 'dispatch-scan',
       });
 
       expect({ result, spawnedArgs: proxy.getSpawnedArgsList() }).toStrictEqual({
@@ -197,7 +197,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
           kind: 'worktree',
           cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-no-branch-99990000' }),
         }),
-        trigger: QuestResumeTriggerStub({ value: 'recover-guild-layer-responder' }),
+        trigger: 'recover-guild-layer-responder',
       });
 
       expect({ result, spawnedArgs: proxy.getSpawnedArgsList() }).toStrictEqual({
@@ -221,7 +221,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
             value: '/repo/worktrees/ensure-missing-worktree-aaaabbbb',
           }),
         }),
-        trigger: QuestResumeTriggerStub({ value: 'dispatch-scan' }),
+        trigger: 'dispatch-scan',
       });
 
       expect({ result, spawnedArgs: proxy.getSpawnedArgsList() }).toStrictEqual({

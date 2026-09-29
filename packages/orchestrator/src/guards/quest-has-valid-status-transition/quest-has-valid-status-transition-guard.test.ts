@@ -13,8 +13,8 @@ describe('questHasValidStatusTransitionGuard', () => {
   describe('valid transitions', () => {
     it('VALID: {created -> explore_flows} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'explore_flows' }),
+        currentStatus: 'created',
+        nextStatus: 'explore_flows',
       });
 
       expect(result).toBe(true);
@@ -22,8 +22,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {explore_flows -> review_flows} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'explore_flows' }),
-        nextStatus: QuestStatusStub({ value: 'review_flows' }),
+        currentStatus: 'explore_flows',
+        nextStatus: 'review_flows',
       });
 
       expect(result).toBe(true);
@@ -31,8 +31,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {review_flows -> flows_approved} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'review_flows' }),
-        nextStatus: QuestStatusStub({ value: 'flows_approved' }),
+        currentStatus: 'review_flows',
+        nextStatus: 'flows_approved',
       });
 
       expect(result).toBe(true);
@@ -40,8 +40,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {review_flows -> explore_flows} => returns true (back-to-explore)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'review_flows' }),
-        nextStatus: QuestStatusStub({ value: 'explore_flows' }),
+        currentStatus: 'review_flows',
+        nextStatus: 'explore_flows',
       });
 
       expect(result).toBe(true);
@@ -49,8 +49,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {flows_approved -> explore_observables} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'flows_approved' }),
-        nextStatus: QuestStatusStub({ value: 'explore_observables' }),
+        currentStatus: 'flows_approved',
+        nextStatus: 'explore_observables',
       });
 
       expect(result).toBe(true);
@@ -58,8 +58,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {explore_observables -> review_observables} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'explore_observables' }),
-        nextStatus: QuestStatusStub({ value: 'review_observables' }),
+        currentStatus: 'explore_observables',
+        nextStatus: 'review_observables',
       });
 
       expect(result).toBe(true);
@@ -67,8 +67,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {review_observables -> approved} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'review_observables' }),
-        nextStatus: QuestStatusStub({ value: 'approved' }),
+        currentStatus: 'review_observables',
+        nextStatus: 'approved',
       });
 
       expect(result).toBe(true);
@@ -76,8 +76,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {review_observables -> explore_observables} => returns true (back-to-explore)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'review_observables' }),
-        nextStatus: QuestStatusStub({ value: 'explore_observables' }),
+        currentStatus: 'review_observables',
+        nextStatus: 'explore_observables',
       });
 
       expect(result).toBe(true);
@@ -85,8 +85,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {approved -> in_progress} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'approved' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        currentStatus: 'approved',
+        nextStatus: 'in_progress',
       });
 
       expect(result).toBe(true);
@@ -94,8 +94,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {in_progress -> complete} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'in_progress' }),
-        nextStatus: QuestStatusStub({ value: 'complete' }),
+        currentStatus: 'in_progress',
+        nextStatus: 'complete',
       });
 
       expect(result).toBe(true);
@@ -103,8 +103,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {in_progress -> blocked} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'in_progress' }),
-        nextStatus: QuestStatusStub({ value: 'blocked' }),
+        currentStatus: 'in_progress',
+        nextStatus: 'blocked',
       });
 
       expect(result).toBe(true);
@@ -112,8 +112,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {in_progress -> abandoned} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'in_progress' }),
-        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+        currentStatus: 'in_progress',
+        nextStatus: 'abandoned',
       });
 
       expect(result).toBe(true);
@@ -121,8 +121,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {blocked -> in_progress} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'blocked' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        currentStatus: 'blocked',
+        nextStatus: 'in_progress',
       });
 
       expect(result).toBe(true);
@@ -130,8 +130,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('VALID: {blocked -> abandoned} => returns true', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'blocked' }),
-        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+        currentStatus: 'blocked',
+        nextStatus: 'abandoned',
       });
 
       expect(result).toBe(true);
@@ -142,7 +142,7 @@ describe('questHasValidStatusTransitionGuard', () => {
       (status) => {
         const result = questHasValidStatusTransitionGuard({
           currentStatus: QuestStatusStub({ value: status }),
-          nextStatus: QuestStatusStub({ value: 'abandoned' }),
+          nextStatus: 'abandoned',
         });
 
         expect(result).toBe(true);
@@ -153,8 +153,8 @@ describe('questHasValidStatusTransitionGuard', () => {
   describe('invalid transitions', () => {
     it('INVALID: {created -> flows_approved} => returns false (skips explore/review)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'flows_approved' }),
+        currentStatus: 'created',
+        nextStatus: 'flows_approved',
       });
 
       expect(result).toBe(false);
@@ -162,8 +162,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {flows_approved -> approved} => returns false (skips explore/review observables)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'flows_approved' }),
-        nextStatus: QuestStatusStub({ value: 'approved' }),
+        currentStatus: 'flows_approved',
+        nextStatus: 'approved',
       });
 
       expect(result).toBe(false);
@@ -171,8 +171,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {created -> approved} => returns false (skips multiple steps)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'approved' }),
+        currentStatus: 'created',
+        nextStatus: 'approved',
       });
 
       expect(result).toBe(false);
@@ -180,8 +180,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {created -> in_progress} => returns false (skips multiple steps)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'created' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        currentStatus: 'created',
+        nextStatus: 'in_progress',
       });
 
       expect(result).toBe(false);
@@ -189,8 +189,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {complete -> in_progress} => returns false (terminal state)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'complete' }),
-        nextStatus: QuestStatusStub({ value: 'in_progress' }),
+        currentStatus: 'complete',
+        nextStatus: 'in_progress',
       });
 
       expect(result).toBe(false);
@@ -198,8 +198,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {abandoned -> created} => returns false (terminal state)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'abandoned' }),
-        nextStatus: QuestStatusStub({ value: 'created' }),
+        currentStatus: 'abandoned',
+        nextStatus: 'created',
       });
 
       expect(result).toBe(false);
@@ -207,8 +207,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {complete -> abandoned} => returns false (terminal state)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'complete' }),
-        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+        currentStatus: 'complete',
+        nextStatus: 'abandoned',
       });
 
       expect(result).toBe(false);
@@ -216,8 +216,8 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {abandoned -> abandoned} => returns false (terminal state)', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'abandoned' }),
-        nextStatus: QuestStatusStub({ value: 'abandoned' }),
+        currentStatus: 'abandoned',
+        nextStatus: 'abandoned',
       });
 
       expect(result).toBe(false);
@@ -227,7 +227,7 @@ describe('questHasValidStatusTransitionGuard', () => {
   describe('missing inputs', () => {
     it('INVALID: {currentStatus undefined} => returns false', () => {
       const result = questHasValidStatusTransitionGuard({
-        nextStatus: QuestStatusStub({ value: 'flows_approved' }),
+        nextStatus: 'flows_approved',
       });
 
       expect(result).toBe(false);
@@ -235,7 +235,7 @@ describe('questHasValidStatusTransitionGuard', () => {
 
     it('INVALID: {nextStatus undefined} => returns false', () => {
       const result = questHasValidStatusTransitionGuard({
-        currentStatus: QuestStatusStub({ value: 'created' }),
+        currentStatus: 'created',
       });
 
       expect(result).toBe(false);

@@ -1,7 +1,6 @@
 import { QuestIdStub, QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts';
 
 import { AgentPromptNameStub } from '../../contracts/agent-prompt-name/agent-prompt-name.stub';
-import { AgentRoleStub } from '../../contracts/agent-role/agent-role.stub';
 import { agentTaskPromptTransformer } from './agent-task-prompt-transformer';
 
 describe('agentTaskPromptTransformer', () => {
@@ -35,7 +34,7 @@ describe('agentTaskPromptTransformer', () => {
     });
 
     it('VALID: {role: spiritmender, resume: false} => returns the fresh prompt, not the resume variant', () => {
-      const role = AgentRoleStub({ value: 'spiritmender' });
+      const role = 'spiritmender';
       const workItemId = QuestWorkItemIdStub({
         value: 'dddddddd-1111-4222-9333-444444444444',
       });

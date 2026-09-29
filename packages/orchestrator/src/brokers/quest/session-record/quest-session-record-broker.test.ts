@@ -5,7 +5,6 @@ import {
   QuestStub,
   QuestWorkItemIdStub,
   SessionIdStub,
-  WorkItemRoleStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { questSessionRecordBroker } from './quest-session-record-broker';
@@ -22,7 +21,7 @@ describe('questSessionRecordBroker', () => {
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo' }),
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
       });
 
       expect(result).toBe(true);
@@ -45,7 +44,7 @@ describe('questSessionRecordBroker', () => {
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
-        role: WorkItemRoleStub({ value: 'codeweaver' }),
+        role: 'codeweaver',
         workItemId: QuestWorkItemIdStub({ value: '8acf84af-a24b-4d29-9e4e-4819d21a5480' }),
       });
 
@@ -81,7 +80,7 @@ describe('questSessionRecordBroker', () => {
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
-        role: WorkItemRoleStub({ value: 'codeweaver' }),
+        role: 'codeweaver',
       });
 
       expect(result).toBe(true);
@@ -122,7 +121,7 @@ describe('questSessionRecordBroker', () => {
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
       });
 
       expect(result).toBe(false);
@@ -149,7 +148,7 @@ describe('questSessionRecordBroker', () => {
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
-        role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
+        role: 'chaoswhisperer',
       });
 
       expect(result).toBe(false);

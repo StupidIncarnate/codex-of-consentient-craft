@@ -2,7 +2,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   ErrorMessageStub,
   FileContentsStub,
   FileNameStub,
@@ -83,7 +82,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 
@@ -207,7 +206,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
         cwd: repoPath,
         worktreePath,
         branchName,
-        baseBranch: BaseBranchNameStub({ value: 'main' }),
+        baseBranch: 'main',
         mode: 'create-branch',
       });
 
@@ -378,7 +377,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 
@@ -476,7 +475,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 
@@ -574,7 +573,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 
@@ -929,7 +928,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       cwd: repoPath,
       worktreePath,
       branchName,
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
       mode: 'create-branch',
     });
 

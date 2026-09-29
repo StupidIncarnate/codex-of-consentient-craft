@@ -1,6 +1,5 @@
 import { UnitIdStub, UnitObservationStub } from '@dungeonmaster/shared/contracts';
 
-import { StepOutcomeStub } from '../../contracts/step-outcome/step-outcome.stub';
 import { deriveOutcomeTransformer } from './derive-outcome-transformer';
 
 describe('deriveOutcomeTransformer', () => {
@@ -72,7 +71,7 @@ describe('deriveOutcomeTransformer', () => {
       const result = deriveOutcomeTransformer({
         assignedUnitIds: [],
         observations: [],
-        declaredWord: StepOutcomeStub({ value: 'empty' }),
+        declaredWord: 'empty',
         hitWall: false,
       });
 
@@ -83,7 +82,7 @@ describe('deriveOutcomeTransformer', () => {
       const result = deriveOutcomeTransformer({
         assignedUnitIds: [],
         observations: [],
-        declaredWord: StepOutcomeStub({ value: 'done' }),
+        declaredWord: 'done',
         hitWall: false,
       });
 
@@ -117,7 +116,7 @@ describe('deriveOutcomeTransformer', () => {
             UnitObservationStub({ unitId: unitB, mark: 'unmet' }),
             UnitObservationStub({ unitId: unitC, mark: 'met' }),
           ],
-          declaredWord: StepOutcomeStub({ value: 'done' }),
+          declaredWord: 'done',
           hitWall: false,
         }),
       ).toThrow(
@@ -143,7 +142,7 @@ describe('deriveOutcomeTransformer', () => {
             UnitObservationStub({ unitId: unitB, mark: 'met' }),
             UnitObservationStub({ unitId: unitC, mark: 'met' }),
           ],
-          declaredWord: StepOutcomeStub({ value: 'done' }),
+          declaredWord: 'done',
           hitWall: false,
         }),
       ).toThrow(
@@ -177,7 +176,7 @@ describe('deriveOutcomeTransformer', () => {
       const result = deriveOutcomeTransformer({
         assignedUnitIds: [unitId],
         observations: [UnitObservationStub({ unitId, mark: 'met' })],
-        declaredWord: StepOutcomeStub({ value: 'done' }),
+        declaredWord: 'done',
         hitWall: true,
       });
 

@@ -1,9 +1,4 @@
-import {
-  AdapterResultStub,
-  RepoRootCwdStub,
-  SessionIdStub,
-  WorkItemStatusStub,
-} from '@dungeonmaster/shared/contracts';
+import { AdapterResultStub, RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
@@ -304,7 +299,7 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnEmitsApiOverloadThenExits({ exitCode: 1 });
       proxy.setupWorkItemStatusOnReread({
         workItemId: instruction.workItemId,
-        status: WorkItemStatusStub({ value: 'complete' }),
+        status: 'complete',
       });
 
       const result = await spawnOneAgentLayerBroker({ instruction, cwd: CWD });
@@ -323,7 +318,7 @@ describe('spawnOneAgentLayerBroker', () => {
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
       proxy.setupWorkItemStatusOnReread({
         workItemId: instruction.workItemId,
-        status: WorkItemStatusStub({ value: 'in_progress' }),
+        status: 'in_progress',
       });
 
       await spawnOneAgentLayerBroker({ instruction, cwd: CWD });

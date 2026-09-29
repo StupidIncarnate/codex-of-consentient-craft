@@ -1,5 +1,4 @@
 import {
-  BaseBranchNameStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
@@ -544,7 +543,7 @@ describe('workItemToPromptTransformer', () => {
         const questId = QuestIdStub({ value: 'my-quest' });
         const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-3131-4222-9333-444444444444' });
         const operationId = OperationItemIdStub({ value: 'bbbbbbbb-3131-4222-9333-444444444444' });
-        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const baseBranch = 'main';
         const operation = OperationItemStub({
           id: operationId,
           role: 'warpgate',
@@ -626,7 +625,7 @@ describe('workItemToPromptTransformer', () => {
         const questId = QuestIdStub({ value: 'my-quest' });
         const workItemId = QuestWorkItemIdStub({ value: 'eeeeeeee-3131-4222-9333-444444444444' });
         const operationId = OperationItemIdStub({ value: 'ffffffff-3131-4222-9333-444444444444' });
-        const baseBranch = BaseBranchNameStub({ value: 'main' });
+        const baseBranch = 'main';
         const operation = OperationItemStub({
           id: operationId,
           role: 'codeweaver',

@@ -3,13 +3,12 @@ import {
   QuestWorkItemIdStub,
   StepNameStub,
   UnitObservationStub,
-  WorkItemRoleStub,
 } from '@dungeonmaster/shared/contracts';
 
 import { commitMessageBuildTransformer } from './commit-message-build-transformer';
 
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-const FAMILY = WorkItemRoleStub({ value: 'codeweaver' });
+const FAMILY = 'codeweaver';
 const STEP = StepNameStub({ value: 'commit' });
 const SCOPE = ContentTextStub({ value: 'add-auth — package: auth · flow: login-flow' });
 
@@ -73,7 +72,7 @@ describe('commitMessageBuildTransformer', () => {
   describe('no marks at all', () => {
     it('EMPTY: {no observations} => the body skips straight to the work items line', () => {
       const result = commitMessageBuildTransformer({
-        family: WorkItemRoleStub({ value: 'spiritmender' }),
+        family: 'spiritmender',
         step: StepNameStub({ value: 'repair' }),
         scope: ContentTextStub({ value: 'fix ward (committed) failures' }),
         workItems: [{ id: WORK_ITEM_ID, observations: [] }],

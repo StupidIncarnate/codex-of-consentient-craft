@@ -1,45 +1,33 @@
-import { QuestStatusStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { WorkItemStub } from '@dungeonmaster/shared/contracts';
 
 import { isSmoketestPollTerminalStatusGuard } from './is-smoketest-poll-terminal-status-guard';
 
 describe('isSmoketestPollTerminalStatusGuard', () => {
   describe('terminal-for-polling statuses', () => {
     it('VALID: {status: complete} => returns true', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'complete' }) }),
-      ).toBe(true);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'complete' })).toBe(true);
     });
 
     it('VALID: {status: blocked} => returns true', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'blocked' }) }),
-      ).toBe(true);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'blocked' })).toBe(true);
     });
 
     it('VALID: {status: abandoned} => returns true', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'abandoned' }) }),
-      ).toBe(true);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'abandoned' })).toBe(true);
     });
   });
 
   describe('non-terminal statuses (no workItems)', () => {
     it('VALID: {status: in_progress, no workItems} => returns false', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'in_progress' }) }),
-      ).toBe(false);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'in_progress' })).toBe(false);
     });
 
     it('VALID: {status: paused, no workItems} => returns false', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'paused' }) }),
-      ).toBe(false);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'paused' })).toBe(false);
     });
 
     it('VALID: {status: created, no workItems} => returns false', () => {
-      expect(
-        isSmoketestPollTerminalStatusGuard({ status: QuestStatusStub({ value: 'created' }) }),
-      ).toBe(false);
+      expect(isSmoketestPollTerminalStatusGuard({ status: 'created' })).toBe(false);
     });
   });
 
@@ -65,7 +53,7 @@ describe('isSmoketestPollTerminalStatusGuard', () => {
 
       expect(
         isSmoketestPollTerminalStatusGuard({
-          status: QuestStatusStub({ value: 'in_progress' }),
+          status: 'in_progress',
           workItems,
         }),
       ).toBe(true);
@@ -87,7 +75,7 @@ describe('isSmoketestPollTerminalStatusGuard', () => {
 
       expect(
         isSmoketestPollTerminalStatusGuard({
-          status: QuestStatusStub({ value: 'in_progress' }),
+          status: 'in_progress',
           workItems,
         }),
       ).toBe(false);
@@ -104,7 +92,7 @@ describe('isSmoketestPollTerminalStatusGuard', () => {
 
       expect(
         isSmoketestPollTerminalStatusGuard({
-          status: QuestStatusStub({ value: 'in_progress' }),
+          status: 'in_progress',
           workItems,
         }),
       ).toBe(false);
@@ -113,7 +101,7 @@ describe('isSmoketestPollTerminalStatusGuard', () => {
     it('VALID: {status: in_progress, empty workItems array} => returns false', () => {
       expect(
         isSmoketestPollTerminalStatusGuard({
-          status: QuestStatusStub({ value: 'in_progress' }),
+          status: 'in_progress',
           workItems: [],
         }),
       ).toBe(false);

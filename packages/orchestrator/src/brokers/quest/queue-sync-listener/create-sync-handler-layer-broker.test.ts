@@ -1,4 +1,4 @@
-import { QuestIdStub, QuestStatusStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { createSyncHandlerLayerBroker } from './create-sync-handler-layer-broker';
 import { createSyncHandlerLayerBrokerProxy } from './create-sync-handler-layer-broker.proxy';
@@ -25,9 +25,7 @@ describe('createSyncHandlerLayerBroker', () => {
     it('VALID: {handler invoked with a questId} => dispatches processSyncEventLayerBroker once with correct args', () => {
       const proxy = createSyncHandlerLayerBrokerProxy();
       proxy.setupProcessSucceeds();
-      const loadQuest = jest
-        .fn()
-        .mockResolvedValue(QuestStub({ status: QuestStatusStub({ value: 'abandoned' }) }));
+      const loadQuest = jest.fn().mockResolvedValue(QuestStub({ status: 'abandoned' }));
       const removeByQuestId = jest.fn();
       const updateEntryStatus = jest.fn();
       const updateEntryActiveSession = jest.fn();

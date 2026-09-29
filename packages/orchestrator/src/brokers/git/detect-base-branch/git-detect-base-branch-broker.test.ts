@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub, BaseBranchNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { gitDetectBaseBranchBroker } from './git-detect-base-branch-broker';
 import { gitDetectBaseBranchBrokerProxy } from './git-detect-base-branch-broker.proxy';
@@ -13,7 +13,7 @@ describe('gitDetectBaseBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(BaseBranchNameStub({ value: 'main' }));
+      expect(result).toBe('main');
       expect(proxy.getSpawnedArgsList()).toStrictEqual([['rev-parse', '--verify', 'main']]);
     });
 
@@ -25,7 +25,7 @@ describe('gitDetectBaseBranchBroker', () => {
         cwd: AbsoluteFilePathStub({ value: '/project' }),
       });
 
-      expect(result).toBe(BaseBranchNameStub({ value: 'master' }));
+      expect(result).toBe('master');
       expect(proxy.getSpawnedArgsList()).toStrictEqual([
         ['rev-parse', '--verify', 'main'],
         ['rev-parse', '--verify', 'master'],

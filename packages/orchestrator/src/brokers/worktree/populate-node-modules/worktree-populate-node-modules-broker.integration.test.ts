@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import {
   AbsoluteFilePathStub,
-  BaseBranchNameStub,
   ErrorMessageStub,
   FileNameStub,
   QuestBranchNameStub,
@@ -49,7 +48,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       repoRoot: repoPath,
       worktreePath,
       branchName: QuestBranchNameStub({ value: 'quest/mirror-11112222' }),
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
     });
 
     const streamed: StreamedLine[] = [];
@@ -136,7 +135,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       repoRoot: repoPath,
       worktreePath,
       branchName: QuestBranchNameStub({ value: 'quest/rerun-33334444' }),
-      baseBranch: BaseBranchNameStub({ value: 'main' }),
+      baseBranch: 'main',
     });
 
     await worktreePopulateNodeModulesBroker({
