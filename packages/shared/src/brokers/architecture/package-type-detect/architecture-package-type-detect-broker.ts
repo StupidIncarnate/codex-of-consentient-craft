@@ -36,9 +36,10 @@ export const architecturePackageTypeDetectBroker = async ({
   // Read and parse package.json
   const packageJsonPath = absoluteFilePathContract.parse(`${packageRoot}/package.json`);
   const packageJsonRaw = readFileOptionalLayerBroker({ filePath: packageJsonPath });
-  const packageJson = packageJsonContract.parse(
-    packageJsonRaw === undefined ? {} : (JSON.parse(String(packageJsonRaw)) as unknown),
-  );
+  const packageJson =
+    packageJsonRaw === undefined
+      ? packageJsonContract.parse({})
+      : packageJsonContract.parse(JSON.parse(String(packageJsonRaw)));
 
   // List top-level dirs in src/
   const srcPath = absoluteFilePathContract.parse(`${packageRoot}/src`);

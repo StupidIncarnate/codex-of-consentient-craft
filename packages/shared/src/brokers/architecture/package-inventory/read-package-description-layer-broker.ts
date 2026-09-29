@@ -11,6 +11,7 @@
 import { readFileSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
 export const readPackageDescriptionLayerBroker = ({
@@ -20,18 +21,9 @@ export const readPackageDescriptionLayerBroker = ({
 }): ContentText => {
   try {
     const raw = readFileSync(packageJsonPath);
-    const parsed: unknown = JSON.parse(raw);
+    const packageJson = packageJsonContract.parse(JSON.parse(raw));
 
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'description' in parsed &&
-      typeof (parsed as Record<'description', unknown>).description === 'string'
-    ) {
-      return contentTextContract.parse((parsed as Record<'description', unknown>).description);
-    }
-
-    return contentTextContract.parse('');
+    return packageJson.description ?? contentTextContract.parse('');
   } catch {
     return contentTextContract.parse('');
   }

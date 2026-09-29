@@ -19,7 +19,7 @@ import { existsSync, readFileSync } from '#gateway/node/fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
+import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
@@ -40,13 +40,10 @@ export const gatewayLintConfigReadBroker = ({
 
   try {
     const raw = contentTextContract.parse(readFileSync(configPath));
-    const parsed: unknown = JSON.parse(raw);
-    const gatewayValue =
-      typeof parsed === 'object' && parsed !== null && 'gateway' in parsed
-        ? (parsed as Record<'gateway', unknown>).gateway
-        : {};
-    const validated = gatewayLintConfigContract.safeParse(gatewayValue ?? {});
-    return validated.success ? validated.data : EMPTY_GATEWAY_LINT_CONFIG;
+    const file = gatewayLintConfigFileContract.safeParse(JSON.parse(raw));
+    return file.success
+      ? (file.data.gateway ?? EMPTY_GATEWAY_LINT_CONFIG)
+      : EMPTY_GATEWAY_LINT_CONFIG;
   } catch {
     return EMPTY_GATEWAY_LINT_CONFIG;
   }
