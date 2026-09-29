@@ -40,6 +40,7 @@ import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
+import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -61,7 +62,7 @@ export const guildAddBroker = async ({
 
   const duplicate = config.guilds.find((guild) => guild.path === path);
   if (duplicate) {
-    throw new Error(`A guild with path ${path} already exists`);
+    throw new GuildPathTakenError({ path });
   }
 
   // `ensureDir` is recursive, so the quests directory below stands a supplied home and its

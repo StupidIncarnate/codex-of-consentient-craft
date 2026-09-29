@@ -6,22 +6,14 @@ import {
   AbsoluteFilePathStub,
   FilePathStub,
   PathSegmentStub,
-  packageNameContract,
 } from '@dungeonmaster/shared/contracts';
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PathSegment, PackageNameStub } from '@dungeonmaster/shared/contracts';
 
-import { installProxy } from '#gateway/bin/npm/install/install.proxy';
-import { runBuildProxy } from '#gateway/bin/npm/run-build/run-build.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
+import { recipesScaffoldStateProxy } from '../../../state/recipes-scaffold/recipes-scaffold-state.proxy';
 import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-responder';
-
-// pathBasenameAdapterProxy/pathDirnameAdapterProxy/pathResolveAdapterProxy formerly staged REAL
-// passthrough defaults for basename/dirname/resolve; #gateway/node/path re-exports these bare (no
-// per-function proxy of its own, unlike fs/fs__promises/child_process), so this file stages the
-// same real-passthrough default directly on the gateway's own re-exports, matching
-// instance-start-broker.proxy.ts's own `join` pattern (A12 SL7).
-const FALLBACK_SCOPE = '@project';
 
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // resolve passthrough resolves it to these exact paths), so every test lands on these paths.
@@ -71,9 +63,6 @@ const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
   ]),
 );
 
-const isCallRecord = (call: unknown): call is { args: unknown; cwd: unknown } =>
-  typeof call === 'object' && call !== null && 'args' in call && 'cwd' in call;
-
 export const InstallRecipesScaffoldResponderProxy = (): {
   callResponder: typeof InstallRecipesScaffoldResponder;
   setupPackageAbsent: (params?: {
@@ -81,15 +70,9 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     rootPackageJsonName?: string;
   }) => void;
   setupPackagePresent: () => void;
-  setupInstallFails: (params: { output: string }) => void;
-  setupBuildFails: (params: { output: string }) => void;
   getCreatedDirs: () => readonly unknown[];
   getWrittenContents: (params: { relativePath: PathSegment }) => unknown;
-  getInstallSpawnArgs: () => unknown;
-  getBuildSpawnArgs: () => unknown;
-  wasInstallSpawnedFromCwd: (params: { cwd: string }) => boolean;
-  wasBuildSpawnedFromCwd: (params: { cwd: string }) => boolean;
-  wasNpmSpawned: () => boolean;
+  getMarkedScaffoldedRecipesPackageName: () => ReturnType<typeof PackageNameStub> | undefined;
 } => {
   const realPath = requireActual<{
     basename: typeof basename;
@@ -117,8 +100,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   }
   const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  const installGatewayProxy = installProxy();
-  const buildGatewayProxy = runBuildProxy();
+  const recipesStateProxy = recipesScaffoldStateProxy();
 
   return {
     callResponder: InstallRecipesScaffoldResponder,
@@ -128,10 +110,8 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     // as its `name` field (workspace-scope detection reads that field, never a dependency list);
     // `rootPackageJsonPresent: true` with no name stages a root package.json that HAS no `name` key
     // at all — the same "derive nothing" shape as it being absent entirely, but exercised through
-    // the real parse path instead of the existence check. Every fresh scaffold now runs `npm
-    // install` then `npm run build --workspace=<name>`, so this stages both as succeeding by
-    // default — setupInstallFails/setupBuildFails re-stage one address afterward and win, per
-    // registerMock's most-recent-wins rule.
+    // the real parse path instead of the existence check. Clears recipesScaffoldState first, so a
+    // test reads only what THIS responder call marked.
     setupPackageAbsent: ({
       rootPackageJsonPresent,
       rootPackageJsonName,
@@ -139,6 +119,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       rootPackageJsonPresent?: boolean;
       rootPackageJsonName?: string;
     } = {}): void => {
+      recipesStateProxy.setupEmpty();
       existsProxy.returns({ path: RECIPES_PACKAGE_PATH, exists: false });
 
       const rootPackageJsonExists =
@@ -159,44 +140,13 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       for (const filePath of SCAFFOLD_FILE_ABSOLUTE_PATHS.values()) {
         writeProxy.succeeds({ filePath });
       }
-
-      // Mirrors what the real responder resolves: absent root package.json => no scope at all;
-      // present with no name => FALLBACK_SCOPE (the real basename passthrough); present with a
-      // name => workspaceScopeFromRootNameTransformer's own two branches for that name.
-      const resolvedScope = rootPackageJsonExists
-        ? rootPackageJsonName === undefined || rootPackageJsonName.length === 0
-          ? FALLBACK_SCOPE
-          : rootPackageJsonName.startsWith('@')
-            ? rootPackageJsonName.slice(0, rootPackageJsonName.indexOf('/'))
-            : `@${rootPackageJsonName}`
-        : undefined;
-      const workspace = packageNameContract.parse(
-        resolvedScope === undefined ? 'hydration-recipes' : `${resolvedScope}/hydration-recipes`,
-      );
-
-      installGatewayProxy.setupResult({ exitCode: 0, output: '' });
-      buildGatewayProxy.setupResult({ workspace, exitCode: 0, output: '' });
     },
 
     // The package already exists — real or seeded by a prior install. Nothing under it is read
     // or written, so no mkdir staging is needed: an attempted call fails the test on its own.
     setupPackagePresent: (): void => {
+      recipesStateProxy.setupEmpty();
       existsProxy.returns({ path: RECIPES_PACKAGE_PATH, exists: true });
-    },
-
-    // Build is left unstaged: the responder must short-circuit on a failed install rather than
-    // attempt to build a workspace `npm install` never linked into node_modules — an unstaged
-    // build call throws "nothing set up", which fails the test if the short-circuit regresses.
-    setupInstallFails: ({ output }: { output: string }): void => {
-      installGatewayProxy.setupResult({ exitCode: 1, output });
-    },
-
-    setupBuildFails: ({ output }: { output: string }): void => {
-      buildGatewayProxy.setupResult({
-        workspace: 'hydration-recipes',
-        exitCode: 1,
-        output,
-      });
     },
 
     getCreatedDirs: (): readonly unknown[] =>
@@ -209,28 +159,11 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       return filePath === undefined ? undefined : writeProxy.getWrittenFor({ filePath });
     },
 
-    getInstallSpawnArgs: (): unknown => {
-      const call = installGatewayProxy.getCallsFor().at(-1)?.[0];
-      return isCallRecord(call) ? call.args : undefined;
-    },
-
-    getBuildSpawnArgs: (): unknown => {
-      const call = buildGatewayProxy.getCallsFor({ workspace: () => true }).at(-1)?.[0];
-      return isCallRecord(call) ? call.args : undefined;
-    },
-
-    wasInstallSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean => {
-      const call = installGatewayProxy.getCallsFor().at(-1)?.[0];
-      return isCallRecord(call) && call.cwd === cwd;
-    },
-
-    wasBuildSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean => {
-      const call = buildGatewayProxy.getCallsFor({ workspace: () => true }).at(-1)?.[0];
-      return isCallRecord(call) && call.cwd === cwd;
-    },
-
-    wasNpmSpawned: (): boolean =>
-      installGatewayProxy.getCallsFor().length > 0 ||
-      buildGatewayProxy.getCallsFor({ workspace: () => true }).length > 0,
+    // Reads recipesScaffoldState directly rather than exposing a semantic "was it marked" boolean
+    // — the test needs the actual package NAME the responder marked, to prove the scope-detected
+    // value (not just any value) reached the state. Draining here doubles as end-of-test cleanup:
+    // a test that calls this leaves the state empty for whichever test runs next in this file.
+    getMarkedScaffoldedRecipesPackageName: (): ReturnType<typeof PackageNameStub> | undefined =>
+      recipesScaffoldState.consumeScaffolded().recipesPackageName,
   };
 };

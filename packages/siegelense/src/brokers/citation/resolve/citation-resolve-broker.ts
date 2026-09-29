@@ -16,6 +16,11 @@
  * USAGE:
  * await citationResolveBroker({ entry, runIds });
  * // Returns { references, gaps, blocked } — take the evidence only when references is empty AND blocked is null
+ *
+ * `OPEN_ISSUE_GAP` rides EVERY returned resolution, not only the paths that reach a quest's
+ * worktree — an instance with no quest at all is the ORDINARY case for a lane nobody orchestrated,
+ * and it is exactly the case a resolver that only appended the gap on the "happy" paths would answer
+ * `gaps: []` for, which reads as "nothing cites this" for a question this package never asked.
  */
 
 import { contentTextContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
@@ -61,13 +66,17 @@ export const citationResolveBroker = async ({
   runIds: readonly RunId[];
 }): Promise<CitationResolution> => {
   if (entry.questId === null) {
-    return citationResolutionContract.parse({ references: [], gaps: [], blocked: null });
+    return citationResolutionContract.parse({
+      references: [],
+      gaps: [OPEN_ISSUE_GAP],
+      blocked: null,
+    });
   }
 
   if (entry.guildId === null) {
     return citationResolutionContract.parse({
       references: [],
-      gaps: [],
+      gaps: [OPEN_ISSUE_GAP],
       blocked: contentTextContract.parse(
         `quest ${entry.questId} is recorded on ${entry.id} but no guild is, and a quest record ` +
           `resolves through its guild — refusing rather than treating an unreachable record as uncited.`,
@@ -85,7 +94,7 @@ export const citationResolveBroker = async ({
   if (contents === null) {
     return citationResolutionContract.parse({
       references: [],
-      gaps: [],
+      gaps: [OPEN_ISSUE_GAP],
       blocked: contentTextContract.parse(
         `quest ${entry.questId} is recorded on ${entry.id} but no quest record exists at ` +
           `${questFilePath} — refusing rather than treating an unreadable record as uncited.`,
@@ -100,7 +109,7 @@ export const citationResolveBroker = async ({
   });
 
   if (quest === null) {
-    return citationResolutionContract.parse({ references: [], gaps: [], blocked });
+    return citationResolutionContract.parse({ references: [], gaps: [OPEN_ISSUE_GAP], blocked });
   }
 
   const walked = walkedNoteLayerBroker({

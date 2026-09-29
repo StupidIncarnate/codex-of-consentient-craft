@@ -203,6 +203,16 @@ describe('docsStatics', () => {
       expect(docsStatics.scopes.fixing.sections[7].heading).toBe('STEP 7 — CLOSE WHAT YOU OPENED');
     });
 
+    it('VALID: {fixing, STEP 2} => a bare results --run promises the run summary together with every step reading, not the summary alone (DEF-96)', () => {
+      const section = docsStatics.scopes.fixing.sections.find(
+        (candidate) => candidate.heading === 'STEP 2 — WHAT DID THE FAILING STEP ACTUALLY READ',
+      );
+
+      expect(section?.lines[2]).toBe(
+        'If you run this command without specifying a step or a kind, you will receive the high-level summary of the entire run (the list of screenshots and where the test stopped) together with the formatted reading for every step the run took.',
+      );
+    });
+
     it('VALID: {attacking} => names all three reset levels, each declaring what it keeps, with a real reset example', () => {
       expect(docsStatics.scopes.attacking.sections[3].lines.slice(0, 4)).toStrictEqual([
         'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second.',

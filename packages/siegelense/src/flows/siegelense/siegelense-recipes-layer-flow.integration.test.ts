@@ -79,6 +79,23 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
 `;
 
 describe('SiegelenseRecipesLayerFlow', () => {
+  // `recipesReadBroker` dynamically imports the built `hydration-recipes/dist/index.js` once per
+  // process and node caches the path after that (its own header: "No caching: node's own module
+  // cache already makes a repeated import() of the same path free"), so whichever test runs first
+  // pays the whole cost — measured at 5157ms before this landed, against every test in this file
+  // finishing under 25ms after. jest runs `beforeAll` outside the window it charges to a test, so
+  // paying the import here keeps every `it` fast and under ward's `integrationTestWarnMs` gate.
+  // `process.stdout.write` is swapped out for the same reason the tests below swap it: a real write
+  // here would land in the jest process's stdout and corrupt the `--json` report ward parses.
+  beforeAll(async () => {
+    const originalWrite = process.stdout.write.bind(process.stdout);
+    process.stdout.write = (() => true) as unknown as typeof process.stdout.write;
+
+    await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
+
+    process.stdout.write = originalWrite;
+  });
+
   describe('the bare call, no flags', () => {
     it('VALID: {callArgs: []} => writes the human recipe listing, one block per recipe', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];

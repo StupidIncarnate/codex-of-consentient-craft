@@ -567,6 +567,29 @@ describe('laneBootBroker', () => {
     });
   });
 
+  describe('a spec whose processes list is empty — unreachable through a real LaneSpec (laneSpecContract refines processes.length > 0), forced here to prove the guard', () => {
+    it('ERROR: {spec.processes: []} => throws the plain sentence naming the spec', async () => {
+      const proxy = laneBootBrokerProxy();
+      proxy.resolveRepoRoot();
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const spec = Object.assign(LaneSpecStub({ name: 'empty' }), { processes: [] }) as never;
+
+      await expect(
+        laneBootBroker({
+          spec,
+          ports,
+          instanceId: INSTANCE_ID,
+          homePath: HOME_PATH,
+          evidencePath: EVIDENCE_PATH,
+        }),
+      ).rejects.toStrictEqual(
+        new Error(
+          'Spec empty declares no processes to boot — add at least one process to it before starting an instance.',
+        ),
+      );
+    });
+  });
+
   describe('a spec whose only process never becomes ready', () => {
     it('ERROR: {api never ready} => throws LaneBootFailedError naming api, killing and closing it', async () => {
       const proxy = laneBootBrokerProxy();

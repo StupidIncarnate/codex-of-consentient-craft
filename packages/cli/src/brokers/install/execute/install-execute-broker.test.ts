@@ -139,4 +139,93 @@ describe('installExecuteBroker', () => {
       );
     });
   });
+
+  describe('exportName: "StartInstallFinalize"', () => {
+    it('VALID: {module exports StartInstallFinalize} => calls that export, not StartInstall', async () => {
+      const proxy = installExecuteBrokerProxy();
+      const packageName = PackageNameStub({ value: '@dungeonmaster/siegelense' });
+      const installPath = FilePathStub({
+        value: '/path/to/siegelense/start-install-finalize.ts',
+      });
+      const context = InstallContextStub({
+        value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm',
+        },
+      });
+
+      const mockResult = InstallResultStub({
+        value: {
+          packageName: '@dungeonmaster/siegelense',
+          success: true,
+          action: 'created',
+          message:
+            'npm run build --workspace=hydration-recipes finished for packages/hydration-recipes/',
+        },
+      });
+
+      const mockStartInstallFinalize = jest.fn().mockResolvedValue(mockResult);
+      const mockModule: Record<PropertyKey, unknown> = Object.create(null);
+      mockModule.StartInstallFinalize = mockStartInstallFinalize;
+
+      proxy.setupImport({ installPath, module: mockModule });
+
+      const result = await installExecuteBroker({
+        packageName,
+        installPath,
+        context,
+        exportName: 'StartInstallFinalize',
+      });
+
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/siegelense',
+            success: true,
+            action: 'created',
+            message:
+              'npm run build --workspace=hydration-recipes finished for packages/hydration-recipes/',
+          },
+        }),
+      );
+    });
+
+    it('ERROR: {module exports only StartInstall} => returns failed result naming StartInstallFinalize', async () => {
+      const proxy = installExecuteBrokerProxy();
+      const packageName = PackageNameStub({ value: '@dungeonmaster/cli' });
+      const installPath = FilePathStub({ value: '/path/to/cli/start-install-finalize.ts' });
+      const context = InstallContextStub({
+        value: {
+          targetProjectRoot: '/project',
+          dungeonmasterRoot: '/dm',
+        },
+      });
+
+      const mockStartInstall = jest.fn();
+      const mockModule: Record<PropertyKey, unknown> = Object.create(null);
+      mockModule.StartInstall = mockStartInstall;
+
+      proxy.setupImport({ installPath, module: mockModule });
+
+      const result = await installExecuteBroker({
+        packageName,
+        installPath,
+        context,
+        exportName: 'StartInstallFinalize',
+      });
+
+      expect(result).toStrictEqual(
+        InstallResultStub({
+          value: {
+            packageName: '@dungeonmaster/cli',
+            success: false,
+            action: 'failed',
+            error: ErrorMessageStub({
+              value: `No StartInstallFinalize function found in ${installPath}`,
+            }),
+          },
+        }),
+      );
+    });
+  });
 });

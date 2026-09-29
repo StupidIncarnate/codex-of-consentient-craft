@@ -78,9 +78,11 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
       'NESTED CHAIN BODY — this chain sits inside the outer one.',
     ]);
     expect(result).toStrictEqual({
-      sessionId: SESSION_ID,
-      'sessions.outer': `/siege-guild/session/${SESSION_ID}`,
-      'sessions.nested': `/siege-guild/session/${SESSION_ID}`,
+      session: {
+        sessionId: SESSION_ID,
+        outer: `/siege-guild/session/${SESSION_ID}`,
+        nested: `/siege-guild/session/${SESSION_ID}`,
+      },
     });
   });
 

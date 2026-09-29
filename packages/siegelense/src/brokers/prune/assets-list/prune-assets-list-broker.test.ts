@@ -14,7 +14,7 @@ const INSTANCE_ID = InstanceIdStub({ value: 'inst_9b2c0001' });
 
 describe('pruneAssetsListBroker', () => {
   describe('an instance with one run', () => {
-    it('VALID: {a server log, a console buffer, a transcript, a stored return and a shot} => every file with its real size and class, and run_1 as the run it holds', async () => {
+    it('VALID: {a server log, a console buffer, a run transcript, a stored return and a shot} => every file with its real size and class, and run_1 as the run it holds', async () => {
       const proxy = pruneAssetsListBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
@@ -70,19 +70,19 @@ describe('pruneAssetsListBroker', () => {
           },
           {
             path: `${EVIDENCE}/console.jsonl`,
-            kind: 'transcript',
+            kind: 'log',
             sizeBytes: 256,
             modifiedAtMs: 1_700_000_000_100,
           },
           {
             path: `${RUNS}/run_1.jsonl`,
-            kind: 'transcript',
+            kind: 'log',
             sizeBytes: 1024,
             modifiedAtMs: 1_700_000_000_200,
           },
           {
             path: `${RUNS}/run_1.json`,
-            kind: 'transcript',
+            kind: 'log',
             sizeBytes: 64,
             modifiedAtMs: 1_700_000_000_300,
           },
@@ -163,7 +163,7 @@ describe('pruneAssetsListBroker', () => {
   });
 
   describe('a stranger in the runs directory', () => {
-    it('VALID: {a .txt beside a transcript} => the stranger is not listed, so prune can never take a file nobody has decided a window for', async () => {
+    it('VALID: {a .txt beside a run transcript} => the stranger is not listed, so prune can never take a file nobody has decided a window for', async () => {
       const proxy = pruneAssetsListBrokerProxy();
       proxy.setupEvidenceTree({
         homeDir: HOME_DIR,
@@ -192,9 +192,44 @@ describe('pruneAssetsListBroker', () => {
       expect(result.assets).toStrictEqual([
         {
           path: `${RUNS}/run_1.jsonl`,
-          kind: 'transcript',
+          kind: 'log',
           sizeBytes: 1024,
           modifiedAtMs: 1_700_000_000_200,
+        },
+      ]);
+    });
+  });
+
+  describe('an instance whose lane recorded a screencast', () => {
+    it('VALID: {a .webm in the video directory} => a video asset, weighed alongside everything else', async () => {
+      const proxy = pruneAssetsListBrokerProxy();
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME }),
+        rootPath: FilePathStub({ value: ROOT }),
+        evidencePath: FilePathStub({ value: EVIDENCE }),
+      });
+      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: RUNS }), entries: [] });
+      proxy.setupDir({
+        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video` }),
+        entries: ['a1b2c3.webm'],
+      });
+      proxy.setupFile({
+        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video/a1b2c3.webm` }),
+        sizeBytes: 104_857_600,
+        modifiedAtMs: 1_700_000_003_000,
+      });
+
+      const result = await pruneAssetsListBroker({
+        entry: RegistryEntryStub({ id: INSTANCE_ID, guildId: null, questId: null }),
+      });
+
+      expect(result.assets).toStrictEqual([
+        {
+          path: `${EVIDENCE}/video/a1b2c3.webm`,
+          kind: 'video',
+          sizeBytes: 104_857_600,
+          modifiedAtMs: 1_700_000_003_000,
         },
       ]);
     });

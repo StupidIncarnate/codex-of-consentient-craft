@@ -384,7 +384,7 @@ one thing this intake must never carry into the spec.
 
 Tell the user, in one short message:
 
-> Bug spec approved. Click **Start Quest**, then run `/dumpster-launch` in your Claude session.
+> Bug spec approved. Click **Start Quest** — it starts the dispatcher, which runs the quest.
 > The codeweaver session that owns the package the fix lands in will write failing tests for the
 > EXPECTED observables, confirm they fail, fix the implementation, then ward → ward verify the fix.
 

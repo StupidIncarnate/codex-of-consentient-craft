@@ -13,6 +13,7 @@ export const packageDiscoverBrokerProxy = (): {
           standardPath: FilePath;
           alternatePath?: FilePath;
           installerLocation: 'standard' | 'alternate' | 'none';
+          hasFinalize?: boolean;
         }
       | {
           name: FileName;
@@ -21,6 +22,7 @@ export const packageDiscoverBrokerProxy = (): {
             standardPath: FilePath;
             alternatePath?: FilePath;
             installerLocation: 'standard' | 'alternate' | 'none';
+            hasFinalize?: boolean;
           }[];
         }
     )[];
@@ -34,6 +36,7 @@ export const packageDiscoverBrokerProxy = (): {
           standardPath: FilePath;
           alternatePath?: FilePath;
           installerLocation: 'standard' | 'alternate' | 'none';
+          hasFinalize?: boolean;
         }
       | {
           name: FileName;
@@ -42,6 +45,7 @@ export const packageDiscoverBrokerProxy = (): {
             standardPath: FilePath;
             alternatePath?: FilePath;
             installerLocation: 'standard' | 'alternate' | 'none';
+            hasFinalize?: boolean;
           }[];
         }
     )[];
@@ -68,6 +72,7 @@ export const packageDiscoverBrokerProxy = (): {
         standardPath: FilePath;
         alternatePath?: FilePath;
         installerLocation: 'standard' | 'alternate' | 'none';
+        hasFinalize?: boolean;
       }[] = [];
 
       for (const pkg of packages) {
@@ -83,9 +88,15 @@ export const packageDiscoverBrokerProxy = (): {
         leafEntries.push(pkg);
       }
 
+      // A found installer gets its `start-install-finalize.js` sibling checked too; `hasFinalize`
+      // answers that check, and an absent `hasFinalize` stages the sibling as missing.
       for (const entry of leafEntries) {
         if (entry.installerLocation === 'standard') {
           fsExistsSyncProxy.returns({ path: entry.standardPath, exists: true });
+          fsExistsSyncProxy.returns({
+            path: entry.standardPath.replace('/start-install.js', '/start-install-finalize.js'),
+            exists: entry.hasFinalize ?? false,
+          });
         } else {
           fsExistsSyncProxy.returns({ path: entry.standardPath, exists: false });
 
@@ -99,6 +110,10 @@ export const packageDiscoverBrokerProxy = (): {
           fsExistsSyncProxy.returns({
             path: alternatePath,
             exists: entry.installerLocation === 'alternate',
+          });
+          fsExistsSyncProxy.returns({
+            path: alternatePath.replace('/start-install.js', '/start-install-finalize.js'),
+            exists: entry.hasFinalize ?? false,
           });
         }
       }
@@ -114,7 +129,7 @@ export const packageDiscoverBrokerProxy = (): {
     // no `packages` segment in between. This stages that non-existence and scans
     // `dungeonmasterRoot` directly, reusing the same leaf/group staging as the monorepo case.
     setupInstalledConsumerPackageDiscovery: ({ dungeonmasterRoot, packages }) => {
-      const monorepoPackagesPath = `${String(dungeonmasterRoot)}/packages` as never;
+      const monorepoPackagesPath = `${String(dungeonmasterRoot)}/packages`;
       fsExistsSyncProxy.returns({ path: monorepoPackagesPath, exists: false });
       fsReaddirProxy.returns({
         path: dungeonmasterRoot,
@@ -126,6 +141,7 @@ export const packageDiscoverBrokerProxy = (): {
         standardPath: FilePath;
         alternatePath?: FilePath;
         installerLocation: 'standard' | 'alternate' | 'none';
+        hasFinalize?: boolean;
       }[] = [];
 
       for (const pkg of packages) {
@@ -141,9 +157,15 @@ export const packageDiscoverBrokerProxy = (): {
         leafEntries.push(pkg);
       }
 
+      // A found installer gets its `start-install-finalize.js` sibling checked too; `hasFinalize`
+      // answers that check, and an absent `hasFinalize` stages the sibling as missing.
       for (const entry of leafEntries) {
         if (entry.installerLocation === 'standard') {
           fsExistsSyncProxy.returns({ path: entry.standardPath, exists: true });
+          fsExistsSyncProxy.returns({
+            path: entry.standardPath.replace('/start-install.js', '/start-install-finalize.js'),
+            exists: entry.hasFinalize ?? false,
+          });
         } else {
           fsExistsSyncProxy.returns({ path: entry.standardPath, exists: false });
 
@@ -157,6 +179,10 @@ export const packageDiscoverBrokerProxy = (): {
           fsExistsSyncProxy.returns({
             path: alternatePath,
             exists: entry.installerLocation === 'alternate',
+          });
+          fsExistsSyncProxy.returns({
+            path: alternatePath.replace('/start-install.js', '/start-install-finalize.js'),
+            exists: entry.hasFinalize ?? false,
           });
         }
       }

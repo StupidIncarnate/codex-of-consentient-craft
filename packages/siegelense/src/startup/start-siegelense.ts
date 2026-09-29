@@ -1,17 +1,20 @@
 /**
  * PURPOSE: The CLI's whole entry into this package — takes the raw args after `siegelense` and
- * delegates to `SiegelenseFlow`, which routes `--help`/`-h`, the seven built calls (`start`, `run`,
- * `results`, `kill`, `status`, `cleanup`, `compare`), `driver --instance <id>`, and the bare
- * fleet-listing invocation to their responders. `CliSiegelenseResponder` reaches this through
- * `runtimeDynamicImportAdapter`, dynamically rather than statically, so Playwright — pulled in by
- * this package's own lane-boot path — never enters the CLI's esbuild bundle.
+ * delegates to `SiegelenseFlow`, which routes `--help`/`-h`, every built call, `driver --instance
+ * <id>`, and the bare invocation (`args: []`, which reaches `SiegelenseStatusLayerFlow` with no
+ * flags — the same table `status` alone prints, never a second fleet view) to their responders.
+ * `SiegelenseFlow` is also where the `process.stdout` EPIPE guard lives (a startup file must not
+ * branch, so that logic sits one layer down, in the flow every call — including this one — funnels
+ * through). `CliSiegelenseResponder` reaches this through `runtimeDynamicImportAdapter`,
+ * dynamically rather than statically, so Playwright — pulled in by this package's own lane-boot
+ * path — never enters the CLI's esbuild bundle.
  *
  * USAGE:
  * await StartSiegelense({ args: [] });
- * // Prints the fleet
+ * // Prints the same fleet table `status` (no flags) prints
  *
  * await StartSiegelense({ args: ['--help'] });
- * // Prints the index: one line per built call, plus the six not built yet
+ * // Prints the index: one line per built call
  *
  * await StartSiegelense({ args: ['start', '--spec', 'dungeonmaster-stack'] });
  * // Boots an instance and prints its manifest

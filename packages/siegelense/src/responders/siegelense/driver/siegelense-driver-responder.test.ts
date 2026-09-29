@@ -1,10 +1,11 @@
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
@@ -123,14 +124,32 @@ describe('SiegelenseDriverResponder', () => {
   });
 
   describe('the registry has no row for this instance', () => {
-    it('ERROR: {instance not reserved} => throws naming the instance', async () => {
+    it('ERROR: {instance not reserved} => rejects with InstanceUnknownError, the same shared message every other call throws', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_dead0000' });
       proxy.stageEmptyRegistry();
 
-      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
-        /inst_dead0000 not found in the registry/u,
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
       );
+    });
+  });
+
+  describe('the registry row already has a live driver', () => {
+    it('ERROR: {row has a live driver} => throws naming the pid and never boots a lane', async () => {
+      const proxy = SiegelenseDriverResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_11fe0001' });
+      const livePid = ProcessIdStub({ value: '108019' });
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME, pid: livePid });
+      proxy.stageRegistryRow({ entry });
+      proxy.stageDriverAlreadyLive();
+
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
+        `Instance ${instanceId} already has a running driver (pid ${livePid}); driver is started by start and is not typed by hand.`,
+      );
+
+      expect(proxy.getServeCallArgs()).toBe(undefined);
+      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
     });
   });
 });

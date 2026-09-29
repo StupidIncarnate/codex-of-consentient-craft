@@ -11,6 +11,7 @@ import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildId, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
+import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -34,7 +35,7 @@ export const guildUpdateBroker = async ({
   if (path !== undefined) {
     const duplicate = config.guilds.find((g) => g.path === path && g.id !== guildId);
     if (duplicate) {
-      throw new Error(`A guild with path ${path} already exists`);
+      throw new GuildPathTakenError({ path });
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Test proxy for SiegelenseCleanupResponder — mocks `cleanupRunBroker` directly rather
- * than composing its own child proxies' staging, matching `SiegelenseFleetResponderProxy`'s shape
+ * than composing its own child proxies' staging, matching `SiegelenseStatusResponderProxy`'s shape
  * for the sibling command. `cleanupRunBrokerProxy` is still constructed (never addressed further)
  * to satisfy `enforce-proxy-child-creation`.
  *

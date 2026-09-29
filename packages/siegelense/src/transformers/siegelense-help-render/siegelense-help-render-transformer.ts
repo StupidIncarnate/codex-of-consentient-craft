@@ -7,12 +7,10 @@
  * `SiegelenseFlow`'s `--help` branch: the flow's own spawned-process acceptance test and this
  * file's unit test must read the identical first line for every call, and only a pure function
  * makes that provable without a process. `SiegelenseCall` is derived here as `keyof typeof
- * siegelenseHelpStatics.calls` — the BUILT calls, narrower than `siegelenseCallStatics.calls.names`'s
- * full closed set — because no dedicated contract carries that type; it is exported so a caller
- * building a route table over the same keys, such as the flow, can import it from here rather than
- * re-deriving it. The index headline's built-versus-total count is computed here, off those same
- * two lists, rather than typed into `siegelenseHelpStatics.index.headline` — a hand-typed tally
- * goes stale the moment a call is routed and nothing here catches it.
+ * siegelenseHelpStatics.calls` — the BUILT calls — because no dedicated contract carries that
+ * type; it is exported so a caller building a route table over the same keys, such as the flow, can
+ * import it from here rather than re-deriving it. The index carries no build-progress count: a
+ * reader of `--help` wants the calls that exist, not a tally of how many more are coming.
  *
  * USAGE:
  * siegelenseHelpRenderTransformer({ call: 'cleanup' });
@@ -25,7 +23,6 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 
 export type SiegelenseCall = keyof typeof siegelenseHelpStatics.calls;
@@ -41,16 +38,13 @@ export const siegelenseHelpRenderTransformer = ({
 }): ContentText => {
   if (call === null) {
     const builtNames = Object.keys(siegelenseHelpStatics.calls) as readonly SiegelenseCall[];
-    const headline =
-      `${siegelenseHelpStatics.index.headline} ` +
-      `${builtNames.length} of ${siegelenseCallStatics.calls.names.length} calls are built.`;
     const callsBlock = [
       'CALLS',
       ...builtNames.map((name) => `  ${siegelenseHelpStatics.calls[name].summary}`),
     ].join('\n');
 
     return contentTextContract.parse(
-      `${[headline, callsBlock, siegelenseHelpStatics.index.footer].join(SECTION_GAP)}\n`,
+      `${[siegelenseHelpStatics.index.headline, callsBlock, siegelenseHelpStatics.index.footer].join(SECTION_GAP)}\n`,
     );
   }
 

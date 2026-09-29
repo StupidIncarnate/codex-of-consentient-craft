@@ -34,7 +34,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: [--human]} => --human is refused as an unknown flag', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--human'] })).toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --kind, --older-than, --json, --confirm\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\] \[--confirm\]$/u,
       );
     });
 
@@ -42,6 +42,13 @@ describe('pruneArgsParseTransformer', () => {
       expect(pruneArgsParseTransformer({ args: ['--json'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
         isJson: true,
+      });
+    });
+
+    it('VALID: {args: --confirm} => accepted rather than refused as unknown, and the parsed selectors are untouched by it', () => {
+      expect(pruneArgsParseTransformer({ args: ['--confirm'] })).toStrictEqual({
+        query: { instanceId: null, kind: null, olderThan: '7d' },
+        isJson: false,
       });
     });
   });
@@ -53,9 +60,15 @@ describe('pruneArgsParseTransformer', () => {
       );
     });
 
-    it("INVALID: {args: --kind screenshot} => refuses under the flag's own name rather than as a ZodError", () => {
-      expect(() => pruneArgsParseTransformer({ args: ['--kind', 'screenshot'] })).toThrow(
-        /^--kind: Invalid option: expected one of "video"\|"shot"\|"transcript"\|"log"$/u,
+    it('INVALID: {args: --kind nope} => refuses naming every accepted kind and the exact text typed, never as a ZodError', () => {
+      expect(() => pruneArgsParseTransformer({ args: ['--kind', 'nope'] })).toThrow(
+        /^--kind must be one of video, shot, transcript, log; got "nope"$/u,
+      );
+    });
+
+    it('INVALID: {args: --older-than soon} => refuses naming the window rule, never as a ZodError', () => {
+      expect(() => pruneArgsParseTransformer({ args: ['--older-than', 'soon'] })).toThrow(
+        /^Unreadable window: soon\. A window is a whole number followed by one of d, h, m, s — for example 7d\.$/u,
       );
     });
 
@@ -67,7 +80,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: --all} => an unknown flag lists the accepted ones', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--all'] })).toThrow(
-        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
+        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json, --confirm\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\] \[--confirm\]$/u,
       );
     });
 

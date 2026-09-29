@@ -4,11 +4,15 @@ import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsPruneAssetPathsFindBrokerProxy } from '../../locations/prune-asset-paths-find/locations-prune-asset-paths-find-broker.proxy';
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { runShotsLayerBrokerProxy } from './run-shots-layer-broker.proxy';
+
+const VIDEO_DIR_SUFFIX = `/${evidenceFileStatics.naming.videoDir}`;
 
 export const pruneAssetsListBrokerProxy = (): {
   setupEvidenceTree: (params: {
@@ -46,6 +50,14 @@ export const pruneAssetsListBrokerProxy = (): {
     .rejects(
       Object.assign(new Error('ENOENT: no such file or directory, stat'), { code: 'ENOENT' }),
     );
+
+  // The broker lists the instance's video directory on EVERY call, and only a lane that recorded a
+  // screencast has one. This floor answers ENOENT for any video directory a test did not describe,
+  // which is what the real tree answers; an exact-path `setupDir` staged afterwards outranks it.
+  readdirProxy.throwsMatchingPath({
+    path: (value: unknown): boolean => String(value).endsWith(VIDEO_DIR_SUFFIX),
+    error: FsErrorStub({ code: 'ENOENT', path: evidenceFileStatics.naming.videoDir }),
+  });
 
   return {
     setupEvidenceTree: ({

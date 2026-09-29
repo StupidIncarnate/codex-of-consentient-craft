@@ -18,6 +18,12 @@
  * wait for that step to find it: the gateway step scans `packages/*` once, before this responder
  * ever creates this one.
  *
+ * Marks `recipesScaffoldState` rather than running `npm install` / `npm run build` itself — those
+ * run from `InstallRecipesFinalizeResponder`, once, after every package's `StartInstall` has
+ * finished. Running them here races other packages' own `StartInstall` still writing
+ * `package.json` (devDependencies another package adds), because the CLI's package discovery order
+ * is an unsorted `readdirSync` and this package's turn can land before theirs.
+ *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
  * // Creates packages/hydration-recipes/ with a full, lint-clean starter layout when the package is
@@ -38,9 +44,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
-import { install, runBuild } from '#gateway/bin/npm';
 import { readFile } from '#gateway/node/fs__promises';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
@@ -122,45 +128,12 @@ export const InstallRecipesScaffoldResponder = async ({
   );
 
   const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, responders.ts, ${SRC_DIRNAME}/index.ts, ${SRC_DIRNAME}/startup/, ${SRC_DIRNAME}/flows/, ${SRC_DIRNAME}/responders/)`;
-  const buildCommand = `npm run build --workspace=${recipesPackageName}`;
 
   // Until `npm install` links the freshly scaffolded workspace and `npm run build` compiles it,
-  // `recipesLocateBroker` throws `RecipesBuildMissingError` on every `siegelense recipes` call — so
-  // this ONE run, the run that just created the package, does both itself. Neither failure is
-  // fatal to the overall install: the other packages' own installs still need to run, so a failure
-  // here is reported through the result rather than thrown, naming the exact command to run by
-  // hand.
-  const targetProjectRootCwd = absoluteFilePathContract.parse(context.targetProjectRoot);
-
-  const installResult = await install({ cwd: targetProjectRootCwd });
-  if (installResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
-      success: false,
-      action: 'created',
-      message: installMessageContract.parse(
-        `${createdMessage}; npm install failed (exit ${String(installResult.exitCode)}): ` +
-          `${installResult.output} — run "npm install" at the repo root, then "${buildCommand}" ` +
-          'to finish setting it up',
-      ),
-    };
-  }
-
-  const buildResult = await runBuild({
-    cwd: targetProjectRootCwd,
-    workspace: recipesPackageName,
-  });
-  if (buildResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
-      success: false,
-      action: 'created',
-      message: installMessageContract.parse(
-        `${createdMessage}; ${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
-          `${buildResult.output} — run "${buildCommand}" to finish setting it up`,
-      ),
-    };
-  }
+  // `recipesLocateBroker` throws `RecipesBuildMissingError` on every `siegelense recipes` call —
+  // InstallRecipesFinalizeResponder does both, once every package's StartInstall has finished, but
+  // only reaches for this package when this flag says it was scaffolded THIS run.
+  recipesScaffoldState.markScaffolded({ recipesPackageName });
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

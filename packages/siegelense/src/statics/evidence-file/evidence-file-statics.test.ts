@@ -11,6 +11,7 @@ describe('evidenceFileStatics', () => {
       },
       naming: {
         shotPrefix: 'step',
+        videoDir: 'video',
       },
     });
   });

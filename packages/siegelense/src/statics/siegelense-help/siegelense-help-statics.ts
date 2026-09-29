@@ -1,11 +1,11 @@
 /**
  * PURPOSE: The `--help` text for every `dungeonmaster siegelense <call>` — one entry per built
  * call under `calls`, keyed exactly to `siegelenseCallStatics.calls.names`, plus the index page's
- * headline. `index.headline` carries only the fixed prose; `siegelenseHelpRenderTransformer`
- * appends the built-versus-total call count at render time, off `Object.keys(calls).length` and
- * `siegelenseCallStatics.calls.names.length`, so landing a call here can never leave a stale tally
- * behind. `refusals` carries prose lifted verbatim from the MCP tool description each call is
- * replacing, unchanged except for renaming a JSON field to the flag that now carries it —
+ * headline. `index.headline` carries the whole fixed prose `siegelenseHelpRenderTransformer` prints
+ * verbatim — no build-progress count appended at render time, so the index never reads like a
+ * checklist with items still outstanding. `refusals` carries prose lifted verbatim from the MCP
+ * tool description each call is replacing, unchanged except for renaming a JSON field to the flag
+ * that now carries it —
  * smoothing that wording is how a refusal stops refusing. `internal.driver` documents the driver
  * process `start` spawns; it sits outside `calls` because nobody types `driver` at a terminal.
  * Reach for this over `siegelenseCallStatics` when you need the prose a caller reads — flags,
@@ -328,7 +328,7 @@ export const siegelenseHelpStatics = {
       summary:
         'siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.',
       synopsis:
-        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--json]',
+        'dungeonmaster siegelense prune [--instance <id>] [--kind <kind>] [--older-than <window>] [--confirm] [--json]',
       flags: [
         {
           name: '--instance',
@@ -341,7 +341,7 @@ export const siegelenseHelpStatics = {
           value: '<kind>',
           required: false,
           description:
-            'one class of file: video, shot, transcript or log. Combines with --older-than. Nothing writes a video yet, so --kind video matches nothing today and says so by freeing 0.',
+            'one class of file: video, shot, transcript or log. Combines with --older-than.',
         },
         {
           name: '--older-than',
@@ -349,6 +349,13 @@ export const siegelenseHelpStatics = {
           required: false,
           description:
             'how old an asset must be to go — a whole number and one of d, h, m, s. Defaults to 7d; this call deletes, so it never defaults to taking everything.',
+        },
+        {
+          name: pruneStatics.flags.confirm,
+          value: null,
+          required: false,
+          description:
+            'actually deletes what was selected. Without it, prune is a DRY RUN: it prints what it WOULD remove and deletes nothing.',
         },
         JSON_FLAG,
       ],
@@ -359,8 +366,8 @@ export const siegelenseHelpStatics = {
         'The third citation kind, an open issue record, is NOT CHECKED: nothing in this repo stores an issue carrying a typed instanceId/runId. Every answer names it under `unresolved`, so an empty `refused` never reads as "nothing cites any of this".',
       ],
       output:
-        'By default, what was freed, what was removed, what was refused (with the citing file), and which citation kinds went unchecked. `--json` prints the raw PruneAnswer — freedMB and freedBytes, removed[] (with the tombstone flag), refused[] (each with the citing file), and unresolved[] naming every citation kind that went unchecked.',
-      example: 'dungeonmaster siegelense prune --kind video --older-than 2d',
+        'Without --confirm: a DRY RUN. Prints the same reclaim table, describing what it WOULD free, remove and refuse, but deletes nothing — the output says so plainly, and names --confirm as the flag that deletes. With --confirm: what was freed, what was removed, what was refused (with the citing file), and which citation kinds went unchecked. `--json` prints the raw PruneAnswer — freedMB and freedBytes, removed[] (with the tombstone flag), refused[] (each with the citing file), and unresolved[] naming every citation kind that went unchecked; without --confirm the DRY RUN notice prints to stderr instead, so stdout stays one valid JSON document.',
+      example: 'dungeonmaster siegelense prune --kind video --older-than 2d --confirm',
     },
     compare: {
       summary: "siegelense compare — diff two runs of one instance's timeline.",

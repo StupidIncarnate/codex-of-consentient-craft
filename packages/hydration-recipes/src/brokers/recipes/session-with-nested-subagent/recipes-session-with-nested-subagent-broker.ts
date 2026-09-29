@@ -8,10 +8,15 @@
  * `guild.id`, passed explicitly, required because this recipe has no ancestor of its own to link
  * through.
  *
- * What it returns, one meaning each:
- * - `sessionId` — the session the outer chain was written as
- * - `sessions.outer` — the route that renders the outer sub-agent chain
- * - `sessions.nested` — the route that renders the chain nested inside it
+ * Returns one row, `session`, the same nested-row shape `session-single-turn` and
+ * `session-with-nested-chain` key theirs (a `dmRegistryBroker.run` result is `{ <saveRecordAs
+ * name>: {...fields} }`) — a caller composing seeds reaches every recipe's result through the same
+ * three-segment `{binding.row.field}` form. `sessionId` matches the field name the session
+ * ingredient's own record carries; `outer` and `nested` are this recipe's own addition, since a
+ * direct-fidelity write has no ingredient route to carry them for it:
+ * - `session.sessionId` — the session the outer chain was written as
+ * - `session.outer` — the route that renders the outer sub-agent chain
+ * - `session.nested` — the route that renders the chain nested inside it
  *
  * `copies:` the Claude CLI session transcript writer — its on-disk location is
  * `claudePathSlugEncoderTransformer` (the same transformer the server resolves a session through),
@@ -21,7 +26,7 @@
  *
  * USAGE:
  * await recipesSessionWithNestedSubagentBroker({ context, guild: '7306b468-…' });
- * // Writes the three JSONL files and returns { sessionId, 'sessions.outer', 'sessions.nested' }
+ * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
 import {
@@ -33,6 +38,8 @@ import {
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
+import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
+import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
 import {
   claudePathSlugEncoderTransformer,
   streamLineToJsonLineTransformer,
@@ -42,8 +49,6 @@ import { fetchJson } from '#gateway/node/fetch';
 import { writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { guildListingContract } from '../../../contracts/guild-listing/guild-listing-contract';
 import type { RecipeContext } from '../../../contracts/recipe-context/recipe-context-contract';
-import { recipeResultContract } from '../../../contracts/recipe-result/recipe-result-contract';
-import type { RecipeResult } from '../../../contracts/recipe-result/recipe-result-contract';
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { seedFixtureStatics } from '../../../statics/seed-fixture/seed-fixture-statics';
 import { transcriptTimestampTransformer } from '../../../transformers/transcript-timestamp/transcript-timestamp-transformer';
@@ -54,7 +59,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
 }: {
   context: RecipeContext;
   guild: GuildId;
-}): Promise<RecipeResult> => {
+}): Promise<HydrationRunResult> => {
   const guildsUrl = contentTextContract.parse(
     `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
   );
@@ -249,9 +254,11 @@ export const recipesSessionWithNestedSubagentBroker = async ({
 
   const sessionRoute = `/${urlSlug}/session/${fixture.sessionId}`;
 
-  return recipeResultContract.parse({
-    sessionId: fixture.sessionId,
-    'sessions.outer': sessionRoute,
-    'sessions.nested': sessionRoute,
+  return hydrationRunResultContract.parse({
+    session: {
+      sessionId: fixture.sessionId,
+      outer: sessionRoute,
+      nested: sessionRoute,
+    },
   });
 };

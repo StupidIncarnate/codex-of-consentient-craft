@@ -61,6 +61,8 @@ const LIVE_ID = InstanceIdStub({ value: 'inst_c0000001' });
 const CITED_ID = InstanceIdStub({ value: 'inst_d0000001' });
 const BOUNDARY_ID = InstanceIdStub({ value: 'inst_e0000001' });
 const VIDEO_DEFAULT_WINDOW_ID = InstanceIdStub({ value: 'inst_f0000001' });
+const NO_CONFIRM_ID = InstanceIdStub({ value: 'inst_a0000005' });
+const CONFIRM_ID = InstanceIdStub({ value: 'inst_a0000006' });
 const GUILD = GuildIdStub({ value: 'b2c3d4e5-69de-4b2a-9c1f-112233445566' });
 const QUEST = QuestIdStub({ value: 'prune-audit' });
 
@@ -76,6 +78,8 @@ const LIVE_LOG_BODY = 'a'.repeat(64);
 const CITED_LOG_BODY = 'c'.repeat(64);
 const CITED_TRANSCRIPT_BODY = '{}\n';
 const BOUNDARY_LOG_BODY = 'b'.repeat(64);
+const NO_CONFIRM_LOG_BODY = 'q'.repeat(64);
+const CONFIRM_LOG_BODY = 'r'.repeat(64);
 
 const LOG_KIND_LOG_PATH = `siegelense/unowned/instances/${LOG_KIND_ID}/api-server.log`;
 const LOG_KIND_TRANSCRIPT_PATH = `siegelense/unowned/instances/${LOG_KIND_ID}/console.jsonl`;
@@ -107,6 +111,8 @@ const CITED_PRELUDE_RELATIVE_PATH = 'cited-worktree/.quest-plans/path-1.md';
 const BOUNDARY_LOG_PATH = `siegelense/unowned/instances/${BOUNDARY_ID}/api-server.log`;
 const VIDEO_DEFAULT_WINDOW_VIDEO_PATH = `siegelense/unowned/instances/${VIDEO_DEFAULT_WINDOW_ID}/runs/clip.webm`;
 const VIDEO_DEFAULT_WINDOW_BODY = 'd'.repeat(113);
+const NO_CONFIRM_LOG_PATH = `siegelense/unowned/instances/${NO_CONFIRM_ID}/api-server.log`;
+const CONFIRM_LOG_PATH = `siegelense/unowned/instances/${CONFIRM_ID}/api-server.log`;
 
 const REGISTRY_PATH = 'siegelense/registry.json';
 
@@ -204,6 +210,18 @@ describe('SiegelensePruneLayerFlow', () => {
                 questId: null,
                 guildId: null,
               }),
+              RegistryEntryStub({
+                id: NO_CONFIRM_ID,
+                state: 'killed',
+                questId: null,
+                guildId: null,
+              }),
+              RegistryEntryStub({
+                id: CONFIRM_ID,
+                state: 'killed',
+                questId: null,
+                guildId: null,
+              }),
             ],
           }),
         ),
@@ -257,6 +275,14 @@ describe('SiegelensePruneLayerFlow', () => {
     testbed.writeFile({
       relativePath: RelativePathStub({ value: BOUNDARY_LOG_PATH }),
       content: FileContentStub({ value: BOUNDARY_LOG_BODY }),
+    });
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: NO_CONFIRM_LOG_PATH }),
+      content: FileContentStub({ value: NO_CONFIRM_LOG_BODY }),
+    });
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: CONFIRM_LOG_PATH }),
+      content: FileContentStub({ value: CONFIRM_LOG_BODY }),
     });
 
     // A real `.webm`, backdated 3 real days through `evidenceAgeHarness` — older than cleanup's 2d
@@ -325,10 +351,26 @@ describe('SiegelensePruneLayerFlow', () => {
       videoDefaultWindowResult,
     ] = await Promise.all([
       SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(LOG_KIND_ID), '--kind', 'log', '--older-than', '0s'],
+        callArgs: [
+          '--instance',
+          String(LOG_KIND_ID),
+          '--kind',
+          'log',
+          '--older-than',
+          '0s',
+          '--confirm',
+        ],
       }),
       SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(SHOT_KIND_ID), '--kind', 'shot', '--older-than', '0s'],
+        callArgs: [
+          '--instance',
+          String(SHOT_KIND_ID),
+          '--kind',
+          'shot',
+          '--older-than',
+          '0s',
+          '--confirm',
+        ],
       }),
       SiegelensePruneLayerFlow({
         callArgs: [
@@ -338,14 +380,23 @@ describe('SiegelensePruneLayerFlow', () => {
           'transcript',
           '--older-than',
           '0s',
+          '--confirm',
         ],
       }),
       SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(VIDEO_KIND_ID), '--kind', 'video', '--older-than', '0s'],
+        callArgs: [
+          '--instance',
+          String(VIDEO_KIND_ID),
+          '--kind',
+          'video',
+          '--older-than',
+          '0s',
+          '--confirm',
+        ],
       }),
       // No `--older-than` here — this is the one sweep proving what the DEFAULT resolves to.
       SiegelensePruneLayerFlow({
-        callArgs: ['--instance', String(VIDEO_DEFAULT_WINDOW_ID), '--kind', 'video'],
+        callArgs: ['--instance', String(VIDEO_DEFAULT_WINDOW_ID), '--kind', 'video', '--confirm'],
       }),
     ]);
     videoDefaultWindowFileAfter = testbed.readFile({
@@ -361,7 +412,14 @@ describe('SiegelensePruneLayerFlow', () => {
       return true;
     }) as unknown as typeof process.stdout.write;
     await SiegelensePruneLayerFlow({
-      callArgs: ['--instance', String(SCOPE_TARGET_ID), '--older-than', '0s', '--json'],
+      callArgs: [
+        '--instance',
+        String(SCOPE_TARGET_ID),
+        '--older-than',
+        '0s',
+        '--json',
+        '--confirm',
+      ],
     });
     process.stdout.write = targetOriginalWrite;
     const [targetWholeOutput] = targetWrites;
@@ -374,7 +432,7 @@ describe('SiegelensePruneLayerFlow', () => {
       return true;
     }) as unknown as typeof process.stdout.write;
     await SiegelensePruneLayerFlow({
-      callArgs: ['--instance', String(CITED_ID), '--older-than', '0s', '--json'],
+      callArgs: ['--instance', String(CITED_ID), '--older-than', '0s', '--json', '--confirm'],
     });
     process.stdout.write = citedOriginalWrite;
     const [citedWholeOutput] = citedWrites;
@@ -387,7 +445,7 @@ describe('SiegelensePruneLayerFlow', () => {
       return true;
     }) as unknown as typeof process.stdout.write;
     await SiegelensePruneLayerFlow({
-      callArgs: ['--instance', String(LIVE_ID), '--older-than', '0s'],
+      callArgs: ['--instance', String(LIVE_ID), '--older-than', '0s', '--confirm'],
     });
     process.stdout.write = liveOriginalWrite;
     const [liveWholeOutput] = liveWrites;
@@ -404,7 +462,7 @@ describe('SiegelensePruneLayerFlow', () => {
       return true;
     }) as unknown as typeof process.stdout.write;
     await SiegelensePruneLayerFlow({
-      callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '1d', '--json'],
+      callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '1d', '--json', '--confirm'],
     });
     process.stdout.write = boundaryTooYoungOriginalWrite;
     const [boundaryTooYoungWholeOutput] = boundaryTooYoungWrites;
@@ -423,7 +481,7 @@ describe('SiegelensePruneLayerFlow', () => {
       return true;
     }) as unknown as typeof process.stdout.write;
     await SiegelensePruneLayerFlow({
-      callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '0s', '--json'],
+      callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '0s', '--json', '--confirm'],
     });
     process.stdout.write = boundaryPastWindowOriginalWrite;
     const [boundaryPastWindowWholeOutput] = boundaryPastWindowWrites;
@@ -440,7 +498,7 @@ describe('SiegelensePruneLayerFlow', () => {
   });
 
   describe('--kind filters to exactly that kind', () => {
-    it('VALID: {kind: log} => removes only the log asset, leaving shot, transcript and video on disk', () => {
+    it('VALID: {kind: log} => removes the process log AND the capture buffer, since both classify as log, leaving shot and video on disk', () => {
       const logAfter = testbed.readFile({
         relativePath: RelativePathStub({ value: LOG_KIND_LOG_PATH }),
       });
@@ -456,7 +514,9 @@ describe('SiegelensePruneLayerFlow', () => {
 
       expect(logKindResult).toStrictEqual({ success: true });
       expect(logAfter).toBe(null);
-      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
+      // console.jsonl is a per-instance capture buffer, not a Claude-style session transcript — it
+      // classifies as `log`, the same as api-server.log, and goes with it.
+      expect(transcriptAfter).toBe(null);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
@@ -482,7 +542,7 @@ describe('SiegelensePruneLayerFlow', () => {
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
 
-    it('VALID: {kind: transcript} => removes only the transcript asset, leaving log, shot and video on disk', () => {
+    it('VALID: {kind: transcript} => matches nothing today, since no Claude-style session transcript is tracked yet — the log, buffer, shot and video all survive', () => {
       const logAfter = testbed.readFile({
         relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_LOG_PATH }),
       });
@@ -498,7 +558,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
       expect(transcriptKindResult).toStrictEqual({ success: true });
       expect(logAfter).toBe(KIND_LOG_BODY);
-      expect(transcriptAfter).toBe(null);
+      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
@@ -563,7 +623,7 @@ describe('SiegelensePruneLayerFlow', () => {
           },
         ],
         refused: [],
-        unresolved: [],
+        unresolved: [{ kind: 'open-issue', why: OPEN_ISSUE_GAP_WHY }],
       });
     });
 
@@ -655,8 +715,59 @@ describe('SiegelensePruneLayerFlow', () => {
           { id: String(BOUNDARY_ID), kind: null, freedBytes: 64, freedMB: 0, tombstoned: true },
         ],
         refused: [],
-        unresolved: [],
+        unresolved: [{ kind: 'open-issue', why: OPEN_ISSUE_GAP_WHY }],
       });
+      expect(after).toBe(null);
+    });
+  });
+
+  describe('bare prune, with no --confirm', () => {
+    it('VALID: {--instance a killed instance, --older-than 0s, no --confirm} => the file survives on disk, exit is still 0, and the output says plainly nothing was deleted and which flag deletes', async () => {
+      const writes: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        writes.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      const result = await SiegelensePruneLayerFlow({
+        callArgs: ['--instance', String(NO_CONFIRM_ID), '--older-than', '0s'],
+      });
+
+      process.stdout.write = originalWrite;
+
+      const after = testbed.readFile({
+        relativePath: RelativePathStub({ value: NO_CONFIRM_LOG_PATH }),
+      });
+      const registryAfter = RegistryStub(
+        JSON.parse(
+          String(testbed.readFile({ relativePath: RelativePathStub({ value: REGISTRY_PATH }) })),
+        ) as never,
+      );
+      const rowAfter = registryAfter.instances.find(
+        (entry) => String(entry.id) === String(NO_CONFIRM_ID),
+      );
+
+      expect(result).toStrictEqual({ success: true });
+      expect(after).toBe(NO_CONFIRM_LOG_BODY);
+      expect(rowAfter?.state).toBe('killed');
+      expect(String(writes[0])).toBe(
+        'DRY RUN — nothing was deleted. Pass --confirm to actually remove these.\n',
+      );
+    });
+  });
+
+  describe('prune with --confirm', () => {
+    it('VALID: {--instance a killed instance, --older-than 0s, --confirm} => the file is genuinely removed from disk', async () => {
+      const result = await SiegelensePruneLayerFlow({
+        callArgs: ['--instance', String(CONFIRM_ID), '--older-than', '0s', '--confirm'],
+      });
+
+      const after = testbed.readFile({
+        relativePath: RelativePathStub({ value: CONFIRM_LOG_PATH }),
+      });
+
+      expect(result).toStrictEqual({ success: true });
       expect(after).toBe(null);
     });
   });

@@ -4,11 +4,13 @@
 
 The CLI package provides the `dungeonmaster` binary:
 
-- `dungeonmaster init` - Discovers all packages and runs their `StartInstall` functions to set up devDependencies
+- `dungeonmaster init` - Discovers all packages and runs their `StartInstall` functions to set up devDependencies,
+  then runs every package's optional `StartInstallFinalize` (`start-install-finalize.js`) once every package's
+  `StartInstall` has finished
 - `dungeonmaster create-package` - Scaffolds a new workspace package (see below)
 - `dungeonmaster statusline-tap` - Reads Claude Code's statusline payload on stdin, records rate limits, echoes it back
 - `dungeonmaster siegelense driver --instance <id>` - Launches the siegelense driver process for one instance;
-  `dungeonmaster siegelense` bare prints the fleet registry as a table for a person at a terminal
+  `dungeonmaster siegelense` bare prints the same view as `dungeonmaster siegelense status`
 - `dungeonmaster` (default) - Launches the HTTP server and opens the web UI in a browser
 
 ## Key Files
@@ -101,9 +103,11 @@ a process spawned above `CliSiegelenseResponder` can prove the gate itself stays
 dungeonmaster init
   -> StartCli({ command: 'init' })
     -> installRunBroker({ context })
-      -> packageDiscoverBroker({ dungeonmasterRoot })  // finds packages/*/dist/startup/start-install.js
+      -> packageDiscoverBroker({ dungeonmasterRoot })  // finds packages/*/dist/startup/start-install.js and each package's optional dist/startup/start-install-finalize.js
       -> installOrchestrateBroker({ packages, context })
-        -> installExecuteBroker() for each package     // dynamic import + call StartInstall
+        -> installExecuteBroker() for each package                    // dynamic import + call StartInstall
+      -> installFinalizeOrchestrateBroker({ packages, context })       // after every package's StartInstall above has finished
+        -> installExecuteBroker({ exportName: 'StartInstallFinalize' }) for each package that has a start-install-finalize.js
 ```
 
 ## Testing

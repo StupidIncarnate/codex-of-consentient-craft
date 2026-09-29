@@ -1,6 +1,7 @@
 /**
  * PURPOSE: Everything one instance has on disk that `prune` and `cleanup` may take, weighed and
- * dated, plus the run ids that tree holds. It reads and deletes nothing: knowing what would go, and
+ * dated, plus the run ids that tree holds — the lane's `video/` directory included, since `--kind
+ * video` has nothing to match without it. It reads and deletes nothing: knowing what would go, and
  * how much it is worth, has to happen BEFORE the citation resolver is asked whether any of it may,
  * and the run ids are half of that question — a `VERIFIED` prelude names a RUN, and only this tree
  * says which runs are this instance's. Reach for this over `locationsPruneAssetPathsFindBroker`:
@@ -38,7 +39,6 @@ const RUN_FILE_SUFFIX = new RegExp(
 );
 
 const LOG_KIND = pruneAssetKindContract.parse('log');
-const TRANSCRIPT_KIND = pruneAssetKindContract.parse('transcript');
 
 export const pruneAssetsListBroker = async ({
   entry,
@@ -49,7 +49,9 @@ export const pruneAssetsListBroker = async ({
     instanceId: entry.id,
     guildId: entry.guildId,
   });
-  const { runsDir, logs, transcripts } = locationsPruneAssetPathsFindBroker({ evidencePath });
+  const { runsDir, videoDir, logs, transcripts } = locationsPruneAssetPathsFindBroker({
+    evidencePath,
+  });
 
   const logRows = await Promise.all(
     logs.map(async (filePath) => {
@@ -67,6 +69,9 @@ export const pruneAssetsListBroker = async ({
     }),
   );
 
+  // The three per-instance capture buffers classify as `log`, not `transcript` — a session
+  // transcript is a Claude-style `.jsonl` under `.claude/projects/`, which this call does not list.
+  // These are the instance's own capture record, the same as the process logs above.
   const bufferRows = await Promise.all(
     transcripts.map(async (filePath) => {
       const stat = await fsStatAdapter({ filePath });
@@ -75,7 +80,7 @@ export const pruneAssetsListBroker = async ({
         : [
             pruneAssetContract.parse({
               path: filePath,
-              kind: TRANSCRIPT_KIND,
+              kind: LOG_KIND,
               sizeBytes: stat.sizeBytes,
               modifiedAtMs: stat.modifiedAtMs,
             }),
@@ -122,8 +127,40 @@ export const pruneAssetsListBroker = async ({
     runIds.map(async (runId) => runShotsLayerBroker({ evidencePath, runId })),
   );
 
+  const videoEntries = (await readdirIfExists(videoDir)) ?? [];
+  const videoRows = await Promise.all(
+    videoEntries.map(async (entryName) => {
+      const fileName = fileNameContract.parse(entryName);
+      const kind = pruneAssetClassifyTransformer({ fileName });
+
+      if (kind === null) {
+        return [];
+      }
+
+      const filePath = absoluteFilePathContract.parse(join(videoDir, fileName));
+      const stat = await fsStatAdapter({ filePath });
+
+      return stat === null
+        ? []
+        : [
+            pruneAssetContract.parse({
+              path: filePath,
+              kind,
+              sizeBytes: stat.sizeBytes,
+              modifiedAtMs: stat.modifiedAtMs,
+            }),
+          ];
+    }),
+  );
+
   return {
-    assets: [...logRows.flat(), ...bufferRows.flat(), ...runFileRows.flat(), ...shotRows.flat()],
+    assets: [
+      ...logRows.flat(),
+      ...bufferRows.flat(),
+      ...runFileRows.flat(),
+      ...shotRows.flat(),
+      ...videoRows.flat(),
+    ],
     runIds,
   };
 };

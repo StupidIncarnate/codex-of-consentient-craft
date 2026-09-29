@@ -51,12 +51,14 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
       ]);
     });
@@ -155,12 +157,14 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/npm' }),
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
       ]);
     });
@@ -220,12 +224,82 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
           installPath: FilePathStub({
             value:
               '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+          }),
+          finalizeInstallPath: null,
+        },
+      ]);
+    });
+  });
+
+  describe('a package with a start-install-finalize.js sibling', () => {
+    it('VALID: {siegelense holds both start-install.js and start-install-finalize.js} => finalizeInstallPath is populated', () => {
+      const proxy = packageDiscoverBrokerProxy();
+      const dungeonmasterRoot = FilePathStub({ value: '/dm' });
+
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'siegelense' }),
+            standardPath: FilePathStub({
+              value: '/dm/packages/siegelense/dist/startup/start-install.js',
+            }),
+            installerLocation: 'standard',
+            hasFinalize: true,
+          },
+        ],
+      });
+
+      const result = packageDiscoverBroker({ dungeonmasterRoot });
+
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
+          installPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/startup/start-install.js',
+          }),
+          finalizeInstallPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
+          }),
+        },
+      ]);
+    });
+
+    it('VALID: {installer at the alternate dist/src/startup location, with a finalize sibling} => finalizeInstallPath sits beside the alternate installer', () => {
+      const proxy = packageDiscoverBrokerProxy();
+      const dungeonmasterRoot = FilePathStub({ value: '/dm' });
+
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'siegelense' }),
+            standardPath: FilePathStub({
+              value: '/dm/packages/siegelense/dist/startup/start-install.js',
+            }),
+            installerLocation: 'alternate',
+            hasFinalize: true,
+          },
+        ],
+      });
+
+      const result = packageDiscoverBroker({ dungeonmasterRoot });
+
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
+          installPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/src/startup/start-install.js',
+          }),
+          finalizeInstallPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/src/startup/start-install-finalize.js',
           }),
         },
       ]);
@@ -258,6 +332,7 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/path/with spaces/packages/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
       ]);
     });

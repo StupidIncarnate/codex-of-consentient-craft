@@ -382,7 +382,9 @@ export const instanceStartBroker = async ({
     );
     if (bootedEntry === undefined) {
       throw new Error(
-        `instanceStartBroker: ${reservedEntry.id} not found in the registry after boot`,
+        `Instance ${reservedEntry.id} booted but is missing from the registry now — run ` +
+          `'dungeonmaster siegelense status' to check the fleet, or start a fresh instance with ` +
+          `'dungeonmaster siegelense start'.`,
       );
     }
 

@@ -30,6 +30,10 @@ This is a **published npm package** (`dungeonmaster`). When users install it in 
 1. Discovers all packages in `packages/*/dist/startup/start-install.js`
 2. Dynamically imports and executes each package's `StartInstall` function
 3. Each package's install script sets up its own config (e.g., CLI adds devDependencies, etc.)
+4. Once every package's `StartInstall` has finished, dynamically imports and executes each package's OPTIONAL
+   `start-install-finalize.js` (`StartInstallFinalize`) — an after-all-installs step, for logic that must not run
+   until every package's own `StartInstall` has written its part (e.g. `npm install` for a freshly scaffolded
+   workspace package)
 
 **Every consumer repo is an npm-workspaces monorepo, with packages under `packages/*`.** This is a constraint, not
 a gap. Install scripts and runtime code may assume that layout. Do not add a fallback for a single-package repo.

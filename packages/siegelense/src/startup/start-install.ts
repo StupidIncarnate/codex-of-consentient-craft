@@ -3,6 +3,9 @@
  * CLI's `packageDiscoverBroker` finds at `dist/startup/start-install.js` and dynamically imports
  * for its `StartInstall` export. `start-siegelense.ts` beside this file is a different entry
  * point entirely (the `siegelense run` command flow), so it is untouched by this one.
+ * `start-install-finalize.ts` beside this file is siegelense's OTHER install entry point — the CLI
+ * orchestration layer's "after all installs" pass (DEF-99) — kept in its own file because a
+ * `startup/` file exports exactly one value named for itself.
  *
  * USAGE:
  * const result = await StartInstall({ context });

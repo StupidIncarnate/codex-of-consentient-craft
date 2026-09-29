@@ -532,6 +532,31 @@ describe('instanceStartBroker', () => {
     });
   });
 
+  describe('the registry read after boot never gained the booted row', () => {
+    it('ERROR: {registry after boot has no row for this instance} => throws the plain sentence naming the instance and next steps', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [] }),
+      });
+
+      await expect(
+        instanceStartBroker({
+          specName: SpecNameStub({ value: 'api' }),
+          questId: null,
+          guildId: null,
+          seed: null,
+        }),
+      ).rejects.toStrictEqual(
+        new Error(
+          `Instance ${instanceId} booted but is missing from the registry now — run 'dungeonmaster siegelense status' to check the fleet, or start a fresh instance with 'dungeonmaster siegelense start'.`,
+        ),
+      );
+    });
+  });
+
   describe('quest and guild partitioning', () => {
     it('VALID: {no quest} => the evidence path files under unowned', async () => {
       const proxy = instanceStartBrokerProxy();

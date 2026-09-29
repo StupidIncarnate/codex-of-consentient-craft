@@ -45,6 +45,7 @@ const CITED_ID = InstanceIdStub({ value: 'inst_1111c17e' });
 const UNCITED_ID = InstanceIdStub({ value: 'inst_2222faaa' });
 const NEIGHBOUR_ID = InstanceIdStub({ value: 'inst_3333beef' });
 const LIVE_ID = InstanceIdStub({ value: 'inst_4444a11e' });
+const DRY_RUN_ID = InstanceIdStub({ value: 'inst_5555d0e5' });
 const GUILD = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const QUEST = QuestIdStub({ value: 'add-auth' });
 
@@ -68,15 +69,19 @@ describe('prune, against a real evidence tree', () => {
   let uncitedEvidence: ReturnType<typeof locationsInstanceEvidencePathFindBroker> | null = null;
   let neighbourEvidence: ReturnType<typeof locationsInstanceEvidencePathFindBroker> | null = null;
   let liveEvidence: ReturnType<typeof locationsInstanceEvidencePathFindBroker> | null = null;
+  let dryRunEvidence: ReturnType<typeof locationsInstanceEvidencePathFindBroker> | null = null;
   let freshWindowSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
   let neighbourSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
   let fleetSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
+  let dryRunSweep: Awaited<ReturnType<typeof pruneRunBroker>> | null = null;
   let neighbourLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
   let uncitedLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
   let citedLogAfterScopedSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
   let uncitedLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
   let citedLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
   let liveLogAfterFleetSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
+  let dryRunLogAfterSweep: Awaited<ReturnType<typeof fsStatAdapter>> = null;
+  let dryRunRegistryAfterDryRunSweep: Awaited<ReturnType<typeof registryReadBroker>> | null = null;
   let registryAfter: Awaited<ReturnType<typeof registryReadBroker>> | null = null;
 
   beforeAll(async () => {
@@ -158,6 +163,24 @@ describe('prune, against a real evidence tree', () => {
             prunedAtMs: null,
             prunedByRule: null,
           }),
+          RegistryEntryStub({
+            id: DRY_RUN_ID,
+            owner: InstanceOwnerStub(),
+            specName: SpecNameStub(),
+            specHash: SpecHashStub(),
+            pid: null,
+            pgids: [],
+            socketPath: null,
+            ports: PortPairStub({ api: 41_041, web: 41_042 }),
+            state: 'killed',
+            questId: null,
+            guildId: null,
+            reservedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            bootedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            lastBeatMs: null,
+            prunedAtMs: null,
+            prunedByRule: null,
+          }),
         ],
       },
     });
@@ -175,25 +198,31 @@ describe('prune, against a real evidence tree', () => {
       guildId: null,
     });
     liveEvidence = locationsInstanceEvidencePathFindBroker({ instanceId: LIVE_ID, guildId: null });
+    dryRunEvidence = locationsInstanceEvidencePathFindBroker({
+      instanceId: DRY_RUN_ID,
+      guildId: null,
+    });
 
     const body = FileContentsStub({ value: 'x'.repeat(LOG_BYTES) });
 
     await Promise.all(
-      [citedEvidence, uncitedEvidence, neighbourEvidence, liveEvidence].map(async (evidenceDir) => {
-        await ensureDir(`${evidenceDir}/runs/run_2`);
-        await fsWriteFileAdapter({
-          filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/api-server.log` }),
-          contents: body,
-        });
-        await fsWriteFileAdapter({
-          filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2.jsonl` }),
-          contents: FileContentsStub({ value: TRANSCRIPT_TEXT }),
-        });
-        await fsWriteFileAdapter({
-          filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2/step1.png` }),
-          contents: FileContentsStub({ value: SHOT_TEXT }),
-        });
-      }),
+      [citedEvidence, uncitedEvidence, neighbourEvidence, liveEvidence, dryRunEvidence].map(
+        async (evidenceDir) => {
+          await ensureDir(`${evidenceDir}/runs/run_2`);
+          await fsWriteFileAdapter({
+            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/api-server.log` }),
+            contents: body,
+          });
+          await fsWriteFileAdapter({
+            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2.jsonl` }),
+            contents: FileContentsStub({ value: TRANSCRIPT_TEXT }),
+          });
+          await fsWriteFileAdapter({
+            filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/runs/run_2/step1.png` }),
+            contents: FileContentsStub({ value: SHOT_TEXT }),
+          });
+        },
+      ),
     );
 
     // The quest the cited instance was started for: OPEN, with a walked note naming it and run_2,
@@ -249,6 +278,20 @@ describe('prune, against a real evidence tree', () => {
     citedLogAfterScopedSweep = await fsStatAdapter({
       filePath: AbsoluteFilePathStub({ value: `${citedEvidence}/api-server.log` }),
     });
+
+    // Sweep 2.5 — a dry run, scoped to its own instance so sweep 3's real fleet-wide sweep below
+    // (which would otherwise genuinely take this same instance) cannot contaminate what this proves.
+    // Captured HERE, before sweep 3 runs, for the same reason siegelense-prune-layer-flow's own
+    // integration test captures BOUNDARY_ID's state between two sweeps: reading disk from an `it()`
+    // would only ever see the state AFTER every beforeAll sweep has run.
+    dryRunSweep = await pruneRunBroker({
+      query: PruneQueryStub({ instanceId: DRY_RUN_ID, kind: null, olderThan: '0s' as never }),
+      dryRun: true,
+    });
+    dryRunLogAfterSweep = await fsStatAdapter({
+      filePath: AbsoluteFilePathStub({ value: `${dryRunEvidence}/api-server.log` }),
+    });
+    dryRunRegistryAfterDryRunSweep = await registryReadBroker();
 
     // Sweep 3 — the whole fleet, everything up to this instant.
     fleetSweep = await pruneRunBroker({
@@ -312,6 +355,12 @@ describe('prune, against a real evidence tree', () => {
     it('VALID: {--instance the neighbour} => the CITED instance next door still has its log too', () => {
       expect(citedLogAfterScopedSweep?.sizeBytes).toBe(LOG_BYTES);
     });
+
+    it('VALID: {--instance the neighbour, no quest at all} => the answer still names open-issue as unchecked, because that gap is permanent, not conditioned on quest ownership', () => {
+      expect(neighbourSweep?.unresolved.map((gap) => String(gap.kind))).toStrictEqual([
+        'open-issue',
+      ]);
+    });
   });
 
   describe('a fleet sweep past the window', () => {
@@ -366,6 +415,34 @@ describe('prune, against a real evidence tree', () => {
 
     it('VALID: {a sweep touching a quest-owned instance} => the answer names open-issue as never checked, rather than reporting silence as "nothing cites this"', () => {
       expect(fleetSweep?.unresolved.map((gap) => String(gap.kind))).toStrictEqual(['open-issue']);
+    });
+  });
+
+  describe('dryRun: true (DEF-49)', () => {
+    it('VALID: {--instance the dry-run instance, --older-than 0s, dryRun: true} => reports the removal it would have made, with the real bytes its tree held', () => {
+      expect(dryRunSweep?.removed).toStrictEqual([
+        {
+          id: String(DRY_RUN_ID),
+          kind: null,
+          freedBytes: TREE_BYTES,
+          freedMB: 3,
+          tombstoned: true,
+        },
+      ]);
+    });
+
+    it('VALID: {the same dry run} => its log is still on disk — nothing was actually unlinked', () => {
+      expect(dryRunLogAfterSweep?.sizeBytes).toBe(LOG_BYTES);
+    });
+
+    it('VALID: {the same dry run} => the registry row is untouched, not tombstoned — nothing on disk changed to justify one', () => {
+      const row = dryRunRegistryAfterDryRunSweep?.instances.find(
+        (entry) => String(entry.id) === String(DRY_RUN_ID),
+      );
+
+      expect(String(row?.state)).toBe('killed');
+      expect(row?.prunedAtMs).toBe(null);
+      expect(row?.prunedByRule).toBe(null);
     });
   });
 });

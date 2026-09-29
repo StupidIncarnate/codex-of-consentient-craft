@@ -29,6 +29,7 @@ import { CompareQueryStub } from '../../contracts/compare-query/compare-query.st
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
 import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
@@ -73,7 +74,7 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the bare invocation', () => {
-    it('VALID: {args: []} => routes to the fleet responder and reports an empty fleet', async () => {
+    it('VALID: {args: []} => routes to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -85,15 +86,54 @@ describe('SiegelenseFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      // MACHINE reads live statfs/loadavg — stripped the same way the status route's own
+      // assertion strips it, so this stays deterministic.
+      const [wholeOutput] = writes;
+      const withoutLiveMachineLine = wholeOutput!.replace(/^MACHINE: .*\n/mu, '');
+
+      expect(withoutLiveMachineLine).toBe(
+        `MONITORED: ${machineStatics.monitored.join(', ')}\n` +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
+    });
+
+    it('VALID: {args: []} => produces byte-identical output to {args: [status]} — one fleet view, not two', async () => {
+      const bareWrites: ReturnType<typeof ContentTextStub>[] = [];
+      const originalWrite = process.stdout.write.bind(process.stdout);
+      process.stdout.write = ((chunk: string): boolean => {
+        bareWrites.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseFlow({ args: [] });
+
+      const statusWrites: ReturnType<typeof ContentTextStub>[] = [];
+      process.stdout.write = ((chunk: string): boolean => {
+        statusWrites.push(ContentTextStub({ value: chunk }));
+        return true;
+      }) as unknown as typeof process.stdout.write;
+
+      await SiegelenseFlow({ args: ['status'] });
+
+      process.stdout.write = originalWrite;
+
+      // MACHINE reads live statfs/loadavg independently on each call, so the two readings can
+      // differ by a byte even though both routes reach the identical responder — stripped from
+      // both sides the same way the other MACHINE-bearing assertions in this file strip it.
+      const [bareOutput] = bareWrites;
+      const [statusOutput] = statusWrites;
+
+      expect(bareOutput!.replace(/^MACHINE: .*\n/mu, '')).toBe(
+        statusOutput!.replace(/^MACHINE: .*\n/mu, ''),
+      );
     });
   });
 
   describe('the driver route', () => {
-    it('ERROR: {args: driver --instance <unreserved id>} => routes to the driver responder, which rejects naming the instance', async () => {
+    it('ERROR: {args: driver --instance <unreserved id>} => routes to the driver responder, which rejects with InstanceUnknownError', async () => {
       await expect(
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
-      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
     });
 
     it('ERROR: {args: driver --instance <badly-shaped id>} => rejects the id shape naming --instance rather than a raw ZodError', async () => {
@@ -102,6 +142,66 @@ describe('SiegelenseFlow', () => {
       ).rejects.toThrow(
         /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
       );
+    });
+
+    it('INVALID: {args: driver --bogus} => refuses --bogus as an unknown flag before ever checking --instance is present', async () => {
+      await expect(SiegelenseFlow({ args: ['driver', '--bogus'] })).rejects.toThrow(
+        /^Unknown flag: --bogus\n\nAccepted flags: --instance, --idle-timeout-ms\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
+      );
+    });
+
+    it('VALID: {args: driver --instance <unreserved id> --idle-timeout-ms 5000} => --idle-timeout-ms is not refused as unknown, and parsing reaches the registry lookup', async () => {
+      await expect(
+        SiegelenseFlow({
+          args: ['driver', '--instance', 'inst_dead0000', '--idle-timeout-ms', '5000'],
+        }),
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
+    });
+  });
+
+  describe('the EPIPE guard on process.stdout', () => {
+    it('VALID: {an EPIPE-coded error reaches process.stdout after SiegelenseFlow has run} => the installed listener returns normally rather than rethrowing', async () => {
+      // The driver route rejects before any stdout write (its own describe block above proves
+      // it), so this installs the guard without ever touching the real stdout write path —
+      // SiegelenseFlow registers the guard before routing, whatever the route does afterward.
+      await expect(
+        SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
+
+      const listeners = process.stdout.listeners('error') as ((
+        error: NodeJS.ErrnoException,
+      ) => void)[];
+      const installedListener = listeners.at(-1)!;
+      const epipeError = Object.assign(new Error('write EPIPE'), {
+        code: 'EPIPE',
+      }) as NodeJS.ErrnoException;
+
+      // Calling the real installed listener directly: a broken guard throws HERE and fails the
+      // test outright — the codebase's own does-not-throw idiom (proxy
+      // network-record-playwright-broker.test.ts), never a banned `.not.toThrow()` wrapper. The
+      // trailing write proves the stream itself is still healthy afterward, not merely that this
+      // one call returned.
+      installedListener(epipeError);
+
+      expect(process.stdout.write('')).toBe(true);
+    });
+
+    it('ERROR: {a non-EPIPE-coded error reaches process.stdout after SiegelenseFlow has run} => the installed listener still rethrows it', async () => {
+      await expect(
+        SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
+
+      const listeners = process.stdout.listeners('error') as ((
+        error: NodeJS.ErrnoException,
+      ) => void)[];
+      const installedListener = listeners.at(-1)!;
+      const otherError = Object.assign(new Error('write EACCES'), {
+        code: 'EACCES',
+      }) as NodeJS.ErrnoException;
+
+      expect(() => {
+        installedListener(otherError);
+      }).toThrow(/write EACCES/u);
     });
   });
 

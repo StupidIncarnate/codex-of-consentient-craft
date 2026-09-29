@@ -3,7 +3,8 @@
  *
  * USAGE:
  * const result = await GuildUpdateResponder({ params: { guildId: 'abc' }, body: { name: 'New' } });
- * // Returns { status: 200, data: guild } or { status: 400/500, data: { error } }
+ * // Returns { status: 200, data: guild } or { status: 400/409/500, data: { error } } — 409 when
+ * // the new path is already registered to another guild
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -56,8 +57,11 @@ export const GuildUpdateResponder = async ({
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guild });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update guild';
+    const isConflict = message.startsWith('A guild with path');
     return responderResultContract.parse({
-      status: httpStatusStatics.serverError.internal,
+      status: isConflict
+        ? httpStatusStatics.clientError.conflict
+        : httpStatusStatics.serverError.internal,
       data: { error: message },
     });
   }

@@ -132,7 +132,9 @@ export const instanceReserveBroker = async ({
 
   if (writtenEntry === undefined) {
     throw new Error(
-      `instanceReserveBroker: ${resolvedInstanceId} not found in the updated registry`,
+      `Instance ${resolvedInstanceId} was written to the registry but is missing from it now — ` +
+        `run 'dungeonmaster siegelense status' to check the fleet, or start a fresh instance with ` +
+        `'dungeonmaster siegelense start'.`,
     );
   }
 

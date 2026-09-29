@@ -3,7 +3,8 @@
  *
  * USAGE:
  * const result = await GuildAddResponder({ body: { name: 'My Guild', path: '/projects/guild' } });
- * // Returns { status: 201, data: guild } or { status: 400/500, data: { error } }
+ * // Returns { status: 201, data: guild } or { status: 400/409/500, data: { error } } — 409 when the
+ * // path is already registered to another guild
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -36,8 +37,11 @@ export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<Re
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to add guild';
+    const isConflict = message.startsWith('A guild with path');
     return responderResultContract.parse({
-      status: httpStatusStatics.serverError.internal,
+      status: isConflict
+        ? httpStatusStatics.clientError.conflict
+        : httpStatusStatics.serverError.internal,
       data: { error: message },
     });
   }

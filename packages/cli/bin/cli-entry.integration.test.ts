@@ -6,7 +6,7 @@
  */
 
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
-import { siegelenseCallStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
+import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliBinHarness } from '../test/harnesses/cli-bin/cli-bin.harness';
 
@@ -26,10 +26,9 @@ const PROFILE_UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: profile\n\n' +
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
   'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]\n';
-// Same two lists and the same arithmetic siegelenseHelpRenderTransformer performs over them, so
-// landing a call updates this alongside the renderer instead of leaving a literal behind for the
-// next one to go stale against.
-const EXPECTED_INDEX_HEADLINE = `${siegelenseHelpStatics.index.headline} ${BUILT_CALL_NAMES.length} of ${siegelenseCallStatics.calls.names.length} calls are built.`;
+// The rendered index carries no build-progress count — read straight off the same static
+// siegelenseHelpRenderTransformer prints verbatim, so this can never go stale against it.
+const EXPECTED_INDEX_HEADLINE = siegelenseHelpStatics.index.headline;
 // This suite's own beforeAll runs every spawn in parallel (Promise.all), so the wall time it
 // costs is close to ONE spawn's, not the sum of fifteen. Each spawn still carries its own
 // RUN_COMMAND_TIMEOUT_MS kill timer inside the harness; this is the outer jest hook budget.
@@ -167,4 +166,27 @@ describe('dungeonmaster siegelense subcommand seam', () => {
       stderr: PROFILE_UNKNOWN_SUBCOMMAND_STDERR,
     });
   });
+});
+
+describe('dungeonmaster siegelense piped into a reader that closes early', () => {
+  const harness = cliBinHarness();
+
+  // DEF-90 (2): agents pipe siegelense output into `head` constantly. Before SiegelenseFlow
+  // registered an EPIPE guard on process.stdout, a closed reader crashed the CLI with an unhandled
+  // `Error: write EPIPE` and a raw Node stack trace on stderr, exit code 1 — measured directly
+  // against this exact spawn while this fix was under construction. `head -n 0` (this harness's
+  // own comment says why) reproduces that deterministically for the bare invocation, which is now
+  // the smallest possible siegelense output.
+  it(
+    'VALID: {dungeonmaster siegelense | head -n 0} => the CLI still exits 0, with no EPIPE stack trace on stderr',
+    async () => {
+      const { cliExitCode, cliStderr } = await harness.runWithClosedStdoutReader({
+        args: ['siegelense'],
+      });
+
+      expect(cliExitCode).toBe(ExitCodeStub({ value: 0 }));
+      expect(cliStderr).toBe('');
+    },
+    SPAWNS_TIMEOUT_MS,
+  );
 });

@@ -93,11 +93,10 @@ export const recipesQuestCompletedBroker = recipe(
           }),
           ops[1].saveRecordAs({ name: WARD_OPERATION_SAVED_NAME }),
         ]),
-        // Drops the riftcarver operation a live target's real START route auto-seeds when the
-        // walk above passes through `in_progress` on its way to `complete` — `expect: 'any'`
-        // tolerates the zero matches a `write` target leaves (nothing auto-seeds there) as well as
-        // the one a live target does, so `operations` below is always exactly the codeweaver/ward
-        // pair this recipe means to describe as "complete with all workflow operations finished".
+        // Drops only the auto-seeded riftcarver operation — `expect: 'any'` covers the zero
+        // matches a `write` target leaves and the one a live target's real START route does.
+        // That same route force-completes `chaoswhisperer` rather than removing it, so it
+        // survives on a live target's ledger, complete, matching production (DEF-100).
         q[0].operations
           .filter({
             where: { role: operationFieldsContract.shape.role.parse('riftcarver') },

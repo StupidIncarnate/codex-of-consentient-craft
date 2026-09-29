@@ -171,14 +171,21 @@ Do all of these before your final reply. A background command dies with your fin
 - **Siegelense and the other CLIs run compiled output.** A source fix does nothing until a build.
 - **The global `dungeonmaster` may not be this
   checkout.** `npm link --workspaces` run inside a worktree points the global binary at THAT worktree. On 2026-09-27 it pointed at `worktrees/gateway-pivot`, so a fresh build of `master`
-  never showed. Check with `readlink -f $(which dungeonmaster)`. Run cases as
-  `node packages/cli/dist/bin/dungeonmaster.js siegelense ...` from the main checkout. Re-link with
+  never showed. Check with `readlink -f $(which dungeonmaster)`. Re-link with
   `npm link --workspaces` from the main checkout only once the user says the other session is done with its link.
+- **Run every siegelense case as `npm run siegelense -- <call> [flags]` from the repo root.** The script
+  sets `DUNGEONMASTER_HOME` to `<repo>/.dungeonmaster`, the home `npm run prod` uses, so `--quest`/`--guild` find
+  this repo's quests. A bare `dungeonmaster siegelense` reads `~/.dungeonmaster` instead. Show the case's command
+  in this form.
 - **Never run a call you have not read the help for, as a "bad input"
   probe.** Bare `prune` takes no required flag and deletes evidence. See DEF-49.
 - **`npm run dev` is root-only.** Never run it inside a workspace. Root `CLAUDE.md` says why.
 - **An edit anywhere under `packages/*/src` restarts a watching dev server for about 1.5 seconds.** A sub-agent
   editing code will blip a UI you are looking at. Use a siegelense instance for UI cases: its lanes do not watch files.
+- **A case that reads a web page is checked against the real DOM in Chrome.** Open the lane's `URL:` in Chrome
+  (claude-in-chrome tools), dump the DOM, and compare it with what siegelense reported: every test id, tag, text,
+  attribute and flag it shows is really there, and nothing on the page that should show is missing. The user set
+  this rule on 2026-09-28.
 - **The browser UI is the verdict.** A quest whose `quest.json` says `complete` still fails the case if a panel went
   blank or a spinner froze. Root `CLAUDE.md` has the full rule.
 - **Never edit `agent-flow-statics.ts` while an e2e run is in flight.** The server checks that graph at boot, and a
