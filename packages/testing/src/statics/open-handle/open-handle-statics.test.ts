@@ -11,7 +11,12 @@ describe('openHandleStatics', () => {
         report: {
           pathEnvVar: 'DUNGEONMASTER_OPEN_HANDLE_REPORT',
           maxStackFrames: 8,
-          selfFrames: ['timers-watch-broker.ts:', 'timers-watch-broker.js:'],
+          selfFrames: [
+            'timers-watch-broker.ts:',
+            'timers-watch-broker.js:',
+            '@gateway/node/',
+            '@gateway/browser/',
+          ],
           foreignFrames: ['node:', 'node_modules'],
         },
       });

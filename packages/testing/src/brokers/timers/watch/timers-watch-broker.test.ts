@@ -1,3 +1,9 @@
+import { clearInterval } from '#gateway/node/clearInterval';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { setImmediate } from '#gateway/node/setImmediate';
+import { setInterval } from '#gateway/node/setInterval';
+import { setTimeout } from '#gateway/node/setTimeout';
+
 import { timersWatchBroker } from './timers-watch-broker';
 import { timersWatchBrokerProxy } from './timers-watch-broker.proxy';
 import type { ArmedTimerStub } from '../../../contracts/armed-timer/armed-timer.stub';
@@ -59,8 +65,10 @@ describe('timersWatchBroker', () => {
       const armed: ArmedTimer[] = [];
       timersWatchBroker({ onArm: ({ armed: entry }) => armed.push(entry) });
 
-      await new Promise((resolve) => {
-        setImmediate(resolve);
+      await new Promise<void>((resolve) => {
+        setImmediate(() => {
+          resolve();
+        });
       });
 
       expect(armed.map((entry) => [entry.kind, entry.isPending()])).toStrictEqual([

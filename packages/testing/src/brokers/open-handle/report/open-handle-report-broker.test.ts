@@ -1,3 +1,6 @@
+import { clearInterval } from '#gateway/node/clearInterval';
+import { setInterval } from '#gateway/node/setInterval';
+
 import { openHandleReportBroker } from './open-handle-report-broker';
 import { openHandleReportBrokerProxy } from './open-handle-report-broker.proxy';
 import { openHandleTrackingBroker } from '../tracking/open-handle-tracking-broker';

@@ -1,42 +1,26 @@
 /**
  * Proxy for testing index.ts entry point
- * Mocks process.exit and process.stderr to test error handling
- *
- * NOTE: Nested functions allowed in proxies per testing standards
- * Uses registerSpyOn for global objects (process) per standards
+ * Records process.exit, stderr writes and signal handlers through the gateway process proxies
  */
 
-import { resolve } from 'path';
-import { registerSpyOn, isolateModules } from '@dungeonmaster/testing/register-mock';
-import type { IsolateModulesMock, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { resolve } from '#gateway/node/path';
+import { exitProxy } from '#gateway/node/process/exit/exit.proxy';
+import { onProxy } from '#gateway/node/process/on/on.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { isolateModules } from '@dungeonmaster/testing/register-mock';
+import type { IsolateModulesMock, RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 export const indexProxy = (): {
-  captureProcessInteractions: () => {
-    exitSpy: SpyOnHandle;
-    stderrSpy: SpyOnHandle;
-  };
+  getExitCalls: () => RecordedCalls;
+  getStderrWrites: () => readonly unknown[];
   loadIndexWithStartupBehavior: (startMcpServerBehavior: () => Promise<void>) => Promise<void>;
   simulateSignal: (params: { signal: 'SIGTERM' | 'SIGINT' }) => void;
 } => {
-  /**
-   * Capture process.exit and process.stderr calls for testing error handling
-   * Returns spies that are automatically restored by @dungeonmaster/testing
-   */
-  const captureProcessInteractions = (): {
-    exitSpy: SpyOnHandle;
-    stderrSpy: SpyOnHandle;
-  } => {
-    const exitSpy = registerSpyOn({ object: process, method: 'exit', passthrough: true });
-
-    exitSpy.calledWith([]).implement((() => {
-      // Prevent actual process exit in tests
-    }) as never);
-    const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write', passthrough: true });
-
-    stderrSpy.calledWith([]).implement((() => true) as never);
-
-    return { exitSpy, stderrSpy };
-  };
+  const exitChild = exitProxy();
+  const stderrChild = stderrProxy();
+  // Signal handlers are recorded rather than attached, so no test leaves a live listener behind and
+  // simulateSignal runs exactly the handlers this load registered.
+  const onChild = onProxy();
 
   /**
    * Load index with custom StartMcpServer behavior to test entry point
@@ -45,9 +29,6 @@ export const indexProxy = (): {
   const loadIndexWithStartupBehavior = async (
     startMcpServerBehavior: () => Promise<void>,
   ): Promise<void> => {
-    process.removeAllListeners('SIGTERM');
-    process.removeAllListeners('SIGINT');
-
     type ModulePath = IsolateModulesMock['module'];
 
     await isolateModules({
@@ -64,11 +45,19 @@ export const indexProxy = (): {
   };
 
   const simulateSignal = ({ signal }: { signal: 'SIGTERM' | 'SIGINT' }): void => {
-    process.emit(signal);
+    // A recorded call's second argument IS the handler index.ts registered for that event.
+    const handlers = onChild
+      .callsMatching()
+      .filter((call) => call[0] === signal)
+      .map((call) => call[1] as () => void);
+    for (const handler of handlers) {
+      handler();
+    }
   };
 
   return {
-    captureProcessInteractions,
+    getExitCalls: (): RecordedCalls => exitChild.callsMatching(),
+    getStderrWrites: (): readonly unknown[] => stderrChild.getWrites(),
     loadIndexWithStartupBehavior,
     simulateSignal,
   };

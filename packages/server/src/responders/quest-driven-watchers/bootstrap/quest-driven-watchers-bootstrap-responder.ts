@@ -15,7 +15,9 @@
  * WHEN-NOT-TO-USE: Anywhere needing a single-session watcher — this owns the global set.
  */
 
+import { clearInterval } from '#gateway/node/clearInterval';
 import { cwd } from '#gateway/node/process';
+import { setInterval } from '#gateway/node/setInterval';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
 

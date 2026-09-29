@@ -16,6 +16,7 @@
  * await operationWriteRouteBroker({ target, fields: { text, role, status, questId, guildId } });
  * // Returns the new OperationItem, appended onto the quest's operations array on disk
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -46,7 +47,7 @@ export const operationWriteRouteBroker = async ({
   }
 
   const { quest } = getResult;
-  const newItem = operationItemContract.parse({ ...operationInput, id: crypto.randomUUID() });
+  const newItem = operationItemContract.parse({ ...operationInput, id: randomUUID() });
   const updatedQuest = { ...quest, operations: [...quest.operations, newItem] };
 
   const questFolderPath = await questFolderPathResolveBroker({ target, record: quest });

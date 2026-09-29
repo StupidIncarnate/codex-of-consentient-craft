@@ -6,6 +6,8 @@
  * // Returns { start, afterEach, stop } for use in jest hooks
  */
 
+import { stderr } from '#gateway/node/process';
+
 import { networkRecordCaptureBroker } from '../../../brokers/network-record/capture/network-record-capture-broker';
 import { mswServerState } from '../../../state/msw-server/msw-server-state';
 import { networkLogFormatTransformer } from '../../../transformers/network-log-format/network-log-format-transformer';
@@ -29,7 +31,7 @@ export const NetworkRecordLifecycleResponder = (): {
 
       if (entries.length > 0) {
         const formatted = networkLogFormatTransformer({ entries, wsEntries: [] });
-        process.stderr.write(
+        stderr.write(
           `${networkLogStatics.delimiters.start}\n${formatted}\n${networkLogStatics.delimiters.end}\n`,
         );
       }

@@ -1,3 +1,4 @@
+import { getEnv, setEnv } from '#gateway/node/process';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts';
@@ -69,7 +70,7 @@ describe('recipesSeedRunBroker', () => {
     const fileTarget = fileTargetHarness();
 
     it('VALID: {recipeName: guild-mid-execution, home} => saves the real records and restores DUNGEONMASTER_HOME to its prior value', async () => {
-      process.env[DUNGEONMASTER_HOME_ENV_VAR] = 'sentinel-previous-home-recipes-seed-run-broker';
+      setEnv(DUNGEONMASTER_HOME_ENV_VAR, 'sentinel-previous-home-recipes-seed-run-broker');
 
       const result = await recipesSeedRunBroker({
         recipeName: 'guild-mid-execution',
@@ -85,7 +86,7 @@ describe('recipesSeedRunBroker', () => {
         guildName: guild.name,
         guildUrlSlug: guild.urlSlug,
         questTitles: [quest1.title, quest2.title, quest3.title],
-        dungeonmasterHomeAfterwards: process.env[DUNGEONMASTER_HOME_ENV_VAR],
+        dungeonmasterHomeAfterwards: getEnv(DUNGEONMASTER_HOME_ENV_VAR),
       }).toStrictEqual({
         savedNames: ['guild', 'quest1', 'quest2', 'quest3'],
         guildName: 'Guild 1',
@@ -102,7 +103,7 @@ describe('recipesSeedRunBroker', () => {
     it('ERROR: {a write route into a read-only home} => DUNGEONMASTER_HOME is still restored', async () => {
       const { home } = fileTarget.target();
       fileTarget.denyWrites();
-      process.env[DUNGEONMASTER_HOME_ENV_VAR] = 'sentinel-previous-home-error-path';
+      setEnv(DUNGEONMASTER_HOME_ENV_VAR, 'sentinel-previous-home-error-path');
 
       await expect(
         recipesSeedRunBroker({ recipeName: 'guild-mid-execution', home }),
@@ -112,7 +113,7 @@ describe('recipesSeedRunBroker', () => {
 
       fileTarget.allowWrites();
 
-      expect(process.env[DUNGEONMASTER_HOME_ENV_VAR]).toBe('sentinel-previous-home-error-path');
+      expect(getEnv(DUNGEONMASTER_HOME_ENV_VAR)).toBe('sentinel-previous-home-error-path');
     });
   });
 

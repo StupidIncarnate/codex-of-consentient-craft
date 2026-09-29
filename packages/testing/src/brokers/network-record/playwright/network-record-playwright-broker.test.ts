@@ -1,3 +1,5 @@
+import { setTimeout } from '#gateway/node/setTimeout';
+
 import { networkRecordPlaywrightBroker } from './network-record-playwright-broker';
 import { networkRecordPlaywrightBrokerProxy } from './network-record-playwright-broker.proxy';
 
@@ -5,7 +7,6 @@ describe('networkRecordPlaywrightBroker', () => {
   describe('fire-and-forget resilience', () => {
     it('VALID: {response.text() rejects} => logs error to stderr, does not throw', async () => {
       const proxy = networkRecordPlaywrightBrokerProxy();
-      proxy.setupStderrCapture();
 
       networkRecordPlaywrightBroker({
         page: proxy.getPage() as never,
@@ -92,7 +93,6 @@ describe('networkRecordPlaywrightBroker', () => {
   describe('dump of a failed test', () => {
     it('VALID: {failed test with an api request} => attaches the network log as text/plain', async () => {
       const proxy = networkRecordPlaywrightBrokerProxy();
-      proxy.setupStderrCapture();
       const recorder = networkRecordPlaywrightBroker({ page: proxy.getPage() as never });
       proxy.fireRequest({
         url: 'http://localhost/api/test',

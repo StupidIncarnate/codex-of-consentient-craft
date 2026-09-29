@@ -1,5 +1,7 @@
+import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { questOutboxWatchBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/outbox-watch/quest-outbox-watch-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
@@ -15,18 +17,22 @@ import { ReconcileWatchersLayerResponderProxy } from './reconcile-watchers-layer
 // suite constructs. Fixing it here removes the real-OS-cwd leak; it does not by itself make that
 // fallback branch observable — see this responder's own test for what IS proven.
 const BOOTSTRAP_CWD = '/bootstrap/default-cwd';
+const FALLBACK_RECONCILE_INTERVAL_MS = 3000;
 
 export const QuestDrivenWatchersBootstrapResponderProxy = (): {
   outboxProxy: {
     getCapturedResetOnStart: () => boolean | undefined;
   };
   getCwdCalls: () => RecordedCalls;
+  getFallbackIntervalCalls: () => RecordedCalls;
 } => {
   // Neither test in this file's own colocated .test.ts reaches into the dev-log or layer wiring
   // directly — creating each child proxy here registers its mock (and, for the layer proxy,
   // StartOrchestratorProxy's own listGuilds default of an empty list) so the responder's real
   // calls resolve instead of hitting an unmatched-call throw.
   cwdProxy();
+  const setIntervalChild = setIntervalProxy();
+  clearIntervalProxy();
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns(BOOTSTRAP_CWD);
   processDevLogBrokerProxy();
@@ -44,5 +50,7 @@ export const QuestDrivenWatchersBootstrapResponderProxy = (): {
         outboxWatchProxy.getCapturedResetOnStart(),
     },
     getCwdCalls: (): RecordedCalls => cwdHandle.callsMatching([]),
+    getFallbackIntervalCalls: (): RecordedCalls =>
+      setIntervalChild.getCallsFor({ ms: FALLBACK_RECONCILE_INTERVAL_MS }),
   };
 };

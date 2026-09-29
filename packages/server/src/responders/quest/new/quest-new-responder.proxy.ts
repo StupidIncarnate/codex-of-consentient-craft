@@ -1,7 +1,9 @@
+import { randomUUID } from '#gateway/node/crypto';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
@@ -32,9 +34,9 @@ export const QuestNewResponderProxy = (): {
   setupError: (params: { guildId: GuildId; message: string }) => void;
   getLastStartChatArgs: (params: { guildId: GuildId }) => unknown;
   setupPastedImageHome: (params: { homePath: string }) => void;
-  // Stages the id the responder's OWN crypto.randomUUID() call (minting the pre-created questId)
-  // resolves to. That call is not on the gateway randomUUID queue the persist and copy brokers
-  // consume, so it stays independent of the per-image ids staged below.
+  // Stages the id the responder's OWN randomUUID() call (minting the pre-created questId) resolves
+  // to. It shares the gateway randomUUID one-shot queue with the persist and copy brokers, and the
+  // responder mints before either runs, so stage it BEFORE any image or copy id.
   setupMintedQuestId: (params: { questId: QuestId }) => void;
   stagePastedImageIds: (params: { ids: readonly string[] }) => void;
   // Stages the real read-a-local-path-and-copy-it path the persist broker runs when the posted
@@ -61,9 +63,8 @@ export const QuestNewResponderProxy = (): {
   // pastedImagePersistBroker is APPLICATION code — it runs REAL. This proxy only mocks the npm
   // boundary underneath it, composed exactly the way quest-chat-responder.proxy.ts does.
   const persistProxy = pastedImagePersistBrokerProxy();
-  // The responder's own questId mint uses the global crypto.randomUUID; the persist and copy
-  // brokers mint through the gateway's randomUUID, a separate mock with its own ordered queue.
-  const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  const uuidHandle = registerMock({ fn: randomUUID });
+  stderrProxy();
   // The removal target is `locationsQuestFolderPathFindBroker`'s output, minted from a
   // guildId/questId this proxy never receives ahead of test setup, so rmProxy is addressed by the
   // one structural fact every such call shares: the path always falls under a guild's `quests`
@@ -107,7 +108,7 @@ export const QuestNewResponderProxy = (): {
       rmChild.succeedsMatchingPath({ path: removalPathPredicate });
     },
     setupMintedQuestId: ({ questId }: { questId: QuestId }): void => {
-      uuidSpy.onceFor([]).returns(questId);
+      uuidHandle.onceFor([]).returns(questId);
     },
     stagePastedImageIds: ({ ids }: { ids: readonly string[] }): void => {
       persistProxy.stageImageIds({ ids });

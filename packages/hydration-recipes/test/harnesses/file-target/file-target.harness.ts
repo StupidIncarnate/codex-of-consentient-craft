@@ -58,8 +58,9 @@
  *   });
  * });
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { chmodSync, readFileSync, writeFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
@@ -97,17 +98,17 @@ export const fileTargetHarness = (): {
   allowWrites: () => void;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | undefined;
-  let savedDungeonmasterHome: typeof process.env.DUNGEONMASTER_HOME;
+  let savedDungeonmasterHome: ReturnType<typeof getEnv>;
 
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'recipes-file-target' }),
       });
-      savedDungeonmasterHome = process.env[DUNGEONMASTER_HOME_ENV_VAR];
-      process.env[DUNGEONMASTER_HOME_ENV_VAR] = testbed.guildPath;
-      fs.writeFileSync(
-        path.join(testbed.guildPath, dungeonmasterHomeStatics.paths.configFile),
+      savedDungeonmasterHome = getEnv(DUNGEONMASTER_HOME_ENV_VAR);
+      setEnv(DUNGEONMASTER_HOME_ENV_VAR, testbed.guildPath);
+      writeFileSync(
+        join(testbed.guildPath, dungeonmasterHomeStatics.paths.configFile),
         JSON.stringify(EMPTY_GUILD_CONFIG),
       );
     },
@@ -115,9 +116,9 @@ export const fileTargetHarness = (): {
       testbed?.cleanup();
       testbed = undefined;
       if (savedDungeonmasterHome === undefined) {
-        Reflect.deleteProperty(process.env, DUNGEONMASTER_HOME_ENV_VAR);
+        deleteEnv(DUNGEONMASTER_HOME_ENV_VAR);
       } else {
-        process.env[DUNGEONMASTER_HOME_ENV_VAR] = savedDungeonmasterHome;
+        setEnv(DUNGEONMASTER_HOME_ENV_VAR, savedDungeonmasterHome);
       }
     },
     target: (): DmTarget => {
@@ -231,8 +232,7 @@ export const fileTargetHarness = (): {
           'fileTargetHarness: readAbsoluteFileLines() called outside beforeEach/afterEach',
         );
       }
-      return fs
-        .readFileSync(filePath, 'utf8')
+      return readFileSync(filePath)
         .split('\n')
         .filter((line) => line.length > 0)
         .map((line) => streamJsonLineContract.parse(line));
@@ -241,13 +241,13 @@ export const fileTargetHarness = (): {
       if (testbed === undefined) {
         throw new Error('fileTargetHarness: denyWrites() called outside beforeEach/afterEach');
       }
-      fs.chmodSync(testbed.guildPath, 0o500);
+      chmodSync(testbed.guildPath, 0o500);
     },
     allowWrites: (): void => {
       if (testbed === undefined) {
         throw new Error('fileTargetHarness: allowWrites() called outside beforeEach/afterEach');
       }
-      fs.chmodSync(testbed.guildPath, 0o700);
+      chmodSync(testbed.guildPath, 0o700);
     },
   };
 };

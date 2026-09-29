@@ -39,4 +39,13 @@ describe('QuestDrivenWatchersBootstrapResponder', () => {
 
     expect(proxy.getCwdCalls()).toStrictEqual([[]]);
   });
+
+  it('VALID: {fresh boot} => arms one 3000ms fallback reconcile interval through the gateway setInterval', async () => {
+    const proxy = QuestDrivenWatchersBootstrapResponderProxy();
+
+    const handle = await QuestDrivenWatchersBootstrapResponder();
+    handle.stop();
+
+    expect(proxy.getFallbackIntervalCalls()).toStrictEqual([[expect.any(Function), 3000]]);
+  });
 });

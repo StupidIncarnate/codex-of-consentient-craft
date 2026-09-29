@@ -1,3 +1,8 @@
+import { clearInterval } from '#gateway/node/clearInterval';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { setInterval } from '#gateway/node/setInterval';
+import { setTimeout } from '#gateway/node/setTimeout';
+
 import { openHandleTrackingBroker } from './open-handle-tracking-broker';
 import { openHandleTrackingBrokerProxy } from './open-handle-tracking-broker.proxy';
 

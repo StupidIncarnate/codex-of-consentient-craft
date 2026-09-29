@@ -1,3 +1,4 @@
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import {
   FlowEdgeStub,
   FlowNodeStub,
@@ -59,7 +60,7 @@ describe('QuestFlow', () => {
   describe('GET /api/quests/:questId with comments', () => {
     it('VALID: {quest carrying two comments — one bare-node-anchored, one observable-anchored} => the JSON response includes the full comments array unchanged, anchors intact', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-get' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -143,7 +144,7 @@ describe('QuestFlow', () => {
   describe('GET /api/quests/:questId/summary', () => {
     it('VALID: {quest with a terminal, a labelled branch, a siegemaster-added observable and two notes} => 200 carrying per-track outstanding counts, the drift row and every note group', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-get' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const openQuestionNote = QuestNoteStub({
@@ -255,7 +256,7 @@ describe('QuestFlow', () => {
     // one is what a browser asking for a deleted quest actually hits.
     it('VALID: {questId absent from a populated guilds tree} => delegates to QuestSummaryResponder and returns 404 rather than an empty summary', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-summary-missing' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       await harness.seedQuestFields({
@@ -286,7 +287,7 @@ describe('QuestFlow', () => {
   describe('GET /api/quests/:questId/projection', () => {
     it('VALID: {quest with a codeweaver scope one step in} => 200 carrying the actual step and the planned remainder, by real step name', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-get' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const opId = OperationItemIdStub({ value: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' });
@@ -351,7 +352,7 @@ describe('QuestFlow', () => {
 
     it('EMPTY: {quest with no operations minted yet} => 200 carrying an empty scope list and zero counts', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-empty' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const quest = await harness.seedQuestFields({
@@ -380,7 +381,7 @@ describe('QuestFlow', () => {
     // rather than "the home dir does not exist" — mirrors the summary route's own unknown-quest case.
     it('VALID: {questId absent from a populated guilds tree} => delegates to QuestProjectionResponder and returns 404 rather than an empty projection', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-projection-missing' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       await harness.seedQuestFields({
@@ -534,7 +535,7 @@ describe('QuestFlow', () => {
 
   describe('POST /api/quests/:questId/signal-back (env-gated)', () => {
     it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, body missing workItemId} => 400 route registered, responder validates before the orchestrator call', async () => {
-      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      setEnv('E2E_SIGNAL_BACK_HTTP', '1');
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const app = QuestFlow();
 
@@ -545,7 +546,7 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
-      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+      deleteEnv('E2E_SIGNAL_BACK_HTTP');
 
       expect(response.status).toBe(400);
       expect(harness.toPlain(body)).toStrictEqual({ error: 'Invalid signal-back input' });
@@ -557,7 +558,7 @@ describe('QuestFlow', () => {
     // handler. Same code shape as the comments route's catch; this proves the signal-back route's
     // own copy of it behaves identically instead of assuming it does by analogy.
     it('INVALID: {E2E_SIGNAL_BACK_HTTP=1, non-JSON body} => reaches the responder 400 rather than throwing out of the route', async () => {
-      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      setEnv('E2E_SIGNAL_BACK_HTTP', '1');
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const app = QuestFlow();
 
@@ -568,7 +569,7 @@ describe('QuestFlow', () => {
       });
       const body: unknown = await response.json();
 
-      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+      deleteEnv('E2E_SIGNAL_BACK_HTTP');
 
       expect(response.status).toBe(400);
       expect(harness.toPlain(body)).toStrictEqual({ error: 'Invalid signal-back input' });
@@ -576,7 +577,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {E2E_SIGNAL_BACK_HTTP=1, valid body, no matching quest} => 500 drives the real StartOrchestrator.handleSignalBack which surfaces the missing-quest error', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-signal-back' });
-      process.env.E2E_SIGNAL_BACK_HTTP = '1';
+      setEnv('E2E_SIGNAL_BACK_HTTP', '1');
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const app = QuestFlow();
@@ -588,13 +589,13 @@ describe('QuestFlow', () => {
       });
 
       restore();
-      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+      deleteEnv('E2E_SIGNAL_BACK_HTTP');
 
       expect(response.status).toBe(500);
     });
 
     it('VALID: {E2E_SIGNAL_BACK_HTTP unset} => 404 route not registered so production never exposes it', async () => {
-      Reflect.deleteProperty(process.env, 'E2E_SIGNAL_BACK_HTTP');
+      deleteEnv('E2E_SIGNAL_BACK_HTTP');
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
       const app = QuestFlow();
@@ -616,7 +617,7 @@ describe('QuestFlow', () => {
     // discriminate "stayed the same" from "there was never anything to change".
     it('EMPTY: {comments: []} => delegates to QuestCommentBatchResponder, returns 400 empty-batch, and leaves the quest comments array untouched', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-empty-batch' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -687,7 +688,7 @@ describe('QuestFlow', () => {
     // responses from the same route, not two paraphrases of the same status code).
     it('INVALID: {entry with a 300-char unbroken garbage token as flowId} => returns 400 naming the entry fields, distinct from the empty-batch message, and leaves the quest comments array untouched', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-malformed' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       // Uppercase leading character violates flowId's kebab-case regex; the rest pads it out
       // to an unbroken 300-char token — the fixture is both malformed AND hostile-length.
@@ -741,7 +742,7 @@ describe('QuestFlow', () => {
 
     it('EDGE: {quest on disk carries no chaoswhisperer work item with a sessionId} => returns 404 and persists no comments', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-no-session' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -813,7 +814,7 @@ describe('QuestFlow', () => {
 
       beforeAll(async () => {
         const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-stale' });
-        const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+        const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
         const cli = harness.configureFakeClaudeCli();
 
         const flow = FlowStub({
@@ -926,7 +927,7 @@ describe('QuestFlow', () => {
     // key (in particular, no chatProcessId).
     it('ERROR: {quest directory stripped of write permission after a valid quest+session are seeded} => POST returns 500 prefixed "Failed to persist comment batch: ", carrying no chatProcessId', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-comments-persist-fail' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const guildId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
       const flow = FlowStub({
@@ -989,7 +990,7 @@ describe('QuestFlow', () => {
   describe('POST /api/quests/:questId/chat with images', () => {
     it("VALID: {images: [two distinct images], message carrying both tokens} => 200, exactly two files land, and the file each token's ordinal names holds that image's own posted bytes in posted order", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-two-distinct' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6001-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
@@ -1048,7 +1049,7 @@ describe('QuestFlow', () => {
 
     it('INVALID: {images: [6 entries]} => 400 naming the images field and writing zero files, beside a 5-entry send on the same quest which answers 200 and leaves exactly 5 files', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-cap' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6002-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
@@ -1109,7 +1110,7 @@ describe('QuestFlow', () => {
 
     it("VALID: {images: [one image]} => the quest's images directory is absent before the send and present after the 200", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-dir-created' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6003-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
@@ -1153,7 +1154,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {two sequential sends into the same quest} => the images directory keeps the same inode across both, and every file send 1 wrote is still present after send 2', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-not-recreated' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6004-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
@@ -1213,7 +1214,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {two sequential sends carrying the SAME dataBase64} => two files land under distinct names, and both read back to the exact posted bytes', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-identical' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const sessionId = SessionIdStub({ value: 'bbbbbbbb-6005-4222-8222-444444444444' });
       const seeded = await harness.seedGuildAndQuestFields({
@@ -1280,7 +1281,7 @@ describe('QuestFlow', () => {
       'VALID: {dataBase64: %s} => the written file bytes decode to exactly the posted base64',
       async (_label, dataBase64) => {
         const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-hostile' });
-        const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+        const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
         const cli = harness.configureFakeClaudeCli();
         const sessionId = SessionIdStub({ value: 'bbbbbbbb-6006-4222-8222-444444444444' });
         const seeded = await harness.seedGuildAndQuestFields({
@@ -1332,7 +1333,7 @@ describe('QuestFlow', () => {
     // captured) must still land on the quest the URL already names — never mint a second one.
     it("VALID: {chaoswhisperer work item at status complete with NO sessionId} => 200, images land in THIS quest's own folder, and no second quest directory is created", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-chat-images-no-session' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       // The write route mints a UUID `id`/`folder` for every seeded quest, which is what
       // isQuestFolderGuard (the quest LIST broker's directory filter, distinct from the
@@ -1391,7 +1392,7 @@ describe('QuestFlow', () => {
   describe('POST /api/quests/:questId/chat with a local image path in the message', () => {
     it('VALID: {message holding an absolute screenshot path} => 200, and the original file at that path still exists with its original bytes intact', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-source-kept' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Local Image Source Kept Guild',
@@ -1438,7 +1439,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message holding an absolute screenshot path, original deleted after the send} => the quest images directory keeps exactly one file, holding the original bytes', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-copy-survives' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Local Image Copy Survives Guild',
@@ -1494,7 +1495,7 @@ describe('QuestFlow', () => {
 
     it("VALID: {images: [one bitmap], message carrying both a bare bitmap placeholder AND an absolute screenshot path} => the agent's prompt carries the read-the-images trailer exactly once", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-trailer-once' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Local Image Trailer Once Guild',
@@ -1562,7 +1563,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message with no absolute image path and no images array} => the agent receives the message byte-identical, with no read-the-images trailer appended', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-local-image-text-only' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Local Image Text Only Guild',
@@ -1626,7 +1627,7 @@ describe('QuestFlow', () => {
   describe('POST /api/quests/:questId/chat with screenshot-path scan branches', () => {
     it('VALID: {message carrying a relative path, a bare filename, and a URL — no absolute image path anywhere} => 200, the message forwarded byte-identical, no images directory created, and no read-the-images trailer appended', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-no-absolute-path' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot No Absolute Path Guild',
@@ -1677,7 +1678,7 @@ describe('QuestFlow', () => {
 
     it("VALID: {message holding an absolute path to a file that was never written} => 200, the unresolved path reaches the agent verbatim, and the quest's images directory gains no file", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-missing-file' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Missing File Guild',
@@ -1739,7 +1740,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message carrying an absolute screenshot path, POST body with no images key at all} => 200, the quest images directory gains exactly one uuid-named copy holding the source bytes, and the whole prompt shows the path replaced by its token', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-no-images-key' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot No Images Key Guild',
@@ -1805,7 +1806,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message carrying four absolute paths in every shape the scan must accept — two on one line, one parenthesized, one at the very end} => the whole prompt rewrites all four in order, and each token names a file holding its own source bytes', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-every-shape' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Every Shape Guild',
@@ -1897,7 +1898,7 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({
         baseName: 'quest-flow-screenshot-already-tokenised',
       });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Already Tokenised Guild',
@@ -1954,7 +1955,7 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({
         baseName: 'quest-flow-screenshot-ordinal-continues',
       });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Ordinal Continues Guild',
@@ -2032,7 +2033,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {images: [maxImagesPerMessage distinct bitmaps], message carrying every placeholder plus one absolute screenshot path} => the bitmaps convert and the screenshot path is left raw, because the per-message cap counts both kinds together', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-cap-both-kinds' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Cap Both Kinds Guild',
@@ -2115,7 +2116,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message holding an absolute path to a real file chmod-ed unreadable} => 200, the message forwarded byte-identical, and the quest images directory gains no file', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-unreadable-file' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Unreadable File Guild',
@@ -2181,7 +2182,7 @@ describe('QuestFlow', () => {
 
     it('VALID: {message holding an absolute path to a real readable file, quest images directory pre-created and chmod-ed read-only} => 200, the message forwarded byte-identical, and the images directory gains no file', async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-screenshot-copy-fails' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Copy Fails Guild',
@@ -2247,7 +2248,7 @@ describe('QuestFlow', () => {
       const restore = harness.setupTestHome({
         baseName: 'quest-flow-screenshot-source-and-copy-survive',
       });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Screenshot Source And Copy Survive Guild',
@@ -2314,7 +2315,7 @@ describe('QuestFlow', () => {
   describe('POST /api/guilds/:guildId/quests with images', () => {
     it("VALID: {images: [two distinct images], message carrying both tokens} => 200, the created quest's images directory holds exactly the two posted files, and the rewritten prompt's tokens name them in posted order", async () => {
       const restore = harness.setupTestHome({ baseName: 'quest-flow-create-images-two-distinct' });
-      const dungeonmasterHome = process.env.DUNGEONMASTER_HOME!;
+      const dungeonmasterHome = getEnv('DUNGEONMASTER_HOME')!;
       const cli = harness.configureFakeClaudeCli();
       const guild = await harness.registerRealGuild({
         name: 'Create Images Guild — Two Distinct',

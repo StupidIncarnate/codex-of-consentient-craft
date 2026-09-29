@@ -1,3 +1,5 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
+
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
 import { ToolingFlow } from './tooling-flow';
@@ -5,7 +7,7 @@ import { ToolingFlow } from './tooling-flow';
 describe('ToolingFlow', () => {
   describe('GET /api/tooling/smoketest/state', () => {
     it('VALID: {invocation, TOOLING_SMOKETEST_HTTP unset} => delegates to ToolingSmoketestStateResponder and returns 200', async () => {
-      Reflect.deleteProperty(process.env, 'TOOLING_SMOKETEST_HTTP');
+      deleteEnv('TOOLING_SMOKETEST_HTTP');
       const app = ToolingFlow();
 
       const response = await app.request(apiRoutesStatics.tooling.smoketestState);
@@ -16,7 +18,7 @@ describe('ToolingFlow', () => {
 
   describe('POST /api/tooling/smoketest/run (env-gated)', () => {
     it('VALID: {TOOLING_SMOKETEST_HTTP unset} => 404, route not registered so an ordinary dungeonmaster start never exposes a real-subprocess-spawning endpoint', async () => {
-      Reflect.deleteProperty(process.env, 'TOOLING_SMOKETEST_HTTP');
+      deleteEnv('TOOLING_SMOKETEST_HTTP');
       const app = ToolingFlow();
 
       const response = await app.request(apiRoutesStatics.tooling.smoketestRun, {
@@ -29,7 +31,7 @@ describe('ToolingFlow', () => {
     });
 
     it('ERROR: {TOOLING_SMOKETEST_HTTP=1, body missing suite} => 500, route registered, responder validates before the orchestrator call', async () => {
-      process.env.TOOLING_SMOKETEST_HTTP = '1';
+      setEnv('TOOLING_SMOKETEST_HTTP', '1');
       const app = ToolingFlow();
 
       const response = await app.request(apiRoutesStatics.tooling.smoketestRun, {
@@ -38,7 +40,7 @@ describe('ToolingFlow', () => {
         body: JSON.stringify({}),
       });
 
-      Reflect.deleteProperty(process.env, 'TOOLING_SMOKETEST_HTTP');
+      deleteEnv('TOOLING_SMOKETEST_HTTP');
 
       expect(response.status).toBe(500);
     });
@@ -48,7 +50,7 @@ describe('ToolingFlow', () => {
     // produces the error, rather than an unhandled parse error escaping the route handler as
     // Hono's generic, non-JSON "Internal Server Error" 500.
     it('ERROR: {TOOLING_SMOKETEST_HTTP=1, non-JSON body} => reaches the responder 500 rather than throwing out of the route', async () => {
-      process.env.TOOLING_SMOKETEST_HTTP = '1';
+      setEnv('TOOLING_SMOKETEST_HTTP', '1');
       const app = ToolingFlow();
 
       const response = await app.request(apiRoutesStatics.tooling.smoketestRun, {
@@ -57,7 +59,7 @@ describe('ToolingFlow', () => {
         body: 'not json at all',
       });
 
-      Reflect.deleteProperty(process.env, 'TOOLING_SMOKETEST_HTTP');
+      deleteEnv('TOOLING_SMOKETEST_HTTP');
 
       expect(response.status).toBe(500);
     });

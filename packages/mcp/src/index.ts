@@ -6,18 +6,20 @@
  * node dist/index.js
  * // Starts the MCP server process
  */
+import { exit, on, stderr } from '#gateway/node/process';
+
 import { StartMcpServer } from './startup/start-mcp-server.js';
 
-process.on('SIGTERM', () => {
-  process.exit(0);
+on('SIGTERM', () => {
+  exit(0);
 });
 
-process.on('SIGINT', () => {
-  process.exit(0);
+on('SIGINT', () => {
+  exit(0);
 });
 
 StartMcpServer().catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`MCP server error: ${errorMessage}\n`);
-  process.exit(1);
+  stderr.write(`MCP server error: ${errorMessage}\n`);
+  exit(1);
 });

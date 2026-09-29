@@ -49,8 +49,10 @@
  *   });
  * });
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { randomUUID } from '#gateway/node/crypto';
+import { writeFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
 import {
   guildAddBroker,
@@ -100,17 +102,17 @@ export const liveQuestTargetHarness = ({
   target: () => DmTarget;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | undefined;
-  let savedDungeonmasterHome: typeof process.env.DUNGEONMASTER_HOME;
+  let savedDungeonmasterHome: ReturnType<typeof getEnv>;
 
   return {
     beforeEach: (): void => {
       testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'live-quest-target' }),
       });
-      savedDungeonmasterHome = process.env[DUNGEONMASTER_HOME_ENV_VAR];
-      process.env[DUNGEONMASTER_HOME_ENV_VAR] = testbed.guildPath;
-      fs.writeFileSync(
-        path.join(testbed.guildPath, dungeonmasterHomeStatics.paths.configFile),
+      savedDungeonmasterHome = getEnv(DUNGEONMASTER_HOME_ENV_VAR);
+      setEnv(DUNGEONMASTER_HOME_ENV_VAR, testbed.guildPath);
+      writeFileSync(
+        join(testbed.guildPath, dungeonmasterHomeStatics.paths.configFile),
         JSON.stringify(EMPTY_GUILD_CONFIG),
       );
     },
@@ -118,9 +120,9 @@ export const liveQuestTargetHarness = ({
       testbed?.cleanup();
       testbed = undefined;
       if (savedDungeonmasterHome === undefined) {
-        Reflect.deleteProperty(process.env, DUNGEONMASTER_HOME_ENV_VAR);
+        deleteEnv(DUNGEONMASTER_HOME_ENV_VAR);
       } else {
-        process.env[DUNGEONMASTER_HOME_ENV_VAR] = savedDungeonmasterHome;
+        setEnv(DUNGEONMASTER_HOME_ENV_VAR, savedDungeonmasterHome);
       }
     },
     target: (): DmTarget => {
@@ -152,7 +154,7 @@ export const liveQuestTargetHarness = ({
           if (method === 'POST' && requestPath === QUESTS_PATH) {
             const fields = body as Record<PropertyKey, unknown>;
             const intakeOperation = operationItemContract.parse({
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               role: initialWorkItemRole,
               text: INTAKE_OPERATION_TEXT,
               status: IN_PROGRESS_STATUS,
@@ -227,7 +229,7 @@ export const liveQuestTargetHarness = ({
                   : operation,
               ),
               operationItemContract.parse({
-                id: crypto.randomUUID(),
+                id: randomUUID(),
                 role: ENTRY_FAMILY_ROLE,
                 text: ENTRY_OPERATION_TEXT,
                 status: IN_PROGRESS_STATUS,

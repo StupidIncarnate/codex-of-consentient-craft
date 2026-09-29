@@ -7,8 +7,9 @@
  * proxy.fireResponse({ ... });
  */
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+
 import type { pageEventsLayerBroker } from './page-events-layer-broker';
-import { registerSpyOn } from '../../../register-mock';
 import { pageEventsLayerBrokerProxy } from './page-events-layer-broker.proxy';
 
 type AdapterParams = Parameters<typeof pageEventsLayerBroker>[0];
@@ -20,14 +21,13 @@ export const networkRecordPlaywrightBrokerProxy = (): {
   getPage: () => { on: jest.Mock };
   fireResponse: (args: OnResponseArgs) => void;
   fireRequest: (args: OnRequestArgs) => void;
-  setupStderrCapture: () => void;
   getStderrWrites: () => readonly unknown[];
   getTestInfo: (args: { status: 'passed' | 'failed' }) => never;
   getAttachCalls: () => readonly unknown[][];
 } => {
   pageEventsLayerBrokerProxy();
+  const stderrChild = stderrProxy();
   const attachCalls: unknown[][] = [];
-  const stderrSpy: { current: ReturnType<typeof registerSpyOn> | null } = { current: null };
   const capturedResponseHandler: { current: PageHandler | null } = { current: null };
   const capturedRequestHandler: { current: PageHandler | null } = { current: null };
   const mockPage = {
@@ -77,14 +77,7 @@ export const networkRecordPlaywrightBrokerProxy = (): {
       handler(mockResponse);
     },
 
-    setupStderrCapture: (): void => {
-      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
-      handle.calledWith([]).implement(() => true);
-      stderrSpy.current = handle;
-    },
-
-    getStderrWrites: (): readonly unknown[] =>
-      stderrSpy.current?.callsMatching([]).map((call) => call[0]) ?? [],
+    getStderrWrites: (): readonly unknown[] => stderrChild.getWrites(),
 
     fireRequest: (args: OnRequestArgs): void => {
       const handler = capturedRequestHandler.current;

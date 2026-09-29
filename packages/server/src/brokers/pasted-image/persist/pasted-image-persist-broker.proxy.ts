@@ -1,8 +1,10 @@
+import { Buffer } from '#gateway/node/buffer';
 import { randomUUID } from '#gateway/node/crypto';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileFromBase64Proxy } from '#gateway/node/fs__promises/write-file-from-base64/write-file-from-base64.proxy';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { deleteEnv } from '#gateway/node/process';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
@@ -76,7 +78,7 @@ export const pastedImagePersistBrokerProxy = (): {
       // dungeonmasterHomeFindBroker reads DUNGEONMASTER_HOME before falling back to homedir() —
       // clearing it here is what makes the staged homedir() below actually decide the resolved
       // path.
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
       // Sticky, not one-shot: a test drives the broker across MULTIPLE sends and every one of
       // them must resolve to the same home. This is the LAST word on homedir() for every real
       // chain composed in the same test that reaches it through dungeonmasterHomeFindBroker (a

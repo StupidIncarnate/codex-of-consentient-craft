@@ -1,5 +1,6 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { randomUUID } from '#gateway/node/crypto';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { questContract, questIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
@@ -17,9 +18,7 @@ export const questWriteRouteBrokerProxy = (): {
 } => {
   const ensureDirHandle = ensureDirProxy();
   const persistProxy = questPersistDirectBrokerProxy();
-  registerSpyOn({ object: crypto, method: 'randomUUID' })
-    .calledWith([])
-    .returns(FIXED_QUEST_ID as never);
+  registerMock({ fn: randomUUID }).calledWith([]).returns(FIXED_QUEST_ID);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
     .returns(FIXED_TIMESTAMP);

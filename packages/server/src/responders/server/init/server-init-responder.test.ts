@@ -1,3 +1,4 @@
+import { setTimeout } from '#gateway/node/setTimeout';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
@@ -259,8 +260,6 @@ describe('ServerInitResponder', () => {
     });
 
     it('EDGE: {empty buffer at flush interval} => no broadcast occurs', () => {
-      jest.useFakeTimers();
-
       const proxy = ServerInitResponderProxy();
       proxy.callResponder();
 
@@ -268,8 +267,7 @@ describe('ServerInitResponder', () => {
       const client = WsClientStub({ send: sendMock });
       proxy.simulateConnection({ client });
 
-      jest.advanceTimersByTime(100);
-      jest.useRealTimers();
+      proxy.firePipelineFlush();
 
       expect(sendMock.mock.calls).toStrictEqual([]);
     });
@@ -1310,12 +1308,7 @@ describe('ServerInitResponder', () => {
         payload: { questId: questIdX, slotIndex: 0, text: 'pipeline-X' },
       });
 
-      // Real-timer wait spanning the 100ms flush interval. The responder's
-      // setInterval was registered with real timers; switching to fake timers
-      // here cannot retroactively wrap that handle.
-      await new Promise((resolve) => {
-        setTimeout(resolve, 150);
-      });
+      proxy.firePipelineFlush();
 
       const aCount = sendA.mock.calls.filter((c) =>
         String(c[0]).includes('"text":"pipeline-X"'),

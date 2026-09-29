@@ -7,9 +7,13 @@
  * const response = await client.sendRequest(JsonRpcRequestStub({ ... }));
  * await client.close();
  */
-import { spawn } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { spawn } from '#gateway/node/child_process';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { readFileSync } from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { envSnapshot } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
@@ -75,7 +79,7 @@ export const mcpServerHarness = (): {
   const createClient = async ({
     baseName = BaseNameStub({ value: 'mcp-harness' }),
   }: { baseName?: ReturnType<typeof BaseNameStub> } = {}): Promise<McpClient> => {
-    const serverEntryPoint = path.join(__dirname, '../../../src/index.ts');
+    const serverEntryPoint = join(__dirname, '../../../src/index.ts');
 
     const testbed = installTestbedCreateBroker({
       baseName,
@@ -87,7 +91,7 @@ export const mcpServerHarness = (): {
     const serverProcess = spawn('npx', ['tsx', '--conditions=source', serverEntryPoint], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: testbed.guildPath,
-      env: { ...process.env, DUNGEONMASTER_HOME: testbed.guildPath },
+      env: { ...envSnapshot(), DUNGEONMASTER_HOME: testbed.guildPath },
     });
 
     const pendingResponses = new Map<RpcId, (response: JsonRpcResponse) => void>();
@@ -234,12 +238,9 @@ export const mcpServerHarness = (): {
     questFolder: string;
     quest: unknown;
   }): Promise<void> => {
-    const questDir = path.join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    await fs.promises.mkdir(questDir, { recursive: true });
-    await fs.promises.writeFile(
-      path.join(questDir, 'quest.json'),
-      JSON.stringify(quest, null, JSON_INDENT_SPACES),
-    );
+    const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
+    await ensureDir(questDir);
+    await writeFile(join(questDir, 'quest.json'), JSON.stringify(quest, null, JSON_INDENT_SPACES));
   };
 
   // Reads the RAW persisted quest.json straight off disk, bypassing the get-quest MCP tool
@@ -256,8 +257,8 @@ export const mcpServerHarness = (): {
     guildId: string;
     questFolder: string;
   }): unknown => {
-    const questDir = path.join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    const raw = fs.readFileSync(path.join(questDir, 'quest.json'), 'utf8');
+    const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
+    const raw = readFileSync(join(questDir, 'quest.json'));
     return JSON.parse(raw);
   };
 

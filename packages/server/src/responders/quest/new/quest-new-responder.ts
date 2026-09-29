@@ -16,7 +16,9 @@
  * // Returns { status: 200, data: { questId, chatProcessId } } or { status: 400/500, data: { error } }
  */
 
+import { randomUUID } from '#gateway/node/crypto';
 import { rm } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { contentTextContract, questIdContract } from '@dungeonmaster/shared/contracts';
@@ -92,7 +94,7 @@ export const QuestNewResponder = async ({
     const questId =
       (images !== undefined && images.length > 0) ||
       localImagePathsFindTransformer({ message, startOrdinal: 1 }).length > 0
-        ? questIdContract.parse(crypto.randomUUID())
+        ? questIdContract.parse(randomUUID())
         : undefined;
 
     try {
@@ -126,7 +128,7 @@ export const QuestNewResponder = async ({
         } catch (cleanupError: unknown) {
           // The create failure below is what must reach the caller — a failed cleanup is
           // logged, never thrown, so it can never mask the error that triggered it.
-          process.stderr.write(
+          stderr.write(
             `[quest-new-responder] failed to remove minted quest folder ${questFolderPath} after create failure: ${String(cleanupError)}\n`,
           );
         }

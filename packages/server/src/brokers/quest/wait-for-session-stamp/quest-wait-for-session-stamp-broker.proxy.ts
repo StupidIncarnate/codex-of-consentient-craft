@@ -1,4 +1,5 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import type { QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
 
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -14,6 +15,8 @@ export const questWaitForSessionStampBrokerProxy = (): {
 } => {
   const orchestrator = StartOrchestratorProxy();
   const clock = nowProxy();
+  // The poll delay keeps its real timer; composed for enforce-proxy-child-creation.
+  setTimeoutProxy();
 
   return {
     setupNow: ({ ms }: { ms: number }): void => {

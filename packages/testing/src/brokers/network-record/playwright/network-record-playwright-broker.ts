@@ -9,6 +9,7 @@
  * const wsEntries = recorder.getWsEntries();
  */
 
+import { stderr } from '#gateway/node/process';
 import type { Page, TestInfo } from '#gateway/npm/playwright__test';
 import { pageEventsLayerBroker } from './page-events-layer-broker';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
@@ -106,9 +107,7 @@ export const networkRecordPlaywrightBroker = ({
                   }
                 })
                 .catch((error: unknown) => {
-                  process.stderr.write(
-                    `[network-record] response body read failed: ${String(error)}\n`,
-                  );
+                  stderr.write(`[network-record] response body read failed: ${String(error)}\n`);
                 }),
             );
           }
@@ -179,7 +178,7 @@ export const networkRecordPlaywrightBroker = ({
       ].join('\n');
 
       // Write to stderr so ward can extract it from rawOutput (attachment content gets truncated by Playwright's line reporter)
-      process.stderr.write(`\n${logContent}\n`);
+      stderr.write(`\n${logContent}\n`);
 
       await testInfo.attach('network-log', { body: logContent, contentType: 'text/plain' });
     },

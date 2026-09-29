@@ -7,9 +7,9 @@
  * 259 real `writeQuestFile` call sites need — this route bypasses every status-transition gate
  * the same way that harness method does, deliberately.
  *
- * `id` and `folder` are minted here with `crypto.randomUUID()`, not in `defaults(index)` — both
+ * `id` and `folder` are minted here with `randomUUID()`, not in `defaults(index)` — both
  * are `quest`'s own `volatile` fields (server-minted, absent from `fields`), so calling
- * `crypto.randomUUID()` in THIS file (not a `*-ingredient.ts` file) never trips
+ * `randomUUID()` in THIS file (not a `*-ingredient.ts` file) never trips
  * `ban-nondeterminism-in-ingredients`, and a two-route comparison test projects both away before
  * comparing. `folder` reuses the same minted id rather than a slugified name: nothing downstream
  * in this package reads a quest's folder name, and `questPersistDirectBroker` only needs a real
@@ -28,6 +28,7 @@
  * await questWriteRouteBroker({ target, fields: { title, userRequest, status, guildId, … } });
  * // Returns the full Quest record, written to <target.home>/guilds/<guildId>/quests/<id>/quest.json
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
@@ -51,7 +52,7 @@ export const questWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<Quest> => {
   const parsedFields = questFieldsContract.parse(fields);
-  const id = questIdContract.parse(fields.id ?? crypto.randomUUID());
+  const id = questIdContract.parse(fields.id ?? randomUUID());
   const folder = questContract.shape.folder.parse(fields.folder ?? id);
   const createdAt = questContract.shape.createdAt.parse(
     fields.createdAt ?? new Date().toISOString(),

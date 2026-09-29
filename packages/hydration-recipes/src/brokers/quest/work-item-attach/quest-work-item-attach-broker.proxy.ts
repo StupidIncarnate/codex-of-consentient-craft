@@ -1,5 +1,6 @@
 import { questGetBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { randomUUID } from '#gateway/node/crypto';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questFolderPathResolveBrokerProxy } from '../folder-path-resolve/quest-folder-path-resolve-broker.proxy';
 import { questPersistDirectBrokerProxy } from '../persist-direct/quest-persist-direct-broker.proxy';
@@ -51,9 +52,7 @@ export const questWorkItemAttachBrokerProxy = (): {
       getProxy.setupQuestFound({ quest });
       findGuildProxy.succeeds({ guild, quest });
       persistProxy.succeeds({ questFilePath, outboxPath });
-      registerSpyOn({ object: crypto, method: 'randomUUID' })
-        .calledWith([])
-        .returns(mintedId as never);
+      registerMock({ fn: randomUUID }).calledWith([]).returns(mintedId);
     },
     setupQuestNotFound: (): void => {
       getProxy.setupEmptyFolder();

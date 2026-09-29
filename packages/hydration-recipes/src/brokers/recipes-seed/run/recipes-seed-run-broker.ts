@@ -8,6 +8,7 @@
  * // Returns { guild: {...}, quest1: {...}, quest2: {...}, quest3: {...} }
  */
 
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
 
 import { dmTargetContract } from '../../../contracts/dm-target/dm-target-contract';
@@ -40,16 +41,16 @@ export const recipesSeedRunBroker = async ({
     );
   }
 
-  const previousDungeonmasterHome = process.env[DUNGEONMASTER_HOME_ENV_VAR];
-  process.env[DUNGEONMASTER_HOME_ENV_VAR] = target.home;
+  const previousDungeonmasterHome = getEnv(DUNGEONMASTER_HOME_ENV_VAR);
+  setEnv(DUNGEONMASTER_HOME_ENV_VAR, target.home);
 
   try {
     return await entry.execute(params === undefined ? { target } : { params, target });
   } finally {
     if (previousDungeonmasterHome === undefined) {
-      Reflect.deleteProperty(process.env, DUNGEONMASTER_HOME_ENV_VAR);
+      deleteEnv(DUNGEONMASTER_HOME_ENV_VAR);
     } else {
-      process.env[DUNGEONMASTER_HOME_ENV_VAR] = previousDungeonmasterHome;
+      setEnv(DUNGEONMASTER_HOME_ENV_VAR, previousDungeonmasterHome);
     }
   }
 };

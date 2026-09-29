@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 /**
  * PURPOSE: Provides test environment setup and helpers for server flow integration tests
  *
@@ -8,21 +7,24 @@ import fs from 'node:fs';
  * const body = server.toPlain(await response.json());
  * restore();
  */
-import { randomUUID } from 'crypto';
+import { randomUUID } from '#gateway/node/crypto';
 import {
-  existsSync,
-  mkdirSync,
-  writeFileSync,
-  rmSync,
   chmodSync,
+  ensureDirSync,
+  existsSync,
+  lstatSync,
+  readFileBytesSync,
   readFileSync,
   readdirSync,
-  statSync,
-} from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-
-import { z } from 'zod';
+  rmSync,
+  writeFileSync,
+} from '#gateway/node/fs';
+import { ensureDir, symlink, writeFile, writeFileBytes } from '#gateway/node/fs__promises';
+import { tmpdir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { z } from '#gateway/npm/zod';
 
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -258,10 +260,10 @@ export const serverAppHarness = (): {
   }) => Promise<ClaudeInvocationPrompt>;
 } => {
   const setupTestHome = ({ baseName }: { baseName: string }): (() => void) => {
-    const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
+    const savedDungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
     const tempDir = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
-    process.env.DUNGEONMASTER_HOME = tempDir;
-    mkdirSync(tempDir, { recursive: true });
+    setEnv('DUNGEONMASTER_HOME', tempDir);
+    ensureDirSync(tempDir);
     writeFileSync(join(tempDir, 'config.json'), JSON.stringify({ guilds: [] }));
     // A ledger stamped NOW, so usageLedgerScanBroker takes its throttle path instead of walking
     // `~/.claude/projects`. That path is now a run-wide jest sandbox (`jest.setup-global.js`), not
@@ -282,9 +284,9 @@ export const serverAppHarness = (): {
 
     return (): void => {
       if (savedDungeonmasterHome === undefined) {
-        Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+        deleteEnv('DUNGEONMASTER_HOME');
       } else {
-        process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
+        setEnv('DUNGEONMASTER_HOME', savedDungeonmasterHome);
       }
       rmSync(tempDir, { recursive: true, force: true });
     };
@@ -308,8 +310,8 @@ export const serverAppHarness = (): {
     quest: unknown;
   }): Promise<void> => {
     const questDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questFolder);
-    await fs.promises.mkdir(questDir, { recursive: true });
-    await fs.promises.writeFile(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
+    await ensureDir(questDir);
+    await writeFile(join(questDir, 'quest.json'), JSON.stringify(quest, null, 2));
   };
 
   const seedQuestFields = async ({
@@ -388,13 +390,13 @@ export const serverAppHarness = (): {
   }): Promise<{ imagePath: FilePath; dirPath: FilePath; cleanup: () => void }> => {
     const rootPath = join(tmpdir(), `${baseName}-${randomUUID().slice(0, 8)}`);
     const dirPath = join(rootPath, locationsStatics.quest.imagesDir);
-    await fs.promises.mkdir(dirPath, { recursive: true });
-    await fs.promises.writeFile(
+    await ensureDir(dirPath);
+    await writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
     const imagePath = join(dirPath, fileName);
-    await fs.promises.writeFile(imagePath, bytes);
+    await writeFileBytes(imagePath, bytes);
 
     return {
       imagePath: FilePathStub({ value: imagePath }),
@@ -439,23 +441,23 @@ export const serverAppHarness = (): {
 
     const imagesDirPath = join(rootPath, locationsStatics.quest.imagesDir);
     const outsideDirPath = join(rootPath, OUTSIDE_IMAGES_DIR_NAME);
-    await fs.promises.mkdir(imagesDirPath, { recursive: true });
-    await fs.promises.mkdir(outsideDirPath, { recursive: true });
+    await ensureDir(imagesDirPath);
+    await ensureDir(outsideDirPath);
     // Only the images directory's own parent gets one: `outside` deliberately stays a
     // non-quest-folder, so the escaping link has nowhere legitimate to land.
-    await fs.promises.writeFile(
+    await writeFile(
       join(rootPath, locationsStatics.quest.questFile),
       QUEST_FILE_EXISTENCE_ONLY_CONTENT,
     );
 
     const targetPath = join(outsideDirPath, targetFileName);
-    await fs.promises.writeFile(targetPath, targetBytes);
+    await writeFileBytes(targetPath, targetBytes);
 
     const symlinkPath = join(imagesDirPath, linkFileName);
-    await fs.promises.symlink(targetPath, symlinkPath);
+    await symlink({ target: targetPath, path: symlinkPath });
 
     const siblingPath = join(imagesDirPath, siblingFileName);
-    await fs.promises.writeFile(siblingPath, siblingBytes);
+    await writeFileBytes(siblingPath, siblingBytes);
 
     return {
       symlinkPath: FilePathStub({ value: symlinkPath }),
@@ -506,7 +508,7 @@ export const serverAppHarness = (): {
     questId: string;
   }): { restore: () => void } => {
     const imagesDir = join(dungeonmasterHome, 'guilds', guildId, 'quests', questId, 'images');
-    mkdirSync(imagesDir, { recursive: true });
+    ensureDirSync(imagesDir);
     chmodSync(imagesDir, 0o555);
     return {
       restore: (): void => {
@@ -529,24 +531,24 @@ export const serverAppHarness = (): {
 
   const configureFakeClaudeCli = (): { claudeQueueDir: FilePath; restore: () => void } => {
     const claudeQueueDir = join(tmpdir(), `claude-queue-${randomUUID()}`);
-    const savedCliPath = process.env.CLAUDE_CLI_PATH;
-    const savedQueueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
+    const savedCliPath = getEnv('CLAUDE_CLI_PATH');
+    const savedQueueDir = getEnv('FAKE_CLAUDE_QUEUE_DIR');
 
-    process.env.CLAUDE_CLI_PATH = REAL_FAKE_CLAUDE_CLI_BIN;
-    process.env.FAKE_CLAUDE_QUEUE_DIR = claudeQueueDir;
+    setEnv('CLAUDE_CLI_PATH', REAL_FAKE_CLAUDE_CLI_BIN);
+    setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
       claudeQueueDir: FilePathStub({ value: claudeQueueDir }),
       restore: (): void => {
         if (savedCliPath === undefined) {
-          Reflect.deleteProperty(process.env, 'CLAUDE_CLI_PATH');
+          deleteEnv('CLAUDE_CLI_PATH');
         } else {
-          process.env.CLAUDE_CLI_PATH = savedCliPath;
+          setEnv('CLAUDE_CLI_PATH', savedCliPath);
         }
         if (savedQueueDir === undefined) {
-          Reflect.deleteProperty(process.env, 'FAKE_CLAUDE_QUEUE_DIR');
+          deleteEnv('FAKE_CLAUDE_QUEUE_DIR');
         } else {
-          process.env.FAKE_CLAUDE_QUEUE_DIR = savedQueueDir;
+          setEnv('FAKE_CLAUDE_QUEUE_DIR', savedQueueDir);
         }
         rmSync(claudeQueueDir, { recursive: true, force: true });
       },
@@ -565,7 +567,7 @@ export const serverAppHarness = (): {
   // of the whole test crashing on a truncated-JSON parse error.
   const tryReadLastInvocation = (invocationsPath: string): unknown => {
     try {
-      const lines = readFileSync(invocationsPath, 'utf-8').trim().split('\n');
+      const lines = readFileSync(invocationsPath).trim().split('\n');
       return JSON.parse(lines[lines.length - 1] ?? '{}') as unknown;
     } catch {
       return undefined;
@@ -624,7 +626,7 @@ export const serverAppHarness = (): {
     return {
       exists,
       dirPath: FilePathStub({ value: dirPath }),
-      ino: exists ? statSync(dirPath).ino : null,
+      ino: exists ? lstatSync(dirPath).ino : null,
       fileNames: exists ? readdirSync(dirPath).map((name) => fileNameContract.parse(name)) : [],
     };
   };
@@ -635,7 +637,7 @@ export const serverAppHarness = (): {
   const readFileBase64 = ({ filePath }: { filePath: string }): Base64ImageData =>
     pastedImageUploadContract.parse({
       mediaType: 'image/png',
-      dataBase64: readFileSync(filePath).toString('base64'),
+      dataBase64: readFileBytesSync(filePath).toString('base64'),
     }).dataBase64;
 
   const readCreatedQuestId = ({ body }: { body: unknown }): QuestId => {

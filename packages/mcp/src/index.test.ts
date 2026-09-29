@@ -9,19 +9,17 @@ describe('index', () => {
   describe('entry point error handling', () => {
     it('VALID: StartMcpServer succeeds => process continues', async () => {
       const proxy = indexProxy();
-      const { exitSpy, stderrSpy } = proxy.captureProcessInteractions();
 
       await proxy.loadIndexWithStartupBehavior(async () => {
         // Success - no error thrown
       });
 
-      expect(exitSpy.callsMatching([])).toStrictEqual([]);
-      expect(stderrSpy.callsMatching([])).toStrictEqual([]);
+      expect(proxy.getExitCalls()).toStrictEqual([]);
+      expect(proxy.getStderrWrites()).toStrictEqual([]);
     });
 
     it('ERROR: StartMcpServer throws Error => writes to stderr and exits with code 1', async () => {
       const proxy = indexProxy();
-      const { exitSpy, stderrSpy } = proxy.captureProcessInteractions();
 
       const testError = new Error('Test server error');
 
@@ -29,15 +27,12 @@ describe('index', () => {
         return Promise.reject(testError);
       });
 
-      expect(stderrSpy.callsMatching([])).toStrictEqual([
-        ['MCP server error: Test server error\n'],
-      ]);
-      expect(exitSpy.callsMatching([])).toStrictEqual([[1]]);
+      expect(proxy.getStderrWrites()).toStrictEqual(['MCP server error: Test server error\n']);
+      expect(proxy.getExitCalls()).toStrictEqual([[1]]);
     });
 
     it('ERROR: StartMcpServer throws non-Error object => writes stringified error to stderr and exits with code 1', async () => {
       const proxy = indexProxy();
-      const { exitSpy, stderrSpy } = proxy.captureProcessInteractions();
 
       // Test non-Error throw case - throw Error containing string representation
       const stringError = new Error('String error');
@@ -46,30 +41,28 @@ describe('index', () => {
         return Promise.reject(stringError);
       });
 
-      expect(stderrSpy.callsMatching([])).toStrictEqual([['MCP server error: String error\n']]);
-      expect(exitSpy.callsMatching([])).toStrictEqual([[1]]);
+      expect(proxy.getStderrWrites()).toStrictEqual(['MCP server error: String error\n']);
+      expect(proxy.getExitCalls()).toStrictEqual([[1]]);
     });
 
     it('VALID: {SIGTERM signal} => exits with code 0', async () => {
       const proxy = indexProxy();
-      const { exitSpy } = proxy.captureProcessInteractions();
 
       await proxy.loadIndexWithStartupBehavior(async () => {});
 
       proxy.simulateSignal({ signal: 'SIGTERM' });
 
-      expect(exitSpy.callsMatching([])).toStrictEqual([[0]]);
+      expect(proxy.getExitCalls()).toStrictEqual([[0]]);
     });
 
     it('VALID: {SIGINT signal} => exits with code 0', async () => {
       const proxy = indexProxy();
-      const { exitSpy } = proxy.captureProcessInteractions();
 
       await proxy.loadIndexWithStartupBehavior(async () => {});
 
       proxy.simulateSignal({ signal: 'SIGINT' });
 
-      expect(exitSpy.callsMatching([])).toStrictEqual([[0]]);
+      expect(proxy.getExitCalls()).toStrictEqual([[0]]);
     });
   });
 });

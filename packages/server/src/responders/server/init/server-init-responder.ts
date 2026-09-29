@@ -18,8 +18,12 @@ import {
   locationsWardResultsPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { clearInterval } from '#gateway/node/clearInterval';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { exit, on, stdout } from '#gateway/node/process';
+import { setInterval } from '#gateway/node/setInterval';
+import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
 import { serve } from '#gateway/npm/hono__node-server';
 
@@ -554,7 +558,7 @@ export const ServerInitResponder = ({
       hostname: serverHost,
     },
     (info) => {
-      process.stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);
+      stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);
     },
   );
   nodeWebSocket.injectWebSocket(server);
@@ -927,17 +931,17 @@ export const ServerInitResponder = ({
   // The execution-queue bootstrap responder runs the recovery sweep lazily so server restarts
   // without a connected browser don't auto-launch orchestration loops.
 
-  process.on('SIGTERM', () => {
+  on('SIGTERM', () => {
     processDevLogBroker({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
     StartOrchestrator.stopAllChats();
-    process.exit(0);
+    exit(0);
   });
-  process.on('SIGINT', () => {
+  on('SIGINT', () => {
     processDevLogBroker({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
     StartOrchestrator.stopAllChats();
-    process.exit(0);
+    exit(0);
   });
   return adapterResultContract.parse({ success: true });
 };

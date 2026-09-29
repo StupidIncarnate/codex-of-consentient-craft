@@ -23,6 +23,7 @@
  * });
  * // Appends one WorkItem onto quest.workItems on disk, relatedDataItems: ['operations/<operationId>']
  */
+import { randomUUID } from '#gateway/node/crypto';
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -67,7 +68,7 @@ export const questWorkItemAttachBroker = async ({
   const { quest } = getResult;
 
   const newItem = workItemContract.parse({
-    id: questWorkItemIdContract.parse(crypto.randomUUID()),
+    id: questWorkItemIdContract.parse(randomUUID()),
     role,
     status,
     spawnerType,

@@ -14,8 +14,14 @@ import {
   portResolveBrokerProxy,
   locationsWardResultsPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
+import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
+import { exitProxy } from '#gateway/node/process/exit/exit.proxy';
+import { onProxy } from '#gateway/node/process/on/on.proxy';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { Request } from '#gateway/node/Request';
+import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { createNodeWebSocketProxy } from '#gateway/npm/hono__node-ws/node-web-socket/node-web-socket.proxy';
 import { serveProxy } from '#gateway/npm/hono__node-server/server/server.proxy';
@@ -40,6 +46,8 @@ import { ServerInitResponder } from './server-init-responder';
 
 // Longer than the wait broker's whole poll budget.
 const PAST_DEADLINE_MS = 1000;
+// The responder's pipeline chat-output flush period.
+const FLUSH_INTERVAL_MS = 100;
 
 // Module-level mock prevents @hono/node-server from loading and registering SIGTERM listeners.
 // Targets the RAW npm specifier, not the gateway barrel — this suppresses the real package's own
@@ -106,6 +114,7 @@ export const ServerInitResponderProxy = (): {
     contents: FileContents;
   }) => void;
   getCapturedWebSocketAppIsHono: () => boolean;
+  firePipelineFlush: () => void;
 } => {
   const dateSpy = registerSpyOn({
     object: Date.prototype,
@@ -118,6 +127,13 @@ export const ServerInitResponderProxy = (): {
   // held only `.stub.ts`); both now ship one, so this responder's own proxy composes them instead
   // of staging createNodeWebSocket/serve directly on the gateway import.
   const nodeWebSocket = createNodeWebSocketProxy();
+  // Signal handlers are recorded, never attached, so no test leaves a live SIGTERM/SIGINT listener
+  // behind; exit is recorded for the same reason.
+  onProxy();
+  exitProxy();
+  stdoutProxy();
+  const setIntervalChild = setIntervalProxy();
+  clearIntervalProxy();
   const server = serveProxy();
 
   const orchestrator = StartOrchestratorProxy();
@@ -159,10 +175,6 @@ export const ServerInitResponderProxy = (): {
       waitForStampProxy.setupNow({ ms: startMs });
       waitForStampProxy.setupNowOnce({ ms: startMs });
       waitForStampProxy.setupNowOnce({ ms: startMs + PAST_DEADLINE_MS });
-      // Clean up leftover signal handlers from previous tests to prevent listener leaks.
-      // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
-      process.removeAllListeners('SIGTERM');
-      process.removeAllListeners('SIGINT');
       const app = new Hono();
       nodeWebSocket.setupUpgrade({ app });
       server.setupListen({ port: Number(listen.port), hostname: environmentStatics.hostname });
@@ -285,5 +297,18 @@ export const ServerInitResponderProxy = (): {
     // Proves a real Hono app reached createNodeWebSocket; the stage is keyed on the exact app
     // callResponder built, and this read-back confirms the responder captured it.
     getCapturedWebSocketAppIsHono: (): boolean => nodeWebSocket.getCapturedApp() instanceof Hono,
+    // Runs one tick of the flush interval the most recent callResponder armed, taken from the
+    // recorded setInterval call's own callback, so a test drives the flush without a real wait.
+    firePipelineFlush: (): void => {
+      // The recorded first argument IS the callback the responder handed setInterval.
+      const flush = setIntervalChild
+        .getCallsFor({ ms: FLUSH_INTERVAL_MS })
+        .map((call) => call[0] as () => void)
+        .at(-1);
+      if (flush === undefined) {
+        throw new Error('firePipelineFlush: no flush interval armed. Call callResponder() first.');
+      }
+      flush();
+    },
   };
 };
