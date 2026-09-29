@@ -177,16 +177,16 @@ describe('dungeonmaster siegelense piped into a reader that closes early', () =>
   // against this exact spawn while this fix was under construction. `head -n 0` (this harness's
   // own comment says why) reproduces that deterministically for the bare invocation, which is now
   // the smallest possible siegelense output.
-  it(
-    'VALID: {dungeonmaster siegelense | head -n 0} => the CLI still exits 0, with no EPIPE stack trace on stderr',
-    async () => {
-      const { cliExitCode, cliStderr } = await harness.runWithClosedStdoutReader({
-        args: ['siegelense'],
-      });
+  // The spawn runs in beforeAll, like every other spawn in this file: its cost is tsx compiling
+  // and loading the CLI's module graph, the runtime's rather than the assertions', and jest runs a
+  // hook outside the test_start..test_done window that ward's slow-test gate measures.
+  let closedReader: Awaited<ReturnType<typeof harness.runWithClosedStdoutReader>>;
 
-      expect(cliExitCode).toBe(ExitCodeStub({ value: 0 }));
-      expect(cliStderr).toBe('');
-    },
-    SPAWNS_TIMEOUT_MS,
-  );
+  beforeAll(async () => {
+    closedReader = await harness.runWithClosedStdoutReader({ args: ['siegelense'] });
+  }, SPAWNS_TIMEOUT_MS);
+
+  it('VALID: {dungeonmaster siegelense | head -n 0} => the CLI still exits 0, with no EPIPE stack trace on stderr', () => {
+    expect(closedReader).toStrictEqual({ cliExitCode: ExitCodeStub({ value: 0 }), cliStderr: '' });
+  });
 });
