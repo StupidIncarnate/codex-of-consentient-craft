@@ -6,7 +6,7 @@
  * // Returns true
  */
 
-import type { SettingsHookListEntry } from '../../contracts/claude-settings/claude-settings-contract';
+import type { SettingsHookListEntry } from '../../contracts/settings-hook-list-entry/settings-hook-list-entry-contract';
 
 export const isDungeonmasterHookEntryGuard = ({
   entry,

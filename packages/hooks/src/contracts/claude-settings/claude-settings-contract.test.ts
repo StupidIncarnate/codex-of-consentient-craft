@@ -182,18 +182,18 @@ describe('claudeSettingsContract', () => {
       ).toThrow(/received undefined/u);
     });
 
-    it('INVALID: hook entry without command field => throws ZodError', () => {
-      expect(() =>
-        claudeSettingsContract.parse({
-          hooks: {
-            PreToolUse: [
-              {
-                hooks: [{ type: 'command' }],
-              },
-            ],
-          },
-        }),
-      ).toThrow(/received undefined/u);
+    it('VALID: hook entry without command (http-style) => keeps its own keys', () => {
+      const result = claudeSettingsContract.parse({
+        hooks: {
+          PreToolUse: [{ hooks: [{ type: 'http', url: 'https://example.test/hook', timeout: 5 }] }],
+        },
+      });
+
+      expect(result).toStrictEqual({
+        hooks: {
+          PreToolUse: [{ hooks: [{ type: 'http', url: 'https://example.test/hook', timeout: 5 }] }],
+        },
+      });
     });
 
     it('INVALID: PreToolUse entry without hooks array => throws ZodError', () => {

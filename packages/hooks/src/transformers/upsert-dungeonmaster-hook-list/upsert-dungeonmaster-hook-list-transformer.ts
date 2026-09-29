@@ -10,12 +10,16 @@
  */
 
 import { isDungeonmasterHookEntryGuard } from '../../guards/is-dungeonmaster-hook-entry/is-dungeonmaster-hook-entry-guard';
-import type { SettingsHookListEntry } from '../../contracts/claude-settings/claude-settings-contract';
+import { settingsHookListEntryContract } from '../../contracts/settings-hook-list-entry/settings-hook-list-entry-contract';
+import type { SettingsHookListEntry } from '../../contracts/settings-hook-list-entry/settings-hook-list-entry-contract';
 
-export const upsertDungeonmasterHookListTransformer = <T extends SettingsHookListEntry>({
+export const upsertDungeonmasterHookListTransformer = ({
   existing,
   fresh,
 }: {
-  existing: readonly T[];
-  fresh: readonly T[];
-}): T[] => [...existing.filter((entry) => !isDungeonmasterHookEntryGuard({ entry })), ...fresh];
+  existing: readonly SettingsHookListEntry[];
+  fresh: readonly SettingsHookListEntry[];
+}): SettingsHookListEntry[] => [
+  ...existing.filter((entry) => !isDungeonmasterHookEntryGuard({ entry })),
+  ...fresh.map((entry) => settingsHookListEntryContract.parse(entry)),
+];

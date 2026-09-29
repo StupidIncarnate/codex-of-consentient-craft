@@ -19,52 +19,73 @@ const hookTypeContract = z.string().brand<'HookType'>();
 const hookCommandContract = z.string().brand<'HookCommand'>();
 const hookMatcherContract = z.string().brand<'HookMatcher'>();
 
-const hookEntryContract = z.object({
-  type: hookTypeContract,
-  command: hookCommandContract,
-});
+// Loose at every level a user may hold keys of their own (`timeout`, `url`, `prompt`, events this
+// contract does not name): a settings.json read through it is written back whole, so a stripped key
+// would be a deleted key. `command` is optional because only command-type hooks carry one.
+const hookEntryContract = z
+  .object({
+    type: hookTypeContract,
+    command: hookCommandContract.optional(),
+  })
+  .loose();
 
-const preToolUseHookContract = z.object({
-  matcher: hookMatcherContract.optional(),
-  hooks: z.array(hookEntryContract),
-});
+const preToolUseHookContract = z
+  .object({
+    matcher: hookMatcherContract.optional(),
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const sessionStartHookContract = z.object({
-  hooks: z.array(hookEntryContract),
-});
+const sessionStartHookContract = z
+  .object({
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const postToolUseHookContract = z.object({
-  matcher: hookMatcherContract.optional(),
-  hooks: z.array(hookEntryContract),
-});
+const postToolUseHookContract = z
+  .object({
+    matcher: hookMatcherContract.optional(),
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const worktreeCreateHookContract = z.object({
-  hooks: z.array(hookEntryContract),
-});
+const worktreeCreateHookContract = z
+  .object({
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const subagentStartHookContract = z.object({
-  hooks: z.array(hookEntryContract),
-});
+const subagentStartHookContract = z
+  .object({
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const subagentStopHookContract = z.object({
-  hooks: z.array(hookEntryContract),
-});
+const subagentStopHookContract = z
+  .object({
+    hooks: z.array(hookEntryContract),
+  })
+  .loose();
 
-const hooksConfigContract = z.object({
-  PreToolUse: z.array(preToolUseHookContract).optional(),
-  PostToolUse: z.array(postToolUseHookContract).optional(),
-  SessionStart: z.array(sessionStartHookContract).optional(),
-  SubagentStart: z.array(subagentStartHookContract).optional(),
-  SubagentStop: z.array(subagentStopHookContract).optional(),
-  WorktreeCreate: z.array(worktreeCreateHookContract).optional(),
-});
+const hooksConfigContract = z
+  .object({
+    PreToolUse: z.array(preToolUseHookContract).optional(),
+    PostToolUse: z.array(postToolUseHookContract).optional(),
+    SessionStart: z.array(sessionStartHookContract).optional(),
+    SubagentStart: z.array(subagentStartHookContract).optional(),
+    SubagentStop: z.array(subagentStopHookContract).optional(),
+    WorktreeCreate: z.array(worktreeCreateHookContract).optional(),
+  })
+  .loose();
 
 const permissionStringContract = z.string().brand<'PermissionString'>();
 
-const permissionsConfigContract = z.object({
-  allow: z.array(permissionStringContract).optional(),
-  deny: z.array(permissionStringContract).optional(),
-});
+const permissionsConfigContract = z
+  .object({
+    allow: z.array(permissionStringContract).optional(),
+    deny: z.array(permissionStringContract).optional(),
+  })
+  .loose();
 
 const envValueContract = z.string().brand<'EnvValue'>();
 
@@ -106,17 +127,3 @@ export type EnvConfig = z.infer<typeof envConfigContract>;
 export type EnvValue = z.infer<typeof envValueContract>;
 export type PromptCacheTtl = z.infer<typeof promptCacheTtlContract>;
 export type CrossSessionInbound = z.infer<typeof crossSessionInboundContract>;
-
-/**
- * Union of every hook-list entry kind dungeonmaster writes into a settings.json hook array
- * (PreToolUse, PostToolUse, SessionStart, SubagentStart, WorktreeCreate). Used by the
- * upsert transformer and the dungeonmaster-ownership guard so they can operate on any of
- * these list shapes without re-declaring an ad-hoc structural type.
- */
-export type SettingsHookListEntry =
-  | PreToolUseHook
-  | PostToolUseHook
-  | SessionStartHook
-  | SubagentStartHook
-  | SubagentStopHook
-  | WorktreeCreateHook;

@@ -31,6 +31,7 @@ import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers'
 import path from '#gateway/node/path';
 import { readJsonFileIfExists, writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
+import { claudeSettingsContract } from '../../../contracts/claude-settings/claude-settings-contract';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';
 import { sessionDefaultsCreatorTransformer } from '../../../transformers/session-defaults-creator/session-defaults-creator-transformer';
@@ -49,7 +50,10 @@ export const InstallCreateSettingsResponder = async ({
     locationsStatics.repoRoot.claude.settings,
   );
 
-  const existingSettings = (await readJsonFileIfExists(settingsPath)) as ClaudeSettings | null;
+  // A settings.json whose shape the contract rejects throws here, before anything is written: the
+  // ZodError propagates like the read errors above, so the file on disk is never overwritten.
+  const rawSettings = await readJsonFileIfExists(settingsPath);
+  const existingSettings = rawSettings === null ? null : claudeSettingsContract.parse(rawSettings);
 
   const dungeonmasterHooks = dungeonmasterHooksCreatorTransformer();
   const sessionDefaults = sessionDefaultsCreatorTransformer();

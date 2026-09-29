@@ -518,7 +518,9 @@ describe('InstallCreateSettingsResponder', () => {
           value: JSON.stringify(
             {
               hooks: {
-                PreToolUse: [{ hooks: [{ command: 'dungeonmaster-pre-edit-lint' }] }],
+                PreToolUse: [
+                  { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
+                ],
               },
             },
             null,
@@ -755,8 +757,8 @@ describe('InstallCreateSettingsResponder', () => {
           value: JSON.stringify(
             {
               hooks: {
-                PreToolUse: [{ hooks: [{ command: 'existing-hook' }] }],
-                SessionStart: [{ hooks: [{ command: 'existing-session-hook' }] }],
+                PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
+                SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
               },
             },
             null,
@@ -789,7 +791,7 @@ describe('InstallCreateSettingsResponder', () => {
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
-            { hooks: [{ command: 'existing-hook' }] },
+            { hooks: [{ type: 'command', command: 'existing-hook' }] },
             {
               matcher: 'Write|Edit|MultiEdit',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
@@ -818,7 +820,7 @@ describe('InstallCreateSettingsResponder', () => {
             },
           ],
           SessionStart: [
-            { hooks: [{ command: 'existing-session-hook' }] },
+            { hooks: [{ type: 'command', command: 'existing-session-hook' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }],
             },
@@ -1281,6 +1283,94 @@ describe('InstallCreateSettingsResponder', () => {
           syscall: 'open',
         }),
       );
+
+      expect(proxy.getWrittenContent()).toBe(undefined);
+    });
+  });
+
+  describe('keys the consumer owns', () => {
+    it('VALID: {unknown top-level key, unknown event, unknown key in a hook entry} => all survive the upsert', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupExistingSettings({
+        content: FileContentsStub({
+          value: JSON.stringify({
+            model: 'opus',
+            permissions: { allow: ['Bash(ls)'], defaultMode: 'plan' },
+            hooks: {
+              Stop: [{ hooks: [{ type: 'command', command: 'their-stop', timeout: 30 }] }],
+              PreToolUse: [
+                {
+                  matcher: 'Foo',
+                  hooks: [{ type: 'command', command: 'my-other-tool', timeout: 5 }],
+                },
+                { hooks: [{ type: 'http', url: 'https://example.test/hook' }] },
+              ],
+            },
+          }),
+        }),
+      });
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+      const writtenHooks = written.hooks as Record<PropertyKey, unknown[]>;
+
+      expect({
+        model: written.model,
+        permissions: written.permissions,
+        stop: writtenHooks.Stop,
+        preToolUseHeadEntries: writtenHooks.PreToolUse?.slice(0, 2),
+      }).toStrictEqual({
+        model: 'opus',
+        permissions: { allow: ['Bash(ls)'], defaultMode: 'plan' },
+        stop: [{ hooks: [{ type: 'command', command: 'their-stop', timeout: 30 }] }],
+        preToolUseHeadEntries: [
+          { matcher: 'Foo', hooks: [{ type: 'command', command: 'my-other-tool', timeout: 5 }] },
+          { hooks: [{ type: 'http', url: 'https://example.test/hook' }] },
+        ],
+      });
+    });
+
+    it('ERROR: {settings.json: hooks is a string} => rejects naming the bad path, and never writes', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupExistingSettings({
+        content: FileContentsStub({ value: JSON.stringify({ hooks: 'not-an-object' }) }),
+      });
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/project' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toThrow(/"hooks"/u);
+
+      expect(proxy.getWrittenContent()).toBe(undefined);
+    });
+
+    it('ERROR: {settings.json: PreToolUse is not an array} => rejects and never writes', async () => {
+      const proxy = InstallCreateSettingsResponderProxy();
+
+      proxy.setupExistingSettings({
+        content: FileContentsStub({ value: JSON.stringify({ hooks: { PreToolUse: {} } }) }),
+      });
+
+      await expect(
+        proxy.callResponder({
+          context: {
+            targetProjectRoot: FilePathStub({ value: '/project' }),
+            dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+          },
+        }),
+      ).rejects.toThrow(/PreToolUse/u);
 
       expect(proxy.getWrittenContent()).toBe(undefined);
     });

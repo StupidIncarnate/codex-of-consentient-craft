@@ -480,7 +480,9 @@ describe('start-install integration', () => {
           value: JSON.stringify(
             {
               hooks: {
-                PreToolUse: [{ hooks: [{ command: 'dungeonmaster-pre-edit-lint' }] }],
+                PreToolUse: [
+                  { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
+                ],
               },
             },
             null,
@@ -723,8 +725,8 @@ describe('start-install integration', () => {
           value: JSON.stringify(
             {
               hooks: {
-                PreToolUse: [{ hooks: [{ command: 'existing-hook' }] }],
-                SessionStart: [{ hooks: [{ command: 'existing-session-hook' }] }],
+                PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
+                SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
               },
             },
             null,
@@ -763,7 +765,7 @@ describe('start-install integration', () => {
         env: { CLAUDE_CODE_SUBAGENT_MODEL: 'sonnet' },
         hooks: {
           PreToolUse: [
-            { hooks: [{ command: 'existing-hook' }] },
+            { hooks: [{ type: 'command', command: 'existing-hook' }] },
             {
               matcher: 'Write|Edit|MultiEdit',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }],
@@ -792,7 +794,7 @@ describe('start-install integration', () => {
             },
           ],
           SessionStart: [
-            { hooks: [{ command: 'existing-session-hook' }] },
+            { hooks: [{ type: 'command', command: 'existing-session-hook' }] },
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
             {
               hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet searchStrategy' }],
