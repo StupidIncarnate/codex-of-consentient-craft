@@ -26,6 +26,7 @@ import type { FileTiming } from '../../../contracts/file-timing/file-timing-cont
 import { eslintJsonParseTransformer } from '../../../transformers/eslint-json-parse/eslint-json-parse-transformer';
 import { eslintStatsParseTransformer } from '../../../transformers/eslint-stats-parse/eslint-stats-parse-transformer';
 import { extractJsonArrayTransformer } from '../../../transformers/extract-json-array/extract-json-array-transformer';
+import { eslintIgnoredPatternExtractTransformer } from '../../../transformers/eslint-ignored-pattern-extract/eslint-ignored-pattern-extract-transformer';
 import { isEslintIgnoredResultGuard } from '../../../guards/is-eslint-ignored-result/is-eslint-ignored-result-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 
@@ -55,6 +56,36 @@ export const checkRunLintBroker = async ({
 
   const exitCode = exitCodeContract.parse(result.exitCode);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+
+  // A scoped path holding no lintable file (a JSON fixture folder) aborts ESLint for the WHOLE run, real
+  // files included. Only the exact sentence naming a path this run passed counts: that path is dropped
+  // and the rest lints again, and a scope left with nothing is a skip, the way a scoped jest run with
+  // no tests is. Every other failure, and every unscoped run, falls through untouched.
+  const unlintablePattern =
+    status === 'fail' && fileList.length > 0
+      ? eslintIgnoredPatternExtractTransformer({ output: result.output })
+      : undefined;
+  const remainingFiles = fileList.filter((file) => file !== unlintablePattern);
+
+  if (unlintablePattern !== undefined && remainingFiles.length < fileList.length) {
+    if (remainingFiles.length > 0) {
+      return checkRunLintBroker({ projectFolder, fileList: remainingFiles });
+    }
+    return projectResultContract.parse({
+      projectFolder,
+      status: 'skip',
+      errors: [],
+      testFailures: [],
+      filesCount: 0,
+      discoveredCount: 0,
+      rawOutput: rawOutputContract.parse({
+        stdout: '',
+        stderr: 'no lintable files in scope',
+        exitCode,
+        signal: result.signal,
+      }),
+    });
+  }
 
   let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
   let resolvedStatus = status;

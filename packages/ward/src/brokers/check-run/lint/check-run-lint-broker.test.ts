@@ -2,6 +2,7 @@ import { ProjectFolderStub } from '../../../contracts/project-folder/project-fol
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
+import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { FileTimingStub } from '../../../contracts/file-timing/file-timing.stub';
 
 import { checkRunLintBroker } from './check-run-lint-broker';
@@ -355,6 +356,156 @@ describe('checkRunLintBroker', () => {
       });
 
       expect(result.fileTimings).toStrictEqual([]);
+    });
+  });
+
+  describe('scoped path with no lintable file', () => {
+    const jsonOnlyCrash =
+      'Oops! Something went wrong! :(\n\nESLint: 9.36.0\n\nYou are linting "test/fixtures/json-only", but all of the files matching the glob pattern "test/fixtures/json-only" are ignored.\n';
+    const elsewhereCrash =
+      'Oops! Something went wrong! :(\n\nESLint: 9.36.0\n\nYou are linting "somewhere/else", but all of the files matching the glob pattern "somewhere/else" are ignored.\n';
+
+    it('EMPTY: {scope is one folder eslint refuses} => returns skip, never a pass or a crash', async () => {
+      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupForFiles({
+        projectFolder,
+        files: [folder],
+        exitCode: 2,
+        stdout: jsonOnlyCrash,
+      });
+
+      const result = await checkRunLintBroker({ projectFolder, fileList: [folder] });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'skip',
+          errors: [],
+          testFailures: [],
+          filesCount: 0,
+          discoveredCount: 0,
+          rawOutput: RawOutputStub({
+            stdout: '',
+            stderr: 'no lintable files in scope',
+            exitCode: 2,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {scope mixes the refused folder with a real file} => lints the real file and passes', async () => {
+      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
+      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const eslintOutput = JSON.stringify([{ filePath: 'src/index.ts', messages: [] }]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupForFiles({
+        projectFolder,
+        files: [folder, file],
+        exitCode: 2,
+        stdout: jsonOnlyCrash,
+      });
+      proxy.setupForFiles({ projectFolder, files: [file], exitCode: 0, stdout: eslintOutput });
+
+      const result = await checkRunLintBroker({ projectFolder, fileList: [folder, file] });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          discoveredCount: 1,
+          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 0 }),
+        }),
+      );
+    });
+
+    it('VALID: {mixed scope, the real file has an error} => the real file still fails', async () => {
+      const folder = GitRelativePathStub({ value: 'test/fixtures/json-only' });
+      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const eslintOutput = JSON.stringify([
+        {
+          filePath: 'src/index.ts',
+          messages: [
+            { ruleId: 'no-unused-vars', severity: 2, message: 'Unused var', line: 1, column: 1 },
+          ],
+        },
+      ]);
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupForFiles({
+        projectFolder,
+        files: [folder, file],
+        exitCode: 2,
+        stdout: jsonOnlyCrash,
+      });
+      proxy.setupForFiles({ projectFolder, files: [file], exitCode: 1, stdout: eslintOutput });
+
+      const result = await checkRunLintBroker({ projectFolder, fileList: [folder, file] });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'src/index.ts',
+              line: 1,
+              column: 1,
+              message: 'Unused var',
+              rule: 'no-unused-vars',
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          filesCount: 1,
+          discoveredCount: 1,
+          rawOutput: RawOutputStub({ stdout: eslintOutput, stderr: '', exitCode: 1 }),
+        }),
+      );
+    });
+
+    it('ERROR: {crash names a path this run did not pass} => stays a fail with the raw output kept', async () => {
+      const file = GitRelativePathStub({ value: 'src/index.ts' });
+      const output = elsewhereCrash;
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupForFiles({ projectFolder, files: [file], exitCode: 2, stdout: output });
+
+      const result = await checkRunLintBroker({ projectFolder, fileList: [file] });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({ stdout: output, stderr: '', exitCode: 2 }),
+        }),
+      );
+    });
+
+    it('ERROR: {unscoped run whose output carries the crash text} => stays a fail', async () => {
+      const output = jsonOnlyCrash;
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunLintBrokerProxy();
+      proxy.setupNonJsonFailure({ projectFolder, stdout: output });
+
+      const result = await checkRunLintBroker({ projectFolder, fileList: [] });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          projectFolder,
+          status: 'fail',
+          errors: [],
+          testFailures: [],
+          rawOutput: RawOutputStub({ stdout: output, stderr: '', exitCode: 1 }),
+        }),
+      );
     });
   });
 });

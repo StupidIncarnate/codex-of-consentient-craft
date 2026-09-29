@@ -6,6 +6,7 @@ import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.prox
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
+import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 
 export const checkRunLintBrokerProxy = (): {
@@ -18,6 +19,12 @@ export const checkRunLintBrokerProxy = (): {
     stderr: string;
   }) => void;
   setupNonJsonFailure: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
+  setupForFiles: (params: {
+    projectFolder: ProjectFolder;
+    files: readonly GitRelativePath[];
+    exitCode: number;
+    stdout: string;
+  }) => void;
 } => {
   const run = runProxy();
   RunNotFoundErrorProxy();
@@ -96,6 +103,32 @@ export const checkRunLintBrokerProxy = (): {
       stdout: string;
     }): void => {
       stage({ projectFolder, exitCode: 1, stdout, stderr: '' });
+    },
+
+    // Addressed by the exact file list eslint is handed, so a run that drops a path and lints again
+    // reads a different answer than the run that named it.
+    setupForFiles: ({
+      projectFolder,
+      files,
+      exitCode,
+      stdout,
+    }: {
+      projectFolder: ProjectFolder;
+      files: readonly GitRelativePath[];
+      exitCode: number;
+      stdout: string;
+    }): void => {
+      const expected = [...checkCommandsStatics.lint.args.slice(0, -1), ...files];
+      run.setupSuccess({
+        command: String(resolveCommand({ projectFolder })),
+        cwd: String(absoluteFilePathContract.parse(projectFolder.path)),
+        args: (actual: readonly unknown[]): boolean =>
+          actual.length === expected.length &&
+          expected.every((arg, index) => arg === actual[index]),
+        exitCode,
+        stdout,
+        stderr: '',
+      });
     },
   };
 };
