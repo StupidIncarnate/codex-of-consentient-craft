@@ -784,7 +784,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | SD1 | L2 | Retype narrowing; printer for the 218 unprinted stub trees; malformed-node test deletion list | 1 agent | done | `phase34-scripts/sd1-retype-residue/pipeline.cjs` (runs the L2 retype, then guards, dead-condition strip, stub printer v2, test conversion). Re-measured 2026-09-29: type errors 226 in 90 files become 39 in 28; unprinted trees 218 become 59 for hand plus 75 on `malformed-tests-deletion-list.md` (74 tests); dead conditions by its own probe 101 become 8. Hand queue: `hand-queue.md` (98 entries, 56 files). Gate is `tsc` only: L2 must run the converted tests. |
 | SD2 | 3.3 | The 34 production files importing a stub | 1 agent | done | `phase34-scripts/b03-stub-type-alias/run.cjs`: 34 of 43 imports (30 orchestrator files whose stub only names a type) become `import type` from the contract; proven on copies, 0 new diagnostics. Hand queue: 9 names in 4 files (8 hydration-recipes builders, 1 testing `FlowObservableStub`), `out/leftovers.json`. Run it in wave 3.3 before 3.3-S2. |
 | SD3 | W3, W4 | Id-brand codemod | 1 agent | todo | |
-| SD4 | W5 | Value-brand codemod and the build-through-root-parse rewriter | 1 agent | todo | |
+| SD4 | W5 | Value-brand codemod and the build-through-root-parse rewriter | 1 agent | active | agent SD4 (2026-09-29) |
 | SD5 | W6 | Object-brand construction-site fallout | 1 agent | todo | |
 | SD6 | W7 | B14 generator residue (79 of 204 shapes) | 1 agent | active | agent SD6 (2026-09-29) |
 | SD7 | W8 | `z.unknown()` replacements from the decisions table | 1 agent | todo | |
