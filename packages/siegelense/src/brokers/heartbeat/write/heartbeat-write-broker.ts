@@ -34,7 +34,9 @@
  * // the written InstanceHeartbeat — rssMB is null when the measurement failed or /proc is absent
  */
 
+import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -70,7 +72,7 @@ export const heartbeatWriteBroker = async ({
   try {
     rssMB = await machineRssByPgidBroker({ pgids });
   } catch (error: unknown) {
-    process.stderr.write(
+    stderr.write(
       `[heartbeat-write] rss measurement failed for ${instanceId}, degrading rssMB to null: ${String(error)}\n`,
     );
   }
@@ -79,7 +81,7 @@ export const heartbeatWriteBroker = async ({
     instanceId,
     pid,
     pgids,
-    beatAtMs: epochMsContract.parse(Date.now()),
+    beatAtMs: epochMsContract.parse(now()),
     rssMB,
   });
 

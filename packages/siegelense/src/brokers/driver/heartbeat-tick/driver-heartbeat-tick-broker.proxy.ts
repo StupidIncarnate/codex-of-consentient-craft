@@ -13,10 +13,12 @@
  * proxy.getSampleRecordCalls();
  */
 
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { heartbeatWriteBrokerProxy } from '../../heartbeat/write/heartbeat-write-broker.proxy';
 import { profileSampleRecordBroker } from '../../profile/sample-record/profile-sample-record-broker';
@@ -54,8 +56,8 @@ export const driverHeartbeatTickBrokerProxy = (): {
   // ARGUMENTS it was handed, through getSampleRecordCalls.
   sampleHandle.calledWith([]).resolves(null);
 
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrHandle.calledWith([]).returns(true);
+  pidProxy();
+  const stderrRecorder = stderrProxy();
 
   return {
     stageBeatSucceeds: ({
@@ -116,6 +118,6 @@ export const driverHeartbeatTickBrokerProxy = (): {
       sampleHandle.callsMatching([]).map((call) => call[0]),
 
     getStderrMessages: (): readonly ContentText[] =>
-      stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
+      stderrRecorder.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
   };
 };

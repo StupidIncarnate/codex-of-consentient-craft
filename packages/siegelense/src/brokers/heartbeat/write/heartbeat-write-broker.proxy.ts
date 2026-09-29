@@ -1,8 +1,10 @@
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { join } from '#gateway/node/path';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { machineStatics } from '../../../statics/machine/machine-statics';
@@ -60,7 +62,8 @@ export const heartbeatWriteBrokerProxy = (): {
   const rssProxy = machineRssByPgidBrokerProxy();
   const writeProxy = writeFileProxy();
   const registryProxy = registryUpdateBrokerProxy();
-  const dateHandle = registerSpyOn({ object: Date, method: 'now' });
+  const clockProxy = nowProxy();
+  stderrProxy();
 
   return {
     setupHeartbeatWrite: ({
@@ -90,7 +93,7 @@ export const heartbeatWriteBrokerProxy = (): {
       rssProxy.setupProcMissing();
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
-      dateHandle.calledWith([]).returns(nowMs);
+      clockProxy.setupNow({ ms: nowMs });
     },
 
     setupHeartbeatWriteWithMeasuredRss: ({
@@ -133,7 +136,7 @@ export const heartbeatWriteBrokerProxy = (): {
         .returns(FilePathStub({ value: `/proc/${pid}/statm` }));
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
-      dateHandle.calledWith([]).returns(nowMs);
+      clockProxy.setupNow({ ms: nowMs });
     },
 
     setupHeartbeatWriteWithRssMeasurementFailure: ({
@@ -173,7 +176,7 @@ export const heartbeatWriteBrokerProxy = (): {
         .returns(FilePathStub({ value: `/proc/${pid}/stat` }));
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
-      dateHandle.calledWith([]).returns(nowMs);
+      clockProxy.setupNow({ ms: nowMs });
     },
 
     // Echoes what setup already computed — self-documenting in a test's assertion, the same role

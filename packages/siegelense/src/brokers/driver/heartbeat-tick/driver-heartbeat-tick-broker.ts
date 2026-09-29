@@ -23,6 +23,7 @@
  * // spec's profile; throws if the heartbeat write fails
  */
 
+import { pid, stderr } from '#gateway/node/process';
 import { processIdContract, adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildId } from '@dungeonmaster/shared/contracts';
 
@@ -42,7 +43,7 @@ export const driverHeartbeatTickBroker = async ({
 }): Promise<AdapterResult> => {
   const heartbeat = await heartbeatWriteBroker({
     instanceId,
-    pid: processIdContract.parse(String(process.pid)),
+    pid: processIdContract.parse(String(pid)),
     pgids: lane.pgids,
     guildId,
   });
@@ -53,7 +54,7 @@ export const driverHeartbeatTickBroker = async ({
     rssMB: heartbeat.rssMB,
     beatAtMs: heartbeat.beatAtMs,
   }).catch((error: unknown) => {
-    process.stderr.write(
+    stderr.write(
       `[heartbeat-tick] recording the profile sample for ${instanceId} failed, the beat itself stands: ${String(error)}\n`,
     );
   });

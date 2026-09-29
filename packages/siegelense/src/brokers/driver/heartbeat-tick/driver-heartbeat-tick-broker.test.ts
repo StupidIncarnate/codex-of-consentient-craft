@@ -1,3 +1,4 @@
+import { pid } from '#gateway/node/process';
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -34,7 +35,7 @@ describe('driverHeartbeatTickBroker', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
-        `{"instanceId":"inst_7f3a9c21","pid":"${String(process.pid)}","pgids":[4821,4822],"beatAtMs":${String(nowMs)},"rssMB":null}\n`,
+        `{"instanceId":"inst_7f3a9c21","pid":"${String(pid)}","pgids":[4821,4822],"beatAtMs":${String(nowMs)},"rssMB":null}\n`,
       );
     });
   });
