@@ -93,7 +93,56 @@ More rules for the operator:
     `## Plan` section into the item file, and changes nothing else. Only then is the item implemented.
     A file an implementing agent finds it must touch that is not on the list is reported back to the
     operator, who adds it to the plan before the agent proceeds. The agent never widens its own scope.
-## Operator session 2026-09-28 day — agents running
+## Handoff (operator, 2026-09-28 evening) — START HERE
+
+The operator stopped here because the user moved sessions. Read this section first. The "Operator session 2026-09-28 day" section below it is the detailed history of this session; the "morning" handoff below that is older.
+
+### State at handoff
+
+- **Phase 2 (delete every adapter) is one chunk from done.** No package has `src/adapters/` except siegelense, where the last Antigravity chunk (SL-LAST, `tmp/agy/sl-last.md`) was running at handoff. A10 orchestrator, A14 testing, A16 ward, A17 web, A06 eslint-plugin, A12 shared and A08 hydration-recipes all finished this session. Check `ls -d packages/*/src/adapters` first.
+- **Agents running at handoff** (all told never to commit; the operator commits each one's own files after a scoped ward exits 0). See "Agents at handoff" below for what landed before the session ended.
+- **Build:** the last whole-repo build was a plain `npm run build` mid-session; since then `@gateway/node` was rebuilt once. `ward`, `shared`, `testing`, `@gateway/npm`, `@gateway/browser`, `tooling` and `eslint-plugin` have source changes newer than their `dist`. **Before anything runs compiled output, run `npm run build:clean`**, then `npm run check:consumer` and `npm run check:published` (concession 8, the source-only `./rule-tester.harness` export, is unverified against `check:published`).
+- **A full `npm run ward` has not run since the morning handoff.** Every commit this session was gated by ward on its own package plus the packages that compose its proxies, and web's e2e (131 files) passed at every web commit. Run the full ward at the first quiet point, and fix what it finds (user rule 4).
+- **Known slow-test flags:** `packages/web/src/widgets/app/app-widget.test.tsx` and `home-content-widget.test.tsx` (1.2 to 1.3s under load); agent web-slow was fixing them at handoff.
+
+### User decisions this session
+
+1. **No mutation checks.** Removed from `agent-brief.md` and `tmp/agy/impl-common.md`.
+2. **Scripts are allowed where they cut work, and each is notated** in the "Scripts used" table. A18's `zod` sweep is the first (concession 11).
+3. At most five Claude sub-agents plus two Antigravity (`agy`) slots; the user's `agy` quota was 7% of the 5-hour window and 31% of the 7-day window mid-afternoon.
+
+### Next dispatch, in order
+
+1. Commit whatever the handoff agents left finished (see below), then `build:clean`, full `npm run ward`, `check:consumer`, `check:published`. Fix every red.
+2. Finish Phase 2: if SL-LAST did not finish, re-run the census (`ls -d packages/siegelense/src/adapters/*/*`) and dispatch the rest. Then **F76**: `enforce-folder-return-types`' integration test anchors on a real adapter file, which breaks once the last adapter goes (fix with A19).
+3. **A18** (plan written: `items/a18-raw-calls-and-dependency-cleanup.md` `## Plan`). About 2,000 files, mostly the `zod` import. Wave 0 (R1, C1, GN1 to GN5, GB1 to GB3) and the first scripted `-Z` sweep were running at handoff. Then the other packages' `-Z` sweeps (scripted, concession 11) and the 295 hand batches, one agent per package, packages side by side. siegelense and testing: re-run their census first.
+4. **A19** after A18 (runs alone): `adapters` stops being a folder type; caller-facing lint rules on; F71/concession 9 and F76 land there.
+5. Phase 5 leftovers: T04 has 2 violations left (siegelense); T05 is 0 in ward, cli, config, hooks, server, mcp, tooling, shared, hydration, session-forensics, eslint-plugin, local-eslint (not yet swept: orchestrator, web, siegelense, testing, hydration-recipes, `@gateway/*`). Scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`. Then switch T04's and T05's rules on (whole-repo scan at 0 first). F72: T05 rules ignore `registerSpyOn`.
+6. Open follow-ups: F10, F30, F63 (repo jest 30.2.0 is behind consumers' 30.5.2), F72, F75 (the recreated `fileBusEdgesLayerBroker` is not wired into `architectureEdgeGraphBroker`), F76. Then Phase 3/4 (B02, B03, B10 onward) and Phase 6 docs.
+
+### Lessons this session (also in the history section)
+
+- **Gate composers.** A change to one package's proxies is gated with a unit run of every package that composes them. f5975a007 (T05 shared) broke 22 config and 25 siegelense tests because only shared was gated; fixed in 29fff4a94.
+- **Integration tests catch what unit tests cannot.** An `agy` run read PNG screenshots through the UTF-8 `readFile`; only siegelense's flow integration tests caught it. Always gate `integration` too.
+- **Agents in one package with disjoint file lists work**, but commit them together when their files interleave; a package-wide typecheck sees the other agent's half-edited files.
+- **Tests that read the real tree** (shared's project-map test, the census test) break when the tree changes; re-anchor them in the same chunk that deletes their anchor, and keep them fast.
+- **A chunk feeding the proxy-mock hoister is slow** (testing's typescript adapters took 18 to 28 minutes each); keep those chunks to one or two adapters.
+- Run the sonnet status check when an agent passes an hour; the testing agent at 110 minutes was stopped cleanly at a green point after two checks.
+
+### Agents at handoff
+
+| Agent | Chunk | Scope | Status |
+|---|---|---|---|
+| agy SL-LAST | A13: siegelense's last 13 adapters, delete `adapters.ts` (`tmp/agy/sl-last.md`, output `tmp/agy/sl-last.out`) | `siegelense` | running |
+| a18-r1c1 (sonnet) | A18 wave 0: R1, C1 | `eslint-plugin` rules | running |
+| a18-gn (sonnet) | A18 wave 0: GN1 to GN5 | `@gateway/node` | running |
+| a18-gb (sonnet) | A18 wave 0: GB1 to GB3 | `@gateway/browser` | running |
+| a18-z1 (sonnet) | A18 scripted zod sweep: cli, config, hooks, hydration, mcp, session-forensics, tooling | those packages | running |
+| web-slow (sonnet) | app-widget and home-content slow tests | `web` tests | running |
+
+If an agent's result never arrived before the session ended, its files are uncommitted in the tree: run `git status`, send a sonnet sub-agent to review them against the chunk's item section, and commit what is green.
+
+## Operator session 2026-09-28 day — history (superseded by the evening handoff above)
 
 A new operator took over from the morning handoff below. Heartbeat cron `13,43 * * * *` is set. Each agent was told never to commit; commit only its own files when it reports.
 
@@ -125,7 +174,7 @@ Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `
 
 **User decision, 2026-09-28 afternoon: no mutation checks.** Agents no longer break code on purpose to prove a test goes red; the step and the MUTATIONS report section are gone from `agent-brief.md` and `tmp/agy/impl-common.md`. Tests must still assert real values. Script-making (the scripting-opportunities scroll) is tabled.
 
-## Handoff (operator, 2026-09-28 morning) — START HERE
+## Handoff (operator, 2026-09-28 morning) — history
 
 The previous operator stopped here so a fresh session can take over with a small context. Read this section, then "Operator session 2026-09-27 night" below it, then the status tables. Older handoff sections further down are history.
 
@@ -604,3 +653,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-28 | 02:59: every Claude sub-agent died on the weekly limit and `agy` on its quota, leaving G-I-b, B17-1, G-S, G-L and web fetch half done. 09:03: the user reported the limit reset; all five were resumed with their context, and `agy` took G-BB-1c and G-T. |
 | 2026-09-28 | Wrap-up for the operator handoff: every agent committed (last: orchestrator 49dfcd262). `build:clean` passed. `check:consumer` 86 of 89 (three failures, fix agent dispatched). Full ward 1790618403822-2d41: lint, typecheck, unit and e2e green; integration red in shared's project-map test (it reads the real tree, whose adapters this session deleted) and `@gateway/npm`'s dependency test (`jest-mock` has no wrapper folder); fix agent dispatched. |
 | 2026-09-28 | Handoff: all agents committed; F56 fix-ups; consumer fix (jest base loads MSW from `dist`); shared project-map and `@gateway/npm` jest-mock integration reds fixed. `build:clean` green, full ward 1790620960022-58d3 green, `check:consumer` 87 of 89 (F59, F60 intermittent). Next: this file's top Handoff section. |
+| 2026-09-28 | Evening (new operator): Phase 2 finished in every package but siegelense's last chunk (A10, A14, A16, A17, A06, A12, A08 done); F35, F39, F40, F45, F47, F52, F58 to F62, F64 to F75 done; T04 and T05 swept most packages; S1 census command; A18 planned and started. User decisions: no mutation checks; scripts allowed and notated. Next: the evening handoff at the top. |
