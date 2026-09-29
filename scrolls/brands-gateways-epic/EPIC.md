@@ -107,13 +107,17 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | done a477ddd82; T05 now at 0 in ward, cli, config, hooks, server, mcp, tooling |
 | s1-slow (sonnet) | S1 slow test | `tooling` tests | done 2db4b0cee |
 | t05-shf (sonnet) | T05 shared, hydration, session-forensics | tests and proxies | done (the T05 shared commit); T05 is now 0 in every package except orchestrator, web, siegelense, testing, hydration-recipes, @gateway/* (not yet swept) |
-| a18-plan (opus) | A18 planning only: census raw outside calls and duplicate deps; write `## Plan` in the A18 item | none (reads) | running |
+| a18-plan (opus) | A18 planning | none | done: `## Plan` in the A18 item. About 2,000 files across 16 packages; most are the `'zod'` import (scripted sweep, one agent per package); 295 hand batches; eight gateway gaps (GN1 to GN5, GB1 to GB3) and a `bin-program-spawn-ban` blind spot (R1) first |
+| fix-t05-reg (sonnet) | Fix: f5975a007 broke 22 config and 25 siegelense tests (removed shared's dirname fallback) | `config`, siegelense instance-start proxy | done (the regression-fix commit). Lesson: a change to shared's proxies is gated with a unit run of every package that composes them |
+| web-slow (sonnet) | Fix: app-widget and home-content tests over the slow-test threshold | `web` tests | running |
 
 After these land: A18 (raw calls and dependency cleanup), then A19 (`adapters` stops being a folder type; runs alone). A whole-repo `build:clean`, `check:consumer`, `check:published` and a full `npm run ward` are due at the first quiet point.
 
 Open follow-ups found this session and not yet dispatched: F68 (testing `holdsOpen` raw body), F71 (web stylesheet home, with A19), F72 (T05 rules ignore `registerSpyOn`), F63 (repo jest bump), F10, F30, F47-style checks; T04 remainder (hydration-recipes 5, server 11) needs new orchestrator proxy methods (table in the T04 item); T05 sweeps per package (ward 46c51491c, cli/config/hooks 8e56d3290 all at 0; a combined scan of many packages ran out of memory, so scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`).
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
+
+**User decision, 2026-09-28 late afternoon: scripts are allowed where they cut work, and each is notated.** This supersedes the earlier "script-making tabled". Every script an agent or the operator uses for bulk edits is recorded in the "Scripts used" table below (what it does, where it lives, which commit used it), and its output is still gated by ward like any other change. First use: A18's `zod` import sweep (one scripted agent per package, `'zod'` becomes `'#gateway/npm/zod'`).
 
 **User decision, 2026-09-28 afternoon: no mutation checks.** Agents no longer break code on purpose to prove a test goes red; the step and the MUTATIONS report section are gone from `agent-brief.md` and `tmp/agy/impl-common.md`. Tests must still assert real values. Script-making (the scripting-opportunities scroll) is tabled.
 
@@ -260,6 +264,17 @@ This epic's items that build tooling (the G items that write rules and scaffoldi
 - Agents never dispatch sub-agents of their own, and never fork. A fork carries its parent's whole task and redoes it beside the parent (F54 measured it; this repo's `CLAUDE.md` "Dispatching Sub-Agents" has the numbers). A consumer's `CLAUDE.md` does not carry that section, so every dispatch prompt says it.
 - `agy` gives about a dozen runs per quota window; a run that dies on quota leaves half-edited files for a Claude agent to finish from the diff.
 - A verification worktree carved by `create-worktree` comes from the main checkout's HEAD; if the consumer's working branch has moved past it (new dependencies), build and `check`-type runs happen in the working checkout at a quiet point instead.
+
+## Scripts used
+
+Each row is a script used for bulk edits or census. Output is always gated by ward before commit.
+
+| Script | What it does | Where | Used by |
+|---|---|---|---|
+| `tmp/t05-scan-pkgs.js <pkg>` | Runs the three T05 rules (off in the shared config) on one package through `tmp/t05-ward.config.js`; prints counts, writes hits to `tmp/t05-scan-out.txt`. Scan one package at a time (several at once runs out of memory). | `tmp/` (gitignored) | T05 sweeps 46c51491c to f5975a007 |
+| `tmp/t04-scan.config.js` | ESLint config that switches `ban-workspace-export-mocks` on; run as `node_modules/.bin/eslint -c tmp/t04-scan.config.js -f json -o <out> <paths>` | `tmp/` | T04 82713ea0c to 0bd6040d1 |
+| python import-path rewrites | One-off `python3` rewrites of import lines (rule-tester harness, testing-library, mantine render paths), output checked by the agent and gated by ward | agents' scratch | 235a64368, cdd59573b, 2d7f1d25f, f7eabaf73 |
+| `adapter-census` | Census of remaining adapters per package (published command) | `@dungeonmaster/tooling` | S1 4130e9c6f |
 
 ## Machine-wide side effects
 
