@@ -6,7 +6,7 @@ describe('iconButtonSizeContract', () => {
     it.each([...iconButtonSizeContract.options])(
       'VALID: {value: %s} => returns the branded size',
       (value) => {
-        expect(String(IconButtonSizeStub({ value }))).toBe(value);
+        expect(IconButtonSizeStub({ value })).toBe(value);
       },
     );
   });
