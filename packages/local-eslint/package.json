@@ -17,6 +17,12 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.js"
+    },
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
     }
   },
   "scripts": {
