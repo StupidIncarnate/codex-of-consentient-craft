@@ -59,11 +59,11 @@ export const packageScaffoldFilesTransformer = ({
   // literal-keyed object — matched over entries instead, same workaround as
   // packageChipAccentTransformer in @dungeonmaster/web.
   const matchedSeedEntry = Object.entries(SEED_TABLE).find(
-    ([kind]) => kind === String(request.packageType),
+    ([kind]) => kind === request.packageType,
   );
   if (matchedSeedEntry === undefined) {
     throw new Error(
-      `packageScaffoldFilesTransformer: no seed registered for packageType "${String(request.packageType)}"`,
+      `packageScaffoldFilesTransformer: no seed registered for packageType "${request.packageType}"`,
     );
   }
   const seed = packageSeedContract.parse(matchedSeedEntry[1]);
