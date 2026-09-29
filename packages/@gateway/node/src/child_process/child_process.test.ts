@@ -8,6 +8,7 @@ const OUR_WRAPPERS = [
   'run',
   'runFireAndForget',
   'runSync',
+  'runSyncWithInput',
   'spawnDetached',
   'spawnLive',
   'spawnLongLived',

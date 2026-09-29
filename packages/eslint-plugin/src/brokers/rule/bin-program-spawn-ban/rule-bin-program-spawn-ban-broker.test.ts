@@ -228,6 +228,22 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
       ],
     },
 
+    {
+      code: "import { runSyncWithInput } from '#gateway/node/child_process'; runSyncWithInput({ command: 'claude', args: ['--print'], cwd: '/repo', input: '' });",
+      filename: '/repo/packages/orchestrator/src/brokers/agent/x/agent-x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'binProgramSpawn',
+          data: {
+            program: 'claude',
+            binFunction: 'spawnStreamJson',
+            gatewayPath: '#gateway/bin/claude',
+          },
+        },
+      ],
+    },
+
     // --- a raw function re-exported by the gateway subpath is the raw positional shape ---
     {
       code: "import { execSync } from '#gateway/node/child_process'; execSync('lsof -ti :3737');",

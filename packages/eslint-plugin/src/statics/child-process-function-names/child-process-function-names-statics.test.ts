@@ -6,6 +6,7 @@ describe('childProcessFunctionNamesStatics', () => {
       gatewayFunctionNames: [
         'run',
         'runSync',
+        'runSyncWithInput',
         'stream',
         'streamLines',
         'spawnDetached',
