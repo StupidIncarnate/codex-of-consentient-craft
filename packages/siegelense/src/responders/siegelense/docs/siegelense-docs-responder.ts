@@ -24,6 +24,7 @@
  * // Writes the walker's page as one JSON document
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -41,7 +42,7 @@ export const SiegelenseDocsResponder = async ({
 }): Promise<AdapterResult> => {
   const answer = docsAnswerComposeTransformer({ scope });
 
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : docsAnswerRenderTransformer({ answer }),

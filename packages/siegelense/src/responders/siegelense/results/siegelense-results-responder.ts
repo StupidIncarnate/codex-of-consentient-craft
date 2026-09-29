@@ -17,6 +17,7 @@
  * // Writes the ResultsAnswer as a concise human view (or raw JSON when isJson: true) to stdout
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -41,7 +42,7 @@ export const SiegelenseResultsResponder = async ({
   }
 
   const answer = await resultsReadBroker({ query });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : resultsAnswerRenderTransformer({ answer }),

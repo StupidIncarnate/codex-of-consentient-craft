@@ -22,7 +22,8 @@ import {
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -73,10 +74,7 @@ export const profileSampleRecordBrokerProxy = (): {
   const readProxy = readFileProxy();
   const mkdirProxy = ensureDirProxy();
   const writeProxy = writeFileProxy();
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  // Record-and-swallow: what stderr does with the write is nobody's assertion, only what was
-  // written — read back through getStderrMessages.
-  stderrHandle.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   const samplesDirFor = ({ profilesPath }: { profilesPath: FilePath }): FilePath =>
     FilePathStub({ value: `${String(profilesPath)}/${profileStatics.dirs.samples}` });
@@ -149,6 +147,6 @@ export const profileSampleRecordBrokerProxy = (): {
       }),
 
     getStderrMessages: (): readonly ContentText[] =>
-      stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
+      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
   };
 };

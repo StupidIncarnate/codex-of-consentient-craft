@@ -1,4 +1,3 @@
-import { pid } from '#gateway/node/process';
 import {
   FilePathStub,
   GuildIdStub,
@@ -52,9 +51,10 @@ describe('instanceStartBroker', () => {
       ]);
     });
 
-    it('VALID: {start} => writes the boot lock file naming the reserved instance', async () => {
+    it('VALID: {start} => writes the boot lock file naming the reserved instance and this process', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
+      proxy.setupBootLockPid({ pid: 31_337 });
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -72,7 +72,7 @@ describe('instanceStartBroker', () => {
 
       expect(proxy.getWrittenBootLock()).toStrictEqual({
         heldBy: instanceId,
-        heldByPid: String(pid),
+        heldByPid: '31337',
         acquiredAtMs: EpochMsStub().valueOf(),
       });
     });
@@ -247,6 +247,32 @@ describe('instanceStartBroker', () => {
       });
 
       expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+    });
+
+    it('ERROR: {releasing the reservation itself throws} => still rejects with the original boot error', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const nowMs = 1_700_000_000_000;
+      const specName = SpecNameStub({ value: 'api' });
+      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupBootNeverAnswers({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({
+          instances: [RegistryEntryStub({ id: instanceId })],
+        }),
+        nowMs,
+      });
+      proxy.stageInstanceReleaseWriteFails({ code: 'EACCES' });
+
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow(LaneBootFailedError);
+
+      expect(proxy.getStderrMessages()).toStrictEqual([
+        `instanceStartBroker: stopping ${instanceId} after a failed boot failed, falling back to releasing the reservation: Error: EACCES: write '/home/user/.dungeonmaster/siegelense/registry.json.tmp'\n`,
+        `instanceStartBroker: releasing the reservation for ${instanceId} after a failed boot failed: Error: EACCES: write '/home/user/.dungeonmaster/siegelense/registry.json.tmp'\n`,
+      ]);
     });
   });
 

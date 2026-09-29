@@ -20,6 +20,8 @@
  * // Writes the ResultsAnswer as raw JSON to stdout
  */
 
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { ResultFieldStub } from '../../contracts/result-field/result-field.stub';
@@ -49,18 +51,16 @@ describe('SiegelenseResultsLayerFlow', () => {
         query: ResultsQueryStub({ instanceId: tree.killedInstanceId(), runId: tree.runOne() }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelenseResultsLayerFlow({
         callArgs: ['--instance', tree.killedInstanceId(), '--run', tree.runOne()],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -73,18 +73,16 @@ describe('SiegelenseResultsLayerFlow', () => {
         query: ResultsQueryStub({ instanceId: tree.killedInstanceId(), runId: tree.runOne() }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: ['--instance', tree.killedInstanceId(), '--run', tree.runOne(), '--json'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -103,12 +101,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -124,7 +118,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -143,12 +139,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -162,7 +154,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -195,12 +189,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -214,7 +204,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -244,12 +236,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -263,7 +251,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -283,12 +273,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -304,7 +290,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -327,12 +315,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -348,7 +332,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -368,12 +354,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -389,7 +371,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -412,12 +396,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -433,7 +413,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -453,12 +435,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -474,7 +452,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -494,12 +474,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -515,7 +491,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -548,12 +526,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -571,7 +545,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -590,12 +566,8 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseResultsLayerFlow({
         callArgs: [
@@ -609,7 +581,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -620,12 +594,8 @@ describe('SiegelenseResultsLayerFlow', () => {
 
   describe('the --since boot refusal when no --kind is named', () => {
     it('ERROR: {callArgs: [--instance, <killed>, --since, boot]} => refuses naming the sinceBoot-eligible kinds, and never writes to stdout', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseResultsLayerFlow({
@@ -641,7 +611,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         ),
       );
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });
@@ -685,12 +657,8 @@ describe('SiegelenseResultsLayerFlow', () => {
 
   describe('a missing --run against a finished instance with runs on record', () => {
     it('ERROR: {callArgs: [--instance, <killed>]} => rejects carrying RunIdRequiredError and its exact message, and never writes to stdout', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseResultsLayerFlow({ callArgs: ['--instance', tree.killedInstanceId()] }),
@@ -705,7 +673,9 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       );
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });

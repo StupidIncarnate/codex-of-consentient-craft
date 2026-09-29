@@ -40,6 +40,7 @@ export const instanceReserveBrokerProxy = (): {
   setupBranchFailure: (params: { exitCode: number; output: string }) => void;
   getWrittenRegistry: () => unknown;
   getRegistryWritePathsInOrder: (params: { alongside: string }) => readonly unknown[];
+  stageNextRegistryWriteSucceeds: () => void;
   getCreatedDirs: () => readonly unknown[];
 } => {
   const updateProxy = registryUpdateBrokerProxy();
@@ -140,6 +141,10 @@ export const instanceReserveBrokerProxy = (): {
 
     getRegistryWritePathsInOrder: ({ alongside }: { alongside: string }): readonly unknown[] =>
       updateProxy.getWritePathsInOrder({ alongside }),
+
+    stageNextRegistryWriteSucceeds: (): void => {
+      updateProxy.stageNextWriteSucceeds();
+    },
 
     // registryUpdateBroker's own acquire (still the old shared fsMkdirAdapter) and its own write
     // (already migrated to ensureDir) both create rootPath, and both land on the exact same

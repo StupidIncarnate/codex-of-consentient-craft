@@ -27,6 +27,8 @@
  * // Resolves false once driverSessionState's idle window elapses with no traffic in between
  */
 
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { setTimeout } from '#gateway/node/setTimeout';
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
 
 export const DriverIdleWaitLayerResponder = async ({

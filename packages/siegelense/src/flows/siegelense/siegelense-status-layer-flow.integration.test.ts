@@ -28,6 +28,8 @@
  * // Writes the rendered table for every main-branch instance, regardless of age
  */
 
+import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -152,10 +154,11 @@ describe('SiegelenseStatusLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'siegelense-status-layer-flow' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
 
   beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+
     // machineReadBroker statfs's the dungeonmaster home directly, and `dungeonmaster init` mkdir
     // -p's `siegelense/` at install time — recreate that precondition, matching
     // siegelense-capacity-layer-flow.integration.test.ts's own beforeAll.
@@ -200,25 +203,23 @@ describe('SiegelenseStatusLayerFlow', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });
 
   describe('the default --since window, no flag given', () => {
     it('VALID: {callArgs: []} => the 6hr default excludes the instance last seen 7h ago and keeps the two seen more recently', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -230,16 +231,14 @@ describe('SiegelenseStatusLayerFlow', () => {
     it.each(SINCE_ALIAS_CASES)(
       'VALID: {callArgs: [--since, %s]} => renders exactly the instances whose last beat falls inside that window',
       async (since, expectedLines) => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
+        const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+        stdoutSpy.calledWith([]).returns(true);
 
         await SiegelenseStatusLayerFlow({ callArgs: ['--since', since] });
 
-        process.stdout.write = originalWrite;
+        const writes = stdoutSpy
+          .callsMatching([])
+          .map((call) => ContentTextStub({ value: String(call[0]) }));
 
         const [wholeOutput] = writes;
 
@@ -250,16 +249,14 @@ describe('SiegelenseStatusLayerFlow', () => {
 
   describe('the --branch filter', () => {
     it('VALID: {callArgs: [--branch, main, --since, beginning]} => includes only the two main-branch instances, regardless of age', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', 'beginning'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -267,16 +264,14 @@ describe('SiegelenseStatusLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--branch, beta, --since, beginning]} => includes only the beta-branch instance', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'beta', '--since', 'beginning'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -286,16 +281,14 @@ describe('SiegelenseStatusLayerFlow', () => {
 
   describe('the --branch filter matching no instance', () => {
     it('EMPTY: {callArgs: [--branch, nonexistent-branch]} => renders the reworded empty-fleet message naming the branch and the default --since window, not a table', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'nonexistent-branch'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -306,16 +299,14 @@ describe('SiegelenseStatusLayerFlow', () => {
     });
 
     it('EMPTY: {callArgs: [--branch, nonexistent-branch, --json]} => writes the empty StatusAnswer as one JSON document', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'nonexistent-branch', '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const withoutLiveMachineBlock = wholeOutput!.replace(MACHINE_BLOCK_PATTERN, '');
@@ -326,16 +317,14 @@ describe('SiegelenseStatusLayerFlow', () => {
 
   describe('the --instance flag naming a known instance', () => {
     it('VALID: {callArgs: [--instance, <known id>]} => renders that one instance in full instead of the fleet', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--instance', MAIN_RECENT_ID] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       // The table's VALUE column pads to the widest cell — the live evidence-dir path under
       // `testbed.guildPath` — so rows are parsed into a plain field/value object instead of
@@ -378,35 +367,31 @@ describe('SiegelenseStatusLayerFlow', () => {
 
   describe('the --instance flag naming an id the registry never held', () => {
     it('ERROR: {callArgs: [--instance, <unknown id>]} => rejects with InstanceUnknownError before writing anything', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });
 
     it('ERROR: {callArgs: [--instance, <unknown id>, --json]} => rejects the same way even with --json, since the registry check runs first', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });

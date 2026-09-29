@@ -26,6 +26,7 @@
  * // Writes the PruneAnswer as one JSON document
  */
 
+import { stderr, stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -49,13 +50,13 @@ export const SiegelensePruneResponder = async ({
   if (!confirm) {
     const notice = `${pruneStatics.messages.dryRunNotice}\n`;
     if (isJson) {
-      process.stderr.write(notice);
+      stderr.write(notice);
     } else {
-      process.stdout.write(notice);
+      stdout.write(notice);
     }
   }
 
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : pruneAnswerRenderTransformer({ answer }),

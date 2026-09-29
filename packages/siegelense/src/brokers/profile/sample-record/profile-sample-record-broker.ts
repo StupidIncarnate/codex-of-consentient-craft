@@ -28,6 +28,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -84,7 +85,7 @@ export const profileSampleRecordBroker = async ({
       // A record this driver cannot read is one it is about to replace anyway — the alternative,
       // throwing, would take the heartbeat's own tick down with it over a file nothing else reads.
       // Reported rather than swallowed: a record that keeps resetting is worth knowing about.
-      process.stderr.write(
+      stderr.write(
         `[profile-sample-record] discarding an unreadable profile record at ${recordPath}: ${String(error)}\n`,
       );
     }

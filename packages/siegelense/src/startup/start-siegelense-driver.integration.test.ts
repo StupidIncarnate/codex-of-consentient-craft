@@ -1,3 +1,4 @@
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
@@ -7,8 +8,11 @@ describe('StartSiegelenseDriver', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'start-siegelense-driver' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+
+  beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+  });
 
   describe('a malformed raw instance id', () => {
     it('INVALID: {instanceId: "not-an-instance-id"} => rejects at the parsing boundary', async () => {
@@ -28,9 +32,9 @@ describe('StartSiegelenseDriver', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });

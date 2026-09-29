@@ -31,6 +31,7 @@
  * // Writes that one instance in full, as the rendered table, or throws InstanceUnknownError first
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -61,7 +62,7 @@ export const SiegelenseStatusResponder = async ({
   }
 
   const answer = await statusReadBroker({ instanceId, branch, since });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : statusAnswerRenderTransformer({ answer, instanceId, branch, since }),

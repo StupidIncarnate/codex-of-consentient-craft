@@ -3,7 +3,7 @@
  * (the human listing, the default), `--json`, and every refusal `recipesArgsParseTransformer` throws
  * (`--human`, `--instance`, and a bare positional argument) — against the REAL compiled
  * `packages/hydration-recipes/dist/index.js`, with no mock anywhere: `recipesLocateBroker` resolves
- * that sibling package by walking up from `process.cwd()` to the repo root, so unlike `status`'s or
+ * that sibling package by walking up from `cwd()` to the repo root, so unlike `status`'s or
  * `capacity`'s own layer-flow tests, nothing here needs `DUNGEONMASTER_HOME` or an
  * `installTestbedCreateBroker` tree. The listing below is transcribed verbatim from a live
  * `dungeonmaster siegelense recipes` / `recipes --json` run against this checkout's current compiled
@@ -19,6 +19,8 @@
  * // package
  */
 
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { SiegelenseRecipesLayerFlow } from './siegelense-recipes-layer-flow';
@@ -85,29 +87,25 @@ describe('SiegelenseRecipesLayerFlow', () => {
   // pays the whole cost — measured at 5157ms before this landed, against every test in this file
   // finishing under 25ms after. jest runs `beforeAll` outside the window it charges to a test, so
   // paying the import here keeps every `it` fast and under ward's `integrationTestWarnMs` gate.
-  // `process.stdout.write` is swapped out for the same reason the tests below swap it: a real write
+  // `stdout.write` is spied for the same reason the tests below swap it: a real write
   // here would land in the jest process's stdout and corrupt the `--json` report ward parses.
   beforeAll(async () => {
-    const originalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = (() => true) as unknown as typeof process.stdout.write;
+    const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+    stdoutSpy.calledWith([]).returns(true);
 
     await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
-
-    process.stdout.write = originalWrite;
   });
 
   describe('the bare call, no flags', () => {
     it('VALID: {callArgs: []} => writes the human recipe listing, one block per recipe', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseRecipesLayerFlow({ callArgs: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -117,16 +115,14 @@ describe('SiegelenseRecipesLayerFlow', () => {
 
   describe('the --json flag', () => {
     it('VALID: {callArgs: [--json]} => writes both real recipes whole — recipeName, description, runs, inputKeys and makes', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 

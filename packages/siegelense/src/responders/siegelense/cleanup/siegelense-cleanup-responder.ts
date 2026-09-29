@@ -14,6 +14,7 @@
  * // Writes the CleanupAnswer as one JSON document
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -29,7 +30,7 @@ export const SiegelenseCleanupResponder = async (
   } = { isJson: false },
 ): Promise<AdapterResult> => {
   const answer = await cleanupRunBroker();
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : cleanupAnswerRenderTransformer({ answer }),

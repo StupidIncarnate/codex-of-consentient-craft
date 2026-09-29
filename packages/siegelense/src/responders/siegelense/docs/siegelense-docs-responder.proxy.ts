@@ -12,22 +12,18 @@
  * proxy.getStdoutLines();
  */
 
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 
 export const SiegelenseDocsResponderProxy = (): {
   getStdoutWrites: () => unknown[];
   getStdoutLines: () => unknown[];
 } => {
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
 
     getStdoutLines: (): unknown[] =>
-      stdoutHandle
-        .callsMatching([])
-        .map((call) => call[0])
-        .flatMap((written) => String(written).split('\n')),
+      stdout.getWrites().flatMap((written) => String(written).split('\n')),
   };
 };

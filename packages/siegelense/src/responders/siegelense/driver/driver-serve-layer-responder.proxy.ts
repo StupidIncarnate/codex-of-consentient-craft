@@ -20,9 +20,14 @@
  * const client = proxy.sendSocketLine({ line: '{"kind":"ping","payload":""}' });
  */
 
+import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { unixSocketServeProxy } from '#gateway/node/net/unix-socket-serve/unix-socket-serve.proxy';
+import { onProxy } from '#gateway/node/process/on/on.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { IntervalHandleStub } from '#gateway/node/setInterval/interval-handle.stub';
+import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHandleRequestBrokerProxy } from '../../../brokers/driver/handle-request/driver-handle-request-broker.proxy';
@@ -43,10 +48,9 @@ import { ReadingCountStub } from '../../../contracts/reading-count/reading-count
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { driverSessionStateProxy } from '../../../state/driver-session/driver-session-state.proxy';
+import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 import { DriverIdleWaitLayerResponderProxy } from './driver-idle-wait-layer-responder.proxy';
-
-type SignalCallback = () => void;
 
 // `locationsSocketPathFindBroker`'s real answer for `InstanceIdStub()`'s default id under its own
 // proxy's `/tmp` tmpdir default — the id every test of this responder serves.
@@ -130,25 +134,17 @@ export const DriverServeLayerResponderProxy = (): {
     .calledWith([{ evidencePath: EVIDENCE_PATH_VALUE }])
     .resolves(ShutdownReasonStub());
 
-  const intervalCallbacks: (() => void)[] = [];
-  registerSpyOn({ object: globalThis, method: 'setInterval' })
-    .calledWith([])
-    .implement((callback: () => void) => {
-      intervalCallbacks.push(callback);
-      return 0;
-    });
-  registerSpyOn({ object: globalThis, method: 'clearInterval' }).calledWith([]).returns(undefined);
+  // A staged period arms nothing: `fireHeartbeatTick` runs the callback the responder handed over,
+  // so a test never waits on a real timer.
+  const intervalProxy = setIntervalProxy();
+  intervalProxy.stageHandle({
+    ms: instanceLifecycleStatics.heartbeat.intervalMs,
+    handle: IntervalHandleStub(),
+  });
+  clearIntervalProxy();
 
-  const signalCallbacks: Partial<Record<'SIGINT' | 'SIGTERM', SignalCallback>> = {};
-  registerSpyOn({ object: process, method: 'on' })
-    .calledWith([])
-    .implement((signal: 'SIGINT' | 'SIGTERM', callback: SignalCallback) => {
-      signalCallbacks[signal] = callback;
-      return process;
-    });
-
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrHandle.calledWith([]).returns(true);
+  const signalProxy = onProxy();
+  const stderr = stderrProxy();
 
   return {
     sendSocketLine: ({
@@ -199,17 +195,30 @@ export const DriverServeLayerResponderProxy = (): {
     },
 
     fireHeartbeatTick: (): void => {
-      intervalCallbacks.at(-1)?.();
+      const [callback] = [
+        ...intervalProxy.getCallsFor({ ms: instanceLifecycleStatics.heartbeat.intervalMs }),
+      ]
+        .map((call) => call[0])
+        .slice(-1);
+      if (typeof callback === 'function') {
+        Reflect.apply(callback, undefined, []);
+      }
     },
 
     stageHeartbeatTickFails: ({ error }: { error: Error }): void => {
       heartbeatTickHandle.calledWith([INSTANCE_ADDRESS]).rejects(error);
     },
 
-    getStderrWrites: (): unknown[] => stderrHandle.callsMatching([]).map((call) => call[0]),
+    getStderrWrites: (): unknown[] => [...stderr.getWrites()],
 
     fireSignal: ({ signal }: { signal: 'SIGINT' | 'SIGTERM' }): void => {
-      signalCallbacks[signal]?.();
+      const [callback] = [...signalProxy.callsMatching()]
+        .filter((call) => call[0] === signal)
+        .map((call) => call[1])
+        .slice(-1);
+      if (typeof callback === 'function') {
+        Reflect.apply(callback, undefined, []);
+      }
     },
   };
 };

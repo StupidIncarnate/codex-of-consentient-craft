@@ -1,4 +1,4 @@
-import { homedir } from 'os';
+import { homedir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';

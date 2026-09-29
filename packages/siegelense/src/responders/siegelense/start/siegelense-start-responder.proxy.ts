@@ -14,7 +14,8 @@
  * proxy.stageManifest({ manifest });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
@@ -58,8 +59,7 @@ export const SiegelenseStartResponderProxy = (): {
   const instanceStartHandle = registerMock({ fn: instanceStartBroker });
   const owningGuildFindHandle = registerMock({ fn: questOwningGuildFindBroker });
   const recipesReadHandle = registerMock({ fn: recipesReadBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
   recipesReadHandle.calledWith([]).resolves([]);
 
   return {
@@ -89,7 +89,7 @@ export const SiegelenseStartResponderProxy = (): {
       recipesReadHandle.calledWith([]).resolves(entries);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
 
     getStartCallsMatching: ({
       specName,

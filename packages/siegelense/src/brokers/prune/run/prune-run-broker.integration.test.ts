@@ -13,6 +13,7 @@
  */
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
 import {
   AbsoluteFilePathStub,
@@ -55,7 +56,7 @@ const TREE_BYTES = LOG_BYTES + TRANSCRIPT_TEXT.length + SHOT_TEXT.length;
 
 describe('prune, against a real evidence tree', () => {
   const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'prune-run' }) });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
   const nowMs = Date.now();
   const worktreePath = `${testbed.guildPath}/worktree`;
   const questFolder = `${testbed.guildPath}/guilds/${GUILD}/quests/${QUEST}`;
@@ -83,7 +84,7 @@ describe('prune, against a real evidence tree', () => {
   let registryAfter: Awaited<ReturnType<typeof registryReadBroker>> | null = null;
 
   beforeAll(async () => {
-    process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
     await ensureDir(`${testbed.guildPath}/siegelense`);
 
     await registryWriteBroker({
@@ -292,9 +293,9 @@ describe('prune, against a real evidence tree', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });

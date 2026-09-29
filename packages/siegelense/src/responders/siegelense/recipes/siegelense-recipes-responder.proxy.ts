@@ -9,7 +9,8 @@
  * proxy.stageListing({ recipes });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
 import { recipesReadBrokerProxy } from '../../../brokers/recipes/read/recipes-read-broker.proxy';
@@ -27,8 +28,7 @@ export const SiegelenseRecipesResponderProxy = (): {
   recipesReadBrokerProxy();
 
   const recipesReadHandle = registerMock({ fn: recipesReadBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageListing: ({ recipes }: { recipes: RecipesListing }): void => {
@@ -39,6 +39,6 @@ export const SiegelenseRecipesResponderProxy = (): {
       recipesReadHandle.calledWith([]).rejects(error);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
   };
 };

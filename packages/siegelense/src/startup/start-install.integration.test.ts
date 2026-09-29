@@ -1,3 +1,4 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -25,7 +26,7 @@ describe('StartInstall', () => {
       // testbed-nested directories, so a responder that read the wrong one produces a visibly
       // wrong link target instead of silently agreeing by accident.
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
         context: {
@@ -34,7 +35,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       testbed.cleanup();
 
@@ -55,7 +56,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
         context: {
@@ -64,7 +65,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       // A write THROUGH the link path, read back through the REAL path under the dungeonmaster
       // home: a dangling link throws on the write, and a link pointing at the wrong directory
@@ -94,7 +95,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
         context: {
@@ -109,7 +110,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -134,7 +135,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
         context: {
@@ -143,7 +144,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       const recipesEntries = testbed.listDir({
         relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
@@ -167,7 +168,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
         context: {
@@ -188,7 +189,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       const markerContent = testbed.readFile({
         relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src/marker.txt' }),
@@ -208,7 +209,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
         context: {
@@ -217,7 +218,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       testbed.cleanup();
 
@@ -234,7 +235,7 @@ describe('StartInstall', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
         context: {
@@ -243,7 +244,7 @@ describe('StartInstall', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       testbed.cleanup();
 

@@ -15,6 +15,7 @@
  * // Writes the SnapshotsAnswer as one JSON document to stdout, or throws InstanceUnknownError first
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -40,7 +41,7 @@ export const SiegelenseSnapshotsResponder = async ({
   }
 
   const answer = await snapshotListBroker({ instanceId });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : snapshotsAnswerRenderTransformer({

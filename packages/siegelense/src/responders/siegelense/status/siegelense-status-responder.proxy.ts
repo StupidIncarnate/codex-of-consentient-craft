@@ -10,7 +10,8 @@
  * proxy.stageAnswer({ answer });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { statusReadBroker } from '../../../brokers/status/read/status-read-broker';
 import { statusReadBrokerProxy } from '../../../brokers/status/read/status-read-broker.proxy';
@@ -34,8 +35,7 @@ export const SiegelenseStatusResponderProxy = (): {
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const statusReadHandle = registerMock({ fn: statusReadBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageRegistry: ({ registry }: { registry: Registry }): void => {
@@ -46,6 +46,6 @@ export const SiegelenseStatusResponderProxy = (): {
       statusReadHandle.calledWith([]).resolves(answer);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
   };
 };

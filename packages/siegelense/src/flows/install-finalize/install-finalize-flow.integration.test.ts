@@ -1,3 +1,4 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -53,7 +54,7 @@ describe('InstallFinalizeFlow', () => {
         content: FileContentStub({ value: JSON.stringify({ name: 'acme-app' }) }),
       });
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await InstallFlow({
         context: {
@@ -69,7 +70,7 @@ describe('InstallFinalizeFlow', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
       testbed.cleanup();
 
       expect(result).toStrictEqual({

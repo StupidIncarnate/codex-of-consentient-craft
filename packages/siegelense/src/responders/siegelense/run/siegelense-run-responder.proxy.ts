@@ -15,10 +15,11 @@
  * proxy.stageStepsFileContent({ filePath, content: '[{"step":"goto","path":"/"}]' });
  */
 
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -56,8 +57,7 @@ export const SiegelenseRunResponderProxy = (): {
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const instanceRunHandle = registerMock({ fn: instanceRunBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageRegistry: ({ registry }: { registry: Registry }): void => {
@@ -95,7 +95,7 @@ export const SiegelenseRunResponderProxy = (): {
       readFileMock.throwsMatchingPath({ path: filePath, error: fsError });
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
 
     getRunCallsMatching: (): RecordedCalls => instanceRunHandle.callsMatching([]),
   };

@@ -20,6 +20,8 @@
  * // Reaps every stale registry row, releases its ports, and returns the CleanupAnswer as JSON
  */
 
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { evidenceAgeHarness } from '../../../test/harnesses/evidence-age/evidence-age.harness';
@@ -36,16 +38,14 @@ describe('SiegelenseCleanupLayerFlow', () => {
     it('VALID: {callArgs: []} => renders the human summary, reaping a real stale row and leaving the live one alone', async () => {
       const staleId = await tree.addStaleAliveEntry();
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseCleanupLayerFlow({ callArgs: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -66,16 +66,14 @@ describe('SiegelenseCleanupLayerFlow', () => {
     it('VALID: {callArgs: [--json]} => a real stale registry row reaped, a real live row left alone, as JSON', async () => {
       const staleId = await tree.addStaleAliveEntry();
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseCleanupLayerFlow({ callArgs: ['--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 

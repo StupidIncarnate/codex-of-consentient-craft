@@ -1,3 +1,4 @@
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -22,14 +23,17 @@ describe('SiegelenseRunLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'siegelense-run-layer-flow' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+
+  beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+  });
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });

@@ -52,7 +52,10 @@
  * // Same, but reaps itself after 1_800_000ms of no traffic instead of driverStatics.idle.timeoutMs
  */
 
+import { clearInterval } from '#gateway/node/clearInterval';
 import { unixSocketServe } from '#gateway/node/net';
+import { on, stderr } from '#gateway/node/process';
+import { setInterval } from '#gateway/node/setInterval';
 import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
@@ -93,7 +96,7 @@ export const DriverServeLayerResponder = async ({
   });
 
   driverStatics.teardown.signals.forEach((signal) => {
-    process.on(signal, () => {
+    on(signal, () => {
       (async (): Promise<void> => {
         const currentLane = driverSessionState.lane();
         if (currentLane === null) {
@@ -104,14 +107,14 @@ export const DriverServeLayerResponder = async ({
           await laneTeardownBroker({ session: currentLane, instanceId });
           await instanceReleaseBroker({ instanceId });
         } catch (error) {
-          process.stderr.write(
+          stderr.write(
             `[driver-serve] signal teardown failed for ${instanceId}: ${String(error)}\n`,
           );
         }
         driverSessionState.clear();
         resolveKillSignal?.(true);
       })().catch((error: unknown) => {
-        process.stderr.write(
+        stderr.write(
           `[driver-serve] unexpected signal-handler failure for ${instanceId}: ${String(error)}\n`,
         );
       });
@@ -124,9 +127,7 @@ export const DriverServeLayerResponder = async ({
   // state between the `set` above and this line.
   const firstBeat = driverHeartbeatTickBroker({ instanceId, guildId, lane }).catch(
     (error: unknown) => {
-      process.stderr.write(
-        `[driver-serve] heartbeat tick failed for ${instanceId}: ${String(error)}\n`,
-      );
+      stderr.write(`[driver-serve] heartbeat tick failed for ${instanceId}: ${String(error)}\n`);
     },
   );
 
@@ -137,9 +138,7 @@ export const DriverServeLayerResponder = async ({
     }
     driverHeartbeatTickBroker({ instanceId, guildId, lane: currentLane }).catch(
       (error: unknown) => {
-        process.stderr.write(
-          `[driver-serve] heartbeat tick failed for ${instanceId}: ${String(error)}\n`,
-        );
+        stderr.write(`[driver-serve] heartbeat tick failed for ${instanceId}: ${String(error)}\n`);
       },
     );
   }, instanceLifecycleStatics.heartbeat.intervalMs);
@@ -229,7 +228,7 @@ export const DriverServeLayerResponder = async ({
           ),
         });
       } catch (markerWriteError: unknown) {
-        process.stderr.write(
+        stderr.write(
           `[driver-serve] writing the shutdown-reason marker for ${instanceId} failed: ${String(markerWriteError)}\n`,
         );
       }

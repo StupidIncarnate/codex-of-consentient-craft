@@ -1,3 +1,5 @@
+import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
@@ -9,21 +11,22 @@ describe('StartSiegelense', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'start-siegelense' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+
+  beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+  });
 
   describe('the bare invocation', () => {
     it('VALID: {args: []} => delegates to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await StartSiegelense({ args: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       // MACHINE reads live statfs/loadavg, stripped the same way siegelense-flow.integration.test.ts
       // strips it from the equivalent assertion, so this stays deterministic.
@@ -47,9 +50,9 @@ describe('StartSiegelense', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });

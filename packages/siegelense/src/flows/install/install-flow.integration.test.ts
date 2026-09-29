@@ -1,3 +1,4 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
@@ -20,7 +21,7 @@ describe('InstallFlow', () => {
       // testbed-nested directories, so a responder that read the wrong one produces a visibly
       // wrong link target instead of silently agreeing by accident.
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await InstallFlow({
         context: {
@@ -29,7 +30,7 @@ describe('InstallFlow', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -76,7 +77,7 @@ describe('InstallFlow', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await InstallFlow({
         context: {
@@ -92,7 +93,7 @@ describe('InstallFlow', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
@@ -134,7 +135,7 @@ describe('InstallFlow', () => {
       });
 
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
-      process.env.DUNGEONMASTER_HOME = dungeonmasterHomePath;
+      setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       // A pre-nesting install's flat link, at repo root rather than under `.dungeonmaster-assets/`
       // — the target need not exist, since a dangling legacy link is still a symlink and the
@@ -151,7 +152,7 @@ describe('InstallFlow', () => {
         },
       });
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       // listDir follows a symlink to list its target's contents and returns null when the path
       // itself is gone — the legacy link no longer being there is exactly what this proves.

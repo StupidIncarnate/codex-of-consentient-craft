@@ -12,8 +12,9 @@
 
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 import { profileReadBrokerProxy } from '../../profile/read/profile-read-broker.proxy';
@@ -28,8 +29,7 @@ export const profileSoloReadLayerBrokerProxy = (): {
   // Constructed for enforce-proxy-child-creation only — the broker below is staged directly.
   profileReadBrokerProxy();
   const profileHandle = registerMock({ fn: profileReadBroker });
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrHandle.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   return {
     setupProfile: ({ profile }: { profile: SpecProfile }): void => {
@@ -41,6 +41,6 @@ export const profileSoloReadLayerBrokerProxy = (): {
     },
 
     getStderrMessages: (): readonly ContentText[] =>
-      stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
+      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
   };
 };

@@ -16,6 +16,8 @@
  * // Writes the index page listing every subcommand
  */
 
+import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -59,10 +61,11 @@ describe('SiegelenseFlow', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'siegelense-flow' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
 
   beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+
     // `dungeonmaster init` mkdir -p's this directory at install time (InstallLinkCreateResponder),
     // so it always exists before a real person can type `status` — the testbed has to recreate
     // that same precondition, or machineReadBroker's real statfs read throws ENOENT on a directory
@@ -75,16 +78,14 @@ describe('SiegelenseFlow', () => {
 
   describe('the bare invocation', () => {
     it('VALID: {args: []} => routes to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       // MACHINE reads live statfs/loadavg — stripped the same way the status route's own
       // assertion strips it, so this stays deterministic.
@@ -98,24 +99,21 @@ describe('SiegelenseFlow', () => {
     });
 
     it('VALID: {args: []} => produces byte-identical output to {args: [status]} — one fleet view, not two', async () => {
-      const bareWrites: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        bareWrites.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: [] });
 
-      const statusWrites: ReturnType<typeof ContentTextStub>[] = [];
-      process.stdout.write = ((chunk: string): boolean => {
-        statusWrites.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const bareWrites = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       await SiegelenseFlow({ args: ['status'] });
 
-      process.stdout.write = originalWrite;
+      const statusWrites = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }))
+        .slice(bareWrites.length);
 
       // MACHINE reads live statfs/loadavg independently on each call, so the two readings can
       // differ by a byte even though both routes reach the identical responder — stripped from
@@ -168,9 +166,7 @@ describe('SiegelenseFlow', () => {
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
       ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
 
-      const listeners = process.stdout.listeners('error') as ((
-        error: NodeJS.ErrnoException,
-      ) => void)[];
+      const listeners = stdout.listeners('error') as ((error: NodeJS.ErrnoException) => void)[];
       const installedListener = listeners.at(-1)!;
       const epipeError = Object.assign(new Error('write EPIPE'), {
         code: 'EPIPE',
@@ -183,7 +179,7 @@ describe('SiegelenseFlow', () => {
       // one call returned.
       installedListener(epipeError);
 
-      expect(process.stdout.write('')).toBe(true);
+      expect(stdout.write('')).toBe(true);
     });
 
     it('ERROR: {a non-EPIPE-coded error reaches process.stdout after SiegelenseFlow has run} => the installed listener still rethrows it', async () => {
@@ -191,9 +187,7 @@ describe('SiegelenseFlow', () => {
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
       ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
 
-      const listeners = process.stdout.listeners('error') as ((
-        error: NodeJS.ErrnoException,
-      ) => void)[];
+      const listeners = stdout.listeners('error') as ((error: NodeJS.ErrnoException) => void)[];
       const installedListener = listeners.at(-1)!;
       const otherError = Object.assign(new Error('write EACCES'), {
         code: 'EACCES',
@@ -207,16 +201,14 @@ describe('SiegelenseFlow', () => {
 
   describe('the status route', () => {
     it('VALID: {args: ["status"]} => routes to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: ['status'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       // MACHINE reads live statfs/loadavg — stripped the same way EMPTY_FLEET_STATUS_JSON strips
       // it from the --json form above, so this assertion stays deterministic.
@@ -230,16 +222,14 @@ describe('SiegelenseFlow', () => {
     });
 
     it('VALID: {args: ["status", "--json"]} => routes to the status responder and reports an empty fleet as one JSON document when --json is passed', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: ['status', '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const withoutLiveMachineBlock = wholeOutput!.replace(
@@ -253,16 +243,14 @@ describe('SiegelenseFlow', () => {
 
   describe('the cleanup route', () => {
     it('VALID: {args: ["cleanup"]} => routes to the cleanup responder and reports nothing reaped as the rendered human table by default', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: ['cleanup'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([
         'REAPED: none\n' +
@@ -274,16 +262,14 @@ describe('SiegelenseFlow', () => {
     });
 
     it('VALID: {args: ["cleanup", "--json"]} => routes to the cleanup responder and reports nothing reaped as one JSON document', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: ['cleanup', '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const expectedAnswer = CleanupAnswerStub({
         reaped: [],
@@ -301,16 +287,14 @@ describe('SiegelenseFlow', () => {
 
   describe('the recipes route', () => {
     it('VALID: {args: ["recipes", "--help"]} => writes the recipes page, first line its summary', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelenseFlow({ args: ['recipes', '--help'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const [firstLine] = wholeOutput!.split('\n');
@@ -330,16 +314,14 @@ describe('SiegelenseFlow', () => {
 
   describe('the --help surface', () => {
     it('VALID: {args: [--help]} => writes the index page to stdout and returns success', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelenseFlow({ args: ['--help'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([siegelenseHelpRenderTransformer({ call: null })]);
       expect(result).toStrictEqual({ success: true });
@@ -348,16 +330,14 @@ describe('SiegelenseFlow', () => {
     it.each(BUILT_CALLS)(
       'VALID: {args: [%s, --help]} => writes that call help page, first line its summary',
       async (call) => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
+        const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+        stdoutSpy.calledWith([]).returns(true);
 
         const result = await SiegelenseFlow({ args: [call, '--help'] });
 
-        process.stdout.write = originalWrite;
+        const writes = stdoutSpy
+          .callsMatching([])
+          .map((recorded) => ContentTextStub({ value: String(recorded[0]) }));
 
         const [wholeOutput] = writes;
         const [firstLine] = wholeOutput!.split('\n');
@@ -397,9 +377,9 @@ describe('SiegelenseFlow', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });
@@ -688,16 +668,14 @@ describe('SiegelenseFlow', () => {
       });
 
       it('VALID: {dungeonmaster siegelense status --json through SiegelenseFlow} => the fleet as one JSON document, killed then live', async () => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
+        const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+        stdoutSpy.calledWith([]).returns(true);
 
         await SiegelenseFlow({ args: ['status', '--json'] });
 
-        process.stdout.write = originalWrite;
+        const writes = stdoutSpy
+          .callsMatching([])
+          .map((call) => ContentTextStub({ value: String(call[0]) }));
 
         // A single SiegelenseFlow({args: ['status', '--json']}) call makes exactly one
         // process.stdout.write (SiegelenseStatusResponder's own header comment says so) — proven
@@ -726,16 +704,14 @@ describe('SiegelenseFlow', () => {
       });
 
       it('VALID: {dungeonmaster siegelense status through SiegelenseFlow} => the rendered table by default, killed then live', async () => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
+        const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+        stdoutSpy.calledWith([]).returns(true);
 
         await SiegelenseFlow({ args: ['status'] });
 
-        process.stdout.write = originalWrite;
+        const writes = stdoutSpy
+          .callsMatching([])
+          .map((call) => ContentTextStub({ value: String(call[0]) }));
 
         const [wholeOutput] = writes;
         const lines = wholeOutput!.split('\n');
@@ -768,16 +744,14 @@ describe('SiegelenseFlow', () => {
     const argvTree = evidenceTreeHarness();
 
     it('VALID: {args: status} => the rendered table by default, killed then live', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseFlow({ args: ['status'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const lines = wholeOutput!.split('\n');

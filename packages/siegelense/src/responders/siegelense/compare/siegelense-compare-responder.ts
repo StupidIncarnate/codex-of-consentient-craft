@@ -13,6 +13,7 @@
  * // Writes the CompareAnswer as one JSON document to stdout
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -29,7 +30,7 @@ export const SiegelenseCompareResponder = async ({
   isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
   const answer = await compareReadBroker({ query });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : compareAnswerRenderTransformer({ answer }),

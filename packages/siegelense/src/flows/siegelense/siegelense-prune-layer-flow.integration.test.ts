@@ -24,6 +24,8 @@
  * // Deletes every shot past the window and returns { success: true }
  */
 
+import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -130,8 +132,7 @@ describe('SiegelensePruneLayerFlow', () => {
     baseName: BaseNameStub({ value: 'siegelense-prune-layer-flow' }),
   });
   const age = evidenceAgeHarness();
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
 
   const citedQuestFileAbsPath = `${testbed.guildPath}/guilds/${GUILD}/quests/${QUEST}/quest.json`;
   const citedPreludeAbsPath = `${testbed.guildPath}/cited-worktree/.quest-plans/path-1.md`;
@@ -151,6 +152,7 @@ describe('SiegelensePruneLayerFlow', () => {
   let videoDefaultWindowFileAfter: ReturnType<typeof testbed.readFile> = null;
 
   beforeAll(async () => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
     testbed.writeFile({
       relativePath: RelativePathStub({ value: REGISTRY_PATH }),
       content: FileContentStub({
@@ -403,14 +405,11 @@ describe('SiegelensePruneLayerFlow', () => {
       relativePath: RelativePathStub({ value: VIDEO_DEFAULT_WINDOW_VIDEO_PATH }),
     });
 
-    // Stdout captures below run one at a time — overriding `process.stdout.write` mid-flight is
-    // not safe to parallelise across calls sharing the same global.
-    const targetWrites: ReturnType<typeof ContentTextStub>[] = [];
-    const targetOriginalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: string): boolean => {
-      targetWrites.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
+    // Stdout captures below run one at a time — spying `stdout.write` mid-flight is
+    // not safe to parallelise across calls sharing the same stream.
+    const targetSpy = registerSpyOn({ object: stdout, method: 'write' });
+    targetSpy.calledWith([]).returns(true);
+    const targetBefore = targetSpy.callsMatching([]).length;
     await SiegelensePruneLayerFlow({
       callArgs: [
         '--instance',
@@ -421,33 +420,36 @@ describe('SiegelensePruneLayerFlow', () => {
         '--confirm',
       ],
     });
-    process.stdout.write = targetOriginalWrite;
+    const targetWrites = targetSpy
+      .callsMatching([])
+      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .slice(targetBefore);
     const [targetWholeOutput] = targetWrites;
     targetAnswer = JSON.parse(String(targetWholeOutput));
 
-    const citedWrites: ReturnType<typeof ContentTextStub>[] = [];
-    const citedOriginalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: string): boolean => {
-      citedWrites.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
+    const citedSpy = registerSpyOn({ object: stdout, method: 'write' });
+    citedSpy.calledWith([]).returns(true);
+    const citedBefore = citedSpy.callsMatching([]).length;
     await SiegelensePruneLayerFlow({
       callArgs: ['--instance', String(CITED_ID), '--older-than', '0s', '--json', '--confirm'],
     });
-    process.stdout.write = citedOriginalWrite;
+    const citedWrites = citedSpy
+      .callsMatching([])
+      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .slice(citedBefore);
     const [citedWholeOutput] = citedWrites;
     citedAnswer = JSON.parse(String(citedWholeOutput));
 
-    const liveWrites: ReturnType<typeof ContentTextStub>[] = [];
-    const liveOriginalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: string): boolean => {
-      liveWrites.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
+    const liveSpy = registerSpyOn({ object: stdout, method: 'write' });
+    liveSpy.calledWith([]).returns(true);
+    const liveBefore = liveSpy.callsMatching([]).length;
     await SiegelensePruneLayerFlow({
       callArgs: ['--instance', String(LIVE_ID), '--older-than', '0s', '--confirm'],
     });
-    process.stdout.write = liveOriginalWrite;
+    const liveWrites = liveSpy
+      .callsMatching([])
+      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .slice(liveBefore);
     const [liveWholeOutput] = liveWrites;
     liveRenderedOutput = liveWholeOutput ?? null;
 
@@ -455,16 +457,16 @@ describe('SiegelensePruneLayerFlow', () => {
     // a huge window (`1d`) that cannot possibly select it, and `0s` which always does. No adapter
     // here backdates an mtime and the pre-edit lint hook refuses `setTimeout` in a test, so this is
     // the honest way to prove the comparison both ways.
-    const boundaryTooYoungWrites: ReturnType<typeof ContentTextStub>[] = [];
-    const boundaryTooYoungOriginalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: string): boolean => {
-      boundaryTooYoungWrites.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
+    const boundaryTooYoungSpy = registerSpyOn({ object: stdout, method: 'write' });
+    boundaryTooYoungSpy.calledWith([]).returns(true);
+    const boundaryTooYoungBefore = boundaryTooYoungSpy.callsMatching([]).length;
     await SiegelensePruneLayerFlow({
       callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '1d', '--json', '--confirm'],
     });
-    process.stdout.write = boundaryTooYoungOriginalWrite;
+    const boundaryTooYoungWrites = boundaryTooYoungSpy
+      .callsMatching([])
+      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .slice(boundaryTooYoungBefore);
     const [boundaryTooYoungWholeOutput] = boundaryTooYoungWrites;
     boundaryTooYoungAnswer = JSON.parse(String(boundaryTooYoungWholeOutput));
     // Captured HERE, between the two sweeps — by the time any `it()` runs, the second sweep below
@@ -474,25 +476,25 @@ describe('SiegelensePruneLayerFlow', () => {
       relativePath: RelativePathStub({ value: BOUNDARY_LOG_PATH }),
     });
 
-    const boundaryPastWindowWrites: ReturnType<typeof ContentTextStub>[] = [];
-    const boundaryPastWindowOriginalWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: string): boolean => {
-      boundaryPastWindowWrites.push(ContentTextStub({ value: chunk }));
-      return true;
-    }) as unknown as typeof process.stdout.write;
+    const boundaryPastWindowSpy = registerSpyOn({ object: stdout, method: 'write' });
+    boundaryPastWindowSpy.calledWith([]).returns(true);
+    const boundaryPastWindowBefore = boundaryPastWindowSpy.callsMatching([]).length;
     await SiegelensePruneLayerFlow({
       callArgs: ['--instance', String(BOUNDARY_ID), '--older-than', '0s', '--json', '--confirm'],
     });
-    process.stdout.write = boundaryPastWindowOriginalWrite;
+    const boundaryPastWindowWrites = boundaryPastWindowSpy
+      .callsMatching([])
+      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .slice(boundaryPastWindowBefore);
     const [boundaryPastWindowWholeOutput] = boundaryPastWindowWrites;
     boundaryPastWindowAnswer = JSON.parse(String(boundaryPastWindowWholeOutput));
   }, 60_000);
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });
@@ -723,18 +725,16 @@ describe('SiegelensePruneLayerFlow', () => {
 
   describe('bare prune, with no --confirm', () => {
     it('VALID: {--instance a killed instance, --older-than 0s, no --confirm} => the file survives on disk, exit is still 0, and the output says plainly nothing was deleted and which flag deletes', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelensePruneLayerFlow({
         callArgs: ['--instance', String(NO_CONFIRM_ID), '--older-than', '0s'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const after = testbed.readFile({
         relativePath: RelativePathStub({ value: NO_CONFIRM_LOG_PATH }),

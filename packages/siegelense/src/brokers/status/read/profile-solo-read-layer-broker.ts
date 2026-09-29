@@ -18,6 +18,7 @@
  * // measured solo, or null when the spec has no profile at all
  */
 
+import { stderr } from '#gateway/node/process';
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
@@ -32,7 +33,7 @@ export const profileSoloReadLayerBroker = async ({
   specName: SpecName;
 }): Promise<CapacityProfile | null> => {
   const profile = await profileReadBroker({ specName }).catch((error: unknown) => {
-    process.stderr.write(
+    stderr.write(
       `[profile-solo-read] could not read the profile for spec ${specName}: ${String(error)}\n`,
     );
     return null;

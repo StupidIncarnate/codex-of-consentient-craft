@@ -11,7 +11,8 @@
  * proxy.stageKillResult({ result });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { instanceKillBroker } from '../../../brokers/instance/kill/instance-kill-broker';
@@ -38,8 +39,7 @@ export const SiegelenseKillResponderProxy = (): {
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const instanceKillHandle = registerMock({ fn: instanceKillBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageRegistry: ({ registry }: { registry: Registry }): void => {
@@ -54,7 +54,7 @@ export const SiegelenseKillResponderProxy = (): {
       instanceKillHandle.calledWith([]).rejects(error);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
 
     getKillCallsMatching: (): RecordedCalls => instanceKillHandle.callsMatching([]),
   };

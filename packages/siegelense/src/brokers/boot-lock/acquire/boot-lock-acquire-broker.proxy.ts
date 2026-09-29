@@ -1,5 +1,5 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
-import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
+import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
@@ -35,6 +35,7 @@ export const bootLockAcquireBrokerProxy = (): {
   bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
   rootPath: ReturnType<typeof FilePathStub>;
   setupNow: (params: { nowMs: EpochMs }) => void;
+  setupPid: (params: { pid: number }) => void;
   setupLockHeldBy: (params: {
     heldBy: InstanceId;
     heldByPid: ReturnType<typeof ProcessIdStub>;
@@ -102,7 +103,7 @@ export const bootLockAcquireBrokerProxy = (): {
   const unlinkProxy = unlinkIfExistsProxy();
   const eexistError = FileExistsRecordedErrorStub({ path: BOOT_LOCK_VALUE });
   const clockProxy = nowProxy();
-  pidProxy();
+  const pidStager = getPidProxy();
 
   return {
     bootLockPath,
@@ -110,6 +111,10 @@ export const bootLockAcquireBrokerProxy = (): {
 
     setupNow: ({ nowMs }: { nowMs: EpochMs }): void => {
       clockProxy.setupNow({ ms: nowMs });
+    },
+
+    setupPid: ({ pid }: { pid: number }): void => {
+      pidStager.setupPid({ pid });
     },
 
     setupLockHeldBy: ({

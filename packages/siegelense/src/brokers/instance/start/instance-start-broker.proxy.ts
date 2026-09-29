@@ -132,6 +132,8 @@ export const instanceStartBrokerProxy = (): {
     driverMessage: string;
   }) => void;
   stageBootLockAcquireFailsWithReadError: (params: { registry: Registry }) => void;
+  stageInstanceReleaseWriteFails: (params: { code: string }) => void;
+  setupBootLockPid: (params: { pid: number }) => void;
   stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
   getWrittenBootLock: () => unknown;
   getRegistryAndBootLockWriteOrder: () => readonly unknown[];
@@ -161,7 +163,7 @@ export const instanceStartBrokerProxy = (): {
   reserveProxy.setupBranch({ branch: null });
   // instanceReleaseBroker (called on every failed-boot path) runs real registryUpdateBroker
   // underneath, against the same registry mocks reserveProxy.setupRegistry stages.
-  instanceReleaseBrokerProxy();
+  const releaseProxy = instanceReleaseBrokerProxy();
   const registryReadProxy = registryReadBrokerProxy();
   // Constructed for enforce-proxy-child-creation only. capacityReadBroker itself is staged directly
   // below, so none of the three reads this proxy composes ever runs.
@@ -550,6 +552,20 @@ export const instanceStartBrokerProxy = (): {
       // EMFILE, not ENOENT: a read that fails for a reason other than absence, which the acquire
       // must throw rather than read as a released lock.
       bootLockAcquireProxy.setupLockReadFailsForNonAbsenceReason();
+    },
+
+    // The reservation's own registry write lands, then every write the failed boot's cleanup makes
+    // (the kill's release, then the fallback release it falls to) is refused, so the release itself
+    // throws while the boot error is still the one the caller sees. The staged writes are one-shot
+    // and consumed in the order the broker makes them.
+    stageInstanceReleaseWriteFails: ({ code }: { code: string }): void => {
+      reserveProxy.stageNextRegistryWriteSucceeds();
+      releaseProxy.stageNextRegistryWriteFails({ code });
+      releaseProxy.stageNextRegistryWriteFails({ code });
+    },
+
+    setupBootLockPid: ({ pid }: { pid: number }): void => {
+      bootLockAcquireProxy.setupPid({ pid });
     },
 
     // Addressed on the `recipe` field alone — a prefix match, so the real apiBaseUrl/homePath/

@@ -1,6 +1,4 @@
-import { existsSync } from 'fs';
-import { access, realpath } from 'fs/promises';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -59,7 +57,6 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
 // resolved for real through `#gateway/node/path`'s own `join`, unrelated to this file's own staging
 // here.
 const CWD_PATH_VALUE = '/default/cwd';
-const CONFIG_FILE_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.dungeonmaster.json` });
 // A REAL `path.join(CWD_PATH_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
 // the broker's own unstaged `join` call (via `#gateway/node/path`, staged by
 // locationsRepoLinkPathFindBrokerProxy's own sticky real-passthrough default) computes, so this
@@ -190,26 +187,14 @@ export const runExecuteBrokerProxy = (): {
   const snapshotCaptureHandle: MockHandle = registerMock({ fn: snapshotCaptureBroker });
   snapshotCaptureHandle.calledWith([]).resolves(SnapshotRecordStub());
 
-  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home. Not
-  // composed as fsAccessAdapterProxy/fsExistsSyncAdapterProxy/realpathProxy — this
-  // implementation never imports any of those directly, locationsRepoLinkPathFindBroker uses them
-  // transitively — so the underlying node primitives are mocked here instead, the same convention
-  // instance-kill-broker.proxy.ts uses for the identical broker.
-  const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
-  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation, before the
-  // link check this file's own scenarios individually stage below.
-  repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
-  const accessHandle: MockHandle = registerMock({ fn: access });
-  const existsHandle: MockHandle = registerMock({ fn: existsSync });
-  const realpathHandle: MockHandle = registerMock({ fn: realpath });
-  // The repo-root walk `cwdResolveBroker` performs inside `locationsRepoLinkPathFindBroker`:
-  // finds `.dungeonmaster.json` at CWD_PATH_VALUE itself, so the walk never has to climb a parent
-  // directory this file never stages.
-  accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
-  // No `.dungeonmaster-assets/siegelense-assets` link anywhere, by default — every test below gets
+  // Captured (not composed bare) so its scenario methods can stage the repo-root walk, the link
+  // check and the addressed home. The link is absent by default — every test below gets
   // `linkPresent: false` and the real `shotsDir` it was given, unchanged, unless it calls
   // `stageRepoLinkPresent` below.
-  existsHandle.calledWith([]).returns(false);
+  const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
+  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation and walks up
+  // from it to `.dungeonmaster.json`, which the absent-link scenario finds at CWD_PATH_VALUE itself.
+  repoLinkProxy.setupLinkAbsent({ cwdPath: CWD_PATH_VALUE, linkPath: LINK_PATH });
 
   // The three real buffer paths for EVIDENCE_PATH, computed with the REAL (pure, deterministic)
   // resolver — the same convention run-execute-broker.proxy.ts already uses for
@@ -268,9 +253,13 @@ export const runExecuteBrokerProxy = (): {
     // is safe regardless of how many other real `#gateway/node/path` `join` calls happen before or
     // after it — see this file's header comment on CWD_PATH_VALUE for why that matters.
     stageRepoLinkPresent: (): void => {
-      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
-      existsHandle.calledWith([LINK_PATH]).returns(true);
-      realpathHandle.calledWith([LINK_PATH]).resolves(SIEGELENSE_ROOT_VALUE);
+      repoLinkProxy.setupLinkResolvesToRoot({
+        cwdPath: CWD_PATH_VALUE,
+        linkPath: LINK_PATH,
+        homeDir: HOME_DIR_VALUE,
+        homePath: HOME_PATH,
+        rootPath: FilePathStub({ value: SIEGELENSE_ROOT_VALUE }),
+      });
     },
 
     homeRootedEvidencePath: (): AbsoluteFilePath => HOME_ROOTED_EVIDENCE_PATH,

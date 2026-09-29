@@ -39,6 +39,7 @@
  * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
@@ -97,7 +98,7 @@ export const SiegelenseStartResponder = async ({
       ? { specName, questId, guildId: resolvedGuildId, seed }
       : { specName, questId, guildId: resolvedGuildId, seed, idleTimeoutMs },
   );
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : startAnswerRenderTransformer({ manifest }),

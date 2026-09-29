@@ -1,3 +1,5 @@
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { KillResultStub } from '../../contracts/kill-result/kill-result.stub';
@@ -46,18 +48,16 @@ describe('SiegelenseKillLayerFlow', () => {
 
   describe('a known but already-dead id', () => {
     it('VALID: {callArgs: [--instance, <killed>, --json]} => accepts the dead id and writes the complete KillResult as JSON', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const flowResult = await SiegelenseKillLayerFlow({
         callArgs: ['--instance', tree.killedInstanceId(), '--json'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),
@@ -77,16 +77,14 @@ describe('SiegelenseKillLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered human summary by default', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseKillLayerFlow({ callArgs: ['--instance', tree.killedInstanceId()] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),

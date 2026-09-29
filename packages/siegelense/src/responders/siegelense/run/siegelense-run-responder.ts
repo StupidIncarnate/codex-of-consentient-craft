@@ -23,6 +23,7 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -69,7 +70,7 @@ export const SiegelenseRunResponder = async ({
   }
 
   const result = await instanceRunBroker({ instanceId, steps, stopOn });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : runAnswerRenderTransformer({ result }),

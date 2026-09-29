@@ -22,6 +22,8 @@
  * // Writes the human CapacityAnswer summary for a spec nothing has ever run
  */
 
+import { chdir, cwd, deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -49,11 +51,12 @@ describe('SiegelenseCapacityLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'siegelense-capacity-layer-flow' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  const originalCwd = process.cwd();
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+  const originalCwd = cwd();
 
   beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+
     // machineReadBroker statfs's the dungeonmaster home directly (never the siegelense
     // subdirectory), but `dungeonmaster init` mkdir -p's `siegelense/` at install time, and
     // capacityReadBroker reads registry/machine before profile — recreate that precondition so the
@@ -87,33 +90,31 @@ describe('SiegelenseCapacityLayerFlow', () => {
         ),
       }),
     });
-    process.chdir(testbed.guildPath);
+    chdir(testbed.guildPath);
   });
 
   afterAll(() => {
-    process.chdir(originalCwd);
+    chdir(originalCwd);
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });
 
   describe('the default human summary, --pool omitted', () => {
     it('VALID: {callArgs: [--spec, api]} => renders the no-profile answer against the real host, the policy ceiling assumed for the never-measured spec', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelenseCapacityLayerFlow({
         callArgs: ['--spec', 'api'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const normalized = wholeOutput!
@@ -136,18 +137,16 @@ describe('SiegelenseCapacityLayerFlow', () => {
 
   describe('--pool present, the --json branch', () => {
     it('VALID: {callArgs: [--spec, stack, --pool, 2, --json]} => writes the CapacityAnswer as one JSON document against the real host, --pool ignored for the never-measured spec', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const result = await SiegelenseCapacityLayerFlow({
         callArgs: ['--spec', 'stack', '--pool', '2', '--json'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const normalized = wholeOutput!

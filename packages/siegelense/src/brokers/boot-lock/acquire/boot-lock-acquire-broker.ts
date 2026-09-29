@@ -31,7 +31,7 @@
 
 import { now } from '#gateway/node/Date';
 import { isFsError } from '#gateway/node/fs';
-import { pid } from '#gateway/node/process';
+import { getPid } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import {
   ensureDir,
@@ -67,7 +67,7 @@ export const bootLockAcquireBroker = async ({
 
   const newLock = bootLockContract.parse({
     heldBy: instanceId,
-    heldByPid: processIdContract.parse(String(pid)),
+    heldByPid: processIdContract.parse(String(getPid())),
     acquiredAtMs: nowMs,
   });
 

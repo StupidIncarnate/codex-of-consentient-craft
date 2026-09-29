@@ -9,7 +9,8 @@
  * proxy.stageAnswer({ answer });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { cleanupRunBroker } from '../../../brokers/cleanup/run/cleanup-run-broker';
 import { cleanupRunBrokerProxy } from '../../../brokers/cleanup/run/cleanup-run-broker.proxy';
@@ -26,14 +27,13 @@ export const SiegelenseCleanupResponderProxy = (): {
   cleanupRunBrokerProxy();
 
   const cleanupRunHandle = registerMock({ fn: cleanupRunBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageAnswer: ({ answer }: { answer: CleanupAnswer }): void => {
       cleanupRunHandle.calledWith([]).resolves(answer);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
   };
 };

@@ -21,11 +21,10 @@
  * await store.cleanup(); // removes every throwaway home this harness wrote
  */
 
-import { mkdir, writeFile } from 'fs/promises';
-
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { rm } from '#gateway/node/fs__promises';
+import { randomUUID } from '#gateway/node/crypto';
+import { mkdir, rm, writeFile } from '#gateway/node/fs__promises';
 import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { locationsSnapshotPathsFindBroker } from '../../../src/brokers/locations/snapshot-paths-find/locations-snapshot-paths-find-broker';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
@@ -48,7 +47,7 @@ export const snapshotStoreHarness = (): {
   const mintedHomePaths: AbsoluteFilePath[] = [];
 
   const mintInstanceId = (): InstanceId => {
-    const entropyHex = crypto.randomUUID().split('-').join('');
+    const entropyHex = randomUUID().split('-').join('');
     return InstanceIdStub({
       value: `${instanceLifecycleStatics.ids.instancePrefix}${entropyHex}`,
     });

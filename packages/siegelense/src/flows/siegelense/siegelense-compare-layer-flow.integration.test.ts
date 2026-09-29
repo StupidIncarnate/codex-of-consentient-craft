@@ -18,6 +18,8 @@
  * // Writes the rendered CompareAnswer for the two real runs the harness wrote to disk
  */
 
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';
@@ -41,12 +43,8 @@ describe('SiegelenseCompareLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseCompareLayerFlow({
         callArgs: [
@@ -59,7 +57,9 @@ describe('SiegelenseCompareLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -75,12 +75,8 @@ describe('SiegelenseCompareLayerFlow', () => {
         }),
       });
 
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseCompareLayerFlow({
         callArgs: [
@@ -94,7 +90,9 @@ describe('SiegelenseCompareLayerFlow', () => {
         ],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 

@@ -1,3 +1,5 @@
+import { stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { DocsScopeStub } from '../../contracts/docs-scope/docs-scope.stub';
@@ -11,16 +13,14 @@ import { SiegelenseDocsLayerFlow } from './siegelense-docs-layer-flow';
 describe('SiegelenseDocsLayerFlow', () => {
   describe('the --for flag missing entirely', () => {
     it('EMPTY: {callArgs: []} => serves the about overview alone rather than refusing', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseDocsLayerFlow({ callArgs: [] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({
@@ -46,16 +46,14 @@ describe('SiegelenseDocsLayerFlow', () => {
     it.each(siegelenseCallStatics.docs.scopes)(
       'VALID: {callArgs: [--for, %s, --json]} => serves the %s document alone, carrying its own audience',
       async (scope) => {
-        const writes: ReturnType<typeof ContentTextStub>[] = [];
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string): boolean => {
-          writes.push(ContentTextStub({ value: chunk }));
-          return true;
-        }) as unknown as typeof process.stdout.write;
+        const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+        stdoutSpy.calledWith([]).returns(true);
 
         await SiegelenseDocsLayerFlow({ callArgs: ['--for', scope, '--json'] });
 
-        process.stdout.write = originalWrite;
+        const writes = stdoutSpy
+          .callsMatching([])
+          .map((call) => ContentTextStub({ value: String(call[0]) }));
 
         const [wholeOutput] = writes;
         const expectedJson = `${JSON.stringify(
@@ -71,16 +69,14 @@ describe('SiegelenseDocsLayerFlow', () => {
 
   describe('walking, JSON versus the default Markdown rendering', () => {
     it('VALID: {callArgs: [--for, walking, --json]} => outputs raw JSON for the walking scope', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseDocsLayerFlow({ callArgs: ['--for', 'walking', '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const expectedJson = `${JSON.stringify(
@@ -103,16 +99,14 @@ describe('SiegelenseDocsLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--for, walking]} => outputs formatted Markdown for the walking scope', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseDocsLayerFlow({ callArgs: ['--for', 'walking'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({

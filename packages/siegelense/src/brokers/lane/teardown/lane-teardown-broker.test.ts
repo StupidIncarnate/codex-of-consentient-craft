@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { laneTeardownBroker } from './lane-teardown-broker';
 import { laneTeardownBrokerProxy } from './lane-teardown-broker.proxy';
@@ -190,8 +189,6 @@ describe('laneTeardownBroker', () => {
       const { homePath } = LaneSessionStub();
       proxy.setupHomeRemoved({ homePath });
       proxy.setupEvidenceResolved();
-      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-      stderrSpy.calledWith([]).implement(() => true);
       const closeMock = jest.fn(async (): Promise<void> => Promise.reject(new Error('close boom')));
       const session = LaneSessionStub({
         homePath,
@@ -204,9 +201,7 @@ describe('laneTeardownBroker', () => {
 
       expect(proxy.getKillCallsFor({ pgid })).toStrictEqual(['SIGTERM', 'SIGKILL']);
 
-      const stderrCalls = [...stderrSpy.callsMatching([])];
-
-      expect(stderrCalls.at(-1)?.[0]).toBe(
+      expect(proxy.getStderrWrites().at(-1)).toBe(
         `[lane-teardown] browser close failed for instance ${instanceId}: Error: close boom\n`,
       );
     });
@@ -320,8 +315,6 @@ describe('laneTeardownBroker', () => {
       const { homePath } = LaneSessionStub();
       proxy.setupHomeRemoved({ homePath });
       proxy.setupEvidenceResolved();
-      const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
-      stderrSpy.calledWith([]).implement(() => true);
       const session = LaneSessionStub({
         homePath,
         evidencePath: proxy.getEvidencePath(),
@@ -334,9 +327,7 @@ describe('laneTeardownBroker', () => {
 
       expect(proxy.getKillCallsFor({ pgid })).toStrictEqual(['SIGTERM', 'SIGKILL']);
 
-      const stderrCalls = [...stderrSpy.callsMatching([])];
-
-      expect(stderrCalls.at(-1)?.[0]).toBe(
+      expect(proxy.getStderrWrites().at(-1)).toBe(
         `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(failingFd)}: Error: EBADF: close ''\n`,
       );
       expect(proxy.getClosedFds()).toStrictEqual([failingFd, okFd]);

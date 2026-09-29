@@ -1,3 +1,4 @@
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
@@ -70,6 +71,7 @@ export const registryLockAcquireBrokerProxy = (): {
   };
 
   isFsErrorProxy();
+  setTimeoutProxy();
   const readProxy = readFileIfExistsProxy();
   const writeProxy = writeFileExclusiveProxy();
   const unlinkProxy = unlinkIfExistsProxy();

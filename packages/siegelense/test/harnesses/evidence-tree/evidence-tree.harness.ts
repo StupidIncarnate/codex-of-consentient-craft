@@ -28,10 +28,18 @@
  * const answer = await tree.readResults({ query: ResultsQueryStub({ instanceId: tree.killedInstanceId() }) });
  */
 
-import { spawn, type ChildProcess } from 'child_process';
-import { mkdirSync, unlinkSync, writeFileSync } from 'fs';
-
-import { PNG } from 'pngjs';
+import { Buffer } from '#gateway/node/buffer';
+import { spawnDetached } from '#gateway/node/child_process';
+import {
+  closeSync,
+  mkdirSync,
+  openForAppendSync,
+  unlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
+import { writeFileBytes } from '#gateway/node/fs__promises';
+import { deleteEnv, getEnv, kill, setEnv, stderr } from '#gateway/node/process';
+import { PNG } from '#gateway/npm/pngjs';
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { ContentTextStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
@@ -213,10 +221,9 @@ export const evidenceTreeHarness = (): {
   }) => Promise<PixelChange | null>;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
-  let originalHome: typeof process.env.DUNGEONMASTER_HOME;
+  let originalHome: ReturnType<typeof getEnv>;
   // A REAL detached child, spawned once addStaleAliveEntry runs — see this file's own PURPOSE for
   // why a bare literal pgid no longer proves anything.
-  let staleChildProcess: ChildProcess | null = null;
   let staleChildPgid: ReturnType<typeof ProcessGroupIdStub> | null = null;
 
   const killedInstanceEvidenceDir = (): AbsoluteFilePath =>
@@ -243,7 +250,7 @@ export const evidenceTreeHarness = (): {
       step: StepIndexStub({ value: 1 }),
     });
 
-  const writeSolidPng = ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+  const writeSolidPng = async ({ filePath }: { filePath: AbsoluteFilePath }): Promise<void> => {
     const png = new PNG({ width: IMAGE_SIDE, height: IMAGE_SIDE });
     for (let offset = 0; offset < png.data.length; offset += RGBA_CHANNELS) {
       png.data[offset] = 13;
@@ -251,10 +258,14 @@ export const evidenceTreeHarness = (): {
       png.data[offset + 2] = 7;
       png.data[offset + 3] = OPAQUE_ALPHA;
     }
-    writeFileSync(filePath, PNG.sync.write(png));
+    await writeFileBytes(filePath, PNG.sync.write(png));
   };
 
-  const writeHalfDifferentPng = ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+  const writeHalfDifferentPng = async ({
+    filePath,
+  }: {
+    filePath: AbsoluteFilePath;
+  }): Promise<void> => {
     const png = new PNG({ width: IMAGE_SIDE, height: IMAGE_SIDE });
     for (let row = 0; row < IMAGE_SIDE; row += 1) {
       for (let col = 0; col < IMAGE_SIDE; col += 1) {
@@ -266,7 +277,7 @@ export const evidenceTreeHarness = (): {
         png.data[offset + 3] = OPAQUE_ALPHA;
       }
     }
-    writeFileSync(filePath, PNG.sync.write(png));
+    await writeFileBytes(filePath, PNG.sync.write(png));
   };
 
   // Byte offsets computed from the strings themselves rather than counted by hand, so the fixture
@@ -512,8 +523,8 @@ export const evidenceTreeHarness = (): {
       `${JSON.stringify(heartbeat)}\n`,
     );
 
-    writeSolidPng({ filePath: run1Shot1Path() });
-    writeHalfDifferentPng({ filePath: run2Shot1Path() });
+    await writeSolidPng({ filePath: run1Shot1Path() });
+    await writeHalfDifferentPng({ filePath: run2Shot1Path() });
 
     const bufferPaths = locationsBufferPathsFindBroker({ evidencePath: evidenceDir });
     writeFileSync(bufferPaths.console, consoleJsonl());
@@ -540,12 +551,12 @@ export const evidenceTreeHarness = (): {
   };
 
   const beforeEach = async (): Promise<void> => {
-    originalHome = process.env.DUNGEONMASTER_HOME;
+    originalHome = getEnv('DUNGEONMASTER_HOME');
     const freshTestbed = installTestbedCreateBroker({
       baseName: BaseNameStub({ value: 'evidence-tree' }),
     });
     testbed = freshTestbed;
-    process.env.DUNGEONMASTER_HOME = freshTestbed.guildPath;
+    setEnv('DUNGEONMASTER_HOME', freshTestbed.guildPath);
     mkdirSync(`${freshTestbed.guildPath}/siegelense`, { recursive: true });
 
     await buildTree();
@@ -555,9 +566,9 @@ export const evidenceTreeHarness = (): {
     // Backstop only: the normal case is the test's own `cleanup` call already reaped this pgid, so
     // ESRCH here is success, not failure — a test that fails BEFORE cleanup runs is what this
     // guards against, so no `sleep 300` from a broken test run lingers on the machine.
-    if (staleChildProcess?.pid !== undefined) {
+    if (staleChildPgid !== null) {
       try {
-        process.kill(-staleChildProcess.pid, 'SIGKILL');
+        kill(-Number(staleChildPgid), 'SIGKILL');
       } catch (killError: unknown) {
         if (
           killError === null ||
@@ -565,19 +576,18 @@ export const evidenceTreeHarness = (): {
           !('code' in killError) ||
           killError.code !== 'ESRCH'
         ) {
-          process.stderr.write(
+          stderr.write(
             `evidenceTreeHarness: killing the stale fixture process failed: ${String(killError)}\n`,
           );
         }
       }
     }
-    staleChildProcess = null;
     staleChildPgid = null;
 
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed?.cleanup();
     testbed = null;
@@ -595,13 +605,16 @@ export const evidenceTreeHarness = (): {
     // relationship `childProcessSpawnDetachedAdapter` relies on for a real driver's own lane
     // processes. `sleep` outlives any single test easily; afterEach force-kills it unconditionally
     // as a backstop for a test that fails before cleanup's own reap gets to it.
-    const child = spawn('sleep', ['300'], { detached: true, stdio: 'ignore' });
-    child.unref();
-    staleChildProcess = child;
-    if (child.pid === undefined) {
-      throw new Error('evidenceTreeHarness: failed to spawn the stale fixture process');
-    }
-    const stalePgid = ProcessGroupIdStub({ value: child.pid });
+    const nullFd = openForAppendSync('/dev/null');
+    const child = spawnDetached({
+      command: 'sleep',
+      args: ['300'],
+      cwd: evidenceDir,
+      stdoutFd: nullFd,
+      stderrFd: nullFd,
+    });
+    closeSync(nullFd);
+    const stalePgid = ProcessGroupIdStub({ value: child.pgid });
     staleChildPgid = stalePgid;
 
     const heartbeat = InstanceHeartbeatStub({

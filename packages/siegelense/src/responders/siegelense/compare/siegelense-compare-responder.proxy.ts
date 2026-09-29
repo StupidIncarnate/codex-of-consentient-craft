@@ -9,7 +9,8 @@
  * proxy.stageAnswer({ answer });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { compareReadBroker } from '../../../brokers/compare/read/compare-read-broker';
 import { compareReadBrokerProxy } from '../../../brokers/compare/read/compare-read-broker.proxy';
@@ -27,8 +28,7 @@ export const SiegelenseCompareResponderProxy = (): {
   compareReadBrokerProxy();
 
   const compareReadHandle = registerMock({ fn: compareReadBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageAnswer: ({ answer }: { answer: CompareAnswer }): void => {
@@ -39,6 +39,6 @@ export const SiegelenseCompareResponderProxy = (): {
       compareReadHandle.calledWith([]).rejects(error);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
   };
 };

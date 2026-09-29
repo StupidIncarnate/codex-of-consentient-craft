@@ -9,7 +9,8 @@
  * proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read-broker';
 import { capacityReadBrokerProxy } from '../../../brokers/capacity/read/capacity-read-broker.proxy';
@@ -34,8 +35,7 @@ export const SiegelenseCapacityResponderProxy = (): {
   capacityReadBrokerProxy();
 
   const capacityHandle = registerMock({ fn: capacityReadBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
 
   return {
     stageAnswer: ({
@@ -50,6 +50,6 @@ export const SiegelenseCapacityResponderProxy = (): {
       capacityHandle.calledWith([{ specName, poolSize }]).resolves(answer);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
   };
 };

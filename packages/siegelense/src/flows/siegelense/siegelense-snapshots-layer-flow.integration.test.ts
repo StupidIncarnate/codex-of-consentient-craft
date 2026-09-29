@@ -30,6 +30,8 @@
  * // Writes the rendered SnapshotsAnswer for that instance to stdout
  */
 
+import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -76,8 +78,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'siegelense-snapshots-layer-flow' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
 
   const cleanDiscardedPath = store.payloadPath({ instanceId: ALIVE_POPULATED_ID, ordinal: 1 });
   const run1StartPath = store.payloadPath({ instanceId: ALIVE_POPULATED_ID, ordinal: 2 });
@@ -86,6 +87,8 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
   const cleanSurvivingPath = store.payloadPath({ instanceId: ALIVE_POPULATED_ID, ordinal: 5 });
 
   beforeAll(async () => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+
     // `dungeonmaster init` mkdir -p's this directory at install time, matching
     // siegelense-status-layer-flow.integration.test.ts's own beforeAll precondition.
     testbed.writeFile({
@@ -168,9 +171,9 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   afterAll(async () => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
     await store.cleanup();
@@ -202,35 +205,31 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   describe('an --instance value the registry never held', () => {
     it('ERROR: {callArgs: [--instance, <unknown id>]} => rejects with InstanceUnknownError before writing anything', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });
 
     it('ERROR: {callArgs: [--instance, <unknown id>, --json]} => rejects the same way even with --json, since the registry check runs first', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await expect(
         SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID, '--json'] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([]);
     });
@@ -238,16 +237,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   describe('a killed instance — the throwaway home, and any store inside it, is gone', () => {
     it('VALID: {callArgs: [--instance, <killed id>]} => renders an empty list under instanceState killed', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', KILLED_ID] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${KILLED_ID} (killed)\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`,
@@ -255,16 +252,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--instance, <killed id>, --json]} => the JSON carries instanceState killed with an empty list', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', KILLED_ID, '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -278,16 +273,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   describe('a pruned instance — a distinct empty state from killed', () => {
     it('VALID: {callArgs: [--instance, <pruned id>]} => renders an empty list under instanceState pruned', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', PRUNED_ID] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${PRUNED_ID} (pruned)\nSNAPSHOTS: none recorded yet\n`,
@@ -295,16 +288,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--instance, <pruned id>, --json]} => the JSON carries instanceState pruned with an empty list', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', PRUNED_ID, '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -318,16 +309,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   describe('an alive instance that has captured nothing yet — empty for a different reason than killed', () => {
     it('EMPTY: {callArgs: [--instance, <alive, no captures>]} => renders an empty list under instanceState alive', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_EMPTY_ID] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${ALIVE_EMPTY_ID} (alive)\nSNAPSHOTS: none recorded yet\n`,
@@ -335,16 +324,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
     });
 
     it('EMPTY: {callArgs: [--instance, <alive, no captures>, --json]} => the JSON carries instanceState alive with an empty list', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_EMPTY_ID, '--json'] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -358,16 +345,14 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
   describe('an alive instance with a real, populated snapshot store on disk', () => {
     it('VALID: {callArgs: [--instance, <populated id>]} => renders every current row oldest-first, the stale "clean" capture dropped by dedup', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_POPULATED_ID] });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 
@@ -385,18 +370,16 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
     });
 
     it('VALID: {callArgs: [--instance, <populated id>, --json]} => the JSON lists every current row oldest-first, "clean" carrying its LATEST atMs and path', async () => {
-      const writes: ReturnType<typeof ContentTextStub>[] = [];
-      const originalWrite = process.stdout.write.bind(process.stdout);
-      process.stdout.write = ((chunk: string): boolean => {
-        writes.push(ContentTextStub({ value: chunk }));
-        return true;
-      }) as unknown as typeof process.stdout.write;
+      const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       await SiegelenseSnapshotsLayerFlow({
         callArgs: ['--instance', ALIVE_POPULATED_ID, '--json'],
       });
 
-      process.stdout.write = originalWrite;
+      const writes = stdoutSpy
+        .callsMatching([])
+        .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const [wholeOutput] = writes;
 

@@ -15,7 +15,9 @@
  * proxy.stageAnswer({ answer: PruneAnswerStub() });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { pruneRunBroker } from '../../../brokers/prune/run/prune-run-broker';
 import { pruneRunBrokerProxy } from '../../../brokers/prune/run/prune-run-broker.proxy';
@@ -34,18 +36,16 @@ export const SiegelensePruneResponderProxy = (): {
   pruneRunBrokerProxy();
 
   const pruneRunHandle = registerMock({ fn: pruneRunBroker });
-  const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  stdoutHandle.calledWith([]).returns(true);
-  stderrHandle.calledWith([]).returns(true);
+  const stdout = stdoutProxy();
+  const stderr = stderrProxy();
 
   return {
     stageAnswer: ({ answer }: { answer: PruneAnswer }): void => {
       pruneRunHandle.calledWith([]).resolves(answer);
     },
 
-    getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
-    getStderrWrites: (): unknown[] => stderrHandle.callsMatching([]).map((call) => call[0]),
+    getStdoutWrites: (): unknown[] => [...stdout.getWrites()],
+    getStderrWrites: (): unknown[] => [...stderr.getWrites()],
     getPruneRunCalls: (): unknown[] => pruneRunHandle.callsMatching([]).map((call) => call[0]),
   };
 };

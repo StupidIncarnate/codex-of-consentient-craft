@@ -13,9 +13,10 @@
 import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { profileStatics } from '../../../statics/profile/profile-statics';
@@ -55,8 +56,7 @@ export const profileReadBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
   const readdirProxy = readdirIfExistsProxy();
   const readProxy = readFileProxy();
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrHandle.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   return {
     setupProfileTree: ({
@@ -120,6 +120,6 @@ export const profileReadBrokerProxy = (): {
     },
 
     getStderrMessages: (): readonly ContentText[] =>
-      stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
+      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
   };
 };

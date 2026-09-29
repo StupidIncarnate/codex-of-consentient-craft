@@ -11,6 +11,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
+import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
@@ -39,8 +40,8 @@ describe('the profile sample-write path, against a real tree', () => {
   const testbed = installTestbedCreateBroker({
     baseName: BaseNameStub({ value: 'profile-sample-record' }),
   });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  const originalCwd = process.cwd();
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+  const originalCwd = cwd();
 
   let soloRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
   let contendedRecord: Awaited<ReturnType<typeof profileSampleRecordBroker>> = null;
@@ -48,7 +49,7 @@ describe('the profile sample-write path, against a real tree', () => {
   let profile: Awaited<ReturnType<typeof profileReadBroker>> | null = null;
 
   beforeAll(async () => {
-    process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
 
     // laneSpecFindBroker resolves devServer.e2e.processes off a real .dungeonmaster.json — this
     // repo's own file is being rewritten by other work, so the testbed gets its own, isolated
@@ -68,7 +69,7 @@ describe('the profile sample-write path, against a real tree', () => {
         ),
       }),
     });
-    process.chdir(testbed.guildPath);
+    chdir(testbed.guildPath);
 
     // One booted instance: every beat below is taken at pool size 1.
     await registryUpdateBroker({
@@ -160,11 +161,11 @@ describe('the profile sample-write path, against a real tree', () => {
   }, 30_000);
 
   afterAll(() => {
-    process.chdir(originalCwd);
+    chdir(originalCwd);
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });

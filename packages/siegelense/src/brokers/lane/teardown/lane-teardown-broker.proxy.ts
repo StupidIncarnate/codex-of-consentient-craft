@@ -1,4 +1,6 @@
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
@@ -42,6 +44,7 @@ export const laneTeardownBrokerProxy = (): {
   setupFdCloseSucceeds: (params: { fd: FileDescriptor }) => void;
   setupFdCloseFails: (params: { fd: FileDescriptor; error: NodeJS.ErrnoException }) => void;
   getClosedFds: () => unknown[];
+  getStderrWrites: () => readonly unknown[];
   assertFdCloseHappensAfterKillSignals: () => boolean;
 } => {
   const evidenceProxy = locationsRepoLinkPathFindBrokerProxy();
@@ -49,6 +52,8 @@ export const laneTeardownBrokerProxy = (): {
   const aliveProxy = processIsAliveBrokerProxy();
   const killProxy = processKillGroupBrokerProxy();
   const closeFdProxy = closeSyncProxy();
+  const stderr = stderrProxy();
+  setTimeoutProxy();
   const dateNowHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
   // Read-back addresses only the paths and fds this test staged, so a read never widens to calls
   // the test did not describe (an unstaged call already throws).
@@ -140,6 +145,8 @@ export const laneTeardownBrokerProxy = (): {
     },
 
     getClosedFds: (): unknown[] => readClosedFds(),
+
+    getStderrWrites: (): readonly unknown[] => stderr.getWrites(),
 
     assertFdCloseHappensAfterKillSignals: (): boolean =>
       closedCountAtEachSignal.length > 0 &&

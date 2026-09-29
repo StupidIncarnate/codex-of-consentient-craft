@@ -16,6 +16,7 @@
  * // Writes the KillResult as one JSON document to stdout, or throws InstanceUnknownError first
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -40,7 +41,7 @@ export const SiegelenseKillResponder = async ({
   }
 
   const result = await instanceKillBroker({ instanceId });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(result, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : killAnswerRenderTransformer({ result }),

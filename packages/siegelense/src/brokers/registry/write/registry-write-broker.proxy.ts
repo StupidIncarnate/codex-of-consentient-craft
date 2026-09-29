@@ -30,6 +30,8 @@ export const registryWriteBrokerProxy = (): {
   getRenamedFrom: () => unknown;
   getRenamedTo: () => unknown;
   getWritePathsInOrder: (params: { alongside: string }) => readonly unknown[];
+  stageNextWriteSucceeds: () => void;
+  stageNextWriteFails: (params: { code: string }) => void;
 } => {
   // registryWriteBroker calls locationsRootPathFindBroker() directly (for ensureDir + the tmp-path
   // join), then locationsRegistryPathFindBroker() (which recomputes the root path internally on
@@ -62,6 +64,19 @@ export const registryWriteBrokerProxy = (): {
     setupWriteFailure: ({ code }: { code: string }): void => {
       queuePaths();
       writeProxy.rejects({
+        path: tmpPathAbs,
+        error: FsErrorStub({ code, path: TMP_PATH_VALUE, syscall: 'write' }),
+      });
+    },
+
+    // One-shot, consumed in the order staged: `stageNextWriteSucceeds` then `stageNextWriteFails`
+    // lets the first registry write land and fails the second.
+    stageNextWriteSucceeds: (): void => {
+      writeProxy.succeedsOnce({ path: tmpPathAbs });
+    },
+
+    stageNextWriteFails: ({ code }: { code: string }): void => {
+      writeProxy.rejectsOnce({
         path: tmpPathAbs,
         error: FsErrorStub({ code, path: TMP_PATH_VALUE, syscall: 'write' }),
       });

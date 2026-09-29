@@ -18,10 +18,11 @@
  * // fleet.afterAll() reaps anything still alive when the suite ends
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { createServer } from 'net';
-import { kill } from 'process';
-import { join, resolve as resolvePath } from 'path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from '#gateway/node/fs';
+import { isPortFree as probePortFree } from '#gateway/node/net';
+import { kill, setEnv, stderr } from '#gateway/node/process';
+import { join, resolve as resolvePath } from '#gateway/node/path';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 import type {
   AbsoluteFilePath,
@@ -187,8 +188,8 @@ export const driverFleetHarness = (): {
     // rather than in the constructor (enforce-harness-patterns bans a constructor side effect) —
     // instanceStartBroker spawns the driver with no `env` override, so the driver inherits
     // process.env from THIS jest worker at spawn time, and this assignment must land before that.
-    process.env.CLAUDE_CLI_PATH = FAKE_CLAUDE_CLI_PATH;
-    process.env.WARD_CLI_PATH = FAKE_WARD_CLI_PATH;
+    setEnv('CLAUDE_CLI_PATH', FAKE_CLAUDE_CLI_PATH);
+    setEnv('WARD_CLI_PATH', FAKE_WARD_CLI_PATH);
 
     const manifest = await instanceStartBroker({
       specName,
@@ -237,17 +238,7 @@ export const driverFleetHarness = (): {
     processIsAliveBroker({ pgid });
 
   const isPortFree = async ({ port }: { port: NetworkPort }): Promise<boolean> =>
-    new Promise((resolve) => {
-      const probe = createServer();
-      probe.once('error', () => {
-        resolve(false);
-      });
-      probe.listen(port, () => {
-        probe.close(() => {
-          resolve(true);
-        });
-      });
-    });
+    probePortFree({ port });
 
   const heartbeatPgids = ({
     instanceId,
@@ -260,7 +251,7 @@ export const driverFleetHarness = (): {
       return [];
     }
 
-    const parsed: unknown = JSON.parse(readFileSync(heartbeatPath, 'utf8'));
+    const parsed: unknown = JSON.parse(readFileSync(heartbeatPath));
     const pgidsField =
       typeof parsed === 'object' && parsed !== null && 'pgids' in parsed
         ? (parsed as { pgids: unknown }).pgids
@@ -386,7 +377,7 @@ export const driverFleetHarness = (): {
 
   const reapDirectly = async ({ instanceId }: { instanceId: InstanceId }): Promise<void> => {
     const entry = await registryEntry({ instanceId }).catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[driver-fleet.harness] registry read failed reaping ${instanceId}: ${String(error)}\n`,
       );
       return undefined;
@@ -399,7 +390,7 @@ export const driverFleetHarness = (): {
     });
 
     await instanceKillBroker({ instanceId }).catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[driver-fleet.harness] instanceKillBroker failed reaping ${instanceId}: ${String(error)}\n`,
       );
     });

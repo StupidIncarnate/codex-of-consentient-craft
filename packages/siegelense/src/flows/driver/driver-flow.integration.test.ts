@@ -1,3 +1,4 @@
+import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
@@ -11,8 +12,11 @@ import { DriverFlow } from './driver-flow';
 
 describe('DriverFlow', () => {
   const testbed = installTestbedCreateBroker({ baseName: BaseNameStub({ value: 'driver-flow' }) });
-  const originalHome = process.env.DUNGEONMASTER_HOME;
-  process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+  const originalHome = getEnv('DUNGEONMASTER_HOME');
+
+  beforeAll(() => {
+    setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
+  });
 
   describe('the registry has no row for this instance', () => {
     it('ERROR: {a fresh, isolated registry} => rejects with InstanceUnknownError, the same shared message every other call throws', async () => {
@@ -26,9 +30,9 @@ describe('DriverFlow', () => {
 
   afterAll(() => {
     if (originalHome === undefined) {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     } else {
-      process.env.DUNGEONMASTER_HOME = originalHome;
+      setEnv('DUNGEONMASTER_HOME', originalHome);
     }
     testbed.cleanup();
   });
@@ -81,8 +85,8 @@ describe('driver teardown', () => {
         baseName: BaseNameStub({ value: 'driver-teardown-single' }),
       });
       const fleet = driverFleetHarness();
-      const originalHome = process.env.DUNGEONMASTER_HOME;
-      const originalCwd = process.cwd();
+      const originalHome = getEnv('DUNGEONMASTER_HOME');
+      const originalCwd = cwd();
 
       let hasAtLeastOneHeartbeatPgid: boolean;
       let everyHeartbeatPgidAliveWhileRunning: boolean;
@@ -95,12 +99,12 @@ describe('driver teardown', () => {
       let driverProcessExitedAfterKill: boolean;
 
       beforeAll(async () => {
-        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
         fleet.ensureHomeReady({ home: testbed.guildPath });
         // Real boot, this checkout's own server: .dungeonmaster.json goes into the testbed's own
         // OS-tmp dir, never this repo's — see driver-fleet.harness.ts's own header.
         fleet.configureApiLane({ configDir: testbed.guildPath });
-        process.chdir(testbed.guildPath);
+        chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({ specName: HEADLESS_SPEC });
         const heartbeatPgids = await fleet.waitForHeartbeatPgids({
@@ -139,11 +143,11 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         if (originalHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = originalHome;
+          setEnv('DUNGEONMASTER_HOME', originalHome);
         }
         testbed.cleanup();
       }, BOOT_HOOK_TIMEOUT_MS);
@@ -198,8 +202,8 @@ describe('driver teardown', () => {
         baseName: BaseNameStub({ value: 'driver-teardown-sigkill' }),
       });
       const fleet = driverFleetHarness();
-      const originalHome = process.env.DUNGEONMASTER_HOME;
-      const originalCwd = process.cwd();
+      const originalHome = getEnv('DUNGEONMASTER_HOME');
+      const originalCwd = cwd();
 
       let reapedMatchesRecordedPgids: boolean;
       let everyOrphanDeadAfterReap: boolean;
@@ -207,10 +211,10 @@ describe('driver teardown', () => {
       let evidenceDirKeptAfterReap: boolean;
 
       beforeAll(async () => {
-        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
         fleet.ensureHomeReady({ home: testbed.guildPath });
         fleet.configureApiLane({ configDir: testbed.guildPath });
-        process.chdir(testbed.guildPath);
+        chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({ specName: HEADLESS_SPEC });
         const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
@@ -235,11 +239,11 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         if (originalHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = originalHome;
+          setEnv('DUNGEONMASTER_HOME', originalHome);
         }
         testbed.cleanup();
       }, BOOT_HOOK_TIMEOUT_MS);
@@ -268,17 +272,17 @@ describe('driver teardown', () => {
         baseName: BaseNameStub({ value: 'driver-teardown-parallel' }),
       });
       const fleet = driverFleetHarness();
-      const originalHome = process.env.DUNGEONMASTER_HOME;
-      const originalCwd = process.cwd();
+      const originalHome = getEnv('DUNGEONMASTER_HOME');
+      const originalCwd = cwd();
 
       let bothSurvivorsAnsweredPing: boolean;
       let bothSurvivorsKeptEveryProcessGroup: boolean;
 
       beforeAll(async () => {
-        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
         fleet.ensureHomeReady({ home: testbed.guildPath });
         fleet.configureApiLane({ configDir: testbed.guildPath });
-        process.chdir(testbed.guildPath);
+        chdir(testbed.guildPath);
 
         // Promise.allSettled, never Promise.all: three real boots each carry their own
         // `instanceStartBootPollLayerBroker` retry loop, and Promise.all abandons a still-pending
@@ -332,11 +336,11 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         if (originalHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = originalHome;
+          setEnv('DUNGEONMASTER_HOME', originalHome);
         }
         testbed.cleanup();
       }, BOOT_HOOK_TIMEOUT_MS);
@@ -364,8 +368,8 @@ describe('driver teardown', () => {
         baseName: BaseNameStub({ value: 'driver-teardown-idle' }),
       });
       const fleet = driverFleetHarness();
-      const originalHome = process.env.DUNGEONMASTER_HOME;
-      const originalCwd = process.cwd();
+      const originalHome = getEnv('DUNGEONMASTER_HOME');
+      const originalCwd = cwd();
 
       const IDLE_TIMEOUT_MS = 3_000;
       // Covers the idle wait itself plus scheduler contention on a loaded machine — the same
@@ -381,10 +385,10 @@ describe('driver teardown', () => {
       let bothPortsFreeAfterIdleReap: boolean;
 
       beforeAll(async () => {
-        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
         fleet.ensureHomeReady({ home: testbed.guildPath });
         fleet.configureApiLane({ configDir: testbed.guildPath });
-        process.chdir(testbed.guildPath);
+        chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({
           specName: HEADLESS_SPEC,
@@ -417,11 +421,11 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         if (originalHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = originalHome;
+          setEnv('DUNGEONMASTER_HOME', originalHome);
         }
         testbed.cleanup();
       }, BOOT_HOOK_TIMEOUT_MS);
@@ -460,8 +464,8 @@ describe('driver teardown', () => {
         baseName: BaseNameStub({ value: 'driver-teardown-idle-browsered' }),
       });
       const fleet = driverFleetHarness();
-      const originalHome = process.env.DUNGEONMASTER_HOME;
-      const originalCwd = process.cwd();
+      const originalHome = getEnv('DUNGEONMASTER_HOME');
+      const originalCwd = cwd();
 
       const IDLE_TIMEOUT_MS = 3_000;
       const IDLE_REAP_WAIT_CEILING_MS = 20_000;
@@ -473,10 +477,10 @@ describe('driver teardown', () => {
       let everyHeartbeatPgidDeadAfterIdleReap: boolean;
 
       beforeAll(async () => {
-        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
         fleet.ensureHomeReady({ home: testbed.guildPath });
         fleet.configureApiLane({ configDir: testbed.guildPath });
-        process.chdir(testbed.guildPath);
+        chdir(testbed.guildPath);
 
         const manifest = await fleet.boot({
           specName: BROWSERED_SPEC,
@@ -501,11 +505,11 @@ describe('driver teardown', () => {
 
       afterAll(async () => {
         await fleet.afterAll();
-        process.chdir(originalCwd);
+        chdir(originalCwd);
         if (originalHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = originalHome;
+          setEnv('DUNGEONMASTER_HOME', originalHome);
         }
         testbed.cleanup();
       }, BOOT_HOOK_TIMEOUT_MS);

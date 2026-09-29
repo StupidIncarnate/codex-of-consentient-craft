@@ -14,6 +14,8 @@ export const registryUpdateBrokerProxy = (): {
   setupLockHeldFreshByAnotherProcess: () => void;
   getWrittenContent: () => unknown;
   getWritePathsInOrder: (params: { alongside: string }) => readonly unknown[];
+  stageNextWriteSucceeds: () => void;
+  stageNextWriteFails: (params: { code: string }) => void;
   getLockWriteOptions: () => unknown;
   getLockDeletedPaths: () => unknown[];
 } => {
@@ -76,6 +78,14 @@ export const registryUpdateBrokerProxy = (): {
 
     getWritePathsInOrder: ({ alongside }: { alongside: string }): readonly unknown[] =>
       writeProxy.getWritePathsInOrder({ alongside }),
+
+    stageNextWriteSucceeds: (): void => {
+      writeProxy.stageNextWriteSucceeds();
+    },
+
+    stageNextWriteFails: ({ code }: { code: string }): void => {
+      writeProxy.stageNextWriteFails({ code });
+    },
 
     getLockWriteOptions: (): unknown => lockAcquireProxy.getLastWriteOptions(),
 

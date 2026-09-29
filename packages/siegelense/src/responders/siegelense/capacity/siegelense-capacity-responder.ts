@@ -13,6 +13,7 @@
  * // Writes the CapacityAnswer as one JSON document
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -33,7 +34,7 @@ export const SiegelenseCapacityResponder = async ({
 }): Promise<AdapterResult> => {
   const answer = await capacityReadBroker({ specName, poolSize });
 
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : capacityAnswerRenderTransformer({ answer }),

@@ -22,6 +22,7 @@
  * // Writes the RecipesAnswer as one JSON document
  */
 
+import { stdout } from '#gateway/node/process';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
@@ -37,7 +38,7 @@ export const SiegelenseRecipesResponder = async ({
 } = {}): Promise<AdapterResult> => {
   const recipes = await recipesReadBroker();
   const answer = recipesAnswerContract.parse({ recipes });
-  process.stdout.write(
+  stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : recipesAnswerRenderTransformer({ answer }),

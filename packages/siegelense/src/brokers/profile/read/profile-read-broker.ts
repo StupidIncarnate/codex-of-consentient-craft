@@ -27,6 +27,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
@@ -70,7 +71,7 @@ export const profileReadBroker = async ({
         try {
           return profileObservationContract.parse(JSON.parse(contents));
         } catch (error: unknown) {
-          process.stderr.write(
+          stderr.write(
             `[profile-read] skipping an unreadable profile record at ${recordPath}: ${String(error)}\n`,
           );
           return null;
@@ -87,7 +88,7 @@ export const profileReadBroker = async ({
         try {
           return profileBootContract.parse(JSON.parse(contents));
         } catch (error: unknown) {
-          process.stderr.write(
+          stderr.write(
             `[profile-read] skipping an unreadable boot record at ${recordPath}: ${String(error)}\n`,
           );
           return null;

@@ -36,6 +36,8 @@
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { closeSync } from '#gateway/node/fs';
 import { rm } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
@@ -53,7 +55,7 @@ export const laneTeardownBroker = async ({
 }): Promise<KillResult> => {
   if (session.browser !== null) {
     await session.browser.close().catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `[lane-teardown] browser close failed for instance ${instanceId}: ${String(error)}\n`,
       );
     });
@@ -105,7 +107,7 @@ export const laneTeardownBroker = async ({
     try {
       closeSync(fd);
     } catch (error) {
-      process.stderr.write(
+      stderr.write(
         `[lane-teardown] fd close failed for instance ${instanceId}, fd ${String(fd)}: ${String(error)}\n`,
       );
     }
