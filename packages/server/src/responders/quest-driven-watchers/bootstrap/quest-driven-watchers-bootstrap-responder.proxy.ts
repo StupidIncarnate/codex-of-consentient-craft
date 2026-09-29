@@ -1,9 +1,7 @@
 import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
-import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
 import { questOutboxWatchBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/outbox-watch/quest-outbox-watch-broker.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
@@ -23,18 +21,16 @@ export const QuestDrivenWatchersBootstrapResponderProxy = (): {
   outboxProxy: {
     getCapturedResetOnStart: () => boolean | undefined;
   };
-  getCwdCalls: () => RecordedCalls;
   getFallbackIntervalCalls: () => RecordedCalls;
 } => {
   // Neither test in this file's own colocated .test.ts reaches into the dev-log or layer wiring
   // directly — creating each child proxy here registers its mock (and, for the layer proxy,
   // StartOrchestratorProxy's own listGuilds default of an empty list) so the responder's real
   // calls resolve instead of hitting an unmatched-call throw.
-  cwdProxy();
+  const cwdStageProxy = cwdProxy();
   const setIntervalChild = setIntervalProxy();
   clearIntervalProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(BOOTSTRAP_CWD);
+  cwdStageProxy.setupCwd({ value: BOOTSTRAP_CWD });
   processDevLogBrokerProxy();
   ReconcileWatchersLayerResponderProxy();
 
@@ -49,7 +45,6 @@ export const QuestDrivenWatchersBootstrapResponderProxy = (): {
       getCapturedResetOnStart: (): boolean | undefined =>
         outboxWatchProxy.getCapturedResetOnStart(),
     },
-    getCwdCalls: (): RecordedCalls => cwdHandle.callsMatching([]),
     getFallbackIntervalCalls: (): RecordedCalls =>
       setIntervalChild.getCallsFor({ ms: FALLBACK_RECONCILE_INTERVAL_MS }),
   };

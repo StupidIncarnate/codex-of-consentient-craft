@@ -10,8 +10,6 @@
 
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const callerRepoRootResolveBrokerProxy = (): {
   setupServerCwd: (params: { cwd: string }) => void;
@@ -19,13 +17,12 @@ export const callerRepoRootResolveBrokerProxy = (): {
   setupRepoRootInParent: (params: { startPath: string; repoRoot: string }) => void;
   setupRepoRootNotFound: (params: { startPath: string }) => void;
 } => {
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
+  const cwdStage = cwdProxy();
   const cwdResolveProxy = cwdResolveBrokerProxy();
 
   return {
     setupServerCwd: ({ cwd: serverCwd }: { cwd: string }): void => {
-      cwdHandle.calledWith([]).returns(serverCwd);
+      cwdStage.setupCwd({ value: serverCwd });
     },
     setupRepoRootAtStart: ({ startPath }: { startPath: string }): void => {
       cwdResolveProxy.setupRepoRootFoundAtStart({ startPath });

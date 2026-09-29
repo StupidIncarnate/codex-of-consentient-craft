@@ -19,8 +19,6 @@
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globPatternContract } from '@dungeonmaster/shared/contracts';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
@@ -56,9 +54,10 @@ export const mcpDiscoverBrokerProxy = (): {
     pattern: GlobPattern;
   }) => void;
 } => {
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
+  const cwdStage = cwdProxy();
+  const stageDefaultCwd = (): void => {
+    cwdStage.setupCwd({ value: '/default/cwd' });
+  };
   // The scan root the broker resolves for both fileScannerBroker's own scan and this broker's
   // own directory-hint probe.
   const scanRoot = PathSegmentStub({ value: '/default/cwd' });
@@ -75,6 +74,7 @@ export const mcpDiscoverBrokerProxy = (): {
       contents: FileContents;
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       fileScannerProxy.setupFiles({ files: [{ filepath, contents }], pattern });
     },
 
@@ -85,6 +85,7 @@ export const mcpDiscoverBrokerProxy = (): {
       files: readonly { filepath: PathSegment; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       fileScannerProxy.setupFiles({ files, pattern });
     },
 
@@ -95,6 +96,7 @@ export const mcpDiscoverBrokerProxy = (): {
       directoryPaths: readonly PathSegment[];
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       // The scanner's own file scan finds nothing (staged through fileScannerProxy, which owns
       // the read-file gateway too); this hint's OWN directory probe is the one direct glob call
       // mcp-discover-broker.ts itself makes, at the SAME full pattern (root + suffix, computed
@@ -115,6 +117,7 @@ export const mcpDiscoverBrokerProxy = (): {
       filePaths: readonly PathSegment[];
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       // The scanner's own file scan and this hint's file-hit probe reach the gateway's glob with
       // IDENTICAL arguments — same pattern, same nodir — so they cannot be told apart by address
       // and must share one answer: glob genuinely matches these files. Staging them through
@@ -139,6 +142,7 @@ export const mcpDiscoverBrokerProxy = (): {
       contents: FileContents;
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       fileScannerProxy.setupFilesAtRoot({ rootPath, files: [{ filepath, contents }], pattern });
     },
   };

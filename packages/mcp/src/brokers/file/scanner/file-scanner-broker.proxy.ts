@@ -20,8 +20,6 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
@@ -50,9 +48,10 @@ export const fileScannerBrokerProxy = (): {
   }) => void;
   setupGlobFailure: (params: { pattern: GlobPattern; error: Error }) => void;
 } => {
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
+  const cwdStage = cwdProxy();
+  const stageDefaultCwd = (): void => {
+    cwdStage.setupCwd({ value: '/default/cwd' });
+  };
   // The scan root the broker will resolve, read from the same gateway the broker calls.
   const scanRoot = PathSegmentStub({ value: '/default/cwd' });
   const readFileGateway = readFileProxy();
@@ -131,6 +130,7 @@ export const fileScannerBrokerProxy = (): {
       pattern: GlobPattern;
       ignorePatterns?: readonly GlobPattern[];
     }): void => {
+      stageDefaultCwd();
       stageScans({
         root: scanRoot,
         pattern,
@@ -152,6 +152,7 @@ export const fileScannerBrokerProxy = (): {
       }[];
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       stageScans({
         root: scanRoot,
         pattern,
@@ -179,6 +180,7 @@ export const fileScannerBrokerProxy = (): {
       files: readonly { filepath: PathSegment; contents: FileContents }[];
       pattern: GlobPattern;
     }): void => {
+      stageDefaultCwd();
       stageScans({
         root: rootPath,
         pattern,
@@ -194,6 +196,7 @@ export const fileScannerBrokerProxy = (): {
     // the gateway's own try/catch — proving the broker's rejection now carries the gateway's
     // pattern-naming message rather than a raw, unwrapped one.
     setupGlobFailure: ({ pattern, error }: { pattern: GlobPattern; error: Error }): void => {
+      stageDefaultCwd();
       globGateway.throws({
         pattern: globPatternContract.parse(`${scanRoot}/${pattern}`),
         options: { cwd: scanRoot, ignore: ignoreFor({ pattern }) },

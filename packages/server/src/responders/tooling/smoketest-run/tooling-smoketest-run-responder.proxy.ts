@@ -2,8 +2,6 @@ import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/star
 import { configRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/config-root/find/config-root-find-broker.proxy';
 import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 // Matches the cwd() stub below — configRootFindBrokerProxy has no constructor catch-all of its
 // own, so the responder's cwd -> config-root walk must be addressed explicitly.
@@ -15,12 +13,10 @@ export const ToolingSmoketestRunResponderProxy = (): {
 } => {
   const orchestrator = StartOrchestratorProxy();
   const configRootProxy = configRootFindBrokerProxy();
-  cwdProxy();
-  // cwd() takes no arguments, so `[]` is the only honest address (see cwd.proxy.ts's own note) —
-  // staged here (rather than left to the real value) because configRootProxy below addresses its
-  // own stage by this EXACT startPath string.
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(DEFAULT_CWD);
+  const cwdStageProxy = cwdProxy();
+  // Staged rather than left to the real value because configRootProxy below addresses its own
+  // stage by this EXACT startPath string.
+  cwdStageProxy.setupCwd({ value: DEFAULT_CWD });
 
   configRootProxy.setupConfigRootFound({ startPath: DEFAULT_CWD, configRootPath: DEFAULT_CWD });
 

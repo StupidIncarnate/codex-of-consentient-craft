@@ -1,7 +1,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -48,9 +47,8 @@ export const questFindBrokerProxy = (): {
   // real passthrough default homeFindProxy's own composition already registers on this same
   // '#gateway/node/path' `join` reference covers every join call this broker makes.
   registerMock({ fn: join });
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(REPO_CWD);
+  const cwdStageProxy = cwdProxy();
+  cwdStageProxy.setupCwd({ value: REPO_CWD });
 
   const repoLocalGuildsPath = FilePathStub({
     value: `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}`,
