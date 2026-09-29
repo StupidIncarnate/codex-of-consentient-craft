@@ -10,11 +10,9 @@
  * questNodePackageCoverageViolationsTransformer({quest});
  * // Returns ErrorMessage[] — one sentence per offending node/tag, each carrying its own remediation.
  */
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Quest = ReturnType<typeof QuestStub>;
 
 export const questNodePackageCoverageViolationsTransformer = ({
   quest,

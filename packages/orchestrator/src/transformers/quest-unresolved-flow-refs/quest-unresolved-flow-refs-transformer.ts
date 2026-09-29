@@ -5,11 +5,9 @@
  * questUnresolvedFlowRefsTransformer({flows});
  * // Returns ErrorMessage[] — e.g. ["flow 'login' edge 'e1' has unresolved 'to' ref 'ghost'"].
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
 
 export const questUnresolvedFlowRefsTransformer = ({
   flows,

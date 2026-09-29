@@ -5,11 +5,9 @@
  * questDuplicateDesignDecisionIdsTransformer({designDecisions});
  * // Returns ErrorMessage[] — each entry is a duplicated design decision id.
  */
-import type { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type DesignDecision = ReturnType<typeof DesignDecisionStub>;
 
 export const questDuplicateDesignDecisionIdsTransformer = ({
   designDecisions,

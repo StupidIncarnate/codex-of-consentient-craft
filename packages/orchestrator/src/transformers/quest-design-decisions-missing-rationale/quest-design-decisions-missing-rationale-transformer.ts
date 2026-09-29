@@ -5,11 +5,9 @@
  * questDesignDecisionsMissingRationaleTransformer({designDecisions});
  * // Returns ErrorMessage[] — e.g. ["design decision 'use-jwt' has empty rationale"].
  */
-import type { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
+import type { DesignDecision } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type DesignDecision = ReturnType<typeof DesignDecisionStub>;
 
 export const questDesignDecisionsMissingRationaleTransformer = ({
   designDecisions,

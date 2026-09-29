@@ -5,9 +5,7 @@
  * hasRawPrimitiveTypeGuard({properties});
  * // Returns true if any property has a raw primitive type (string, number, any, object, unknown), false otherwise
  */
-import type { QuestContractPropertyStub } from '@dungeonmaster/shared/contracts';
-
-type QuestContractProperty = ReturnType<typeof QuestContractPropertyStub>;
+import type { QuestContractProperty } from '@dungeonmaster/shared/contracts';
 
 const rawPrimitiveBlocklist = new Set(['string', 'number', 'any', 'object', 'unknown']);
 

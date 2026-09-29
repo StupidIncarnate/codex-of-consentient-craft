@@ -5,9 +5,7 @@
  * questHasNoOrphanFlowNodesGuard({flows});
  * // Returns true if all nodes are referenced by at least one edge, false otherwise
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
+import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questHasNoOrphanFlowNodesGuard = ({ flows }: { flows?: Flow[] }): boolean => {
   if (!flows) {

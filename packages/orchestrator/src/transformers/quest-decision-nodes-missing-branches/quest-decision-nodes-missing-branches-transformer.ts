@@ -5,11 +5,9 @@
  * questDecisionNodesMissingBranchesTransformer({flows});
  * // Returns ErrorMessage[] — e.g. ["flow 'login' decision 'check-auth' has 1 outgoing edges (need ≥2)"].
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
 
 const MIN_DECISION_OUTGOING = 2;
 

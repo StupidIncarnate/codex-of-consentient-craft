@@ -25,12 +25,10 @@
  * questContractSourceCoverageViolationsTransformer({quest});
  * // Returns ErrorMessage[] — one sentence per offending contract, each carrying its own remediation.
  */
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 import { questContractSourceOwnerTransformer } from '@dungeonmaster/shared/transformers';
-
-type Quest = ReturnType<typeof QuestStub>;
 
 export const questContractSourceCoverageViolationsTransformer = ({
   quest,

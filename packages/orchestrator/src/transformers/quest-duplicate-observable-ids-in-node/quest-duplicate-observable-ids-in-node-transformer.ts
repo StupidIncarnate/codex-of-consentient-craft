@@ -5,11 +5,9 @@
  * questDuplicateObservableIdsInNodeTransformer({flows});
  * // Returns ErrorMessage[] — one per offending node, e.g. ["flow 'login' node 'n1': duplicate observables 'obs-a'"].
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
 
 export const questDuplicateObservableIdsInNodeTransformer = ({
   flows,

@@ -10,7 +10,7 @@
  * //   'flow-completeness'  — 4 flow-completeness checks (orphans, dead-ends, branching, edge labels)
  * //   'spec-completeness'  — 3 spec-completeness checks (terminal coverage, descriptions, rationale)
  */
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
@@ -31,8 +31,6 @@ import { questOrphanFlowNodesTransformer } from '../quest-orphan-flow-nodes/ques
 import { questTerminalNodesMissingObservablesTransformer } from '../quest-terminal-nodes-missing-observables/quest-terminal-nodes-missing-observables-transformer';
 import { questUnresolvedContractNodeRefsTransformer } from '../quest-unresolved-contract-node-refs/quest-unresolved-contract-node-refs-transformer';
 import { questUnresolvedFlowRefsTransformer } from '../quest-unresolved-flow-refs/quest-unresolved-flow-refs-transformer';
-
-type Quest = ReturnType<typeof QuestStub>;
 type ValidateSpecScope = 'invariants' | 'flow-completeness' | 'spec-completeness';
 
 const checkNameSchema = verifyQuestCheckContract.shape.name;

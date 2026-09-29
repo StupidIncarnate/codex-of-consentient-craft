@@ -30,7 +30,7 @@
  * which node closed it. Acceptance against the spec is still verified at runtime by ward plus the
  * verify roles looping to done, not by a static save-time gate.
  */
-import type { QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorMessage, VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
@@ -40,8 +40,6 @@ import { questNodePackageCoverageViolationsTransformer } from '../quest-node-pac
 import { questObservableAttributionViolationsTransformer } from '../quest-observable-attribution-violations/quest-observable-attribution-violations-transformer';
 import { questUngluedSeamEdgesTransformer } from '../quest-unglued-seam-edges/quest-unglued-seam-edges-transformer';
 import { questValidateSpecTransformer } from '../quest-validate-spec/quest-validate-spec-transformer';
-
-type Quest = ReturnType<typeof QuestStub>;
 
 export const questSaveInvariantsTransformer = ({
   quest,

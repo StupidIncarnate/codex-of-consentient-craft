@@ -12,12 +12,9 @@
  * questUngluedSeamEdgesTransformer({flows: quest.flows});
  * // Returns ErrorMessage[] — one sentence per unglued edge, naming both endpoints and their tags.
  */
-import type { FlowNodeStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import type { FlowNode, Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
-type FlowNode = ReturnType<typeof FlowNodeStub>;
 
 export const questUngluedSeamEdgesTransformer = ({ flows }: { flows: Flow[] }): ErrorMessage[] => {
   // Keyed `<flowId>:<nodeId>` so a cross-flow `flowId:nodeId` edge ref resolves through the same

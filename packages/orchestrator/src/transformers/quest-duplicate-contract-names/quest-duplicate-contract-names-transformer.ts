@@ -6,11 +6,9 @@
  * // Returns ErrorMessage[] — each entry names the duplicate contract and the existing entry's source path,
  * // e.g. ["Contract `LoginCredentials` already declared with source `packages/shared/src/contracts/login-credentials/login-credentials-contract.ts`. Either remove your write, change source to a shared path, or rename your contract."].
  */
-import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 
 export const questDuplicateContractNamesTransformer = ({
   contracts,

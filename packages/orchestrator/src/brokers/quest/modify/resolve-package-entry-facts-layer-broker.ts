@@ -24,17 +24,11 @@ import {
   filePathContract,
   packageJsonContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  PackageType,
-  QuestPackageEntryStub,
-  RepoRootCwd,
-} from '@dungeonmaster/shared/contracts';
+import type { PackageType, RepoRootCwd, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirSync } from '#gateway/node/fs';
 import { pathExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { dirname, resolve } from '#gateway/node/path';
-
-type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 
 export const resolvePackageEntryFactsLayerBroker = async ({
   entries,

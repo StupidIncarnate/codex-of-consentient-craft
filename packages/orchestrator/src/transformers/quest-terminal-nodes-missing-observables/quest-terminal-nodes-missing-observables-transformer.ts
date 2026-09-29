@@ -5,11 +5,9 @@
  * questTerminalNodesMissingObservablesTransformer({flows});
  * // Returns ErrorMessage[] — e.g. ["flow 'login' terminal node 'done' has no observables"].
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
 
 export const questTerminalNodesMissingObservablesTransformer = ({
   flows,

@@ -5,12 +5,9 @@
  * questUnresolvedContractNodeRefsTransformer({contracts, flows});
  * // Returns ErrorMessage[] — e.g. ["contract 'LoginCredentials' has unresolved nodeId 'ghost'"].
  */
-import type { FlowStub, QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 
 export const questUnresolvedContractNodeRefsTransformer = ({
   contracts,

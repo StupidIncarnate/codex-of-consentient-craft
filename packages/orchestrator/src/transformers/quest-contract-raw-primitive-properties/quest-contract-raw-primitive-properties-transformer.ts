@@ -5,15 +5,9 @@
  * questContractRawPrimitivePropertiesTransformer({contracts});
  * // Returns ErrorMessage[] — e.g. ["contract 'LoginCredentials' property 'email' uses raw primitive 'string'"].
  */
-import type {
-  QuestContractEntryStub,
-  QuestContractPropertyStub,
-} from '@dungeonmaster/shared/contracts';
+import type { QuestContractEntry, QuestContractProperty } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
-type QuestContractProperty = ReturnType<typeof QuestContractPropertyStub>;
 
 const rawPrimitiveBlocklist = new Set(['string', 'number', 'any', 'object', 'unknown']);
 

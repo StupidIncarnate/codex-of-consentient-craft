@@ -19,12 +19,9 @@
  * // Returns ErrorMessage[] — one sentence per mis-attributed observable, plus one per node carrying
  * // a package that is neither observed nor forced by a seam.
  */
-import type { FlowNodeStub, FlowStub } from '@dungeonmaster/shared/contracts';
+import type { FlowNode, Flow } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
-type FlowNode = ReturnType<typeof FlowNodeStub>;
 
 export const questObservableAttributionViolationsTransformer = ({
   flows,

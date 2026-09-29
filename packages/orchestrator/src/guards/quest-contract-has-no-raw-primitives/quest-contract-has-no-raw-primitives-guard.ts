@@ -5,11 +5,9 @@
  * questContractHasNoRawPrimitivesGuard({contracts});
  * // Returns true if no property uses raw primitives (string, number, any, object, unknown), false otherwise
  */
-import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestContractEntry } from '@dungeonmaster/shared/contracts';
 
 import { hasRawPrimitiveTypeGuard } from '../has-raw-primitive-type/has-raw-primitive-type-guard';
-
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 
 export const questContractHasNoRawPrimitivesGuard = ({
   contracts,

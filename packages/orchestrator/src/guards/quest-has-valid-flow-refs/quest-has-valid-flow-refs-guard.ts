@@ -5,9 +5,7 @@
  * questHasValidFlowRefsGuard({flows});
  * // Returns true if all edge refs are valid node IDs or resolvable cross-flow refs, false otherwise
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
+import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questHasValidFlowRefsGuard = ({ flows }: { flows?: Flow[] }): boolean => {
   if (!flows) {

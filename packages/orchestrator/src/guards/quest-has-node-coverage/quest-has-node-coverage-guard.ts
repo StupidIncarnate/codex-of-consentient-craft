@@ -5,9 +5,7 @@
  * questHasNodeCoverageGuard({flows});
  * // Returns true if all terminal nodes have observables, false otherwise
  */
-import type { FlowStub } from '@dungeonmaster/shared/contracts';
-
-type Flow = ReturnType<typeof FlowStub>;
+import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questHasNodeCoverageGuard = ({ flows }: { flows?: Flow[] }): boolean => {
   if (!flows) {

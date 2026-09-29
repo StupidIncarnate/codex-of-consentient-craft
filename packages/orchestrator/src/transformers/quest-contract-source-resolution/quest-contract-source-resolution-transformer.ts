@@ -12,11 +12,9 @@
  *   - 'existing' or 'modified' => path MUST resolve
  *   - 'new'                    => path MUST NOT resolve
  */
-import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestContractEntry } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 
 export const questContractSourceResolutionTransformer = ({
   contracts,

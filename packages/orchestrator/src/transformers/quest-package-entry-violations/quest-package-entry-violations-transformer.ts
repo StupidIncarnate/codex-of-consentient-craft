@@ -13,11 +13,9 @@
  * questPackageEntryViolationsTransformer({entries, existingLocations, dependentsByPackage});
  * // Returns ErrorMessage[] — one sentence per offending entry, naming the orphaned dependents by name.
  */
-import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
+import type { QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-
-type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 
 export const questPackageEntryViolationsTransformer = ({
   entries,
