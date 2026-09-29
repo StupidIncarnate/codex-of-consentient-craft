@@ -119,7 +119,11 @@ describe('integrationEnvironmentCreateBroker', () => {
       });
       proxy.setupFileContents({
         path: '/tmp/test-project-74657374/package.json',
-        contents: JSON.stringify({ scripts: { test: 'jest' } }),
+        contents: JSON.stringify({
+          name: 'test-project',
+          version: '1.0.0',
+          scripts: { test: 'jest' },
+        }),
       });
 
       expect([

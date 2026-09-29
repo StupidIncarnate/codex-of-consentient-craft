@@ -26,6 +26,10 @@ import { fileContentContract } from '../../../contracts/file-content/file-conten
 import { exitCodeContract } from '../../../contracts/exit-code/exit-code-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
+import { claudeSettingsContract } from '../../../contracts/claude-settings/claude-settings-contract';
+import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
+import { mcpConfigContract } from '../../../contracts/mcp-config/mcp-config-contract';
+import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
@@ -142,7 +146,7 @@ export const installTestbedCreateBroker = ({
         .sort();
     },
 
-    getClaudeSettings: (): unknown => {
+    getClaudeSettings: (): ClaudeSettings | null => {
       const settingsPath = join(
         projectPath,
         locationsStatics.repoRoot.claude.dir,
@@ -152,16 +156,16 @@ export const installTestbedCreateBroker = ({
         return null;
       }
       const content = readFileSync(settingsPath);
-      return JSON.parse(content) as unknown;
+      return claudeSettingsContract.parse(JSON.parse(content));
     },
 
-    getMcpConfig: (): unknown => {
+    getMcpConfig: (): McpConfig | null => {
       const mcpPath = join(projectPath, locationsStatics.repoRoot.mcpJson);
       if (!existsSync(mcpPath)) {
         return null;
       }
       const content = readFileSync(mcpPath);
-      return JSON.parse(content) as unknown;
+      return mcpConfigContract.parse(JSON.parse(content));
     },
 
     getDungeonmasterConfig: (): TestbedConfig | null => {

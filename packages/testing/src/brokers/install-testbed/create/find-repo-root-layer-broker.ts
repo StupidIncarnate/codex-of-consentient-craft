@@ -12,6 +12,7 @@
 
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
+import { workspacePackageJsonContract } from '../../../contracts/workspace-package-json/workspace-package-json-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -27,8 +28,8 @@ export const findRepoRootLayerBroker = ({
 
   if (existsSync(packageJsonPath)) {
     const raw = readFileSync(packageJsonPath);
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed === 'object' && parsed !== null && 'workspaces' in parsed) {
+    const packageJson = workspacePackageJsonContract.safeParse(JSON.parse(raw));
+    if (packageJson.success && packageJson.data.workspaces !== undefined) {
       return searchPath;
     }
   }

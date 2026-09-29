@@ -306,6 +306,23 @@ describe('installTestbedCreateBroker', () => {
       expect(result).toBe(null);
     });
 
+    it('VALID: getMcpConfig returns the parsed .mcp.json when it exists', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupWritableUnder({ root: integrationEnvironmentStatics.paths.baseDir });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-mcp' }),
+      });
+      proxy.setupFileContents({
+        path: `/tmp/test-mcp-74657374/${locationsStatics.repoRoot.mcpJson}`,
+        contents: '{"mcpServers":{"dungeonmaster":{"command":"node"}}}',
+      });
+
+      const result = testbed.getMcpConfig();
+
+      expect(result).toStrictEqual({ mcpServers: { dungeonmaster: { command: 'node' } } });
+    });
+
     it('VALID: getMcpConfig returns null when .mcp.json does not exist', () => {
       const proxy = installTestbedCreateBrokerProxy();
       proxy.setupRandomBytes({ bytes: Buffer.from('test') });

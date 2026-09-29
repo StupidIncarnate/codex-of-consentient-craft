@@ -50,6 +50,8 @@ import type { PackageJson } from '../../../contracts/package-json/package-json-c
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
 import type { TestGuild } from '../../../contracts/test-guild/test-guild-contract';
 import type { BaseName } from '../../../contracts/base-name/base-name-contract';
+import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
+import { testbedConfigContract } from '../../../contracts/testbed-config/testbed-config-contract';
 
 export const integrationEnvironmentCreateBroker = ({
   baseName,
@@ -128,7 +130,7 @@ export const integrationEnvironmentCreateBroker = ({
         return false;
       }
 
-      const packageJson = JSON.parse(readFileSync(packageJsonPath)) as PackageJson;
+      const packageJson = packageJsonContract.parse(JSON.parse(readFileSync(packageJsonPath)));
       return Boolean(packageJson.scripts[scriptNameContract.parse(String(command))]);
     },
 
@@ -161,13 +163,13 @@ export const integrationEnvironmentCreateBroker = ({
       if (!existsSync(configPath)) {
         return null;
       }
-      return JSON.parse(readFileSync(configPath)) as TestbedConfig;
+      return testbedConfigContract.parse(JSON.parse(readFileSync(configPath)));
     },
 
     getPackageJson: (): PackageJson => {
       const packageJsonPath = join(projectPath, 'package.json');
       const content = readFileSync(packageJsonPath);
-      return JSON.parse(content) as PackageJson;
+      return packageJsonContract.parse(JSON.parse(content));
     },
 
     getQuestFiles: ({ subdir }: { subdir?: FileName }): FileName[] => {
