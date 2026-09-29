@@ -13,7 +13,10 @@ import { contentTextContract } from '../../contracts/content-text/content-text-c
 import type { FolderType } from '../../contracts/folder-type/folder-type-contract';
 import { folderTypeContract } from '../../contracts/folder-type/folder-type-contract';
 import type { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
-import type { FolderDependencyTree } from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
+import {
+  folderDependencyTreeContract,
+  type FolderDependencyTree,
+} from '../../contracts/folder-dependency-tree/folder-dependency-tree-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
@@ -103,9 +106,9 @@ export const folderDependencyTreeTransformer = ({
 
   const matrix = contentTextContract.parse(matrixLines.map((line) => line).join('\n'));
 
-  return {
+  return folderDependencyTreeContract.parse({
     hierarchy,
     graph,
     matrix,
-  };
+  });
 };

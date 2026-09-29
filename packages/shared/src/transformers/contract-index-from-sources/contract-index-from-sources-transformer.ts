@@ -13,6 +13,7 @@ import * as ts from '#gateway/npm/typescript';
 
 import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
+import { contractUsesBindingContract } from '../../contracts/contract-uses-binding/contract-uses-binding-contract';
 import { contractIndexEntryContract } from '../../contracts/contract-index-entry/contract-index-entry-contract';
 import type { ContractIndexEntry } from '../../contracts/contract-index-entry/contract-index-entry-contract';
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
@@ -101,7 +102,13 @@ export const contractIndexFromSourcesTransformer = ({
       });
       return targetFile === undefined || targetFile === filePath
         ? []
-        : [{ localName: link.localName, targetFile, isTypeOnly: link.isTypeOnly }];
+        : [
+            contractUsesBindingContract.parse({
+              localName: link.localName,
+              targetFile,
+              isTypeOnly: link.isTypeOnly,
+            }),
+          ];
     });
 
     const uses = contractUsesScanLayerTransformer({ sourceFile, bindings });

@@ -16,7 +16,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { MethodDomainGroup } from '../../contracts/method-domain-group/method-domain-group-contract';
+import {
+  methodDomainGroupContract,
+  type MethodDomainGroup,
+} from '../../contracts/method-domain-group/method-domain-group-contract';
 
 export const namespaceMethodsGroupByDomainTransformer = ({
   methodNames,
@@ -46,8 +49,10 @@ export const namespaceMethodsGroupByDomainTransformer = ({
     }
   }
 
-  return domainOrder.map((domain) => ({
-    domain,
-    methods: domainGroups.get(domain) ?? [],
-  }));
+  return domainOrder.map((domain) =>
+    methodDomainGroupContract.parse({
+      domain,
+      methods: domainGroups.get(domain) ?? [],
+    }),
+  );
 };

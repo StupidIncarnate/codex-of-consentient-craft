@@ -17,7 +17,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { FileWriteCall } from '../../contracts/file-write-call/file-write-call-contract';
+import {
+  fileWriteCallContract,
+  type FileWriteCall,
+} from '../../contracts/file-write-call/file-write-call-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 import { filePathArgResolveTransformer } from '../file-path-arg-resolve/file-path-arg-resolve-transformer';
 import { gatewayImportLocalNameFindTransformer } from '../gateway-import-local-name-find/gateway-import-local-name-find-transformer';
@@ -61,20 +64,26 @@ export const fileWriteCallsExtractTransformer = ({
 
     if (adapter !== undefined) {
       if (literal !== undefined) {
-        results.push({ adapter, filePathArg: contentTextContract.parse(literal) });
+        results.push(
+          fileWriteCallContract.parse({ adapter, filePathArg: contentTextContract.parse(literal) }),
+        );
       } else if (brokerName !== undefined) {
-        results.push({
-          adapter,
-          filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
-        });
-      } else if (bareVar !== undefined) {
-        results.push({
-          adapter,
-          filePathArg: filePathArgResolveTransformer({
-            source,
-            variableName: contentTextContract.parse(bareVar),
+        results.push(
+          fileWriteCallContract.parse({
+            adapter,
+            filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
           }),
-        });
+        );
+      } else if (bareVar !== undefined) {
+        results.push(
+          fileWriteCallContract.parse({
+            adapter,
+            filePathArg: filePathArgResolveTransformer({
+              source,
+              variableName: contentTextContract.parse(bareVar),
+            }),
+          }),
+        );
       }
     }
   }

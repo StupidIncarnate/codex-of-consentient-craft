@@ -29,7 +29,10 @@ import { architectureEventBusBroker } from '../event-bus/architecture-event-bus-
 import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { startupFilesFindLayerBroker } from './startup-files-find-layer-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
-import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
+import {
+  widgetContextContract,
+  type WidgetContext,
+} from '../../../contracts/widget-context/widget-context-contract';
 import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 import { responderLinesRenderLayerBroker } from './responder-lines-render-layer-broker';
 
@@ -55,13 +58,13 @@ export const architectureBootTreeBroker = ({
 
   const widgetContext: WidgetContext | undefined =
     packageType === 'frontend-react' && projectRoot !== undefined
-      ? {
+      ? widgetContextContract.parse({
           widgetTree: architectureWidgetTreeBroker({ packageRoot }),
           httpEdges: architectureEdgeGraphBroker({ projectRoot }),
           wsEdges: architectureWsEdgesBroker({ projectRoot }),
           packageRoot,
           projectRoot,
-        }
+        })
       : undefined;
 
   const eventBusContext: EventBusContext | undefined =

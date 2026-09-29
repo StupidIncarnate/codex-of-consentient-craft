@@ -17,7 +17,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { WebFetchCallSite } from '../../contracts/web-fetch-call-site/web-fetch-call-site-contract';
+import {
+  webFetchCallSiteContract,
+  type WebFetchCallSite,
+} from '../../contracts/web-fetch-call-site/web-fetch-call-site-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 
 const ADAPTER_ALTERNATION = Object.keys(projectMapStatics.webFetchAdapterMethods).join('|');
@@ -54,10 +57,12 @@ export const webFetchCallsExtractTransformer = ({
         adapterName as keyof typeof projectMapStatics.webFetchAdapterMethods
       ];
 
-    results.push({
-      method: contentTextContract.parse(methodStr),
-      rawArg: contentTextContract.parse(rawArgStr),
-    });
+    results.push(
+      webFetchCallSiteContract.parse({
+        method: contentTextContract.parse(methodStr),
+        rawArg: contentTextContract.parse(rawArgStr),
+      }),
+    );
 
     match = FETCH_PATTERN.exec(String(source));
   }

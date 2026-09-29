@@ -424,10 +424,8 @@ export * from './ask-user-question-response/ask-user-question-response-contract'
 export * from './display-header/display-header-contract';
 
 // Quest Status Metadata Contracts
-export * from './quest-status-metadata/quest-status-metadata-contract';
 
 // Work Item Status Metadata Contracts
-export * from './work-item-status-metadata/work-item-status-metadata-contract';
 
 // Smoketest Suite Contracts
 export * from './smoketest-suite/smoketest-suite-contract';

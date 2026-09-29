@@ -22,7 +22,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { ServerRouteCallSite } from '../../contracts/server-route-call-site/server-route-call-site-contract';
+import {
+  serverRouteCallSiteContract,
+  type ServerRouteCallSite,
+} from '../../contracts/server-route-call-site/server-route-call-site-contract';
 
 // Matches: app.get(apiRoutesStatics.foo.bar, ...) or app.post('/api/path', ...)
 // Capture groups: 1=http-method  2=statics-ref OR 3=single-quote OR 4=double-quote
@@ -66,11 +69,13 @@ export const serverRouteCallsExtractTransformer = ({
     const responderMatch = RESPONDER_REF_PATTERN.exec(sliceText);
     const responderName =
       responderMatch?.[1] === undefined ? null : contentTextContract.parse(responderMatch[1]);
-    results.push({
-      method: contentTextContract.parse(current.method),
-      rawArg: contentTextContract.parse(current.rawArg),
-      responderName,
-    });
+    results.push(
+      serverRouteCallSiteContract.parse({
+        method: contentTextContract.parse(current.method),
+        rawArg: contentTextContract.parse(current.rawArg),
+        responderName,
+      }),
+    );
   }
 
   return results;

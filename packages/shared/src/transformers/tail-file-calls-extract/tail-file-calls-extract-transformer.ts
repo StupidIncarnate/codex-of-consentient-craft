@@ -17,7 +17,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { TailFileCall } from '../../contracts/tail-file-call/tail-file-call-contract';
+import {
+  tailFileCallContract,
+  type TailFileCall,
+} from '../../contracts/tail-file-call/tail-file-call-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 import { filePathArgResolveTransformer } from '../file-path-arg-resolve/file-path-arg-resolve-transformer';
 import { gatewayImportLocalNameFindTransformer } from '../gateway-import-local-name-find/gateway-import-local-name-find-transformer';
@@ -50,16 +53,22 @@ export const tailFileCallsExtractTransformer = ({
     const literal = singleQuoted ?? doubleQuoted ?? backticked;
 
     if (literal !== undefined) {
-      results.push({ filePathArg: contentTextContract.parse(literal) });
+      results.push(tailFileCallContract.parse({ filePathArg: contentTextContract.parse(literal) }));
     } else if (brokerName !== undefined) {
-      results.push({ filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`) });
-    } else if (bareVar !== undefined) {
-      results.push({
-        filePathArg: filePathArgResolveTransformer({
-          source,
-          variableName: contentTextContract.parse(bareVar),
+      results.push(
+        tailFileCallContract.parse({
+          filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
         }),
-      });
+      );
+    } else if (bareVar !== undefined) {
+      results.push(
+        tailFileCallContract.parse({
+          filePathArg: filePathArgResolveTransformer({
+            source,
+            variableName: contentTextContract.parse(bareVar),
+          }),
+        }),
+      );
     }
   }
   return results;

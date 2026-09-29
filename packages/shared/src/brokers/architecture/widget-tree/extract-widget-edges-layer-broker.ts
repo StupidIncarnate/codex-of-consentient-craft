@@ -19,7 +19,10 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
-import type { WidgetEdges } from '../../../contracts/widget-edges/widget-edges-contract';
+import {
+  widgetEdgesContract,
+  type WidgetEdges,
+} from '../../../contracts/widget-edges/widget-edges-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
@@ -36,7 +39,7 @@ export const extractWidgetEdgesLayerBroker = ({
 }): WidgetEdges => {
   const content = readWidgetSourceLayerBroker({ filePath: widgetFilePath });
   if (content === undefined) {
-    return { childWidgetPaths: [], bindingNames: [] };
+    return widgetEdgesContract.parse({ childWidgetPaths: [], bindingNames: [] });
   }
 
   const importPaths = importStatementsExtractTransformer({ source: content });
@@ -73,5 +76,5 @@ export const extractWidgetEdgesLayerBroker = ({
     }
   }
 
-  return { childWidgetPaths, bindingNames };
+  return widgetEdgesContract.parse({ childWidgetPaths, bindingNames });
 };
