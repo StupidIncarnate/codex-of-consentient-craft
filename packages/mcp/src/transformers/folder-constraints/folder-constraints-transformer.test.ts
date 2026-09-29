@@ -1,4 +1,4 @@
-import { FolderTypeStub, FolderConfigStub } from '@dungeonmaster/shared/contracts';
+import { FolderConfigStub } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { folderConstraintsTransformer } from './folder-constraints-transformer';
 
@@ -6,7 +6,7 @@ describe('folderConstraintsTransformer', () => {
   describe('universal constraints', () => {
     it('VALID: {folderType: contracts, config: minimal} => returns universal constraints', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         config: FolderConfigStub({
           requireProxy: false,
           disallowAdhocTypes: false,
@@ -23,7 +23,7 @@ describe('folderConstraintsTransformer', () => {
   describe('proxy constraints', () => {
     it('VALID: {config: {requireProxy: true}} => includes proxy testing constraints', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         config: FolderConfigStub({ requireProxy: true }),
       });
 
@@ -36,7 +36,7 @@ describe('folderConstraintsTransformer', () => {
 
     it('VALID: {config: {requireProxy: false}} => excludes proxy testing constraints', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
         config: FolderConfigStub({ requireProxy: false }),
       });
 
@@ -50,7 +50,7 @@ describe('folderConstraintsTransformer', () => {
   describe('ad-hoc type constraints', () => {
     it('VALID: {config: {disallowAdhocTypes: true}} => includes type constraints', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         config: FolderConfigStub({ disallowAdhocTypes: true }),
       });
 
@@ -62,7 +62,7 @@ describe('folderConstraintsTransformer', () => {
 
     it('VALID: {config: {disallowAdhocTypes: false}} => excludes type constraints', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         config: FolderConfigStub({ disallowAdhocTypes: false }),
       });
 
@@ -75,7 +75,7 @@ describe('folderConstraintsTransformer', () => {
   describe('import restrictions', () => {
     it('VALID: {config: {allowedImports: [guards/, contracts/]}} => includes import restrictions', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'transformers' }),
+        folderType: 'transformers',
         config: FolderConfigStub({ allowedImports: ['guards/', 'contracts/'] }),
       });
 
@@ -88,7 +88,7 @@ describe('folderConstraintsTransformer', () => {
 
     it('VALID: {config: {allowedImports: []}} => excludes import restrictions', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'statics' }),
+        folderType: 'statics',
         config: FolderConfigStub({ allowedImports: [] }),
       });
 
@@ -106,7 +106,7 @@ describe('folderConstraintsTransformer', () => {
       });
 
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         config: FolderConfigStub({}),
         supplementalConstraints,
       });
@@ -120,7 +120,7 @@ describe('folderConstraintsTransformer', () => {
 
     it('VALID: {supplementalConstraints: not provided} => excludes supplemental content', () => {
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         config: FolderConfigStub({}),
       });
 
@@ -136,7 +136,7 @@ describe('folderConstraintsTransformer', () => {
       });
 
       const constraints = folderConstraintsTransformer({
-        folderType: FolderTypeStub({ value: 'transformers' }),
+        folderType: 'transformers',
         config: FolderConfigStub({}),
         supplementalConstraints,
       });

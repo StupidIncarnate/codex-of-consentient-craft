@@ -1,7 +1,6 @@
 import { folderConstraintsInitBroker } from './folder-constraints-init-broker';
 import { folderConstraintsInitBrokerProxy } from './folder-constraints-init-broker.proxy';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('folderConstraintsInitBroker', () => {
   it('VALID: loads one constraint markdown file per folder type that has one', async () => {
@@ -16,7 +15,7 @@ describe('folderConstraintsInitBroker', () => {
     folderConstraintsInitBrokerProxy();
 
     const result = await folderConstraintsInitBroker();
-    const brokersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'brokers' }));
+    const brokersConstraints = result.folderConstraints.get('brokers');
 
     expect(brokersConstraints).toMatch(/^\*\*PROXY PATTERN:\*\*$/mu);
   });
@@ -25,7 +24,7 @@ describe('folderConstraintsInitBroker', () => {
     folderConstraintsInitBrokerProxy();
 
     const result = await folderConstraintsInitBroker();
-    const guardsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'guards' }));
+    const guardsConstraints = result.folderConstraints.get('guards');
 
     expect(guardsConstraints).toMatch(/^\*\*OBJECT ARGUMENTS FOR STATICS:\*\*$/mu);
   });
@@ -34,9 +33,7 @@ describe('folderConstraintsInitBroker', () => {
     folderConstraintsInitBrokerProxy();
 
     const result = await folderConstraintsInitBroker();
-    const contractsConstraints = result.folderConstraints.get(
-      FolderTypeStub({ value: 'contracts' }),
-    );
+    const contractsConstraints = result.folderConstraints.get('contracts');
 
     expect(contractsConstraints).toMatch(/^\*\*CRITICAL - TEST IMPORTS:\*\*$/mu);
   });
@@ -45,7 +42,7 @@ describe('folderConstraintsInitBroker', () => {
     folderConstraintsInitBrokerProxy();
 
     const result = await folderConstraintsInitBroker();
-    const staticsConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'statics' }));
+    const staticsConstraints = result.folderConstraints.get('statics');
 
     expect(staticsConstraints).toMatch(/^\*\*CRITICAL RULES:\*\*$/mu);
   });

@@ -1,11 +1,10 @@
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 import { folderPurposeTransformer } from './folder-purpose-transformer';
 
 describe('folderPurposeTransformer', () => {
   describe('valid folder types', () => {
     it('VALID: {folderType: brokers} => returns business logic purpose', () => {
       const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(purpose).toBe(
@@ -15,7 +14,7 @@ describe('folderPurposeTransformer', () => {
 
     it('VALID: {folderType: contracts} => returns type definition purpose', () => {
       const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
       });
 
       expect(purpose).toBe(
@@ -25,7 +24,7 @@ describe('folderPurposeTransformer', () => {
 
     it('VALID: {folderType: guards} => returns validation purpose', () => {
       const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
       });
 
       expect(purpose).toBe(
@@ -35,7 +34,7 @@ describe('folderPurposeTransformer', () => {
 
     it('VALID: {folderType: transformers} => returns transformation purpose', () => {
       const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'transformers' }),
+        folderType: 'transformers',
       });
 
       expect(purpose).toBe(
@@ -45,7 +44,7 @@ describe('folderPurposeTransformer', () => {
 
     it('VALID: {folderType: widgets} => returns UI component purpose', () => {
       const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'widgets' }),
+        folderType: 'widgets',
       });
 
       expect(purpose).toBe('React UI components. Visual representation and user interaction.');

@@ -1,6 +1,5 @@
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
 
-import { CallerRepoRootSourceStub } from '../../contracts/caller-repo-root-source/caller-repo-root-source.stub';
 import { callerRepoRootBannerTransformer } from './caller-repo-root-banner-transformer';
 
 describe('callerRepoRootBannerTransformer', () => {
@@ -9,7 +8,7 @@ describe('callerRepoRootBannerTransformer', () => {
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
-      source: CallerRepoRootSourceStub({ value: 'caller-cwd' }),
+      source: 'caller-cwd',
       configFound: true,
     });
 
@@ -23,7 +22,7 @@ describe('callerRepoRootBannerTransformer', () => {
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
-      source: CallerRepoRootSourceStub({ value: 'server-cwd-fallback' }),
+      source: 'server-cwd-fallback',
       configFound: true,
     });
 
@@ -37,7 +36,7 @@ describe('callerRepoRootBannerTransformer', () => {
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
-      source: CallerRepoRootSourceStub({ value: 'caller-cwd' }),
+      source: 'caller-cwd',
       configFound: false,
     });
 
@@ -53,7 +52,7 @@ describe('callerRepoRootBannerTransformer', () => {
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
-      source: CallerRepoRootSourceStub({ value: 'server-cwd-fallback' }),
+      source: 'server-cwd-fallback',
       configFound: false,
     });
 

@@ -1,12 +1,11 @@
 import { folderConstraintsState } from './folder-constraints-state';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('folderConstraintsState', () => {
   it('VALID: {folderType, content} => stores and retrieves content', () => {
     folderConstraintsState.clear();
 
-    const folderType = FolderTypeStub({ value: 'brokers' });
+    const folderType = 'brokers';
     const content = ContentTextStub({ value: '**COMPLEXITY:**\n- Keep files under 300 lines' });
 
     folderConstraintsState.set({ folderType, content });
@@ -18,7 +17,7 @@ describe('folderConstraintsState', () => {
   it('VALID: {unknown folderType} => returns undefined', () => {
     folderConstraintsState.clear();
 
-    const folderType = FolderTypeStub({ value: 'brokers' });
+    const folderType = 'brokers';
 
     const retrieved = folderConstraintsState.get({ folderType });
 
@@ -28,8 +27,8 @@ describe('folderConstraintsState', () => {
   it('VALID: clear() => removes all stored constraints', () => {
     folderConstraintsState.clear();
 
-    const folderType1 = FolderTypeStub({ value: 'brokers' });
-    const folderType2 = FolderTypeStub({ value: 'guards' });
+    const folderType1 = 'brokers';
+    const folderType2 = 'guards';
     const content1 = ContentTextStub({ value: 'constraint 1' });
     const content2 = ContentTextStub({ value: 'constraint 2' });
 
@@ -45,8 +44,8 @@ describe('folderConstraintsState', () => {
   it('VALID: getAll() => returns Map with all stored constraints', () => {
     folderConstraintsState.clear();
 
-    const folderType1 = FolderTypeStub({ value: 'brokers' });
-    const folderType2 = FolderTypeStub({ value: 'guards' });
+    const folderType1 = 'brokers';
+    const folderType2 = 'guards';
     const content1 = ContentTextStub({ value: 'constraint 1' });
     const content2 = ContentTextStub({ value: 'constraint 2' });
 
@@ -63,7 +62,7 @@ describe('folderConstraintsState', () => {
   it('VALID: set() => overwrites existing content for same folderType', () => {
     folderConstraintsState.clear();
 
-    const folderType = FolderTypeStub({ value: 'brokers' });
+    const folderType = 'brokers';
     const content1 = ContentTextStub({ value: 'old content' });
     const content2 = ContentTextStub({ value: 'new content' });
 
