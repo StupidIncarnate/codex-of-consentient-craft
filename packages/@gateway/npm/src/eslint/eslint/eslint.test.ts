@@ -1,3 +1,5 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+
 import { ESLint } from '../eslint';
 import { ESLintProxy } from './eslint.proxy';
 
@@ -169,10 +171,13 @@ describe('ESLintProxy', () => {
 
     it('ERROR: {lintFilesRejects} => rejects with the staged error', async () => {
       const proxy = ESLintProxy();
-      proxy.lintFilesRejects({ files: ['/repo/a.ts'], error: new Error('no such file') });
+      proxy.lintFilesRejects({
+        files: ['/repo/a.ts'],
+        error: FileMissingErrorStub({ path: '/repo/a.ts' }),
+      });
 
       await expect(new ESLint({ cwd: '/repo' }).lintFiles(['/repo/a.ts'])).rejects.toThrow(
-        /^no such file$/u,
+        /^ENOENT: open '\/repo\/a\.ts'$/u,
       );
     });
 

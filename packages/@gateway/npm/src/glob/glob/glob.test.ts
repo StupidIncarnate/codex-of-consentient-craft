@@ -1,3 +1,6 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+
 import { glob } from './glob';
 import { globProxy } from './glob.proxy';
 
@@ -56,7 +59,7 @@ describe('glob', () => {
 
   it('ERROR: {cwd: a root that does not exist} => throws a wrapped Error naming the pattern', async () => {
     const proxy = globProxy();
-    const error = Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
+    const error = FileMissingErrorStub({ path: '/repo/missing' });
     proxy.throws({
       pattern: '**/*.ts',
       options: { cwd: '/repo/missing', ignore: [] },
@@ -64,7 +67,7 @@ describe('glob', () => {
     });
 
     await expect(glob('**/*.ts', { cwd: '/repo/missing', ignore: [] })).rejects.toStrictEqual(
-      new Error('glob failed for pattern "**/*.ts": ENOENT: no such file or directory', {
+      new Error('glob failed for pattern "**/*.ts": ENOENT: open \'/repo/missing\'', {
         cause: error,
       }),
     );
@@ -72,7 +75,7 @@ describe('glob', () => {
 
   it('ERROR: {walking a directory that denies access} => throws a wrapped Error naming the pattern', async () => {
     const proxy = globProxy();
-    const error = Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
+    const error = FsErrorStub({ code: 'EACCES', syscall: 'scandir', path: '/repo' });
     proxy.throws({
       pattern: '**/*.ts',
       options: { cwd: '/repo', ignore: [] },
@@ -80,7 +83,7 @@ describe('glob', () => {
     });
 
     await expect(glob('**/*.ts', { cwd: '/repo', ignore: [] })).rejects.toStrictEqual(
-      new Error('glob failed for pattern "**/*.ts": EACCES: permission denied', { cause: error }),
+      new Error('glob failed for pattern "**/*.ts": EACCES: scandir \'/repo\'', { cause: error }),
     );
   });
 
@@ -122,11 +125,11 @@ describe('glob', () => {
 
     it('ERROR: {throwsMatchingTail} => rejects the tail-matched call with the staged error', async () => {
       const proxy = globProxy();
-      const error = new Error('EACCES: permission denied');
+      const error = FsErrorStub({ code: 'EACCES', syscall: 'scandir', path: '/mocked/cwd' });
       proxy.throwsMatchingTail({ pattern: '**/*.ts', error });
 
       await expect(glob('/mocked/cwd/**/*.ts', { cwd: '/mocked/cwd', ignore: [] })).rejects.toThrow(
-        /^glob failed for pattern "\/mocked\/cwd\/\*\*\/\*\.ts": EACCES: permission denied$/u,
+        /^glob failed for pattern "\/mocked\/cwd\/\*\*\/\*\.ts": EACCES: scandir '\/mocked\/cwd'$/u,
       );
     });
   });
