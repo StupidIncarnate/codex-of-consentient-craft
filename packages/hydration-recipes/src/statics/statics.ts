@@ -10,5 +10,5 @@
  * import { recipeFidelityStatics } from '@dungeonmaster/hydration-recipes/statics';
  */
 
-export * from './src/statics/hydration-recipes/hydration-recipes-statics';
-export * from './src/statics/recipe-fidelity/recipe-fidelity-statics';
+export * from './hydration-recipes/hydration-recipes-statics';
+export * from './recipe-fidelity/recipe-fidelity-statics';

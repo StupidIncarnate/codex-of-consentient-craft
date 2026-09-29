@@ -8,5 +8,5 @@
  * } from '@dungeonmaster/hydration-recipes/responders';
  */
 
-export * from './src/responders/recipes/listing/recipes-listing-responder';
-export * from './src/responders/recipes/seed/recipes-seed-responder';
+export * from './recipes/listing/recipes-listing-responder';
+export * from './recipes/seed/recipes-seed-responder';

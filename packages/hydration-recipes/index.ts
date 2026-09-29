@@ -16,7 +16,7 @@
  */
 import { recipeManifestContract } from '@dungeonmaster/hydration/contracts';
 
-import { RecipesListingResponder } from './responders';
+import { RecipesListingResponder } from './src/responders/responders';
 
 export const recipesManifest = recipeManifestContract.parse(
   RecipesListingResponder().map(({ recipeName, description }) => ({
@@ -25,7 +25,7 @@ export const recipesManifest = recipeManifestContract.parse(
   })),
 );
 
-export * from './responders';
+export * from './src/responders/responders';
 
 export * from './src/brokers/dm/registry/dm-registry-broker';
 

@@ -6,5 +6,5 @@
  * import { transcriptLinesReadTransformer } from '@dungeonmaster/hydration-recipes/transformers';
  */
 
-export * from './src/transformers/transcript-lines-read/transcript-lines-read-transformer';
-export * from './src/transformers/transcript-timestamp/transcript-timestamp-transformer';
+export * from './transcript-lines-read/transcript-lines-read-transformer';
+export * from './transcript-timestamp/transcript-timestamp-transformer';

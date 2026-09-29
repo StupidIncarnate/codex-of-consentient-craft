@@ -16,41 +16,41 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./contracts": {
-      "source": "./contracts.ts",
-      "types": "./dist/contracts.d.ts",
-      "import": "./dist/contracts.js",
-      "require": "./dist/contracts.js"
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
     },
-    "./statics": {
-      "source": "./statics.ts",
-      "types": "./dist/statics.d.ts",
-      "import": "./dist/statics.js",
-      "require": "./dist/statics.js"
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
     },
     "./brokers": {
-      "source": "./brokers.ts",
-      "types": "./dist/brokers.d.ts",
-      "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js"
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
     },
-    "./transformers": {
-      "source": "./transformers.ts",
-      "types": "./dist/transformers.d.ts",
-      "import": "./dist/transformers.js",
-      "require": "./dist/transformers.js"
+    "./contracts": {
+      "source": "./src/contracts/contracts.ts",
+      "types": "./dist/src/contracts/contracts.d.ts",
+      "import": "./dist/src/contracts/contracts.js",
+      "require": "./dist/src/contracts/contracts.js"
     },
     "./responders": {
-      "source": "./responders.ts",
-      "types": "./dist/responders.d.ts",
-      "import": "./dist/responders.js",
-      "require": "./dist/responders.js"
+      "source": "./src/responders/responders.ts",
+      "types": "./dist/src/responders/responders.d.ts",
+      "import": "./dist/src/responders/responders.js",
+      "require": "./dist/src/responders/responders.js"
     },
-    "./testing": {
-      "source": "./testing.ts",
-      "types": "./dist/testing.d.ts",
-      "import": "./dist/testing.js",
-      "require": "./dist/testing.js"
+    "./statics": {
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
+    },
+    "./transformers": {
+      "source": "./src/transformers/transformers.ts",
+      "types": "./dist/src/transformers/transformers.d.ts",
+      "import": "./dist/src/transformers/transformers.js",
+      "require": "./dist/src/transformers/transformers.js"
     }
   },
   "scripts": {
