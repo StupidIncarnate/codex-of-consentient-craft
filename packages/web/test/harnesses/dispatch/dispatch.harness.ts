@@ -104,7 +104,7 @@ export const dispatchHarness = ({
     // sessions run in the worktree, so their JSONL lands under the worktree's path encoding and
     // the server has to resolve their tails through this field rather than the guild path.
     worktreePath?: string;
-  }) => Promise<{ questId: QuestId; questFolder: QuestId; questFilePath: FilePath }>;
+  }) => Promise<{ questId: QuestId; questFolder: Quest['folder']; questFilePath: FilePath }>;
   queueScript: (params: {
     script: {
       role: string;

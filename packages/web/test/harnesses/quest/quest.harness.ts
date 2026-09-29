@@ -107,18 +107,19 @@ export const questHarness = ({
   baseURL?: string;
   request: APIRequestContext;
 }): {
-  createQuest: (params: {
-    guildId: string;
-    title: string;
-    userRequest: string;
-  }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }>;
+  createQuest: (params: { guildId: string; title: string; userRequest: string }) => Promise<{
+    questId: QuestId;
+    questFolder: Quest['folder'];
+    filePath: FilePath;
+    success: boolean;
+  }>;
   // Same plan shape as createQuest, run against the `write` target instead of the `api` one — for
   // a spec proving the two routes produce equivalent domain state for the same ingredient.
   createQuestViaWriteRoute: (params: {
     guildId: string;
     title: string;
     userRequest: string;
-  }) => Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath }>;
+  }) => Promise<{ questId: QuestId; questFolder: Quest['folder']; filePath: FilePath }>;
   writeQuestFile: (params: {
     guildId?: string;
     questId: string;
@@ -359,7 +360,12 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath; success: boolean }> => {
+  }): Promise<{
+    questId: QuestId;
+    questFolder: Quest['folder'];
+    filePath: FilePath;
+    success: boolean;
+  }> => {
     const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
       dmRegistryBroker.quests.under({ guildId: guildIdContract.parse(guildId) }).add(1, (q) => [
         q[0].set({
@@ -379,7 +385,7 @@ export const questHarness = ({
     return {
       success: true,
       questId: quest.id,
-      questFolder: quest.folder as unknown as QuestId,
+      questFolder: quest.folder,
       filePath,
     };
   };
@@ -394,7 +400,7 @@ export const questHarness = ({
     guildId: string;
     title: string;
     userRequest: string;
-  }): Promise<{ questId: QuestId; questFolder: QuestId; filePath: FilePath }> => {
+  }): Promise<{ questId: QuestId; questFolder: Quest['folder']; filePath: FilePath }> => {
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
@@ -416,7 +422,7 @@ export const questHarness = ({
     );
     return {
       questId: quest.id,
-      questFolder: quest.folder as unknown as QuestId,
+      questFolder: quest.folder,
       filePath,
     };
   };

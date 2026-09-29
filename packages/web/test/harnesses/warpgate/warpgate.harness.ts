@@ -19,7 +19,7 @@ import {
   AssistantTextStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath, GuildId, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, Quest, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -45,12 +45,12 @@ export const warpgateHarness = ({
     guildId: GuildId;
     urlSlug: UrlSlug;
     questId: QuestId;
-    questFolder: QuestId;
+    questFolder: Quest['folder'];
     questFilePath: FilePath;
   }>;
   createQuestInGuild: (params: { guildId: GuildId; title: string }) => Promise<{
     questId: QuestId;
-    questFolder: QuestId;
+    questFolder: Quest['folder'];
     questFilePath: FilePath;
   }>;
   seedWarpgateQuest: (params: {
@@ -81,7 +81,7 @@ export const warpgateHarness = ({
     guildId: GuildId;
     urlSlug: UrlSlug;
     questId: QuestId;
-    questFolder: QuestId;
+    questFolder: Quest['folder'];
     questFilePath: FilePath;
   }> => {
     const guild = await guilds.createGuild({ name: guildName, path: guildPath });
@@ -114,7 +114,7 @@ export const warpgateHarness = ({
     title: string;
   }): Promise<{
     questId: QuestId;
-    questFolder: QuestId;
+    questFolder: Quest['folder'];
     questFilePath: FilePath;
   }> => {
     const created = await quests.createQuest({
