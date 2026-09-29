@@ -4,7 +4,7 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 

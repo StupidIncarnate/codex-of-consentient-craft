@@ -15,16 +15,14 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  GuildIdStub,
-  QuestIdStub,
-  QuestNoteStub,
-  QuestStub,
-  SiegeInstanceIdStub,
-  SiegeRunIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
+import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';

@@ -1,6 +1,7 @@
 import { locationsSocketPathFindBroker } from './locations-socket-path-find-broker';
 import { locationsSocketPathFindBrokerProxy } from './locations-socket-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { Buffer } from '#gateway/node/buffer';
 

@@ -1,6 +1,6 @@
 import { unixSocketRequestProxy } from '#gateway/node/net/unix-socket-request/unix-socket-request.proxy';
 import { UnixSocketRecordedErrorStub } from '#gateway/node/net/unix-socket-recorded-error/unix-socket-recorded-error.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';

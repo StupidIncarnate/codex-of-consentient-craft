@@ -4,7 +4,7 @@ import { bootLockAcquireBroker } from './boot-lock-acquire-broker';
 import { bootLockAcquireBrokerProxy } from './boot-lock-acquire-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 describe('bootLockAcquireBroker', () => {
   describe('no lock present', () => {

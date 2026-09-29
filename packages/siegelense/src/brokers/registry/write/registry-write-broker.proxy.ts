@@ -4,7 +4,8 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';

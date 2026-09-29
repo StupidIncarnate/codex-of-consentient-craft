@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
 import { domNodeContract } from './dom-node-contract';

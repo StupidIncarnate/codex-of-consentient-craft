@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotIndexReadBroker } from './snapshot-index-read-broker';
 import { snapshotIndexReadBrokerProxy } from './snapshot-index-read-broker.proxy';

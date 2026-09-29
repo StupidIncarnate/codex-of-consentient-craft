@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { resetReadingContract } from './reset-reading-contract';
 import type { ResetReading } from './reset-reading-contract';

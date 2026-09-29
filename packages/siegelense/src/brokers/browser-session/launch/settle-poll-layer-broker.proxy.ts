@@ -7,7 +7,7 @@
 //        await settlePollLayerBroker({ evaluate: fake.evaluate, pause: fake.pause, ... });
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { RawSettleProbeStub } from '../../../contracts/raw-settle-probe/raw-settle-probe.stub';

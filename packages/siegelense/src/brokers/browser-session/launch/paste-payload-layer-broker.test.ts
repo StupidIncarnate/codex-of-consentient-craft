@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { pastePayloadLayerBroker } from './paste-payload-layer-broker';

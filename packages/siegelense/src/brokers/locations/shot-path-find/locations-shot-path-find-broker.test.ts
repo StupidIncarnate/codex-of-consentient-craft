@@ -1,6 +1,7 @@
 import { locationsShotPathFindBroker } from './locations-shot-path-find-broker';
 import { locationsShotPathFindBrokerProxy } from './locations-shot-path-find-broker.proxy';
-import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { locationsRunPathsFindBroker } from '../run-paths-find/locations-run-paths-find-broker';

@@ -1,6 +1,6 @@
 import { stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { KillResultStub } from '../../contracts/kill-result/kill-result.stub';
 import { RepoLocalPathStub } from '../../contracts/repo-local-path/repo-local-path.stub';

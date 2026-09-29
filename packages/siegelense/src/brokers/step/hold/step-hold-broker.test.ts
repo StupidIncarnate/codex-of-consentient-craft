@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';

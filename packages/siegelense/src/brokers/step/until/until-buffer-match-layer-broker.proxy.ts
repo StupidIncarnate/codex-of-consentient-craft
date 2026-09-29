@@ -6,7 +6,7 @@
 // USAGE: const proxy = untilBufferMatchLayerBrokerProxy(); const { readSince } = proxy.linesAnswering({ lines: [...] });
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 

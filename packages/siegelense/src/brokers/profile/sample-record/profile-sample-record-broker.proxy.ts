@@ -16,11 +16,9 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';

@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { locationsPruneAssetPathsFindBroker } from './locations-prune-asset-paths-find-broker';
 import { locationsPruneAssetPathsFindBrokerProxy } from './locations-prune-asset-paths-find-broker.proxy';

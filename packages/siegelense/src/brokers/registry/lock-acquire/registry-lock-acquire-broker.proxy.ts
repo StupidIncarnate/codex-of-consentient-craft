@@ -12,7 +12,8 @@ import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/regist
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 type EpochMs = ReturnType<typeof EpochMsStub>;
 

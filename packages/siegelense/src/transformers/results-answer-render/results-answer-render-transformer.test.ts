@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { ResultsAnswerStub } from '../../contracts/results-answer/results-answer.stub';

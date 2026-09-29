@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { shutdownReasonContract } from './shutdown-reason-contract';

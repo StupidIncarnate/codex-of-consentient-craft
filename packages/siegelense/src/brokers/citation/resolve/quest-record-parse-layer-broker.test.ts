@@ -1,4 +1,6 @@
-import { AbsoluteFilePathStub, FileContentsStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { questRecordParseLayerBroker } from './quest-record-parse-layer-broker';

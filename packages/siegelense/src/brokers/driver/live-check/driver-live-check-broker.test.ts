@@ -1,5 +1,6 @@
 import { pid } from '#gateway/node/process';
-import { AbsoluteFilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { driverLiveCheckBroker } from './driver-live-check-broker';
 import { driverLiveCheckBrokerProxy } from './driver-live-check-broker.proxy';

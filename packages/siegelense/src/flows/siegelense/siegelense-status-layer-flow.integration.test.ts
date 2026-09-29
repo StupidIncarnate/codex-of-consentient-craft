@@ -36,7 +36,7 @@ import {
   FileContentStub,
   RelativePathStub,
 } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';

@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';

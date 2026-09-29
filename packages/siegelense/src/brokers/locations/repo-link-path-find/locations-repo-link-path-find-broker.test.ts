@@ -1,6 +1,7 @@
 import { locationsRepoLinkPathFindBroker } from './locations-repo-link-path-find-broker';
 import { locationsRepoLinkPathFindBrokerProxy } from './locations-repo-link-path-find-broker.proxy';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 

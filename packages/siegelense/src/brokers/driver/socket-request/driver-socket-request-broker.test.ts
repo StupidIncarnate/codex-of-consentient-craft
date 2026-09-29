@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { driverSocketRequestBroker } from './driver-socket-request-broker';
 import { driverSocketRequestBrokerProxy } from './driver-socket-request-broker.proxy';

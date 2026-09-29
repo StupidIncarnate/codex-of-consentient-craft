@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ResultFieldStub } from '../../contracts/result-field/result-field.stub';
 import { resultRowProjectTransformer } from './result-row-project-transformer';

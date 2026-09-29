@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';

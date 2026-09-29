@@ -1,8 +1,6 @@
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FileNameStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';

@@ -5,8 +5,8 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';

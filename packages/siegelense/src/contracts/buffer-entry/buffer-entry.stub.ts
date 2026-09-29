@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { RunIdStub } from '../run-id/run-id.stub';

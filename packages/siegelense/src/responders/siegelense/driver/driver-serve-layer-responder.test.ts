@@ -1,4 +1,4 @@
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';

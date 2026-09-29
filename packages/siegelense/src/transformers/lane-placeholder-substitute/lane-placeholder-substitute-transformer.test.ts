@@ -1,5 +1,6 @@
 import { lanePlaceholderSubstituteTransformer } from './lane-placeholder-substitute-transformer';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 
 const PORTS = PortPairStub({ api: 34_172, web: 34_173 });

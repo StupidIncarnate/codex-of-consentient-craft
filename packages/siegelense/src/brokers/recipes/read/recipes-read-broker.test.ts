@@ -1,5 +1,5 @@
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { recipesReadBroker } from './recipes-read-broker';
 import { recipesReadBrokerProxy } from './recipes-read-broker.proxy';

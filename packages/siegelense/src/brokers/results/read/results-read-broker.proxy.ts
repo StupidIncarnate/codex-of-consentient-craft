@@ -1,6 +1,6 @@
 import { homedir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
 
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';

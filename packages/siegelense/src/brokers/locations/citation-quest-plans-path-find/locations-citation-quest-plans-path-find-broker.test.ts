@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { locationsCitationQuestPlansPathFindBroker } from './locations-citation-quest-plans-path-find-broker';
 import { locationsCitationQuestPlansPathFindBrokerProxy } from './locations-citation-quest-plans-path-find-broker.proxy';

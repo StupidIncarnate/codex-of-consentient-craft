@@ -1,6 +1,7 @@
 import { locationsRegistryLockPathFindBroker } from './locations-registry-lock-path-find-broker';
 import { locationsRegistryLockPathFindBrokerProxy } from './locations-registry-lock-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRegistryLockPathFindBroker', () => {
   describe('registry lock path resolution', () => {

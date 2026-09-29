@@ -13,7 +13,7 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 

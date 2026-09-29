@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';

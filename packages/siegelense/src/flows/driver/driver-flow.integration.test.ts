@@ -1,5 +1,5 @@
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';

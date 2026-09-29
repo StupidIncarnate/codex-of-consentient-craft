@@ -1,6 +1,6 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 

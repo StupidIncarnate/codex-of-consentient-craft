@@ -4,7 +4,7 @@ import {
   FileContentStub,
   RelativePathStub,
 } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
 import { snapshotIndexReadBroker } from '../index-read/snapshot-index-read-broker';

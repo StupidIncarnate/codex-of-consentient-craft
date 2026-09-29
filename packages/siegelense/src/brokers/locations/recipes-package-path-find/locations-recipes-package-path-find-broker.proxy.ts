@@ -2,7 +2,7 @@ import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { recipeLocationStatics } from '../../../statics/recipe-location/recipe-location-statics';

@@ -10,7 +10,8 @@
  * proxy.stageSampleRecord({ profilesPath, fileName: 'inst_a.json', json });
  */
 
-import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProfileObservationStub } from '../../../contracts/profile-observation/profile-observation.stub';

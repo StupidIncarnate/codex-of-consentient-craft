@@ -6,7 +6,7 @@
 // link segments, so sibling verb proxies' own `join` calls are unaffected.
 // USAGE: const proxy = stepVideoBrokerProxy(); const { session, getVideoActionCalls } = proxy.session();
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { VideoResultStub } from '../../../contracts/video-result/video-result.stub';

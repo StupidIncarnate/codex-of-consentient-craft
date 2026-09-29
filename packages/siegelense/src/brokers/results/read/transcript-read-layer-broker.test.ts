@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';

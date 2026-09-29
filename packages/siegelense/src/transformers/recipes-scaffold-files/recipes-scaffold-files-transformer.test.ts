@@ -1,4 +1,5 @@
-import { PackageNameStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesScaffoldFilesTransformer } from './recipes-scaffold-files-transformer';

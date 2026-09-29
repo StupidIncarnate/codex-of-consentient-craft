@@ -1,4 +1,5 @@
-import { GuildIdStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';

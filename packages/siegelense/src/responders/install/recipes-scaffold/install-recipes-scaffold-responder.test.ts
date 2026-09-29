@@ -1,4 +1,6 @@
-import { FilePathStub, InstallContextStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { InstallRecipesScaffoldResponderProxy } from './install-recipes-scaffold-responder.proxy';

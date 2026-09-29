@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CountDeltaStub } from '../count-delta/count-delta.stub';
 import { ElementDeltaStub } from '../element-delta/element-delta.stub';

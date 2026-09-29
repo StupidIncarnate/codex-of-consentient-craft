@@ -1,6 +1,7 @@
 import { locationsProfilesPathFindBroker } from './locations-profiles-path-find-broker';
 import { locationsProfilesPathFindBrokerProxy } from './locations-profiles-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
 describe('locationsProfilesPathFindBroker', () => {

@@ -1,4 +1,4 @@
-import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 

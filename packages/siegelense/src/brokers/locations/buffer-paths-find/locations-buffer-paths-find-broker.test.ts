@@ -1,6 +1,6 @@
 import { locationsBufferPathsFindBroker } from './locations-buffer-paths-find-broker';
 import { locationsBufferPathsFindBrokerProxy } from './locations-buffer-paths-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsBufferPathsFindBroker', () => {
   describe('buffer path resolution', () => {

@@ -1,7 +1,7 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../statics/machine/machine-statics';

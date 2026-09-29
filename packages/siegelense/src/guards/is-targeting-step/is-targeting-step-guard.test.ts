@@ -1,4 +1,5 @@
-import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { isTargetingStepGuard } from './is-targeting-step-guard';
 import { LocatorStateStub } from '../../contracts/locator-state/locator-state.stub';

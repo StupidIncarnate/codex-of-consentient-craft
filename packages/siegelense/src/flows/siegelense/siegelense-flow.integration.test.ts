@@ -24,7 +24,7 @@ import {
   FileContentStub,
   RelativePathStub,
 } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';

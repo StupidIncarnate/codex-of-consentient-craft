@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 

@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { bootPollOutcomeContract } from './boot-poll-outcome-contract';
 import { BootPollOutcomeStub } from './boot-poll-outcome.stub';

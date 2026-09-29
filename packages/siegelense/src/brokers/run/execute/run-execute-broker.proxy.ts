@@ -3,12 +3,10 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import {
-  absoluteFilePathContract,
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type {
   AbsoluteFilePath,
   ContentText,

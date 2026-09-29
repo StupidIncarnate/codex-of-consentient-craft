@@ -14,7 +14,7 @@ import type {
   FileName,
   Guild,
 } from '@dungeonmaster/shared/contracts';
-import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 

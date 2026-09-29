@@ -9,14 +9,12 @@ import { execPathProxy } from '#gateway/node/process/exec-path/exec-path.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FilePathStub,
-  NetworkPortStub,
-  ProcessIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { FilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';

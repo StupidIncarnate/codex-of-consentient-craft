@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { machineReadBroker } from './machine-read-broker';
 import { machineReadBrokerProxy } from './machine-read-broker.proxy';

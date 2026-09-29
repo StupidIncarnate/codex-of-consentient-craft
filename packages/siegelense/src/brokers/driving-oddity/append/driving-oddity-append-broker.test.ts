@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 import type { DrivingOddityDuplicateKeyError } from '../../../errors/driving-oddity-duplicate-key/driving-oddity-duplicate-key-error';

@@ -15,9 +15,9 @@
 
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { heartbeatWriteBrokerProxy } from '../../heartbeat/write/heartbeat-write-broker.proxy';

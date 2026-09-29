@@ -5,8 +5,9 @@ import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;

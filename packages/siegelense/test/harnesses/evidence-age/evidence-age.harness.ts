@@ -22,7 +22,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, stat, utimes, writeFile } from '#gateway/node/fs__promises';
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';

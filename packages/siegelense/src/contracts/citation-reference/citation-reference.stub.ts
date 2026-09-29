@@ -1,5 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CitationKindStub } from '../citation-kind/citation-kind.stub';
 import { InstanceIdStub } from '../instance-id/instance-id.stub';

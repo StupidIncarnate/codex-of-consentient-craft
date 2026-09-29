@@ -15,7 +15,7 @@ import { join } from '#gateway/node/path';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const laneWorkspaceResolveBrokerProxy = (): {

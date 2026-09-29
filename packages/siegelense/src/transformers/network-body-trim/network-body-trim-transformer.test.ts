@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 import { networkBodyTrimTransformer } from './network-body-trim-transformer';

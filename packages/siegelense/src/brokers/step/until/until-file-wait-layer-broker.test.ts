@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
 import { untilFileWaitLayerBroker } from './until-file-wait-layer-broker';

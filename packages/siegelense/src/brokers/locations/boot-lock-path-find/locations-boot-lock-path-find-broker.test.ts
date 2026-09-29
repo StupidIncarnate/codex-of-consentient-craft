@@ -1,6 +1,7 @@
 import { locationsBootLockPathFindBroker } from './locations-boot-lock-path-find-broker';
 import { locationsBootLockPathFindBrokerProxy } from './locations-boot-lock-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsBootLockPathFindBroker', () => {
   describe('boot lock path resolution', () => {

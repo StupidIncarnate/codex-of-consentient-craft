@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { shotBlankReadBroker } from './shot-blank-read-broker';
 import { shotBlankReadBrokerProxy } from './shot-blank-read-broker.proxy';

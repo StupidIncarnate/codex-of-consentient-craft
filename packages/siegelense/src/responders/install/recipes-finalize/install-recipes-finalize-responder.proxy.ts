@@ -1,4 +1,4 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { installProxy } from '#gateway/bin/npm/install/install.proxy';
 import { runBuildProxy } from '#gateway/bin/npm/run-build/run-build.proxy';

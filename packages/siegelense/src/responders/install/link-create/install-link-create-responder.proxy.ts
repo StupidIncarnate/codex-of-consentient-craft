@@ -3,7 +3,8 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.proxy';
 import { join } from '#gateway/node/path';
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';

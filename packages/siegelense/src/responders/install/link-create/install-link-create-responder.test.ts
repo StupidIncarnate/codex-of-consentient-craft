@@ -1,8 +1,6 @@
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  InstallContextStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallLinkCreateResponderProxy } from './install-link-create-responder.proxy';
 
 // dungeonmasterRoot is deliberately NOT the siegelense root — it names the CLI package's own

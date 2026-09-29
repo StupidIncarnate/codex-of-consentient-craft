@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';

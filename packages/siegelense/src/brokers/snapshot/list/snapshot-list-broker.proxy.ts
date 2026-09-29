@@ -13,7 +13,7 @@
  * proxy.setupIndex({ instanceId, records });
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { RegistryStub } from '../../../contracts/registry/registry.stub';

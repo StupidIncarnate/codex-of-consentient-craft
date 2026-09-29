@@ -15,7 +15,7 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 

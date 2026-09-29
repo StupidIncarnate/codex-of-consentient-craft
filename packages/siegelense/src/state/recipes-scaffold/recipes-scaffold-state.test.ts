@@ -1,4 +1,4 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { recipesScaffoldState } from './recipes-scaffold-state';
 import { recipesScaffoldStateProxy } from './recipes-scaffold-state.proxy';

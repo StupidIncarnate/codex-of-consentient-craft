@@ -3,7 +3,7 @@ import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // The same sticky default `processCwdAdapterProxy` used to install unconditionally — several

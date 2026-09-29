@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { locationsRecipesPackagePathFindBroker } from './locations-recipes-package-path-find-broker';
 import { locationsRecipesPackagePathFindBrokerProxy } from './locations-recipes-package-path-find-broker.proxy';

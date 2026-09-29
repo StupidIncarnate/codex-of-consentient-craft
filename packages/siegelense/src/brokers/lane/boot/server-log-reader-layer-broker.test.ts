@@ -1,6 +1,7 @@
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('serverLogReaderLayerBroker', () => {
   describe('serverLogLength()', () => {

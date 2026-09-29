@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { docsStatics } from '../../statics/docs/docs-statics';
 import { runArgsParseTransformer } from './run-args-parse-transformer';

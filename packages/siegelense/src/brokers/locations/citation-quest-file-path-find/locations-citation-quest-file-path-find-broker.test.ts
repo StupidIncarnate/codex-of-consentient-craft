@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  GuildIdStub,
-  QuestIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { locationsCitationQuestFilePathFindBroker } from './locations-citation-quest-file-path-find-broker';
 import { locationsCitationQuestFilePathFindBrokerProxy } from './locations-citation-quest-file-path-find-broker.proxy';

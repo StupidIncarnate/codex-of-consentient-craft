@@ -1,4 +1,4 @@
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';

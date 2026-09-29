@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { instanceReleaseBroker } from './instance-release-broker';
 import { instanceReleaseBrokerProxy } from './instance-release-broker.proxy';

@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { runShotsLayerBroker } from './run-shots-layer-broker';

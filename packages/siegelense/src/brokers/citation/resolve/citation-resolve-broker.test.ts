@@ -1,13 +1,11 @@
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  GuildIdStub,
-  QuestIdStub,
-  QuestNoteStub,
-  QuestStub,
-  SiegeInstanceIdStub,
-  SiegeRunIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
+import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';

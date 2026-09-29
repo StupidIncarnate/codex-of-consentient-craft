@@ -1,4 +1,4 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { pruneAssetClassifyTransformer } from './prune-asset-classify-transformer';
 

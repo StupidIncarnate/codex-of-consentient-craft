@@ -2,7 +2,7 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { ArrayEntryAnchorInsertLayerResponderProxy } from './array-entry-anchor-insert-layer-responder.proxy';
 import { InstallIgnoreWriteResponder } from './install-ignore-write-responder';

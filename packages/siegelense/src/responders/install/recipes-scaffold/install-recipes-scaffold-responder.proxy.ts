@@ -2,12 +2,11 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { basename, dirname, resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  PathSegmentStub,
-} from '@dungeonmaster/shared/contracts';
-import type { PathSegment, PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';

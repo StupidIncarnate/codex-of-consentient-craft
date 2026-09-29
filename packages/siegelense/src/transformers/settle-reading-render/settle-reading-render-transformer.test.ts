@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { SettleReadingStub } from '../../contracts/settle-reading/settle-reading.stub';
 import { settleReadingRenderTransformer } from './settle-reading-render-transformer';

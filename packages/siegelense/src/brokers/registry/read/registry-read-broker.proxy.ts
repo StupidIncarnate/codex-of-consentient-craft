@@ -1,7 +1,7 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';

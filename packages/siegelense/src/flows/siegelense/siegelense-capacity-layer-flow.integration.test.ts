@@ -30,7 +30,7 @@ import {
   FileContentStub,
   RelativePathStub,
 } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 

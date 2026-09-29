@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  GuildStub,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { recipeSeedRunBroker } from './recipe-seed-run-broker';

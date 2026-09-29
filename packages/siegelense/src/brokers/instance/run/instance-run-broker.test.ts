@@ -1,5 +1,5 @@
 import { UnixSocketRecordedErrorStub } from '#gateway/node/net/unix-socket-recorded-error/unix-socket-recorded-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { instanceRunBroker } from './instance-run-broker';
 import { instanceRunBrokerProxy } from './instance-run-broker.proxy';

@@ -1,7 +1,7 @@
 import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { recipesLocateBrokerProxy } from '../locate/recipes-locate-broker.proxy';

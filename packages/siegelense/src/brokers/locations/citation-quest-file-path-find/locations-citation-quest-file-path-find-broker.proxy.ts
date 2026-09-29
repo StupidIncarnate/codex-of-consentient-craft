@@ -1,6 +1,6 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // Delegates the whole home → guild → quests → quest-folder chain to shared's own proxy, which

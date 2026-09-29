@@ -1,5 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
-import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';

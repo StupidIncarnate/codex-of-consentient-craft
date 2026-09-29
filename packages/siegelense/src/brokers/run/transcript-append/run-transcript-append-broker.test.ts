@@ -1,5 +1,5 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 

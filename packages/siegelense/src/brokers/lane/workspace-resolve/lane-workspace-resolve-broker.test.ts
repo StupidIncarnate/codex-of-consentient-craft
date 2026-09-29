@@ -2,7 +2,8 @@ import { laneWorkspaceResolveBroker } from './lane-workspace-resolve-broker';
 import { laneWorkspaceResolveBrokerProxy } from './lane-workspace-resolve-broker.proxy';
 import type { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
-import { AbsoluteFilePathStub, PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('laneWorkspaceResolveBroker', () => {
   describe('exactly one package answers the kind', () => {

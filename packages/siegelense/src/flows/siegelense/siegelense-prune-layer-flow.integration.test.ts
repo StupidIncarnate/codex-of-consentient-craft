@@ -32,16 +32,14 @@ import {
   FileContentStub,
   RelativePathStub,
 } from '@dungeonmaster/testing';
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  GuildIdStub,
-  QuestIdStub,
-  QuestNoteStub,
-  QuestStub,
-  SiegeInstanceIdStub,
-  SiegeRunIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
+import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
 import { evidenceAgeHarness } from '../../../test/harnesses/evidence-age/evidence-age.harness';
 import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';

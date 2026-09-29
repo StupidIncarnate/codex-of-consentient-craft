@@ -1,9 +1,7 @@
-import {
-  FilePathStub,
-  GuildIdStub,
-  QuestIdStub,
-  TimeoutMsStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
 
 import { instanceStartBroker } from './instance-start-broker';

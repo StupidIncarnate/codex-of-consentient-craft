@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceManifestStub } from '../../contracts/instance-manifest/instance-manifest.stub';
 import { SeedResultStub } from '../../contracts/seed-result/seed-result.stub';

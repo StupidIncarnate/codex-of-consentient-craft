@@ -1,7 +1,7 @@
 import { diskFreeBytesProxy } from '#gateway/node/fs__promises/disk-free-bytes/disk-free-bytes.proxy';
 import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 

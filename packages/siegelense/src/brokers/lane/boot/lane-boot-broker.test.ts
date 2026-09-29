@@ -1,7 +1,7 @@
 import { laneBootBroker } from './lane-boot-broker';
 import { laneBootBrokerProxy } from './lane-boot-broker.proxy';
 import type { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';

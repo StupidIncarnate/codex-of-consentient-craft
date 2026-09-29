@@ -8,7 +8,9 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
 import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
-import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';

@@ -16,7 +16,7 @@
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 

@@ -25,7 +25,7 @@
  * proxy.setupEvidenceDir({ ... });                       // once per instance row, AFTER machine
  */
 
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';

@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';

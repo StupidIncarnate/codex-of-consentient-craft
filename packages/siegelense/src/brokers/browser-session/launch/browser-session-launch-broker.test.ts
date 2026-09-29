@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';

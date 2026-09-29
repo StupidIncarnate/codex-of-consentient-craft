@@ -1,6 +1,8 @@
 import { locationsInstanceEvidencePathFindBroker } from './locations-instance-evidence-path-find-broker';
 import { locationsInstanceEvidencePathFindBrokerProxy } from './locations-instance-evidence-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
 describe('locationsInstanceEvidencePathFindBroker', () => {

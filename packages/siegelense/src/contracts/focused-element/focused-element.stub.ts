@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { focusedElementContract } from './focused-element-contract';
 import type { FocusedElement } from './focused-element-contract';

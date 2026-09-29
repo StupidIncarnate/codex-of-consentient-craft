@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
 import { ReadingCountStub } from '../reading-count/reading-count.stub';

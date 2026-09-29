@@ -1,6 +1,6 @@
 import { locationsRunPathsFindBroker } from './locations-run-paths-find-broker';
 import { locationsRunPathsFindBrokerProxy } from './locations-run-paths-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 
 describe('locationsRunPathsFindBroker', () => {

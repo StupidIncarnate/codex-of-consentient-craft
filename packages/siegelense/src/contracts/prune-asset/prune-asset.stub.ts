@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { FileSizeBytesStub } from '../file-size-bytes/file-size-bytes.stub';

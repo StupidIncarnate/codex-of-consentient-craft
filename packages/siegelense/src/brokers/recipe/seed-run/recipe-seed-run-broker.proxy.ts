@@ -11,7 +11,7 @@
 import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 

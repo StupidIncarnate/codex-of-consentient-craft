@@ -1,5 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub, TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';

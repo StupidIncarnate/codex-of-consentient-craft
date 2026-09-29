@@ -1,5 +1,6 @@
 import { laneEnvSubstituteTransformer } from './lane-env-substitute-transformer';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 import { LaneSpecStub } from '../../contracts/lane-spec/lane-spec.stub';
 

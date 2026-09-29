@@ -1,4 +1,5 @@
-import { ContentTextStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { SelectorStub } from '../selector/selector.stub';

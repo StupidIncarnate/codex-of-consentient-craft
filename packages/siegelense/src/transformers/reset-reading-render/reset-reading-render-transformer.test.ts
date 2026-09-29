@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ResetReadingStub } from '../../contracts/reset-reading/reset-reading.stub';
 import { ResetUndidStub } from '../../contracts/reset-undid/reset-undid.stub';

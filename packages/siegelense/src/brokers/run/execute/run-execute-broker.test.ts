@@ -1,4 +1,6 @@
-import { ContentTextStub, FileNameStub, GuildStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';

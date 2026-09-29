@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepTargetResolveBroker } from './step-target-resolve-broker';

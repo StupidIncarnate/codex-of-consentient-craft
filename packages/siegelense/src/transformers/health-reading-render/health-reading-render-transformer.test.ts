@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { HealthReadingStub } from '../../contracts/health-reading/health-reading.stub';
 import { HexColourStub } from '../../contracts/hex-colour/hex-colour.stub';

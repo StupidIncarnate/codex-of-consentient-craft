@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { PixelChangeStub } from '../pixel-change/pixel-change.stub';
 import { ShotOpenReasonStub } from '../shot-open-reason/shot-open-reason.stub';

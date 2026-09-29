@@ -1,7 +1,8 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';

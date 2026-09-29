@@ -1,5 +1,7 @@
 import { pid } from '#gateway/node/process';
-import { FilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
+import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { instanceReserveBroker } from './instance-reserve-broker';
 import { instanceReserveBrokerProxy } from './instance-reserve-broker.proxy';

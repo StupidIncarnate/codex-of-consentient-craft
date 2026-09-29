@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { StepCandidateStub } from '../step-candidate/step-candidate.stub';
 import { StepIndexStub } from '../step-index/step-index.stub';

@@ -1,6 +1,7 @@
 import { locationsRootPathFindBroker } from './locations-root-path-find-broker';
 import { locationsRootPathFindBrokerProxy } from './locations-root-path-find-broker.proxy';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRootPathFindBroker', () => {
   describe('root path resolution', () => {

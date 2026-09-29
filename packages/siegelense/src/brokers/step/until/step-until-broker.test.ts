@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UntilConsolePatternStub } from '../../../contracts/until-console-pattern/until-console-pattern.stub';
 import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';

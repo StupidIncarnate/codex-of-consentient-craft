@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';

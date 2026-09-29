@@ -4,7 +4,7 @@ import type { FsError } from '#gateway/node/fs';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsSnapshotPathsFindBrokerProxy } from '../../locations/snapshot-paths-find/locations-snapshot-paths-find-broker.proxy';

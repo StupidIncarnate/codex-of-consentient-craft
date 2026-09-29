@@ -2,7 +2,7 @@ import type { dirname, join } from '#gateway/node/path';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 import { requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { packageRootFindLayerBrokerProxy } from './package-root-find-layer-broker.proxy';
 

@@ -1,4 +1,4 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';

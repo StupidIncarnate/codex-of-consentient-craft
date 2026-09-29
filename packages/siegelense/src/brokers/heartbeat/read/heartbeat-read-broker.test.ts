@@ -1,4 +1,5 @@
-import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';

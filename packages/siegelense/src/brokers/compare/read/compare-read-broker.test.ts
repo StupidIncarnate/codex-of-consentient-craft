@@ -1,8 +1,6 @@
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  GuildIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { CompareQueryStub } from '../../../contracts/compare-query/compare-query.stub';
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
