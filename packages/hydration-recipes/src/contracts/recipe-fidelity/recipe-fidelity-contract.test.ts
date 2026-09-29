@@ -20,13 +20,13 @@ describe('recipeFidelityContract', () => {
   describe('invalid markers', () => {
     it("INVALID: {value: 'synthetic'} => a fourth marker nobody declared throws validation error", () => {
       expect(() => {
-        RecipeFidelityStub({ value: 'synthetic' as never });
+        RecipeFidelityStub({ value: 'synthetic' });
       }).toThrow(/Invalid option/u);
     });
 
     it("INVALID: {value: 'Direct'} => the marker is case-sensitive", () => {
       expect(() => {
-        RecipeFidelityStub({ value: 'Direct' as never });
+        RecipeFidelityStub({ value: 'Direct' });
       }).toThrow(/Invalid option/u);
     });
   });

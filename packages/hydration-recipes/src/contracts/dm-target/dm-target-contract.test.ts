@@ -55,7 +55,7 @@ describe('dmTargetContract', () => {
           home: '/tmp/a',
           claudeHome: '/tmp/a',
           baseUrl: 'http://app.in-process',
-          request: 'nope' as never,
+          request: 'nope',
         }),
       ).toThrow(/Expected a request function/u);
     });

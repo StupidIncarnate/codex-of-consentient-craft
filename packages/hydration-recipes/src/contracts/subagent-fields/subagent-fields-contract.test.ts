@@ -63,7 +63,7 @@ describe('subagentFieldsContract', () => {
           taskDescription: 'Seeded task 1',
           taskPrompt: 'Research the auth system',
           lines: [],
-          completed: 'yes' as never,
+          completed: 'yes',
           sessionId: 'seed-session-1',
           cwd: '/tmp/guilds-under-test/guild-1',
         }),

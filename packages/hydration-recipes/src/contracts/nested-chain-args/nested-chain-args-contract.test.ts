@@ -42,7 +42,7 @@ describe('nestedChainArgsContract', () => {
     });
 
     it('INVALID: {depth: "2"} => throws "Expected number, received string"', () => {
-      expect(() => nestedChainArgsContract.parse({ depth: '2' as never })).toThrow(
+      expect(() => nestedChainArgsContract.parse({ depth: '2' })).toThrow(
         /expected number, received string/u,
       );
     });
