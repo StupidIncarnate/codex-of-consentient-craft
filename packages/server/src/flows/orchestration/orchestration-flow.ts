@@ -9,8 +9,8 @@
  * //   GET /api/orchestration/mode
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { OrchestrationDispatchGetResponder } from '../../responders/orchestration/dispatch-get/orchestration-dispatch-get-responder';
 import { OrchestrationDispatchPauseResponder } from '../../responders/orchestration/dispatch-pause/orchestration-dispatch-pause-responder';

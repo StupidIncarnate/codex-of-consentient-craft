@@ -14,6 +14,13 @@ export const readFileSyncIfExistsProxy = (): {
     path: PathMatcher;
     error: NodeJS.ErrnoException;
   }) => void;
+  implementsMatchingPath: ({
+    path,
+    fn,
+  }: {
+    path: PathMatcher;
+    fn: (path: string) => string | null;
+  }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const readProxy = readFileSyncProxy();
@@ -39,6 +46,26 @@ export const readFileSyncIfExistsProxy = (): {
       error: NodeJS.ErrnoException;
     }): void => {
       readProxy.throwsMatchingPath({ path, error });
+    },
+    // Addressed by the path alone (readFileSyncProxy's own one-argument stage), so an exact stage
+    // still wins. `null` from `fn` is the wrapper's own ENOENT.
+    implementsMatchingPath: ({
+      path,
+      fn,
+    }: {
+      path: PathMatcher;
+      fn: (path: string) => string | null;
+    }): void => {
+      readProxy.implementsMatchingPath({
+        path,
+        fn: (calledPath: string): string => {
+          const contents = fn(calledPath);
+          if (contents === null) {
+            throw FsErrorStub({ code: 'ENOENT', path: calledPath });
+          }
+          return contents;
+        },
+      });
     },
     getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
       readProxy.getCallsFor({ path }),

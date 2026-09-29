@@ -9,7 +9,7 @@
  * // Returns the FileContents-branded source of interaction-flow.ts
  */
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 
 import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 

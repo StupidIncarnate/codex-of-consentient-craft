@@ -7,8 +7,8 @@
  * // Registers POST /api/directories/browse
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { DirectoryBrowseResponder } from '../../responders/directory/browse/directory-browse-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';

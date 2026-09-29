@@ -39,8 +39,9 @@
  *   });
  * });
  */
-import * as http from 'node:http';
-import type { Server } from 'node:http';
+import * as http from '#gateway/node/http';
+import type { Server } from '#gateway/node/http';
+import { Buffer } from '#gateway/node/buffer';
 
 const LOOPBACK_HOST = '127.0.0.1';
 

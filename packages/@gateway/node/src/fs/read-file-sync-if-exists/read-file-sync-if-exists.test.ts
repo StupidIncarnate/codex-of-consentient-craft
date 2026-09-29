@@ -63,6 +63,39 @@ describe('readFileSyncIfExists', () => {
     });
   });
 
+  describe('implementsMatchingPath', () => {
+    it('VALID: {fn answers a string for a path} => returns that string', () => {
+      const proxy = readFileSyncIfExistsProxy();
+      proxy.implementsMatchingPath({
+        path: (value) => String(value).startsWith('/virtual/'),
+        fn: (path) => `contents of ${path}`,
+      });
+
+      expect(readFileSyncIfExists('/virtual/a.json')).toBe('contents of /virtual/a.json');
+    });
+
+    it('EMPTY: {fn answers null for a path} => returns null, as the wrapper does for ENOENT', () => {
+      const proxy = readFileSyncIfExistsProxy();
+      proxy.implementsMatchingPath({
+        path: (value) => String(value).startsWith('/virtual/'),
+        fn: () => null,
+      });
+
+      expect(readFileSyncIfExists('/virtual/absent.json')).toBe(null);
+    });
+
+    it('VALID: {an exact stage and implementsMatchingPath both match} => the exact stage wins', () => {
+      const proxy = readFileSyncIfExistsProxy();
+      proxy.implementsMatchingPath({
+        path: (value) => String(value).startsWith('/virtual/'),
+        fn: () => 'from the predicate',
+      });
+      proxy.returns({ path: '/virtual/exact.json', contents: 'from the exact stage' });
+
+      expect(readFileSyncIfExists('/virtual/exact.json')).toBe('from the exact stage');
+    });
+  });
+
   describe('call inspection', () => {
     it('VALID: {a real call already made} => getCallsFor reads it back', () => {
       const proxy = readFileSyncIfExistsProxy();

@@ -30,6 +30,8 @@ import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 
 import { mcpServerHarness } from '../../../test/harnesses/mcp-server/mcp-server.harness';
+import { cwd } from '#gateway/node/process';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('McpServerFlow', () => {
   const mcp = mcpServerHarness();
@@ -1517,7 +1519,7 @@ describe('McpServerFlow', () => {
           name: 'get-folder-detail',
           arguments: {
             folderType: 'brokers',
-            dungeonmasterCaller: { cwd: process.cwd(), sessionId: CALLER_SESSION_ID },
+            dungeonmasterCaller: { cwd: cwd(), sessionId: CALLER_SESSION_ID },
           },
         },
       });
@@ -1532,7 +1534,7 @@ describe('McpServerFlow', () => {
     });
 
     it('VALID: {get-project-inventory, caller cwd inside the repo} => resolves the project root from the caller, not the server', async () => {
-      const repoRoot = process.cwd().replace(/\/packages\/mcp$/u, '');
+      const repoRoot = cwd().replace(/\/packages\/mcp$/u, '');
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 4102 }),
         method: RpcMethodStub({ value: 'tools/call' }),
@@ -1540,7 +1542,7 @@ describe('McpServerFlow', () => {
           name: 'get-project-inventory',
           arguments: {
             packageName: 'mcp',
-            dungeonmasterCaller: { cwd: process.cwd(), sessionId: CALLER_SESSION_ID },
+            dungeonmasterCaller: { cwd: cwd(), sessionId: CALLER_SESSION_ID },
           },
         },
       });

@@ -7,8 +7,8 @@
  * // Registers GET /api/guilds/:guildId/sessions
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { SessionListResponder } from '../../responders/session/list/session-list-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';

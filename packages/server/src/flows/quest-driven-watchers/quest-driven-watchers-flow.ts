@@ -10,6 +10,7 @@
  */
 
 import { QuestDrivenWatchersBootstrapResponder } from '../../responders/quest-driven-watchers/bootstrap/quest-driven-watchers-bootstrap-responder';
+import { stderr } from '#gateway/node/process';
 
 const state: { handle: { stop: () => void } | null } = { handle: null };
 
@@ -21,7 +22,7 @@ export const QuestDrivenWatchersFlow = {
         state.handle = handle;
       })
       .catch((error: unknown): void => {
-        process.stderr.write(`[QuestDrivenWatchersFlow.bootstrap] failed: ${String(error)}\n`);
+        stderr.write(`[QuestDrivenWatchersFlow.bootstrap] failed: ${String(error)}\n`);
       });
   },
   shutdown: (): void => {

@@ -10,8 +10,8 @@
  * // Registers GET /api/images
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { ImageServeResponder } from '../../responders/image/serve/image-serve-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';

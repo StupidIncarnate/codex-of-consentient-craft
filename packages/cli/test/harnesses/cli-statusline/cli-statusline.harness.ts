@@ -15,7 +15,7 @@
 import { Buffer } from '#gateway/node/buffer';
 import { ensureDirSync, existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { deleteEnv, getEnv, setEnv, stderr, stdout } from '#gateway/node/process';
+import { deleteEnv, getEnv, setEnv, setStdin, stderr, stdout } from '#gateway/node/process';
 import { Readable } from '#gateway/node/stream';
 
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
@@ -100,21 +100,8 @@ export const cliStatuslineHarness = (): {
     };
   },
 
-  setupStdin: ({ data }: { data: FileContents }): { restore: () => void } => {
-    const stdinOriginal = Object.getOwnPropertyDescriptor(process, 'stdin');
-    const stream = Readable.from(Buffer.from(data, 'utf8'));
-    Object.defineProperty(process, 'stdin', {
-      configurable: true,
-      get: () => stream,
-    });
-    return {
-      restore: (): void => {
-        if (stdinOriginal !== undefined) {
-          Object.defineProperty(process, 'stdin', stdinOriginal);
-        }
-      },
-    };
-  },
+  setupStdin: ({ data }: { data: FileContents }): { restore: () => void } =>
+    setStdin({ stream: Readable.from(Buffer.from(data, 'utf8')) }),
 
   captureStdout: (): {
     getOutput: () => readonly unknown[];

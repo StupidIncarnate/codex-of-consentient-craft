@@ -10,6 +10,7 @@
  * recorder.stop();
  */
 
+import { stderr } from '#gateway/node/process';
 import type { SetupServer } from '#gateway/npm/msw__node';
 import { mswRequestIdContract } from '../../../contracts/msw-request-id/msw-request-id-contract';
 import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
@@ -59,7 +60,7 @@ export const networkRecordCaptureBroker = ({
               }
             })
             .catch((error: unknown) => {
-              process.stderr.write(`[network-record] request body read failed: ${String(error)}\n`);
+              stderr.write(`[network-record] request body read failed: ${String(error)}\n`);
             }),
         );
       });

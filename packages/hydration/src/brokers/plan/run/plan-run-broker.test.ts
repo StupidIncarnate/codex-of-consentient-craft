@@ -12,6 +12,7 @@ import { HydrationTargetStub } from '../../../contracts/hydration-target/hydrati
 import { HydrationRouteUnavailableError } from '../../../errors/hydration-route-unavailable/hydration-route-unavailable-error';
 import { HydrationRouteFailedError } from '../../../errors/hydration-route-failed/hydration-route-failed-error';
 import { HydrationWriteFailedError } from '../../../errors/hydration-write-failed/hydration-write-failed-error';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 describe('planRunBroker', () => {
   // A real route never sees the `ref` it is filling in — it only receives `{ target, fields }` —

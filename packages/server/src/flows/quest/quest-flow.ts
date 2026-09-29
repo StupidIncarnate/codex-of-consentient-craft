@@ -7,8 +7,8 @@
  * // Registers GET/POST /api/quests, GET/PATCH /api/quests/:questId, POST start and pause
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { QuestChatResponder } from '../../responders/quest/chat/quest-chat-responder';
 import { QuestClarifyResponder } from '../../responders/quest/clarify/quest-clarify-responder';
@@ -35,6 +35,7 @@ import { QuestSummaryResponder } from '../../responders/quest/summary/quest-summ
 import { QuestUserAddResponder } from '../../responders/quest/user-add/quest-user-add-responder';
 import { QuestWardDetailResponder } from '../../responders/quest/ward-detail/quest-ward-detail-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
+import { getEnv } from '#gateway/node/process';
 
 export const QuestFlow = (): Hono => {
   const app = new Hono();
@@ -212,7 +213,7 @@ export const QuestFlow = (): Hono => {
   // E2E-only surface: registered ONLY when E2E_SIGNAL_BACK_HTTP=1 so production never exposes it.
   // In e2e the fake Claude CLI has no MCP client, so it POSTs here to invoke the SAME
   // StartOrchestrator.handleSignalBack the MCP signal-back tool uses and advance the relay.
-  if (process.env.E2E_SIGNAL_BACK_HTTP === '1') {
+  if (getEnv('E2E_SIGNAL_BACK_HTTP') === '1') {
     app.post(apiRoutesStatics.quests.signalBack, async (c) => {
       const body: unknown = await c.req.json().catch(() => ({}));
       const result = await QuestSignalBackResponder({

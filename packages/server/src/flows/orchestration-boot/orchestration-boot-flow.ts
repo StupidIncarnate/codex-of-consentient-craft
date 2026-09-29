@@ -12,6 +12,7 @@
 
 import { OrchestrationBootstrapResponder } from '../../responders/orchestration/bootstrap/orchestration-bootstrap-responder';
 import { OrchestrationDispatchNormalizeBootResponder } from '../../responders/orchestration/dispatch-normalize-boot/orchestration-dispatch-normalize-boot-responder';
+import { stderr } from '#gateway/node/process';
 
 const state: { ran: boolean } = { ran: false };
 
@@ -21,7 +22,7 @@ export const OrchestrationBootFlow = {
     state.ran = true;
     OrchestrationBootstrapResponder();
     OrchestrationDispatchNormalizeBootResponder().catch((error: unknown): void => {
-      process.stderr.write(`[OrchestrationBootFlow.bootstrap] failed: ${String(error)}\n`);
+      stderr.write(`[OrchestrationBootFlow.bootstrap] failed: ${String(error)}\n`);
     });
   },
 };

@@ -31,6 +31,21 @@ describe('setImmediate', () => {
     expect(received).toStrictEqual(['guild', 2]);
   });
 
+  it('VALID: {Promise resolve passed directly} => compiles and fires', async () => {
+    const result = await new Promise<string>((resolve) => {
+      setImmediate(() => {
+        resolve('fired');
+      });
+    }).then(async (first) => {
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
+      return first;
+    });
+
+    expect(result).toBe('fired');
+  });
+
   it('VALID: {returns} => a real Immediate handle that can be unref-ed', async () => {
     const handle = setImmediate(() => undefined);
     handle.unref();

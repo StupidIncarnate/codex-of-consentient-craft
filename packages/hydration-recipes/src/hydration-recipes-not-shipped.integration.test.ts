@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 import { packageJsonReadBroker } from './brokers/package-json/read/package-json-read-broker';
 import { hasPackageJsonDependencyGuard } from './guards/has-package-json-dependency/has-package-json-dependency-guard';
 import { hydrationRecipesStatics } from './statics/hydration-recipes/hydration-recipes-statics';

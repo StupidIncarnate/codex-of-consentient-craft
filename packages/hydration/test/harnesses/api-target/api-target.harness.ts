@@ -13,8 +13,8 @@
  * harness.url({ path: '/api/guilds' });                        // a URL the real server answers
  * harness.refusedUrl({ path: '/api/guilds' });                 // a URL nothing is listening on
  */
-import { createServer } from 'node:http';
-import type { Server } from 'node:http';
+import { createServer } from '#gateway/node/http';
+import type { Server } from '#gateway/node/http';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 import { HydrationTargetStub } from '../../../src/contracts/hydration-target/hydration-target.stub';

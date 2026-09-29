@@ -6,7 +6,7 @@
  * // Creates HTTP server with all routes mounted, WebSocket, event relay, and lifecycle management
  */
 
-import { Hono } from 'hono';
+import { Hono } from '#gateway/npm/hono';
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';

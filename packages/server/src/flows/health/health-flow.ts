@@ -7,7 +7,7 @@
  * // Registers GET /api/health
  */
 
-import { Hono } from 'hono';
+import { Hono } from '#gateway/npm/hono';
 
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 

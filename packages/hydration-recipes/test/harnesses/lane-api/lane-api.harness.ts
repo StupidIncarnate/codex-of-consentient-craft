@@ -10,8 +10,8 @@
  * await sessionWithNestedSubagentSeedBroker({ context: RecipeContextStub({ apiBaseUrl: laneApi.baseUrl() }) });
  */
 
-import { createServer } from 'http';
-import type { Server } from 'http';
+import { createServer } from '#gateway/node/http';
+import type { Server } from '#gateway/node/http';
 
 import { ContentTextStub, GuildStub } from '@dungeonmaster/shared/contracts';
 

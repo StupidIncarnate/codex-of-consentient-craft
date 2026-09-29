@@ -8,12 +8,13 @@
  * // when TOOLING_SMOKETEST_HTTP=1
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { ToolingSmoketestRunResponder } from '../../responders/tooling/smoketest-run/tooling-smoketest-run-responder';
 import { ToolingSmoketestStateResponder } from '../../responders/tooling/smoketest-state/tooling-smoketest-state-responder';
 import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
+import { getEnv } from '#gateway/node/process';
 
 export const ToolingFlow = (): Hono => {
   const app = new Hono();
@@ -25,7 +26,7 @@ export const ToolingFlow = (): Hono => {
   // was an independent live finding. Gating inside the handler would leave the route mounted and
   // reachable regardless of a bug in that inner check; gating the registration means an unset flag
   // leaves no route at all, so an unauthorized caller gets the framework's own 404.
-  if (process.env.TOOLING_SMOKETEST_HTTP === '1') {
+  if (getEnv('TOOLING_SMOKETEST_HTTP') === '1') {
     app.post(apiRoutesStatics.tooling.smoketestRun, async (c) => {
       const body: unknown = await c.req.json().catch(() => ({}));
       const result = await ToolingSmoketestRunResponder({ body });

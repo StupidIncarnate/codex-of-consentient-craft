@@ -14,7 +14,7 @@
  * harness.exists({ relativePath: '' });                         // false once the home itself is gone
  */
 import { chmodSync, existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
