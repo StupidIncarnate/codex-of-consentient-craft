@@ -6,6 +6,10 @@
  * const response = jsonl.agentSuccessResponse({ sessionId: SessionIdStub({ value: 'sess-001' }) });
  * queue.enqueue({ queueDir, response });
  */
+import {
+  resultStreamLineContract,
+  systemInitStreamLineContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
@@ -18,6 +22,8 @@ import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-
 
 type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
 type WardQueueResponse = ReturnType<typeof WardQueueResponseStub>;
+type ResultStreamLine = ReturnType<typeof ResultStreamLineStub>;
+type SystemInitStreamLine = ReturnType<typeof SystemInitStreamLineStub>;
 
 export const orchestrationJsonlHarness = (): {
   signalBackLine: (params: {
@@ -59,18 +65,27 @@ export const orchestrationJsonlHarness = (): {
       }),
     });
 
+  const rawCliLine = ({
+    line,
+  }: {
+    line: ResultStreamLine | SystemInitStreamLine;
+  }): ReturnType<typeof StreamJsonLineStub> =>
+    StreamJsonLineStub({
+      value: JSON.stringify(
+        line.type === 'result'
+          ? resultStreamLineContract.parse(line)
+          : systemInitStreamLineContract.parse(line),
+      ),
+    });
+
   const agentSuccessResponse = ({
     sessionId = SessionIdStub({ value: 'sess-integ-001' }),
   }: { sessionId?: ClaudeQueueResponse['sessionId'] } = {}): ClaudeQueueResponse => ({
     sessionId,
     lines: [
-      StreamJsonLineStub({
-        value: JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
-      }),
+      rawCliLine({ line: SystemInitStreamLineStub({ session_id: sessionId }) }),
       signalBackLine({ signal: 'complete', summary: 'Task completed successfully' }),
-      StreamJsonLineStub({
-        value: JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
-      }),
+      rawCliLine({ line: ResultStreamLineStub({ session_id: sessionId }) }),
     ],
   });
 
@@ -86,13 +101,9 @@ export const orchestrationJsonlHarness = (): {
     sessionId,
     exitCode,
     lines: [
-      StreamJsonLineStub({
-        value: JSON.stringify(SystemInitStreamLineStub({ session_id: sessionId })),
-      }),
+      rawCliLine({ line: SystemInitStreamLineStub({ session_id: sessionId }) }),
       signalBackLine({ signal: 'failed', summary }),
-      StreamJsonLineStub({
-        value: JSON.stringify(ResultStreamLineStub({ session_id: sessionId })),
-      }),
+      rawCliLine({ line: ResultStreamLineStub({ session_id: sessionId }) }),
     ],
   });
 
