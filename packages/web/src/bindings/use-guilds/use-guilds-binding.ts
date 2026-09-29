@@ -5,7 +5,9 @@
  * const {guilds, loading, error, refresh} = useGuildsBinding();
  * // Returns {guilds: GuildListItem[], loading: boolean, error: Error | null, refresh: () => Promise<void>}
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 
@@ -37,7 +39,7 @@ export const useGuildsBinding = (): {
 
   useEffect(() => {
     fetchGuilds().catch((catchError: unknown) => {
-      globalThis.console.error('[use-guilds]', catchError);
+      console.error('[use-guilds]', catchError);
     });
   }, [fetchGuilds]);
 

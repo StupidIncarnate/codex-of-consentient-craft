@@ -12,6 +12,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
+import { setTimeout } from '#gateway/browser/setTimeout';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
@@ -1880,7 +1881,7 @@ describe('useQuestChatBinding', () => {
           answers: [{ header: 'Preference', label: 'Option A' }],
         });
         await new Promise((resolve) => {
-          globalThis.setTimeout(resolve, 0);
+          setTimeout(resolve, 0);
         });
       });
 
@@ -1900,7 +1901,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         result.current.stopChat();
         await new Promise((resolve) => {
-          globalThis.setTimeout(resolve, 0);
+          setTimeout(resolve, 0);
         });
       });
 
@@ -2889,7 +2890,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         result.current.stopFollowupChat();
         await new Promise((resolve) => {
-          globalThis.setTimeout(resolve, 0);
+          setTimeout(resolve, 0);
         });
       });
 
@@ -2936,7 +2937,7 @@ describe('useQuestChatBinding', () => {
       await act(async () => {
         result.current.stopFollowupChat();
         await new Promise((resolve) => {
-          globalThis.setTimeout(resolve, 0);
+          setTimeout(resolve, 0);
         });
       });
 

@@ -1,5 +1,6 @@
 import { QuestIdStub, QuestProjectionStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
+import { setTimeout } from '#gateway/browser/setTimeout';
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestProjectionBinding } from './use-quest-projection-binding';
 import { useQuestProjectionBindingProxy } from './use-quest-projection-binding.proxy';

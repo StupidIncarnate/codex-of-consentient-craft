@@ -1,3 +1,5 @@
+import { document } from '#gateway/browser/document';
+import { Event } from '#gateway/browser/Event';
 import { act, renderHook } from '#gateway/npm/testing-library__react';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 

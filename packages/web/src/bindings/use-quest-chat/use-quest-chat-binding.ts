@@ -12,7 +12,7 @@
  * Map<SessionId, ChatEntry[]> is derived by sorting on (timestamp, uuid) so streaming and replay
  * paths render identical DOM regardless of arrival order.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
 import type {
   AskUserQuestionItem,
@@ -36,6 +36,8 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
+import { console } from '#gateway/browser/console';
+import { crypto } from '#gateway/browser/crypto';
 import { filter } from '#gateway/npm/rxjs__operators';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
@@ -379,7 +381,7 @@ export const useQuestChatBinding = ({
           }
         }
 
-        globalThis.console.log('[WS] chat-output', {
+        console.log('[WS] chat-output', {
           questId: activeQuestId,
           sessionId: payload.sessionId ?? null,
           chatProcessId: payload.chatProcessId ?? null,
@@ -399,7 +401,7 @@ export const useQuestChatBinding = ({
           })),
         });
         if (rejected.length > 0) {
-          globalThis.console.warn('[WS] chat-output rejected-entries', rejected);
+          console.warn('[WS] chat-output rejected-entries', rejected);
         }
 
         if (validEntries.length === 0) return;

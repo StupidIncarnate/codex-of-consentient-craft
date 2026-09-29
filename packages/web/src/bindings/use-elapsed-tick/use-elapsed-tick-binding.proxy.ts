@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Stages Date.now() and the global setInterval/clearInterval pair so tests can drive
+ * PURPOSE: Stages Date.now() and the gateway setInterval/clearInterval proxies so tests can drive
  * useElapsedTickBinding's single shared timer deterministically — set or advance the mocked "now",
  * then fire the ONE registered tick on demand instead of waiting on a real clock. Also spies on
  * document.addEventListener/removeEventListener('visibilitychange', …) so a test can prove the
@@ -18,22 +18,20 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
+import { document } from '#gateway/browser/document';
+import { clearIntervalProxy } from '#gateway/browser/clearInterval/clear-interval/clear-interval.proxy';
+import { IntervalHandleStub } from '#gateway/browser/setInterval/interval-handle.stub';
+import { setIntervalProxy } from '#gateway/browser/setInterval/set-interval/set-interval.proxy';
+
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
 const DEFAULT_NOW_MS = 1_700_000_000_000;
-const FAKE_INTERVAL_ID = 424_242;
 
 type TickCallCount = ReturnType<SpyOnHandle['callsMatching']>['length'];
 
-// The tick's own address: a function (the binding's setNowMs re-render callback) at exactly the
-// statics tick period. Addressing on this — never "any setInterval call" — is what keeps the counts
-// below from folding in React's or Mantine's own timers, which this same spy passes through
-// untouched via `passthrough: true`.
-const isTickCallbackArg = (value: unknown): boolean => typeof value === 'function';
-
-// The visibilitychange listener's own address: 'visibilitychange' plus a function, the same
-// cross-convention shape as isTickCallbackArg above, so counts here never fold in a listener some
-// OTHER piece of code (React, Mantine, jsdom itself) registers for a different event type.
+// The visibilitychange listener's own address: 'visibilitychange' plus a function, so counts here
+// never fold in a listener some OTHER piece of code (React, Mantine, jsdom itself) registers for a
+// different event type.
 const isVisibilityChangeListenerArg = (value: unknown): boolean => typeof value === 'function';
 
 export const useElapsedTickBindingProxy = (): {
@@ -51,23 +49,15 @@ export const useElapsedTickBindingProxy = (): {
   // setNowMs/advanceNowMs never need to re-stage the address.
   nowHandle.calledWith([]).implement(() => nowState.ms);
 
-  // passthrough so React's and Mantine's own timers still work; the staged address below overrides
-  // only OUR interval, the one registered at the statics tick period.
-  const setIntervalHandle: SpyOnHandle = registerSpyOn({
-    object: globalThis,
-    method: 'setInterval',
-    passthrough: true,
+  // The gateway proxies pass through, so React's and Mantine's own timers still work; the staged
+  // address overrides only OUR interval, the one registered at the statics tick period.
+  const tickHandle = IntervalHandleStub();
+  const intervalProxy = setIntervalProxy();
+  intervalProxy.stageHandle({
+    delay: elapsedDisplayConfigStatics.refresh.tickMs,
+    handle: tickHandle,
   });
-  setIntervalHandle
-    .calledWith([isTickCallbackArg, elapsedDisplayConfigStatics.refresh.tickMs])
-    .returns(FAKE_INTERVAL_ID);
-
-  const clearIntervalHandle: SpyOnHandle = registerSpyOn({
-    object: globalThis,
-    method: 'clearInterval',
-    passthrough: true,
-  });
-  clearIntervalHandle.calledWith([FAKE_INTERVAL_ID]).returns(undefined);
+  const clearProxy = clearIntervalProxy();
 
   // passthrough so the real listener actually attaches — the "backgrounded tab resync" test relies
   // on document.dispatchEvent genuinely reaching the binding's own handler, and jsdom's
@@ -91,12 +81,8 @@ export const useElapsedTickBindingProxy = (): {
       nowState.ms += ms;
     },
     getTickIntervalCount: (): TickCallCount =>
-      setIntervalHandle.callsMatching([
-        isTickCallbackArg,
-        elapsedDisplayConfigStatics.refresh.tickMs,
-      ]).length,
-    getClearedTickCount: (): TickCallCount =>
-      clearIntervalHandle.callsMatching([FAKE_INTERVAL_ID]).length,
+      intervalProxy.getCallsFor({ delay: elapsedDisplayConfigStatics.refresh.tickMs }).length,
+    getClearedTickCount: (): TickCallCount => clearProxy.getCallsFor({ handle: tickHandle }).length,
     getVisibilityChangeListenerCount: (): TickCallCount =>
       addEventListenerHandle.callsMatching(['visibilitychange', isVisibilityChangeListenerArg])
         .length,
@@ -107,11 +93,11 @@ export const useElapsedTickBindingProxy = (): {
     // testingLibraryActAdapter, matching every other binding proxy in this package — act() itself
     // is never staged here, only the mock plumbing is.
     fireTick: (): void => {
-      const calls = setIntervalHandle.callsMatching([
-        isTickCallbackArg,
-        elapsedDisplayConfigStatics.refresh.tickMs,
-      ]);
-      (calls.at(-1)?.[0] as (() => void) | undefined)?.();
+      const calls = intervalProxy.getCallsFor({
+        delay: elapsedDisplayConfigStatics.refresh.tickMs,
+      });
+      const lastCall = [...calls].pop();
+      (lastCall?.[0] as (() => void) | undefined)?.();
     },
   };
 };

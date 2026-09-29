@@ -8,7 +8,9 @@
  * // mode = OrchestrationMode | null. Null until the first fetch resolves (or on fetch failure).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
@@ -26,7 +28,7 @@ export const useOrchestrationModeBinding = (): {
       const next = await orchestrationModeGetBroker();
       setMode(next);
     } catch (error: unknown) {
-      globalThis.console.error('[use-orchestration-mode]', error);
+      console.error('[use-orchestration-mode]', error);
     } finally {
       setIsLoading(false);
     }
@@ -34,7 +36,7 @@ export const useOrchestrationModeBinding = (): {
 
   useEffect(() => {
     refresh().catch((error: unknown) => {
-      globalThis.console.error('[use-orchestration-mode]', error);
+      console.error('[use-orchestration-mode]', error);
     });
   }, [refresh]);
 

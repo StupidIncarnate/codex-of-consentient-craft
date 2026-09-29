@@ -20,7 +20,10 @@
  * // startedAt against it
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+import { clearInterval } from '#gateway/browser/clearInterval';
+import { document } from '#gateway/browser/document';
+import { setInterval } from '#gateway/browser/setInterval';
 
 import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';

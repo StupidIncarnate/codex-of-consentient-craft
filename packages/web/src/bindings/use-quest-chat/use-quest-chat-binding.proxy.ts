@@ -1,3 +1,4 @@
+import { crypto } from '#gateway/browser/crypto';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import type { ProcessId, QuestStatus, UserChatEntryStub } from '@dungeonmaster/shared/contracts';

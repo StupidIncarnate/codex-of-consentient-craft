@@ -1,3 +1,4 @@
+import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
@@ -19,7 +20,7 @@ export const useQuestProjectionBindingProxy = (): {
   // useQuestProjectionBinding logs from the effect's outer catch only; the inner catch sets `error`
   // state instead. passthrough: true — console.error is a shared sink and React's own internal
   // warnings must keep printing normally rather than throwing for being unstaged.
-  registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
+  registerSpyOn({ object: console, method: 'error', passthrough: true })
     .calledWith(['[use-quest-projection]'])
     .returns(undefined);
 

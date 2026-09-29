@@ -5,7 +5,9 @@
  * const {data, loading, error, refresh} = useGuildDetailBinding({guildId});
  * // Returns {data: Guild | null, loading: boolean, error: Error | null, refresh: () => Promise<void>}
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
+
+import { console } from '#gateway/browser/console';
 
 import type { Guild, GuildId } from '@dungeonmaster/shared/contracts';
 
@@ -46,7 +48,7 @@ export const useGuildDetailBinding = ({
 
   useEffect(() => {
     fetchGuild().catch((catchError: unknown) => {
-      globalThis.console.error('[use-guild-detail]', catchError);
+      console.error('[use-guild-detail]', catchError);
     });
   }, [fetchGuild]);
 

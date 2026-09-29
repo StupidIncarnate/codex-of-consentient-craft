@@ -15,10 +15,11 @@
  * `useQuestSummaryBinding` does for the verification summary.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
 
+import { console } from '#gateway/browser/console';
 import { filter } from '#gateway/npm/rxjs__operators';
 import { questProjectionBroker } from '../../brokers/quest/projection/quest-projection-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
@@ -57,7 +58,7 @@ export const useQuestProjectionBinding = ({
 
   useEffect(() => {
     refresh().catch((catchError: unknown) => {
-      globalThis.console.error('[use-quest-projection]', catchError);
+      console.error('[use-quest-projection]', catchError);
     });
 
     // Filtered on the quest id: one browser tab holds one shared socket, and a `quest-modified` for
@@ -67,7 +68,7 @@ export const useQuestProjectionBinding = ({
       .pipe(filter((quest) => quest.id === questId))
       .subscribe((): void => {
         refresh().catch((catchError: unknown) => {
-          globalThis.console.error('[use-quest-projection]', catchError);
+          console.error('[use-quest-projection]', catchError);
         });
       });
 

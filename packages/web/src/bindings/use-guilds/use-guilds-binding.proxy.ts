@@ -1,5 +1,6 @@
 import * as guildListBrokerModule from '../../brokers/guild/list/guild-list-broker';
 
+import { console } from '#gateway/browser/console';
 import type { GuildListItemStub } from '@dungeonmaster/shared/contracts';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -36,7 +37,7 @@ export const useGuildsBindingProxy = (): {
   // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
   // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
   const consoleErrorHandle = registerSpyOn({
-    object: globalThis.console,
+    object: console,
     method: 'error',
     passthrough: true,
   });
