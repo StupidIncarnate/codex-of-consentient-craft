@@ -317,7 +317,7 @@ describe('scanOnceLayerBroker', () => {
           role: 'codeweaver',
           status: 'pending',
           dependsOn: [doneId],
-          relatedDataItems: [`operations/${operationId}` as never],
+          relatedDataItems: [`operations/${operationId}`],
         }),
       ],
     });
@@ -440,7 +440,7 @@ describe('scanOnceLayerBroker', () => {
             status: 'pending',
             spawnerType: 'command',
             step: 'carve',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -498,7 +498,7 @@ describe('scanOnceLayerBroker', () => {
             status: 'pending',
             spawnerType: 'command',
             step: 'gate',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -572,7 +572,7 @@ describe('scanOnceLayerBroker', () => {
             spawnerType: 'command',
             step: 'carve',
             dependsOn: [mendedId],
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -754,7 +754,7 @@ describe('scanOnceLayerBroker', () => {
             status: 'pending',
             spawnerType: 'command',
             step: 'gate',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });

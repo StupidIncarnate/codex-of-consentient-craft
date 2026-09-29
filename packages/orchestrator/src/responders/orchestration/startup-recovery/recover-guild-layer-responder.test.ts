@@ -368,10 +368,10 @@ describe('RecoverGuildLayerResponder', () => {
       const questId = QuestIdStub({ value: 'quest-orphaned-ward' });
       const wardItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const wardWorkItem = WorkItemStub({
-        id: wardItemId as never,
-        role: 'ward' as never,
+        id: wardItemId,
+        role: 'ward',
         status: 'in_progress',
-        spawnerType: 'command' as never,
+        spawnerType: 'command',
         startedAt: '2026-03-21T19:31:34.754Z',
       });
       const quest = QuestStub({
@@ -411,11 +411,11 @@ describe('RecoverGuildLayerResponder', () => {
       const orphanItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const sessionId = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
       const orphanWorkItem = WorkItemStub({
-        id: orphanItemId as never,
+        id: orphanItemId,
         role: 'codeweaver',
         status: 'in_progress',
         spawnerType: 'agent',
-        sessionId: sessionId as never,
+        sessionId,
         startedAt: '2026-03-21T19:31:34.754Z',
       });
       const quest = QuestStub({
@@ -464,7 +464,7 @@ describe('RecoverGuildLayerResponder', () => {
       const questId = QuestIdStub({ value: 'quest-orphaned-fresh' });
       const orphanItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const orphanWorkItem = WorkItemStub({
-        id: orphanItemId as never,
+        id: orphanItemId,
         role: 'codeweaver',
         status: 'in_progress',
         spawnerType: 'agent',
@@ -510,7 +510,7 @@ describe('RecoverGuildLayerResponder', () => {
       const questId = QuestIdStub({ value: 'quest-pending-item' });
       const pendingItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const pendingWorkItem = WorkItemStub({
-        id: pendingItemId as never,
+        id: pendingItemId,
         role: 'codeweaver',
         status: 'pending',
         spawnerType: 'agent',
@@ -545,7 +545,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'quest-missing-worktree' });
       const workItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
-      const workItem = WorkItemStub({ id: workItemId as never, status: 'pending' });
+      const workItem = WorkItemStub({ id: workItemId, status: 'pending' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/missing-quest' });
       const quest = QuestStub({
         id: questId,

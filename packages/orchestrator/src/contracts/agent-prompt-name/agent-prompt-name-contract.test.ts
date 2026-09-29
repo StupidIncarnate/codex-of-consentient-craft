@@ -39,7 +39,7 @@ describe('agentPromptNameContract', () => {
 
     it('INVALID: {value: 123} => throws validation error', () => {
       expect(() => {
-        agentPromptNameContract.parse(123 as never);
+        agentPromptNameContract.parse(123);
       }).toThrow(/expected string/u);
     });
   });

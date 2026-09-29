@@ -148,9 +148,9 @@ describe('questGetQaChecklistBroker', () => {
     it("VALID: {track: 'flowrider', no flowId} => returns the RUNTIME flows only, the set that track is measured over", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'flowrider',
-        flowIds: ['walk-flow', 'rollout-flow', 'second-walk-flow'] as never,
+        flowIds: ['walk-flow', 'rollout-flow', 'second-walk-flow'],
       });
       const quest = QuestStub({
         operations: [scopeItem],
@@ -194,9 +194,9 @@ describe('questGetQaChecklistBroker', () => {
     it("VALID: {track: 'siegemaster', no flowId} => returns the RUNTIME flows only, narrowed the same as flowrider now that operational units moved to codeweaver's reviewer", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'siegemaster',
-        flowIds: ['walk-flow', 'rollout-flow'] as never,
+        flowIds: ['walk-flow', 'rollout-flow'],
       });
       const quest = QuestStub({
         operations: [scopeItem],
@@ -264,7 +264,7 @@ describe('questGetQaChecklistBroker', () => {
       'EMPTY: {role: %s} => no checklists and no track, because that role has no denominator here',
       async (role) => {
         const proxy = questGetQaChecklistBrokerProxy();
-        const scopeItem = OperationItemStub({ id: OP_ID as never, role });
+        const scopeItem = OperationItemStub({ id: OP_ID, role });
         const quest = QuestStub({
           operations: [scopeItem],
           flows: [
@@ -291,9 +291,9 @@ describe('questGetQaChecklistBroker', () => {
     it("EMPTY: {track: 'flowrider', every flow operational} => returns an empty list, so 'nothing to walk' is a real answer", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'flowrider',
-        flowIds: ['rollout-flow'] as never,
+        flowIds: ['rollout-flow'],
       });
       const quest = QuestStub({
         operations: [scopeItem],
@@ -327,12 +327,12 @@ describe('questGetQaChecklistBroker', () => {
       // ONE item, read by both surfaces. That is the whole claim now: the scope is not passed to
       // either of them, it is derived from this object by the transformer they share.
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'flowrider',
         status: 'in_progress',
         locked: true,
-        flowIds: ['checkout-flow'] as never,
-        packageNames: [UI_PACKAGE] as never,
+        flowIds: ['checkout-flow'],
+        packageNames: [UI_PACKAGE],
       });
       const quest = QuestStub({ ...TAGGED_QUEST, operations: [scopeItem] });
       proxy.setupQuestFound({ quest });
@@ -361,10 +361,10 @@ describe('questGetQaChecklistBroker', () => {
     it("VALID: {track: 'flowrider', its own packageNames} => tool and gate name the SAME units — identical to the UI-scoped case, since packageNames no longer partitions them", async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'flowrider',
-        flowIds: ['checkout-flow'] as never,
-        packageNames: [API_PACKAGE] as never,
+        flowIds: ['checkout-flow'],
+        packageNames: [API_PACKAGE],
       });
       proxy.setupQuestFound({
         quest: QuestStub({ ...TAGGED_QUEST, operations: [scopeItem] }),
@@ -399,9 +399,9 @@ describe('questGetQaChecklistBroker', () => {
     it('VALID: {a flowrider item, one unit met by a flowrider work item and one by a codeweaver work item} => only the FLOWRIDER-settled unit leaves the list', async () => {
       const proxy = questGetQaChecklistBrokerProxy();
       const scopeItem = OperationItemStub({
-        id: OP_ID as never,
+        id: OP_ID,
         role: 'flowrider',
-        flowIds: ['checkout-flow'] as never,
+        flowIds: ['checkout-flow'],
       });
       const quest = QuestStub({
         ...TAGGED_QUEST,

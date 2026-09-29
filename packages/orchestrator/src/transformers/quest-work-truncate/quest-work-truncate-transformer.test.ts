@@ -68,37 +68,37 @@ const WALK_PATHS = Array.from({ length: BRANCH_COUNT }, (_value, index) => ({
 // A WORKER on that flow: the whole in-scope set as its denominator, one piece's slice as its
 // assignment, and its flow rendered at the ceiling `questFlowSliceLimitsStatics` allows it.
 const WORST_CASE_VIEW = QuestWorkViewStub({
-  assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE) as never,
-  inScopeUnits: IN_SCOPE_UNITS as never,
-  walkPaths: WALK_PATHS as never,
+  assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE),
+  inScopeUnits: IN_SCOPE_UNITS,
+  walkPaths: WALK_PATHS,
   flows: [
     {
       flowId: 'send-flow',
       rendered: 'x'.repeat(questFlowSliceLimitsStatics.maxRenderChars),
     },
-  ] as never,
+  ],
 });
 
 // An ordinary quest — a handful of units — whose ONLY oversize is its rendered flow.
 const ORDINARY_OVER_BUDGET_VIEW = QuestWorkViewStub({
-  assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE) as never,
-  inScopeUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE) as never,
+  assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE),
+  inScopeUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE),
   walkPaths: [],
   flows: [
     {
       flowId: 'send-flow',
       rendered: 'x'.repeat(questFlowSliceLimitsStatics.maxRenderChars),
     },
-  ] as never,
+  ],
 });
 
 describe('questWorkTruncateTransformer', () => {
   describe('a return that already fits', () => {
     it('VALID: {a small scope with no flow render} => comes back untouched with an empty truncated[]', () => {
       const view = QuestWorkViewStub({
-        assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE) as never,
-        inScopeUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE) as never,
-        walkPaths: WALK_PATHS as never,
+        assignedUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE),
+        inScopeUnits: OBSERVABLE_UNITS.slice(0, ASSIGNED_SLICE),
+        walkPaths: WALK_PATHS,
         flows: [],
       });
 
@@ -178,7 +178,7 @@ describe('questWorkTruncateTransformer', () => {
           scope: null,
           subject: 'x'.repeat(questFlowSliceLimitsStatics.maxRenderChars),
           paths: [],
-        })) as never,
+        })),
       });
 
       const result = questWorkTruncateTransformer({ view });
@@ -199,7 +199,7 @@ describe('questWorkTruncateTransformer', () => {
           summary: 'a question',
           detail: 'x'.repeat(questFlowSliceLimitsStatics.maxRenderChars),
           at: '2026-01-01T00:00:00.000Z',
-        })) as never,
+        })),
       });
 
       const result = questWorkTruncateTransformer({ view });
@@ -217,7 +217,7 @@ describe('questWorkTruncateTransformer', () => {
           nodeIds: [`node-${String(index)}`],
           branchLabels: ['x'.repeat(questFlowSliceLimitsStatics.maxRenderChars)],
           exitsFlow: false,
-        })) as never,
+        })),
       });
 
       const result = questWorkTruncateTransformer({ view });

@@ -50,7 +50,7 @@ describe('questWorkPlanWriteBroker', () => {
           packageNames: [],
           batches: [],
           plannerMarks: [],
-        } as never,
+        },
       });
 
       expect(result).toStrictEqual({ operationItemId: OPERATION_ITEM_ID });
@@ -166,7 +166,7 @@ describe('questWorkPlanWriteBroker', () => {
             packageNames: [],
             batches: [],
             plannerMarks: [],
-          } as never,
+          },
         }),
       ).rejects.toThrow(
         /^quest-work: work item bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb is not on quest add-auth — nothing was written$/u,

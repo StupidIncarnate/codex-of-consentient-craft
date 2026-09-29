@@ -62,8 +62,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
     const entries = Array.from({ length: 12 }, (_, index) =>
       QuestBlightLedgerEntryStub({
-        itemId:
-          `packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:concern-${String(index)}` as never,
+        itemId: `packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:concern-${String(index)}`,
       }),
     );
 
@@ -113,12 +112,11 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
 
-    const sharedItemId =
-      'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:security' as never;
+    const sharedItemId = 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:security';
     const entries = Array.from({ length: 10 }, (_, index) =>
       QuestBlightLedgerEntryStub({
         itemId: sharedItemId,
-        evidence: `pass ${String(index)} observed the handler under real concurrency` as never,
+        evidence: `pass ${String(index)} observed the handler under real concurrency`,
       }),
     );
 
@@ -173,7 +171,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
 
     const earlierEntry = QuestBlightLedgerEntryStub({
-      itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup' as never,
+      itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup',
     });
     const earlierResult = await questModifyBroker({
       input: ModifyQuestInputStub({
@@ -186,8 +184,7 @@ describe('questModifyBroker (integration — real disk, real concurrency)', () =
 
     const concurrentEntries = Array.from({ length: 10 }, (_, index) =>
       QuestBlightLedgerEntryStub({
-        itemId:
-          `packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:new-concern-${String(index)}` as never,
+        itemId: `packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:new-concern-${String(index)}`,
       }),
     );
 
@@ -247,8 +244,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });
 
     const ledgerEntry = QuestBlightLedgerEntryStub({
-      itemId:
-        'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:integrity' as never,
+      itemId: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:integrity',
     });
     const branchName = QuestBranchNameStub({ value: 'quest/cross-writer-race' });
 
@@ -332,7 +328,7 @@ describe('questModifyBroker vs the dedicated pause pipeline (integration — rea
     const armed = await questModifyBroker({
       input: ModifyQuestInputStub({
         questId,
-        workItems: [{ id: workItem.id, status: 'in_progress', startedAt }] as never,
+        workItems: [{ id: workItem.id, status: 'in_progress', startedAt }],
       }),
     });
 

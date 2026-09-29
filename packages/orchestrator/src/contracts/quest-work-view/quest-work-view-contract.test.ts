@@ -47,7 +47,7 @@ describe('questWorkViewContract', () => {
           packageNames: ['shared'],
           operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
           operationItemText: 'the contracts this package owns — package: shared',
-        } as never,
+        },
       });
 
       expect(view.scope.flowId).toBe(null);
@@ -61,7 +61,7 @@ describe('questWorkViewContract', () => {
             packageNames: [],
             operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
             operationItemText: 'text',
-          } as never,
+          },
         }),
       ).toThrow(/flowId/u);
     });
@@ -86,7 +86,7 @@ describe('questWorkViewContract', () => {
             markedBy: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
             markedAt: '2026-01-01T00:00:00.000Z',
           },
-        ] as never,
+        ],
       });
 
       const [unit] = view.assignedUnits;
@@ -126,7 +126,7 @@ describe('questWorkViewContract', () => {
             markedBy: null,
             markedAt: null,
           },
-        ] as never,
+        ],
       });
 
       expect({
@@ -154,7 +154,7 @@ describe('questWorkViewContract', () => {
               markedBy: null,
               markedAt: null,
             },
-          ] as never,
+          ],
         }),
       ).toThrow(/unitId/u);
     });
@@ -163,7 +163,7 @@ describe('questWorkViewContract', () => {
   describe('truncation', () => {
     it('VALID: {truncated: flows dropped 2} => section and dropped count round-trip', () => {
       const view = QuestWorkViewStub({
-        truncated: [{ section: 'flows', dropped: 2 }] as never,
+        truncated: [{ section: 'flows', dropped: 2 }],
       });
 
       expect(view.truncated).toStrictEqual([{ section: 'flows', dropped: 2 }]);
@@ -171,7 +171,7 @@ describe('questWorkViewContract', () => {
 
     it('INVALID: {truncated section the cut order does not name} => refused', () => {
       expect(() =>
-        QuestWorkViewStub({ truncated: [{ section: 'assignedUnits', dropped: 1 }] as never }),
+        QuestWorkViewStub({ truncated: [{ section: 'assignedUnits', dropped: 1 }] }),
       ).toThrow(/section/u);
     });
   });
@@ -185,7 +185,7 @@ describe('questWorkViewContract', () => {
     });
 
     it('INVALID: {role outside planner|worker|reviewer} => refused', () => {
-      expect(() => QuestWorkViewStub({ role: 'antagonist' as never })).toThrow(/role/u);
+      expect(() => QuestWorkViewStub({ role: 'antagonist' })).toThrow(/role/u);
     });
   });
 });

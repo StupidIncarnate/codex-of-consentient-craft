@@ -82,14 +82,14 @@ describe('questOutboxLineContract', () => {
     });
 
     it('VALID: {custom questId} => creates with custom quest ID', () => {
-      const result = QuestOutboxLineStub({ questId: 'custom-quest' as never });
+      const result = QuestOutboxLineStub({ questId: 'custom-quest' });
 
       expect(result.questId).toBe('custom-quest');
     });
 
     it('VALID: {custom timestamp} => creates with custom timestamp', () => {
       const result = QuestOutboxLineStub({
-        timestamp: '2025-12-25T00:00:00.000Z' as never,
+        timestamp: '2025-12-25T00:00:00.000Z',
       });
 
       expect(result.timestamp).toBe('2025-12-25T00:00:00.000Z');

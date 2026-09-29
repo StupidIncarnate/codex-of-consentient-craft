@@ -53,7 +53,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
             id: QuestWorkItemIdStub({ value: 'ccc00000-1111-4222-9333-444444444444' }),
             role: 'codeweaver',
             status: 'complete',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -249,7 +249,7 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
             spawnerType: 'command',
             step: 'gate',
             declaredWord: 'done',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -280,14 +280,14 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
             status: 'complete',
             step: 'plan',
             declaredWord: 'done',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
           WorkItemStub({
             id: orphanId,
             role: 'codeweaver',
             status: 'in_progress',
             step: 'work',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });

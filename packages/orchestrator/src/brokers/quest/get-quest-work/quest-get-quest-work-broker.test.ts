@@ -26,15 +26,15 @@ const UNIT_B = 'send-flow:observable:unit-b';
 const UNIT_C = 'send-flow:observable:unit-c';
 
 const FLOW = FlowStub({
-  id: 'send-flow' as never,
+  id: 'send-flow',
   nodes: [
     FlowNodeStub({
-      id: 'compose' as never,
-      packages: ['web'] as never,
+      id: 'compose',
+      packages: ['web'],
       observables: [
-        FlowObservableStub({ id: 'unit-a' as never, description: 'unit a holds' as never }),
-        FlowObservableStub({ id: 'unit-b' as never, description: 'unit b holds' as never }),
-        FlowObservableStub({ id: 'unit-c' as never, description: 'unit c holds' as never }),
+        FlowObservableStub({ id: 'unit-a', description: 'unit a holds' }),
+        FlowObservableStub({ id: 'unit-b', description: 'unit b holds' }),
+        FlowObservableStub({ id: 'unit-c', description: 'unit c holds' }),
       ],
     }),
   ],
@@ -42,26 +42,26 @@ const FLOW = FlowStub({
 });
 
 const OPERATION_ITEM = OperationItemStub({
-  id: OPERATION_ITEM_ID as never,
+  id: OPERATION_ITEM_ID,
   role: 'codeweaver',
-  text: 'build the send flow — package: web · flow: send-flow' as never,
-  flowIds: ['send-flow'] as never,
+  text: 'build the send flow — package: web · flow: send-flow',
+  flowIds: ['send-flow'],
   packageNames: [],
 });
 
 const WORK_ITEM = WorkItemStub({
   id: WORK_ITEM_ID,
   role: 'codeweaver',
-  step: 'work' as never,
-  pieceId: 'pc-badge' as never,
-  relatedDataItems: [`operations/${OPERATION_ITEM_ID}`] as never,
+  step: 'work',
+  pieceId: 'pc-badge',
+  relatedDataItems: [`operations/${OPERATION_ITEM_ID}`],
   // THE ROUTER'S DECISION: the piece claims three units and the router filtered this session to two.
-  assignedUnitIds: [UNIT_B, UNIT_C] as never,
+  assignedUnitIds: [UNIT_B, UNIT_C],
 });
 
 const QUEST = QuestStub({
   id: QUEST_ID,
-  worktreePath: '/home/testuser/worktrees/add-auth' as never,
+  worktreePath: '/home/testuser/worktrees/add-auth',
   flows: [FLOW],
   operations: [OPERATION_ITEM],
   workItems: [WORK_ITEM],
@@ -69,14 +69,14 @@ const QUEST = QuestStub({
 
 // The piece the planner cut — its `assignedUnitIds` is INTENT and holds all three.
 const PLAN = WorkPlanStub({
-  operationItemId: OPERATION_ITEM_ID as never,
+  operationItemId: OPERATION_ITEM_ID,
   batches: [
     WorkPlanBatchStub({
       pieces: [
         WorkPlanPieceStub({
-          id: 'pc-badge' as never,
-          step: 'work' as never,
-          assignedUnitIds: [UNIT_A, UNIT_B, UNIT_C] as never,
+          id: 'pc-badge',
+          step: 'work',
+          assignedUnitIds: [UNIT_A, UNIT_B, UNIT_C],
           contextUnitIds: [],
           payload: WorkPlanPayloadCodeweaverStub({
             units: [UNIT_A, UNIT_B, UNIT_C].map((unitId) => ({
@@ -86,7 +86,7 @@ const PLAN = WorkPlanStub({
               text: `${unitId} holds`,
               assert: 'render the widget and read the value back',
               failsIf: 'the value is the queued one rather than the persisted one',
-            })) as never,
+            })),
           }),
         }),
       ],
@@ -261,13 +261,13 @@ describe('questGetQuestWorkBroker', () => {
         workItems: [
           WorkItemStub({
             id: MINTER_ID,
-            relatedDataItems: [`operations/${OPERATION_ITEM_ID}`] as never,
-            assignedUnitIds: [UNIT_B] as never,
+            relatedDataItems: [`operations/${OPERATION_ITEM_ID}`],
+            assignedUnitIds: [UNIT_B],
             observations: [
               UnitObservationStub({
-                unitId: UNIT_B as never,
+                unitId: UNIT_B,
                 mark: 'unmet',
-                evidence: 'the walker measured 1 where the flow says 2' as never,
+                evidence: 'the walker measured 1 where the flow says 2',
               }),
             ],
           }),
@@ -299,13 +299,13 @@ describe('questGetQuestWorkBroker', () => {
         workItems: [
           WorkItemStub({
             id: MINTER_ID,
-            relatedDataItems: [`operations/${OPERATION_ITEM_ID}`] as never,
-            assignedUnitIds: [UNIT_B] as never,
+            relatedDataItems: [`operations/${OPERATION_ITEM_ID}`],
+            assignedUnitIds: [UNIT_B],
             observations: [
               UnitObservationStub({
-                unitId: UNIT_B as never,
+                unitId: UNIT_B,
                 mark: 'unmet',
-                evidence: 'the ward run went red' as never,
+                evidence: 'the ward run went red',
               }),
             ],
           }),
@@ -454,14 +454,14 @@ describe('questGetQuestWorkBroker', () => {
           operationPlans: [],
           questNotes: [
             QuestNoteStub({
-              id: 'open-question-mine' as never,
-              flowId: 'send-flow' as never,
-              unitId: UNIT_B as never,
+              id: 'open-question-mine',
+              flowId: 'send-flow',
+              unitId: UNIT_B,
             }),
             QuestNoteStub({
-              id: 'open-question-elsewhere' as never,
-              flowId: 'other-flow' as never,
-              unitId: 'other-flow:observable:elsewhere' as never,
+              id: 'open-question-elsewhere',
+              flowId: 'other-flow',
+              unitId: 'other-flow:observable:elsewhere',
             }),
           ],
         },

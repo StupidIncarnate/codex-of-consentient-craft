@@ -38,7 +38,7 @@ describe('taskAgentToolInputContract', () => {
 
   it('INVALID: {prompt is number} => throws validation error', () => {
     expect(() => {
-      return taskAgentToolInputContract.parse({ prompt: 42 as never });
+      return taskAgentToolInputContract.parse({ prompt: 42 });
     }).toThrow(/expected string/u);
   });
 });

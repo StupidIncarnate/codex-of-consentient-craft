@@ -6,13 +6,13 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('VALID: {answer with matching question and option} => returns design decision with option description as rationale', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
           options: [
             {
-              label: 'PostgreSQL' as never,
-              description: 'Relational database with JSONB support' as never,
+              label: 'PostgreSQL',
+              description: 'Relational database with JSONB support',
             },
-            { label: 'SQLite' as never, description: 'Lightweight file-based database' as never },
+            { label: 'SQLite', description: 'Lightweight file-based database' },
           ],
         }),
       ];
@@ -35,8 +35,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('VALID: {answer with matching question but no matching option} => returns design decision with label as rationale', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Icon Choice' as never,
-          options: [{ label: 'Skull' as never, description: 'Intimidating skull icon' as never }],
+          header: 'Icon Choice',
+          options: [{ label: 'Skull', description: 'Intimidating skull icon' }],
         }),
       ];
 
@@ -58,12 +58,12 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('VALID: {multiple answers with matching questions} => returns multiple design decisions', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Auth Method' as never,
-          options: [{ label: 'JWT' as never, description: 'Stateless token-based auth' as never }],
+          header: 'Auth Method',
+          options: [{ label: 'JWT', description: 'Stateless token-based auth' }],
         }),
         ClarificationQuestionStub({
-          header: 'Storage Layer' as never,
-          options: [{ label: 'S3' as never, description: 'AWS object storage' as never }],
+          header: 'Storage Layer',
+          options: [{ label: 'S3', description: 'AWS object storage' }],
         }),
       ];
 
@@ -96,7 +96,7 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EMPTY: {answer with no matching question} => returns empty array', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
         }),
       ];
 
@@ -138,8 +138,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('VALID: {mix of matching and non-matching answers} => returns only matched design decisions', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Auth Method' as never,
-          options: [{ label: 'JWT' as never, description: 'Token-based auth' as never }],
+          header: 'Auth Method',
+          options: [{ label: 'JWT', description: 'Token-based auth' }],
         }),
       ];
 
@@ -167,8 +167,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {answer header with different casing} => matches case-insensitively', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
-          options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
+          header: 'Database Selection',
+          options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
         }),
       ];
 
@@ -190,8 +190,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {answer header with extra whitespace} => trims and matches', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
-          options: [{ label: 'PostgreSQL' as never, description: 'Relational DB' as never }],
+          header: 'Database Selection',
+          options: [{ label: 'PostgreSQL', description: 'Relational DB' }],
         }),
       ];
 
@@ -213,8 +213,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {question header with extra whitespace} => trims and matches', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: '  Storage Layer  ' as never,
-          options: [{ label: 'S3' as never, description: 'AWS object storage' as never }],
+          header: '  Storage Layer  ',
+          options: [{ label: 'S3', description: 'AWS object storage' }],
         }),
       ];
 
@@ -238,8 +238,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {answer label differs in case from option label} => falls back to label as rationale', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
-          options: [{ label: 'PostgreSQL' as never, description: 'Relational database' as never }],
+          header: 'Database Selection',
+          options: [{ label: 'PostgreSQL', description: 'Relational database' }],
         }),
       ];
 
@@ -263,10 +263,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {header with special characters} => generates valid kebab-case ID', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'UI Framework (v2)' as never,
-          options: [
-            { label: 'React' as never, description: 'Component-based UI library' as never },
-          ],
+          header: 'UI Framework (v2)',
+          options: [{ label: 'React', description: 'Component-based UI library' }],
         }),
       ];
 
@@ -288,8 +286,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {header with consecutive special characters} => collapses to single hyphen', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Auth---Method' as never,
-          options: [{ label: 'JWT' as never, description: 'Token auth' as never }],
+          header: 'Auth---Method',
+          options: [{ label: 'JWT', description: 'Token auth' }],
         }),
       ];
 
@@ -311,8 +309,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {header with leading special characters} => strips leading hyphen from ID', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: '---Cache Strategy' as never,
-          options: [{ label: 'Redis' as never, description: 'In-memory cache' as never }],
+          header: '---Cache Strategy',
+          options: [{ label: 'Redis', description: 'In-memory cache' }],
         }),
       ];
 
@@ -334,8 +332,8 @@ describe('clarificationAnswersToDesignDecisionsTransformer', () => {
     it('EDGE: {header with trailing special characters} => strips trailing hyphen from ID', () => {
       const questions = [
         ClarificationQuestionStub({
-          header: 'Cache Strategy!!!' as never,
-          options: [{ label: 'Redis' as never, description: 'In-memory cache' as never }],
+          header: 'Cache Strategy!!!',
+          options: [{ label: 'Redis', description: 'In-memory cache' }],
         }),
       ];
 

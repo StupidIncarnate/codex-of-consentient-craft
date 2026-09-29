@@ -45,14 +45,14 @@ describe('wardRowsLayerBroker', () => {
       const proxy = wardRowsLayerBrokerProxy();
       proxy.setupBlobReadable({
         questPath: QUEST_PATH,
-        wardResultId: WardResultStub({ id: WARD_RESULT_ID as never }).id,
+        wardResultId: WardResultStub({ id: WARD_RESULT_ID }).id,
         detailJson: FAILING_DETAIL,
       });
 
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,
         quest: QuestStub({
-          wardResults: [WardResultStub({ id: WARD_RESULT_ID as never, exitCode: 1 as never })],
+          wardResults: [WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 })],
         }),
       });
 
@@ -63,14 +63,14 @@ describe('wardRowsLayerBroker', () => {
       const proxy = wardRowsLayerBrokerProxy();
       proxy.setupBlobReadable({
         questPath: QUEST_PATH,
-        wardResultId: WardResultStub({ id: WARD_RESULT_ID as never }).id,
+        wardResultId: WardResultStub({ id: WARD_RESULT_ID }).id,
         detailJson: FAILING_DETAIL,
       });
 
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,
         quest: QuestStub({
-          wardResults: [WardResultStub({ id: WARD_RESULT_ID as never, exitCode: 1 as never })],
+          wardResults: [WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 })],
         }),
       });
 
@@ -82,7 +82,7 @@ describe('wardRowsLayerBroker', () => {
 
     it('VALID: {a failed result} => the row names the result and the blob beside it', async () => {
       const proxy = wardRowsLayerBrokerProxy();
-      const wardResultId = WardResultStub({ id: WARD_RESULT_ID as never }).id;
+      const wardResultId = WardResultStub({ id: WARD_RESULT_ID }).id;
       proxy.setupBlobReadable({
         questPath: QUEST_PATH,
         wardResultId,
@@ -92,7 +92,7 @@ describe('wardRowsLayerBroker', () => {
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,
         quest: QuestStub({
-          wardResults: [WardResultStub({ id: WARD_RESULT_ID as never, exitCode: 1 as never })],
+          wardResults: [WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 })],
         }),
       });
 
@@ -111,13 +111,13 @@ describe('wardRowsLayerBroker', () => {
       const proxy = wardRowsLayerBrokerProxy();
       proxy.setupBlobMissing({
         questPath: QUEST_PATH,
-        wardResultId: WardResultStub({ id: WARD_RESULT_ID as never }).id,
+        wardResultId: WardResultStub({ id: WARD_RESULT_ID }).id,
       });
 
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,
         quest: QuestStub({
-          wardResults: [WardResultStub({ id: WARD_RESULT_ID as never, exitCode: 1 as never })],
+          wardResults: [WardResultStub({ id: WARD_RESULT_ID, exitCode: 1 })],
         }),
       });
 
@@ -140,7 +140,7 @@ describe('wardRowsLayerBroker', () => {
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,
         quest: QuestStub({
-          wardResults: [WardResultStub({ id: WARD_RESULT_ID as never, exitCode: 0 as never })],
+          wardResults: [WardResultStub({ id: WARD_RESULT_ID, exitCode: 0 })],
         }),
       });
 
@@ -156,7 +156,7 @@ describe('wardRowsLayerBroker', () => {
       const proxy = wardRowsLayerBrokerProxy();
       proxy.setupCarveLog({
         questPath: QUEST_PATH,
-        carveId: RiftcarverResultStub({ id: CARVE_ID as never }).id,
+        carveId: RiftcarverResultStub({ id: CARVE_ID }).id,
       });
 
       const rows = await wardRowsLayerBroker({
@@ -164,8 +164,8 @@ describe('wardRowsLayerBroker', () => {
         quest: QuestStub({
           riftcarverResults: [
             RiftcarverResultStub({
-              id: CARVE_ID as never,
-              exitCode: 1 as never,
+              id: CARVE_ID,
+              exitCode: 1,
               outcome: 'repairable',
             }),
           ],
@@ -185,7 +185,7 @@ describe('wardRowsLayerBroker', () => {
         questPath: QUEST_PATH,
         quest: QuestStub({
           riftcarverResults: [
-            RiftcarverResultStub({ id: CARVE_ID as never, exitCode: 0 as never, outcome: 'green' }),
+            RiftcarverResultStub({ id: CARVE_ID, exitCode: 0, outcome: 'green' }),
           ],
         }),
       });

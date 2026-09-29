@@ -17,12 +17,12 @@ describe('streamJsonResultContract', () => {
 
     it('VALID: {entries: [chatEntry], sessionId: "abc-123"} => parses with entries and session', () => {
       const entry = AssistantTextChatEntryStub({
-        uuid: 'stream-json-result-entry-uuid' as never,
-        timestamp: '2025-01-01T00:00:00.000Z' as never,
+        uuid: 'stream-json-result-entry-uuid',
+        timestamp: '2025-01-01T00:00:00.000Z',
       });
       const result = StreamJsonResultStub({
         entries: [entry],
-        sessionId: 'abc-123' as never,
+        sessionId: 'abc-123',
       });
 
       const parsed = streamJsonResultContract.parse(result);

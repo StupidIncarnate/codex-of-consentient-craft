@@ -133,7 +133,7 @@ describe('questBlueprintContract', () => {
           contracts: [],
           toolingRequirements: [],
           operations: [],
-          skipRoles: ['bogus' as never],
+          skipRoles: ['bogus'],
         });
       }).toThrow(/Invalid option/u);
     });
@@ -148,7 +148,7 @@ describe('questBlueprintContract', () => {
           contracts: [],
           toolingRequirements: [],
           operations: [],
-          targetStatus: 'nonsense' as never,
+          targetStatus: 'nonsense',
         });
       }).toThrow(/Invalid option/u);
     });

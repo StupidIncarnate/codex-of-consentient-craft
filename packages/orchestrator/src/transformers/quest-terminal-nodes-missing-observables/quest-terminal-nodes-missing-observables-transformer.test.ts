@@ -8,7 +8,7 @@ describe('questTerminalNodesMissingObservablesTransformer', () => {
   describe('terminal nodes have observables', () => {
     it('VALID: {terminal has observables} => returns []', () => {
       const node = FlowNodeStub({
-        id: 'done' as never,
+        id: 'done',
         type: 'terminal',
         observables: [FlowObservableStub()],
       });
@@ -23,11 +23,11 @@ describe('questTerminalNodesMissingObservablesTransformer', () => {
   describe('terminal node missing observables', () => {
     it('INVALID: {terminal has no observables} => returns description', () => {
       const node = FlowNodeStub({
-        id: 'bare-end' as never,
+        id: 'bare-end',
         type: 'terminal',
         observables: [],
       });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
 
       const result = questTerminalNodesMissingObservablesTransformer({ flows: [flow] });
 

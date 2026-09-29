@@ -26,7 +26,7 @@ describe('questSaveInvariantsTransformer', () => {
 
   it('INVALID: {two flows share id} => returns only the failed Flow ID Uniqueness check', () => {
     const quest = QuestStub({
-      flows: [FlowStub({ id: 'login-flow' as never }), FlowStub({ id: 'login-flow' as never })],
+      flows: [FlowStub({ id: 'login-flow' }), FlowStub({ id: 'login-flow' })],
     });
 
     const failures = questSaveInvariantsTransformer({ quest });
@@ -41,22 +41,22 @@ describe('questSaveInvariantsTransformer', () => {
   });
 
   it('INVALID: {two flows share id AND a contract uses a raw primitive} => returns both failed invariants in check order', () => {
-    const rawProperty = QuestContractPropertyStub({ name: 'password' as never });
-    const node = FlowNodeStub({ id: 'anchor-node' as never });
+    const rawProperty = QuestContractPropertyStub({ name: 'password' });
+    const node = FlowNodeStub({ id: 'anchor-node' });
     const edge = FlowEdgeStub({
-      id: 'self' as never,
-      from: 'anchor-node' as never,
-      to: 'anchor-node' as never,
+      id: 'self',
+      from: 'anchor-node',
+      to: 'anchor-node',
     });
     const contract = QuestContractEntryStub({
-      name: 'Creds' as never,
-      nodeId: 'anchor-node' as never,
+      name: 'Creds',
+      nodeId: 'anchor-node',
     });
     const quest = QuestStub({
       flows: [
-        FlowStub({ id: 'contract-flow' as never, nodes: [node], edges: [edge] }),
-        FlowStub({ id: 'login-flow' as never }),
-        FlowStub({ id: 'login-flow' as never }),
+        FlowStub({ id: 'contract-flow', nodes: [node], edges: [edge] }),
+        FlowStub({ id: 'login-flow' }),
+        FlowStub({ id: 'login-flow' }),
       ],
       contracts: [contract],
     });
@@ -98,7 +98,7 @@ describe('questSaveInvariantsTransformer', () => {
     'VALID: {currentStatus and nextStatus both %s, quest with an invariant violation} => still returns the same invariants failure (the structural tier ignores status)',
     (status) => {
       const quest = QuestStub({
-        flows: [FlowStub({ id: 'login-flow' as never }), FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' }), FlowStub({ id: 'login-flow' })],
       });
 
       const failures = questSaveInvariantsTransformer({

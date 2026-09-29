@@ -6,8 +6,8 @@ describe('questDuplicateContractNamesTransformer', () => {
   describe('no duplicates', () => {
     it('VALID: {unique names} => returns []', () => {
       const contracts = [
-        QuestContractEntryStub({ id: 'a' as never, name: 'First' as never }),
-        QuestContractEntryStub({ id: 'b' as never, name: 'Second' as never }),
+        QuestContractEntryStub({ id: 'a', name: 'First' }),
+        QuestContractEntryStub({ id: 'b', name: 'Second' }),
       ];
 
       const result = questDuplicateContractNamesTransformer({ contracts });
@@ -20,16 +20,14 @@ describe('questDuplicateContractNamesTransformer', () => {
     it('INVALID: {two contracts share name} => returns reconciliation hint citing first entry source', () => {
       const contracts = [
         QuestContractEntryStub({
-          id: 'a' as never,
-          name: 'LoginCredentials' as never,
-          source:
-            'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts' as never,
+          id: 'a',
+          name: 'LoginCredentials',
+          source: 'packages/shared/src/contracts/login-credentials/login-credentials-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'b' as never,
-          name: 'LoginCredentials' as never,
-          source:
-            'packages/web/src/contracts/login-credentials/login-credentials-contract.ts' as never,
+          id: 'b',
+          name: 'LoginCredentials',
+          source: 'packages/web/src/contracts/login-credentials/login-credentials-contract.ts',
         }),
       ];
 
@@ -43,22 +41,22 @@ describe('questDuplicateContractNamesTransformer', () => {
     it('INVALID: {three contracts share name} => reports the duplicate name only once with the first entry source', () => {
       const contracts = [
         QuestContractEntryStub({
-          id: 'a' as never,
-          name: 'MantineNotificationId' as never,
+          id: 'a',
+          name: 'MantineNotificationId',
           source:
-            'packages/web/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts' as never,
+            'packages/web/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'b' as never,
-          name: 'MantineNotificationId' as never,
+          id: 'b',
+          name: 'MantineNotificationId',
           source:
-            'packages/server/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts' as never,
+            'packages/server/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'c' as never,
-          name: 'MantineNotificationId' as never,
+          id: 'c',
+          name: 'MantineNotificationId',
           source:
-            'packages/orchestrator/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts' as never,
+            'packages/orchestrator/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts',
         }),
       ];
 
@@ -72,24 +70,24 @@ describe('questDuplicateContractNamesTransformer', () => {
     it('INVALID: {two distinct duplicate names} => reports both with their respective first-entry sources', () => {
       const contracts = [
         QuestContractEntryStub({
-          id: 'a' as never,
-          name: 'First' as never,
-          source: 'packages/shared/src/contracts/first/first-contract.ts' as never,
+          id: 'a',
+          name: 'First',
+          source: 'packages/shared/src/contracts/first/first-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'b' as never,
-          name: 'Second' as never,
-          source: 'packages/web/src/contracts/second/second-contract.ts' as never,
+          id: 'b',
+          name: 'Second',
+          source: 'packages/web/src/contracts/second/second-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'c' as never,
-          name: 'First' as never,
-          source: 'packages/server/src/contracts/first/first-contract.ts' as never,
+          id: 'c',
+          name: 'First',
+          source: 'packages/server/src/contracts/first/first-contract.ts',
         }),
         QuestContractEntryStub({
-          id: 'd' as never,
-          name: 'Second' as never,
-          source: 'packages/orchestrator/src/contracts/second/second-contract.ts' as never,
+          id: 'd',
+          name: 'Second',
+          source: 'packages/orchestrator/src/contracts/second/second-contract.ts',
         }),
       ];
 
@@ -110,14 +108,14 @@ describe('questDuplicateContractNamesTransformer', () => {
         'packages/web/src/contracts/mantine-notification-id/mantine-notification-id-contract.ts';
       const contracts = [
         QuestContractEntryStub({
-          id: 'a' as never,
-          name: 'MantineNotificationId' as never,
-          source: existingSource as never,
+          id: 'a',
+          name: 'MantineNotificationId',
+          source: existingSource,
         }),
         QuestContractEntryStub({
-          id: 'b' as never,
-          name: 'MantineNotificationId' as never,
-          source: conflictingSource as never,
+          id: 'b',
+          name: 'MantineNotificationId',
+          source: conflictingSource,
         }),
       ];
 

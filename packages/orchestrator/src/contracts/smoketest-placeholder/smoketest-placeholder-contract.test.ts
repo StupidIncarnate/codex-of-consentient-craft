@@ -28,11 +28,11 @@ describe('smoketestPlaceholderContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for non-string', () => {
-      expect(() => smoketestPlaceholderContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => smoketestPlaceholderContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws for null', () => {
-      expect(() => smoketestPlaceholderContract.parse(null as never)).toThrow(/expected string/u);
+      expect(() => smoketestPlaceholderContract.parse(null)).toThrow(/expected string/u);
     });
   });
 });

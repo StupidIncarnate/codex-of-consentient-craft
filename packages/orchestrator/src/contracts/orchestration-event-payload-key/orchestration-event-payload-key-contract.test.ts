@@ -14,9 +14,7 @@ describe('orchestrationEventPayloadKeyContract', () => {
 
   describe('invalid keys', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => orchestrationEventPayloadKeyContract.parse(123 as never)).toThrow(
-        /expected string/u,
-      );
+      expect(() => orchestrationEventPayloadKeyContract.parse(123)).toThrow(/expected string/u);
     });
   });
 });

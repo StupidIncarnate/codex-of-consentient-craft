@@ -13,7 +13,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
   describe('top-level field allowlist', () => {
     it('VALID: {explore_flows + flows} => returns empty array', () => {
       const input = ModifyQuestInputStub({
-        flows: [FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' })],
       });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -41,7 +41,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
     it('INVALID: {complete + title} => rejects every input field (terminal status)', () => {
       const input = ModifyQuestInputStub({
-        title: 'New Title' as never,
+        title: 'New Title',
       });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -58,7 +58,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
   describe('back-transition carveout', () => {
     it('VALID: {review_flows -> explore_flows + flows} => permits flows on back transition', () => {
       const input = ModifyQuestInputStub({
-        flows: [FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' })],
         status: 'explore_flows',
       });
 
@@ -73,7 +73,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
     it('INVALID: {review_flows + flows without back transition} => rejects flows', () => {
       const input = ModifyQuestInputStub({
-        flows: [FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' })],
       });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -90,7 +90,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
   describe('flowsRule: forbidden', () => {
     it('INVALID: {created + flows} => rejects flows top-level (forbidden rule)', () => {
       const input = ModifyQuestInputStub({
-        flows: [FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' })],
       });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -106,9 +106,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
   describe('flowsRule: full', () => {
     it('VALID: {flows_approved + flows with observables and structural changes} => returns empty array', () => {
-      const observable = FlowObservableStub({ id: 'redirects' as never });
-      const node = FlowNodeStub({ id: 'login' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const observable = FlowObservableStub({ id: 'redirects' });
+      const node = FlowNodeStub({ id: 'login', observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
       const input = ModifyQuestInputStub({ flows: [flow] });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -122,8 +122,8 @@ describe('questInputForbiddenFieldsTransformer', () => {
 
   describe('flowsRule: full during flow authoring (an observable the user named while reviewing the draft)', () => {
     it('VALID: {explore_flows + flows[].nodes[].observables: []} => permits empty observables array', () => {
-      const node = FlowNodeStub({ id: 'login' as never, observables: [] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const node = FlowNodeStub({ id: 'login', observables: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
       const input = ModifyQuestInputStub({ flows: [flow] });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -135,9 +135,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
 
     it('VALID: {explore_flows + flows with a populated observable} => permits it, so a user-named assertion lands before Gate #1', () => {
-      const observable = FlowObservableStub({ id: 'redirects' as never });
-      const node = FlowNodeStub({ id: 'login' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const observable = FlowObservableStub({ id: 'redirects' });
+      const node = FlowNodeStub({ id: 'login', observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
       const input = ModifyQuestInputStub({ flows: [flow] });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -149,9 +149,9 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
 
     it("VALID: {review_flows back-transition to explore_flows + flows with a populated observable} => permits it on the same call that carries the rest of the user's changes", () => {
-      const observable = FlowObservableStub({ id: 'redirects' as never });
-      const node = FlowNodeStub({ id: 'login' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const observable = FlowObservableStub({ id: 'redirects' });
+      const node = FlowNodeStub({ id: 'login', observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
       const input = ModifyQuestInputStub({ flows: [flow], status: 'explore_flows' });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -167,15 +167,15 @@ describe('questInputForbiddenFieldsTransformer', () => {
   describe('flowsRule: full at in_progress — an execution agent may restructure a flow, not just add to it', () => {
     it('VALID: {in_progress + replace existing observable wording} => returns empty array', () => {
       const replacementObservable = FlowObservableStub({
-        id: 'redirects' as never,
-        description: 'redirects to /home instead' as never,
+        id: 'redirects',
+        description: 'redirects to /home instead',
       });
       const updateNode = FlowNodeStub({
-        id: 'login' as never,
+        id: 'login',
         observables: [replacementObservable],
       });
       const updateFlow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [updateNode],
       });
       const input = ModifyQuestInputStub({ flows: [updateFlow] });
@@ -189,7 +189,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
 
     it('VALID: {in_progress + add new flow} => returns empty array, since flowsRule: full allows a whole new flow', () => {
-      const newFlow = FlowStub({ id: 'brand-new-flow' as never });
+      const newFlow = FlowStub({ id: 'brand-new-flow' });
       const input = ModifyQuestInputStub({ flows: [newFlow] });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -201,14 +201,14 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
 
     it('VALID: {in_progress + add new node and edge to existing flow} => allowed, a session may record a branch it discovered', () => {
-      const newNode = FlowNodeStub({ id: 'new-node' as never });
+      const newNode = FlowNodeStub({ id: 'new-node' });
       const newEdge = FlowEdgeStub({
-        id: 'new-edge' as never,
-        from: 'login' as never,
-        to: 'new-node' as never,
+        id: 'new-edge',
+        from: 'login',
+        to: 'new-node',
       });
       const updateFlow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [newNode],
         edges: [newEdge],
       });
@@ -240,7 +240,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -252,12 +252,12 @@ describe('questInputForbiddenFieldsTransformer', () => {
     });
 
     it('VALID: {in_progress + add new observable to existing node} => allowed, adding only tightens the target', () => {
-      const newObservable = FlowObservableStub({ id: 'brand-new-obs' as never });
+      const newObservable = FlowObservableStub({ id: 'brand-new-obs' });
       const updateNode = FlowNodeStub({
-        id: 'login' as never,
+        id: 'login',
         observables: [newObservable],
       });
-      const updateFlow = FlowStub({ id: 'login-flow' as never, nodes: [updateNode] });
+      const updateFlow = FlowStub({ id: 'login-flow', nodes: [updateNode] });
       const input = ModifyQuestInputStub({ flows: [updateFlow] });
 
       const offenders = questInputForbiddenFieldsTransformer({
@@ -400,7 +400,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
     it('VALID: {explore_flows + packagesAffected + flows} => allowed, a node tag and the entry it names land in one call', () => {
       const input = ModifyQuestInputStub({
         packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
-        flows: [FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' })],
       });
 
       const offenders = questInputForbiddenFieldsTransformer({

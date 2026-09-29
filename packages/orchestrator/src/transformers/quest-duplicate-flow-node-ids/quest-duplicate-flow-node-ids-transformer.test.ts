@@ -7,10 +7,7 @@ describe('questDuplicateFlowNodeIdsTransformer', () => {
   describe('no duplicates', () => {
     it('VALID: {unique node ids} => returns []', () => {
       const flow = FlowStub({
-        nodes: [
-          FlowNodeStub({ id: 'n1' as never, label: 'A' as never }),
-          FlowNodeStub({ id: 'n2' as never, label: 'B' as never }),
-        ],
+        nodes: [FlowNodeStub({ id: 'n1', label: 'A' }), FlowNodeStub({ id: 'n2', label: 'B' })],
       });
 
       const result = questDuplicateFlowNodeIdsTransformer({ flows: [flow] });
@@ -22,10 +19,10 @@ describe('questDuplicateFlowNodeIdsTransformer', () => {
   describe('duplicates in one flow', () => {
     it('INVALID: {flow has two nodes with same id} => returns description with flow id and node ids', () => {
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [
-          FlowNodeStub({ id: 'same-node' as never, label: 'First' as never }),
-          FlowNodeStub({ id: 'same-node' as never, label: 'Second' as never }),
+          FlowNodeStub({ id: 'same-node', label: 'First' }),
+          FlowNodeStub({ id: 'same-node', label: 'Second' }),
         ],
       });
 

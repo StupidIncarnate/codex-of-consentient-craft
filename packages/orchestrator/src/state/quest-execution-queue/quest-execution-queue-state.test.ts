@@ -11,9 +11,9 @@ describe('questExecutionQueueState', () => {
     it('VALID: {enqueue 3 entries} => getActive returns head, getAll returns FIFO order', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
-      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
-      const c = QuestQueueEntryStub({ questId: 'q-c' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
+      const b = QuestQueueEntryStub({ questId: 'q-b' });
+      const c = QuestQueueEntryStub({ questId: 'q-c' });
 
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
@@ -36,8 +36,8 @@ describe('questExecutionQueueState', () => {
     it('VALID: {two entries} => dequeueHead returns first, remaining is second', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
-      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
+      const b = QuestQueueEntryStub({ questId: 'q-b' });
 
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
@@ -63,9 +63,9 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const smoketestSource = 'smoketest-orchestration';
       const userSource = 'user';
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never, questSource: smoketestSource });
-      const b = QuestQueueEntryStub({ questId: 'q-b' as never, questSource: userSource });
-      const c = QuestQueueEntryStub({ questId: 'q-c' as never, questSource: smoketestSource });
+      const a = QuestQueueEntryStub({ questId: 'q-a', questSource: smoketestSource });
+      const b = QuestQueueEntryStub({ questId: 'q-b', questSource: userSource });
+      const c = QuestQueueEntryStub({ questId: 'q-c', questSource: smoketestSource });
 
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
@@ -81,7 +81,7 @@ describe('questExecutionQueueState', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
       const userSource = 'user';
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never, questSource: userSource });
+      const a = QuestQueueEntryStub({ questId: 'q-a', questSource: userSource });
 
       questExecutionQueueState.enqueue({ entry: a });
 
@@ -208,8 +208,8 @@ describe('questExecutionQueueState', () => {
     it('VALID: {entry present at head} => removes it, returns 1, subsequent getActive returns next', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
-      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
+      const b = QuestQueueEntryStub({ questId: 'q-b' });
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
 
@@ -223,9 +223,9 @@ describe('questExecutionQueueState', () => {
     it('VALID: {entry present mid-queue} => removes it, returns 1, head unchanged', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
-      const b = QuestQueueEntryStub({ questId: 'q-b' as never });
-      const c = QuestQueueEntryStub({ questId: 'q-c' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
+      const b = QuestQueueEntryStub({ questId: 'q-b' });
+      const c = QuestQueueEntryStub({ questId: 'q-c' });
       questExecutionQueueState.enqueue({ entry: a });
       questExecutionQueueState.enqueue({ entry: b });
       questExecutionQueueState.enqueue({ entry: c });
@@ -239,7 +239,7 @@ describe('questExecutionQueueState', () => {
     it('EMPTY: {questId not in queue} => returns 0, queue unchanged, handler does NOT fire', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
       questExecutionQueueState.onChange(handler);
@@ -254,7 +254,7 @@ describe('questExecutionQueueState', () => {
     it('VALID: {removal occurs} => handler fires exactly once', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
       questExecutionQueueState.onChange(handler);
@@ -270,7 +270,7 @@ describe('questExecutionQueueState', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -291,11 +291,11 @@ describe('questExecutionQueueState', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         status: 'in_progress',
       });
       const b = QuestQueueEntryStub({
-        questId: 'q-b' as never,
+        questId: 'q-b',
         status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -316,7 +316,7 @@ describe('questExecutionQueueState', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -336,7 +336,7 @@ describe('questExecutionQueueState', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         status: 'in_progress',
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -357,7 +357,7 @@ describe('questExecutionQueueState', () => {
     it('VALID: {entry without activeSessionId, sets new sessionId} => mutates field, returns true, handler fires', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
       questExecutionQueueState.onChange(handler);
@@ -379,7 +379,7 @@ describe('questExecutionQueueState', () => {
       const oldSession = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
       const newSession = SessionIdStub({ value: '22222222-2222-4222-8222-222222222222' });
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         activeSessionId: oldSession,
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -401,7 +401,7 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         activeSessionId: sessionId,
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -427,7 +427,7 @@ describe('questExecutionQueueState', () => {
     it('EMPTY: {questId not in queue} => returns false, handler does NOT fire', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
       questExecutionQueueState.onChange(handler);
@@ -446,7 +446,7 @@ describe('questExecutionQueueState', () => {
       proxy.setupEmpty();
       const sessionId = SessionIdStub({ value: '11111111-1111-4111-8111-111111111111' });
       const a = QuestQueueEntryStub({
-        questId: 'q-a' as never,
+        questId: 'q-a',
         activeSessionId: sessionId,
       });
       questExecutionQueueState.enqueue({ entry: a });
@@ -465,7 +465,7 @@ describe('questExecutionQueueState', () => {
     it('EDGE: {entry has no activeSessionId, clear with undefined} => no-op, returns false, handler does NOT fire', () => {
       const proxy = questExecutionQueueStateProxy();
       proxy.setupEmpty();
-      const a = QuestQueueEntryStub({ questId: 'q-a' as never });
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
       questExecutionQueueState.enqueue({ entry: a });
       const handler = jest.fn();
       questExecutionQueueState.onChange(handler);

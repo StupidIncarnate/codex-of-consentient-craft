@@ -41,7 +41,7 @@ describe('questValidateSpecTransformer', () => {
 
     it('INVALID: {two flows share id} => Flow ID Uniqueness fails with dynamic details naming the offender', () => {
       const quest = QuestStub({
-        flows: [FlowStub({ id: 'login-flow' as never }), FlowStub({ id: 'login-flow' as never })],
+        flows: [FlowStub({ id: 'login-flow' }), FlowStub({ id: 'login-flow' })],
       });
 
       const checks = questValidateSpecTransformer({ quest, scope: 'invariants' });
@@ -56,14 +56,14 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {edge points to ghost node} => Valid Flow References fails with offender details', () => {
-      const nodeA = FlowNodeStub({ id: 'node-a' as never });
+      const nodeA = FlowNodeStub({ id: 'node-a' });
       const edge = FlowEdgeStub({
-        id: 'to-ghost' as never,
-        from: 'node-a' as never,
-        to: 'ghost-node' as never,
+        id: 'to-ghost',
+        from: 'node-a',
+        to: 'ghost-node',
       });
       const quest = QuestStub({
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [nodeA], edges: [edge] })],
+        flows: [FlowStub({ id: 'login-flow', nodes: [nodeA], edges: [edge] })],
       });
 
       const checks = questValidateSpecTransformer({ quest, scope: 'invariants' });
@@ -79,16 +79,16 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {contract property uses raw primitive} => No Raw Primitives fails with offender details', () => {
-      const rawProperty = QuestContractPropertyStub({ name: 'password' as never });
-      const node = FlowNodeStub({ id: 'anchor-node' as never });
+      const rawProperty = QuestContractPropertyStub({ name: 'password' });
+      const node = FlowNodeStub({ id: 'anchor-node' });
       const edge = FlowEdgeStub({
-        id: 'self' as never,
-        from: 'anchor-node' as never,
-        to: 'anchor-node' as never,
+        id: 'self',
+        from: 'anchor-node',
+        to: 'anchor-node',
       });
       const contract = QuestContractEntryStub({
-        name: 'Creds' as never,
-        nodeId: 'anchor-node' as never,
+        name: 'Creds',
+        nodeId: 'anchor-node',
       });
       const quest = QuestStub({
         flows: [FlowStub({ nodes: [node], edges: [edge] })],
@@ -128,17 +128,17 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {orphan node} => No Orphan Flow Nodes fails with offender details', () => {
-      const connected = FlowNodeStub({ id: 'connected' as never });
-      const orphan = FlowNodeStub({ id: 'orphan' as never, label: 'Orphan' as never });
+      const connected = FlowNodeStub({ id: 'connected' });
+      const orphan = FlowNodeStub({ id: 'orphan', label: 'Orphan' });
       const edge = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'connected' as never,
-        to: 'connected' as never,
+        id: 'e1',
+        from: 'connected',
+        to: 'connected',
       });
       const quest = QuestStub({
         flows: [
           FlowStub({
-            id: 'login-flow' as never,
+            id: 'login-flow',
             nodes: [connected, orphan],
             edges: [edge],
           }),
@@ -157,18 +157,18 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {decision has 1 outgoing edge} => Decision Node Branching fails with offender details', () => {
-      const decision = FlowNodeStub({ id: 'check-auth' as never, type: 'decision' });
-      const done = FlowNodeStub({ id: 'done' as never });
+      const decision = FlowNodeStub({ id: 'check-auth', type: 'decision' });
+      const done = FlowNodeStub({ id: 'done' });
       const edge = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'check-auth' as never,
-        to: 'done' as never,
-        label: 'yes' as never,
+        id: 'e1',
+        from: 'check-auth',
+        to: 'done',
+        label: 'yes',
       });
       const quest = QuestStub({
         flows: [
           FlowStub({
-            id: 'login-flow' as never,
+            id: 'login-flow',
             nodes: [decision, done],
             edges: [edge],
           }),
@@ -204,12 +204,12 @@ describe('questValidateSpecTransformer', () => {
 
     it('INVALID: {terminal node has no observables} => Terminal Node Observable Coverage fails with offender details', () => {
       const terminal = FlowNodeStub({
-        id: 'bare-end' as never,
+        id: 'bare-end',
         type: 'terminal',
         observables: [],
       });
       const quest = QuestStub({
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [terminal] })],
+        flows: [FlowStub({ id: 'login-flow', nodes: [terminal] })],
       });
 
       const checks = questValidateSpecTransformer({ quest, scope: 'spec-completeness' });
@@ -225,11 +225,11 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {observable with empty description} => Observable Descriptions fails with offender details', () => {
-      const observable = FlowObservableStub({ id: 'obs-bad' as never });
+      const observable = FlowObservableStub({ id: 'obs-bad' });
       Object.assign(observable, { description: '' });
-      const node = FlowNodeStub({ id: 'done' as never, observables: [observable] });
+      const node = FlowNodeStub({ id: 'done', observables: [observable] });
       const quest = QuestStub({
-        flows: [FlowStub({ id: 'login-flow' as never, nodes: [node] })],
+        flows: [FlowStub({ id: 'login-flow', nodes: [node] })],
       });
 
       const checks = questValidateSpecTransformer({ quest, scope: 'spec-completeness' });
@@ -245,7 +245,7 @@ describe('questValidateSpecTransformer', () => {
     });
 
     it('INVALID: {design decision empty rationale} => Design Decision Rationale fails with offender details', () => {
-      const decision = DesignDecisionStub({ id: 'use-jwt' as never });
+      const decision = DesignDecisionStub({ id: 'use-jwt' });
       Object.assign(decision, { rationale: '' });
       const quest = QuestStub({ designDecisions: [decision] });
 

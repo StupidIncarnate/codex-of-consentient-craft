@@ -58,11 +58,11 @@ describe('mintedWorkItemContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {role: "not-a-role"} => throws, because the role table is closed', () => {
-      expect(() => MintedWorkItemStub({ role: 'not-a-role' as never })).toThrow(/Invalid option/u);
+      expect(() => MintedWorkItemStub({ role: 'not-a-role' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {mintedBy: "not-a-uuid"} => throws, because the return edge names a work item', () => {
-      expect(() => MintedWorkItemStub({ mintedBy: 'not-a-uuid' as never })).toThrow(/uuid/u);
+      expect(() => MintedWorkItemStub({ mintedBy: 'not-a-uuid' })).toThrow(/uuid/u);
     });
   });
 });

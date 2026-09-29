@@ -74,7 +74,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
     const armed = await questModifyBroker({
       input: ModifyQuestInputStub({
         questId,
-        workItems: [{ id: workItem.id, status: 'in_progress', startedAt }] as never,
+        workItems: [{ id: workItem.id, status: 'in_progress', startedAt }],
       }),
     });
 
@@ -151,7 +151,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
       input: ModifyQuestInputStub({
         questId,
         status: 'in_progress',
-        workItems: [{ id: workItem.id, status: 'pending' }] as never,
+        workItems: [{ id: workItem.id, status: 'pending' }],
       }),
     });
 
@@ -168,9 +168,7 @@ describe('questPauseBroker (integration — real disk, real concurrency)', () =>
       questModifyBroker({
         input: ModifyQuestInputStub({
           questId,
-          workItems: [
-            { id: workItem.id, status: 'in_progress', startedAt: freshStartedAt },
-          ] as never,
+          workItems: [{ id: workItem.id, status: 'in_progress', startedAt: freshStartedAt }],
         }),
       }),
       questPauseBroker({

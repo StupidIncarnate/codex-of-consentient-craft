@@ -9,7 +9,7 @@ describe('QuestGetBlightChecklistResponder', () => {
   describe('rendering a quest diff', () => {
     it('VALID: {baseRef, non-empty diff} => renders the checklist text', async () => {
       const proxy = QuestGetBlightChecklistResponderProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: ['packages/web/src/widgets/foo/foo-widget.tsx'] });
 
@@ -35,7 +35,7 @@ describe('QuestGetBlightChecklistResponder', () => {
     // dropping the value here would silently answer a whole-quest diff to a one-commit question.
     it("VALID: {scope: 'commit'} => the diff is measured from HEAD~1, not the pinned baseRef", async () => {
       const proxy = QuestGetBlightChecklistResponderProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -46,7 +46,7 @@ describe('QuestGetBlightChecklistResponder', () => {
 
     it('VALID: {scope omitted} => the diff is measured from the pinned baseRef', async () => {
       const proxy = QuestGetBlightChecklistResponderProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -74,7 +74,7 @@ describe('QuestGetBlightChecklistResponder', () => {
   describe('empty diff', () => {
     it('EMPTY: {baseRef, empty diff} => says there is nothing to disposition', async () => {
       const proxy = QuestGetBlightChecklistResponderProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 

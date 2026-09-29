@@ -36,8 +36,8 @@ describe('questModifyBroker', () => {
     it('VALID: {questId, contracts: [new]} => adds new contract', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -145,23 +145,23 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         flows: [
           {
-            id: 'login-flow' as never,
-            name: 'Login Flow' as never,
-            flowType: 'runtime' as never,
-            entryPoint: '/login' as never,
-            exitPoints: ['/dashboard'] as never,
+            id: 'login-flow',
+            name: 'Login Flow',
+            flowType: 'runtime',
+            entryPoint: '/login',
+            exitPoints: ['/dashboard'],
             nodes: [
               {
-                id: 'submit-form' as never,
-                label: 'Submit Form' as never,
-                type: 'state' as never,
-                packages: ['auth-service'] as never,
+                id: 'submit-form',
+                label: 'Submit Form',
+                type: 'state',
+                packages: ['auth-service'],
                 // observables key intentionally OMITTED
               },
             ],
             edges: [],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -520,7 +520,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        operations: [{ id: lockedOperation.id, _delete: true } as never],
+        operations: [{ id: lockedOperation.id, _delete: true }],
       });
 
       const result = await questModifyBroker({ input });
@@ -543,10 +543,10 @@ describe('questModifyBroker', () => {
   describe('save-invariants rejection (Tier 3)', () => {
     it('INVALID: {flows with duplicate ids in stored quest} => returns failedChecks; nothing persisted', async () => {
       const proxy = questModifyBrokerProxy();
-      const existingFlow = FlowStub({ id: 'login-flow' as never });
+      const existingFlow = FlowStub({ id: 'login-flow' });
       const conflictingFlow = FlowStub({
-        id: 'login-flow' as never,
-        name: 'Conflicting Flow' as never,
+        id: 'login-flow',
+        name: 'Conflicting Flow',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -579,9 +579,9 @@ describe('questModifyBroker', () => {
   describe('Tier 4 completeness checks removed (regression)', () => {
     it('VALID: {status: "review_flows" with orphan flow node} => transitions successfully (completeness checks no longer gate transitions)', async () => {
       const proxy = questModifyBrokerProxy();
-      const orphanNode = FlowNodeStub({ id: 'orphan-node' as never });
+      const orphanNode = FlowNodeStub({ id: 'orphan-node' });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [orphanNode],
         edges: [],
       });
@@ -618,7 +618,7 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const entry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -641,12 +641,12 @@ describe('questModifyBroker', () => {
     it('VALID: {planningNotes.blightLedger re-dispositioning an existing itemId} => replaces that entry rather than appending a second, leaving exactly one entry for that itemId', async () => {
       const proxy = questModifyBrokerProxy();
       const original = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
         disposition: 'gap',
-        evidence: 'no test file existed on that pass' as never,
+        evidence: 'no test file existed on that pass',
       });
       const untouched = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:security' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:security',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -658,9 +658,9 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const corrected = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
         disposition: 'reviewed',
-        evidence: 'quest-chat-widget.test.tsx now covers every branch in handleSubmit' as never,
+        evidence: 'quest-chat-widget.test.tsx now covers every branch in handleSubmit',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -692,14 +692,14 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const first = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
         disposition: 'gap',
-        evidence: 'superseded within the same payload' as never,
+        evidence: 'superseded within the same payload',
       });
       const last = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
         disposition: 'reviewed',
-        evidence: 'every branch in handleSubmit has a test' as never,
+        evidence: 'every branch in handleSubmit has a test',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -722,7 +722,7 @@ describe('questModifyBroker', () => {
     it('EDGE: {planningNotes.blightLedger: []} with a non-empty existing ledger => leaves existing entries untouched (empty payload does not wipe)', async () => {
       const proxy = questModifyBrokerProxy();
       const existingEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -754,10 +754,10 @@ describe('questModifyBroker', () => {
     it('EDGE: {planningNotes: {}} with a non-empty existing ledger => leaves every planningNotes field untouched', async () => {
       const proxy = questModifyBrokerProxy();
       const existingEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
       });
       const existingNote = QuestNoteStub({
-        id: 'tooling-error-ward-e2e-port' as never,
+        id: 'tooling-error-ward-e2e-port',
         kind: 'tooling-error',
       });
       const quest = QuestStub({
@@ -796,7 +796,7 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const entry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:coverage',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -822,9 +822,7 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         planningNotes: {
-          blightLedger: [
-            QuestBlightLedgerEntryStub({ createdAt: '2020-01-01T00:00:00.000Z' as never }),
-          ],
+          blightLedger: [QuestBlightLedgerEntryStub({ createdAt: '2020-01-01T00:00:00.000Z' })],
         },
       });
 
@@ -865,7 +863,7 @@ describe('questModifyBroker', () => {
               workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
             },
           ],
-        } as never,
+        },
       });
 
       const result = await questModifyBroker({ input });
@@ -882,8 +880,8 @@ describe('questModifyBroker', () => {
     it('VALID: {a title-only write} => an existing blightLedger entry keeps its own createdAt rather than being re-stamped', async () => {
       const proxy = questModifyBrokerProxy();
       const untouched = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft' as never,
-        createdAt: '2019-03-04T05:06:07.000Z' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
+        createdAt: '2019-03-04T05:06:07.000Z',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -899,7 +897,7 @@ describe('questModifyBroker', () => {
         planningNotes: {
           blightLedger: [
             QuestBlightLedgerEntryStub({
-              itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf' as never,
+              itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf',
             }),
           ],
         },
@@ -914,7 +912,7 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes.blightLedger).toStrictEqual([
         untouched,
         QuestBlightLedgerEntryStub({
-          itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf' as never,
+          itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:perf',
           createdAt: SERVER_STAMPED_AT,
         }),
       ]);
@@ -925,7 +923,7 @@ describe('questModifyBroker', () => {
     it('VALID: {planningNotes.questNotes with a new id} => the note is persisted', async () => {
       const proxy = questModifyBrokerProxy();
       const existingNote = QuestNoteStub({
-        id: 'tooling-error-ward-e2e-port' as never,
+        id: 'tooling-error-ward-e2e-port',
         kind: 'tooling-error',
       });
       const quest = QuestStub({
@@ -941,7 +939,7 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const newNote = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
+        id: 'open-question-comment-anchor-scope',
         kind: 'open-question',
       });
       const input = ModifyQuestInputStub({
@@ -965,12 +963,12 @@ describe('questModifyBroker', () => {
     it('VALID: {planningNotes.questNotes re-stating an existing id} => replaces that entry rather than appending a second', async () => {
       const proxy = questModifyBrokerProxy();
       const original = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
-        summary: 'Should a stale anchor notify per box or once per batch?' as never,
-        detail: 'Asked the operator; no answer landed before the walk ended.' as never,
+        id: 'open-question-comment-anchor-scope',
+        summary: 'Should a stale anchor notify per box or once per batch?',
+        detail: 'Asked the operator; no answer landed before the walk ended.',
       });
       const untouched = QuestNoteStub({
-        id: 'walk-reset-view-persisted-comments' as never,
+        id: 'walk-reset-view-persisted-comments',
         kind: 'walk-reset',
       });
       const quest = QuestStub({
@@ -986,10 +984,9 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const sharpened = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
-        summary: 'Stale anchors notify once per batch — confirm before the next walk' as never,
-        detail:
-          'The operator answered on the second pass: once per batch, keyed on the flow id.' as never,
+        id: 'open-question-comment-anchor-scope',
+        summary: 'Stale anchors notify once per batch — confirm before the next walk',
+        detail: 'The operator answered on the second pass: once per batch, keyed on the flow id.',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -1012,7 +1009,7 @@ describe('questModifyBroker', () => {
     it('EDGE: {planningNotes.questNotes: []} with existing notes => leaves existing entries untouched (empty payload does not wipe)', async () => {
       const proxy = questModifyBrokerProxy();
       const existingNote = QuestNoteStub({
-        id: 'out-of-scope-legacy-spawn-path' as never,
+        id: 'out-of-scope-legacy-spawn-path',
         kind: 'out-of-scope',
       });
       const quest = QuestStub({
@@ -1048,11 +1045,11 @@ describe('questModifyBroker', () => {
     it('VALID: {planningNotes.questNotes and planningNotes.blightLedger both changing in one call} => both merges land, neither clobbers the other', async () => {
       const proxy = questModifyBrokerProxy();
       const existingNote = QuestNoteStub({
-        id: 'tooling-error-ward-e2e-port' as never,
+        id: 'tooling-error-ward-e2e-port',
         kind: 'tooling-error',
       });
       const existingEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -1067,11 +1064,11 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const newNote = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
+        id: 'open-question-comment-anchor-scope',
         kind: 'open-question',
       });
       const newEntry = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -1106,12 +1103,12 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const first = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
-        summary: 'Superseded within the same payload' as never,
+        id: 'open-question-comment-anchor-scope',
+        summary: 'Superseded within the same payload',
       });
       const last = QuestNoteStub({
-        id: 'open-question-comment-anchor-scope' as never,
-        summary: 'Stale anchors notify once per batch — confirm before the next walk' as never,
+        id: 'open-question-comment-anchor-scope',
+        summary: 'Stale anchors notify once per batch — confirm before the next walk',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -1187,7 +1184,7 @@ describe('questModifyBroker', () => {
                 'The batch send drops boxes whose node id no longer exists in the flow. Asked the operator; no answer landed before the walk ended.',
             },
           ],
-        } as never,
+        },
       });
 
       const result = await questModifyBroker({ input });
@@ -1204,7 +1201,7 @@ describe('questModifyBroker', () => {
     it('VALID: {a write appending a second note} => the note already on the quest keeps its own at rather than being re-stamped', async () => {
       const proxy = questModifyBrokerProxy();
       const untouched = QuestNoteStub({
-        id: 'tooling-error-ward-e2e-port' as never,
+        id: 'tooling-error-ward-e2e-port',
         kind: 'tooling-error',
         at: '2019-03-04T05:06:07.000Z',
       });
@@ -1223,7 +1220,7 @@ describe('questModifyBroker', () => {
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
         planningNotes: {
-          questNotes: [QuestNoteStub({ id: 'open-question-comment-anchor-scope' as never })],
+          questNotes: [QuestNoteStub({ id: 'open-question-comment-anchor-scope' })],
         },
       });
 
@@ -1236,7 +1233,7 @@ describe('questModifyBroker', () => {
       expect(persisted.planningNotes.questNotes).toStrictEqual([
         untouched,
         QuestNoteStub({
-          id: 'open-question-comment-anchor-scope' as never,
+          id: 'open-question-comment-anchor-scope',
           at: SERVER_STAMPED_AT,
         }),
       ]);
@@ -1309,7 +1306,7 @@ describe('questModifyBroker', () => {
               pieces: [],
             },
           ],
-        } as never,
+        },
       });
 
       const result = await questModifyBroker({ input });
@@ -1450,7 +1447,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        toolingRequirements: [{ id: existingRequirement.id, name: 'Postgres Driver v2' } as never],
+        toolingRequirements: [{ id: existingRequirement.id, name: 'Postgres Driver v2' }],
       });
 
       const result = await questModifyBroker({ input });
@@ -1689,7 +1686,7 @@ describe('questModifyBroker', () => {
       );
 
       const calls = reportIds.map(async (itemId) => {
-        const entry = QuestBlightLedgerEntryStub({ itemId: itemId as never });
+        const entry = QuestBlightLedgerEntryStub({ itemId });
         const input = ModifyQuestInputStub({
           questId: 'add-auth',
           planningNotes: { blightLedger: [entry] },
@@ -1736,10 +1733,10 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const entryA = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
       });
       const entryB = QuestBlightLedgerEntryStub({
-        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup' as never,
+        itemId: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:dedup',
       });
 
       const inputA = ModifyQuestInputStub({
@@ -2093,8 +2090,8 @@ describe('questModifyBroker', () => {
     it('INVALID: {contracts: [new] but source already resolves on disk} => returns Contract Source Resolution failedCheck', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2152,8 +2149,8 @@ describe('questModifyBroker', () => {
     it('INVALID: {contracts: [existing] but source does not resolve on disk} => returns Contract Source Resolution failedCheck', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2208,8 +2205,8 @@ describe('questModifyBroker', () => {
     it('INVALID: {contracts: [new] with an already-absolute source path that already resolves on disk} => returns Contract Source Resolution failedCheck against that path verbatim, unanchored (absolute-path branch)', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2268,8 +2265,8 @@ describe('questModifyBroker', () => {
     it('VALID: {contracts: [existing] with source that resolves on disk} => succeeds (path-disk consistency holds)', async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2313,8 +2310,8 @@ describe('questModifyBroker', () => {
     it("VALID: {new contract whose bare source resolves only under the PROCESS CWD} => accepted, because the probe is anchored on the quest's project root", async () => {
       const proxy = questModifyBrokerProxy();
       const flow = FlowStub({
-        id: 'login-flow' as never,
-        nodes: [FlowNodeStub({ id: 'submit-form' as never })],
+        id: 'login-flow',
+        nodes: [FlowNodeStub({ id: 'submit-form' })],
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2457,8 +2454,8 @@ describe('questModifyBroker', () => {
   describe('comment persistence and orphan cleanup', () => {
     it('VALID: {comments: [new comment anchored to existing node], status: review_flows} => comment reaches persisted quest.comments', async () => {
       const proxy = questModifyBrokerProxy();
-      const node = FlowNodeStub({ id: 'submit-form' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const node = FlowNodeStub({ id: 'submit-form' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -2470,9 +2467,9 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const comment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -2490,12 +2487,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {comments: [second comment]} on a node that already carries one => persisted comments are first then second, both intact', async () => {
       const proxy = questModifyBrokerProxy();
-      const node = FlowNodeStub({ id: 'submit-form' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const node = FlowNodeStub({ id: 'submit-form' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const firstComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
         text: 'First comment',
       });
       const quest = QuestStub({
@@ -2509,9 +2506,9 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const secondComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
         text: 'Second comment',
       });
       const input = ModifyQuestInputStub({
@@ -2530,12 +2527,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {title only} on a quest carrying comments => persisted.comments unchanged and persisted.title updated', async () => {
       const proxy = questModifyBrokerProxy();
-      const node = FlowNodeStub({ id: 'submit-form' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const node = FlowNodeStub({ id: 'submit-form' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const existingComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2570,22 +2567,22 @@ describe('questModifyBroker', () => {
 
     it('VALID: {flows: [delete a node]} => every comment anchored to that node is dropped from persisted.comments', async () => {
       const proxy = questModifyBrokerProxy();
-      const deleteNode = FlowNodeStub({ id: 'delete-node' as never });
-      const keepNode = FlowNodeStub({ id: 'keep-node' as never, label: 'Keep Node' as never });
+      const deleteNode = FlowNodeStub({ id: 'delete-node' });
+      const keepNode = FlowNodeStub({ id: 'keep-node', label: 'Keep Node' });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [deleteNode, keepNode],
         edges: [],
       });
       const deletedComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'delete-node' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'delete-node',
       });
       const keptComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'keep-node' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002',
+        flowId: 'login-flow',
+        nodeId: 'keep-node',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2601,9 +2598,9 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         flows: [
           {
-            id: 'login-flow' as never,
-            nodes: [{ id: 'delete-node' as never, _delete: true }],
-          } as never,
+            id: 'login-flow',
+            nodes: [{ id: 'delete-node', _delete: true }],
+          },
         ],
       });
 
@@ -2618,23 +2615,23 @@ describe('questModifyBroker', () => {
 
     it('VALID: {flows: [delete one observable from a node]} carrying both an observable comment and a node comment => observable-anchored comment dropped, node-anchored comment survives', async () => {
       const proxy = questModifyBrokerProxy();
-      const obsOne = FlowObservableStub({ id: 'obs-one' as never });
-      const obsTwo = FlowObservableStub({ id: 'obs-two' as never });
+      const obsOne = FlowObservableStub({ id: 'obs-one' });
+      const obsTwo = FlowObservableStub({ id: 'obs-two' });
       const node = FlowNodeStub({
-        id: 'submit-form' as never,
+        id: 'submit-form',
         observables: [obsOne, obsTwo],
       });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const observableComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
-        observableId: 'obs-one' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
+        observableId: 'obs-one',
       });
       const nodeComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2650,14 +2647,14 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         flows: [
           {
-            id: 'login-flow' as never,
+            id: 'login-flow',
             nodes: [
               {
-                id: 'submit-form' as never,
-                observables: [{ id: 'obs-one' as never, _delete: true }],
+                id: 'submit-form',
+                observables: [{ id: 'obs-one', _delete: true }],
               },
             ],
-          } as never,
+          },
         ],
       });
 
@@ -2672,24 +2669,24 @@ describe('questModifyBroker', () => {
 
     it('VALID: {flows: [delete a whole flow]} on a quest with two commented flows => every comment on the deleted flow is dropped, the surviving flow keeps its comments', async () => {
       const proxy = questModifyBrokerProxy();
-      const flowANode = FlowNodeStub({ id: 'node-a' as never });
-      const flowA = FlowStub({ id: 'flow-a' as never, nodes: [flowANode], edges: [] });
-      const flowBNode = FlowNodeStub({ id: 'node-b' as never, label: 'Node B' as never });
+      const flowANode = FlowNodeStub({ id: 'node-a' });
+      const flowA = FlowStub({ id: 'flow-a', nodes: [flowANode], edges: [] });
+      const flowBNode = FlowNodeStub({ id: 'node-b', label: 'Node B' });
       const flowB = FlowStub({
-        id: 'flow-b' as never,
-        name: 'Second Flow' as never,
+        id: 'flow-b',
+        name: 'Second Flow',
         nodes: [flowBNode],
         edges: [],
       });
       const commentA = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'flow-a' as never,
-        nodeId: 'node-a' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'flow-a',
+        nodeId: 'node-a',
       });
       const commentB = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
-        flowId: 'flow-b' as never,
-        nodeId: 'node-b' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002',
+        flowId: 'flow-b',
+        nodeId: 'node-b',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2703,7 +2700,7 @@ describe('questModifyBroker', () => {
 
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
-        flows: [{ id: 'flow-a' as never, _delete: true } as never],
+        flows: [{ id: 'flow-a', _delete: true }],
       });
 
       const result = await questModifyBroker({ input });
@@ -2717,12 +2714,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {flows: [rename a node label]} => that node comments survive with byte-identical text and createdAt', async () => {
       const proxy = questModifyBrokerProxy();
-      const node = FlowNodeStub({ id: 'submit-form' as never, label: 'Submit Form' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const node = FlowNodeStub({ id: 'submit-form', label: 'Submit Form' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const comment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'submit-form' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'submit-form',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2738,9 +2735,9 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         flows: [
           {
-            id: 'login-flow' as never,
-            nodes: [{ id: 'submit-form' as never, label: 'Renamed Label' as never }],
-          } as never,
+            id: 'login-flow',
+            nodes: [{ id: 'submit-form', label: 'Renamed Label' }],
+          },
         ],
       });
 
@@ -2755,28 +2752,28 @@ describe('questModifyBroker', () => {
 
     it('VALID: {flows: [delete one node from a two-node flow]} => the sibling node comments are untouched', async () => {
       const proxy = questModifyBrokerProxy();
-      const deleteNode = FlowNodeStub({ id: 'delete-me' as never });
-      const siblingNode = FlowNodeStub({ id: 'keep-me' as never, label: 'Keep Me' as never });
+      const deleteNode = FlowNodeStub({ id: 'delete-me' });
+      const siblingNode = FlowNodeStub({ id: 'keep-me', label: 'Keep Me' });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [deleteNode, siblingNode],
         edges: [],
       });
       const deletedComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'delete-me' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
+        flowId: 'login-flow',
+        nodeId: 'delete-me',
       });
       const siblingCommentOne = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'keep-me' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d002',
+        flowId: 'login-flow',
+        nodeId: 'keep-me',
         text: 'First sibling comment',
       });
       const siblingCommentTwo = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d003' as never,
-        flowId: 'login-flow' as never,
-        nodeId: 'keep-me' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d003',
+        flowId: 'login-flow',
+        nodeId: 'keep-me',
         text: 'Second sibling comment',
       });
       const quest = QuestStub({
@@ -2793,9 +2790,9 @@ describe('questModifyBroker', () => {
         questId: 'add-auth',
         flows: [
           {
-            id: 'login-flow' as never,
-            nodes: [{ id: 'delete-me' as never, _delete: true }],
-          } as never,
+            id: 'login-flow',
+            nodes: [{ id: 'delete-me', _delete: true }],
+          },
         ],
       });
 
@@ -2810,12 +2807,12 @@ describe('questModifyBroker', () => {
 
     it('VALID: {title only} on a quest already carrying an orphan comment => success true, no failedChecks, orphan comment still persisted', async () => {
       const proxy = questModifyBrokerProxy();
-      const node = FlowNodeStub({ id: 'submit-form' as never });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node], edges: [] });
+      const node = FlowNodeStub({ id: 'submit-form' });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node], edges: [] });
       const orphanComment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d011' as never,
-        flowId: 'ghost-flow' as never,
-        nodeId: 'ghost-node' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d011',
+        flowId: 'ghost-flow',
+        nodeId: 'ghost-node',
       });
       const quest = QuestStub({
         id: 'add-auth',
@@ -2853,7 +2850,7 @@ describe('questModifyBroker', () => {
       proxy.setupQuestFound({ quest });
 
       const comment = QuestCommentStub({
-        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001' as never,
+        id: 'c0e3e17a-58cc-4372-a567-0e02b2c3d001',
       });
       const input = ModifyQuestInputStub({
         questId: 'add-auth',
@@ -2883,37 +2880,37 @@ describe('questModifyBroker', () => {
       const upsertedDescription =
         'confirmed directly against the diff at packages/web/src/a.test.ts:4';
       const flowOne = FlowStub({
-        id: 'flow-one' as never,
+        id: 'flow-one',
         edges: [],
         nodes: [
           FlowNodeStub({
-            id: 'node-one' as never,
+            id: 'node-one',
             observables: Array.from({ length: 20 }, (_unused, index) =>
-              FlowObservableStub({ id: `obs-one-${index}` as never }),
+              FlowObservableStub({ id: `obs-one-${index}` }),
             ),
           }),
         ],
       });
       const flowTwo = FlowStub({
-        id: 'flow-two' as never,
+        id: 'flow-two',
         edges: [],
         nodes: [
           FlowNodeStub({
-            id: 'node-two' as never,
+            id: 'node-two',
             observables: Array.from({ length: 20 }, (_unused, index) =>
-              FlowObservableStub({ id: `obs-two-${index}` as never }),
+              FlowObservableStub({ id: `obs-two-${index}` }),
             ),
           }),
         ],
       });
       const flowThree = FlowStub({
-        id: 'flow-three' as never,
+        id: 'flow-three',
         edges: [],
         nodes: [
           FlowNodeStub({
-            id: 'node-three' as never,
+            id: 'node-three',
             observables: Array.from({ length: 10 }, (_unused, index) =>
-              FlowObservableStub({ id: `obs-three-${index}` as never }),
+              FlowObservableStub({ id: `obs-three-${index}` }),
             ),
           }),
         ],
@@ -2966,7 +2963,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -2975,14 +2972,14 @@ describe('questModifyBroker', () => {
 
       const expectedFlows = [
         FlowStub({
-          id: 'flow-one' as never,
+          id: 'flow-one',
           edges: [],
           nodes: [
             FlowNodeStub({
-              id: 'node-one' as never,
+              id: 'node-one',
               observables: Array.from({ length: 20 }, (_unused, index) =>
                 FlowObservableStub({
-                  id: `obs-one-${index}` as never,
+                  id: `obs-one-${index}`,
                   description: upsertedDescription,
                 }),
               ),
@@ -2990,14 +2987,14 @@ describe('questModifyBroker', () => {
           ],
         }),
         FlowStub({
-          id: 'flow-two' as never,
+          id: 'flow-two',
           edges: [],
           nodes: [
             FlowNodeStub({
-              id: 'node-two' as never,
+              id: 'node-two',
               observables: Array.from({ length: 20 }, (_unused, index) =>
                 FlowObservableStub({
-                  id: `obs-two-${index}` as never,
+                  id: `obs-two-${index}`,
                   description: upsertedDescription,
                 }),
               ),
@@ -3005,14 +3002,14 @@ describe('questModifyBroker', () => {
           ],
         }),
         FlowStub({
-          id: 'flow-three' as never,
+          id: 'flow-three',
           edges: [],
           nodes: [
             FlowNodeStub({
-              id: 'node-three' as never,
+              id: 'node-three',
               observables: Array.from({ length: 10 }, (_unused, index) =>
                 FlowObservableStub({
-                  id: `obs-three-${index}` as never,
+                  id: `obs-three-${index}`,
                   description: upsertedDescription,
                 }),
               ),
@@ -3067,7 +3064,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -3130,7 +3127,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -3199,7 +3196,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -3258,7 +3255,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });
@@ -3325,7 +3322,7 @@ describe('questModifyBroker', () => {
               },
             ],
           },
-        ] as never,
+        ],
       });
 
       const result = await questModifyBroker({ input });

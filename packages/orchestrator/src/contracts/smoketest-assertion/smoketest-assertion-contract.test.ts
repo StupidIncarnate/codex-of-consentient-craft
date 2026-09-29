@@ -67,7 +67,7 @@ describe('smoketestAssertionContract', () => {
   describe('invalid assertions', () => {
     it('INVALID: {kind: "nonsense"} => throws validation error', () => {
       expect(() => {
-        smoketestAssertionContract.parse({ kind: 'nonsense' as never, expected: 'complete' });
+        smoketestAssertionContract.parse({ kind: 'nonsense', expected: 'complete' });
       }).toThrow(/Invalid discriminator value/u);
     });
 
@@ -75,7 +75,7 @@ describe('smoketestAssertionContract', () => {
       expect(() => {
         smoketestAssertionContract.parse({
           kind: 'quest-status',
-          expected: 'not-a-status' as never,
+          expected: 'not-a-status',
         });
       }).toThrow(/Invalid option/u);
     });
@@ -111,7 +111,7 @@ describe('smoketestAssertionContract', () => {
       expect(() => {
         smoketestAssertionContract.parse({
           kind: 'work-item-role-count',
-          role: 'bogus' as never,
+          role: 'bogus',
           minCount: 1,
         });
       }).toThrow(/Invalid option/u);

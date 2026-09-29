@@ -8,11 +8,8 @@ describe('questDuplicateObservableIdsInNodeTransformer', () => {
   describe('no duplicates', () => {
     it('VALID: {unique observable ids} => returns []', () => {
       const node = FlowNodeStub({
-        id: 'n1' as never,
-        observables: [
-          FlowObservableStub({ id: 'obs-a' as never }),
-          FlowObservableStub({ id: 'obs-b' as never }),
-        ],
+        id: 'n1',
+        observables: [FlowObservableStub({ id: 'obs-a' }), FlowObservableStub({ id: 'obs-b' })],
       });
       const flow = FlowStub({ nodes: [node] });
 
@@ -25,13 +22,13 @@ describe('questDuplicateObservableIdsInNodeTransformer', () => {
   describe('duplicates in one node', () => {
     it('INVALID: {two observables share id in one node} => returns description', () => {
       const node = FlowNodeStub({
-        id: 'node-dup' as never,
+        id: 'node-dup',
         observables: [
-          FlowObservableStub({ id: 'same-obs' as never }),
-          FlowObservableStub({ id: 'same-obs' as never, description: 'other' as never }),
+          FlowObservableStub({ id: 'same-obs' }),
+          FlowObservableStub({ id: 'same-obs', description: 'other' }),
         ],
       });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
 
       const result = questDuplicateObservableIdsInNodeTransformer({ flows: [flow] });
 

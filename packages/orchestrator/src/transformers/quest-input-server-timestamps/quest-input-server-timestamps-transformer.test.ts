@@ -17,7 +17,7 @@ describe('questInputServerTimestampsTransformer', () => {
       const result = questInputServerTimestampsTransformer({
         input: ModifyQuestInputStub({
           questId: 'add-auth',
-          flows: [{ id: 'login-flow', nodes: [{ id: 'submit-form', label: 'Submit' }] }] as never,
+          flows: [{ id: 'login-flow', nodes: [{ id: 'submit-form', label: 'Submit' }] }],
         }),
         at: STAMPED_AT,
       });

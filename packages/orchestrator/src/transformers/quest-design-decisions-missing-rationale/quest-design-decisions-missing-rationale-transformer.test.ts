@@ -17,7 +17,7 @@ describe('questDesignDecisionsMissingRationaleTransformer', () => {
 
   describe('missing rationale', () => {
     it('INVALID: {empty rationale} => returns description', () => {
-      const decision = DesignDecisionStub({ id: 'use-jwt' as never });
+      const decision = DesignDecisionStub({ id: 'use-jwt' });
       Object.assign(decision, { rationale: '' });
 
       const result = questDesignDecisionsMissingRationaleTransformer({

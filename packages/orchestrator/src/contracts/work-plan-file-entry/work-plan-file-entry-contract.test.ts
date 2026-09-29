@@ -41,7 +41,7 @@ describe('workPlanFileEntryContract', () => {
     });
 
     it('INVALID: {change: rename} => refused', () => {
-      expect(() => WorkPlanFileEntryStub({ change: 'rename' as never })).toThrow(/Invalid option/u);
+      expect(() => WorkPlanFileEntryStub({ change: 'rename' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {proves naming a bare unit id} => refused, since unit ids are flow-scoped', () => {

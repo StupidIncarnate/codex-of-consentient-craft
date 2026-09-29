@@ -14,7 +14,7 @@ describe('spawnOptionsEnvNameContract', () => {
 
   describe('invalid keys', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => spawnOptionsEnvNameContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => spawnOptionsEnvNameContract.parse(123)).toThrow(/expected string/u);
     });
   });
 });

@@ -13,18 +13,16 @@ const WORK_ITEM_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const OPERATION_ITEM_ID = 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479';
 
 const QUEST = QuestStub({
-  id: QUEST_ID as never,
-  worktreePath: '/home/testuser/worktrees/add-auth' as never,
+  id: QUEST_ID,
+  worktreePath: '/home/testuser/worktrees/add-auth',
   flows: [
     FlowStub({
-      id: 'send-flow' as never,
+      id: 'send-flow',
       nodes: [
         FlowNodeStub({
-          id: 'compose' as never,
-          packages: ['web'] as never,
-          observables: [
-            FlowObservableStub({ id: 'unit-a' as never, description: 'unit a holds' as never }),
-          ],
+          id: 'compose',
+          packages: ['web'],
+          observables: [FlowObservableStub({ id: 'unit-a', description: 'unit a holds' })],
         }),
       ],
       edges: [],
@@ -32,19 +30,19 @@ const QUEST = QuestStub({
   ],
   operations: [
     OperationItemStub({
-      id: OPERATION_ITEM_ID as never,
+      id: OPERATION_ITEM_ID,
       role: 'codeweaver',
-      flowIds: ['send-flow'] as never,
+      flowIds: ['send-flow'],
       packageNames: [],
     }),
   ],
   workItems: [
     WorkItemStub({
-      id: WORK_ITEM_ID as never,
+      id: WORK_ITEM_ID,
       role: 'codeweaver',
-      step: 'work' as never,
-      relatedDataItems: [`operations/${OPERATION_ITEM_ID}`] as never,
-      assignedUnitIds: ['send-flow:observable:unit-a'] as never,
+      step: 'work',
+      relatedDataItems: [`operations/${OPERATION_ITEM_ID}`],
+      assignedUnitIds: ['send-flow:observable:unit-a'],
     }),
   ],
 });

@@ -8,8 +8,8 @@ describe('questDuplicateFlowEdgeIdsTransformer', () => {
     it('VALID: {unique edge ids} => returns []', () => {
       const flow = FlowStub({
         edges: [
-          FlowEdgeStub({ id: 'e1' as never, from: 'a' as never, to: 'b' as never }),
-          FlowEdgeStub({ id: 'e2' as never, from: 'b' as never, to: 'c' as never }),
+          FlowEdgeStub({ id: 'e1', from: 'a', to: 'b' }),
+          FlowEdgeStub({ id: 'e2', from: 'b', to: 'c' }),
         ],
       });
 
@@ -22,10 +22,10 @@ describe('questDuplicateFlowEdgeIdsTransformer', () => {
   describe('duplicates in one flow', () => {
     it('INVALID: {two edges share id} => returns description with flow id and edge ids', () => {
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         edges: [
-          FlowEdgeStub({ id: 'same-edge' as never, from: 'a' as never, to: 'b' as never }),
-          FlowEdgeStub({ id: 'same-edge' as never, from: 'b' as never, to: 'a' as never }),
+          FlowEdgeStub({ id: 'same-edge', from: 'a', to: 'b' }),
+          FlowEdgeStub({ id: 'same-edge', from: 'b', to: 'a' }),
         ],
       });
 

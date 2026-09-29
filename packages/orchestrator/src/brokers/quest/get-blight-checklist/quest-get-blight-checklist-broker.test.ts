@@ -12,7 +12,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe('quest with a pinned baseRef', () => {
     it('VALID: {baseRef, non-empty diff} => returns a checklist whose baseRef matches and mirrors the transformer output', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: ['packages/web/src/widgets/foo/foo-widget.tsx'] });
 
@@ -44,7 +44,7 @@ describe('questGetBlightChecklistBroker', () => {
 
       const proxy = questGetBlightChecklistBrokerProxy();
       const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
+        baseRef: 'a1b2c3d4',
         planningNotes: { blightLedger: [ledgerEntry] },
       });
       proxy.setupQuestFound({ quest });
@@ -65,7 +65,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it('VALID: {baseRef} => the git adapter is called with the quest baseRef', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -79,7 +79,7 @@ describe('questGetBlightChecklistBroker', () => {
     // nobody asked.
     it("VALID: {scope: 'commit'} => the git adapter measures HEAD~1, not the quest baseRef", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -93,7 +93,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'quest'} => the git adapter measures the pinned baseRef, same as omitting scope", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -114,7 +114,7 @@ describe('questGetBlightChecklistBroker', () => {
     // defect. Assert on the enumerated implPaths, not on a count.
     it('VALID: {one tracked modification and one NET-NEW UNTRACKED file} => both files carry review units', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorkingTreeDiff({
         trackedFiles: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'],
@@ -134,7 +134,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'working-tree'} => git is read twice — a rangeless HEAD diff and an ls-files for the untracked half", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
 
@@ -173,7 +173,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it('VALID: {quest records a worktreePath} => both git readings run inside that worktree, not the repo root', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorktree({ quest, worktreePath: '/home/testuser/worktrees/quest-abc12345' });
       proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
@@ -192,7 +192,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe("scope: 'since-ref' — a base the caller names", () => {
     it("VALID: {scope: 'since-ref', sinceRef} => the git adapter measures that ref, not the quest baseRef", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -207,7 +207,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'since-ref', sinceRef, changed files} => the checklist is built over that range", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'] });
 
@@ -228,7 +228,7 @@ describe('questGetBlightChecklistBroker', () => {
     // session against a surface it cannot compute.
     it("EMPTY: {scope: 'since-ref', no sinceRef} => returns null and never reaches git", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
 
       const result = await questGetBlightChecklistBroker({
@@ -247,7 +247,7 @@ describe('questGetBlightChecklistBroker', () => {
     // untouched by this parameter rather than merely untested against it.
     it("VALID: {scope: 'quest' WITH a sinceRef} => the pinned baseRef still wins, because sinceRef is read by 'since-ref' alone", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -262,7 +262,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'commit' WITH a sinceRef} => HEAD~1 still wins", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -277,7 +277,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'working-tree' WITH a sinceRef} => still the rangeless HEAD reading plus ls-files", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorkingTreeDiff({ trackedFiles: [], untrackedFiles: [] });
 
@@ -304,12 +304,12 @@ describe('questGetBlightChecklistBroker', () => {
         const changedFile = 'packages/orchestrator/src/brokers/foo/foo-broker.ts';
         const proxy = questGetBlightChecklistBrokerProxy();
         const quest = QuestStub({
-          baseRef: 'deadbeef' as never,
+          baseRef: 'deadbeef',
           planningNotes: {
             blightLedger: [
               QuestBlightLedgerEntryStub({
                 itemId: `${changedFile}:craft`,
-                disposition: disposition as never,
+                disposition,
               }),
             ],
           },
@@ -334,7 +334,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'since-ref', empty range} => a checklist with zero items, which is a round that committed nothing", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -354,7 +354,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe("scope: 'unpushed' — one round, framed by what has not been published", () => {
     it("VALID: {scope: 'unpushed', branch tracks an upstream} => the git adapter measures that upstream sha", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupUpstream({ sha: 'cafebabe' });
       proxy.setupDiff({ files: [] });
@@ -369,7 +369,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'unpushed', changed files} => the checklist is built over that range", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupUpstream({ sha: 'cafebabe' });
       proxy.setupDiff({ files: ['packages/orchestrator/src/brokers/foo/foo-broker.ts'] });
@@ -390,7 +390,7 @@ describe('questGetBlightChecklistBroker', () => {
     // hides nothing.
     it("VALID: {scope: 'unpushed', branch tracks NOTHING} => falls back to the quest's pinned baseRef", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupNoUpstream();
       proxy.setupDiff({ files: [] });
@@ -429,7 +429,7 @@ describe('questGetBlightChecklistBroker', () => {
     // scopes provably untouched by it rather than merely untested against it.
     it("VALID: {scope: 'quest'} => never asks git for an upstream, and the pinned baseRef wins", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -449,7 +449,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("VALID: {scope: 'commit'} => never asks git for an upstream, and HEAD~1 wins", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'deadbeef' as never });
+      const quest = QuestStub({ baseRef: 'deadbeef' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -472,7 +472,7 @@ describe('questGetBlightChecklistBroker', () => {
     it('VALID: {packagesAffected declaring a location the changed file sits under} => the units carry that package', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
       const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
+        baseRef: 'a1b2c3d4',
         packagesAffected: [QuestPackageEntryStub({ name: 'web', location: './packages/web' })],
       });
       proxy.setupQuestFound({ quest });
@@ -490,7 +490,7 @@ describe('questGetBlightChecklistBroker', () => {
     it('VALID: {packagesAffected declaring an absolute location under the resolved cwd} => reduced against that cwd and still resolved', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
       const quest = QuestStub({
-        baseRef: 'a1b2c3d4' as never,
+        baseRef: 'a1b2c3d4',
         packagesAffected: [
           QuestPackageEntryStub({
             name: 'web',
@@ -528,7 +528,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe('empty diff', () => {
     it('EMPTY: {baseRef, empty diff} => returns a checklist with zero items', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -554,7 +554,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe('the quest file path it reads', () => {
     it('VALID: {baseRef} => joins the found folder with quest.json, not any other name', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       const { questFolderPath } = proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -570,7 +570,7 @@ describe('questGetBlightChecklistBroker', () => {
   describe('quest cwd resolution', () => {
     it('VALID: {quest records a worktreePath} => the diff is computed with that worktree path as cwd', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorktree({ quest, worktreePath: '/home/testuser/worktrees/quest-abc12345' });
       proxy.setupDiff({ files: [] });
@@ -582,7 +582,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it('VALID: {quest records no worktreePath} => the diff is computed with the resolved repo root as cwd', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupDiff({ files: [] });
 
@@ -593,7 +593,7 @@ describe('questGetBlightChecklistBroker', () => {
 
     it("ERROR: {quest's recorded worktree is missing on disk} => throws naming the absolute path, and no diff is requested", async () => {
       const proxy = questGetBlightChecklistBrokerProxy();
-      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' });
       proxy.setupQuestFound({ quest });
       proxy.setupWorktreeMissing({
         quest,

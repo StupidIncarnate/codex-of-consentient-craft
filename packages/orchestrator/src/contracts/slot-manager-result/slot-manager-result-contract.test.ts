@@ -93,7 +93,7 @@ describe('slotManagerResultContract', () => {
     it('INVALID: {completed: "invalid"} => throws discriminator error', () => {
       expect(() =>
         slotManagerResultContract.parse({
-          completed: 'invalid' as never,
+          completed: 'invalid',
         }),
       ).toThrow(/Invalid discriminator value/u);
     });

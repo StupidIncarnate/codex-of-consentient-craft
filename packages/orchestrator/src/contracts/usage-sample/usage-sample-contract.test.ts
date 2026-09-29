@@ -17,7 +17,7 @@ describe('usageSampleContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {bucketStartMs: -1} => throws', () => {
-      expect(() => UsageSampleStub({ bucketStartMs: -1 as never })).toThrow(/to be >=0/u);
+      expect(() => UsageSampleStub({ bucketStartMs: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {tokens missing} => throws', () => {

@@ -11,39 +11,39 @@ import { qaCheckSurfaceStatics } from '@dungeonmaster/shared/statics';
 import { questWorkUnitsTransformer } from './quest-work-units-transformer';
 
 const FLOW = FlowStub({
-  id: 'send-flow' as never,
+  id: 'send-flow',
   nodes: [
     FlowNodeStub({
-      id: 'compose' as never,
-      label: 'Compose' as never,
+      id: 'compose',
+      label: 'Compose',
       type: 'decision',
       observables: [
         FlowObservableStub({
-          id: 'scan-finds-every-path' as never,
+          id: 'scan-finds-every-path',
           type: 'file-exists',
-          description: 'the scan finds every path' as never,
+          description: 'the scan finds every path',
         }),
         FlowObservableStub({
-          id: 'send-button-is-orange' as never,
+          id: 'send-button-is-orange',
           type: 'ui-state',
-          description: 'SEND is the primary orange' as never,
+          description: 'SEND is the primary orange',
           verifyByReading: true,
         }),
       ],
     }),
-    FlowNodeStub({ id: 'forward-unchanged' as never, label: 'Forwarded unchanged' as never }),
+    FlowNodeStub({ id: 'forward-unchanged', label: 'Forwarded unchanged' }),
   ],
   edges: [
     FlowEdgeStub({
-      id: 'copy-failed' as never,
-      from: 'compose' as never,
-      to: 'forward-unchanged' as never,
-      label: 'copy failed' as never,
+      id: 'copy-failed',
+      from: 'compose',
+      to: 'forward-unchanged',
+      label: 'copy failed',
     }),
   ],
 });
 
-const OPERATION_ITEM = OperationItemStub({ flowIds: ['send-flow'] as never });
+const OPERATION_ITEM = OperationItemStub({ flowIds: ['send-flow'] });
 
 describe('questWorkUnitsTransformer', () => {
   describe('surface', () => {
@@ -164,15 +164,15 @@ describe('questWorkUnitsTransformer', () => {
         flows: [FLOW],
         workItems: [
           WorkItemStub({
-            id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479' as never,
-            assignedUnitIds: ['send-flow:observable:scan-finds-every-path'] as never,
+            id: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
+            assignedUnitIds: ['send-flow:observable:scan-finds-every-path'],
             observations: [
               UnitObservationStub({
-                unitId: 'send-flow:observable:scan-finds-every-path' as never,
+                unitId: 'send-flow:observable:scan-finds-every-path',
                 mark: 'cant-meet',
-                evidence: 'no lane reaches the writer from here' as never,
-                toSettle: 'drive a real send and read the session JSONL' as never,
-                at: '2026-02-02T00:00:00.000Z' as never,
+                evidence: 'no lane reaches the writer from here',
+                toSettle: 'drive a real send and read the session JSONL',
+                at: '2026-02-02T00:00:00.000Z',
               }),
             ],
           }),

@@ -272,7 +272,7 @@ describe('parseAssistantStreamEntryTransformer', () => {
             message: {
               role: 'assistant',
               content: [{ type: 'text', text: 'Hello world' }],
-              model: 'claude-opus-4-20250514' as never,
+              model: 'claude-opus-4-20250514',
             },
           }),
         ),

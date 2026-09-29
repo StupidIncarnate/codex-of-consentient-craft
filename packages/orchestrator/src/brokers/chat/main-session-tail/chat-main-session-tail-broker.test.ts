@@ -188,8 +188,8 @@ describe('chatMainSessionTailBroker', () => {
       const processor = ChatLineProcessorStub({
         processLine: () => [
           ChatLineAgentDetectedStub({
-            toolUseId: ToolUseIdStub({ value: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ' }) as never,
-            agentId: AgentIdStub({ value: 'agent-real-internal' }) as never,
+            toolUseId: ToolUseIdStub({ value: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ' }),
+            agentId: AgentIdStub({ value: 'agent-real-internal' }),
           }),
         ],
       });

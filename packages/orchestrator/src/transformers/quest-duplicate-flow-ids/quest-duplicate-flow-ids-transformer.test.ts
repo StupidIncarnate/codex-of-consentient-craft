@@ -5,7 +5,7 @@ import { questDuplicateFlowIdsTransformer } from './quest-duplicate-flow-ids-tra
 describe('questDuplicateFlowIdsTransformer', () => {
   describe('no duplicates', () => {
     it('VALID: {unique flow ids} => returns []', () => {
-      const flows = [FlowStub({ id: 'flow-a' as never }), FlowStub({ id: 'flow-b' as never })];
+      const flows = [FlowStub({ id: 'flow-a' }), FlowStub({ id: 'flow-b' })];
 
       const result = questDuplicateFlowIdsTransformer({ flows });
 
@@ -29,10 +29,7 @@ describe('questDuplicateFlowIdsTransformer', () => {
 
   describe('duplicates present', () => {
     it('INVALID: {two flows share id} => returns that id', () => {
-      const flows = [
-        FlowStub({ id: 'login-flow' as never }),
-        FlowStub({ id: 'login-flow' as never }),
-      ];
+      const flows = [FlowStub({ id: 'login-flow' }), FlowStub({ id: 'login-flow' })];
 
       const result = questDuplicateFlowIdsTransformer({ flows });
 

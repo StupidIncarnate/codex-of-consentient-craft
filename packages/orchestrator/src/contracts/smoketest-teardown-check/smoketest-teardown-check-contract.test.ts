@@ -46,7 +46,7 @@ describe('smoketestTeardownCheckContract', () => {
   describe('invalid checks', () => {
     it('INVALID: {kind: "nonsense"} => throws for unknown discriminator', () => {
       expect(() => {
-        smoketestTeardownCheckContract.parse({ kind: 'nonsense' as never, port: 4751 });
+        smoketestTeardownCheckContract.parse({ kind: 'nonsense', port: 4751 });
       }).toThrow(/Invalid discriminator value/u);
     });
 

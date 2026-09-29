@@ -14,9 +14,9 @@ describe('QuestMcpCreateResponder', () => {
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
     const guild = GuildListItemStub({
       id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-      name: 'My Guild' as never,
-      path: '/home/dev/my-guild' as never,
-      urlSlug: 'my-guild' as never,
+      name: 'My Guild',
+      path: '/home/dev/my-guild',
+      urlSlug: 'my-guild',
       valid: true,
     });
 
@@ -34,9 +34,9 @@ describe('QuestMcpCreateResponder', () => {
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
     const guild = GuildListItemStub({
       id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-      name: 'My Guild' as never,
-      path: '/home/dev/my-guild' as never,
-      urlSlug: 'my-guild' as never,
+      name: 'My Guild',
+      path: '/home/dev/my-guild',
+      urlSlug: 'my-guild',
       valid: true,
     });
 
@@ -54,9 +54,9 @@ describe('QuestMcpCreateResponder', () => {
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
     const createdGuild = GuildStub({
       id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
-      name: 'Codex of Consentient Craft' as never,
-      path: '/home/dev/codex-of-consentient-craft' as never,
-      urlSlug: 'codex-of-consentient-craft' as never,
+      name: 'Codex of Consentient Craft',
+      path: '/home/dev/codex-of-consentient-craft',
+      urlSlug: 'codex-of-consentient-craft',
     });
 
     proxy.setupResolvedRepoRoot({

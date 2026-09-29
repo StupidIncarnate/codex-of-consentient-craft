@@ -7,10 +7,10 @@ import { questUnresolvedFlowRefsTransformer } from './quest-unresolved-flow-refs
 describe('questUnresolvedFlowRefsTransformer', () => {
   describe('all resolved', () => {
     it('VALID: {all edges resolve} => returns []', () => {
-      const node = FlowNodeStub({ id: 'n1' as never });
+      const node = FlowNodeStub({ id: 'n1' });
       const flow = FlowStub({
         nodes: [node],
-        edges: [FlowEdgeStub({ id: 'e1' as never, from: 'n1' as never, to: 'n1' as never })],
+        edges: [FlowEdgeStub({ id: 'e1', from: 'n1', to: 'n1' })],
       });
 
       const result = questUnresolvedFlowRefsTransformer({ flows: [flow] });
@@ -21,11 +21,11 @@ describe('questUnresolvedFlowRefsTransformer', () => {
 
   describe('unresolved refs', () => {
     it('INVALID: {edge points to nonexistent node} => returns description', () => {
-      const node = FlowNodeStub({ id: 'node-a' as never });
+      const node = FlowNodeStub({ id: 'node-a' });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [node],
-        edges: [FlowEdgeStub({ id: 'e1' as never, from: 'node-a' as never, to: 'ghost' as never })],
+        edges: [FlowEdgeStub({ id: 'e1', from: 'node-a', to: 'ghost' })],
       });
 
       const result = questUnresolvedFlowRefsTransformer({ flows: [flow] });

@@ -11,9 +11,9 @@ const SHA = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0';
 
 const CARVED_QUEST = QuestStub({
   id: QUEST_ID,
-  worktreePath: '/home/testuser/worktrees/add-auth' as never,
-  baseBranch: 'main' as never,
-  baseRef: 'a1b2c3d4' as never,
+  worktreePath: '/home/testuser/worktrees/add-auth',
+  baseBranch: 'main',
+  baseRef: 'a1b2c3d4',
 });
 
 describe('gitRowsLayerBroker', () => {
@@ -115,7 +115,7 @@ describe('gitRowsLayerBroker', () => {
     it('VALID: {a quest that never carved} => every git field is null, never absent', async () => {
       const quest = QuestStub({
         id: QUEST_ID,
-        worktreePath: '/home/testuser/worktrees/add-auth' as never,
+        worktreePath: '/home/testuser/worktrees/add-auth',
       });
       const proxy = gitRowsLayerBrokerProxy();
       proxy.setupWorktreeMissing({ quest });

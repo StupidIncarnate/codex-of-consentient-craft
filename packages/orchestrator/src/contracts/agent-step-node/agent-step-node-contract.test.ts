@@ -62,7 +62,7 @@ describe('agentStepNodeContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {role: antagonist} => throws, because the split has exactly three sides', () => {
-      expect(() => AgentStepNodeStub({ role: 'antagonist' as never })).toThrow(/role/u);
+      expect(() => AgentStepNodeStub({ role: 'antagonist' })).toThrow(/role/u);
     });
 
     it('EMPTY: {no role} => throws', () => {
@@ -70,7 +70,7 @@ describe('agentStepNodeContract', () => {
     });
 
     it('INVALID: {a handler name naming no code} => throws, because the handler set is closed', () => {
-      expect(() => AgentStepNodeStub({ handler: 'spiritmender' as never })).toThrow(/handler/u);
+      expect(() => AgentStepNodeStub({ handler: 'spiritmender' })).toThrow(/handler/u);
     });
   });
 });

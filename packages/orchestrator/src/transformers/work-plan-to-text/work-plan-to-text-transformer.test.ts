@@ -8,7 +8,7 @@ import { WorkPlanStub } from '../../contracts/work-plan/work-plan.stub';
 import { workPlanToTextTransformer } from './work-plan-to-text-transformer';
 
 const OPERATION_ITEM = OperationItemStub({
-  text: 'build the send flow — package: web · flow: send-flow' as never,
+  text: 'build the send flow — package: web · flow: send-flow',
 });
 
 const IN_SCOPE_UNITS = QuestWorkViewStub({
@@ -43,7 +43,7 @@ const IN_SCOPE_UNITS = QuestWorkViewStub({
       markedBy: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
       markedAt: '2026-01-01T00:00:00.000Z',
     },
-  ] as never,
+  ],
 }).inScopeUnits;
 
 describe('workPlanToTextTransformer', () => {
@@ -104,7 +104,7 @@ describe('workPlanToTextTransformer', () => {
               toSettle: 'drive the batch send by hand once the lane exists',
               at: '2026-01-01T00:00:00.000Z',
             },
-          ] as never,
+          ],
         }),
         inScopeUnits: IN_SCOPE_UNITS,
       });
@@ -128,7 +128,7 @@ describe('workPlanToTextTransformer', () => {
             WorkPlanBatchStub({ mode: 'sequential' }),
             WorkPlanBatchStub({
               mode: 'parallel',
-              pieces: [WorkPlanPieceStub({ id: 'pc-second' as never })],
+              pieces: [WorkPlanPieceStub({ id: 'pc-second' })],
             }),
           ],
         }),
@@ -197,7 +197,7 @@ describe('workPlanToTextTransformer', () => {
             WorkPlanBatchStub({
               pieces: [
                 WorkPlanPieceStub({
-                  id: 'pc-contracts' as never,
+                  id: 'pc-contracts',
                   assignedUnitIds: [],
                   payload: WorkPlanPayloadCodeweaverStub({ units: [] }),
                 }),

@@ -18,8 +18,8 @@ describe('claudeSpawnCommandContract', () => {
   });
 
   it('INVALID: {env value not a string} => throws validation error', () => {
-    expect(() =>
-      claudeSpawnCommandContract.parse({ args: ['-p'], env: { PATH: 5 as never } }),
-    ).toThrow(/expected string, received number/u);
+    expect(() => claudeSpawnCommandContract.parse({ args: ['-p'], env: { PATH: 5 } })).toThrow(
+      /expected string, received number/u,
+    );
   });
 });

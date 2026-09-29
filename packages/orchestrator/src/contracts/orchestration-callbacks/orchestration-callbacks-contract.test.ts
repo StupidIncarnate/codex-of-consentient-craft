@@ -12,14 +12,14 @@ import { OrchestrationCallbacksParamsStub } from './orchestration-callbacks.stub
 describe('orchestrationCallbacksContract', () => {
   it('VALID: {all params} => parses successfully', () => {
     const fixedEntry = AssistantTextChatEntryStub({
-      uuid: 'eeeeeeee-1111-4222-9333-444444444444' as never,
-      timestamp: '2026-01-01T00:00:00.000Z' as never,
+      uuid: 'eeeeeeee-1111-4222-9333-444444444444',
+      timestamp: '2026-01-01T00:00:00.000Z',
     });
     const result = OrchestrationCallbacksParamsStub({
       onAgentEntryParams: {
-        slotIndex: 0 as never,
+        slotIndex: 0,
         entries: [fixedEntry],
-        questWorkItemId: 'aaaaaaaa-1111-4222-9333-444444444444' as never,
+        questWorkItemId: 'aaaaaaaa-1111-4222-9333-444444444444',
       },
     });
 
@@ -51,15 +51,15 @@ describe('orchestrationCallbacksContract', () => {
 
   it('VALID: {custom onAgentEntryParams} => overrides defaults', () => {
     const customEntry = AssistantTextChatEntryStub({
-      uuid: 'ffffffff-1111-4222-9333-444444444444' as never,
-      timestamp: '2026-01-01T00:00:00.000Z' as never,
-      content: 'custom content' as never,
+      uuid: 'ffffffff-1111-4222-9333-444444444444',
+      timestamp: '2026-01-01T00:00:00.000Z',
+      content: 'custom content',
     });
     const result = OrchestrationCallbacksParamsStub({
       onAgentEntryParams: {
-        slotIndex: 2 as never,
+        slotIndex: 2,
         entries: [customEntry],
-        questWorkItemId: 'bbbbbbbb-1111-4222-9333-444444444444' as never,
+        questWorkItemId: 'bbbbbbbb-1111-4222-9333-444444444444',
       },
     });
 
@@ -73,9 +73,9 @@ describe('orchestrationCallbacksContract', () => {
   it('VALID: {custom onFollowupCreatedParams} => overrides defaults', () => {
     const result = OrchestrationCallbacksParamsStub({
       onFollowupCreatedParams: {
-        followupWorkItemId: 'custom-followup' as never,
-        role: 'codeweaver' as never,
-        failedWorkItemId: 'custom-failed' as never,
+        followupWorkItemId: 'custom-followup',
+        role: 'codeweaver',
+        failedWorkItemId: 'custom-failed',
       },
     });
 

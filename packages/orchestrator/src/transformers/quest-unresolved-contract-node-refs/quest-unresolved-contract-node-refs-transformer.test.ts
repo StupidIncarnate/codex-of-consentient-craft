@@ -7,10 +7,10 @@ import { questUnresolvedContractNodeRefsTransformer } from './quest-unresolved-c
 describe('questUnresolvedContractNodeRefsTransformer', () => {
   describe('all resolved', () => {
     it('VALID: {nodeIds resolve} => returns []', () => {
-      const node = FlowNodeStub({ id: 'anchor-node' as never });
+      const node = FlowNodeStub({ id: 'anchor-node' });
       const flow = FlowStub({ nodes: [node] });
       const contract = QuestContractEntryStub({
-        nodeId: 'anchor-node' as never,
+        nodeId: 'anchor-node',
       });
 
       const result = questUnresolvedContractNodeRefsTransformer({
@@ -25,8 +25,8 @@ describe('questUnresolvedContractNodeRefsTransformer', () => {
   describe('unresolved', () => {
     it('INVALID: {nodeId does not exist} => returns description', () => {
       const contract = QuestContractEntryStub({
-        name: 'LoginCredentials' as never,
-        nodeId: 'ghost-node' as never,
+        name: 'LoginCredentials',
+        nodeId: 'ghost-node',
       });
 
       const result = questUnresolvedContractNodeRefsTransformer({

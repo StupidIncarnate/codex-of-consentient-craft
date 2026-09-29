@@ -11,7 +11,7 @@ describe('smoketestScenarioMetaContract', () => {
   });
 
   it('INVALID: {empty caseId} => throws', () => {
-    expect(() => SmoketestScenarioMetaStub({ caseId: '' as never })).toThrow(/>=1/u);
+    expect(() => SmoketestScenarioMetaStub({ caseId: '' })).toThrow(/>=1/u);
   });
 
   it('INVALID: {negative startedAt} => throws', () => {

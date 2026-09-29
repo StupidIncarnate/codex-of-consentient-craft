@@ -221,7 +221,7 @@ describe('questGetNextStepBroker', () => {
             status: 'pending',
             spawnerType: 'command',
             step: 'gate',
-            relatedDataItems: [`operations/${operationId}` as never],
+            relatedDataItems: [`operations/${operationId}`],
           }),
         ],
       });
@@ -264,7 +264,7 @@ describe('questGetNextStepBroker', () => {
       const olderQuest = QuestStub({
         id: olderQuestId,
         status: 'in_progress',
-        createdAt: '2024-01-01T00:00:00.000Z' as never,
+        createdAt: '2024-01-01T00:00:00.000Z',
         workItems: [
           WorkItemStub({
             id: olderWorkItemId,
@@ -276,7 +276,7 @@ describe('questGetNextStepBroker', () => {
       const newerQuest = QuestStub({
         id: newerQuestId,
         status: 'in_progress',
-        createdAt: '2024-06-01T00:00:00.000Z' as never,
+        createdAt: '2024-06-01T00:00:00.000Z',
         workItems: [
           WorkItemStub({
             id: newerWorkItemId,
@@ -324,13 +324,13 @@ describe('questGetNextStepBroker', () => {
       const olderQuest = QuestStub({
         id: olderQuestId,
         status: 'in_progress',
-        createdAt: '2024-01-01T00:00:00.000Z' as never,
+        createdAt: '2024-01-01T00:00:00.000Z',
         workItems: [WorkItemStub({ status: 'complete' })],
       });
       const newerQuest = QuestStub({
         id: newerQuestId,
         status: 'in_progress',
-        createdAt: '2024-06-01T00:00:00.000Z' as never,
+        createdAt: '2024-06-01T00:00:00.000Z',
         workItems: [
           WorkItemStub({
             id: newerWorkItemId,

@@ -7,20 +7,20 @@ import { questDecisionNodesMissingBranchesTransformer } from './quest-decision-n
 describe('questDecisionNodesMissingBranchesTransformer', () => {
   describe('sufficient branches', () => {
     it('VALID: {decision has 2 outgoing edges} => returns []', () => {
-      const decision = FlowNodeStub({ id: 'decide' as never, type: 'decision' });
-      const a = FlowNodeStub({ id: 'a' as never });
-      const b = FlowNodeStub({ id: 'b' as never });
+      const decision = FlowNodeStub({ id: 'decide', type: 'decision' });
+      const a = FlowNodeStub({ id: 'a' });
+      const b = FlowNodeStub({ id: 'b' });
       const edge1 = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'decide' as never,
-        to: 'a' as never,
-        label: 'yes' as never,
+        id: 'e1',
+        from: 'decide',
+        to: 'a',
+        label: 'yes',
       });
       const edge2 = FlowEdgeStub({
-        id: 'e2' as never,
-        from: 'decide' as never,
-        to: 'b' as never,
-        label: 'no' as never,
+        id: 'e2',
+        from: 'decide',
+        to: 'b',
+        label: 'no',
       });
       const flow = FlowStub({ nodes: [decision, a, b], edges: [edge1, edge2] });
 
@@ -32,15 +32,15 @@ describe('questDecisionNodesMissingBranchesTransformer', () => {
 
   describe('missing branches', () => {
     it('INVALID: {decision has 1 outgoing edge} => returns description', () => {
-      const decision = FlowNodeStub({ id: 'check-auth' as never, type: 'decision' });
-      const target = FlowNodeStub({ id: 'done' as never });
+      const decision = FlowNodeStub({ id: 'check-auth', type: 'decision' });
+      const target = FlowNodeStub({ id: 'done' });
       const edge = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'check-auth' as never,
-        to: 'done' as never,
+        id: 'e1',
+        from: 'check-auth',
+        to: 'done',
       });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [decision, target],
         edges: [edge],
       });

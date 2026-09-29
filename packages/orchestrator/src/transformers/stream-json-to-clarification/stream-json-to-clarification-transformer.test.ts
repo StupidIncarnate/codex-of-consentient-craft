@@ -23,7 +23,7 @@ describe('streamJsonToClarificationTransformer', () => {
             },
           ],
         }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -61,7 +61,7 @@ describe('streamJsonToClarificationTransformer', () => {
             },
           ],
         }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -97,7 +97,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'Bash',
         toolInput: JSON.stringify({ command: 'ls' }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -110,7 +110,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: 'not valid json',
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -121,7 +121,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: JSON.stringify({}),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -132,7 +132,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: JSON.stringify({ questions: 'not-array' }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -143,7 +143,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: JSON.stringify({ questions: [] }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 
@@ -154,7 +154,7 @@ describe('streamJsonToClarificationTransformer', () => {
       const entry = AssistantToolUseChatEntryStub({
         toolName: 'mcp__dungeonmaster__ask-user-question',
         toolInput: JSON.stringify({ questions: [{ invalid: 'shape' }] }),
-      } as never);
+      });
 
       const result = streamJsonToClarificationTransformer({ entry });
 

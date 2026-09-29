@@ -14,11 +14,11 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
           options: [
             {
-              label: 'PostgreSQL' as never,
-              description: 'Relational database with JSONB support' as never,
+              label: 'PostgreSQL',
+              description: 'Relational database with JSONB support',
             },
           ],
         }),
@@ -50,20 +50,20 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
           options: [
             {
-              label: 'PostgreSQL' as never,
-              description: 'Relational database with JSONB support' as never,
+              label: 'PostgreSQL',
+              description: 'Relational database with JSONB support',
             },
           ],
         }),
         ClarificationQuestionStub({
-          header: 'Auth Strategy' as never,
+          header: 'Auth Strategy',
           options: [
             {
-              label: 'JWT' as never,
-              description: 'Stateless token-based authentication' as never,
+              label: 'JWT',
+              description: 'Stateless token-based authentication',
             },
           ],
         }),
@@ -104,11 +104,11 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
           options: [
             {
-              label: 'MySQL' as never,
-              description: 'Traditional relational database' as never,
+              label: 'MySQL',
+              description: 'Traditional relational database',
             },
           ],
         }),
@@ -140,7 +140,7 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Unrelated' as never,
+          header: 'Unrelated',
         }),
       ];
 
@@ -162,7 +162,7 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
         }),
       ];
 
@@ -184,11 +184,11 @@ describe('ClarifyAnswerResponder', () => {
 
       const questions = [
         ClarificationQuestionStub({
-          header: 'Database Selection' as never,
+          header: 'Database Selection',
           options: [
             {
-              label: 'PostgreSQL' as never,
-              description: 'Relational database with JSONB support' as never,
+              label: 'PostgreSQL',
+              description: 'Relational database with JSONB support',
             },
           ],
         }),

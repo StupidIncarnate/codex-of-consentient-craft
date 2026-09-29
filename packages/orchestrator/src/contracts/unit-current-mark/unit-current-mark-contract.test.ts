@@ -68,7 +68,7 @@ describe('unitCurrentMarkContract', () => {
     });
 
     it("INVALID: {mark: 'confirmed'} => refused, since the sign-off verdicts are a different vocabulary", () => {
-      expect(() => UnitCurrentMarkStub({ mark: 'confirmed' as never })).toThrow(/Invalid option/u);
+      expect(() => UnitCurrentMarkStub({ mark: 'confirmed' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {evidence: empty string} => refused', () => {

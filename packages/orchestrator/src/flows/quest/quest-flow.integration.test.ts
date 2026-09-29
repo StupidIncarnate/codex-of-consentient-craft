@@ -377,7 +377,7 @@ describe('QuestFlow', () => {
               id: 'warpgate-merge',
               nodes: [{ id: 'merge-status-ok', label: 'Merge status OK', type: 'state' }],
             },
-          ] as never,
+          ],
         }),
       });
 
@@ -1133,7 +1133,7 @@ describe('QuestFlow', () => {
                 },
               ],
             },
-          ] as never,
+          ],
         }),
       });
 
@@ -1224,7 +1224,7 @@ describe('QuestFlow', () => {
                 },
               ],
             },
-          ] as never,
+          ],
         }),
       });
 
@@ -1513,9 +1513,9 @@ describe('QuestFlow', () => {
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
       const entry = CommentBatchEntryStub({
-        flowId: 'login-flow' as never,
-        nodeId: 'start' as never,
-        text: 'Left on the box by a real user, through the batch route' as never,
+        flowId: 'login-flow',
+        nodeId: 'start',
+        text: 'Left on the box by a real user, through the batch route',
       });
 
       const batchResult = await CommentBatchResponder({ questId, comments: [entry] });

@@ -17,9 +17,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'My Guild' as never,
-        path: '/home/dev/my-guild' as never,
-        urlSlug: 'my-guild' as never,
+        name: 'My Guild',
+        path: '/home/dev/my-guild',
+        urlSlug: 'my-guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/my-guild', repoRoot: '/home/dev/my-guild' });
@@ -42,9 +42,9 @@ describe('questMcpCreateBroker', () => {
       // would fire. Asserting guildAddBroker stays uncalled proves the repo-root match.
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Repo Guild' as never,
-        path: '/home/dev/repo' as never,
-        urlSlug: 'repo-guild' as never,
+        name: 'Repo Guild',
+        path: '/home/dev/repo',
+        urlSlug: 'repo-guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({
@@ -68,23 +68,23 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const firstGuild = GuildListItemStub({
         id: GuildIdStub({ value: 'cccccccc-3333-4444-9555-666666666666' }),
-        name: 'First Guild' as never,
-        path: '/home/dev/first-guild' as never,
-        urlSlug: 'first-guild' as never,
+        name: 'First Guild',
+        path: '/home/dev/first-guild',
+        urlSlug: 'first-guild',
         valid: true,
       });
       const targetGuild = GuildListItemStub({
         id: GuildIdStub({ value: 'dddddddd-4444-4555-9666-777777777777' }),
-        name: 'Target Guild' as never,
-        path: '/home/dev/target-guild' as never,
-        urlSlug: 'target-guild' as never,
+        name: 'Target Guild',
+        path: '/home/dev/target-guild',
+        urlSlug: 'target-guild',
         valid: true,
       });
       const lastGuild = GuildListItemStub({
         id: GuildIdStub({ value: 'eeeeeeee-5555-4666-9777-888888888888' }),
-        name: 'Last Guild' as never,
-        path: '/home/dev/last-guild' as never,
-        urlSlug: 'last-guild' as never,
+        name: 'Last Guild',
+        path: '/home/dev/last-guild',
+        urlSlug: 'last-guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({
@@ -106,9 +106,9 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Existing Guild' as never,
-        path: '/home/dev/existing' as never,
-        urlSlug: 'existing-guild' as never,
+        name: 'Existing Guild',
+        path: '/home/dev/existing',
+        urlSlug: 'existing-guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/existing', repoRoot: '/home/dev/existing' });
@@ -125,8 +125,8 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'ffffffff-6666-4777-9888-999999999999' }),
-        name: 'Another Guild' as never,
-        path: '/home/dev/another-guild' as never,
+        name: 'Another Guild',
+        path: '/home/dev/another-guild',
         urlSlug: undefined,
         valid: true,
       });
@@ -147,9 +147,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: '99999999-9999-4999-9999-999999999999' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -168,9 +168,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const createdGuild = GuildStub({
         id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
-        name: 'Codex of Consentient Craft' as never,
-        path: '/home/dev/codex-of-consentient-craft' as never,
-        urlSlug: 'codex-of-consentient-craft' as never,
+        name: 'Codex of Consentient Craft',
+        path: '/home/dev/codex-of-consentient-craft',
+        urlSlug: 'codex-of-consentient-craft',
       });
       proxy.setupResolvedRepoRoot({
         cwd: '/home/dev/codex-of-consentient-craft',
@@ -201,9 +201,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Fresh Repo' as never,
-        path: '/home/dev/fresh-repo' as never,
-        urlSlug: 'fresh-repo' as never,
+        name: 'Fresh Repo',
+        path: '/home/dev/fresh-repo',
+        urlSlug: 'fresh-repo',
         valid: true,
       });
       proxy.setupResolveFallback({ cwd: '/home/dev/fresh-repo' });
@@ -224,9 +224,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const createdGuild = GuildStub({
         id: GuildIdStub({ value: 'cccccccc-cccc-4ccc-9ccc-cccccccccccc' }),
-        name: 'Codex of Consentient Craft' as never,
-        path: '/home/dev/codex-of-consentient-craft' as never,
-        urlSlug: 'codex-of-consentient-craft' as never,
+        name: 'Codex of Consentient Craft',
+        path: '/home/dev/codex-of-consentient-craft',
+        urlSlug: 'codex-of-consentient-craft',
       });
       proxy.setupResolveFallback({ cwd: '/home/dev/codex-of-consentient-craft' });
       proxy.setupGuilds({ guilds: [] });
@@ -255,9 +255,9 @@ describe('questMcpCreateBroker', () => {
       const questType = 'bug-hunt';
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -274,9 +274,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -294,9 +294,9 @@ describe('questMcpCreateBroker', () => {
       const sessionId = SessionIdStub({ value: '77777777-7777-4777-9777-777777777777' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -313,9 +313,9 @@ describe('questMcpCreateBroker', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'bbbbbbbb-2222-4333-9444-555555555555' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -340,9 +340,9 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: '22222222-2222-4222-9222-222222222222' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });
@@ -356,9 +356,9 @@ describe('questMcpCreateBroker', () => {
       const proxy = questMcpCreateBrokerProxy();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: '22222222-2222-4222-9222-222222222222' }),
-        name: 'Guild' as never,
-        path: '/home/dev/guild' as never,
-        urlSlug: 'guild' as never,
+        name: 'Guild',
+        path: '/home/dev/guild',
+        urlSlug: 'guild',
         valid: true,
       });
       proxy.setupResolvedRepoRoot({ cwd: '/home/dev/guild', repoRoot: '/home/dev/guild' });

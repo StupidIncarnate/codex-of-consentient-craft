@@ -11,7 +11,7 @@ describe('questWorkInputContract', () => {
       const plan = { ...WorkPlanFieldsStub() };
       Reflect.deleteProperty(plan, 'writtenBy');
       Reflect.deleteProperty(plan, 'writtenAt');
-      const input = QuestWorkInputStub({ payload: { kind: 'plan', plan: plan as never } });
+      const input = QuestWorkInputStub({ payload: { kind: 'plan', plan } });
 
       const result = questWorkInputContract.parse(input);
 
@@ -22,7 +22,7 @@ describe('questWorkInputContract', () => {
       const plan = { ...WorkPlanFieldsStub() };
       Reflect.deleteProperty(plan, 'writtenBy');
 
-      expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan: plan as never } })).toThrow(
+      expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan } })).toThrow(
         /unrecognized/iu,
       );
     });
@@ -31,15 +31,15 @@ describe('questWorkInputContract', () => {
       const plan = WorkPlanFieldsStub({
         plannerMarks: [
           UnitObservationFieldsStub({
-            mark: 'met' as never,
-            unitId: 'send-flow:observable:unreached' as never,
+            mark: 'met',
+            unitId: 'send-flow:observable:unreached',
           }),
         ],
       });
       Reflect.deleteProperty(plan, 'writtenBy');
       Reflect.deleteProperty(plan, 'writtenAt');
 
-      expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan: plan as never } })).toThrow(
+      expect(() => QuestWorkInputStub({ payload: { kind: 'plan', plan } })).toThrow(
         /a planner may only write 'cant-meet'/u,
       );
     });
@@ -54,7 +54,7 @@ describe('questWorkInputContract', () => {
         payload: {
           kind: 'amendment',
           reason: 'the piece boundary was wrong',
-          plan: plan as never,
+          plan,
         },
       });
 
@@ -69,7 +69,7 @@ describe('questWorkInputContract', () => {
       const observation = { ...UnitObservationFieldsStub() };
       Reflect.deleteProperty(observation, 'at');
       const input = QuestWorkInputStub({
-        payload: { kind: 'observations', observations: [observation as never] },
+        payload: { kind: 'observations', observations: [observation] },
       });
 
       const result = questWorkInputContract.parse(input);
@@ -80,13 +80,13 @@ describe('questWorkInputContract', () => {
     it("VALID: {kind: observations, one 'cant-meet' with toSettle} => round-trips", () => {
       const observation = {
         ...UnitObservationFieldsStub({
-          mark: 'cant-meet' as never,
-          toSettle: 'drive a real send and read the session JSONL' as never,
+          mark: 'cant-meet',
+          toSettle: 'drive a real send and read the session JSONL',
         }),
       };
       Reflect.deleteProperty(observation, 'at');
       const input = QuestWorkInputStub({
-        payload: { kind: 'observations', observations: [observation as never] },
+        payload: { kind: 'observations', observations: [observation] },
       });
 
       const result = questWorkInputContract.parse(input);
@@ -95,26 +95,26 @@ describe('questWorkInputContract', () => {
     });
 
     it("INVALID: {kind: observations, 'cant-meet' with NO toSettle} => throws at the tool", () => {
-      const observation = { ...UnitObservationFieldsStub({ mark: 'cant-meet' as never }) };
+      const observation = { ...UnitObservationFieldsStub({ mark: 'cant-meet' }) };
       Reflect.deleteProperty(observation, 'at');
       Reflect.deleteProperty(observation, 'toSettle');
 
       expect(() =>
         QuestWorkInputStub({
-          payload: { kind: 'observations', observations: [observation as never] },
+          payload: { kind: 'observations', observations: [observation] },
         }),
       ).toThrow(/toSettle is required when mark is 'cant-meet'/u);
     });
 
     it("INVALID: {kind: observations, 'met' carrying a toSettle} => throws at the tool", () => {
       const observation = {
-        ...UnitObservationFieldsStub({ toSettle: 'never valid on met' as never }),
+        ...UnitObservationFieldsStub({ toSettle: 'never valid on met' }),
       };
       Reflect.deleteProperty(observation, 'at');
 
       expect(() =>
         QuestWorkInputStub({
-          payload: { kind: 'observations', observations: [observation as never] },
+          payload: { kind: 'observations', observations: [observation] },
         }),
       ).toThrow(/toSettle is only valid when mark is 'cant-meet'/u);
     });
@@ -124,7 +124,7 @@ describe('questWorkInputContract', () => {
 
       expect(() =>
         QuestWorkInputStub({
-          payload: { kind: 'observations', observations: [observation as never] },
+          payload: { kind: 'observations', observations: [observation] },
         }),
       ).toThrow(/unrecognized/iu);
     });
@@ -156,8 +156,8 @@ describe('questWorkInputContract', () => {
       const input = QuestWorkInputStub({
         payload: {
           kind: 'invalidation',
-          flowId: 'send-flow' as never,
-          reason: 'copy-failed branch now returns 400 instead of 500' as never,
+          flowId: 'send-flow',
+          reason: 'copy-failed branch now returns 400 instead of 500',
         },
       });
 
@@ -172,7 +172,7 @@ describe('questWorkInputContract', () => {
       const input = QuestWorkInputStub({
         payload: {
           kind: 'request',
-          step: 'recipe' as never,
+          step: 'recipe',
           reason: 'the send-flow seed is missing',
         },
       });

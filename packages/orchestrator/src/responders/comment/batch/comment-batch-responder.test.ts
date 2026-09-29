@@ -92,7 +92,7 @@ describe('CommentBatchResponder', () => {
 
       const result = await CommentBatchResponder({
         questId: quest.id,
-        comments: [CommentBatchEntryStub({ createdAt: CUSTOM_CREATED_AT as never })],
+        comments: [CommentBatchEntryStub({ createdAt: CUSTOM_CREATED_AT })],
       });
 
       expect(result.comments).toStrictEqual([
@@ -116,8 +116,8 @@ describe('CommentBatchResponder', () => {
       const result = await CommentBatchResponder({
         questId: quest.id,
         comments: [
-          CommentBatchEntryStub({ text: 'First comment' as never }),
-          CommentBatchEntryStub({ text: 'Second comment' as never }),
+          CommentBatchEntryStub({ text: 'First comment' }),
+          CommentBatchEntryStub({ text: 'Second comment' }),
         ],
       });
 

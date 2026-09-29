@@ -317,7 +317,7 @@ describe('questWorkRecordBroker', () => {
               evidence: observationA.evidence,
             },
           ],
-        } as never,
+        },
       });
       const callB = questWorkRecordBroker({
         questId: QUEST_ID,
@@ -331,7 +331,7 @@ describe('questWorkRecordBroker', () => {
               evidence: observationB.evidence,
             },
           ],
-        } as never,
+        },
       });
 
       await Promise.all([callA, callB]);

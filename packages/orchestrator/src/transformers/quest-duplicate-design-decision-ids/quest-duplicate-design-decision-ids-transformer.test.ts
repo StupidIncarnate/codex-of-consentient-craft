@@ -6,8 +6,8 @@ describe('questDuplicateDesignDecisionIdsTransformer', () => {
   describe('no duplicates', () => {
     it('VALID: {unique ids} => returns []', () => {
       const designDecisions = [
-        DesignDecisionStub({ id: 'decision-a' as never }),
-        DesignDecisionStub({ id: 'decision-b' as never }),
+        DesignDecisionStub({ id: 'decision-a' }),
+        DesignDecisionStub({ id: 'decision-b' }),
       ];
 
       const result = questDuplicateDesignDecisionIdsTransformer({ designDecisions });
@@ -19,8 +19,8 @@ describe('questDuplicateDesignDecisionIdsTransformer', () => {
   describe('duplicates present', () => {
     it('INVALID: {two decisions share id} => returns the id', () => {
       const designDecisions = [
-        DesignDecisionStub({ id: 'same-decision' as never }),
-        DesignDecisionStub({ id: 'same-decision' as never, title: 'Another' as never }),
+        DesignDecisionStub({ id: 'same-decision' }),
+        DesignDecisionStub({ id: 'same-decision', title: 'Another' }),
       ];
 
       const result = questDuplicateDesignDecisionIdsTransformer({ designDecisions });

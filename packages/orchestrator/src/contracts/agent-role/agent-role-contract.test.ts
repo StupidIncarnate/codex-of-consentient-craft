@@ -123,25 +123,25 @@ describe('agentRoleContract', () => {
 
     it('INVALID: {number} => throws validation error', () => {
       expect(() => {
-        agentRoleContract.parse(123 as never);
+        agentRoleContract.parse(123);
       }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {null} => throws validation error', () => {
       expect(() => {
-        agentRoleContract.parse(null as never);
+        agentRoleContract.parse(null);
       }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {undefined} => throws validation error', () => {
       expect(() => {
-        agentRoleContract.parse(undefined as never);
+        agentRoleContract.parse(undefined);
       }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {object} => throws validation error', () => {
       expect(() => {
-        agentRoleContract.parse({} as never);
+        agentRoleContract.parse({});
       }).toThrow(/Invalid option: expected one of/u);
     });
   });

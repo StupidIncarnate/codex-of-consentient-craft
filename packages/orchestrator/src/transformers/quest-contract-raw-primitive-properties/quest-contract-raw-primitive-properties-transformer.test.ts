@@ -16,9 +16,9 @@ describe('questContractRawPrimitivePropertiesTransformer', () => {
 
   describe('raw primitives present', () => {
     it('INVALID: {property uses "string"} => returns description', () => {
-      const rawProperty = QuestContractPropertyStub({ name: 'password' as never });
+      const rawProperty = QuestContractPropertyStub({ name: 'password' });
       Object.assign(rawProperty, { type: 'string' });
-      const contract = QuestContractEntryStub({ name: 'LoginCredentials' as never });
+      const contract = QuestContractEntryStub({ name: 'LoginCredentials' });
       Object.assign(contract, { properties: [rawProperty] });
 
       const result = questContractRawPrimitivePropertiesTransformer({ contracts: [contract] });

@@ -31,9 +31,7 @@ describe('workPlanCodeweaverUnitContract', () => {
     });
 
     it("INVALID: {kind: 'off-map'} => refused, since no unit test beside the code reaches a probe family", () => {
-      expect(() => WorkPlanCodeweaverUnitStub({ kind: 'off-map' as never })).toThrow(
-        /Invalid option/u,
-      );
+      expect(() => WorkPlanCodeweaverUnitStub({ kind: 'off-map' })).toThrow(/Invalid option/u);
     });
   });
 

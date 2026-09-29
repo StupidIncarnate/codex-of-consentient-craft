@@ -18,10 +18,10 @@ describe('questObservablesMissingDescriptionTransformer', () => {
 
   describe('missing description', () => {
     it('INVALID: {observable has empty description} => returns description', () => {
-      const observable = FlowObservableStub({ id: 'obs-empty' as never });
+      const observable = FlowObservableStub({ id: 'obs-empty' });
       Object.assign(observable, { description: '' });
-      const node = FlowNodeStub({ id: 'done' as never, observables: [observable] });
-      const flow = FlowStub({ id: 'login-flow' as never, nodes: [node] });
+      const node = FlowNodeStub({ id: 'done', observables: [observable] });
+      const flow = FlowStub({ id: 'login-flow', nodes: [node] });
 
       const result = questObservablesMissingDescriptionTransformer({ flows: [flow] });
 

@@ -51,9 +51,7 @@ describe('questWorkInstanceContract', () => {
   describe('invalid instance', () => {
     it('INVALID: {instanceId: "not-an-inst-id"} => throws on the siege instance id format', () => {
       expect(() =>
-        questWorkInstanceContract.parse(
-          QuestWorkInstanceStub({ instanceId: 'not-an-inst-id' as never }),
-        ),
+        questWorkInstanceContract.parse(QuestWorkInstanceStub({ instanceId: 'not-an-inst-id' })),
       ).toThrow(/Siege instance id must look like/u);
     });
 

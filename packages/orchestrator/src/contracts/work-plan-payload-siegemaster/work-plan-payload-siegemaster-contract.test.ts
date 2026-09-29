@@ -51,7 +51,7 @@ describe('workPlanPayloadSiegemasterContract', () => {
     });
 
     it("INVALID: {offMapFamily: 'security'} => refused by name, since an eighth family is not one", () => {
-      expect(() => WorkPlanPayloadSiegemasterStub({ offMapFamily: 'security' as never })).toThrow(
+      expect(() => WorkPlanPayloadSiegemasterStub({ offMapFamily: 'security' })).toThrow(
         /Invalid option: expected one of/u,
       );
     });

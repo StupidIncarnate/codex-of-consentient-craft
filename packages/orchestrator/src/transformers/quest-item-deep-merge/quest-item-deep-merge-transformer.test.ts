@@ -452,7 +452,7 @@ describe('questItemDeepMergeTransformer', () => {
     it('VALID: {observable already carrying designRef, update sets only verifyByReading} => both fields survive', () => {
       const existingObservable = FlowObservableStub({
         id: 'obs-1',
-        designRef: 'design/dashboard.png' as never,
+        designRef: 'design/dashboard.png',
       });
       const existingNode = FlowNodeStub({ id: 'n1', observables: [existingObservable] });
       const existing = FlowStub({ id: 'flow-a', nodes: [existingNode] });
@@ -482,9 +482,7 @@ describe('questItemDeepMergeTransformer', () => {
     it('VALID: {update sets ONE offMapSignoffs entry} => the other six families survive untouched', () => {
       const existing = FlowStub({
         id: 'flow-a',
-        offMapSignoffs: OFF_MAP_FAMILIES.map((family) =>
-          FlowOffMapSignoffStub({ id: family as never }),
-        ),
+        offMapSignoffs: OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family })),
       });
       const update = ItemWithIdStub({
         id: 'flow-a',
@@ -494,9 +492,7 @@ describe('questItemDeepMergeTransformer', () => {
       const result = questItemDeepMergeTransformer({ existing, update });
 
       const { offMapSignoffs } = result as Flow;
-      const expected = OFF_MAP_FAMILIES.map((family) =>
-        FlowOffMapSignoffStub({ id: family as never }),
-      );
+      const expected = OFF_MAP_FAMILIES.map((family) => FlowOffMapSignoffStub({ id: family }));
 
       expect(offMapSignoffs).toStrictEqual(expected);
     });
@@ -504,7 +500,7 @@ describe('questItemDeepMergeTransformer', () => {
     it('VALID: {observable patch sets designRef to null} => that key is deleted and verifyByReading is intact', () => {
       const existingObservable = FlowObservableStub({
         id: 'obs-1',
-        designRef: 'design/dashboard.png' as never,
+        designRef: 'design/dashboard.png',
         verifyByReading: true,
       });
       const existingNode = FlowNodeStub({ id: 'n1', observables: [existingObservable] });
@@ -570,7 +566,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-one',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-one-${index}` as never }),
+                  FlowObservableStub({ id: `obs-one-${index}` }),
                 ),
               }),
             ],
@@ -581,7 +577,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-two',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-two-${index}` as never }),
+                  FlowObservableStub({ id: `obs-two-${index}` }),
                 ),
               }),
               FlowNodeStub({
@@ -597,7 +593,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-three',
                 observables: Array.from({ length: 10 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-three-${index}` as never }),
+                  FlowObservableStub({ id: `obs-three-${index}` }),
                 ),
               }),
             ],
@@ -658,7 +654,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-one',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-one-${index}` as never, verifyByReading: true }),
+                  FlowObservableStub({ id: `obs-one-${index}`, verifyByReading: true }),
                 ),
               }),
             ],
@@ -669,7 +665,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-two',
                 observables: Array.from({ length: 20 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-two-${index}` as never, verifyByReading: true }),
+                  FlowObservableStub({ id: `obs-two-${index}`, verifyByReading: true }),
                 ),
               }),
               FlowNodeStub({
@@ -685,7 +681,7 @@ describe('questItemDeepMergeTransformer', () => {
               FlowNodeStub({
                 id: 'node-three',
                 observables: Array.from({ length: 10 }, (_unused, index) =>
-                  FlowObservableStub({ id: `obs-three-${index}` as never, verifyByReading: true }),
+                  FlowObservableStub({ id: `obs-three-${index}`, verifyByReading: true }),
                 ),
               }),
             ],

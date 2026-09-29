@@ -24,13 +24,11 @@ describe('scannedFileContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {path: relative} => throws, because the walk yields absolute paths only', () => {
-      expect(() => ScannedFileStub({ path: 'projects/session.jsonl' as never })).toThrow(
-        /absolute/iu,
-      );
+      expect(() => ScannedFileStub({ path: 'projects/session.jsonl' })).toThrow(/absolute/iu);
     });
 
     it('INVALID: {size: -1} => throws', () => {
-      expect(() => ScannedFileStub({ size: -1 as never })).toThrow(/to be >=0/u);
+      expect(() => ScannedFileStub({ size: -1 })).toThrow(/to be >=0/u);
     });
   });
 });

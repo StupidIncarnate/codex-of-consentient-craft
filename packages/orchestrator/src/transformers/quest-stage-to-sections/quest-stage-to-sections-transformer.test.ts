@@ -56,7 +56,7 @@ describe('questStageToSectionsTransformer', () => {
       const result1 = questStageToSectionsTransformer({
         stage: 'spec',
       });
-      result1.push('planningNotes' as never);
+      result1.push('planningNotes');
 
       const result2 = questStageToSectionsTransformer({
         stage: 'spec',

@@ -83,7 +83,7 @@ describe('spawnBatchLayerBroker', () => {
 
     it('VALID: {instruction with model: haiku} => spawns with the override model in CLI args', async () => {
       const proxy = spawnBatchLayerBrokerProxy();
-      const instruction = SpawnInstructionStub({ model: 'haiku' as never });
+      const instruction = SpawnInstructionStub({ model: 'haiku' });
       proxy.setupQuestContext({
         questId: instruction.questId,
         guildPath: '/home/user/my-project',
@@ -137,7 +137,7 @@ describe('spawnBatchLayerBroker', () => {
       const first = SpawnInstructionStub({ questId });
       const second = SpawnInstructionStub({
         questId,
-        workItemId: 'cccccccc-1111-4222-9333-444444444444' as never,
+        workItemId: 'cccccccc-1111-4222-9333-444444444444',
         role: 'spiritmender',
       });
       proxy.setupQuestContext({

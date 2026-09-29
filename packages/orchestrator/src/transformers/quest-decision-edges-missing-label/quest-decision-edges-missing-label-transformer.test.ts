@@ -7,13 +7,13 @@ import { questDecisionEdgesMissingLabelTransformer } from './quest-decision-edge
 describe('questDecisionEdgesMissingLabelTransformer', () => {
   describe('all labeled', () => {
     it('VALID: {decision edges have labels} => returns []', () => {
-      const decision = FlowNodeStub({ id: 'decide' as never, type: 'decision' });
-      const target = FlowNodeStub({ id: 'target' as never });
+      const decision = FlowNodeStub({ id: 'decide', type: 'decision' });
+      const target = FlowNodeStub({ id: 'target' });
       const edge = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'decide' as never,
-        to: 'target' as never,
-        label: 'yes' as never,
+        id: 'e1',
+        from: 'decide',
+        to: 'target',
+        label: 'yes',
       });
       const flow = FlowStub({ nodes: [decision, target], edges: [edge] });
 
@@ -25,16 +25,16 @@ describe('questDecisionEdgesMissingLabelTransformer', () => {
 
   describe('missing label', () => {
     it('INVALID: {decision edge has no label} => returns description', () => {
-      const decision = FlowNodeStub({ id: 'check-auth' as never, type: 'decision' });
-      const target = FlowNodeStub({ id: 'done' as never });
+      const decision = FlowNodeStub({ id: 'check-auth', type: 'decision' });
+      const target = FlowNodeStub({ id: 'done' });
       const edge = FlowEdgeStub({
-        id: 'unlabeled' as never,
-        from: 'check-auth' as never,
-        to: 'done' as never,
+        id: 'unlabeled',
+        from: 'check-auth',
+        to: 'done',
       });
       Reflect.deleteProperty(edge, 'label');
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [decision, target],
         edges: [edge],
       });

@@ -7,9 +7,9 @@ import { questDeadEndFlowNodesTransformer } from './quest-dead-end-flow-nodes-tr
 describe('questDeadEndFlowNodesTransformer', () => {
   describe('no dead ends', () => {
     it('VALID: {all non-terminal nodes have outgoing edges} => returns []', () => {
-      const nodeA = FlowNodeStub({ id: 'a' as never, type: 'state' });
-      const nodeB = FlowNodeStub({ id: 'b' as never, type: 'terminal' });
-      const edge = FlowEdgeStub({ id: 'e1' as never, from: 'a' as never, to: 'b' as never });
+      const nodeA = FlowNodeStub({ id: 'a', type: 'state' });
+      const nodeB = FlowNodeStub({ id: 'b', type: 'terminal' });
+      const edge = FlowEdgeStub({ id: 'e1', from: 'a', to: 'b' });
       const flow = FlowStub({ nodes: [nodeA, nodeB], edges: [edge] });
 
       const result = questDeadEndFlowNodesTransformer({ flows: [flow] });
@@ -20,20 +20,20 @@ describe('questDeadEndFlowNodesTransformer', () => {
 
   describe('dead end present', () => {
     it('INVALID: {non-terminal node has no outgoing edge} => returns description', () => {
-      const stuck = FlowNodeStub({ id: 'stuck' as never, type: 'state' });
-      const other = FlowNodeStub({ id: 'other' as never, type: 'state' });
+      const stuck = FlowNodeStub({ id: 'stuck', type: 'state' });
+      const other = FlowNodeStub({ id: 'other', type: 'state' });
       const edgeIncoming = FlowEdgeStub({
-        id: 'e1' as never,
-        from: 'other' as never,
-        to: 'stuck' as never,
+        id: 'e1',
+        from: 'other',
+        to: 'stuck',
       });
       const selfEdge = FlowEdgeStub({
-        id: 'e2' as never,
-        from: 'other' as never,
-        to: 'other' as never,
+        id: 'e2',
+        from: 'other',
+        to: 'other',
       });
       const flow = FlowStub({
-        id: 'login-flow' as never,
+        id: 'login-flow',
         nodes: [stuck, other],
         edges: [edgeIncoming, selfEdge],
       });

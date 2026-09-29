@@ -21,8 +21,8 @@ describe('questWorkRecordResultContract', () => {
   it("VALID: {kind: 'invalidation', flowId, noteId, clearedCount} => round-trips", () => {
     const input = QuestWorkRecordResultStub({
       kind: 'invalidation',
-      flowId: 'send-flow' as never,
-      noteId: 'walk-reset-send-flow-1' as never,
+      flowId: 'send-flow',
+      noteId: 'walk-reset-send-flow-1',
       clearedCount: 4,
     });
 
@@ -32,7 +32,7 @@ describe('questWorkRecordResultContract', () => {
   });
 
   it("VALID: {kind: 'request', step} => round-trips", () => {
-    const input = QuestWorkRecordResultStub({ kind: 'request', step: 'recipe' as never });
+    const input = QuestWorkRecordResultStub({ kind: 'request', step: 'recipe' });
 
     const result = questWorkRecordResultContract.parse(input);
 

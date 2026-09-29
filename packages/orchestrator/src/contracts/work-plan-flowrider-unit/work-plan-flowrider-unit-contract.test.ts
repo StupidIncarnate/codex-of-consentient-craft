@@ -73,7 +73,7 @@ describe('workPlanFlowriderUnitContract', () => {
     });
 
     it('INVALID: {layer: api} => refused', () => {
-      expect(() => WorkPlanFlowriderUnitStub({ layer: 'api' as never })).toThrow(/Invalid option/u);
+      expect(() => WorkPlanFlowriderUnitStub({ layer: 'api' })).toThrow(/Invalid option/u);
     });
 
     it("INVALID: {unitId: 'offmap:hostile-input'} => refused, since an off-map unit id is flow-scoped and hyphenated", () => {

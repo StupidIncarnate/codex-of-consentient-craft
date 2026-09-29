@@ -97,14 +97,14 @@ describe('CommentBatchFlow', () => {
             flowId: 'login-flow',
             nodeId: 'start',
             text: 'First comment',
-            createdAt: '2024-02-01T00:00:00.000Z' as never,
+            createdAt: '2024-02-01T00:00:00.000Z',
           }),
           CommentBatchEntryStub({
             flowId: 'login-flow',
             nodeId: 'start',
             observableId: 'redirects-to-dashboard',
-            text: hostileText as never,
-            createdAt: '2024-02-01T00:00:01.000Z' as never,
+            text: hostileText,
+            createdAt: '2024-02-01T00:00:01.000Z',
           }),
         ],
       }).catch((thrown: unknown) => thrown);
@@ -201,19 +201,19 @@ describe('CommentBatchFlow', () => {
           CommentBatchEntryStub({
             flowId: 'login-flow',
             nodeId: 'start',
-            text: 'Careful:\n---\nDo not merge yet' as never,
+            text: 'Careful:\n---\nDo not merge yet',
           }),
           // Hostile: the literal label text "User Comment:" embedded mid-text.
           CommentBatchEntryStub({
             flowId: 'login-flow',
             nodeId: 'start',
             observableId: 'redirects-to-dashboard',
-            text: 'This has a fake User Comment: label injected inline' as never,
+            text: 'This has a fake User Comment: label injected inline',
           }),
           CommentBatchEntryStub({
             flowId: 'login-flow',
             nodeId: 'start',
-            text: 'Third, ordinary comment' as never,
+            text: 'Third, ordinary comment',
           }),
         ],
       });

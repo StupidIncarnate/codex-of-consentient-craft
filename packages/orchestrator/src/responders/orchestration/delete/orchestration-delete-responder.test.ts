@@ -27,7 +27,7 @@ describe('OrchestrationDeleteResponder', () => {
       async (status) => {
         const questId = QuestIdStub({ value: `delete-${status}` });
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         const proxy = OrchestrationDeleteResponderProxy();
         proxy.setupQuestFound({ quest, guildId });
 
@@ -44,7 +44,7 @@ describe('OrchestrationDeleteResponder', () => {
       async (status) => {
         const questId = QuestIdStub({ value: `delete-reject-${status}` });
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-        const quest = QuestStub({ id: questId, status: status as never });
+        const quest = QuestStub({ id: questId, status });
         const proxy = OrchestrationDeleteResponderProxy();
         proxy.setupQuestFound({ quest, guildId });
 

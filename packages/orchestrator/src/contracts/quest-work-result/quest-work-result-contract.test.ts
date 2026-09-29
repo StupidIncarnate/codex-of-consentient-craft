@@ -5,7 +5,7 @@ describe('questWorkResultContract', () => {
   it("VALID: {kind: 'plan', operationItemId} => round-trips", () => {
     const input = QuestWorkResultStub({
       kind: 'plan',
-      operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+      operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
     });
 
     const result = questWorkResultContract.parse(input);
@@ -16,7 +16,7 @@ describe('questWorkResultContract', () => {
   it("VALID: {kind: 'amendment', operationItemId} => round-trips", () => {
     const input = QuestWorkResultStub({
       kind: 'amendment',
-      operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479' as never,
+      operationItemId: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
     });
 
     const result = questWorkResultContract.parse(input);

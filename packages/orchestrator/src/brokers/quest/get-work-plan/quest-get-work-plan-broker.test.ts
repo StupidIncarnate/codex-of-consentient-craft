@@ -18,14 +18,14 @@ const UNIT_A = 'send-flow:observable:unit-a';
 const UNIT_B = 'send-flow:observable:unit-b';
 
 const FLOW = FlowStub({
-  id: 'send-flow' as never,
+  id: 'send-flow',
   nodes: [
     FlowNodeStub({
-      id: 'compose' as never,
-      packages: ['web'] as never,
+      id: 'compose',
+      packages: ['web'],
       observables: [
-        FlowObservableStub({ id: 'unit-a' as never, description: 'unit a holds' as never }),
-        FlowObservableStub({ id: 'unit-b' as never, description: 'unit b holds' as never }),
+        FlowObservableStub({ id: 'unit-a', description: 'unit a holds' }),
+        FlowObservableStub({ id: 'unit-b', description: 'unit b holds' }),
       ],
     }),
   ],
@@ -37,9 +37,9 @@ const QUEST = QuestStub({
   flows: [FLOW],
   operations: [
     OperationItemStub({
-      id: OPERATION_ITEM_ID as never,
+      id: OPERATION_ITEM_ID,
       role: 'codeweaver',
-      flowIds: ['send-flow'] as never,
+      flowIds: ['send-flow'],
       packageNames: [],
     }),
   ],
@@ -47,13 +47,13 @@ const QUEST = QuestStub({
 
 // One piece claiming unit-a and nothing claiming unit-b — the hole a planner most needs to see.
 const PLAN = WorkPlanStub({
-  operationItemId: OPERATION_ITEM_ID as never,
+  operationItemId: OPERATION_ITEM_ID,
   batches: [
     WorkPlanBatchStub({
       pieces: [
         WorkPlanPieceStub({
-          id: 'pc-badge' as never,
-          assignedUnitIds: [UNIT_A] as never,
+          id: 'pc-badge',
+          assignedUnitIds: [UNIT_A],
           contextUnitIds: [],
           payload: WorkPlanPayloadCodeweaverStub({
             units: [
@@ -65,7 +65,7 @@ const PLAN = WorkPlanStub({
                 assert: 'render the widget and read the value back',
                 failsIf: 'the queued value is read instead',
               },
-            ] as never,
+            ],
           }),
         }),
       ],

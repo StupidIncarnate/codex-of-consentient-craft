@@ -33,7 +33,7 @@ describe('workPlanBatchContract', () => {
     });
 
     it('INVALID: {mode: concurrent} => refused', () => {
-      expect(() => WorkPlanBatchStub({ mode: 'concurrent' as never })).toThrow(/Invalid option/u);
+      expect(() => WorkPlanBatchStub({ mode: 'concurrent' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {empty object} => refused', () => {

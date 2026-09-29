@@ -22,11 +22,11 @@ describe('transcriptReadContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {fromByte: -1} => throws, because a read never starts before the file does', () => {
-      expect(() => TranscriptReadStub({ fromByte: -1 as never })).toThrow(/to be >=0/u);
+      expect(() => TranscriptReadStub({ fromByte: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {path: relative} => throws', () => {
-      expect(() => TranscriptReadStub({ path: 'session.jsonl' as never })).toThrow(/absolute/iu);
+      expect(() => TranscriptReadStub({ path: 'session.jsonl' })).toThrow(/absolute/iu);
     });
   });
 });

@@ -16,7 +16,7 @@ describe('workPlanFieldsContract', () => {
     });
 
     it("INVALID: {family: 'warpgate'} => refused, since warpgate holds no plan step", () => {
-      expect(() => WorkPlanFieldsStub({ family: 'warpgate' as never })).toThrow(
+      expect(() => WorkPlanFieldsStub({ family: 'warpgate' })).toThrow(
         /Invalid option: expected one of/su,
       );
     });
