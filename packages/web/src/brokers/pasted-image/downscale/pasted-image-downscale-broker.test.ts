@@ -1,4 +1,3 @@
-import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { pastedImageDownscaleBroker } from './pasted-image-downscale-broker';
@@ -16,7 +15,7 @@ describe('pastedImageDownscaleBroker', () => {
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
       const attachmentId = AttachmentIdStub();
-      const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
+      const mediaType = 'image/png';
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
       proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
@@ -51,7 +50,7 @@ describe('pastedImageDownscaleBroker', () => {
       const result = await pastedImageDownscaleBroker({
         attachmentId: AttachmentIdStub(),
         dataUrl,
-        mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+        mediaType: 'image/png',
       });
 
       expect(result.byteLength).toBeLessThanOrEqual(pastedImageStatics.maxBytesPerImage);
@@ -63,7 +62,7 @@ describe('pastedImageDownscaleBroker', () => {
       const proxy = pastedImageDownscaleBrokerProxy();
 
       const attachmentId = AttachmentIdStub();
-      const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
+      const mediaType = 'image/png';
       const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
       proxy.originalIs({ dataUrl, widthPx: 800, heightPx: 600 });
 
@@ -103,7 +102,7 @@ describe('pastedImageDownscaleBroker', () => {
       const result = await pastedImageDownscaleBroker({
         attachmentId,
         dataUrl,
-        mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+        mediaType: 'image/png',
       });
 
       expect(result).toStrictEqual({
@@ -156,7 +155,7 @@ describe('pastedImageDownscaleBroker', () => {
       const result = await pastedImageDownscaleBroker({
         attachmentId,
         dataUrl,
-        mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+        mediaType: 'image/png',
       });
 
       const halvedLongestEdgePx = pastedImageStatics.maxLongestEdgePx / 2;
@@ -219,7 +218,7 @@ describe('pastedImageDownscaleBroker', () => {
         pastedImageDownscaleBroker({
           attachmentId: AttachmentIdStub(),
           dataUrl,
-          mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+          mediaType: 'image/png',
         }),
       ).rejects.toThrow(/pastedImageDownscaleBroker/u);
 
@@ -242,7 +241,7 @@ describe('pastedImageDownscaleBroker', () => {
         pastedImageDownscaleBroker({
           attachmentId: AttachmentIdStub(),
           dataUrl,
-          mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+          mediaType: 'image/png',
         }),
       ).rejects.toThrow(/truncated clipboard image/u);
     });
@@ -268,7 +267,7 @@ describe('pastedImageDownscaleBroker', () => {
       const result = await pastedImageDownscaleBroker({
         attachmentId: AttachmentIdStub(),
         dataUrl,
-        mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+        mediaType: 'image/png',
       });
 
       expect(result.mediaType).toBe('image/jpeg');

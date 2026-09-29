@@ -25,7 +25,7 @@ describe('packageChipAccentTransformer', () => {
     // them must paint alike, while a service beside them must not.
     it('VALID: {frontend-ink} => shares the e2e-eligible token with frontend-react', () => {
       const inkAccent = packageChipAccentTransformer({
-        packageType: PackageTypeStub({ value: 'frontend-ink' }),
+        packageType: 'frontend-ink',
       });
 
       expect(inkAccent).toBe(packageTypeStyleStatics.accent['frontend-react']);
@@ -33,7 +33,7 @@ describe('packageChipAccentTransformer', () => {
 
     it('VALID: {http-backend} => does not share the e2e-eligible token', () => {
       const backendAccent = packageChipAccentTransformer({
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
       });
 
       expect(backendAccent).toBe(packageTypeStyleStatics.accent['http-backend']);

@@ -33,7 +33,7 @@ const StatefulDeleteHarness = ({
       sessions={[]}
       skippedQuestFiles={[]}
       loading={false}
-      filter={SessionFilterStub({ value: 'quests-only' })}
+      filter="quests-only"
       onFilterChange={jest.fn()}
       onSelect={jest.fn()}
       onSelectQuest={jest.fn()}
@@ -122,7 +122,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[skipped]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -155,7 +155,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[SessionListItemStub({ sessionId: SessionIdStub({ value: 'orphan' }) })]}
             skippedQuestFiles={[skipped]}
             loading={false}
-            filter={SessionFilterStub({ value: 'all' })}
+            filter="all"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -183,7 +183,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[SkippedQuestFileStub()]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -212,7 +212,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -239,7 +239,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[SkippedQuestFileStub()]}
             loading
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -455,7 +455,7 @@ describe('GuildSessionListWidget', () => {
   describe('filter toggle', () => {
     it('VALID: {filter: all} => filter shows all selected', () => {
       const proxy = GuildSessionListWidgetProxy();
-      const filter = SessionFilterStub({ value: 'all' });
+      const filter = 'all';
 
       mantineRenderMiddleware({
         ui: (
@@ -482,7 +482,7 @@ describe('GuildSessionListWidget', () => {
 
     it('VALID: {click Quests Only} => calls onFilterChange with quests-only', async () => {
       const proxy = GuildSessionListWidgetProxy();
-      const filter = SessionFilterStub({ value: 'all' });
+      const filter = 'all';
       const onFilterChange = jest.fn();
 
       mantineRenderMiddleware({
@@ -523,7 +523,7 @@ describe('GuildSessionListWidget', () => {
         questId: 'quest-row-1' as never,
         summary: 'Session 1',
       });
-      const filter = SessionFilterStub({ value: 'quests-only' });
+      const filter = 'quests-only';
 
       mantineRenderMiddleware({
         ui: (
@@ -562,7 +562,7 @@ describe('GuildSessionListWidget', () => {
         sessionId: nonQuestSessionId,
         summary: 'Regular session',
       });
-      const filter = SessionFilterStub({ value: 'all' });
+      const filter = 'all';
 
       mantineRenderMiddleware({
         ui: (
@@ -592,7 +592,7 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const sessionId = SessionIdStub({ value: 'orphan-session' });
       const session = SessionListItemStub({ sessionId, summary: 'Regular session' });
-      const filter = SessionFilterStub({ value: 'quests-only' });
+      const filter = 'quests-only';
 
       mantineRenderMiddleware({
         ui: (
@@ -936,7 +936,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={onSelectQuest}
@@ -1184,7 +1184,7 @@ describe('GuildSessionListWidget', () => {
               sessions={[]}
               skippedQuestFiles={[]}
               loading={false}
-              filter={SessionFilterStub({ value: 'quests-only' })}
+              filter="quests-only"
               onFilterChange={jest.fn()}
               onSelect={jest.fn()}
               onSelectQuest={jest.fn()}
@@ -1218,7 +1218,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}
@@ -1259,7 +1259,7 @@ describe('GuildSessionListWidget', () => {
             sessions={[]}
             skippedQuestFiles={[]}
             loading={false}
-            filter={SessionFilterStub({ value: 'quests-only' })}
+            filter="quests-only"
             onFilterChange={jest.fn()}
             onSelect={jest.fn()}
             onSelectQuest={jest.fn()}

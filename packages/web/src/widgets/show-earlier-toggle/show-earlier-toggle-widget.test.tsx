@@ -37,7 +37,7 @@ describe('ShowEarlierToggleWidget', () => {
             hiddenCount={TailStartIndexStub({ value: 5 })}
             expanded={false}
             onToggle={(): void => undefined}
-            testId={ToggleTestIdStub({ value: 'CHAT_LIST_SHOW_EARLIER_TOGGLE' })}
+            testId="CHAT_LIST_SHOW_EARLIER_TOGGLE"
           />
         ),
       });

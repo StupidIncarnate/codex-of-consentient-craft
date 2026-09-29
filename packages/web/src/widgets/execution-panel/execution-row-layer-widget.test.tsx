@@ -21,7 +21,6 @@ import {
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
-import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { ExecutionStepStatusStub } from '../../contracts/execution-step-status/execution-step-status.stub';
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
@@ -35,8 +34,8 @@ type Props = ExecutionRowLayerWidgetProps;
 const defaultProps = (): Props => ({
   order: RowOrderStub({ value: 1 }),
   name: DisplayLabelStub({ value: 'Build auth flow' }),
-  role: ExecutionRoleStub({ value: 'codeweaver' }),
-  status: ExecutionStepStatusStub({ value: 'pending' }),
+  role: 'codeweaver',
+  status: 'pending',
   files: [],
   dependsOn: [],
   isAdhoc: false,
@@ -126,12 +125,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            role={ExecutionRoleStub({ value: 'ward' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} role="ward" />,
       });
 
       const badge = screen.getByTestId('execution-row-role-badge');
@@ -148,7 +142,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({ step: 'ward' })}
           />
         ),
@@ -205,12 +199,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" />,
       });
 
       const badge = screen.getByTestId('execution-row-status-badge');
@@ -222,12 +211,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const badge = screen.getByTestId('execution-row-status-badge');
@@ -239,12 +223,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="failed" />,
       });
 
       const badge = screen.getByTestId('execution-row-status-badge');
@@ -374,7 +353,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'queued' })}
+            status="queued"
             dependsOn={[DependencyLabelStub({ value: 'step-1' })]}
           />
         ),
@@ -404,7 +383,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             files={[DisplayFilePathStub({ value: 'src/auth.ts' })]}
           />
         ),
@@ -438,7 +417,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             entries={[AssistantTextChatEntryStub({ content: 'Prior session output' })]}
           />
         ),
@@ -467,7 +446,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
@@ -485,7 +464,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
@@ -505,7 +484,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
@@ -527,7 +506,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
@@ -550,7 +529,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
           />
@@ -576,7 +555,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
             isRunningFocus={false}
           />
@@ -597,7 +576,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
           />
         ),
@@ -614,24 +593,12 @@ describe('ExecutionRowLayerWidget', () => {
       const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
 
       const { rerender } = mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            entries={entries}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" entries={entries} />,
       });
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
 
-      rerender(
-        <ExecutionRowLayerWidget
-          {...defaultProps()}
-          status={ExecutionStepStatusStub({ value: 'complete' })}
-          entries={entries}
-        />,
-      );
+      rerender(<ExecutionRowLayerWidget {...defaultProps()} status="complete" entries={entries} />);
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
     });
@@ -642,24 +609,12 @@ describe('ExecutionRowLayerWidget', () => {
       const entries = [AssistantTextChatEntryStub({ content: 'Prior session output' })];
 
       const { rerender } = mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            entries={entries}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" entries={entries} />,
       });
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
 
-      rerender(
-        <ExecutionRowLayerWidget
-          {...defaultProps()}
-          status={ExecutionStepStatusStub({ value: 'pending' })}
-          entries={entries}
-        />,
-      );
+      rerender(<ExecutionRowLayerWidget {...defaultProps()} status="pending" entries={entries} />);
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
@@ -670,24 +625,12 @@ describe('ExecutionRowLayerWidget', () => {
       const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
 
       const { rerender } = mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            entries={entries}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" entries={entries} />,
       });
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
 
-      rerender(
-        <ExecutionRowLayerWidget
-          {...defaultProps()}
-          status={ExecutionStepStatusStub({ value: 'failed' })}
-          entries={entries}
-        />,
-      );
+      rerender(<ExecutionRowLayerWidget {...defaultProps()} status="failed" entries={entries} />);
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
     });
@@ -698,13 +641,7 @@ describe('ExecutionRowLayerWidget', () => {
       const entries = [AssistantTextChatEntryStub({ content: 'Working on it' })];
 
       const { rerender } = mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
-            entries={entries}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" entries={entries} />,
       });
 
       // Initial render auto-expands because status === 'in_progress' && hasEntries.
@@ -724,11 +661,7 @@ describe('ExecutionRowLayerWidget', () => {
         AssistantTextChatEntryStub({ content: 'Still working...' }),
       ];
       rerender(
-        <ExecutionRowLayerWidget
-          {...defaultProps()}
-          status={ExecutionStepStatusStub({ value: 'in_progress' })}
-          entries={moreEntries}
-        />,
+        <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" entries={moreEntries} />,
       );
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
@@ -740,13 +673,7 @@ describe('ExecutionRowLayerWidget', () => {
       const entries = [AssistantTextChatEntryStub({ content: 'Done.' })];
 
       const { rerender } = mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-            entries={entries}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" entries={entries} />,
       });
 
       expect(screen.queryByTestId('execution-row-expanded')).toBe(null);
@@ -756,13 +683,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
 
-      rerender(
-        <ExecutionRowLayerWidget
-          {...defaultProps()}
-          status={ExecutionStepStatusStub({ value: 'complete' })}
-          entries={entries}
-        />,
-      );
+      rerender(<ExecutionRowLayerWidget {...defaultProps()} status="complete" entries={entries} />);
 
       expect(screen.getByTestId('execution-row-expanded')).toBeInTheDocument();
     });
@@ -776,7 +697,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             files={[
               DisplayFilePathStub({ value: 'src/auth.ts' }),
               DisplayFilePathStub({ value: 'src/users.ts' }),
@@ -800,7 +721,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             errorMessage={ErrorMessageStub({ value: 'Type check failed' })}
           />
         ),
@@ -821,7 +742,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({ summary: 'Implemented auth with tests' })}
           />
         ),
@@ -842,7 +763,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             workItem={WorkItemStub({ summary: 'BLOCKED: type errors in auth module' })}
             errorMessage={ErrorMessageStub({ value: 'verification_failed' })}
           />
@@ -863,12 +784,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -886,7 +802,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[AssistantTextChatEntryStub({ content: 'Building auth module...' })]}
           />
         ),
@@ -905,7 +821,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[AssistantTextChatEntryStub({ content: 'Working...' })]}
             isStreaming={true}
           />
@@ -922,8 +838,8 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            role={ExecutionRoleStub({ value: 'spiritmender' })}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            role="spiritmender"
+            status="in_progress"
             isAdhoc={true}
             entries={[
               AssistantTextChatEntryStub({ content: 'The auth-login broker has a type error...' }),
@@ -949,7 +865,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
               AssistantTextChatEntryStub({
@@ -973,7 +889,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantThinkingChatEntryStub({ content: 'first' }),
               AssistantThinkingChatEntryStub({ content: 'final' }),
@@ -997,7 +913,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantThinkingChatEntryStub({ content: 'first' }),
               AssistantThinkingChatEntryStub({ content: 'final' }),
@@ -1018,7 +934,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
               AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
@@ -1047,7 +963,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantToolUseChatEntryStub({ toolUseId: 'use_1', toolName: 'Read' }),
               AssistantToolResultChatEntryStub({ toolName: 'use_1' }),
@@ -1086,7 +1002,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={transcript()}
           />
         ),
@@ -1104,11 +1020,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-            entries={transcript()}
-          />
+          <ExecutionRowLayerWidget {...defaultProps()} status="complete" entries={transcript()} />
         ),
       });
 
@@ -1130,13 +1042,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
-            entries={transcript()}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="failed" entries={transcript()} />,
       });
 
       await userEvent.click(screen.getByTestId('execution-row-header'));
@@ -1153,11 +1059,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-            entries={transcript()}
-          />
+          <ExecutionRowLayerWidget {...defaultProps()} status="complete" entries={transcript()} />
         ),
       });
 
@@ -1179,7 +1081,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             wardResults={[WardResultStub({ exitCode: 0 as never })]}
           />
         ),
@@ -1200,7 +1102,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             wardResults={[WardResultStub({ exitCode: 1 as never, wardMode: 'committed' })]}
           />
         ),
@@ -1221,7 +1123,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             wardResults={[WardResultStub({ exitCode: 0 as never, wardMode: 'full' })]}
           />
         ),
@@ -1239,12 +1141,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1262,7 +1159,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             riftcarverResults={[RiftcarverResultStub({ exitCode: 0 as never, outcome: 'green' })]}
           />
         ),
@@ -1283,7 +1180,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             riftcarverResults={[
               RiftcarverResultStub({ exitCode: 1 as never, outcome: 'repairable' }),
             ]}
@@ -1303,12 +1200,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1323,12 +1215,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1346,7 +1233,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               assignedUnitIds: ['send-flow:observable:check-badge-count-text'],
               observations: [UnitObservationStub({ mark: 'met' })],
@@ -1367,12 +1254,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1390,7 +1272,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             scopeWorkItems={[
               WorkItemStub({
                 id: 'f47ac10b-58cc-4372-a567-0e02b2c3d475',
@@ -1419,12 +1301,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1442,7 +1319,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               observations: [
                 UnitObservationStub({
@@ -1472,7 +1349,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               observations: [
                 UnitObservationStub({
@@ -1507,7 +1384,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({ observations: [UnitObservationStub({ mark: 'met' })] })}
           />
         ),
@@ -1523,12 +1400,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -1546,7 +1418,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             inputContracts={[ContractNameStub({ value: 'LoginCredentials' })]}
           />
         ),
@@ -1567,7 +1439,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             outputContracts={[
               ContractNameStub({ value: 'AuthToken' }),
               ContractNameStub({ value: 'UserProfile' }),
@@ -1593,7 +1465,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ attempt: 1, maxAttempts: 3 })}
           />
         ),
@@ -1611,7 +1483,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ attempt: 0, maxAttempts: 3 })}
           />
         ),
@@ -1658,13 +1530,7 @@ describe('ExecutionRowLayerWidget', () => {
         ExecutionRowLayerWidgetProxy();
 
         mantineRenderMiddleware({
-          ui: (
-            <ExecutionRowLayerWidget
-              {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
-              now={NOW}
-            />
-          ),
+          ui: <ExecutionRowLayerWidget {...defaultProps()} status="in_progress" now={NOW} />,
         });
 
         expect(screen.queryByTestId('execution-row-duration')).toBe(null);
@@ -1706,7 +1572,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
@@ -1723,7 +1589,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
@@ -1740,7 +1606,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:01.000Z' })}
               now={NOW}
             />
@@ -1757,7 +1623,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.000Z' })}
               now={NOW}
             />
@@ -1774,7 +1640,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T09:59:30.000Z' })}
               now={NOW}
             />
@@ -1791,7 +1657,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T09:04:01.000Z' })}
               now={NOW}
             />
@@ -1808,7 +1674,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T09:04:00.000Z' })}
               now={NOW}
             />
@@ -1825,7 +1691,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
@@ -1842,7 +1708,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T08:04:00.000Z' })}
               now={NOW}
             />
@@ -1864,7 +1730,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T09:59:02.000Z' })}
               now={NOW}
             />
@@ -1883,7 +1749,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'complete' })}
+              status="complete"
               workItem={WorkItemStub({
                 startedAt: '2024-01-15T10:00:00.000Z',
                 completedAt: '2024-01-15T10:00:12.000Z',
@@ -1902,7 +1768,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'complete' })}
+              status="complete"
               workItem={WorkItemStub({
                 startedAt: '2024-01-15T10:00:00.000Z',
                 completedAt: '2024-01-15T10:04:12.000Z',
@@ -1921,7 +1787,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'complete' })}
+              status="complete"
               workItem={WorkItemStub({
                 startedAt: '2024-01-15T09:00:00.000Z',
                 completedAt: '2024-01-15T10:13:00.000Z',
@@ -1940,7 +1806,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'complete' })}
+              status="complete"
               workItem={WorkItemStub({
                 startedAt: '2024-01-15T08:00:00.000Z',
                 completedAt: '2024-01-15T10:00:00.000Z',
@@ -1959,7 +1825,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'complete' })}
+              status="complete"
               workItem={WorkItemStub({
                 startedAt: '2024-01-15T10:00:00.000Z',
                 completedAt: '2024-01-15T10:04:12.000Z',
@@ -1974,7 +1840,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               startedAt: '2024-01-15T10:00:00.000Z',
               completedAt: '2024-01-15T10:04:12.000Z',
@@ -1993,7 +1859,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
@@ -2005,7 +1871,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               startedAt: '2024-01-15T10:00:00.000Z',
               completedAt: '2024-01-15T11:13:00.000Z',
@@ -2024,7 +1890,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
@@ -2036,7 +1902,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               startedAt: '2024-01-15T10:03:30.000Z',
               completedAt: '2024-01-15T11:16:30.000Z',
@@ -2055,7 +1921,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
@@ -2067,7 +1933,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({
               startedAt: '2024-01-15T08:51:00.000Z',
               completedAt: '2024-01-15T10:51:00.000Z',
@@ -2088,7 +1954,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'pending' })}
+              status="pending"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
@@ -2105,7 +1971,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'pending' })}
+              status="pending"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
@@ -2122,7 +1988,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
               now={NOW}
             />
@@ -2134,7 +2000,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
             now={NOW}
           />,
@@ -2145,7 +2011,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             workItem={WorkItemStub({ startedAt: NOW })}
             now={NOW}
           />,
@@ -2161,7 +2027,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
               now={NOW}
             />
@@ -2173,7 +2039,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:30.000Z' })}
             now={NOW}
           />,
@@ -2189,7 +2055,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
               now={NOW}
             />
@@ -2201,7 +2067,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T08:51:00.000Z' })}
             now={NOW}
           />,
@@ -2217,7 +2083,7 @@ describe('ExecutionRowLayerWidget', () => {
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
-              status={ExecutionStepStatusStub({ value: 'in_progress' })}
+              status="in_progress"
               workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
               now={NOW}
             />
@@ -2229,7 +2095,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
             now={NOW}
           />,
@@ -2243,7 +2109,7 @@ describe('ExecutionRowLayerWidget', () => {
         rerender(
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'pending' })}
+            status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
             now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
           />,
@@ -2262,7 +2128,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantTextChatEntryStub({
                 content: 'Working on it',
@@ -2290,7 +2156,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[AssistantTextChatEntryStub({ content: 'Working on it' })]}
           />
         ),
@@ -2306,7 +2172,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantToolUseChatEntryStub({
                 toolUseId: 'use_1',
@@ -2335,7 +2201,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantToolUseChatEntryStub({ toolUseId: 'use_1' }),
               AssistantToolResultChatEntryStub({
@@ -2359,7 +2225,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               AssistantTextChatEntryStub({
                 content: 'Building auth module...',
@@ -2389,7 +2255,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             workItem={WorkItemStub({ actualSignal: 'complete' })}
           />
         ),
@@ -2410,7 +2276,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             workItem={WorkItemStub({ actualSignal: 'complete' })}
           />
         ),
@@ -2428,12 +2294,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="failed" />,
       });
 
       const header = screen.getByTestId('execution-row-header');
@@ -2462,12 +2323,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="complete" />,
       });
 
       await userEvent.click(screen.getByTestId('execution-row-header'));
@@ -2492,7 +2348,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={[
               TaskToolUseChatEntryStub({ agentId: 'agent-001' }),
               AssistantTextChatEntryStub({
@@ -2540,7 +2396,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={runningSubagentEntries()}
           />
         ),
@@ -2559,7 +2415,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'in_progress' })}
+            status="in_progress"
             entries={runningSubagentEntries()}
             now={NOW}
           />
@@ -2578,7 +2434,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'complete' })}
+            status="complete"
             autoExpand={true}
             entries={runningSubagentEntries()}
             now={NOW}
@@ -2598,7 +2454,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            status={ExecutionStepStatusStub({ value: 'failed' })}
+            status="failed"
             autoExpand={true}
             entries={runningSubagentEntries()}
             now={NOW}
@@ -2624,7 +2480,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            role={ExecutionRoleStub({ value: 'riftcarver' })}
+            role="riftcarver"
             autoExpand={true}
             entries={[
               AssistantTextChatEntryStub({ content: '— build pass 1/3 —' }),
@@ -2649,7 +2505,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            role={ExecutionRoleStub({ value: 'riftcarver' })}
+            role="riftcarver"
             autoExpand={true}
             entries={[
               AssistantTextChatEntryStub({ content: '> @dungeonmaster/testing@0.1.0 build' }),
@@ -2674,7 +2530,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            role={ExecutionRoleStub({ value: 'codeweaver' })}
+            role="codeweaver"
             autoExpand={true}
             entries={[
               AssistantTextChatEntryStub({ content: 'first' }),

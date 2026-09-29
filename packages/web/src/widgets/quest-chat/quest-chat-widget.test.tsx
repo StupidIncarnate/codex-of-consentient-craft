@@ -5,7 +5,7 @@
 import { waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
-import { GuildListItemStub, OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
+import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
@@ -30,7 +30,7 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'my-guild' as never });
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupMode({ mode: OrchestrationModeStub({ value: 'claude' }) });
+      proxy.setupMode({ mode: 'claude' });
 
       await act(async () => {
         renderAt({
@@ -51,7 +51,7 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       const guild = GuildListItemStub({ urlSlug: 'my-guild' as never });
       proxy.setupGuilds({ guilds: [guild] });
-      proxy.setupMode({ mode: OrchestrationModeStub({ value: 'claude' }) });
+      proxy.setupMode({ mode: 'claude' });
 
       await act(async () => {
         renderAt({

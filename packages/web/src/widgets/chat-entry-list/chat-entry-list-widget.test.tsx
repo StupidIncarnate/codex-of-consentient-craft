@@ -10,7 +10,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { ChatEntryListWidget } from './chat-entry-list-widget';
 import { ChatEntryListWidgetProxy } from './chat-entry-list-widget.proxy';
@@ -501,7 +500,7 @@ describe('ChatEntryListWidget', () => {
           <ChatEntryListWidget
             entries={[AssistantTextChatEntryStub({ content: 'hi' })]}
             isStreaming={false}
-            roleLabel={ExecutionRoleStub({ value: 'siegemaster' })}
+            roleLabel="siegemaster"
           />
         ),
       });

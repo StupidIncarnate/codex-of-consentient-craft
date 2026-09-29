@@ -1,5 +1,3 @@
-import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts';
-
 import { pastedImageAttachBroker } from './pasted-image-attach-broker';
 import { pastedImageAttachBrokerProxy } from './pasted-image-attach-broker.proxy';
 import { ComposerAttachmentStub } from '../../../contracts/composer-attachment/composer-attachment.stub';
@@ -13,7 +11,7 @@ describe('pastedImageAttachBroker', () => {
       proxy.mintsIds({ ids: [mintedId] });
 
       const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
-      const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
+      const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({
           attachmentId: mintedId,
@@ -45,7 +43,7 @@ describe('pastedImageAttachBroker', () => {
       proxy.mintsIds({ ids: [mintedId] });
 
       const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
-      const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
+      const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({
           mediaType,
@@ -70,7 +68,7 @@ describe('pastedImageAttachBroker', () => {
       proxy.mintsIds({ ids: [firstId, secondId] });
 
       const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
-      const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
+      const mediaType = 'image/png';
       proxy.ladderYields({
         attachment: ComposerAttachmentStub({
           mediaType,
@@ -115,7 +113,7 @@ describe('pastedImageAttachBroker', () => {
       await expect(
         pastedImageAttachBroker({
           dataUrl: ImageDataUrlStub(),
-          mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
+          mediaType: 'image/png',
         }),
       ).rejects.toThrow(/truncated clipboard image/u);
     });

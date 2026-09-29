@@ -10,7 +10,6 @@ import {
   TaskNotificationChatEntryStub,
   UserChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
-import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import { ChatMessageWidget } from './chat-message-widget';
 import { ChatMessageWidgetProxy } from './chat-message-widget.proxy';
@@ -811,12 +810,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderMiddleware({
-        ui: (
-          <ChatMessageWidget
-            entry={entry}
-            roleLabel={ExecutionRoleStub({ value: 'chaoswhisperer' })}
-          />
-        ),
+        ui: <ChatMessageWidget entry={entry} roleLabel="chaoswhisperer" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -829,9 +823,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderMiddleware({
-        ui: (
-          <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'codeweaver' })} />
-        ),
+        ui: <ChatMessageWidget entry={entry} roleLabel="codeweaver" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -844,7 +836,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderMiddleware({
-        ui: <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'ward' })} />,
+        ui: <ChatMessageWidget entry={entry} roleLabel="ward" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -857,12 +849,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderMiddleware({
-        ui: (
-          <ChatMessageWidget
-            entry={entry}
-            roleLabel={ExecutionRoleStub({ value: 'spiritmender' })}
-          />
-        ),
+        ui: <ChatMessageWidget entry={entry} roleLabel="spiritmender" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -875,12 +862,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response' });
 
       mantineRenderMiddleware({
-        ui: (
-          <ChatMessageWidget
-            entry={entry}
-            roleLabel={ExecutionRoleStub({ value: 'siegemaster' })}
-          />
-        ),
+        ui: <ChatMessageWidget entry={entry} roleLabel="siegemaster" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');
@@ -904,7 +886,7 @@ describe('ChatMessageWidget', () => {
       const entry = AssistantTextChatEntryStub({ content: 'response', source: 'subagent' });
 
       mantineRenderMiddleware({
-        ui: <ChatMessageWidget entry={entry} roleLabel={ExecutionRoleStub({ value: 'ward' })} />,
+        ui: <ChatMessageWidget entry={entry} roleLabel="ward" />,
       });
 
       const message = screen.getByTestId('CHAT_MESSAGE');

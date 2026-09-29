@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
-import { ButtonVariantStub } from '../../contracts/button-variant/button-variant.stub';
 import { PixelBtnWidget } from './pixel-btn-widget';
 import { PixelBtnWidgetProxy } from './pixel-btn-widget.proxy';
 
@@ -21,7 +20,7 @@ describe('PixelBtnWidget', () => {
     it('VALID: {variant: "primary"} => renders with primary background color', () => {
       PixelBtnWidgetProxy();
       const label = ButtonLabelStub({ value: 'GO' });
-      const variant = ButtonVariantStub({ value: 'primary' });
+      const variant = 'primary';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -36,7 +35,7 @@ describe('PixelBtnWidget', () => {
     it('VALID: {variant: "ghost"} => renders with ghost background color', () => {
       PixelBtnWidgetProxy();
       const label = ButtonLabelStub({ value: 'CANCEL' });
-      const variant = ButtonVariantStub({ value: 'ghost' });
+      const variant = 'ghost';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -79,7 +78,7 @@ describe('PixelBtnWidget', () => {
     it('VALID: {variant: "danger"} => renders with danger background color', () => {
       PixelBtnWidgetProxy();
       const label = ButtonLabelStub({ value: 'DELETE' });
-      const variant = ButtonVariantStub({ value: 'danger' });
+      const variant = 'danger';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -94,7 +93,7 @@ describe('PixelBtnWidget', () => {
     it('VALID: {variant: "danger"} => renders with bg-deep foreground color', () => {
       PixelBtnWidgetProxy();
       const label = ButtonLabelStub({ value: 'DELETE' });
-      const variant = ButtonVariantStub({ value: 'danger' });
+      const variant = 'danger';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({
@@ -189,7 +188,7 @@ describe('PixelBtnWidget', () => {
     it('VALID: {variant: "danger", disabled: true} => renders danger colors with disabled opacity', () => {
       PixelBtnWidgetProxy();
       const label = ButtonLabelStub({ value: 'DELETE' });
-      const variant = ButtonVariantStub({ value: 'danger' });
+      const variant = 'danger';
       const onClick = jest.fn();
 
       mantineRenderMiddleware({

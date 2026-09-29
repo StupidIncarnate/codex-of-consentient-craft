@@ -2,7 +2,6 @@ import { IconSend, IconTrash } from '#gateway/npm/tabler__icons-react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
-import { ButtonVariantStub } from '../../contracts/button-variant/button-variant.stub';
 import { IconButtonSizeStub } from '../../contracts/icon-button-size/icon-button-size.stub';
 import { TestIdStub } from '../../contracts/test-id/test-id.stub';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
@@ -107,7 +106,7 @@ describe('IconButtonWidget', () => {
             icon={IconSend}
             onClick={jest.fn()}
             testId={TEST_ID}
-            variant={ButtonVariantStub({ value: 'ghost' })}
+            variant="ghost"
           />
         ),
       });
@@ -126,7 +125,7 @@ describe('IconButtonWidget', () => {
             icon={IconSend}
             onClick={jest.fn()}
             testId={TEST_ID}
-            variant={ButtonVariantStub({ value: 'primary' })}
+            variant="primary"
           />
         ),
       });
@@ -145,7 +144,7 @@ describe('IconButtonWidget', () => {
             icon={IconTrash}
             onClick={jest.fn()}
             testId={TEST_ID}
-            variant={ButtonVariantStub({ value: 'danger' })}
+            variant="danger"
           />
         ),
       });
