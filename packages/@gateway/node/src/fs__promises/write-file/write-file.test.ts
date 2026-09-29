@@ -59,4 +59,37 @@ describe('writeFile', () => {
     expect(first).toBe(error);
     expect(proxy.writtenContentsFor({ path: '/project/registry.lock' })).toBe('222');
   });
+
+  it('ERROR: {succeedsOnce, then rejectsOnce} => the first write lands, the second rejects', async () => {
+    const proxy = writeFileProxy();
+    const error = FileExistsRecordedErrorStub({ path: '/project/registry.lock' });
+    proxy.succeedsOnce({ path: '/project/registry.lock' });
+    proxy.rejectsOnce({ path: '/project/registry.lock', error });
+
+    await expect(writeFile('/project/registry.lock', '111')).resolves.toBe(undefined);
+
+    const second: unknown = await writeFile('/project/registry.lock', '222').catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(second).toBe(error);
+    expect(proxy.getCallsFor({ path: '/project/registry.lock' })).toStrictEqual([
+      ['/project/registry.lock', '111', 'utf8'],
+      ['/project/registry.lock', '222', 'utf8'],
+    ]);
+  });
+
+  it('VALID: {succeedsOnce twice} => two writes land and each is read back in order', async () => {
+    const proxy = writeFileProxy();
+    proxy.succeedsOnce({ path: '/project/queue.json' });
+    proxy.succeedsOnce({ path: '/project/queue.json' });
+
+    await writeFile('/project/queue.json', 'one');
+    await writeFile('/project/queue.json', 'two');
+
+    expect(proxy.getCallsFor({ path: '/project/queue.json' })).toStrictEqual([
+      ['/project/queue.json', 'one', 'utf8'],
+      ['/project/queue.json', 'two', 'utf8'],
+    ]);
+  });
 });

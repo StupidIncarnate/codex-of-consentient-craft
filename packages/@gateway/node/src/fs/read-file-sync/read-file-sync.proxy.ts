@@ -13,6 +13,13 @@ export const readFileSyncProxy = (): {
     path: PathMatcher;
     error: NodeJS.ErrnoException;
   }) => void;
+  implementsMatchingPath: ({
+    path,
+    fn,
+  }: {
+    path: PathMatcher;
+    fn: (path: string) => string;
+  }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: readFileSync });
@@ -43,6 +50,17 @@ export const readFileSyncProxy = (): {
       handle.calledWith([path, 'utf8']).implement((): never => {
         throw error;
       });
+    },
+    // Addressed by the path alone, one argument short of the call's `[path, 'utf8']`, so it scores
+    // below every `returns`/`throws`/`...MatchingPath` stage and an exact stage still wins.
+    implementsMatchingPath: ({
+      path,
+      fn,
+    }: {
+      path: PathMatcher;
+      fn: (path: string) => string;
+    }): void => {
+      handle.calledWith([path]).implement((calledPath: unknown): string => fn(String(calledPath)));
     },
     getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
       handle.callsMatching([path]),

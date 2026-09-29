@@ -14,6 +14,7 @@ import {
   emit,
   on,
   stdinIsTty,
+  getPid,
   getPlatform,
   getStdin,
 } from './process';
@@ -30,6 +31,10 @@ describe('#gateway/node/process', () => {
 
   it('VALID: {pid} => is the same value process.pid holds', () => {
     expect(pid).toBe(process.pid);
+  });
+
+  it('VALID: {getPid} => reads the same value process.pid holds', () => {
+    expect(getPid()).toBe(process.pid);
   });
 
   it('VALID: {platform, execPath} => are the same values Node provides', () => {

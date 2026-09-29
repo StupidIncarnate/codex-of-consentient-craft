@@ -1,6 +1,7 @@
 import { readdirEntriesSync } from './readdir-entries-sync';
 import { readdirEntriesSyncProxy } from './readdir-entries-sync.proxy';
 import { FsErrorStub } from '../is-fs-error/fs-error.stub';
+import { DirentStub } from './dirent.stub';
 
 describe('readdirEntriesSync', () => {
   it('VALID: {path: directory with mixed entry kinds} => returns each name paired with its kind', () => {
@@ -74,6 +75,69 @@ describe('readdirEntriesSync', () => {
       });
 
       expect(() => readdirEntriesSync('/resolved/at/runtime/missing')).toThrow(error);
+    });
+  });
+
+  describe('implemented raw addressing', () => {
+    it('VALID: {implementsRawMatchingPath, raw Dirents} => maps each raw entry through the real kind mapping', () => {
+      const proxy = readdirEntriesSyncProxy();
+      proxy.implementsRawMatchingPath({
+        path: (value) => String(value).startsWith('/repo/'),
+        fn: (path) => [
+          DirentStub({ name: `${path.slice('/repo/'.length)}.ts`, kind: 'file', parentPath: path }),
+          DirentStub({ name: 'nested', kind: 'directory', parentPath: path }),
+          DirentStub({ name: 'link', kind: 'symlink', parentPath: path }),
+          DirentStub({ name: 'socket', kind: 'other', parentPath: path }),
+        ],
+      });
+
+      expect(readdirEntriesSync('/repo/src')).toStrictEqual([
+        { name: 'src.ts', kind: 'file' },
+        { name: 'nested', kind: 'directory' },
+        { name: 'link', kind: 'symlink' },
+        { name: 'socket', kind: 'other' },
+      ]);
+    });
+
+    it('VALID: {implementsRawMatchingPath and returns for one path} => the exact stage wins for its path', () => {
+      const proxy = readdirEntriesSyncProxy();
+      proxy.returns({ path: '/repo/exact', entries: [{ name: 'staged.ts', kind: 'file' }] });
+      proxy.implementsRawMatchingPath({
+        path: (value) => String(value).startsWith('/repo/'),
+        fn: (path) => [DirentStub({ name: 'from-fn.ts', kind: 'file', parentPath: path })],
+      });
+
+      expect([readdirEntriesSync('/repo/exact'), readdirEntriesSync('/repo/other')]).toStrictEqual([
+        [{ name: 'staged.ts', kind: 'file' }],
+        [{ name: 'from-fn.ts', kind: 'file' }],
+      ]);
+    });
+
+    it('ERROR: {implementsRawMatchingPath, fn throws a missing-directory error} => throws that error', () => {
+      const proxy = readdirEntriesSyncProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/repo/missing' });
+      proxy.implementsRawMatchingPath({
+        path: (value) => String(value).startsWith('/repo/'),
+        fn: (): never => {
+          throw error;
+        },
+      });
+
+      expect(() => readdirEntriesSync('/repo/missing')).toThrow(error);
+    });
+
+    it('VALID: {implementsRawMatchingPath answered a read} => getCallsFor reads back the full call', () => {
+      const proxy = readdirEntriesSyncProxy();
+      proxy.implementsRawMatchingPath({
+        path: (value) => String(value).startsWith('/repo/'),
+        fn: () => [],
+      });
+
+      readdirEntriesSync('/repo/src');
+
+      expect(proxy.getCallsFor({ path: '/repo/src' })).toStrictEqual([
+        ['/repo/src', { withFileTypes: true }],
+      ]);
     });
   });
 

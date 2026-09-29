@@ -86,6 +86,54 @@ describe('readFile', () => {
     });
   });
 
+  describe('one-shot staging', () => {
+    it('VALID: {returnsOnce twice for one path} => answers each read in the order staged', async () => {
+      const proxy = readFileProxy();
+      proxy.returnsOnce({ path: '/repo/quest.json', contents: 'first' });
+      proxy.returnsOnce({ path: '/repo/quest.json', contents: 'second' });
+
+      const results = [await readFile('/repo/quest.json'), await readFile('/repo/quest.json')];
+
+      expect(results).toStrictEqual(['first', 'second']);
+    });
+
+    it('VALID: {returns, then returnsOnce for one path} => the one-shot answers first, then returns takes over', async () => {
+      const proxy = readFileProxy();
+      proxy.returns({ path: '/repo/quest.json', contents: 'sticky' });
+      proxy.returnsOnce({ path: '/repo/quest.json', contents: 'once' });
+
+      const results = [
+        await readFile('/repo/quest.json'),
+        await readFile('/repo/quest.json'),
+        await readFile('/repo/quest.json'),
+      ];
+
+      expect(results).toStrictEqual(['once', 'sticky', 'sticky']);
+    });
+
+    it('ERROR: {throwsOnce, then returnsOnce for one path} => rejects the first read and answers the second', async () => {
+      const proxy = readFileProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/repo/quest.json' });
+      proxy.throwsOnce({ path: '/repo/quest.json', error });
+      proxy.returnsOnce({ path: '/repo/quest.json', contents: 'written by now' });
+
+      await expect(readFile('/repo/quest.json')).rejects.toStrictEqual(error);
+      await expect(readFile('/repo/quest.json')).resolves.toBe('written by now');
+    });
+
+    it('VALID: {returnsOnce, a predicate} => answers a path the predicate accepts', async () => {
+      const proxy = readFileProxy();
+      proxy.returnsOnce({
+        path: (value) => String(value).endsWith('quest.json'),
+        contents: '{"id":"q1"}',
+      });
+
+      const result = await readFile('/resolved/at/runtime/quest.json');
+
+      expect(result).toBe('{"id":"q1"}');
+    });
+  });
+
   describe('call inspection', () => {
     it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
       const proxy = readFileProxy();

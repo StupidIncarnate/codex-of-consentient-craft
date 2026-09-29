@@ -312,6 +312,32 @@ describe('run()', () => {
     });
   });
 
+  describe('reading back every spawn', () => {
+    it('VALID: {two different commands spawned} => getAllSpawnCalls reads back each full call, in order', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({ command: 'git', exitCode: 0, stdout: '', stderr: '' });
+      proxy.setupSuccess({ command: 'npm', exitCode: 0, stdout: '', stderr: '' });
+
+      await run({ command: 'git', args: ['status'], cwd: '/project-a' });
+      await run({ command: 'npm', args: ['install'], cwd: '/project-b' });
+
+      expect(
+        proxy
+          .getAllSpawnCalls()
+          .map(([command, args, options]) => [command, args, (options as { cwd: string }).cwd]),
+      ).toStrictEqual([
+        ['git', ['status'], '/project-a'],
+        ['npm', ['install'], '/project-b'],
+      ]);
+    });
+
+    it('EMPTY: {nothing spawned} => getAllSpawnCalls returns an empty list', () => {
+      const proxy = runProxy();
+
+      expect(proxy.getAllSpawnCalls()).toStrictEqual([]);
+    });
+  });
+
   describe('stdio drains after exit fires', () => {
     it('EDGE: {child exits but neither stdio stream ever emits end/close} => promise stays unsettled', async () => {
       const proxy = runProxy();

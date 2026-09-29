@@ -8,6 +8,9 @@ export const writeFileProxy = (): {
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
   // Fails the NEXT write to this path only; a retry falls through to whatever `succeeds` staged.
   rejectsOnce: ({ path, error }: { path: string; error: FsError }) => void;
+  // Lets the NEXT write to this path succeed only. It shares `rejectsOnce`'s queue, consumed in the
+  // order staged, so `succeedsOnce` then `rejectsOnce` lets the first write land and fails the second.
+  succeedsOnce: ({ path }: { path: string }) => void;
   writtenContentsFor: ({ path }: { path: string }) => unknown;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
@@ -32,6 +35,9 @@ export const writeFileProxy = (): {
         await Promise.resolve();
         return Promise.reject(error);
       });
+    },
+    succeedsOnce: ({ path }: { path: string }): void => {
+      handle.onceFor([path]).resolves(undefined);
     },
     writtenContentsFor: ({ path }: { path: string }): unknown =>
       handle.callsMatching([path]).at(-1)?.[1],

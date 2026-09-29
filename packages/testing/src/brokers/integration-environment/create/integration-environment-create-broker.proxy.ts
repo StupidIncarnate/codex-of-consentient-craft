@@ -22,7 +22,7 @@ import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.pro
 import { rmSyncProxy } from '#gateway/node/fs/rm-sync/rm-sync.proxy';
 import { unlinkSyncProxy } from '#gateway/node/fs/unlink-sync/unlink-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
-import { randomBytes } from 'crypto';
+import { randomBytes } from '#gateway/node/crypto';
 import { runSyncProxy } from '#gateway/node/child_process/run-sync/run-sync.proxy';
 import { registerMock } from '../../../register-mock';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';

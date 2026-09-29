@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter, Readable, Writable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 interface ProxyConfig {
   exitCode: number | null;
@@ -154,6 +155,10 @@ export const runProxy = (): {
   getOptionsFor: (params: {
     command: string;
   }) => readonly { cwd: string; env: Record<string, string> }[];
+  // Every raw `spawn` call on this handle, whatever the command, as full `[command, args, options]`
+  // tuples in call order. Reading stages nothing, so an unstaged spawn still throws: a test that
+  // stages nothing and reads back `[]` proves no child was started through `spawn`.
+  getAllSpawnCalls: () => RecordedCalls;
 } => {
   const handle = registerMock({ fn: spawn });
   const killCallCountByCommand = new Map<string, number>();
@@ -332,5 +337,7 @@ export const runProxy = (): {
       handle
         .callsMatching([command])
         .map((call) => call[2] as { cwd: string; env: Record<string, string> }),
+
+    getAllSpawnCalls: (): RecordedCalls => handle.callsMatching([]),
   };
 };
