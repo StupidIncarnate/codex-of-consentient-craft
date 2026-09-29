@@ -14,6 +14,11 @@ import { hookPersistentRunnerHarness } from '../../test/harnesses/hook-runner/ho
 
 const PACKAGE_DIR = resolve(__dirname, '../..');
 
+// The warm-up loads eslint.config.js (tsx transpiles every rule from source) and builds the first
+// TypeScript program: 6.7s alone, 21s with twelve such workers on a twelve-core box. A whole-repo
+// integration run (1790696433684-3047) crossed ward's 30s hook limit and failed all 11 tests.
+const WARMUP_TIMEOUT_MS = 120_000;
+
 // CRITICAL: Must use temp dir inside repo so ESLint can find eslint.config.js
 // Using _lint-testbed (NOT _test-workspace or .test-tmp which are ESLint-ignored)
 const BASE_DIR = FilePathStub({
@@ -54,7 +59,7 @@ describe('post-edit-hook', () => {
     });
 
     warmupTestbed.cleanup();
-  });
+  }, WARMUP_TIMEOUT_MS);
 
   afterAll(async () => {
     await persistentRunner.stop();
