@@ -6,4 +6,4 @@
  * import { ... } from '@dungeonmaster/hydration/statics';
  */
 
-export * from './src/statics/hydration/hydration-statics';
+export * from './hydration/hydration-statics';
