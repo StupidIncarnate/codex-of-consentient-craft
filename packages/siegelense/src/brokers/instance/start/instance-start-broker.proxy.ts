@@ -23,8 +23,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { capacityReadBrokerProxy } from '../../capacity/read/capacity-read-broker.proxy';
-import { capacityReadBroker } from '../../capacity/read/capacity-read-broker';
-import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
@@ -47,15 +45,15 @@ import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
-import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import { capacityStatics } from '../../../statics/capacity/capacity-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
-type SpecName = ReturnType<typeof SpecNameStub>;
 
 // Every path below is what the composed child proxies stage by exact tuple off the addressed home
 // and cwd; the `join` mock here is only the real passthrough for the segments no child names.
@@ -78,6 +76,7 @@ const TMP_DIR_VALUE = '/tmp';
 // require.resolve() call (never mocked — see cliPackageBinResolveBrokerProxy's own comment).
 const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
+const MINTED_INSTANCE_ID_VALUE = `inst_${MINTED_UUID_VALUE.split('-').join('')}`;
 // The minted instance's evidence directory when reserved with no owning quest or guild
 // (`questId: null, guildId: null`) — every scenario in this file reserves that way except the
 // quest/guild-partitioning tests, which pass their own `evidencePath` into stageBoot() instead.
@@ -88,16 +87,29 @@ const UNOWNED_EVIDENCE_PATH_VALUE = `${ROOT_PATH_VALUE}/unowned/instances/inst_$
 const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
 const FIRST_PORT_VALUE = 40_000;
 const SECOND_PORT_VALUE = 40_001;
-// this broker's own nowMsForStaleness (1) + instanceReserveBroker's reservedAtMs (1) +
+// this broker's own nowMsForStaleness (1) + capacityReadBroker's own clock read (1) +
+// instanceReserveBroker's reservedAtMs (1) +
 // registryLockAcquireBroker's startedAtMs/nowMs (2) + this broker's own lockWaitStartedAtMs (1) +
 // bootLockAcquireBroker's startedAtMs/nowMs (2) + this broker's own lockWaitEndedAtMs (1) +
 // bootStartedAtMs (1) — every Date.now() call the real broker makes before the poll layer's own
 // first deadline check, on a registry with no stale entries (a stale reap adds more, internal to
 // instanceKillBroker, ahead of all of these).
-const DATE_NOW_CALLS_BEFORE_POLL_CHECK = 9;
+const DATE_NOW_CALLS_BEFORE_POLL_CHECK = 10;
 // Same count, minus the two calls made AFTER this broker's own lockWaitEndedAtMs (bootStartedAtMs
 // and the poll's own check) — the position queuedMs's second bracket (lockWaitEndedAtMs) lands on.
-const DATE_NOW_CALLS_BEFORE_QUEUED_MS_END = 7;
+const DATE_NOW_CALLS_BEFORE_QUEUED_MS_END = 8;
+// The machine every scenario runs on unless it says otherwise: room for the whole policy pool.
+const MB_BYTES = 1_048_576;
+const ROOMY_FREE_MEM_MB = 16_000;
+const ROOMY_TOTAL_MEM_MB = 32_000;
+const ROOMY_CORE_COUNT = 8;
+const IDLE_LOAD_AVG = [0, 0, 0] as const;
+const DISK_BAVAIL_BLOCKS = 41_000;
+const VMSTAT_CONTENT_VALUE = 'nr_free_pages 12345\noom_kill 0\n';
+// Every read of registry.json BEFORE the reservation lands: this broker's own count and capacity's.
+// A stale reap adds the kill's read and the release's read, queued by setupStaleReap.
+const PRE_RESERVE_REGISTRY_READS = 2;
+const STALE_REAP_REGISTRY_READS = 2;
 
 const ROOT_PATH_FILE = FilePathStub({ value: ROOT_PATH_VALUE });
 const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
@@ -143,7 +155,11 @@ export const instanceStartBrokerProxy = (): {
   stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
-  setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
+  setupCapacityShortOfMemory: (params: {
+    peakMB: number;
+    steadyMB: number;
+    freeMemMB: number;
+  }) => void;
   getKillConnectionCountFor: (params: {
     instanceId: InstanceId;
   }) => ReturnType<typeof ReadingCountStub>;
@@ -163,9 +179,9 @@ export const instanceStartBrokerProxy = (): {
   // underneath, against the same registry mocks reserveProxy.setupRegistry stages.
   const releaseProxy = instanceReleaseBrokerProxy();
   const registryReadProxy = registryReadBrokerProxy();
-  // Constructed for enforce-proxy-child-creation only. capacityReadBroker itself is staged directly
-  // below, so none of the three reads this proxy composes ever runs.
-  capacityReadBrokerProxy();
+  // capacityReadBroker runs for real: its registry read is queued per read in stageRegistryAndLocks,
+  // its machine and profile are staged below.
+  const capacityProxy = capacityReadBrokerProxy();
   const bootLockAcquireProxy = bootLockAcquireBrokerProxy();
   const bootLockReleaseProxy = bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -219,12 +235,18 @@ export const instanceStartBrokerProxy = (): {
   envSnapshotProxy();
 
   // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
-  // reserves one. It is staged DIRECTLY rather than composed: the pre-reserve registry it counts is
-  // the one every scenario stages whole, own reservation row included, and the policy ceiling of
-  // three then refuses scenarios that queue two reservations ahead. The constructor-level catch-all
-  // is the permissive answer, so only the refusal cases below describe a call of their own.
-  const capacityHandle: MockHandle = registerMock({ fn: capacityReadBroker });
-  capacityHandle.calledWith([]).resolves(CapacityAnswerStub());
+  // reserves one. The default machine has room for the whole policy pool and no spec has a measured
+  // profile, so that answer is permissive; the refusal cases below describe a machine of their own.
+  capacityProxy.setupMachineReading({
+    freeMemBytes: ROOMY_FREE_MEM_MB * MB_BYTES,
+    totalMemBytes: ROOMY_TOTAL_MEM_MB * MB_BYTES,
+    coreCount: ROOMY_CORE_COUNT,
+    loadAvg: IDLE_LOAD_AVG,
+    diskBavail: DISK_BAVAIL_BLOCKS,
+    diskBsize: MB_BYTES,
+    vmstatContent: VMSTAT_CONTENT_VALUE,
+  });
+  capacityProxy.setupNoProfile();
 
   registerMock({ fn: randomUUID }).calledWith([]).returns(MINTED_UUID_VALUE);
   const clockProxy = nowProxy();
@@ -244,10 +266,24 @@ export const instanceStartBrokerProxy = (): {
 
   // The state every scenario shares: the registry as the test supplies it, and the reservation's
   // own lock, write and rename.
+  // The registry every scenario stages already holds the reserved instance's own row, which the boot
+  // reads back at the end. Every read before the reservation lands (this broker's own count and
+  // capacity's) sees the fleet WITHOUT that row, as it does for real.
+  const preReserveRegistry: { json: ReturnType<typeof ContentTextStub> | null } = { json: null };
   const stageRegistryAndLocks = ({ registry }: { registry: Registry }): void => {
     clockProxy.setupNow({ ms: EpochMsStub().valueOf() });
     registryReadProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
     reserveProxy.setupRegistry({ json: JSON.stringify(registry) });
+    const withoutOwnRow = JSON.stringify({
+      ...registry,
+      instances: registry.instances.filter(
+        (entry) => entry.id !== InstanceIdStub({ value: MINTED_INSTANCE_ID_VALUE }),
+      ),
+    });
+    preReserveRegistry.json = ContentTextStub({ value: withoutOwnRow });
+    Array.from({ length: PRE_RESERVE_REGISTRY_READS }).forEach(() => {
+      registryReadProxy.setupPresentRegistryOnce({ content: withoutOwnRow });
+    });
   };
 
   const stageBoot = ({
@@ -479,8 +515,7 @@ export const instanceStartBrokerProxy = (): {
     getStderrMessages: (): readonly ReturnType<typeof ContentTextStub>[] =>
       stderrRecorder.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
 
-    mintInstanceId: (): InstanceId =>
-      InstanceIdStub({ value: `inst_${MINTED_UUID_VALUE.split('-').join('')}` }),
+    mintInstanceId: (): InstanceId => InstanceIdStub({ value: MINTED_INSTANCE_ID_VALUE }),
 
     stageLaneSpec: ({ processes }: { processes: readonly DevServerE2eProcess[] }): void => {
       laneSpecFindProxy.setupConfiguredProcesses({ processes });
@@ -494,14 +529,31 @@ export const instanceStartBrokerProxy = (): {
       readyWaitProxy.setupUnreachable({ url });
     },
 
-    // Addressed by the spec name the broker really passes, which outranks the permissive catch-all
-    // staged in the constructor. `suggested: 0` is the one condition instanceStartBroker refuses on,
-    // and `why` is carried into CapacityRefusedError verbatim, so a test asserts the sentence it
-    // staged here rather than a message this proxy wrote.
-    setupCapacityRefusal: ({ specName, why }: { specName: SpecName; why: string }): void => {
-      capacityHandle
-        .calledWith([{ specName }])
-        .resolves(CapacityAnswerStub({ suggested: 0, why, profile: null }));
+    // A measured `api` profile and a machine whose free memory less headroom cannot hold its peak:
+    // capacity's own arithmetic answers `suggested: 0` and renders the `why` the refusal carries.
+    setupCapacityShortOfMemory: ({
+      peakMB,
+      steadyMB,
+      freeMemMB,
+    }: {
+      peakMB: number;
+      steadyMB: number;
+      freeMemMB: number;
+    }): void => {
+      capacityProxy.setupMachineReading({
+        freeMemBytes: freeMemMB * MB_BYTES,
+        totalMemBytes: ROOMY_TOTAL_MEM_MB * MB_BYTES,
+        coreCount: ROOMY_CORE_COUNT,
+        loadAvg: IDLE_LOAD_AVG,
+        diskBavail: DISK_BAVAIL_BLOCKS,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT_VALUE,
+      });
+      capacityProxy.setupProfile({
+        profile: SpecProfileStub({
+          samples: [{ poolSize: capacityStatics.policy.ceiling, steadyMB, peakMB, runs: 1 }],
+        }),
+      });
     },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {
@@ -516,6 +568,13 @@ export const instanceStartBrokerProxy = (): {
         socketPath: staleSocketPath,
         homePath: staleHomePath,
       });
+      // The kill and the release each read the registry before the reservation lands too.
+      const withoutOwnRow = preReserveRegistry.json;
+      if (withoutOwnRow !== null) {
+        Array.from({ length: STALE_REAP_REGISTRY_READS }).forEach(() => {
+          registryReadProxy.setupPresentRegistryOnce({ content: withoutOwnRow });
+        });
+      }
     },
 
     // Bypasses bootLockAcquireBroker's real polling/takeover logic entirely: the exclusive create

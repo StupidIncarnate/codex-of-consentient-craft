@@ -35,7 +35,7 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [
             { poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 },
             { poolSize: 3, steadyMB: 1920, peakMB: 2810, runs: 5 },
@@ -45,7 +45,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -63,7 +63,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -86,7 +86,7 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [
             { poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 },
             { poolSize: 3, steadyMB: 1920, peakMB: 2810, runs: 5 },
@@ -96,7 +96,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 3 }),
       });
 
@@ -114,7 +114,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 3,
           steadyMB: 1920,
           peakMB: 2810,
@@ -139,14 +139,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -165,7 +165,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -205,14 +205,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -232,7 +232,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -266,14 +266,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -291,7 +291,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -331,14 +331,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -356,7 +356,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -396,14 +396,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -421,7 +421,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -446,7 +446,7 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [],
           fromRuns: 0,
           measuredAt: null,
@@ -456,7 +456,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: null,
       });
 
@@ -464,7 +464,7 @@ describe('capacityReadBroker', () => {
         suggested: 2,
         ceiling: 3,
         why:
-          'no measured profile for dungeonmaster-stack, so this suggests the default of 2 instances; ' +
+          'no measured profile for api, so this suggests the default of 2 instances; ' +
           'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5000MB less 512MB headroom; nothing else up',
         measured: {
@@ -478,7 +478,7 @@ describe('capacityReadBroker', () => {
       });
     });
 
-    it('EMPTY: {samples: [], --spec dungeonmaster-api} => the why names the spec that was asked about', async () => {
+    it('EMPTY: {no profile, --spec stack} => the why names the spec that was asked about', async () => {
       const proxy = capacityReadBrokerProxy();
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupMachineReading({
@@ -490,19 +490,11 @@ describe('capacityReadBroker', () => {
         diskBsize: MB_BYTES,
         vmstatContent: VMSTAT_CONTENT,
       });
-      proxy.setupProfile({
-        profile: SpecProfileStub({
-          specName: 'dungeonmaster-api',
-          samples: [],
-          fromRuns: 0,
-          measuredAt: null,
-          bootMs: null,
-        }),
-      });
+      proxy.setupNoProfile();
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-api' }),
+        specName: SpecNameStub({ value: 'stack' }),
         poolSize: null,
       });
 
@@ -510,7 +502,7 @@ describe('capacityReadBroker', () => {
         suggested: 2,
         ceiling: 3,
         why:
-          'no measured profile for dungeonmaster-api, so this suggests the default of 2 instances; ' +
+          'no measured profile for stack, so this suggests the default of 2 instances; ' +
           'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5000MB less 512MB headroom; nothing else up',
         measured: {
@@ -538,7 +530,7 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [],
           fromRuns: 0,
           measuredAt: null,
@@ -548,7 +540,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 5 }),
       });
 
@@ -556,7 +548,7 @@ describe('capacityReadBroker', () => {
         suggested: 2,
         ceiling: 3,
         why:
-          'no measured profile for dungeonmaster-stack, so --pool 5 has no effect: this suggests the default of 2 instances; ' +
+          'no measured profile for api, so --pool 5 has no effect: this suggests the default of 2 instances; ' +
           'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5000MB less 512MB headroom; nothing else up',
         measured: {
@@ -584,14 +576,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 99_999 }),
       });
 
@@ -611,7 +603,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -636,14 +628,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -662,7 +654,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,
@@ -687,14 +679,14 @@ describe('capacityReadBroker', () => {
       });
       proxy.setupProfile({
         profile: SpecProfileStub({
-          specName: 'dungeonmaster-stack',
+          specName: 'api',
           samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
         }),
       });
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: SpecNameStub({ value: 'api' }),
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -713,7 +705,7 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: {
-          spec: 'dungeonmaster-stack',
+          spec: 'api',
           poolSize: 1,
           steadyMB: 1800,
           peakMB: 2600,

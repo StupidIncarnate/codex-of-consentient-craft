@@ -748,10 +748,7 @@ describe('instanceStartBroker', () => {
         evidencePath: UNOWNED_EVIDENCE_PATH,
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
-      proxy.setupCapacityRefusal({
-        specName: SpecNameStub({ value: 'api' }),
-        why: 'no room for one more: 2599MB available is under the 2600MB this spec peaks at',
-      });
+      proxy.setupCapacityShortOfMemory({ peakMB: 2600, steadyMB: 1800, freeMemMB: 3111 });
 
       await expect(
         instanceStartBroker({
@@ -761,7 +758,7 @@ describe('instanceStartBroker', () => {
           seed: null,
         }),
       ).rejects.toThrow(
-        /^Refusing to start api: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
+        /^Refusing to start api: this machine cannot hold another instance right now — profile 2600MB peak \/ 1800MB steady at pool size 3, from 1 runs; free RAM 3111MB less 512MB headroom; nothing else up; no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
       );
 
       expect(proxy.getLastRegistryWriteContent()).toBe(undefined);
@@ -774,11 +771,14 @@ describe('instanceStartBroker', () => {
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
-        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
-      });
-      proxy.setupCapacityRefusal({
-        specName: SpecNameStub({ value: 'api' }),
-        why: 'the policy pool of 3 is full',
+        registry: RegistryStub({
+          instances: [
+            RegistryEntryStub({ id: InstanceIdStub({ value: 'inst_aaaa1111' }) }),
+            RegistryEntryStub({ id: InstanceIdStub({ value: 'inst_bbbb2222' }) }),
+            RegistryEntryStub({ id: InstanceIdStub({ value: 'inst_cccc3333' }) }),
+            RegistryEntryStub({ id: instanceId }),
+          ],
+        }),
       });
 
       await expect(
@@ -789,7 +789,7 @@ describe('instanceStartBroker', () => {
           seed: null,
         }),
       ).rejects.toThrow(
-        /^Refusing to start api: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
+        /^Refusing to start api: this machine cannot hold another instance right now — no measured profile for api, so this suggests the default of 2 instances; run a pool of 2 once and siegelense records a profile for next time; free RAM 16000MB less 512MB headroom; 3 siege instances already up \(3 still reserving\); the policy pool of 3 is full\. Run/u,
       );
 
       expect(proxy.getLastRegistryWriteContent()).toBe(undefined);

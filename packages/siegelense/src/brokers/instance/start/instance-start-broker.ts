@@ -354,7 +354,7 @@ export const instanceStartBroker = async ({
       throw new LaneBootFailedError({
         specName: spec.name,
         instanceId: reservedEntry.id,
-        unready: unreadyNames.filter((name): name is LaneProcessName => name !== null),
+        unready: unreadyNames.filter((name) => name !== null),
         logPaths: [driverLogPath],
       });
     }

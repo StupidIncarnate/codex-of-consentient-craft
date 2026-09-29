@@ -12,6 +12,10 @@
 
 import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
+import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { ProfileObservationStub } from '../../../contracts/profile-observation/profile-observation.stub';
+import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
+import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -19,6 +23,7 @@ import type { DevServerE2eProcess } from '@dungeonmaster/config';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
@@ -27,8 +32,25 @@ import { locationsProfileDirsFindBrokerProxy } from '../../locations/profile-dir
 const HOME_DIR = '/home/user';
 const HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
 const ROOT_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/siegelense' });
+const PROFILES_ROOT_VALUE = `${String(ROOT_PATH)}/${locationsStatics.siegelense.profilesDir}/`;
+// laneSpecHashBroker's real sha256 digest of laneSpecFindBrokerProxy's sticky default spec (one
+// headless api process, spec name `api`); the profile directory a scenario for that spec reads.
+const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
+const DEFAULT_PROFILES_PATH = FilePathStub({
+  value: `${PROFILES_ROOT_VALUE}${DEFAULT_SPEC_HASH_VALUE}`,
+});
+
+const RECORD_INDEX_WIDTH = 4;
+
+type SpecProfile = ReturnType<typeof SpecProfileStub>;
 
 export const profileReadBrokerProxy = (): {
+  // Stages the default `api` spec's profile tree with one record per run in every sample group, each
+  // carrying that group's own peak and steady figures, so the folded profile reads back exactly
+  // these `samples`. `profile.samples` is the only part of the profile the tree can express.
+  setupSpecProfile: (params: { profile: SpecProfile }) => void;
+  // A spec whose profile directory holds nothing yet, for every spec hash under the profiles root.
+  setupNoProfileForAnySpec: () => void;
   setupProfileTree: (params: {
     profilesPath: FilePath;
     sampleFileNames: readonly string[];
@@ -58,7 +80,68 @@ export const profileReadBrokerProxy = (): {
   const readProxy = readFileProxy();
   const stderr = stderrProxy();
 
+  const underProfilesRoot = ({ value, suffix }: { value: unknown; suffix: string }): boolean =>
+    typeof value === 'string' && value.startsWith(PROFILES_ROOT_VALUE) && value.endsWith(suffix);
+
   return {
+    setupSpecProfile: ({ profile }: { profile: SpecProfile }): void => {
+      const records = profile.samples.flatMap(({ poolSize, steadyMB, peakMB, runs }) =>
+        Array.from({ length: runs }, (_unused, index) => {
+          const instanceValue = `inst_${String(poolSize)}${String(index).padStart(RECORD_INDEX_WIDTH, '0')}`;
+          return {
+            fileName: `${instanceValue}.json`,
+            instanceId: InstanceIdStub({ value: instanceValue }),
+            poolSize,
+            peakMB,
+            steadyMB,
+          };
+        }),
+      );
+      dirsProxy.setupProfilesPath({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        profilesPath: DEFAULT_PROFILES_PATH,
+      });
+      readdirProxy.returns({
+        path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.samples}`,
+        names: records.map(({ fileName }) => fileName),
+      });
+      readdirProxy.returns({
+        path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.boots}`,
+        names: [],
+      });
+      records.forEach(({ fileName, instanceId, poolSize, peakMB, steadyMB }) => {
+        readProxy.returns({
+          path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.samples}/${fileName}`,
+          contents: JSON.stringify(
+            ProfileObservationStub({
+              instanceId,
+              specHash: SpecHashStub({ value: DEFAULT_SPEC_HASH_VALUE }),
+              pools: [{ poolSize, peakMB, steadySumMB: steadyMB, steadyBeats: 1 }],
+            }),
+          ),
+        });
+      });
+    },
+
+    setupNoProfileForAnySpec: (): void => {
+      dirsProxy.setupProfilesPath({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        profilesPath: DEFAULT_PROFILES_PATH,
+      });
+      readdirProxy.returnsMatchingPath({
+        path: (value) => underProfilesRoot({ value, suffix: `/${profileStatics.dirs.samples}` }),
+        names: [],
+      });
+      readdirProxy.returnsMatchingPath({
+        path: (value) => underProfilesRoot({ value, suffix: `/${profileStatics.dirs.boots}` }),
+        names: [],
+      });
+    },
+
     setupProfileTree: ({
       profilesPath,
       sampleFileNames,

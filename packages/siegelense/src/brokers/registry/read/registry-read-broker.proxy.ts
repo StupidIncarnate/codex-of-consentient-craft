@@ -12,6 +12,10 @@ const registryPath = FilePathStub({ value: REGISTRY_PATH_VALUE });
 export const registryReadBrokerProxy = (): {
   setupMissingRegistry: () => void;
   setupPresentRegistry: (params: { content: string }) => void;
+  // One-shot: answers exactly one read with this content, ahead of the sticky `setupPresentRegistry`
+  // answer, so a caller whose first reads happen before a row is added (a reservation's own) sees
+  // the registry without it while later reads see the sticky one. Queue it once per read.
+  setupPresentRegistryOnce: (params: { content: string }) => void;
   setupReadFailure: (params: { error: Error }) => void;
   // Forwards to locationsRegistryPathFindBrokerProxy's own addressed-only home stage — for a
   // caller composed alongside another real-path.join-making resolver (instanceRunBrokerProxy's
@@ -43,6 +47,12 @@ export const registryReadBrokerProxy = (): {
       queuePath();
       existsProxy.returns({ path: registryPath, exists: true });
       readProxy.returns({ path: registryPath, contents: content });
+    },
+
+    setupPresentRegistryOnce: ({ content }: { content: string }): void => {
+      queuePath();
+      existsProxy.returns({ path: registryPath, exists: true });
+      readProxy.returnsOnce({ path: registryPath, contents: content });
     },
 
     setupReadFailure: ({ error }: { error: Error }): void => {

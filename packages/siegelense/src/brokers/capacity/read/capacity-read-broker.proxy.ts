@@ -6,11 +6,9 @@
  * `pathJoinAdapter`, so calling the two setups out of order hands the wrong resolution to the wrong
  * caller (`statusReadBrokerProxy` documents the same hazard for the same two brokers).
  *
- * `profileReadBroker` is mocked DIRECTLY rather than composed: a profile tree costs one staged
- * readdir plus one staged read per record, and every one of them competes for that same join
- * queue — while the thing under test here is which SAMPLE GROUP the arithmetic divides by, which a
- * staged `SpecProfile` states outright. `profileReadBrokerProxy` is still constructed to satisfy
- * `enforce-proxy-child-creation`.
+ * `profileReadBroker` runs real too: `setupProfile` stages the default `api` spec's profile tree from
+ * the `SpecProfile`'s `samples` (one record per run), and `setupNoProfile` stages a spec nothing
+ * has ever run.
  *
  * USAGE:
  * const proxy = capacityReadBrokerProxy();
@@ -21,12 +19,11 @@
  */
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { machineReadBrokerProxy } from '../../machine/read/machine-read-broker.proxy';
-import { profileReadBroker } from '../../profile/read/profile-read-broker';
 import { profileReadBrokerProxy } from '../../profile/read/profile-read-broker.proxy';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 
@@ -49,13 +46,12 @@ export const capacityReadBrokerProxy = (): {
     vmstatContent: string;
   }) => void;
   setupProfile: (params: { profile: SpecProfile }) => void;
+  setupNoProfile: () => void;
   setupNow: (params: { nowMs: number }) => void;
 } => {
   const registryProxy = registryReadBrokerProxy();
   const machineProxy = machineReadBrokerProxy();
-  // Constructed for enforce-proxy-child-creation only — the broker below is staged directly.
-  profileReadBrokerProxy();
-  const profileHandle = registerMock({ fn: profileReadBroker });
+  const profileProxy = profileReadBrokerProxy();
   const nowHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -81,7 +77,11 @@ export const capacityReadBrokerProxy = (): {
     },
 
     setupProfile: ({ profile }: { profile: SpecProfile }): void => {
-      profileHandle.calledWith([]).resolves(profile);
+      profileProxy.setupSpecProfile({ profile });
+    },
+
+    setupNoProfile: (): void => {
+      profileProxy.setupNoProfileForAnySpec();
     },
 
     setupNow: ({ nowMs }: { nowMs: number }): void => {
