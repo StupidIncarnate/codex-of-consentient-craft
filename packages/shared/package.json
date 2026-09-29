@@ -15,11 +15,47 @@
     "./*.stub": {
       "source": "./src/*.stub.ts"
     },
-    "./*": {
-      "source": "./src/*/*.ts",
-      "types": "./dist/src/*/*.d.ts",
-      "import": "./dist/src/*/*.js",
-      "require": "./dist/src/*/*.js"
+    "./@types": {
+      "source": "./src/@types/@types.ts",
+      "types": "./dist/src/@types/@types.d.ts",
+      "import": "./dist/src/@types/@types.js",
+      "require": "./dist/src/@types/@types.js"
+    },
+    "./brokers": {
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
+    },
+    "./contracts": {
+      "source": "./src/contracts/contracts.ts",
+      "types": "./dist/src/contracts/contracts.d.ts",
+      "import": "./dist/src/contracts/contracts.js",
+      "require": "./dist/src/contracts/contracts.js"
+    },
+    "./errors": {
+      "source": "./src/errors/errors.ts",
+      "types": "./dist/src/errors/errors.d.ts",
+      "import": "./dist/src/errors/errors.js",
+      "require": "./dist/src/errors/errors.js"
+    },
+    "./guards": {
+      "source": "./src/guards/guards.ts",
+      "types": "./dist/src/guards/guards.d.ts",
+      "import": "./dist/src/guards/guards.js",
+      "require": "./dist/src/guards/guards.js"
+    },
+    "./statics": {
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
+    },
+    "./transformers": {
+      "source": "./src/transformers/transformers.ts",
+      "types": "./dist/src/transformers/transformers.d.ts",
+      "import": "./dist/src/transformers/transformers.js",
+      "require": "./dist/src/transformers/transformers.js"
     }
   },
   "files": [
