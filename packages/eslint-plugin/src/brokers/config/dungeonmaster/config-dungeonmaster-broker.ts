@@ -196,6 +196,9 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/platform-globals-ban': 'error',
     // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
     '@dungeonmaster/bin-program-spawn-ban': 'error',
+    // R1: reads every workspace package once to index which contracts production code parses, so it
+    // is a ward-only rule, not an editor one. Off here; the repo's lint pass turns it on.
+    '@dungeonmaster/require-contract-parse': 'off',
     // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): built
     // and scanned over the whole repo; off until the proxy fixes it flags are split per package and
     // applied — turning it on now would fail every proxy the scan already found.

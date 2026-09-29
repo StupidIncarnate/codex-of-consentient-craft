@@ -64,6 +64,7 @@ import { ruleBanAnonymousJsxInMapBrokerProxy } from '../../../brokers/rule/ban-a
 import { ruleBanDomHandlesInIngredientsBrokerProxy } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker.proxy';
 import { ruleBanNondeterminismInIngredientsBrokerProxy } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.proxy';
 import { ruleRawImportBanBrokerProxy } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker.proxy';
+import { ruleRequireContractParseBrokerProxy } from '../../../brokers/rule/require-contract-parse/rule-require-contract-parse-broker.proxy';
 import { rulePlatformGlobalsBanBrokerProxy } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.proxy';
 import { ruleBinProgramSpawnBanBrokerProxy } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.proxy';
 import { ruleGatewayImportBoundaryBrokerProxy } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.proxy';
@@ -152,6 +153,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanDomHandlesInIngredientsBrokerProxy();
   ruleBanNondeterminismInIngredientsBrokerProxy();
   ruleRawImportBanBrokerProxy();
+  ruleRequireContractParseBrokerProxy();
   rulePlatformGlobalsBanBrokerProxy();
   ruleBinProgramSpawnBanBrokerProxy();
   ruleGatewayImportBoundaryBrokerProxy();

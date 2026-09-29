@@ -95,3 +95,4 @@ export * from './src/brokers/locations/claude-projects-root-find/locations-claud
 export * from './src/brokers/locations/claude-config-dir-find/locations-claude-config-dir-find-broker';
 export * from './src/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker';
 export * from './src/brokers/locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker';
+export * from './src/brokers/contract-index/build/contract-index-build-broker';

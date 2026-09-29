@@ -85,6 +85,7 @@ describe('EslintPluginFlow', () => {
         'no-mutable-state-in-proxy-factory',
         'platform-globals-ban',
         'raw-import-ban',
+        'require-contract-parse',
         'require-contract-validation',
         'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',

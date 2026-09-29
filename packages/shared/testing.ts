@@ -53,3 +53,4 @@ export * from './src/brokers/locations/node-modules-path-find/locations-node-mod
 export * from './src/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker.proxy';
 export * from './src/brokers/locations/usage-ledger-path-find/locations-usage-ledger-path-find-broker.proxy';
 export * from './src/brokers/locations/usage-ledger-tmp-path-find/locations-usage-ledger-tmp-path-find-broker.proxy';
+export * from './src/brokers/contract-index/build/contract-index-build-broker.proxy';

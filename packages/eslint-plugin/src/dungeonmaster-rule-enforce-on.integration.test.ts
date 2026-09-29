@@ -19,6 +19,7 @@ const WARD_ONLY_TYPE_CHECKED_RULES = [
   '@dungeonmaster/raw-import-ban',
   '@dungeonmaster/platform-globals-ban',
   '@dungeonmaster/bin-program-spawn-ban',
+  '@dungeonmaster/require-contract-parse',
 ];
 
 interface Violation {

@@ -70,6 +70,7 @@ import { ruleBanAnonymousJsxInMapBroker } from '../../../brokers/rule/ban-anonym
 import { ruleBanDomHandlesInIngredientsBroker } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker';
 import { ruleBanNondeterminismInIngredientsBroker } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker';
 import { ruleRawImportBanBroker } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker';
+import { ruleRequireContractParseBroker } from '../../../brokers/rule/require-contract-parse/rule-require-contract-parse-broker';
 import { rulePlatformGlobalsBanBroker } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker';
 import { ruleBinProgramSpawnBanBroker } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker';
 import { ruleGatewayImportBoundaryBroker } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker';
@@ -159,6 +160,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'raw-import-ban': EslintRule;
     readonly 'platform-globals-ban': EslintRule;
     readonly 'bin-program-spawn-ban': EslintRule;
+    readonly 'require-contract-parse': EslintRule;
     readonly 'gateway-import-boundary': EslintRule;
     readonly 'gateway-colocation': EslintRule;
     readonly 'gateway-layout': EslintRule;
@@ -251,6 +253,7 @@ export const EslintPluginCreateResponder = (): {
       'raw-import-ban': ruleRawImportBanBroker(),
       'platform-globals-ban': rulePlatformGlobalsBanBroker(),
       'bin-program-spawn-ban': ruleBinProgramSpawnBanBroker(),
+      'require-contract-parse': ruleRequireContractParseBroker(),
       'gateway-import-boundary': ruleGatewayImportBoundaryBroker(),
       'gateway-colocation': ruleGatewayColocationBroker(),
       'gateway-layout': ruleGatewayLayoutBroker(),

@@ -160,3 +160,4 @@ export * from './src/transformers/json-file-contents/json-file-contents-transfor
 
 // Pre-Edit Rule Names Extract
 export * from './src/transformers/pre-edit-rule-names-extract/pre-edit-rule-names-extract-transformer';
+export * from './src/transformers/repo-root-from-source-path/repo-root-from-source-path-transformer';
