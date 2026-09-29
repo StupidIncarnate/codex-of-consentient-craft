@@ -1,11 +1,12 @@
-import { existsSync } from 'fs';
-import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
@@ -35,19 +36,10 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
-const ROOT_PATH_VALUE = `${HOME_PATH_VALUE}/siegelense`;
-const REGISTRY_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json`;
-const REGISTRY_TMP_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json.tmp`;
-const REGISTRY_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.lock`;
-const REGISTRY_PATH_FILE = FilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_TMP_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_TMP_PATH_VALUE });
-const REGISTRY_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_LOCK_PATH_VALUE });
+const ROOT_PATH = FilePathStub({ value: `${HOME_PATH_VALUE}/siegelense` });
 const TMP_DIR_VALUE = '/tmp';
 const CWD_PATH_VALUE = '/default/cwd';
-const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`;
-const CONFIG_FILE_PATH = FilePathStub({ value: CONFIG_FILE_PATH_VALUE });
 const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
 
 export const instanceKillBrokerProxy = (): {
@@ -87,7 +79,7 @@ export const instanceKillBrokerProxy = (): {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => ReturnType<typeof ReadingCountStub>;
 } => {
-  registryReadBrokerProxy();
+  const registryProxy = registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home without
   // also staging the link check itself, which this file stages independently (existsSync/realpath/
@@ -118,21 +110,14 @@ export const instanceKillBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
 
-  const existsHandle: MockHandle = registerMock({ fn: existsSync });
-  const readHandle: MockHandle = registerMock({ fn: readFile });
-  const writeHandle: MockHandle = registerMock({ fn: writeFile });
-  const renameHandle: MockHandle = registerMock({ fn: rename });
-  const unlinkHandle: MockHandle = registerMock({ fn: unlink });
-  const realpathHandle: MockHandle = registerMock({ fn: realpath });
-  const accessHandle: MockHandle = registerMock({ fn: access });
-  registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(EpochMsStub().valueOf());
+  stderrProxy();
   // The SIGTERM-then-check-SIGKILL escalation always waits driverStatics.teardown.graceMs (3s)
   // before probing aliveness. Addressed on the delay specifically (a predicate for the callback,
   // since that reference differs per call) — global and unaddressed would ALSO catch
   // unixSocketRequest's own request-timeout setTimeout, firing it immediately and rejecting
   // every socket call before its mocked 'connect'/'data' events (scheduled via process.nextTick)
   // ever get a turn.
-  registerSpyOn({ object: globalThis, method: 'setTimeout', passthrough: true })
+  registerMock({ fn: setTimeout })
     .calledWith([
       (candidate: unknown) => typeof candidate === 'function',
       driverStatics.teardown.graceMs,
@@ -142,15 +127,6 @@ export const instanceKillBrokerProxy = (): {
       return 0;
     });
   tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
-  accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
-
-  existsHandle.calledWith([REGISTRY_PATH_FILE]).returns(true);
-  existsHandle.calledWith([LINK_PATH_FILE]).returns(true);
-  realpathHandle.calledWith([LINK_PATH_FILE]).resolves(ROOT_PATH_VALUE);
-  writeHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-  writeHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
-  renameHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-  unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
 
   return {
     setupRegistry: ({ registry }: { registry: Registry }): void => {
@@ -159,8 +135,16 @@ export const instanceKillBrokerProxy = (): {
       // enforce-proxy-patterns confines constructor bodies to child-proxy creation and handle
       // staging) so every root-path resolution this test drives resolves against HOME_PATH_VALUE
       // rather than whatever jest's own global setup or the real OS homedir would produce.
-      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
-      readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
+      const json = JSON.stringify(registry);
+      registryProxy.setupPresentRegistry({ content: json });
+      repoLinkProxy.setupLinkResolvesToRoot({
+        cwdPath: CWD_PATH_VALUE,
+        linkPath: LINK_PATH_FILE,
+        homeDir: HOME_DIR_VALUE,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+      });
+      releaseProxy.setupCurrentRegistry({ json });
     },
 
     // The response payload is a real JSON-encoded KillResult, matching what `laneTeardownBroker`'s

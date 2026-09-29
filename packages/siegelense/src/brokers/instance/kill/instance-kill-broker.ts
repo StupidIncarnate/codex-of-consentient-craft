@@ -44,6 +44,8 @@
 import { rm } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { stderr } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -111,7 +113,7 @@ export const instanceKillBroker = async ({
         try {
           return killResultContract.parse(JSON.parse(response.payload));
         } catch (parseError: unknown) {
-          process.stderr.write(
+          stderr.write(
             `instanceKillBroker: parsing ${instanceId}'s driver kill response failed, reporting no stopped process groups: ${String(parseError)}\n`,
           );
           return null;

@@ -123,11 +123,11 @@ Active now (A18 hand batches run as one long-lived Sonnet agent per package, one
 operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
 agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
 web (B25; B26 is unblocked: concession 9 already settles C4); orchestrator (B03, a fresh agent);
-server (B03); siegelense (S03 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
-sweep 77318459e); a fresh agent for cli-B04.
+server (B03); siegelense (S04 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
+sweep 77318459e); GN11 (a `setTimeout` proxy in `@gateway/node`; siegelense and server stage timers by hand without it).
 
-A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli B01 to B03; web B01 to B24;
-orchestrator B01 (8b28b66e4), B02; server B01, B02 (2597b4807); siegelense zod sweep, S01, S02. Phase 2 is complete (A13
+A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli (all); web B01 to B24;
+orchestrator B01 (8b28b66e4), B02; server B01, B02 (2597b4807); siegelense zod sweep, S01 to S03. Phase 2 is complete (A13
 7cb5ff272). Gateway units added this session, all built: GN5 to GN10 (stream/http/zlib; stdout/stderr recording
 proxies and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow` and `setupNowOnce`, fetch `getCallsFor`; unix
 socket fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple; `spawnPiped`; `runSyncWithInput`),
@@ -137,7 +137,7 @@ socket fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple; `spawnPip
 `runSyncWithInput`. Decision: `calledWith([])`/`onceFor([])` is allowed on a function that takes no arguments
 (`randomUUID`, `now`); the ban is for functions that take arguments.
 
-Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser console and crypto proxies, a browser clock),
+Still open: C3 (web's vite config). Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild captured output line by line (a missing final newline gains one). Queued gateway gaps: GB4 (browser console and crypto proxies, a browser clock),
 `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Lockfile refresh pending for
 hydration-recipes' `@dungeonmaster/npm` and `@gateway/npm`'s `tsx`. Not started: A18 for shared, tooling,
 hydration-recipes, mcp, eslint-plugin, session-forensics, config, hydration, testing (re-census first).

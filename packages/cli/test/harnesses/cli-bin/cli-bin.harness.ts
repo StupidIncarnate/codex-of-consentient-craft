@@ -8,10 +8,21 @@
  * const { exitCode } = await harness.runInit();
  * expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
  */
-import { spawn } from 'node:child_process';
-import { accessSync, constants, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { spawnPiped } from '#gateway/node/child_process';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import {
+  accessSync,
+  constants,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+} from '#gateway/node/fs';
+import { tmpdir } from '#gateway/node/os';
+import { join, resolve } from '#gateway/node/path';
+import { envSnapshot, execPath } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { tsxCliPath } from '#gateway/npm/tsx';
 
 import {
   errorMessageContract,
@@ -68,10 +79,73 @@ export const cliBinHarness = (): {
     cliStderr: ErrorMessage;
   }>;
 } => {
+  // One spawn with every stdio stream a pipe, each read line by line and rejoined with the newline
+  // its lines lost — the text comes back exactly as the CLI wrote it whenever the stream ended on a
+  // newline, which every stream asserted on here does.
+  const spawnCaptured = async ({
+    command,
+    args,
+    cwd,
+    env,
+    timeoutLabel,
+    closeStdin,
+  }: {
+    command: string;
+    args: string[];
+    cwd: string;
+    env: Record<string, string | undefined>;
+    timeoutLabel: string;
+    closeStdin: boolean;
+  }): Promise<{
+    exitCode: ReturnType<typeof ExitCodeStub>;
+    stdout: ErrorMessage;
+    stderr: ErrorMessage;
+  }> =>
+    new Promise((promiseResolve, promiseReject) => {
+      const child = spawnPiped({ command, args, cwd, env });
+      const text = {
+        stdout: errorMessageContract.parse(''),
+        stderr: errorMessageContract.parse(''),
+      };
+
+      child.onStdoutLine((line) => {
+        text.stdout = errorMessageContract.parse(`${text.stdout}${line}\n`);
+      });
+      child.onStderrLine((line) => {
+        text.stderr = errorMessageContract.parse(`${text.stderr}${line}\n`);
+      });
+      if (closeStdin) {
+        child.endStdin();
+      }
+
+      const timer = setTimeout(() => {
+        child.kill();
+        promiseReject(new Error(timeoutLabel));
+      }, RUN_COMMAND_TIMEOUT_MS);
+
+      // spawnPiped reports on the child's `close`, not its `exit` — a child's `exit` fires once the
+      // process ends, which is not the same moment its stdio pipes finish draining. This harness's
+      // whole job is asserting the exact bytes on those pipes, so it waits for the event Node fires
+      // once both are closed.
+      child.onExit(({ code, error }) => {
+        clearTimeout(timer);
+        if (error !== undefined) {
+          promiseReject(error);
+          return;
+        }
+        promiseResolve({
+          exitCode: ExitCodeStub({ value: code ?? 1 }),
+          stdout: text.stdout,
+          stderr: text.stderr,
+        });
+      });
+    });
+
   // Spawns bin/cli-entry.ts under tsx with the given argv, capturing BOTH stdio streams (never
   // discarding either — every assertion above the CLI gate depends on reading them back exactly)
   // and a throwaway DUNGEONMASTER_HOME, so a siegelense call under test reads and writes its own
-  // registry rather than the developer's real `~/.dungeonmaster`.
+  // registry rather than the developer's real `~/.dungeonmaster`. tsx's own CLI runs under this
+  // node, not `npx tsx`: npx adds its own startup to every run.
   const runCommand = async ({
     args,
   }: {
@@ -84,49 +158,13 @@ export const cliBinHarness = (): {
     const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-'));
     const dungeonmasterHome = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-home-'));
 
-    const result = await new Promise<{
-      exitCode: ReturnType<typeof ExitCodeStub>;
-      stdout: ErrorMessage;
-      stderr: ErrorMessage;
-    }>((promiseResolve, promiseReject) => {
-      const child = spawn('npx', ['tsx', '--conditions=source', SOURCE_ENTRY_PATH, ...args], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, FORCE_COLOR: '0', DUNGEONMASTER_HOME: dungeonmasterHome },
-        cwd: tempDir,
-      });
-
-      let stdoutBuffer = '';
-      let stderrBuffer = '';
-
-      const timer = setTimeout(() => {
-        child.kill();
-        promiseReject(new Error(`cli-bin runCommand timed out on args: ${args.join(' ')}`));
-      }, RUN_COMMAND_TIMEOUT_MS);
-
-      child.stdout.on('data', (chunk: Buffer) => {
-        stdoutBuffer += chunk.toString();
-      });
-
-      child.stderr.on('data', (chunk: Buffer) => {
-        stderrBuffer += chunk.toString();
-      });
-
-      // `close`, not `exit` — a child's `exit` fires once the process ends, which is not the same
-      // moment its stdio pipes finish draining. This harness's whole job is asserting the exact
-      // bytes on those pipes, so it waits for the event Node fires once both are closed.
-      child.on('close', (code) => {
-        clearTimeout(timer);
-        promiseResolve({
-          exitCode: ExitCodeStub({ value: code ?? 1 }),
-          stdout: errorMessageContract.parse(stdoutBuffer),
-          stderr: errorMessageContract.parse(stderrBuffer),
-        });
-      });
-
-      child.on('error', (err) => {
-        clearTimeout(timer);
-        promiseReject(err);
-      });
+    const result = await spawnCaptured({
+      command: execPath,
+      args: [tsxCliPath(), '--conditions=source', SOURCE_ENTRY_PATH, ...args],
+      cwd: tempDir,
+      env: { ...envSnapshot(), FORCE_COLOR: '0', DUNGEONMASTER_HOME: dungeonmasterHome },
+      timeoutLabel: `cli-bin runCommand timed out on args: ${args.join(' ')}`,
+      closeStdin: false,
     });
 
     rmSync(tempDir, { recursive: true, force: true });
@@ -157,41 +195,19 @@ export const cliBinHarness = (): {
     const dungeonmasterHome = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-home-'));
     const exitCodeFile = join(tempDir, 'cli-exit-code.txt');
     const shellCommand =
-      `npx tsx --conditions=source ${SOURCE_ENTRY_PATH} ${args.join(' ')} | head -n 0; ` +
+      `${execPath} ${tsxCliPath()} --conditions=source ${SOURCE_ENTRY_PATH} ${args.join(' ')} | head -n 0; ` +
       `echo -n "\${PIPESTATUS[0]}" > ${exitCodeFile}`;
 
-    const cliStderr = await new Promise<ErrorMessage>((promiseResolve, promiseReject) => {
-      const child = spawn('bash', ['-c', shellCommand], {
-        stdio: ['ignore', 'ignore', 'pipe'],
-        env: { ...process.env, FORCE_COLOR: '0', DUNGEONMASTER_HOME: dungeonmasterHome },
-        cwd: tempDir,
-      });
-
-      let stderrBuffer = '';
-
-      const timer = setTimeout(() => {
-        child.kill();
-        promiseReject(
-          new Error(`cli-bin runWithClosedStdoutReader timed out on args: ${args.join(' ')}`),
-        );
-      }, RUN_COMMAND_TIMEOUT_MS);
-
-      child.stderr.on('data', (chunk: Buffer) => {
-        stderrBuffer += chunk.toString();
-      });
-
-      child.on('close', () => {
-        clearTimeout(timer);
-        promiseResolve(errorMessageContract.parse(stderrBuffer));
-      });
-
-      child.on('error', (err) => {
-        clearTimeout(timer);
-        promiseReject(err);
-      });
+    const { stderr: cliStderr } = await spawnCaptured({
+      command: 'bash',
+      args: ['-c', shellCommand],
+      cwd: tempDir,
+      env: { ...envSnapshot(), FORCE_COLOR: '0', DUNGEONMASTER_HOME: dungeonmasterHome },
+      timeoutLabel: `cli-bin runWithClosedStdoutReader timed out on args: ${args.join(' ')}`,
+      closeStdin: true,
     });
 
-    const cliExitCode = ExitCodeStub({ value: Number(readFileSync(exitCodeFile, 'utf-8')) });
+    const cliExitCode = ExitCodeStub({ value: Number(readFileSync(exitCodeFile)) });
 
     rmSync(tempDir, { recursive: true, force: true });
     rmSync(dungeonmasterHome, { recursive: true, force: true });
@@ -213,7 +229,7 @@ export const cliBinHarness = (): {
       }
     },
 
-    readBinContent: (): FileContents => fileContentsContract.parse(readFileSync(BIN_PATH, 'utf-8')),
+    readBinContent: (): FileContents => fileContentsContract.parse(readFileSync(BIN_PATH)),
 
     runCommand,
 
@@ -234,36 +250,39 @@ export const cliBinHarness = (): {
     }> =>
       new Promise((promiseResolve) => {
         const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-import-'));
-        const child = spawn('node', ['-e', `require(${JSON.stringify(String(BIN_PATH))})`], {
-          stdio: ['ignore', 'pipe', 'pipe'],
+        const child = spawnPiped({
+          command: execPath,
+          args: ['-e', `require(${JSON.stringify(String(BIN_PATH))})`],
+          cwd: tempDir,
           env: {
-            ...process.env,
+            ...envSnapshot(),
             // Ward's own integration-check spawn sets NODE_OPTIONS=--conditions=source on THIS
             // jest process (check-run-integration-broker.ts) so its transform glue resolves
-            // @dungeonmaster/* to source. That var inherits through `...process.env` into every
-            // spawned child by default. This child requires the real BUNDLE, whose externalized
-            // `@dungeonmaster/*` requires would then follow shared's own "source" export condition
-            // straight to a .ts file plain Node can't parse — measured: ERR_MODULE_NOT_FOUND,
-            // read back here as `exitedCleanly: false`. Clear it so this test measures what an
-            // actual consumer requiring the shipped bundle gets, not ward's own resolution mode.
+            // @dungeonmaster/* to source. That var inherits through the environment snapshot into
+            // every spawned child by default. This child requires the real BUNDLE, whose
+            // externalized `@dungeonmaster/*` requires would then follow shared's own "source"
+            // export condition straight to a .ts file plain Node can't parse — measured:
+            // ERR_MODULE_NOT_FOUND, read back here as `exitedCleanly: false`. Clear it so this test
+            // measures what an actual consumer requiring the shipped bundle gets, not ward's own
+            // resolution mode.
             NODE_OPTIONS: '',
             FORCE_COLOR: '0',
             BROWSER: '/bin/true',
             DUNGEONMASTER_PORT: String(IMPORT_PROBE_PORT),
           },
-          cwd: tempDir,
         });
+        child.endStdin();
 
-        let captured = '';
-        child.stdout.on('data', (chunk) => {
-          captured += String(chunk);
+        const seen = { stdout: errorMessageContract.parse('') };
+        child.onStdoutLine((line) => {
+          seen.stdout = errorMessageContract.parse(`${seen.stdout}${line}\n`);
         });
 
         const settle = ({ exitedCleanly }: { exitedCleanly: boolean }): void => {
           rmSync(tempDir, { recursive: true, force: true });
           promiseResolve({
             exitedCleanly,
-            servedLineSeen: captured.includes('Dungeonmaster server running at'),
+            servedLineSeen: seen.stdout.includes('Dungeonmaster server running at'),
           });
         };
 
@@ -272,14 +291,9 @@ export const cliBinHarness = (): {
           settle({ exitedCleanly: false });
         }, IMPORT_PROBE_TIMEOUT_MS);
 
-        child.on('exit', (exitCode) => {
+        child.onExit(({ code, error }) => {
           clearTimeout(timer);
-          settle({ exitedCleanly: exitCode === 0 });
-        });
-
-        child.on('error', () => {
-          clearTimeout(timer);
-          settle({ exitedCleanly: false });
+          settle({ exitedCleanly: error === undefined && code === 0 });
         });
       }),
   };

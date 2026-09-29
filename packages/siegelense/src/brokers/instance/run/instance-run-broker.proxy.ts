@@ -1,8 +1,4 @@
-import { existsSync } from 'fs';
-import { readFile, rename, unlink, writeFile } from 'fs/promises';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
@@ -15,40 +11,10 @@ import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 type Registry = ReturnType<typeof RegistryStub>;
 type RunResult = ReturnType<typeof RunResultStub>;
 
-// Same convention as instance-start-broker.proxy.ts: every path here is REAL `path.join` output
-// off the addressed home dungeonmasterHomeFindBrokerProxy stages below, never a one-shot
-// `pathJoinAdapter.returns()` — see that file's header comment for why a shared one-shot queue
-// across unrelated resolvers is unsafe. This file never composes `pathJoinAdapterProxy` (directly
-// or through `registryUpdateBrokerProxy`'s own setup methods) for exactly that reason:
-// `instanceRunBroker` makes its OWN plain registry read BEFORE the mark-unusable path's
-// read-lock-mutate-write cycle ever runs, and a one-shot queued for the second read would be
-// silently consumed by the first instead.
-//
-// `packages/testing/src/jest.setup-home.js` sets a REAL `process.env.DUNGEONMASTER_HOME` before
-// this file's own imports run (a `setupFiles` entry, global to every package). Left alone,
-// `dungeonmasterHomeFindBroker` — what `locationsRootPathFindBroker` composes, underneath both the
-// registry and the lock resolvers — returns that env value VERBATIM and never calls `homedir()` at
-// all, so every real registry/lock path would resolve under that jest sandbox home instead of the
-// fixed value this file's own constants assume. `registryProxy.setupHomeOnly` (forwarded from
-// locationsRootPathFindBrokerProxy through registryReadBrokerProxy's own composed child) clears the
-// env var AND stages `homedir()`/`join()` together, so every scenario resolves deterministically.
-const HOME_DIR_VALUE = '/home/user';
-const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
-const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
-const ROOT_PATH_VALUE = `${HOME_PATH_VALUE}/siegelense`;
-const REGISTRY_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json`;
-const REGISTRY_TMP_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json.tmp`;
-const REGISTRY_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.lock`;
-const REGISTRY_PATH_FILE = FilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_TMP_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_TMP_PATH_VALUE });
-const REGISTRY_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_LOCK_PATH_VALUE });
-// registryLockAcquireBroker stamps a brand-new lock file with this — the exclusive create always
-// succeeds in every scenario this proxy stages (nothing ever pre-creates registry.lock), so the
-// stale-lock branch that would actually COMPARE this value is never reached; any fixed number
-// answers `Date.now()`'s two calls honestly without a caller-supplied one.
-const LOCK_STAMP_MS = 1_700_000_000_000;
-
+// `instanceRunBroker` reads the registry once up front, and its mark-unusable path runs a second
+// read-lock-mutate-write cycle. Both are staged through the registry proxies' own semantic
+// methods, each addressed by the exact path it resolves, so the two reads never depend on call
+// order.
 export const instanceRunBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
   setupDriverAnswers: (params: {
@@ -65,46 +31,16 @@ export const instanceRunBrokerProxy = (): {
   }) => unknown;
   getWrittenRegistry: () => unknown;
 } => {
-  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home — this
-  // file's OWN plain registry read runs BEFORE the mark-unusable path's read-lock-mutate-write
-  // cycle, per the header comment above, so setupCurrentRegistry's one-shot outer join is unsafe
-  // here the same way it is for registryUpdateBrokerProxy below.
   const registryProxy = registryReadBrokerProxy();
   locationsSocketPathFindBrokerProxy();
-  // Composed for `enforce-proxy-child-creation` only — its own `setupCurrentRegistry` (the
-  // one-shot-pathJoin-queue path) is never called, per the header comment above. Bare construction
-  // is harmless: it nests `fsMkdirAdapterProxy` (registryWriteBroker's own `mkdir -p`), whose
-  // constructor stages a permissive `calledWith([]).resolves(...)` default that covers
-  // registryLockAcquireBroker's `mkdir -p` too, since both share the same underlying mock.
-  registryUpdateBrokerProxy();
+  const updateProxy = registryUpdateBrokerProxy();
   const socketProxy = driverSocketRequestBrokerProxy();
-
-  const existsHandle: MockHandle = registerMock({ fn: existsSync });
-  const readHandle: MockHandle = registerMock({ fn: readFile });
-  const writeHandle: MockHandle = registerMock({ fn: writeFile });
-  const renameHandle: MockHandle = registerMock({ fn: rename });
-  const unlinkHandle: MockHandle = registerMock({ fn: unlink });
-  const nowHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
-  nowHandle.calledWith([]).returns(LOCK_STAMP_MS);
 
   return {
     setupRegistry: ({ registry }: { registry: Registry }): void => {
-      // Staged here, not in the constructor (enforce-proxy-patterns confines constructor bodies
-      // to child-proxy creation and handle staging) — see the header comment on why this must
-      // happen before any real path resolution runs.
-      registryProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
-
-      existsHandle.calledWith([REGISTRY_PATH_FILE]).returns(true);
-      readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
-
-      // Stages the whole mark-unusable write cycle unconditionally (registry.lock's exclusive
-      // create, the registry.json.tmp write, the rename over registry.json, and the lock's
-      // release unlink) — harmless to leave staged for a scenario that never reaches it, since an
-      // unaddressed mock only throws when something actually CALLS it unstaged.
-      writeHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
-      writeHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-      renameHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-      unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
+      const json = JSON.stringify(registry);
+      registryProxy.setupPresentRegistry({ content: json });
+      updateProxy.setupCurrentRegistry({ json });
     },
 
     setupDriverAnswers: ({
@@ -148,9 +84,8 @@ export const instanceRunBrokerProxy = (): {
     }): unknown => socketProxy.getRequestLinesFor({ socketPath }).at(-1),
 
     getWrittenRegistry: (): unknown => {
-      const calls = writeHandle.callsMatching([REGISTRY_TMP_PATH_ABS]);
-      const lastCall = calls[calls.length - 1];
-      return lastCall === undefined ? undefined : JSON.parse(String(lastCall[1]));
+      const written = updateProxy.getWrittenContent();
+      return typeof written === 'string' ? JSON.parse(written) : undefined;
     },
   };
 };

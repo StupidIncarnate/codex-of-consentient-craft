@@ -17,7 +17,8 @@
  * // afterEach restores the original PATH automatically
  */
 
-import { resolve as resolvePath } from 'path';
+import { resolve as resolvePath } from '#gateway/node/path';
+import { getEnv, setEnv } from '#gateway/node/process';
 
 const FAKE_NPM_BIN_DIR = resolvePath(__dirname, 'bin');
 
@@ -27,15 +28,15 @@ export const npmCommandFakeHarness = (): {
 } => {
   // Captured once, at harness construction — before any test's stageSucceeds() call could have
   // mutated it, so this is always the real, unmodified PATH afterEach restores.
-  const originalPath = process.env.PATH ?? '';
+  const originalPath = getEnv('PATH') ?? '';
 
   return {
     stageSucceeds: (): void => {
-      process.env.PATH = `${FAKE_NPM_BIN_DIR}:${originalPath}`;
+      setEnv('PATH', `${FAKE_NPM_BIN_DIR}:${originalPath}`);
     },
 
     afterEach: (): void => {
-      process.env.PATH = originalPath;
+      setEnv('PATH', originalPath);
     },
   };
 };

@@ -23,14 +23,17 @@
  * // stdout is the JSON-stringified argument defineConfig() was called with, when exitCode is 0
  */
 
-import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { spawnPiped } from '#gateway/node/child_process';
+import { clearTimeout } from '#gateway/node/clearTimeout';
+import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
+import { envSnapshot, execPath } from '#gateway/node/process';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { tsxCliPath } from '#gateway/npm/tsx';
 import { errorMessageContract, ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const RUN_TIMEOUT_MS = 20_000;
-const TSX_CLI_PATH = require.resolve('tsx/cli');
 
 export const scaffoldedPlaywrightConfigRunHarness = (): {
   installPlaywrightTestStub: (params: { dirPath: string }) => void;
@@ -42,7 +45,7 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
 } => ({
   installPlaywrightTestStub: ({ dirPath }: { dirPath: string }): void => {
     const packageDir = join(dirPath, 'node_modules', '@playwright', 'test');
-    mkdirSync(packageDir, { recursive: true });
+    ensureDirSync(packageDir);
     writeFileSync(
       join(packageDir, 'package.json'),
       JSON.stringify({ name: '@playwright/test', version: '0.0.0', main: 'index.js' }),
@@ -70,15 +73,30 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
       const evalCode =
         `const c = require(${JSON.stringify(configPath)}); ` +
         'process.stdout.write(JSON.stringify(c.default ?? c));';
-      // tsx's own CLI under this node, not `npx tsx`: npx adds its own startup to every run.
-      const child = spawn(process.execPath, [TSX_CLI_PATH, '-e', evalCode], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, ...env, FORCE_COLOR: '0' },
+      // tsx's own CLI under this node, not `npx tsx`: npx adds its own startup to every run. The
+      // spawn happens in this executor, before the promise is returned, so a caller can overlap
+      // other work with the child.
+      const child = spawnPiped({
+        command: execPath,
+        args: [tsxCliPath(), '-e', evalCode],
         cwd,
+        env: { ...envSnapshot(), ...env, FORCE_COLOR: '0' },
       });
+      child.endStdin();
 
-      let stdoutBuffer = '';
-      let stderrBuffer = '';
+      // Lines rejoined with the newline each lost; the config's JSON is one line and a config that
+      // fails to load prints its message on stderr, so a stream reads back as written, plus a
+      // closing newline where the child wrote none.
+      const text = {
+        stdout: errorMessageContract.parse(''),
+        stderr: errorMessageContract.parse(''),
+      };
+      child.onStdoutLine((line) => {
+        text.stdout = errorMessageContract.parse(`${text.stdout}${line}\n`);
+      });
+      child.onStderrLine((line) => {
+        text.stderr = errorMessageContract.parse(`${text.stderr}${line}\n`);
+      });
 
       const timer = setTimeout(() => {
         child.kill();
@@ -87,25 +105,17 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
         );
       }, RUN_TIMEOUT_MS);
 
-      child.stdout.on('data', (chunk: Buffer) => {
-        stdoutBuffer += chunk.toString();
-      });
-      child.stderr.on('data', (chunk: Buffer) => {
-        stderrBuffer += chunk.toString();
-      });
-
-      child.on('close', (code) => {
+      child.onExit(({ code, error }) => {
         clearTimeout(timer);
+        if (error !== undefined) {
+          promiseReject(error);
+          return;
+        }
         promiseResolve({
           exitCode: ExitCodeStub({ value: code ?? 1 }),
-          stdout: errorMessageContract.parse(stdoutBuffer),
-          stderr: errorMessageContract.parse(stderrBuffer),
+          stdout: text.stdout,
+          stderr: text.stderr,
         });
-      });
-
-      child.on('error', (err) => {
-        clearTimeout(timer);
-        promiseReject(err);
       });
     }),
 });
