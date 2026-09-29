@@ -44,6 +44,25 @@ const handle = registerMock({ fn: readFileSync });
 handle.calledWith([]).returns('');`,
       filename: NON_PROXY_FILE,
     },
+    // A void-sink recorder: the proxy reads the handle's calls back, so it is not a catch-all
+    {
+      code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+spy.calledWith([]).returns(true);
+export const proxy = () => ({ getWrites: () => spy.callsMatching([]).map((call) => call[0]) });`,
+      filename: PROXY_FILE,
+    },
+    {
+      code: `const spy = registerSpyOn({ object: process.stdout, method: 'write' });
+spy.calledWith([]).returns(true);
+export const proxy = () => ({ getWrites: () => spy.mock.calls });`,
+      filename: PROXY_FILE,
+    },
+    {
+      code: `const handle = registerSpyOn({ object: process, method: 'on' });
+handle.calledWith([]).returns(process);
+export const proxy = () => ({ callsMatching: () => handle.callsMatching([]) });`,
+      filename: PROXY_FILE,
+    },
     // A spied method that takes no argument: calledWith([]) is the honest description
     {
       code: `const spy = registerSpyOn({ object: process, method: 'cwd' });
@@ -74,6 +93,37 @@ spy.calledWith([]).returns(true);`,
     {
       code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
 spy.calledWith([]).returns(true);`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    // The same void-sink spies with no read-back stay catch-alls
+    {
+      code: `const spy = registerSpyOn({ object: process.stdout, method: 'write' });
+spy.calledWith([]).returns(true);`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    {
+      code: `const handle = registerSpyOn({ object: process, method: 'on' });
+handle.calledWith([]).returns(process);`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    // Reading back a different handle does not exempt this one
+    {
+      code: `const spy = registerSpyOn({ object: process.stderr, method: 'write' });
+const other = registerSpyOn({ object: process.stdout, method: 'write' });
+spy.calledWith([]).returns(true);
+export const proxy = () => ({ calls: () => other.callsMatching([]) });`,
+      filename: PROXY_FILE,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    // The exception is only for process sinks: a write spy on any other object is a catch-all
+    {
+      code: `const socket = { write: (chunk: string): boolean => chunk.length > 0 };
+const spy = registerSpyOn({ object: socket, method: 'write' });
+spy.calledWith([]).returns(true);
+export const proxy = () => ({ calls: () => spy.callsMatching([]) });`,
       filename: PROXY_FILE,
       errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
     },

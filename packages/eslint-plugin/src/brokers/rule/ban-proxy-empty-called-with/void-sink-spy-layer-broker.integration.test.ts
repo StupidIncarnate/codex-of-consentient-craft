@@ -1,0 +1,44 @@
+import { Linter } from '#gateway/npm/eslint';
+import * as tsParser from '#gateway/npm/typescript-eslint__parser';
+import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
+
+describe('voidSinkSpyLayerBroker', () => {
+  it.each([
+    ['VALID: {process.stderr, write} => true', 'process.stderr', 'write', true],
+    ['VALID: {process.stdout, write} => true', 'process.stdout', 'write', true],
+    ['VALID: {process, on} => true', 'process', 'on', true],
+    ['INVALID: {process, write} => false', 'process', 'write', false],
+    ['INVALID: {process.stderr, on} => false', 'process.stderr', 'on', false],
+    ['INVALID: {process.stdin, write} => false', 'process.stdin', 'write', false],
+    ['INVALID: {socket, write} => false', 'socket', 'write', false],
+    ['INVALID: {other.stderr, write} => false', 'other.stderr', 'write', false],
+  ])('%s', (_name, objectCode, method, expected) => {
+    const found: boolean[] = [];
+    const linter = new Linter({ configType: 'flat' });
+
+    linter.verify(
+      `spy({ object: ${objectCode} });`,
+      {
+        files: ['**/*.ts'],
+        languageOptions: { parser: tsParser },
+        plugins: {
+          probe: {
+            rules: {
+              x: {
+                create: () => ({
+                  'Property[key.name="object"] > .value': (objectNode: unknown): void => {
+                    found.push(voidSinkSpyLayerBroker({ objectNode, method }));
+                  },
+                }),
+              },
+            },
+          },
+        },
+        rules: { 'probe/x': 'error' },
+      },
+      { filename: 'probe.ts' },
+    );
+
+    expect(found).toStrictEqual([expected]);
+  });
+});

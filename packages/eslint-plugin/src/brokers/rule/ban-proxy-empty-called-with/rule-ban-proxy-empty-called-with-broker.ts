@@ -19,6 +19,7 @@
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -54,6 +55,12 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
     // TSESTree.Node cast. A handle maps to a thunk so the type checker runs only when a
     // `calledWith([])` on it is actually found.
     const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
+    // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`) is a recorder, not a
+    // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
+    // which point every read-back in the file has been seen.
+    const voidSinkHandleNames = new Set<Identifier>();
+    const readBackHandleNames = new Set<Identifier>();
+    const deferredReports: { node: Tsestree; handleName: Identifier }[] = [];
 
     return {
       VariableDeclarator: (node: Tsestree): void => {
@@ -102,6 +109,10 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
         ) {
           const methodName = method.value;
 
+          if (voidSinkSpyLayerBroker({ objectNode, method: methodName })) {
+            voidSinkHandleNames.add(handleName);
+          }
+
           takesNoArgsByHandleName.set(handleName, () =>
             typedSpyMethodTakesNoArgsLayerBroker({
               context: ctx,
@@ -109,6 +120,27 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
               method: methodName,
             }),
           );
+        }
+      },
+
+      MemberExpression: (node: Tsestree): void => {
+        if (
+          node.object?.type === 'Identifier' &&
+          node.object.name &&
+          (node.property?.name === 'callsMatching' || node.property?.name === 'mock')
+        ) {
+          readBackHandleNames.add(identifierContract.parse(node.object.name));
+        }
+      },
+
+      'Program:exit': (): void => {
+        for (const { node, handleName } of deferredReports) {
+          if (readBackHandleNames.has(handleName)) {
+            continue;
+          }
+          if (takesNoArgsByHandleName.get(handleName)?.() === false) {
+            ctx.report({ node, messageId: 'emptyCalledWithRequiresArgs' });
+          }
         }
       },
 
@@ -138,6 +170,13 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           addressArgument?.type !== 'ArrayExpression' ||
           (addressArgument.elements ?? []).length !== 0
         ) {
+          return;
+        }
+
+        const handleName = identifierContract.parse(callee.object.name);
+
+        if (voidSinkHandleNames.has(handleName)) {
+          deferredReports.push({ node, handleName });
           return;
         }
 
