@@ -54,6 +54,7 @@ export const agentPromptClassificationStatics = {
     'siegemaster-reader',
     'spiritmender',
     'warpgate',
+    'write-ingredient',
   ],
   roleNames: [
     /** The three operation-owning roles. Each one owns a scope whose own step graph — `plan →

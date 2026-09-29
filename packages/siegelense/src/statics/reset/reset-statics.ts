@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Default NOT_cleared declarations per reset level ('page', 'state', 'instance').
+ * PURPOSE: Default NOT_cleared declarations per reset level ('page', 'state', 'instance') — what
+ * each level deliberately leaves standing, reported on every reset reading.
  *
  * USAGE:
  * resetStatics.notCleared.page;
@@ -10,13 +11,10 @@ export const resetStatics = {
   notCleared: {
     page: ['disk', 'server memory'],
     state: ['server memory', 'open websockets'],
-    // A reset step runs inside the same live `run` batch that dispatched it, against the same
-    // driver connection — restarting the underlying server process (the only thing that clears
-    // server memory or drops its open websockets) would sever that connection mid-batch. Only
-    // `kill` then `start`, two separate CLI calls outside any batch, does that. `instance` rewinds
-    // disk further than `state` (to boot, not just a named point) and always, but leaves the
-    // process itself exactly as untouched as `state` does.
-    instance: ['server memory', 'open websockets'],
+    // `instance` restarts every server process of the lane and reloads the page, so server memory
+    // and open websockets go with it; only the CLI's socket to the driver survives, and that is not
+    // the app's state.
+    instance: [],
   },
   storageSkipped: {
     // Appended to NOT_cleared (never one of the three lists above) when the page has no origin yet
@@ -24,4 +22,6 @@ export const resetStatics = {
     // rather than clearing, so this says so instead of crashing the whole `reset` step.
     noOrigin: 'browser storage (page has no origin yet)',
   },
+  // Where `instance` parks the page while the servers are down, so nothing on it retries them.
+  blankPageUrl: 'about:blank',
 } as const;

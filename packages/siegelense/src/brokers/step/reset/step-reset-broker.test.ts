@@ -223,11 +223,17 @@ describe('stepResetBroker', () => {
   });
 
   describe('level: instance', () => {
-    it('VALID: with to snapshot => rewinds state and returns instance reading', async () => {
+    it('VALID: with to snapshot => stops the servers, rewinds, restarts them, reloads the page and returns instance reading', async () => {
       const proxy = stepResetBrokerProxy();
+      const mockStopProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockStartProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockGoto = jest.fn().mockResolvedValue(undefined);
       const mockClearStorage = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
-        browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
+        ports: { api: 34_172, web: 34_173 },
+        browser: BrowserSessionStub({ goto: mockGoto, clearStorage: mockClearStorage }),
+        stopProcesses: mockStopProcesses,
+        startProcesses: mockStartProcesses,
       });
       const snapshotName = SnapshotNameStub({ value: 'clean' });
       const payloadPath = AbsoluteFilePathStub({
@@ -262,15 +268,64 @@ describe('stepResetBroker', () => {
         reseed: null,
       });
 
+      expect(mockStopProcesses).toHaveBeenCalledTimes(1);
+      expect(mockStartProcesses).toHaveBeenCalledTimes(1);
+      expect(mockGoto.mock.calls).toStrictEqual([
+        [{ url: 'about:blank' }],
+        [{ url: 'http://dungeonmaster.localhost:34173' }],
+        [{ url: 'http://dungeonmaster.localhost:34173' }],
+      ]);
       expect(mockClearStorage).toHaveBeenCalledTimes(1);
       expect(result).toBe(
-        '{"restored":"clean","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
+        '{"restored":"clean","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":[]}',
       );
     });
 
-    it('VALID: with no to and no prior captures => stays at boot state — nothing to undo', async () => {
+    it('VALID: {browser lane} => parks the page on about:blank, stops, restarts, then loads the page, clears storage, and loads it again', async () => {
       const proxy = stepResetBrokerProxy();
-      const lane = LaneSessionStub({ browser: null });
+      const mockStopProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockStartProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockGoto = jest.fn().mockResolvedValue(undefined);
+      const mockClearStorage = jest.fn().mockResolvedValue(undefined);
+      const lane = LaneSessionStub({
+        browser: BrowserSessionStub({ goto: mockGoto, clearStorage: mockClearStorage }),
+        stopProcesses: mockStopProcesses,
+        startProcesses: mockStartProcesses,
+      });
+
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+
+      await stepResetBroker({
+        lane,
+        level: ResetLevelStub({ value: 'instance' }),
+        to: null,
+        reseed: null,
+      });
+
+      const [stopOrder] = mockStopProcesses.mock.invocationCallOrder;
+      const [startOrder] = mockStartProcesses.mock.invocationCallOrder;
+      const [parkOrder, firstGotoOrder, secondGotoOrder] = mockGoto.mock.invocationCallOrder;
+      const [clearOrder] = mockClearStorage.mock.invocationCallOrder;
+      const order = [parkOrder, stopOrder, startOrder, firstGotoOrder, clearOrder, secondGotoOrder];
+
+      expect({
+        parkedOn: mockGoto.mock.calls[0],
+        order,
+      }).toStrictEqual({
+        parkedOn: [{ url: 'about:blank' }],
+        order: [...order].sort((left, right) => Number(left) - Number(right)),
+      });
+    });
+
+    it('VALID: with no to and no prior captures => restarts the servers and stays at boot state — nothing to undo', async () => {
+      const proxy = stepResetBrokerProxy();
+      const mockStopProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockStartProcesses = jest.fn().mockResolvedValue({ success: true });
+      const lane = LaneSessionStub({
+        browser: null,
+        stopProcesses: mockStopProcesses,
+        startProcesses: mockStartProcesses,
+      });
 
       proxy.setupNoSnapshots({ homePath: lane.homePath });
 
@@ -281,8 +336,10 @@ describe('stepResetBroker', () => {
         reseed: null,
       });
 
+      expect(mockStopProcesses).toHaveBeenCalledTimes(1);
+      expect(mockStartProcesses).toHaveBeenCalledTimes(1);
       expect(result).toBe(
-        '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
+        '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":[]}',
       );
     });
 
@@ -316,13 +373,13 @@ describe('stepResetBroker', () => {
       expect(reading).toStrictEqual({
         restored: 'instance',
         undid: { files: 0, added: 0, modified: 0, removed: 0 },
-        NOT_cleared: ['server memory', 'open websockets'],
+        NOT_cleared: [],
         reseeded: 'guild-with-three-quests',
         bindings: expectedBindings,
       });
     });
 
-    it('VALID: with no to and an earlier boot capture => restores the earliest snapshot and reports what it undid (DEF-82)', async () => {
+    it('VALID: with no to and an earlier boot capture => restores the earliest snapshot and reports what it undid', async () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub({ browser: null });
       const bootPayloadPath = AbsoluteFilePathStub({
@@ -383,11 +440,11 @@ describe('stepResetBroker', () => {
       });
 
       expect(result).toBe(
-        '{"restored":"instance","undid":{"files":1,"added":1,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
+        '{"restored":"instance","undid":{"files":1,"added":1,"modified":0,"removed":0},"NOT_cleared":[]}',
       );
     });
 
-    it('EMPTY: {no to, no prior captures, browser page has no origin} => rewinds nothing, but reports storage skipped rather than crashing (DEF-94)', async () => {
+    it('EMPTY: {no to, no prior captures, browser storage throws SecurityError} => reports storage skipped rather than crashing', async () => {
       const proxy = stepResetBrokerProxy();
       const securityError = new Error(
         "page.evaluate: SecurityError: Failed to read the 'localStorage' property from " +
@@ -409,11 +466,88 @@ describe('stepResetBroker', () => {
 
       expect(result).toBe(
         '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},' +
-          '"NOT_cleared":["server memory","open websockets","browser storage (page has no origin yet)"]}',
+          '"NOT_cleared":["browser storage (page has no origin yet)"]}',
       );
     });
 
-    // Reseed after a boot-state restore (SL-110) is proven at the CLI level, not here:
+    it('ERROR: {to names a missing snapshot} => still restarts the servers, then throws SnapshotMissingError', async () => {
+      const proxy = stepResetBrokerProxy();
+      const mockStopProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockStartProcesses = jest.fn().mockResolvedValue({ success: true });
+      const lane = LaneSessionStub({
+        browser: null,
+        stopProcesses: mockStopProcesses,
+        startProcesses: mockStartProcesses,
+      });
+
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+
+      await expect(
+        stepResetBroker({
+          lane,
+          level: ResetLevelStub({ value: 'instance' }),
+          to: SnapshotNameStub({ value: 'nonexistent' }),
+          reseed: null,
+        }),
+      ).rejects.toThrow(/No snapshot named "nonexistent" on this instance/u);
+      expect(mockStopProcesses).toHaveBeenCalledTimes(1);
+      expect(mockStartProcesses).toHaveBeenCalledTimes(1);
+    });
+
+    it('ERROR: {a process does not come back} => throws the restart error and leaves the page parked on about:blank', async () => {
+      const proxy = stepResetBrokerProxy();
+      const mockGoto = jest.fn().mockResolvedValue(undefined);
+      const mockStartProcesses = jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            'Restarting lane stack for instance inst_1 failed: api did not come back (never answered their ready path). Logs: /repo/api-server.log. The instance is unusable — kill it and start a new one.',
+          ),
+        );
+      const lane = LaneSessionStub({
+        browser: BrowserSessionStub({ goto: mockGoto }),
+        startProcesses: mockStartProcesses,
+      });
+
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+
+      await expect(
+        stepResetBroker({
+          lane,
+          level: ResetLevelStub({ value: 'instance' }),
+          to: null,
+          reseed: null,
+        }),
+      ).rejects.toThrow(
+        /^Restarting lane stack for instance inst_1 failed: api did not come back \(never answered their ready path\)\. Logs: \/repo\/api-server\.log\. The instance is unusable — kill it and start a new one\.$/u,
+      );
+      expect(mockGoto.mock.calls).toStrictEqual([[{ url: 'about:blank' }]]);
+    });
+
+    it('ERROR: {a server group survives SIGKILL} => throws the stop error and neither restores nor restarts', async () => {
+      stepResetBrokerProxy();
+      const mockStartProcesses = jest.fn().mockResolvedValue({ success: true });
+      const mockStopProcesses = jest
+        .fn()
+        .mockRejectedValue(new Error('process groups 1001 were still alive'));
+      const lane = LaneSessionStub({
+        browser: null,
+        stopProcesses: mockStopProcesses,
+        startProcesses: mockStartProcesses,
+      });
+
+      await expect(
+        stepResetBroker({
+          lane,
+          level: ResetLevelStub({ value: 'instance' }),
+          to: null,
+          reseed: null,
+        }),
+      ).rejects.toThrow(/^process groups 1001 were still alive$/u);
+      expect(mockStartProcesses).toHaveBeenCalledTimes(0);
+    });
+
+    // Reseed after a boot-state restore is proven at the CLI level, not here:
     // `recipeSeedRunBrokerProxy`'s `stageEntry()` stages `pathJoinAdapter` (the shared, real
     // `path.join`) through a call-order-scoped, argument-blind one-shot queue — see
     // `locations-snapshot-paths-find-broker.proxy.ts`'s own comment on why THIS broker's joins are

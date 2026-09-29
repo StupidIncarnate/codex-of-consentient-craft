@@ -4,7 +4,7 @@ import { stepStatics } from '../step/step-statics';
 import { docsStatics } from './docs-statics';
 
 describe('docsStatics', () => {
-  describe('the three scopes', () => {
+  describe('the four scopes', () => {
     it('VALID: {every pinned scope} => each has its own audience line, in the pinned order', () => {
       expect(
         siegelenseCallStatics.docs.scopes.map((name) => docsStatics.scopes[name].audience),
@@ -12,6 +12,7 @@ describe('docsStatics', () => {
         'the walker — the session driving a browser against one instance and recording what it reads.',
         'the stress tester — the session running attacks against one instance and measuring what breaks.',
         'the fixer — the session that arrives after the walk is over and the instance is gone.',
+        'the seed checker — a session that must not drive a browser, starting its own headless instance to see what a seed recipe really produces, then killing it.',
       ]);
     });
 
@@ -22,12 +23,14 @@ describe('docsStatics', () => {
         walking: 'walking' in docsStatics.scopes,
         attacking: 'attacking' in docsStatics.scopes,
         fixing: 'fixing' in docsStatics.scopes,
+        seeding: 'seeding' in docsStatics.scopes,
       }).toStrictEqual({
         planning: false,
         driving: false,
         walking: true,
         attacking: true,
         fixing: true,
+        seeding: true,
       });
     });
   });
@@ -39,7 +42,7 @@ describe('docsStatics', () => {
         'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
         'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
         'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
-        'Each of the three scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+        'Each of the four scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
         'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
         'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
       ]);
@@ -179,11 +182,12 @@ describe('docsStatics', () => {
   });
 
   describe('every fenced-looking json example is valid JSON (DEF-30)', () => {
-    it('VALID: {walking, attacking, fixing} => every line starting with { "step": parses with JSON.parse, and at least one exists', () => {
+    it('VALID: {walking, attacking, fixing, seeding} => every line starting with { "step": parses with JSON.parse, and at least one exists', () => {
       const allLines = [
         ...docsStatics.scopes.walking.sections,
         ...docsStatics.scopes.attacking.sections,
         ...docsStatics.scopes.fixing.sections,
+        ...docsStatics.scopes.seeding.sections,
       ].flatMap((section) => section.lines);
       const fencedLines = allLines.filter((line) => line.startsWith('{ "step":'));
       const parsedLines = fencedLines.map((line) => JSON.parse(line));
@@ -215,16 +219,54 @@ describe('docsStatics', () => {
 
     it('VALID: {attacking} => names all three reset levels, each declaring what it keeps, with a real reset example', () => {
       expect(docsStatics.scopes.attacking.sections[3].lines.slice(0, 4)).toStrictEqual([
-        'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second.',
+        'The page level clears browser storage only. It keeps the disk, server memory, open websockets and the loaded page. This takes about one second.',
         '{ "step": "reset", "level": "page" }',
-        'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
+        'The state level restores the disk to a named snapshot and clears browser storage, but it KEEPS SERVER MEMORY and open websockets. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
         '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
       ]);
     });
 
+    it('VALID: {attacking} => the instance level restarts the servers, clears server memory and websockets, and costs a server boot', () => {
+      const section = docsStatics.scopes.attacking.sections.find(
+        (candidate) => candidate.heading === 'THE THREE RESET LEVELS',
+      );
+
+      expect(section?.lines.slice(7, 11)).toStrictEqual([
+        'The instance level restarts every server process of the instance on the same ports, restores the disk to the BOOT state — the earliest snapshot on record — or to the snapshot you name in "to", reloads the browser page to the app\'s root and clears its storage, then runs the "reseed" recipe if you give one. Afterwards server memory is empty, open websockets are dropped, and NOT_cleared is empty. It costs a server boot: seconds, not milliseconds. It runs inside your batch like any other step; your connection to the instance survives it.',
+        '{ "step": "reset", "level": "instance" }',
+        '{ "step": "reset", "level": "instance", "reseed": "guild-empty" }',
+        'If a process does not come back after the restart, the step fails naming that process and its log file. The instance is then unusable: kill it and start a new one.',
+      ]);
+    });
+
+    it('VALID: {attacking} => tells the attacker to reset the instance level between probes that could touch server memory', () => {
+      const allLines = docsStatics.scopes.attacking.sections.flatMap((section) => section.lines);
+
+      expect(
+        allLines.filter((line) => line.startsWith('You must declare which reset level')),
+      ).toStrictEqual([
+        'You must declare which reset level your attack requires. Use the instance level between probes whenever a probe could have left anything in server memory — a cache, a subscription, an exhausted pool, a broken connection. The state level is enough only when a probe could have touched nothing but disk. In an orchestrated run this is how you clear everything between probes without a new instance.',
+      ]);
+    });
+
+    it('INVALID: {walking, attacking} => no line claims a reset leaves server memory behind at the instance level or that a restart needs kill then start', () => {
+      const allLines = [
+        ...docsStatics.scopes.walking.sections,
+        ...docsStatics.scopes.attacking.sections,
+      ].flatMap((section) => [section.heading, ...section.lines]);
+
+      expect(
+        allLines.filter((line) =>
+          /can never restart|start a fresh instance if memory is corrupted|NO SINGLE ACTION/u.test(
+            line,
+          ),
+        ),
+      ).toStrictEqual([]);
+    });
+
     it('VALID: {attacking} => distinguishes orchestrated run instance lifecycle from manual run in READ THIS FIRST', () => {
       expect(docsStatics.scopes.attacking.sections[0].lines).toStrictEqual([
-        'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
+        'If an attack changes the application state, the next attack must not start from what it left behind. Reset the instance level between them — it restarts the servers and rewinds disk to boot — or boot a fresh instance. Otherwise the second attack tests the damage the first one did.',
         'In an orchestrated run, the router boots a fresh instance for your piece and closes it when done; use reset steps between probes rather than starting instances yourself.',
       ]);
     });
@@ -247,6 +289,56 @@ describe('docsStatics', () => {
         teachesSnapshot: true,
         teachesRunCommand: true,
       });
+    });
+  });
+
+  describe('seeding teaches the headless loop and nothing else', () => {
+    it('VALID: {seeding} => its sections run capacity, start, run, results, kill, then the out-of-scope list, in that order', () => {
+      expect(docsStatics.scopes.seeding.sections.map((section) => section.heading)).toStrictEqual([
+        'READ THIS FIRST',
+        'STEP 1 — CHECK CAPACITY',
+        'STEP 2 — START A HEADLESS INSTANCE',
+        'STEP 3 — RUN A BATCH OF HEADLESS STEPS',
+        'STEP 4 — READ WHAT CAME BACK',
+        'STEP 5 — KILL THE INSTANCE',
+        'WHAT THIS SCOPE DOES NOT COVER',
+      ]);
+    });
+
+    it('VALID: {seeding} => refuses to start when capacity answers suggested 0', () => {
+      expect(docsStatics.scopes.seeding.sections[1].lines).toStrictEqual([
+        'Run dungeonmaster siegelense capacity --spec api first. You share this machine with other sessions.',
+        'If it answers SUGGESTED: 0 (suggested: 0 with --json), do not start an instance. Report that the machine has no room and stop.',
+      ]);
+    });
+
+    it('VALID: {seeding} => every example step uses only the four headless verbs, and all four appear', () => {
+      const steps = docsStatics.scopes.seeding.sections
+        .flatMap((section) => section.lines)
+        .filter((line) => line.startsWith('{ "step":'))
+        .map((line) => line.split('"')[3]);
+
+      expect(steps).toStrictEqual(['seed', 'seed', 'request', 'until', 'file']);
+    });
+
+    it('VALID: {seeding} => says to kill the instance always, and that the idle timeout is only a backstop', () => {
+      expect(docsStatics.scopes.seeding.sections[5].lines).toStrictEqual([
+        'Run dungeonmaster siegelense kill --instance <id>. It stops the servers, frees the ports and removes the throwaway home. The evidence stays on disk.',
+        'Kill it even when a step failed and even when you stop early. The instance is idle-reaped after 900 seconds, but that is a backstop for a crashed session, not a plan.',
+      ]);
+    });
+
+    it('VALID: {seeding} => starts the headless api spec and limits --seed to recipes with no inputs', () => {
+      expect(docsStatics.scopes.seeding.sections[2].lines.slice(0, 2)).toStrictEqual([
+        'Run dungeonmaster siegelense start --spec api. It blocks until the servers answer, then prints the manifest. Keep the instance id it returns.',
+        'Add --seed <recipe> to seed as it starts: dungeonmaster siegelense start --spec api --seed guild-empty. This only works for a recipe with no inputs. A recipe that needs inputs goes through a seed step in a run batch instead.',
+      ]);
+    });
+
+    it('VALID: {seeding} => names what it does not cover and sends the reader to no other scope', () => {
+      expect(docsStatics.scopes.seeding.sections[6].lines).toStrictEqual([
+        'Browser verbs, reset, snapshots and attacks are not yours to use, and no other scope applies to you. If a question needs a browser, report it to whoever asked instead of starting a browser instance.',
+      ]);
     });
   });
 });

@@ -35,7 +35,7 @@ is over and the instance is gone.
 
 **You fix the cause.** A symptom stopped is not a defect fixed; six symptom-hiding shapes are explicitly banned below.
 
-**You touch NO lane.** Not start, not stop, not restart, not drive. The walker owned the one it started, and several units measure a difference only that process's lifetime provides. Your regression test runs without it.
+**You touch NO lane.** Not start, not stop, not restart, not drive. The router started the one the walker attacked, and several units measure a difference only that process's lifetime provides. Your regression test runs without it.
 
 **You never weaken, skip or delete a test to reach green.** A test you weaken to pass is worse than the defect it was proving.
 

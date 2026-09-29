@@ -158,6 +158,15 @@ describe('agentFlowStatics', () => {
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
+          writeIngredient: {
+            role: 'worker',
+            kind: 'prompt',
+            prompt: 'write-ingredient',
+            model: 'opus',
+            maxVisits: 10,
+            mintableOnRequest: true,
+            routes: { wall: '@blocked' },
+          },
           plan: {
             role: 'planner',
             kind: 'prompt',
@@ -224,6 +233,15 @@ describe('agentFlowStatics', () => {
             prompt: 'recipe-maker',
             model: 'opus',
             maxVisits: 5,
+            mintableOnRequest: true,
+            routes: { wall: '@blocked' },
+          },
+          writeIngredient: {
+            role: 'worker',
+            kind: 'prompt',
+            prompt: 'write-ingredient',
+            model: 'opus',
+            maxVisits: 10,
             mintableOnRequest: true,
             routes: { wall: '@blocked' },
           },
@@ -477,6 +495,7 @@ describe('agentFlowStatics', () => {
         'siegemaster-reader',
         'spiritmender',
         'warpgate',
+        'write-ingredient',
       ],
       servedToday: [
         'codeweaver-planner',
@@ -494,6 +513,7 @@ describe('agentFlowStatics', () => {
         'siegemaster-reader',
         'spiritmender',
         'warpgate',
+        'write-ingredient',
       ],
     });
   });
@@ -515,7 +535,13 @@ describe('agentFlowStatics', () => {
         ([path]) => path,
       ),
     }).toStrictEqual({
-      mintableOnRequest: ['flowrider.recipe', 'siegemaster.recipe', 'siegemaster.read'],
+      mintableOnRequest: [
+        'flowrider.recipe',
+        'flowrider.writeIngredient',
+        'siegemaster.recipe',
+        'siegemaster.writeIngredient',
+        'siegemaster.read',
+      ],
       needsLane: ['siegemaster.happyWalk', 'siegemaster.adversarial'],
       maxConcurrent: ['flowrider.work'],
     });

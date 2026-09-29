@@ -151,6 +151,16 @@ export const agentFlowStatics = {
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },
+      // Requested by `recipe`, one session per missing ingredient, and returns to it.
+      writeIngredient: {
+        role: 'worker',
+        kind: 'prompt',
+        prompt: 'write-ingredient',
+        model: 'opus',
+        maxVisits: 10,
+        mintableOnRequest: true,
+        routes: { wall: '@blocked' },
+      },
       plan: {
         role: 'planner',
         kind: 'prompt',
@@ -208,6 +218,16 @@ export const agentFlowStatics = {
         prompt: 'recipe-maker',
         model: 'opus',
         maxVisits: 5,
+        mintableOnRequest: true,
+        routes: { wall: '@blocked' },
+      },
+      // Requested by `recipe`, one session per missing ingredient, and returns to it.
+      writeIngredient: {
+        role: 'worker',
+        kind: 'prompt',
+        prompt: 'write-ingredient',
+        model: 'opus',
+        maxVisits: 10,
         mintableOnRequest: true,
         routes: { wall: '@blocked' },
       },

@@ -172,7 +172,9 @@ names it.
 
 **A restart destroys any unit measuring a difference from a value only that process's lifetime
 provides** — an uptime, a monotonic counter, an append-only log — for every unit still ahead of you on
-this walk, with nothing to show it happened.
+this walk, with nothing to show it happened. A \`reset\` step with \`level: 'instance'\` IS a restart:
+it stops and restarts every server process. The \`page\` and \`state\` levels leave the processes
+running.
 
 **If your instance stops under you, check its \`status\` before you write anything down.** A dead
 driver leaves a blank screen, and "the page went blank" is exactly what you are trained to report —

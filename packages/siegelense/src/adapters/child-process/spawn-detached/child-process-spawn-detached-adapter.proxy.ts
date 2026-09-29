@@ -5,6 +5,9 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const childProcessSpawnDetachedAdapterProxy = (): {
   succeeds: (params: { command: string; args: string[]; pid: number }) => void;
+  // One-shot: answers the NEXT matching spawn only, consumed in staging order — how a test gives a
+  // boot and a later respawn of the SAME command and args two different pids.
+  succeedsOnce: (params: { command: string; args: string[]; pid: number }) => void;
   succeedsWithNoPid: (params: { command: string; args: string[] }) => void;
   // Reads the options object (3rd arg) the LAST matching call actually passed, so a test can
   // assert the whole shape with toStrictEqual — "spawn was called" alone is the false positive
@@ -21,6 +24,26 @@ export const childProcessSpawnDetachedAdapterProxy = (): {
   return {
     succeeds: ({ command, args, pid }: { command: string; args: string[]; pid: number }): void => {
       handle.calledWith([command, args]).implement(
+        () =>
+          ({
+            pid,
+            unref: (): void => {
+              unrefed.push(processIdContract.parse(String(pid)));
+            },
+          }) as unknown as ChildProcess,
+      );
+    },
+
+    succeedsOnce: ({
+      command,
+      args,
+      pid,
+    }: {
+      command: string;
+      args: string[];
+      pid: number;
+    }): void => {
+      handle.onceFor([command, args]).implement(
         () =>
           ({
             pid,

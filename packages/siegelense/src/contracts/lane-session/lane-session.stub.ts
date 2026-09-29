@@ -1,6 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
@@ -25,7 +25,14 @@ export const LaneSessionStub = ({
   // shrank".
   { serverLogLengthSequence?: readonly number[] }
 > = {}): LaneSession => {
-  const { readServerLogSince, serverLogLength, serverLogLengthSequence, ...dataProps } = props;
+  const {
+    readServerLogSince,
+    serverLogLength,
+    serverLogLengthSequence,
+    stopProcesses,
+    startProcesses,
+    ...dataProps
+  } = props;
 
   let serverLogLengthCallCount = 0;
   const readOneFromSequence = (): ServerLogByteCount => {
@@ -65,5 +72,9 @@ export const LaneSessionStub = ({
       (serverLogLengthSequence === undefined
         ? (): ServerLogByteCount => serverLogByteCountContract.parse(0)
         : readOneFromSequence),
+    stopProcesses:
+      stopProcesses ?? (async (): Promise<AdapterResult> => Promise.resolve({ success: true })),
+    startProcesses:
+      startProcesses ?? (async (): Promise<AdapterResult> => Promise.resolve({ success: true })),
   };
 };

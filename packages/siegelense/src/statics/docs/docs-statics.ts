@@ -20,7 +20,7 @@ export const docsStatics = {
     'The siegelense tool launches an instance of an application, interacts with it, and returns readings. You run it using: dungeonmaster siegelense <call>. Steps are passed as values within a run batch; they are not standalone commands.',
     'A command only returns measured readings. It does not decide if a test passes or fails. Comparing two values is a reading, but determining if the result means pass or fail is left to the user.',
     'You can use the --for flag to show instructions for a specific role. If you omit this flag, you will see this overview alone, with no per-role instructions.',
-    'Each of the three scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
+    'Each of the four scopes corresponds to a specific role that uses this tool. There is no scope for a code-reading role. This is intentional: an agent that only reads code does not need instructions on how to use siegelense to drive a web browser.',
     'These instructions are provided via a command rather than being hardcoded into agent prompts for three reasons. First, any agent can fetch them dynamically. Second, there is only one central source of documentation to maintain. Third, system prompts have character limits; serving the manual dynamically saves valuable prompt space.',
     'Running dungeonmaster siegelense <call> --help provides different information. It shows the specific flags, errors, and an example for that command. This document is the role-specific manual. Use --help to learn how to run a command, and use this document to understand the rules and concepts.',
   ],
@@ -122,7 +122,7 @@ export const docsStatics = {
             'guild-empty above binds a row named guild, carrying the fields id, name, path, urlSlug, and createdAt — so {g.guild.id} and {g.guild.urlSlug} both resolve. A two-segment reference like {g.guildId} is refused: "as:" names a step\'s output, and a step\'s output holds one or more rows, so a reference always has three segments.',
             'A binding only lasts for the run batch that made it. A step in a later run cannot read a name an earlier run bound with "as" — it fails with cannot resolve reference {g.guild.urlSlug} — nothing has been named yet.',
             "A reference is only substituted inside a goto step's path and a seed step's params. The eval command's source is never touched: braces in JavaScript pass straight through to the page, uninterpreted.",
-            'The reset command returns your instance to a clean starting state before you drive a fresh path. dungeonmaster siegelense docs --for attacking names the three reset levels in full; state is the one a walker reaches for most.',
+            'The reset command returns your instance to a clean starting state before you drive a fresh path. It has three levels. page clears browser storage only. state restores disk to a named snapshot and clears browser storage, but keeps server memory. instance restarts every server process, restores disk to the boot state (or to the snapshot named in "to"), and reloads the browser page — the only level that clears server memory and open websockets, and it costs a server boot of a few seconds. state is the one a walker reaches for most.',
             '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
           ],
         },
@@ -186,7 +186,7 @@ export const docsStatics = {
         {
           heading: 'READ THIS FIRST',
           lines: [
-            'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
+            'If an attack changes the application state, the next attack must not start from what it left behind. Reset the instance level between them — it restarts the servers and rewinds disk to boot — or boot a fresh instance. Otherwise the second attack tests the damage the first one did.',
             'In an orchestrated run, the router boots a fresh instance for your piece and closes it when done; use reset steps between probes rather than starting instances yourself.',
           ],
         },
@@ -203,10 +203,10 @@ export const docsStatics = {
           ],
         },
         {
-          heading: 'STATE LIVES IN THREE PLACES AND NO SINGLE ACTION CLEARS ALL THREE',
+          heading: 'STATE LIVES IN THREE PLACES, AND ONLY THE INSTANCE LEVEL CLEARS ALL THREE',
           lines: [
             'The disk stores the temporary home directory, logs, and saved data. This can be cleared by restoring a snapshot.',
-            'The server memory stores the active API process, background watchers, and caches. This can ONLY be cleared by fully restarting the server.',
+            'The server memory stores the active API process, background watchers, and caches. This can ONLY be cleared by restarting the server processes, which is what the instance reset level does.',
             'The browser stores local data, session data, active connections, and the current web page. This can be cleared by opening a fresh browser context or manually clearing the storage.',
             'Server memory is the most dangerous place for state to hide. For example, if you send a message, it is saved to disk but also cached in memory. If you only restore the disk snapshot, the server memory will still contain the message from your attack.',
             'If you only clear the disk and assume the application is completely clean, your subsequent tests will produce incorrect results.',
@@ -215,18 +215,21 @@ export const docsStatics = {
         {
           heading: 'THE THREE RESET LEVELS',
           lines: [
-            'The page level clears browser storage and reloads the document, but it keeps the disk and server memory. This takes about one second.',
+            'The page level clears browser storage only. It keeps the disk, server memory, open websockets and the loaded page. This takes about one second.',
             '{ "step": "reset", "level": "page" }',
-            'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
+            'The state level restores the disk to a named snapshot and clears browser storage, but it KEEPS SERVER MEMORY and open websockets. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
             '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
             'Use the snapshot step to capture a known-good starting state before running attacks so state-level reset has a target to restore:',
             '{ "step": "snapshot", "as": "guild-with-quest" }',
             'Run dungeonmaster siegelense snapshots --instance <id> to list available restore points. Every run automatically mints run_N:start and run_N:end snapshots alongside your manual ones.',
-            "The instance level rewinds disk all the way back to the instance's BOOT state — the earliest snapshot on record — the same restore mechanism as the state level, only further back, and it reports NOT_cleared: server memory, open websockets, exactly as the state level does. It is not a process restart: this step runs inside the same live batch that dispatched it, over the same driver connection, so it can never restart the underlying server process. A genuinely clean process means killing the instance and starting a new one — two separate calls outside any batch. In an orchestrated run, the router manages instance lifecycles across pieces; use the state or page level between probes on your assigned instance.",
+            'The instance level restarts every server process of the instance on the same ports, restores the disk to the BOOT state — the earliest snapshot on record — or to the snapshot you name in "to", reloads the browser page to the app\'s root and clears its storage, then runs the "reseed" recipe if you give one. Afterwards server memory is empty, open websockets are dropped, and NOT_cleared is empty. It costs a server boot: seconds, not milliseconds. It runs inside your batch like any other step; your connection to the instance survives it.',
+            '{ "step": "reset", "level": "instance" }',
+            '{ "step": "reset", "level": "instance", "reseed": "guild-empty" }',
+            'If a process does not come back after the restart, the step fails naming that process and its log file. The instance is then unusable: kill it and start a new one.',
             'A snapshot only backs up the application data. Logs, screenshots, and test transcripts are completely separate and will survive any reset. Test evidence always accumulates safely.',
             'When you reset the state, the tool reports how many files it actually restored — added, modified, and removed counts, decided by comparing file CONTENT against the target snapshot, never by timestamp. A reset that lands on an already-matching state correctly reports files: 0; a nonzero count is a reading of what changed, not proof by itself that the reset worked.',
-            'You must declare which reset level your attack requires. Most attacks only need the state level. If your attack targets the server itself, like exhausting memory or breaking connections, you must use the instance level.',
-            'The instance level has two limitations. First, it ruins any tests that measure long-running metrics like server uptime. Second, it only provides a consistent starting point if the setup recipe is perfectly deterministic.',
+            'You must declare which reset level your attack requires. Use the instance level between probes whenever a probe could have left anything in server memory — a cache, a subscription, an exhausted pool, a broken connection. The state level is enough only when a probe could have touched nothing but disk. In an orchestrated run this is how you clear everything between probes without a new instance.',
+            'The instance level has three limitations. First, it resets long-running measurements like server uptime, so an attack measuring those must not reset between probes. Second, it only provides a consistent starting point if the setup recipe is perfectly deterministic. Third, every instance reset costs a server boot, so do not reach for it when the state level already clears everything a probe touched.',
           ],
         },
         {
@@ -265,7 +268,7 @@ export const docsStatics = {
             'Run a baseline batch to record the starting health and take a snapshot: submit { "step": "health" } and { "step": "snapshot", "as": "clean" } using run.',
             'Run your attack batch with expected failures: dungeonmaster siegelense run --instance <id> --steps \'[{"step":"type","target":"[data-testid=\\"AMOUNT_INPUT\\"]","value":"-99999999999999","expect":"error"}]\'.',
             'Run dungeonmaster siegelense compare --instance <id> --run-a run_1 --run-b run_2 to diff errors and screenshots between the baseline and the attack run.',
-            'Run { "step": "reset", "level": "state", "to": "clean" } to restore the clean state for the next attack batch, or close and start a fresh instance if memory is corrupted.',
+            'Run { "step": "reset", "level": "state", "to": "clean" } to restore the clean state for the next attack batch, or { "step": "reset", "level": "instance" } when the attack could have left anything in server memory — it restarts the servers and rewinds disk to boot.',
             'Run dungeonmaster siegelense kill --instance <id> to terminate the instance and free ports when all attacks are complete.',
           ],
         },
@@ -357,6 +360,72 @@ export const docsStatics = {
             'Do not try to resurrect the dead instance. Do not start a new instance just to browse around. Do not look for evidence belonging to an instance you were not assigned.',
             'Every running instance consumes machine resources. Starting unnecessary instances will block other testing agents from doing their work.',
             'However, this rule only applies to running processes. Steps 1 through 4 only read files from disk and consume no resources. The most common mistake is assuming you need to start a new instance just to read the logs from the previous failure. Doing so wastes machine capacity and gives you logs for the wrong instance.',
+          ],
+        },
+      ],
+    },
+    seeding: {
+      audience:
+        'the seed checker — a session that must not drive a browser, starting its own headless instance to see what a seed recipe really produces, then killing it.',
+      summary:
+        'This scope covers the whole headless loop: check capacity, start an api instance, run seed, request and file steps, read what came back, and kill the instance. Read no other scope: nothing on the walking, attacking or fixing pages applies to you.',
+      sections: [
+        {
+          heading: 'READ THIS FIRST',
+          lines: [
+            'You start this instance, so you kill it. Nobody else will. Run kill before you finish, every time, including when a step failed or you are giving up.',
+            'You never drive a browser. Start the api spec, which boots the servers and no browser, and use only the four headless verbs below. A browser verb against it fails at once.',
+          ],
+        },
+        {
+          heading: 'STEP 1 — CHECK CAPACITY',
+          lines: [
+            'Run dungeonmaster siegelense capacity --spec api first. You share this machine with other sessions.',
+            'If it answers SUGGESTED: 0 (suggested: 0 with --json), do not start an instance. Report that the machine has no room and stop.',
+          ],
+        },
+        {
+          heading: 'STEP 2 — START A HEADLESS INSTANCE',
+          lines: [
+            'Run dungeonmaster siegelense start --spec api. It blocks until the servers answer, then prints the manifest. Keep the instance id it returns.',
+            'Add --seed <recipe> to seed as it starts: dungeonmaster siegelense start --spec api --seed guild-empty. This only works for a recipe with no inputs. A recipe that needs inputs goes through a seed step in a run batch instead.',
+            'Run dungeonmaster siegelense recipes to see every recipe, its inputs and what it returns.',
+          ],
+        },
+        {
+          heading: 'STEP 3 — RUN A BATCH OF HEADLESS STEPS',
+          lines: [
+            "Use only these four verbs. seed runs a recipe. request calls the app's own API. file reads a file the app wrote under the instance's home. until with a file condition waits for that file to appear.",
+            '{ "step": "seed", "recipe": "guild-empty", "as": "g" }',
+            '{ "step": "seed", "recipe": "session-with-nested-subagent", "params": { "guild": "{g.guild.id}" }, "as": "s" }',
+            '{ "step": "request", "method": "GET", "path": "/api/guilds" }',
+            '{ "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }',
+            '{ "step": "file", "path": "guilds/<id>/quests/<id>/quest.json" }',
+            'A recipe\'s inputs go inside "params", never on the step itself. "as" names the seed\'s output, and a later seed step reads it back with a three-segment reference like {g.guild.id} — the name, the row, the field.',
+            "A reference is substituted only inside a seed step's params. A request path and a file path are used exactly as written, so read the ids from the seed step's reading first, then send a second batch with them written out.",
+            'Submit a batch with run:',
+            'dungeonmaster siegelense run --instance <id> --steps \'[{"step":"seed","recipe":"guild-empty","as":"g"},{"step":"request","method":"GET","path":"/api/guilds"}]\'',
+            'run returns a status and a run id, not the readings.',
+          ],
+        },
+        {
+          heading: 'STEP 4 — READ WHAT CAME BACK',
+          lines: [
+            "Run dungeonmaster siegelense results --instance <id> --run <runId> --kind steps to read every step's reading: the rows each seed made, each request's status and body, each file's contents.",
+            'Add --step <n> to read one step alone. Add --kind server to read the server log when a seed or request failed.',
+          ],
+        },
+        {
+          heading: 'STEP 5 — KILL THE INSTANCE',
+          lines: [
+            'Run dungeonmaster siegelense kill --instance <id>. It stops the servers, frees the ports and removes the throwaway home. The evidence stays on disk.',
+            'Kill it even when a step failed and even when you stop early. The instance is idle-reaped after 900 seconds, but that is a backstop for a crashed session, not a plan.',
+          ],
+        },
+        {
+          heading: 'WHAT THIS SCOPE DOES NOT COVER',
+          lines: [
+            'Browser verbs, reset, snapshots and attacks are not yours to use, and no other scope applies to you. If a question needs a browser, report it to whoever asked instead of starting a browser instance.',
           ],
         },
       ],

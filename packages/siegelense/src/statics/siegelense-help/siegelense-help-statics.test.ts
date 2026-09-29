@@ -340,7 +340,7 @@ describe('siegelenseHelpStatics', () => {
   it('VALID: {calls.snapshots} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
     expect(siegelenseHelpStatics.calls.snapshots).toStrictEqual({
       summary:
-        'siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.',
+        'siegelense snapshots — list the points a `reset` step can name in `to` (level state or instance) for one instance. Starts nothing.',
       synopsis: 'dungeonmaster siegelense snapshots --instance <id> [--json]',
       flags: [
         {
@@ -491,7 +491,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<scope>',
           required: false,
           description:
-            "serve one role's page instead of the tool overview: walking, attacking, fixing. Omitted, docs serves the overview alone.",
+            "serve one role's page instead of the tool overview: walking, attacking, fixing, seeding. Omitted, docs serves the overview alone.",
         },
         {
           name: '--json',

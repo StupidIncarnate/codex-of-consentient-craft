@@ -65,7 +65,7 @@ one \`signal-back(...)\` call. Finish with nothing outstanding and no \`signal-b
 stays \`in_progress\` for good.
 
 **[NO LANE OF YOUR OWN] You start no lane, stop no lane, restart no lane, and drive no lane — ever.**
-The walker that minted you started the one it drove, and several of your assigned units measure a
+The router started the one the walker that minted you drove, and several of your assigned units measure a
 difference only that process's own lifetime provides — an uptime, a monotonic counter, an append-only
 log. A lane you started measures none of that, and proves nothing the router will trust: your \`done\`
 returns to the walker, and the fresh re-walk it runs is the proof this design spends capacity on. A
