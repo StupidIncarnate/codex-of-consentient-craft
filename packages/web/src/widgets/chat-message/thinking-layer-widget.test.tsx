@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { ThinkingLayerWidgetProps } from './thinking-layer-widget';
 import { ThinkingLayerWidget } from './thinking-layer-widget';
@@ -14,7 +14,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Let me think about this' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -29,7 +29,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -46,7 +46,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -61,7 +61,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ model: 'claude-opus-4-6' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -76,7 +76,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -93,7 +93,7 @@ describe('ThinkingLayerWidget', () => {
       ThinkingLayerWidgetProxy();
       const entry = AssistantThinkingChatEntryStub({ content: 'Short thought' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 
@@ -105,7 +105,7 @@ describe('ThinkingLayerWidget', () => {
       const longContent = 'x'.repeat(300);
       const entry = AssistantThinkingChatEntryStub({ content: longContent });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ThinkingLayerWidget entry={entry as ThinkingEntry} />,
       });
 

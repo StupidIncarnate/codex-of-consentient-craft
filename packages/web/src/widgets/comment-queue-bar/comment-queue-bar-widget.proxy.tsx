@@ -6,7 +6,7 @@
  * USAGE:
  * const proxy = CommentQueueBarWidgetProxy();
  * proxy.setupQueuedComments({ questId, entries: [CommentQueueEntryStub()] });
- * mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
+ * mantineRenderMiddleware({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
  */
 
 import { notifications } from '#gateway/npm/mantine__notifications';

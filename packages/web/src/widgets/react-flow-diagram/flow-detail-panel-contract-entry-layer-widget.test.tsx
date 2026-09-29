@@ -1,6 +1,6 @@
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowDetailPanelContractEntryLayerWidget } from './flow-detail-panel-contract-entry-layer-widget';
 import { FlowDetailPanelContractEntryLayerWidgetProxy } from './flow-detail-panel-contract-entry-layer-widget.proxy';
 
@@ -16,7 +16,7 @@ describe('FlowDetailPanelContractEntryLayerWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FlowDetailPanelContractEntryLayerWidget contract={contract} />,
       });
 
@@ -29,7 +29,7 @@ describe('FlowDetailPanelContractEntryLayerWidget', () => {
       const proxy = FlowDetailPanelContractEntryLayerWidgetProxy();
       const contract = QuestContractEntryStub({ name: 'EmptyContract', properties: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FlowDetailPanelContractEntryLayerWidget contract={contract} />,
       });
 

@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { QuestIdStub, RiftcarverResultStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { RiftcarverDetailStub } from '../../contracts/riftcarver-detail/riftcarver-detail.stub';
 
 import { RiftcarverResultRowLayerWidget } from './riftcarver-result-row-layer-widget';
@@ -14,7 +14,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
       RiftcarverResultRowLayerWidgetProxy();
       const riftcarverResult = RiftcarverResultStub({ exitCode: 0 as never, outcome: 'green' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} />,
       });
 
@@ -30,7 +30,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
         outcome: 'repairable',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} />,
       });
 
@@ -45,7 +45,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
       const proxy = RiftcarverResultRowLayerWidgetProxy();
       const riftcarverResult = RiftcarverResultStub({ exitCode: 1 as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} />,
       });
 
@@ -59,7 +59,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const riftcarverResult = RiftcarverResultStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} questId={questId} />
         ),
@@ -76,7 +76,7 @@ describe('RiftcarverResultRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const riftcarverResult = RiftcarverResultStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <RiftcarverResultRowLayerWidget riftcarverResult={riftcarverResult} questId={questId} />
         ),

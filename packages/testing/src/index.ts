@@ -3,7 +3,6 @@
 export const TESTING_PACKAGE_VERSION = '0.1.0';
 
 // Test mocking utilities
-export { childProcessMockerAdapter } from './adapters/child-process/mocker/child-process-mocker-adapter';
 export type { MockSpawnResult } from './contracts/mock-spawn-result/mock-spawn-result-contract';
 export type { MockProcessBehavior } from './contracts/mock-process-behavior/mock-process-behavior-contract';
 
@@ -41,5 +40,5 @@ export { FileContentStub } from './contracts/file-content/file-content.stub';
 export { RelativePathStub } from './contracts/relative-path/relative-path.stub';
 
 // Mock dispatch
-export { jestRegisterMockAdapter as registerMock } from './adapters/jest/register-mock/jest-register-mock-adapter';
+export { mockRegisterMiddleware as registerMock } from './middleware/mock-register/mock-register-middleware';
 export type { MockHandle } from './contracts/mock-handle/mock-handle-contract';

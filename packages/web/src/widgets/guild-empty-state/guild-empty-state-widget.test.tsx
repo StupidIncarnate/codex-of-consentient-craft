@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { GuildEmptyStateWidget } from './guild-empty-state-widget';
 import { GuildEmptyStateWidgetProxy } from './guild-empty-state-widget.proxy';
 
@@ -11,7 +11,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -23,7 +23,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -35,7 +35,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -47,7 +47,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -59,7 +59,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} onCancel={jest.fn()} />,
       });
 
@@ -71,7 +71,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -83,7 +83,7 @@ describe('GuildEmptyStateWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
 
@@ -105,7 +105,7 @@ describe('GuildEmptyStateWidget', () => {
       proxy.setupDirectoryBrowse({ entries: [] });
       const onCancel = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} onCancel={onCancel} />,
       });
 

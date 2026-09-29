@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ToolResultDisplayContentStub } from '../../contracts/tool-result-display-content/tool-result-display-content.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { ToolResultContentWidget } from './tool-result-content-widget';
@@ -13,7 +13,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {one-line reply} => renders it verbatim in a single text node', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({ value: 'file contents here' })}
@@ -29,7 +29,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {build log} => renders it verbatim, so the lines survive', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -49,7 +49,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {verbatim reply, fontSize omitted} => renders at the markdown body size', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({ value: 'short' })}
@@ -66,7 +66,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {scalars beside a markdown property} => captions the document and inlines the scalars', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -92,7 +92,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {markdown property} => renders its heading as a heading, not as literal hashes', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -114,7 +114,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {multi-line non-markdown property} => breaks its lines without parsing it', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -139,7 +139,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {indented ledger under a heading} => keeps every break and indent', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -164,7 +164,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {indented ledger} => the paragraph declares pre-wrap so the browser keeps them', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({
@@ -183,7 +183,7 @@ describe('ToolResultContentWidget', () => {
     it('VALID: {markdown document, no JSON} => renders formatted with no caption', () => {
       ToolResultContentWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
             content={ToolResultDisplayContentStub({

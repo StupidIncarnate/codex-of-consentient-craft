@@ -8,7 +8,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { SessionFilterStub } from '../../contracts/session-filter/session-filter.stub';
 import { GuildSessionListWidget } from './guild-session-list-widget';
@@ -53,7 +53,7 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -82,7 +82,7 @@ describe('GuildSessionListWidget', () => {
       const session = SessionListItemStub({ sessionId, summary: 'Fix the login bug' });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -114,7 +114,7 @@ describe('GuildSessionListWidget', () => {
         reason: "workItems.1.role: received 'pathseeker'" as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[QuestListItemStub({ id: 'quest-1', title: 'Readable Quest' })]}
@@ -147,7 +147,7 @@ describe('GuildSessionListWidget', () => {
         reason: "workItems.1.role: received 'pathseeker'" as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -175,7 +175,7 @@ describe('GuildSessionListWidget', () => {
     it('EMPTY: {no quests but one skipped file} => shows the unreadable row instead of the no-quests empty state', () => {
       const proxy = GuildSessionListWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -204,7 +204,7 @@ describe('GuildSessionListWidget', () => {
     it('EMPTY: {no quests and no skipped files} => keeps the no-quests empty state and renders no unreadable row', () => {
       const proxy = GuildSessionListWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -231,7 +231,7 @@ describe('GuildSessionListWidget', () => {
     it('VALID: {loading with a skipped file} => renders no unreadable row until the load settles', () => {
       const proxy = GuildSessionListWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -266,7 +266,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -296,7 +296,7 @@ describe('GuildSessionListWidget', () => {
       const session = SessionListItemStub({ sessionId });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -331,7 +331,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -367,7 +367,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -399,7 +399,7 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -427,7 +427,7 @@ describe('GuildSessionListWidget', () => {
       const session = SessionListItemStub();
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -456,7 +456,7 @@ describe('GuildSessionListWidget', () => {
       const proxy = GuildSessionListWidgetProxy();
       const filter = SessionFilterStub({ value: 'all' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -484,7 +484,7 @@ describe('GuildSessionListWidget', () => {
       const filter = SessionFilterStub({ value: 'all' });
       const onFilterChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -524,7 +524,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub({ value: 'quests-only' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[quest]}
@@ -563,7 +563,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub({ value: 'all' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -593,7 +593,7 @@ describe('GuildSessionListWidget', () => {
       const session = SessionListItemStub({ sessionId, summary: 'Regular session' });
       const filter = SessionFilterStub({ value: 'quests-only' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -626,7 +626,7 @@ describe('GuildSessionListWidget', () => {
       const filter = SessionFilterStub();
       const onSelect = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -657,7 +657,7 @@ describe('GuildSessionListWidget', () => {
       const filter = SessionFilterStub();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -695,7 +695,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -729,7 +729,7 @@ describe('GuildSessionListWidget', () => {
       });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -762,7 +762,7 @@ describe('GuildSessionListWidget', () => {
       const session = SessionListItemStub({ sessionId });
       const filter = SessionFilterStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[]}
@@ -792,7 +792,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'complete-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -810,7 +810,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'paused-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'paused' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -828,7 +828,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'created-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'created' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -848,7 +848,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'in-progress-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -866,7 +866,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'blocked-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'blocked' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -886,7 +886,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'aria-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -906,7 +906,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'icon-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -928,7 +928,7 @@ describe('GuildSessionListWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
       const onSelectQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[quest]}
@@ -958,7 +958,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'popover-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -982,7 +982,7 @@ describe('GuildSessionListWidget', () => {
         status: 'complete' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1008,7 +1008,7 @@ describe('GuildSessionListWidget', () => {
         status: 'complete' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1031,7 +1031,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'spare-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1060,7 +1060,7 @@ describe('GuildSessionListWidget', () => {
         status: 'complete' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[questA, questB]}
@@ -1084,7 +1084,7 @@ describe('GuildSessionListWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
       const onDeleteQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1108,7 +1108,7 @@ describe('GuildSessionListWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
       const onDeleteQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1132,7 +1132,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'inflight-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulDeleteHarness
             quests={[quest]}
@@ -1176,7 +1176,7 @@ describe('GuildSessionListWidget', () => {
         const questId = QuestIdStub({ value: `status-coverage-${status}` });
         const quest = QuestListItemStub({ id: questId, status: status as never });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <GuildSessionListWidget
               quests={[quest]}
@@ -1210,7 +1210,7 @@ describe('GuildSessionListWidget', () => {
       const questId = QuestIdStub({ value: 'status-coverage-abandoned' });
       const quest = QuestListItemStub({ id: questId, status: 'abandoned' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[quest]}
@@ -1251,7 +1251,7 @@ describe('GuildSessionListWidget', () => {
       const mergingQuest = QuestListItemStub({ id: mergingQuestId, status: 'merging' as never });
       const mergedQuest = QuestListItemStub({ id: mergedQuestId, status: 'merged' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildSessionListWidget
             quests={[pausedQuest, mergingQuest, mergedQuest]}

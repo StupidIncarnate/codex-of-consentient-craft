@@ -11,7 +11,7 @@ import {
   QuestSummaryTrackCountsStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestSummaryWidget } from './quest-summary-widget';
 import { QuestSummaryWidgetProxy } from './quest-summary-widget.proxy';
 
@@ -51,7 +51,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -73,7 +73,7 @@ describe('QuestSummaryWidget', () => {
         summary: QuestSummaryStub({ questId: 'q-summary', flows: [] }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -104,7 +104,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -126,7 +126,7 @@ describe('QuestSummaryWidget', () => {
         summary: QuestSummaryStub({ questId: 'q-summary', midQuestObservables: [] }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -167,7 +167,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -213,7 +213,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -263,7 +263,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -309,7 +309,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -329,7 +329,7 @@ describe('QuestSummaryWidget', () => {
         summary: QuestSummaryStub({ questId: 'q-summary', debt: [] }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -355,7 +355,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -383,7 +383,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -426,7 +426,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -442,7 +442,7 @@ describe('QuestSummaryWidget', () => {
         summary: QuestSummaryStub({ questId: 'q-summary', humanChecks: [] }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -475,7 +475,7 @@ describe('QuestSummaryWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
 
       await screen.findByTestId('QUEST_SUMMARY');
 
@@ -496,7 +496,7 @@ describe('QuestSummaryWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupSummary({ summary: QuestSummaryStub({ questId: 'q-summary' }) });
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId } = mantineRenderMiddleware({
         ui: <QuestSummaryWidget questId={QUEST_ID} />,
       });
 
@@ -511,7 +511,7 @@ describe('QuestSummaryWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupNotFound();
 
-      const { queryByTestId } = mantineRenderAdapter({
+      const { queryByTestId } = mantineRenderMiddleware({
         ui: <QuestSummaryWidget questId={QUEST_ID} />,
       });
 

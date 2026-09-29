@@ -1,6 +1,6 @@
 import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { RateLimitsStackWidget } from './rate-limits-stack-widget';
 import { RateLimitsStackWidgetProxy } from './rate-limits-stack-widget.proxy';
@@ -16,7 +16,7 @@ describe('RateLimitsStackWidget', () => {
       }),
     });
 
-    const { getByTestId } = mantineRenderAdapter({
+    const { getByTestId } = mantineRenderMiddleware({
       ui: <RateLimitsStackWidget />,
     });
 
@@ -34,7 +34,7 @@ describe('RateLimitsStackWidget', () => {
     const proxy = RateLimitsStackWidgetProxy();
     proxy.setupSnapshot({ snapshot: null });
 
-    const { queryByTestId } = mantineRenderAdapter({
+    const { queryByTestId } = mantineRenderMiddleware({
       ui: <RateLimitsStackWidget />,
     });
 
@@ -47,7 +47,7 @@ describe('RateLimitsStackWidget', () => {
       snapshot: RateLimitsSnapshotStub({ fiveHour: null, sevenDay: null }),
     });
 
-    const { queryByTestId } = mantineRenderAdapter({
+    const { queryByTestId } = mantineRenderMiddleware({
       ui: <RateLimitsStackWidget />,
     });
 
@@ -67,7 +67,7 @@ describe('RateLimitsStackWidget', () => {
       }),
     });
 
-    const { getByTestId } = mantineRenderAdapter({
+    const { getByTestId } = mantineRenderMiddleware({
       ui: <RateLimitsStackWidget />,
     });
 

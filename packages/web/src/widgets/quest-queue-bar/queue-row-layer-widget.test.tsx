@@ -7,7 +7,7 @@ import {
   TotalCountStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QueueRowLayerWidget } from './queue-row-layer-widget';
 import { QueueRowLayerWidgetProxy } from './queue-row-layer-widget.proxy';
 
@@ -21,7 +21,7 @@ describe('QueueRowLayerWidget', () => {
         guildSlug: 'guild-one' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget
@@ -48,7 +48,7 @@ describe('QueueRowLayerWidget', () => {
         guildSlug: 'guild-two' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget
@@ -72,7 +72,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Alpha' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget
@@ -102,7 +102,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Alpha' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget
@@ -138,7 +138,7 @@ describe('QueueRowLayerWidget', () => {
         error: { message: 'boom' as never, at: '2024-01-15T10:06:00.000Z' as never },
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget
@@ -160,7 +160,7 @@ describe('QueueRowLayerWidget', () => {
       QueueRowLayerWidgetProxy();
       const entry = QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Healthy' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
             <QueueRowLayerWidget

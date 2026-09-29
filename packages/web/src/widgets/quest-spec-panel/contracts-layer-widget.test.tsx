@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ContractsLayerWidget } from './contracts-layer-widget';
 import { ContractsLayerWidgetProxy } from './contracts-layer-widget.proxy';
 
@@ -14,7 +14,7 @@ describe('ContractsLayerWidget', () => {
       ContractsLayerWidgetProxy();
       const tool = ToolingRequirementStub({ name: 'pg-driver' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ContractsLayerWidget tooling={[tool]} />,
       });
 
@@ -25,7 +25,7 @@ describe('ContractsLayerWidget', () => {
       ContractsLayerWidgetProxy();
       const tool = ToolingRequirementStub({ packageName: 'pg' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ContractsLayerWidget tooling={[tool]} />,
       });
 
@@ -36,7 +36,7 @@ describe('ContractsLayerWidget', () => {
       ContractsLayerWidgetProxy();
       const tool = ToolingRequirementStub({ reason: 'DB verification' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ContractsLayerWidget tooling={[tool]} />,
       });
 
@@ -47,7 +47,7 @@ describe('ContractsLayerWidget', () => {
       ContractsLayerWidgetProxy();
       const tool = ToolingRequirementStub({ requiredByObservables: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ContractsLayerWidget tooling={[tool]} />,
       });
 
@@ -58,7 +58,7 @@ describe('ContractsLayerWidget', () => {
       ContractsLayerWidgetProxy();
       const tooling: ToolingRequirement[] = [];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ContractsLayerWidget tooling={tooling} />,
       });
 

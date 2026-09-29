@@ -1,6 +1,6 @@
 import { SessionIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SessionRowLayerWidget } from './session-row-layer-widget';
 import { SessionRowLayerWidgetProxy } from './session-row-layer-widget.proxy';
 
@@ -11,7 +11,7 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'my-session' });
       const session = SessionListItemStub({ sessionId, summary: 'Fix the login bug' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -25,7 +25,7 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'no-summary' });
       const session = SessionListItemStub({ sessionId });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -45,7 +45,7 @@ describe('SessionRowLayerWidget', () => {
         questId: 'quest-abc' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -58,7 +58,7 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'no-quest-session' });
       const session = SessionListItemStub({ sessionId });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -76,7 +76,7 @@ describe('SessionRowLayerWidget', () => {
         questId: 'quest-xyz' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -97,7 +97,7 @@ describe('SessionRowLayerWidget', () => {
         questId: 'quest-abandoned' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -109,7 +109,7 @@ describe('SessionRowLayerWidget', () => {
       const sessionId = SessionIdStub({ value: 'no-status-session' });
       const session = SessionListItemStub({ sessionId });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={jest.fn()} />,
       });
 
@@ -124,7 +124,7 @@ describe('SessionRowLayerWidget', () => {
       const session = SessionListItemStub({ sessionId, summary: 'Clickable Session' });
       const onSelect = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SessionRowLayerWidget session={session} onSelect={onSelect} />,
       });
 

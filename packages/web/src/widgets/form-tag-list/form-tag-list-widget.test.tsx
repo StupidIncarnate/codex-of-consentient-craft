@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { TagItemStub } from '../../contracts/tag-item/tag-item.stub';
 import { FormTagListWidget } from './form-tag-list-widget';
@@ -13,7 +13,7 @@ describe('FormTagListWidget', () => {
       const label = SectionLabelStub({ value: 'Tags' });
       const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
 
-      mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
+      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.getByTestId('FORM_TAG_LABEL')).toBeInTheDocument();
     });
@@ -23,7 +23,7 @@ describe('FormTagListWidget', () => {
       const label = SectionLabelStub({ value: 'Tags' });
       const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
 
-      mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
+      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
       const tagItems = screen.getAllByTestId('FORM_TAG_ITEM');
       const tagTexts = tagItems.map((el) => el.textContent);
@@ -36,7 +36,7 @@ describe('FormTagListWidget', () => {
       const label = SectionLabelStub({ value: 'Tags' });
       const items = [TagItemStub({ value: 'alpha' }), TagItemStub({ value: 'beta' })];
 
-      mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
+      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.queryByTestId('FORM_TAG_EMPTY')).toBe(null);
     });
@@ -48,7 +48,7 @@ describe('FormTagListWidget', () => {
       const label = SectionLabelStub({ value: 'Tags' });
       const items: ReturnType<typeof TagItemStub>[] = [];
 
-      mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
+      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
       const emptyText = screen.getByTestId('FORM_TAG_EMPTY');
 
@@ -60,7 +60,7 @@ describe('FormTagListWidget', () => {
       const label = SectionLabelStub({ value: 'Tags' });
       const items: ReturnType<typeof TagItemStub>[] = [];
 
-      mantineRenderAdapter({ ui: <FormTagListWidget label={label} items={items} /> });
+      mantineRenderMiddleware({ ui: <FormTagListWidget label={label} items={items} /> });
 
       expect(screen.queryAllByTestId('FORM_TAG_ITEM')).toStrictEqual([]);
     });

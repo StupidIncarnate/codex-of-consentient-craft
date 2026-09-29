@@ -17,7 +17,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';
@@ -37,7 +37,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -50,7 +50,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -61,7 +61,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -74,7 +74,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -89,7 +89,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -107,7 +107,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress', operations: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -128,7 +128,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -147,7 +147,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -166,7 +166,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -188,7 +188,7 @@ describe('ExecutionPanelWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -214,7 +214,7 @@ describe('ExecutionPanelWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -261,7 +261,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -290,7 +290,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -322,7 +322,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -355,7 +355,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -379,7 +379,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -419,7 +419,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -449,7 +449,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -481,7 +481,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -505,7 +505,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -523,7 +523,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress', workItems: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -632,7 +632,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest = buildDecisionTwoFixtureQuest();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -652,7 +652,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest = buildDecisionTwoFixtureQuest();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -674,7 +674,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest = buildDecisionTwoFixtureQuest();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -720,7 +720,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -772,7 +772,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -807,7 +807,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -841,7 +841,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -882,7 +882,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -902,7 +902,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -930,7 +930,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -986,7 +986,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1034,7 +1034,7 @@ describe('ExecutionPanelWidget', () => {
       const isRowExpanded = (row: HTMLElement): boolean =>
         row.querySelector('[data-testid="execution-row-expanded"]') !== null;
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={buildQuest({ firstStatus: 'in_progress' })}
@@ -1097,7 +1097,7 @@ describe('ExecutionPanelWidget', () => {
         wardResults: [wardResult],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1146,7 +1146,7 @@ describe('ExecutionPanelWidget', () => {
         riftcarverResults: [riftcarverResult],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1187,7 +1187,7 @@ describe('ExecutionPanelWidget', () => {
         riftcarverResults: [],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1220,7 +1220,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
 
@@ -1257,7 +1257,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1285,7 +1285,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1305,7 +1305,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1332,7 +1332,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
 
@@ -1356,7 +1356,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1384,7 +1384,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} sessionEntries={sessionEntries} />,
       });
 
@@ -1444,7 +1444,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -1486,7 +1486,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1508,7 +1508,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1538,7 +1538,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1580,7 +1580,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1606,7 +1606,7 @@ describe('ExecutionPanelWidget', () => {
         workItems,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1640,7 +1640,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1679,7 +1679,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1728,7 +1728,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { unmount } = mantineRenderAdapter({
+      const { unmount } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1751,7 +1751,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1776,7 +1776,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1816,7 +1816,7 @@ describe('ExecutionPanelWidget', () => {
       );
       const quest: Quest = QuestStub({ status: 'in_progress', workItems: runningWorkItems });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1885,7 +1885,7 @@ describe('ExecutionPanelWidget', () => {
         workItems: [...finishedWorkItems, ...runningWorkItems],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -1919,7 +1919,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={runningQuest} />,
       });
 
@@ -1986,7 +1986,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { unmount } = mantineRenderAdapter({
+      const { unmount } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={runningQuest} />,
       });
 
@@ -2009,7 +2009,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={completedQuest} />,
       });
 
@@ -2034,7 +2034,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { unmount } = mantineRenderAdapter({
+      const { unmount } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={runningQuest} />,
       });
 
@@ -2057,7 +2057,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={completedQuest} />,
       });
 
@@ -2096,7 +2096,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2133,7 +2133,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2173,7 +2173,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2216,7 +2216,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2255,7 +2255,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { unmount } = mantineRenderAdapter({
+      const { unmount } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2265,7 +2265,7 @@ describe('ExecutionPanelWidget', () => {
 
       expect(proxy.getClearedTickCount()).toBe(1);
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2302,7 +2302,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      const { unmount } = mantineRenderAdapter({
+      const { unmount } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2310,7 +2310,7 @@ describe('ExecutionPanelWidget', () => {
 
       unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} workItemEntries={workItemEntries} />,
       });
 
@@ -2324,7 +2324,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onStatusChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
@@ -2340,7 +2340,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
@@ -2356,7 +2356,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onPause = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onPause={onPause} />,
       });
 
@@ -2372,7 +2372,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
@@ -2385,7 +2385,7 @@ describe('ExecutionPanelWidget', () => {
       const onStatusChange = jest.fn();
       const onPause = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
         ),
@@ -2402,7 +2402,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'complete' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={jest.fn()} />,
       });
 
@@ -2413,7 +2413,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'paused' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2425,7 +2425,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'paused' });
       const onStatusChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} />,
       });
 
@@ -2442,7 +2442,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
@@ -2453,7 +2453,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2465,7 +2465,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
@@ -2481,7 +2481,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'in_progress' });
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onAbandon={onAbandon} />,
       });
 
@@ -2498,7 +2498,7 @@ describe('ExecutionPanelWidget', () => {
       const onStatusChange = jest.fn();
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -2523,7 +2523,7 @@ describe('ExecutionPanelWidget', () => {
       const onStatusChange = jest.fn();
       const onAbandon = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -2546,7 +2546,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2559,7 +2559,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress', title: 'Implement Auth Flow' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2596,7 +2596,7 @@ describe('ExecutionPanelWidget', () => {
           const onStatusChange = jest.fn();
           const onPause = jest.fn();
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionPanelWidget
                 quest={quest}
@@ -2621,7 +2621,7 @@ describe('ExecutionPanelWidget', () => {
           const onStatusChange = jest.fn();
           const onPause = jest.fn();
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionPanelWidget
                 quest={quest}
@@ -2646,7 +2646,7 @@ describe('ExecutionPanelWidget', () => {
           const onStatusChange = jest.fn();
           const onPause = jest.fn();
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionPanelWidget
                 quest={quest}
@@ -2669,7 +2669,7 @@ describe('ExecutionPanelWidget', () => {
         const onStatusChange = jest.fn();
         const onPause = jest.fn();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
           ),
@@ -2688,7 +2688,7 @@ describe('ExecutionPanelWidget', () => {
         const onStatusChange = jest.fn();
         const onPause = jest.fn();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionPanelWidget quest={quest} onStatusChange={onStatusChange} onPause={onPause} />
           ),
@@ -2721,7 +2721,7 @@ describe('ExecutionPanelWidget', () => {
         ExecutionPanelWidgetProxy();
         const quest: Quest = QuestStub({ status });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ExecutionPanelWidget quest={quest} />,
         });
 
@@ -2738,7 +2738,7 @@ describe('ExecutionPanelWidget', () => {
         ExecutionPanelWidgetProxy();
         const quest: Quest = QuestStub({ status });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ExecutionPanelWidget quest={quest} />,
         });
 
@@ -2750,7 +2750,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2761,7 +2761,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'complete' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2775,7 +2775,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'merged' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2789,7 +2789,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'abandoned' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -2806,7 +2806,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2827,7 +2827,7 @@ describe('ExecutionPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -2849,7 +2849,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2866,7 +2866,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2883,7 +2883,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2899,7 +2899,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2916,7 +2916,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'blocked' });
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />,
       });
 
@@ -2937,7 +2937,7 @@ describe('ExecutionPanelWidget', () => {
         }),
       ];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={blockedQuest}
@@ -2996,7 +2996,7 @@ describe('ExecutionPanelWidget', () => {
           const quest: Quest = QuestStub({ status });
           const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />
             ),
@@ -3013,7 +3013,7 @@ describe('ExecutionPanelWidget', () => {
           const quest: Quest = QuestStub({ status });
           const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionPanelWidget quest={quest} onSendFollowupMessage={onSendFollowupMessage} />
             ),
@@ -3030,7 +3030,7 @@ describe('ExecutionPanelWidget', () => {
         const quest: Quest = QuestStub({ status });
         const onMerge = jest.fn();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
         });
 
@@ -3042,7 +3042,7 @@ describe('ExecutionPanelWidget', () => {
         const quest: Quest = QuestStub({ status });
         const onMerge = jest.fn();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
         });
 
@@ -3056,7 +3056,7 @@ describe('ExecutionPanelWidget', () => {
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -3077,7 +3077,7 @@ describe('ExecutionPanelWidget', () => {
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -3096,7 +3096,7 @@ describe('ExecutionPanelWidget', () => {
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -3115,7 +3115,7 @@ describe('ExecutionPanelWidget', () => {
       const onSendFollowupMessage = jest.fn(async (): Promise<void> => Promise.resolve());
       const onMerge = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget
             quest={quest}
@@ -3133,7 +3133,7 @@ describe('ExecutionPanelWidget', () => {
       const proxy = ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'blocked' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -3145,7 +3145,7 @@ describe('ExecutionPanelWidget', () => {
       const quest: Quest = QuestStub({ status: 'complete' });
       const onMerge = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} onMerge={onMerge} />,
       });
 
@@ -3161,7 +3161,7 @@ describe('ExecutionPanelWidget', () => {
       ExecutionPanelWidgetProxy();
       const quest: Quest = QuestStub({ status: 'in_progress' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -3185,7 +3185,7 @@ describe('ExecutionPanelWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
@@ -3198,7 +3198,7 @@ describe('ExecutionPanelWidget', () => {
       const onPause = jest.fn();
       const onStatusChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionPanelWidget quest={quest} onPause={onPause} onStatusChange={onStatusChange} />
         ),

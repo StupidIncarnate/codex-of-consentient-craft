@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,
@@ -20,7 +20,7 @@ describe('ChatPanelWidget', () => {
         AssistantTextChatEntryStub({ content: 'Hi there' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -41,7 +41,7 @@ describe('ChatPanelWidget', () => {
         AssistantToolUseChatEntryStub({ toolName: 'read_file', toolInput: '{"path":"/src"}' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -63,7 +63,7 @@ describe('ChatPanelWidget', () => {
         AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"path":"/src"}' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -89,7 +89,7 @@ describe('ChatPanelWidget', () => {
         AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"file":"index.ts"}' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -121,7 +121,7 @@ describe('ChatPanelWidget', () => {
         AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"file":"index.ts"}' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -151,7 +151,7 @@ describe('ChatPanelWidget', () => {
         AssistantTextChatEntryStub({ content: 'Here are the results' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -174,7 +174,7 @@ describe('ChatPanelWidget', () => {
         AssistantToolUseChatEntryStub({ toolName: 'Read', toolInput: '{"path":"/src"}' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -191,7 +191,7 @@ describe('ChatPanelWidget', () => {
     it('EMPTY: {no entries} => renders empty message area', () => {
       const proxy = ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -210,7 +210,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {rendered} => displays raccoon sprite', () => {
       ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -230,7 +230,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -258,7 +258,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -280,7 +280,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -307,7 +307,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -327,7 +327,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -347,7 +347,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -369,7 +369,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {isStreaming: true} => shows Thinking indicator', () => {
       const proxy = ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -386,7 +386,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {isStreaming: false} => does not show Thinking indicator', () => {
       const proxy = ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -403,7 +403,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {isStreaming: true, no send in flight} => #check-composer-typable-while-agent-streams leaves the composer editable', () => {
       ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -424,7 +424,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {isStreaming: true} => shows stop button instead of send button', () => {
       const proxy = ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -442,7 +442,7 @@ describe('ChatPanelWidget', () => {
     it('VALID: {isStreaming: false} => shows send button instead of stop button', () => {
       const proxy = ChatPanelWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -474,7 +474,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -505,7 +505,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -526,7 +526,7 @@ describe('ChatPanelWidget', () => {
         AssistantTextChatEntryStub({ content: 'Hi there' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -566,7 +566,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -593,7 +593,7 @@ describe('ChatPanelWidget', () => {
         TaskNotificationChatEntryStub({ taskId: 'agent-001', status: 'completed' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -613,7 +613,7 @@ describe('ChatPanelWidget', () => {
       const proxy = ChatPanelWidgetProxy();
       const onStopChat = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -636,7 +636,7 @@ describe('ChatPanelWidget', () => {
       const noopSend = async (): Promise<void> => Promise.resolve();
       const noopStop = (): void => undefined;
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={[]}
@@ -660,7 +660,7 @@ describe('ChatPanelWidget', () => {
       const noopSend = async (): Promise<void> => Promise.resolve();
       const noopStop = (): void => undefined;
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -691,7 +691,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -719,7 +719,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -769,7 +769,7 @@ describe('ChatPanelWidget', () => {
       });
       const entries = [taskA, singleA1, taskB, singleB1, notificationA, notificationB];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -796,7 +796,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}
@@ -822,7 +822,7 @@ describe('ChatPanelWidget', () => {
         }),
       ];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ChatPanelWidget
             entries={entries}

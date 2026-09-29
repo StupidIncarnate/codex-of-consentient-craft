@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { UnitObservationStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowUnitMarksLayerWidget } from './execution-row-unit-marks-layer-widget';
 import { ExecutionRowUnitMarksLayerWidgetProxy } from './execution-row-unit-marks-layer-widget.proxy';
 
@@ -10,7 +10,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('VALID: {3 assigned units, met + cant-meet observed, 1 never observed} => renders the summary and every non-unmet mark', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <ExecutionRowUnitMarksLayerWidget
           workItem={WorkItemStub({
@@ -49,7 +49,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('VALID: {an unmet observation among the assigned units} => excludes it, leaving the unmet list to show it', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <ExecutionRowUnitMarksLayerWidget
           workItem={WorkItemStub({
@@ -80,7 +80,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('EMPTY: {workItem assigned no units} => renders nothing', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <ExecutionRowUnitMarksLayerWidget workItem={WorkItemStub({ assignedUnitIds: [] })} />,
     });
 
@@ -90,7 +90,7 @@ describe('ExecutionRowUnitMarksLayerWidget', () => {
   it('EMPTY: {workItem: undefined} => renders nothing', () => {
     ExecutionRowUnitMarksLayerWidgetProxy();
 
-    mantineRenderAdapter({ ui: <ExecutionRowUnitMarksLayerWidget workItem={undefined} /> });
+    mantineRenderMiddleware({ ui: <ExecutionRowUnitMarksLayerWidget workItem={undefined} /> });
 
     expect(screen.queryByTestId('execution-row-unit-marks')).toBe(null);
   });

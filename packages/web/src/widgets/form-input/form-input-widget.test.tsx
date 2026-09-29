@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CssColorOverrideStub } from '../../contracts/css-color-override/css-color-override.stub';
 import { CssDimensionStub } from '../../contracts/css-dimension/css-dimension.stub';
 import { CssSpacingStub } from '../../contracts/css-spacing/css-spacing.stub';
@@ -16,7 +16,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: 'hello' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       expect(proxy.getValue()).toBe('hello');
     });
@@ -27,7 +27,7 @@ describe('FormInputWidget', () => {
       const placeholder = FormPlaceholderStub({ value: 'Enter...' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} placeholder={placeholder} />,
       });
 
@@ -42,7 +42,7 @@ describe('FormInputWidget', () => {
       const color = CssColorOverrideStub({ value: '#ff0000' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} color={color} />,
       });
 
@@ -56,7 +56,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: 'test' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 
@@ -69,7 +69,7 @@ describe('FormInputWidget', () => {
       const width = CssDimensionStub({ value: 200 });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} width={width} />,
       });
 
@@ -84,7 +84,7 @@ describe('FormInputWidget', () => {
       const mt = CssSpacingStub({ value: 8 });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} mt={mt} />,
       });
 
@@ -100,7 +100,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: '' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       await proxy.changeValue({ value: FormInputValueStub({ value: 'world' }) });
 
@@ -114,7 +114,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: '' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} autoFocus={true} />,
       });
 
@@ -128,7 +128,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: '' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormInputWidget value={value} onChange={onChange} />,
       });
 
@@ -142,7 +142,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: 'test' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 
@@ -154,7 +154,7 @@ describe('FormInputWidget', () => {
       const value = FormInputValueStub({ value: 'test' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({ ui: <FormInputWidget value={value} onChange={onChange} /> });
+      mantineRenderMiddleware({ ui: <FormInputWidget value={value} onChange={onChange} /> });
 
       const input = screen.getByTestId('FORM_INPUT');
 

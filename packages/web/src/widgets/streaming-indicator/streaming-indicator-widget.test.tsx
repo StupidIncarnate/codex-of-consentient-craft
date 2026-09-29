@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { StreamingIndicatorWidget } from './streaming-indicator-widget';
 import { StreamingIndicatorWidgetProxy } from './streaming-indicator-widget.proxy';
 
@@ -9,7 +9,7 @@ describe('StreamingIndicatorWidget', () => {
     it('VALID: {isSubagent: false} => renders container with orange chaos accent border', () => {
       StreamingIndicatorWidgetProxy();
 
-      mantineRenderAdapter({ ui: <StreamingIndicatorWidget isSubagent={false} /> });
+      mantineRenderMiddleware({ ui: <StreamingIndicatorWidget isSubagent={false} /> });
 
       const container = screen.getByTestId('STREAMING_INDICATOR');
 
@@ -19,7 +19,7 @@ describe('StreamingIndicatorWidget', () => {
     it('VALID: {isSubagent: true} => renders container with purple sub-agent accent border', () => {
       StreamingIndicatorWidgetProxy();
 
-      mantineRenderAdapter({ ui: <StreamingIndicatorWidget isSubagent={true} /> });
+      mantineRenderMiddleware({ ui: <StreamingIndicatorWidget isSubagent={true} /> });
 
       const container = screen.getByTestId('STREAMING_INDICATOR');
 
@@ -29,7 +29,7 @@ describe('StreamingIndicatorWidget', () => {
     it('VALID: {} => renders indicator text starting with a sparkle glyph', () => {
       StreamingIndicatorWidgetProxy();
 
-      mantineRenderAdapter({ ui: <StreamingIndicatorWidget isSubagent={false} /> });
+      mantineRenderMiddleware({ ui: <StreamingIndicatorWidget isSubagent={false} /> });
 
       const text = screen.getByTestId('STREAMING_INDICATOR_TEXT');
 

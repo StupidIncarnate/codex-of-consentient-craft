@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { UnitObservationStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ExecutionRowScopeChurnLayerWidget } from './execution-row-scope-churn-layer-widget';
 import { ExecutionRowScopeChurnLayerWidgetProxy } from './execution-row-scope-churn-layer-widget.proxy';
 
@@ -10,7 +10,7 @@ describe('ExecutionRowScopeChurnLayerWidget', () => {
   it('VALID: {a unit marked unmet, met, unmet, met across four work items} => renders the whole back-and-forth sequence', () => {
     ExecutionRowScopeChurnLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <ExecutionRowScopeChurnLayerWidget
           scopeWorkItems={[
@@ -71,7 +71,7 @@ describe('ExecutionRowScopeChurnLayerWidget', () => {
   it('EMPTY: {every unit touched by only one work item} => renders nothing', () => {
     ExecutionRowScopeChurnLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <ExecutionRowScopeChurnLayerWidget
           scopeWorkItems={[
@@ -101,7 +101,7 @@ describe('ExecutionRowScopeChurnLayerWidget', () => {
   it('EMPTY: {scopeWorkItems: undefined} => renders nothing', () => {
     ExecutionRowScopeChurnLayerWidgetProxy();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <ExecutionRowScopeChurnLayerWidget scopeWorkItems={undefined} />,
     });
 

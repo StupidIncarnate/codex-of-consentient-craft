@@ -283,3 +283,42 @@ Done: both steps green at their gates. `src/adapters/typescript/` no longer exis
 it. `source-file-getter` is now `middleware/typescript-source-file-get`, reading through `#gateway/node/fs`
 `readFileSync`. The two whole-pipeline hoisting tests now live in the typescript-proxy-mock-transformer middleware
 test, staged in memory.
+
+## Plan — G-Y jest, mocker, mantine
+
+Agent scope: the last `packages/testing/src/adapters/` folders, one at a time, each followed by
+`--only unit -- packages/testing packages/hooks packages/shared`. Every one holds real logic (dispatch
+staging, a stack walk, a module-isolation loop, a spawn mock, a provider wrap), so each becomes testing
+middleware (middleware may import the gateway and `mockStagingCreateMiddleware`; brokers may not). The
+`register-mock` public names and the `@dungeonmaster/testing/register-mock` path stay; only the export
+targets move. Under `packages/testing/src/`:
+
+New (implementation + proxy + test each), replacing the adapter of the same job:
+- `middleware/mantine-render/mantine-render-middleware.ts` (`MantineProvider` from `#gateway/npm/mantine__core`)
+- `middleware/child-process-mock/child-process-mock-middleware.ts`
+- `middleware/actual-module-require/actual-module-require-middleware.ts`
+- `middleware/modules-isolate/modules-isolate-middleware.ts`
+- `middleware/module-mock-register/module-mock-register-middleware.ts`
+- `middleware/spy-on-register/spy-on-register-middleware.ts`
+- `middleware/mock-register/mock-register-middleware.ts`
+
+Edited:
+- `register-mock.ts`, `index.ts`, `index.test.ts` (export targets; main barrel's `childProcessMockerAdapter`
+  becomes `childProcessMockMiddleware`)
+- `middleware/mock-staging-create/mock-staging-create-middleware.ts` (comment names the callers)
+- `packages/testing/package.json` (`./adapters/mantine/render` becomes `./middleware/mantine-render`)
+- `packages/web/**/*.test.tsx` importing `@dungeonmaster/testing/adapters/mantine/render`: import line and the
+  `mantineRenderAdapter` identifier become `@dungeonmaster/testing/middleware/mantine-render` / `mantineRenderMiddleware`
+- `eslint.config.js` (drop the stale `typescript/proxy-mock-transformer` adapter entry)
+- `packages/@gateway/browser/src/fetch/fetch-with-status/fetch-with-status.proxy.ts` + `.test.ts` (`setupHeld`
+  becomes `holdsOpen({ rawBody: bodyText })`)
+
+Delete (adapter, proxy, test each): `adapters/mantine/render`, `adapters/child-process/mocker`,
+`adapters/jest/{require-actual,isolate-modules,register-module-mock,register-spy-on,register-mock}`, leaving no
+`src/adapters/`.
+
+Done: `packages/testing/src/adapters/` no longer exists. Two changes from the plan above. `IsolateModulesMock` is now
+`contracts/isolate-modules-mock/` (contract + stub + test), since middleware bans ad-hoc object types. The child-process
+mock leaves the main barrel for its own subpath, `@dungeonmaster/testing/middleware/child-process-mock`: its
+`EventEmitter` comes from `#gateway/node/events`, whose `import mod = require('events'); export = mod;` form fails web's
+ESNext typecheck (TS1202/TS1203), and web imports the main barrel.

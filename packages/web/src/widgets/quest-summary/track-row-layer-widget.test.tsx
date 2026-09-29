@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts';
 import { verificationTracksStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { TrackRowLayerWidget } from './track-row-layer-widget';
 import { TrackRowLayerWidgetProxy } from './track-row-layer-widget.proxy';
 
@@ -19,7 +19,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 3,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_MET').textContent).toBe('12 met');
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_CANT_MEET').textContent).toBe('1 cant-meet');
@@ -39,7 +39,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 3,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_ROW').textContent).toBe(
         'FLOWRIDER12 met1 cant-meet2 unmet3 outstanding',
@@ -56,7 +56,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 0,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_MET').textContent).toBe('8 met');
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_CANT_MEET').textContent).toBe('0 cant-meet');
@@ -76,7 +76,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 7,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_UNMET').textContent).toBe('0 unmet');
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING').textContent).toBe(
@@ -96,7 +96,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 0,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_UNMET').textContent).toBe('4 unmet');
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING').textContent).toBe(
@@ -116,7 +116,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 7,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       const cells = Array.from(screen.getByTestId('QUEST_SUMMARY_TRACK_ROW').children);
 
@@ -146,7 +146,7 @@ describe('TrackRowLayerWidget', () => {
         outstanding: 7,
       });
 
-      mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+      mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_UNMET').style.color).toBe('rgb(239, 68, 68)');
       expect(screen.getByTestId('QUEST_SUMMARY_TRACK_OUTSTANDING').style.color).toBe(
@@ -162,7 +162,7 @@ describe('TrackRowLayerWidget', () => {
         TrackRowLayerWidgetProxy();
         const track = QuestSummaryTrackCountsStub({ id: role });
 
-        mantineRenderAdapter({ ui: <TrackRowLayerWidget track={track} /> });
+        mantineRenderMiddleware({ ui: <TrackRowLayerWidget track={track} /> });
 
         expect(screen.getByTestId('QUEST_SUMMARY_TRACK_NAME').textContent).toBe(role.toUpperCase());
       },

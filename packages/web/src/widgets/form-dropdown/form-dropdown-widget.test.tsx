@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CssColorOverrideStub } from '../../contracts/css-color-override/css-color-override.stub';
 import { CssDimensionStub } from '../../contracts/css-dimension/css-dimension.stub';
 import { DropdownOptionStub } from '../../contracts/dropdown-option/dropdown-option.stub';
@@ -19,7 +19,7 @@ describe('FormDropdownWidget', () => {
       ];
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -36,7 +36,7 @@ describe('FormDropdownWidget', () => {
       ];
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -57,7 +57,7 @@ describe('FormDropdownWidget', () => {
       const color = CssColorOverrideStub({ value: '#ff0000' });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <FormDropdownWidget value={value} options={options} onChange={onChange} color={color} />
         ),
@@ -74,7 +74,7 @@ describe('FormDropdownWidget', () => {
       const options = [DropdownOptionStub({ value: 'a' })];
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -90,7 +90,7 @@ describe('FormDropdownWidget', () => {
       const width = CssDimensionStub({ value: 200 });
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <FormDropdownWidget value={value} options={options} onChange={onChange} width={width} />
         ),
@@ -113,7 +113,7 @@ describe('FormDropdownWidget', () => {
       ];
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 
@@ -130,7 +130,7 @@ describe('FormDropdownWidget', () => {
       const options = [DropdownOptionStub({ value: 'a' })];
       const onChange = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <FormDropdownWidget value={value} options={options} onChange={onChange} />,
       });
 

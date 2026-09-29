@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
 import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';
@@ -15,7 +15,7 @@ describe('WardResultDetailLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <WardResultDetailLayerWidget questId={questId} wardResult={wardResult} />,
       });
 
@@ -32,7 +32,7 @@ describe('WardResultDetailLayerWidget', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub({ exitCode: 1 as never, wardMode: 'committed' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <WardResultDetailLayerWidget questId={questId} wardResult={wardResult} />,
       });
 

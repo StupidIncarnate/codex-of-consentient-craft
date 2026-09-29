@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   AssistantTextChatEntryStub,
   AssistantToolResultChatEntryStub,
@@ -24,7 +24,7 @@ describe('SubagentChainWidget', () => {
       SubagentChainWidgetProxy();
       const group = SingleGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -43,7 +43,7 @@ describe('SubagentChainWidget', () => {
       proxy.setupAutoScrollReleased();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -59,7 +59,7 @@ describe('SubagentChainWidget', () => {
       proxy.setupAutoScrollReleased();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -78,7 +78,7 @@ describe('SubagentChainWidget', () => {
         entryCount: 2,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -95,7 +95,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -110,7 +110,7 @@ describe('SubagentChainWidget', () => {
         contextTokens: 1900,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -127,7 +127,7 @@ describe('SubagentChainWidget', () => {
         contextTokens: null,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -144,7 +144,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -157,7 +157,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -173,7 +173,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -201,7 +201,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -231,7 +231,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -253,7 +253,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -277,7 +277,7 @@ describe('SubagentChainWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -304,7 +304,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -379,7 +379,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -459,7 +459,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -492,7 +492,7 @@ describe('SubagentChainWidget', () => {
         innerGroups: [{ kind: 'single', entry: UserChatEntryStub({ source: 'subagent' }) }, inner],
       });
 
-      mantineRenderAdapter({ ui: <SubagentChainWidget group={outer} /> });
+      mantineRenderMiddleware({ ui: <SubagentChainWidget group={outer} /> });
 
       expect(
         screen.getAllByTestId('SUBAGENT_CHAIN_HEADER').map((h) => h.textContent),
@@ -528,7 +528,7 @@ describe('SubagentChainWidget', () => {
         innerGroups: [mid],
       });
 
-      mantineRenderAdapter({ ui: <SubagentChainWidget group={outer} /> });
+      mantineRenderMiddleware({ ui: <SubagentChainWidget group={outer} /> });
 
       expect(
         screen.getAllByTestId('SUBAGENT_CHAIN_HEADER').map((h) => h.textContent),
@@ -546,7 +546,7 @@ describe('SubagentChainWidget', () => {
         innerGroups: [{ kind: 'single', entry: UserChatEntryStub({ source: 'subagent' }) }],
       });
 
-      mantineRenderAdapter({ ui: <SubagentChainWidget group={group} /> });
+      mantineRenderMiddleware({ ui: <SubagentChainWidget group={group} /> });
 
       expect(
         screen.queryAllByTestId('SUBAGENT_CHAIN').map((c) => c.getAttribute('data-testid')),
@@ -580,7 +580,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({ ui: <SubagentChainWidget group={outer} /> });
+      mantineRenderMiddleware({ ui: <SubagentChainWidget group={outer} /> });
 
       // Both chains start expanded — each has one CHAT_MESSAGE from its single group
       expect(
@@ -662,7 +662,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -735,7 +735,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} defaultShowAllEarlier={true} />,
       });
 
@@ -810,7 +810,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} defaultShowAllEarlier={true} />,
       });
 
@@ -894,7 +894,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={outer} />,
       });
 
@@ -974,7 +974,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={outer} defaultShowAllEarlier={true} />,
       });
 
@@ -1011,7 +1011,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1053,7 +1053,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1095,7 +1095,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1124,7 +1124,7 @@ describe('SubagentChainWidget', () => {
           ],
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1145,7 +1145,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1233,7 +1233,7 @@ describe('SubagentChainWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1255,7 +1255,7 @@ describe('SubagentChainWidget', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1272,7 +1272,7 @@ describe('SubagentChainWidget', () => {
       SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
       });
 
@@ -1291,7 +1291,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1310,7 +1310,7 @@ describe('SubagentChainWidget', () => {
         innerGroups: [SingleGroupStub({ entry: toolUse }), SingleGroupStub({ entry: toolResult })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} stickyTop={CssPixelsStub({ value: 23 })} />,
       });
 
@@ -1335,7 +1335,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1364,7 +1364,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1391,7 +1391,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1415,7 +1415,7 @@ describe('SubagentChainWidget', () => {
         const proxy = SubagentChainWidgetProxy();
         const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1431,7 +1431,7 @@ describe('SubagentChainWidget', () => {
         SubagentChainWidgetProxy();
         const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1457,7 +1457,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1475,7 +1475,7 @@ describe('SubagentChainWidget', () => {
           completionDurationMs: 59965,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1493,7 +1493,7 @@ describe('SubagentChainWidget', () => {
           completionDurationMs: 270000,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1510,7 +1510,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1529,7 +1529,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1551,7 +1551,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1574,7 +1574,7 @@ describe('SubagentChainWidget', () => {
           taskNotification: null,
         });
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} now={now} />,
         });
 
@@ -1608,7 +1608,7 @@ describe('SubagentChainWidget', () => {
           innerGroups: [{ kind: 'single', entry: UserChatEntryStub({ source: 'subagent' }) }],
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={group}
@@ -1642,7 +1642,7 @@ describe('SubagentChainWidget', () => {
           innerGroups: [inner],
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={outer}
@@ -1685,7 +1685,7 @@ describe('SubagentChainWidget', () => {
           innerGroups: [innerA, innerB],
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={outer}
@@ -1721,7 +1721,7 @@ describe('SubagentChainWidget', () => {
           innerGroups: [inner],
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <SubagentChainWidget
               group={outer}
@@ -1753,7 +1753,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1773,7 +1773,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1792,7 +1792,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1811,7 +1811,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1830,7 +1830,7 @@ describe('SubagentChainWidget', () => {
           }),
         });
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <SubagentChainWidget group={group} />,
         });
 
@@ -1847,7 +1847,7 @@ describe('SubagentChainWidget', () => {
       const proxy = SubagentChainWidgetProxy();
       const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1866,7 +1866,7 @@ describe('SubagentChainWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1885,7 +1885,7 @@ describe('SubagentChainWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 
@@ -1902,7 +1902,7 @@ describe('SubagentChainWidget', () => {
         taskNotification: null,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <SubagentChainWidget group={group} />,
       });
 

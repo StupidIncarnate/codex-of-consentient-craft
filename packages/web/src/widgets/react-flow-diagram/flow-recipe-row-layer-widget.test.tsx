@@ -1,6 +1,6 @@
 import { FlowRecipeStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FlowRecipeRowLayerWidget } from './flow-recipe-row-layer-widget';
 import { FlowRecipeRowLayerWidgetProxy } from './flow-recipe-row-layer-widget.proxy';
 
@@ -13,7 +13,7 @@ describe('FlowRecipeRowLayerWidget', () => {
       runId: 'run_2',
     });
 
-    mantineRenderAdapter({ ui: <FlowRecipeRowLayerWidget recipe={recipe} /> });
+    mantineRenderMiddleware({ ui: <FlowRecipeRowLayerWidget recipe={recipe} /> });
 
     expect(proxy.getName()).toBe('pc-walk-1');
     expect(proxy.getCitation()).toBe('inst_7f3a9c21 / run_2');

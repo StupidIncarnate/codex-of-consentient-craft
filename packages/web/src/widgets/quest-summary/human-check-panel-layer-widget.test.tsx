@@ -4,7 +4,7 @@ import {
   QuestSummaryObservableStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HumanCheckPanelLayerWidget } from './human-check-panel-layer-widget';
 import { HumanCheckPanelLayerWidgetProxy } from './human-check-panel-layer-widget.proxy';
 
@@ -15,7 +15,7 @@ describe('HumanCheckPanelLayerWidget', () => {
     it('EMPTY: {criteria: []} => renders no section at all', () => {
       const proxy = HumanCheckPanelLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[]} notes={[]} />,
       });
 
@@ -32,7 +32,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         description: 'The dungeon-raid transition never stutters',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[criterion]} notes={[]} />,
       });
 
@@ -56,7 +56,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         detail: 'Watched it end to end.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckPanelLayerWidget questId={QUEST_ID} criteria={[criterion]} notes={[note]} />,
       });
 
@@ -86,7 +86,7 @@ describe('HumanCheckPanelLayerWidget', () => {
         detail: 'Visibly janky.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <HumanCheckPanelLayerWidget
             questId={QUEST_ID}
@@ -118,7 +118,7 @@ describe('HumanCheckPanelLayerWidget', () => {
       });
       proxy.setupRecorded();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <HumanCheckPanelLayerWidget
             questId={QUEST_ID}

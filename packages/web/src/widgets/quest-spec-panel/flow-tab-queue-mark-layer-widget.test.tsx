@@ -1,6 +1,6 @@
 import { FlowIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -22,7 +22,7 @@ describe('FlowTabQueueMarkLayerWidget', () => {
       entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
     });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <FlowTabQueueMarkLayerWidget questId={QUEST_ID} flowId={FLOW_ID} />,
     });
 
@@ -34,7 +34,7 @@ describe('FlowTabQueueMarkLayerWidget', () => {
     const proxy = FlowTabQueueMarkLayerWidgetProxy();
     proxy.setupEmptyQueue();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <FlowTabQueueMarkLayerWidget questId={QUEST_ID} flowId={FLOW_ID} />,
     });
 
@@ -53,7 +53,7 @@ describe('FlowTabQueueMarkLayerWidget', () => {
       entries: [CommentQueueEntryStub({ flowId: 'checkout-flow', nodeId: 'cart-page' })],
     });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <FlowTabQueueMarkLayerWidget questId={QUEST_ID} flowId={FLOW_ID} />,
     });
 
@@ -74,7 +74,7 @@ describe('FlowTabQueueMarkLayerWidget', () => {
       ],
     });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <FlowTabQueueMarkLayerWidget questId={QUEST_ID} flowId={FLOW_ID} />,
     });
 
@@ -92,7 +92,7 @@ describe('FlowTabQueueMarkLayerWidget', () => {
       entries: [CommentQueueEntryStub({ flowId: 'login-flow', nodeId: 'login-page' })],
     });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: <FlowTabQueueMarkLayerWidget questId={QUEST_ID} flowId={FLOW_ID} />,
     });
 

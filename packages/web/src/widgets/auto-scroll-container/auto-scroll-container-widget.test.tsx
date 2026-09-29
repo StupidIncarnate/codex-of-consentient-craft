@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { TestIdStub } from '../../contracts/test-id/test-id.stub';
 import { AutoScrollContainerWidget } from './auto-scroll-container-widget';
 import { AutoScrollContainerWidgetProxy } from './auto-scroll-container-widget.proxy';
@@ -11,7 +11,7 @@ describe('AutoScrollContainerWidget', () => {
       AutoScrollContainerWidgetProxy();
       const testId = TestIdStub({ value: 'scroll-area' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <AutoScrollContainerWidget testId={testId}>
             <span data-testid="child">child content</span>
@@ -26,7 +26,7 @@ describe('AutoScrollContainerWidget', () => {
       const proxy = AutoScrollContainerWidgetProxy();
       const testId = TestIdStub({ value: 'scroll-area' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <AutoScrollContainerWidget testId={testId}>
             <span>child</span>
@@ -40,7 +40,7 @@ describe('AutoScrollContainerWidget', () => {
     it('VALID: {no testId} => renders scroll container without data-testid', () => {
       AutoScrollContainerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <AutoScrollContainerWidget>
             <span data-testid="child">child</span>

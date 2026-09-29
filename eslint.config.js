@@ -268,15 +268,6 @@ module.exports = [
     },
   },
   {
-    // ts-jest needs the scalar exports
-    files: [
-      'packages/testing/src/adapters/typescript/proxy-mock-transformer/typescript-proxy-mock-transformer-adapter.ts',
-    ],
-    rules: {
-      '@dungeonmaster/enforce-project-structure': 'off',
-    },
-  },
-  {
     files: ['**/@types/*', '**/@types/**'],
     rules: {
       '@dungeonmaster/ban-primitives': 'off',

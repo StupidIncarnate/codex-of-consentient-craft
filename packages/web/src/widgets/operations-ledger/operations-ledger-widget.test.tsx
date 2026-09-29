@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { FlowStub, OperationItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { OperationsLedgerWidget } from './operations-ledger-widget';
 import { OperationsLedgerWidgetProxy } from './operations-ledger-widget.proxy';
 
@@ -11,7 +11,7 @@ describe('OperationsLedgerWidget', () => {
     it('EMPTY: {operations: []} => renders nothing', () => {
       const proxy = OperationsLedgerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={[]} flows={[]} />,
       });
 
@@ -44,7 +44,7 @@ describe('OperationsLedgerWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={[]} />,
       });
 
@@ -84,7 +84,7 @@ describe('OperationsLedgerWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={[]} />,
       });
 
@@ -108,7 +108,7 @@ describe('OperationsLedgerWidget', () => {
       ];
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={flows} />,
       });
 
@@ -133,7 +133,7 @@ describe('OperationsLedgerWidget', () => {
         FlowStub({ id: 'view-comments', name: 'View persisted comments' }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={flows} />,
       });
 
@@ -155,7 +155,7 @@ describe('OperationsLedgerWidget', () => {
       ];
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={flows} />,
       });
 
@@ -174,7 +174,7 @@ describe('OperationsLedgerWidget', () => {
       ];
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={flows} />,
       });
 
@@ -194,7 +194,7 @@ describe('OperationsLedgerWidget', () => {
         }),
       ];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={[]} />,
       });
 
@@ -216,7 +216,7 @@ describe('OperationsLedgerWidget', () => {
       ];
       const flows = [FlowStub({ id: 'send-comment', name: 'Send queued comment batch' })];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <OperationsLedgerWidget operations={operations} flows={flows} />,
       });
 

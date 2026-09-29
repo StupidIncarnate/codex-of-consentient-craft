@@ -1,6 +1,6 @@
 import { GuildIdStub, GuildListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { GuildListWidget } from './guild-list-widget';
 import { GuildListWidgetProxy } from './guild-list-widget.proxy';
 
@@ -11,7 +11,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),
@@ -27,7 +27,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -50,7 +50,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -72,7 +72,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -95,7 +95,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget
             guilds={[guild]}
@@ -117,7 +117,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),
@@ -135,7 +135,7 @@ describe('GuildListWidget', () => {
       const onSelect = jest.fn();
       const onAdd = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <GuildListWidget guilds={[]} selectedGuildId={null} onSelect={onSelect} onAdd={onAdd} />
         ),

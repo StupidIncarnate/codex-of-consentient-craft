@@ -12,7 +12,7 @@ module.exports = {
   // This config spreads nothing, so the repo's jest.config.base.js copy of this key never reaches
   // it — the two have to be kept in step by hand.
   testEnvironmentOptions: { customExportConditions: ['source', 'require', 'default'] },
-  // A `@jest-environment jsdom` docblock file (e.g. `mantine-render-adapter.test.ts`) reaches
+  // A `@jest-environment jsdom` docblock file (e.g. `mantine-render-middleware.test.ts`) reaches
   // `setupFilesAfterEnv`'s `start-endpoint-mock-setup.ts` with no `Response` global —
   // `import { setupServer } from 'msw/node'` needs it at import time
   // (`@mswjs/interceptors`'s own `fetchUtils`), before this test file's own code runs, so a

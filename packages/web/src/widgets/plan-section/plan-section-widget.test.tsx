@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PlanSectionTestItemStub } from '../../contracts/plan-section-test-item/plan-section-test-item.stub';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { PlanSectionWidget } from './plan-section-widget';
@@ -20,7 +20,7 @@ describe('PlanSectionWidget', () => {
       const itemA = PlanSectionTestItemStub({ text: 'step-a' });
       const itemB = PlanSectionTestItemStub({ text: 'step-b' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
       });
 
@@ -33,7 +33,7 @@ describe('PlanSectionWidget', () => {
       const itemA = PlanSectionTestItemStub({ text: 'step-a' });
       const itemB = PlanSectionTestItemStub({ text: 'step-b' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA, itemB]} renderItem={renderItem} />,
       });
 
@@ -48,7 +48,7 @@ describe('PlanSectionWidget', () => {
       const title = SectionLabelStub({ value: 'STEPS' });
       const items: TestItem[] = [];
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={items} renderItem={renderItem} />,
       });
 
@@ -62,7 +62,7 @@ describe('PlanSectionWidget', () => {
       const title = SectionLabelStub({ value: 'STEPS' });
       const itemA = PlanSectionTestItemStub({ text: 'step-a' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PlanSectionWidget title={title} items={[itemA]} renderItem={renderItem} />,
       });
 

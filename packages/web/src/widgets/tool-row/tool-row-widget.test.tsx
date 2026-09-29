@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import {
   AssistantToolResultChatEntryStub,
@@ -24,7 +24,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -43,7 +43,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"pattern":"TODO","path":"/src"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -59,7 +59,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"skill":"commit","args":""}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -76,7 +76,7 @@ describe('ToolRowWidget', () => {
         source: 'subagent',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -92,7 +92,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -106,7 +106,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -117,7 +117,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} isLoading={true} />,
       });
 
@@ -136,7 +136,7 @@ describe('ToolRowWidget', () => {
         content: 'file contents',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -159,7 +159,7 @@ describe('ToolRowWidget', () => {
         isError: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -181,7 +181,7 @@ describe('ToolRowWidget', () => {
         content: 'Sibling tool call errored, skipping',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -204,7 +204,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -222,7 +222,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -236,7 +236,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -256,7 +256,7 @@ describe('ToolRowWidget', () => {
         content: 'file contents here',
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -285,7 +285,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -317,7 +317,7 @@ describe('ToolRowWidget', () => {
         content: 'file contents here',
       });
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -350,7 +350,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"command":"npm run ward"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -367,7 +367,7 @@ describe('ToolRowWidget', () => {
         content: 'file contents here',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -393,7 +393,7 @@ describe('ToolRowWidget', () => {
         isError: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -417,7 +417,7 @@ describe('ToolRowWidget', () => {
         isError: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -440,7 +440,7 @@ describe('ToolRowWidget', () => {
         content: 'Sibling tool call errored, skipping',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -461,7 +461,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -489,7 +489,7 @@ describe('ToolRowWidget', () => {
         content: 'x'.repeat(2000),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -516,7 +516,7 @@ describe('ToolRowWidget', () => {
         content: 'x'.repeat(2000),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -550,7 +550,7 @@ describe('ToolRowWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -569,7 +569,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: '/src/a.ts', content: source }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -587,7 +587,7 @@ describe('ToolRowWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -605,7 +605,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"command":"npm run ward"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -620,7 +620,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -641,7 +641,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: filePath }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -661,7 +661,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: filePath }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -679,7 +679,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"file_path":"/src/index.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -699,7 +699,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: '/src/a.ts', content: lines.join('\n') }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -722,7 +722,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: '/src/bundle.js', content }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -737,7 +737,7 @@ describe('ToolRowWidget', () => {
         toolInput: JSON.stringify({ file_path: '/src/a.ts', content }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -756,7 +756,7 @@ describe('ToolRowWidget', () => {
       proxy.setupAutoScrollReleased();
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -781,7 +781,7 @@ describe('ToolRowWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -797,7 +797,7 @@ describe('ToolRowWidget', () => {
       proxy.setupAutoScrollReleased();
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -822,7 +822,7 @@ describe('ToolRowWidget', () => {
         }),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -848,7 +848,7 @@ describe('ToolRowWidget', () => {
         content: '> @dungeonmaster/web@1.0.0 build\n> tsc\n\ndone in 4s',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -874,7 +874,7 @@ describe('ToolRowWidget', () => {
           '{"command":"git diff -- packages/web/src/widgets/tool-row/tool-row-widget.tsx"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -891,7 +891,7 @@ describe('ToolRowWidget', () => {
         toolInput: '{"glob":"packages/web/src/widgets/app/**"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -907,7 +907,7 @@ describe('ToolRowWidget', () => {
           '{"file_path":"packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -924,7 +924,7 @@ describe('ToolRowWidget', () => {
           '{"file_path":"packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts"}',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} />,
       });
 
@@ -942,7 +942,7 @@ describe('ToolRowWidget', () => {
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
       const toolResult = AssistantToolResultChatEntryStub({ toolName: 'use_1' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -964,7 +964,7 @@ describe('ToolRowWidget', () => {
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
       const toolResult = AssistantToolResultChatEntryStub({ toolName: 'use_1' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -988,7 +988,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 
@@ -1005,7 +1005,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowWidget
             toolUse={toolUse as ToolUseEntry}
@@ -1031,7 +1031,7 @@ describe('ToolRowWidget', () => {
       ToolRowWidgetProxy();
       const toolUse = AssistantToolUseChatEntryStub({ toolName: 'Read' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} />,
       });
 

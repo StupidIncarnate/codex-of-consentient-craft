@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Wires the realm-safe native-error check into mockStagingCreateTransformer. A
  * transformer may not import a node builtin, so `isNativeError` (util/types)
- * cannot reach it directly — this middleware is the channel: jestRegisterMockAdapter and
- * jestRegisterSpyOnAdapter can import middleware, and middleware can import a gateway and
+ * cannot reach it directly — this middleware is the channel: mockRegisterMiddleware and
+ * spyOnRegisterMiddleware can import middleware, and middleware can import a gateway and
  * transformers.
  *
  * USAGE:

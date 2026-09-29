@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageContentLayerWidget } from './image-content-layer-widget';
@@ -27,7 +27,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       // #one-image-element-per-image: the COMPLETE list of rendered srcs is this one element —
       // a widget that duplicated the image into two DOM nodes would fail this exact assertion.
@@ -40,7 +42,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `A![Pasted Image 1](${SRC_A})B` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       // #render-inline
       expect(proxy.getChildTestIds()).toStrictEqual([
@@ -62,7 +66,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${servedUrl})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getImageSrcs()).toStrictEqual([servedUrl]);
     });
@@ -75,7 +81,9 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getChildTestIds()).toStrictEqual([
         'CHAT_MESSAGE_TEXT',
@@ -95,7 +103,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getBubbleText()).toBe(`${textA}${textB}`);
     });
@@ -108,7 +118,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
 
@@ -124,7 +136,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `Here is the diagram: ![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       const image = screen.getByTestId('CHAT_MESSAGE_IMAGE');
 
@@ -145,7 +159,9 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getBubbleText()).toBe(message);
     });
@@ -161,7 +177,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `Look at ![Pasted Image 1](${servedUrl}) now` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getImageSrcs()).toStrictEqual([servedUrl]);
       expect(proxy.getBubbleText()).toBe('Look at  now');
@@ -178,7 +196,9 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getChildTestIds()).toStrictEqual([
         'CHAT_MESSAGE_TEXT',
@@ -197,7 +217,9 @@ describe('ImageContentLayerWidget', () => {
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
       proxy.rememberImages({ uuid, dataUrls: [dataUrl] });
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       // A `data:` src carries its own bytes inline in the attribute value, so there is nothing for
       // the browser to fetch — the "no GET issued" half of this scenario rests entirely on the src
@@ -216,7 +238,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -234,7 +256,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -251,7 +273,7 @@ describe('ImageContentLayerWidget', () => {
           UserChatEntryStub({ content: 'before [Pasted Image 1] after' }),
         ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
         });
 
@@ -270,7 +292,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.hasOverlay()).toBe(false);
 
@@ -297,7 +321,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       await proxy.clickImage({ index: 0 });
 
@@ -323,7 +349,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       await proxy.clickImage({ index: 0 });
 
@@ -349,7 +377,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `${textA}![Pasted Image 1](${SRC_A})${textB}` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       await proxy.clickImage({ index: 0 });
 
@@ -375,7 +405,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `before ![Pasted Image 1](${SRC_A}) after` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       proxy.failImage({ index: 0 });
 
@@ -392,7 +424,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       proxy.failImage({ index: 0 });
 
@@ -408,7 +442,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       proxy.failImage({ index: 0 });
 
@@ -430,7 +466,9 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       proxy.failImage({ index: 0 });
 
@@ -455,7 +493,9 @@ describe('ImageContentLayerWidget', () => {
         }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       proxy.failImage({ index: 0 });
 
@@ -474,7 +514,7 @@ describe('ImageContentLayerWidget', () => {
         UserChatEntryStub({ content: `![Pasted Image 1](${SRC_A})` }),
       ].find((candidate): candidate is UserEntry => candidate.role === 'user')!;
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
       });
 
@@ -495,7 +535,9 @@ describe('ImageContentLayerWidget', () => {
         (candidate): candidate is UserEntry => candidate.role === 'user',
       )!;
 
-      mantineRenderAdapter({ ui: <ImageContentLayerWidget content={content} entryUuid={uuid} /> });
+      mantineRenderMiddleware({
+        ui: <ImageContentLayerWidget content={content} entryUuid={uuid} />,
+      });
 
       expect(proxy.getChildTestIds()).toStrictEqual(['CHAT_MESSAGE_TEXT']);
       expect(screen.queryByTestId('CHAT_MESSAGE_IMAGE')).toBe(null);

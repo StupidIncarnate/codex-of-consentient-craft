@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { QuestRowLayerWidget } from './quest-row-layer-widget';
 import { QuestRowLayerWidgetProxy } from './quest-row-layer-widget.proxy';
 
@@ -44,7 +44,7 @@ describe('QuestRowLayerWidget', () => {
         status: 'in_progress' as never,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}
@@ -69,7 +69,7 @@ describe('QuestRowLayerWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
       const onSelectQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}
@@ -95,7 +95,7 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'complete-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}
@@ -120,7 +120,7 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'in-progress-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}
@@ -148,7 +148,7 @@ describe('QuestRowLayerWidget', () => {
       });
       const onSelectQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulQuestRowHarness
             quest={quest}
@@ -174,7 +174,7 @@ describe('QuestRowLayerWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
       const onDeleteQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulQuestRowHarness
             quest={quest}
@@ -198,7 +198,7 @@ describe('QuestRowLayerWidget', () => {
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
       const onDeleteQuest = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulQuestRowHarness
             quest={quest}
@@ -221,7 +221,7 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'inflight-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'complete' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <StatefulQuestRowHarness
             quest={quest}
@@ -244,7 +244,7 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'abandoned-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'abandoned' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}
@@ -265,7 +265,7 @@ describe('QuestRowLayerWidget', () => {
       const questId = QuestIdStub({ value: 'active-quest' });
       const quest = QuestListItemStub({ id: questId, status: 'in_progress' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <QuestRowLayerWidget
             quest={quest}

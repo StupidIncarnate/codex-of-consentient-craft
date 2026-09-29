@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { ArrayIndexStub, FlowStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { FlowTabLayerWidget } from './flow-tab-layer-widget';
 import { FlowTabLayerWidgetProxy } from './flow-tab-layer-widget.proxy';
@@ -26,7 +26,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub({ name: 'Login Flow' });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -44,7 +44,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = EmptyNameFlowStub({ id: 'flow-c' });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -62,7 +62,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub({ name: 'A'.repeat(30) });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -81,7 +81,7 @@ describe('FlowTabLayerWidget', () => {
     const longName = 'B'.repeat(30);
     const flow = FlowStub({ name: longName });
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -99,7 +99,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -117,7 +117,7 @@ describe('FlowTabLayerWidget', () => {
     FlowTabLayerWidgetProxy();
     const flow = FlowStub();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -136,7 +136,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub();
     const onSelect = jest.fn();
 
-    mantineRenderAdapter({
+    mantineRenderMiddleware({
       ui: (
         <FlowTabLayerWidget
           flow={flow}
@@ -161,7 +161,7 @@ describe('FlowTabLayerWidget', () => {
       });
       const flow = FlowStub({ id: 'login-flow' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <FlowTabLayerWidget
             flow={flow}
@@ -186,7 +186,7 @@ describe('FlowTabLayerWidget', () => {
       });
       const flow = FlowStub({ id: 'login-flow' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <FlowTabLayerWidget
             flow={flow}
@@ -206,7 +206,7 @@ describe('FlowTabLayerWidget', () => {
       proxy.setupEmptyQueue();
       const flow = FlowStub({ id: 'login-flow' as never });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <FlowTabLayerWidget
             flow={flow}

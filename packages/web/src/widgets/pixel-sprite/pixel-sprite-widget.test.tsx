@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { PixelCoordinateStub } from '../../contracts/pixel-coordinate/pixel-coordinate.stub';
 import { PixelDimensionStub } from '../../contracts/pixel-dimension/pixel-dimension.stub';
 import { PixelSpriteWidget } from './pixel-sprite-widget';
@@ -16,7 +16,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 8 });
       const height = PixelDimensionStub({ value: 20 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -42,7 +42,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 4 });
       const height = PixelDimensionStub({ value: 4 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -59,7 +59,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 8 });
       const height = PixelDimensionStub({ value: 20 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
       });
 
@@ -81,7 +81,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 8 });
       const height = PixelDimensionStub({ value: 20 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 
@@ -104,7 +104,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 8 });
       const height = PixelDimensionStub({ value: 20 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} flip />,
       });
 
@@ -121,7 +121,7 @@ describe('PixelSpriteWidget', () => {
       const width = PixelDimensionStub({ value: 8 });
       const height = PixelDimensionStub({ value: 20 });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <PixelSpriteWidget pixels={pixels} scale={scale} width={width} height={height} />,
       });
 

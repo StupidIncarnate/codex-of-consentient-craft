@@ -7,13 +7,13 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GuildListItemStub, OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
 const renderAt = ({ path, url }: { path: string; url: string }): void => {
-  mantineRenderAdapter({
+  mantineRenderMiddleware({
     ui: (
       <MemoryRouter initialEntries={[url]}>
         <Routes>

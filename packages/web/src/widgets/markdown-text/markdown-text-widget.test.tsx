@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { MarkdownSourceStub } from '../../contracts/markdown-source/markdown-source.stub';
 import { MarkdownTextWidget } from './markdown-text-widget';
 import { MarkdownTextWidgetProxy } from './markdown-text-widget.proxy';
@@ -10,7 +10,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {unmarked text} => renders one paragraph', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: 'Gate 4 complete.' })} />,
       });
 
@@ -22,7 +22,7 @@ describe('MarkdownTextWidget', () => {
     it('EMPTY: {content: ""} => renders the container with no blocks', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: '' })} />,
       });
 
@@ -34,7 +34,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {backticked identifier} => renders it as a code span, not literal backticks', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
             content={MarkdownSourceStub({ value: 'both import `navigationHarness` now' })}
@@ -50,7 +50,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {bold run} => renders it at the bold weight, not with literal asterisks', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <MarkdownTextWidget content={MarkdownSourceStub({ value: 'this is **important**' })} />,
       });
 
@@ -62,7 +62,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {marked-up paragraph} => renders the sentence with its syntax stripped', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
             content={MarkdownSourceStub({ value: 'the `nav` const is **shared**' })}
@@ -78,7 +78,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {heading, prose, list and fence} => renders every block in source order', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
             content={MarkdownSourceStub({
@@ -105,7 +105,7 @@ describe('MarkdownTextWidget', () => {
     it('VALID: {document opening on a heading, another below} => only the opening one loses its gap', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
             content={MarkdownSourceStub({ value: '# Title\n\nProse.\n\n## Section' })}
@@ -121,7 +121,7 @@ describe('MarkdownTextWidget', () => {
     it('EDGE: {markdown syntax inside a fence} => renders it verbatim rather than as structure', () => {
       MarkdownTextWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
             content={MarkdownSourceStub({ value: '```\n# not a heading\n```' })}

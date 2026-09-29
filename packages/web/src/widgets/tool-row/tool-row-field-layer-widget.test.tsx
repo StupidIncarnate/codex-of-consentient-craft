@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { FormattedToolFieldStub } from '../../contracts/formatted-tool-field/formatted-tool-field.stub';
 import { ToolNameStub } from '../../contracts/tool-name/tool-name.stub';
 import { ToolRowFieldLayerWidget } from './tool-row-field-layer-widget';
@@ -18,7 +18,7 @@ describe('ToolRowFieldLayerWidget', () => {
       });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -41,7 +41,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const field = FormattedToolFieldStub({ key: 'file_path', value: filePath, isLong: true });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -63,7 +63,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const field = FormattedToolFieldStub({ key: 'file_path', value: filePath, isLong: true });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -92,7 +92,7 @@ describe('ToolRowFieldLayerWidget', () => {
       });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -119,7 +119,7 @@ describe('ToolRowFieldLayerWidget', () => {
       });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -150,7 +150,7 @@ describe('ToolRowFieldLayerWidget', () => {
       });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}
@@ -173,7 +173,7 @@ describe('ToolRowFieldLayerWidget', () => {
       });
       const holdAnchor = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ToolRowFieldLayerWidget
             field={field}

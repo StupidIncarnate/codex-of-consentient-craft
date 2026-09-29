@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import type { InjectedPromptLayerWidgetProps } from './injected-prompt-layer-widget';
@@ -18,7 +18,7 @@ describe('InjectedPromptLayerWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <InjectedPromptLayerWidget
             entry={entry as UserEntry}
@@ -42,7 +42,7 @@ describe('InjectedPromptLayerWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <InjectedPromptLayerWidget
             entry={entry as UserEntry}
@@ -66,7 +66,7 @@ describe('InjectedPromptLayerWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <InjectedPromptLayerWidget
             entry={entry as UserEntry}
@@ -92,7 +92,7 @@ describe('InjectedPromptLayerWidget', () => {
         isInjectedPrompt: true,
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <InjectedPromptLayerWidget
             entry={entry as UserEntry}

@@ -1,6 +1,6 @@
 import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { RateLimitCardWidget } from './rate-limit-card-widget';
 import { RateLimitCardWidgetProxy } from './rate-limit-card-widget.proxy';
 
@@ -10,7 +10,7 @@ describe('RateLimitCardWidget', () => {
     const futureIso = new Date(Date.now() + 2 * 3600 * 1000 + 5 * 60 * 1000).toISOString();
     const window = RateLimitWindowStub({ usedPercentage: 42, resetsAt: futureIso });
 
-    const { getByTestId } = mantineRenderAdapter({
+    const { getByTestId } = mantineRenderMiddleware({
       ui: <RateLimitCardWidget label="5h" window={window} />,
     });
 
@@ -24,7 +24,7 @@ describe('RateLimitCardWidget', () => {
     const futureIso = new Date(Date.now() + 4 * 86_400 * 1000 + 11 * 3600 * 1000).toISOString();
     const window = RateLimitWindowStub({ usedPercentage: 20, resetsAt: futureIso });
 
-    const { getByTestId } = mantineRenderAdapter({
+    const { getByTestId } = mantineRenderMiddleware({
       ui: <RateLimitCardWidget label="7d" window={window} />,
     });
 

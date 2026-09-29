@@ -10,7 +10,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import {
   AssistantTextChatEntryStub,
   AssistantThinkingChatEntryStub,
@@ -47,7 +47,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {order: 1} => renders zero-padded order number', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -64,7 +64,7 @@ describe('ExecutionRowLayerWidget', () => {
       // literal \u2014 enforce-stub-usage wants every Props-shaped value built through defaultProps().
       const { order: _omittedOrder, ...propsWithoutOrder } = defaultProps();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...propsWithoutOrder} />,
       });
 
@@ -76,7 +76,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {indented: true} => renders no [ROLE] badge, since the header above already names it', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
       });
 
@@ -86,7 +86,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {indented: true} => shifts the row right with a left margin', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} indented={true} />,
       });
 
@@ -98,7 +98,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {indented omitted} => renders the [ROLE] badge and carries no left margin', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -113,7 +113,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {role: "codeweaver"} => renders uppercase role badge', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -125,7 +125,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {role: "ward"} => renders ward role badge', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -144,7 +144,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {role: "codeweaver", workItem.step: "ward"} => paints the role badge and chevron in the ward warning colour', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -168,7 +168,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {name: "Build auth flow"} => renders step name', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -180,7 +180,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {name: "Build auth flow"} => execution-row-name carries exactly the name text, isolated from the order/badge/status around it', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -192,7 +192,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "pending"} => renders PENDING label', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -204,7 +204,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress"} => renders RUNNING label', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -221,7 +221,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "complete"} => renders DONE label', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -238,7 +238,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "failed"} => renders FAILED label', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -257,7 +257,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "reviewing_by_dragon" (unknown to this build)} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} status={'reviewing_by_dragon' as never} />,
       });
 
@@ -272,7 +272,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {role: "questgiver" (unknown to this build)} => renders the role badge with the neutral fallback colour, instead of crashing', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} role={'questgiver' as never} />,
       });
 
@@ -287,7 +287,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "partially_complete" (a stale quest.json a family that still minted this status wrote, removed from this build)} => renders the raw status as its own label, with the neutral fallback colour, instead of crashing', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
       });
 
@@ -302,7 +302,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "partially_complete" (removed from EXPANDABLE_STATUSES), no entries} => clicking the header does not expand the row, same as any other unrecognized status', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} status={'partially_complete' as never} />,
       });
 
@@ -317,7 +317,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {isAdhoc: true} => renders AD-HOC tag', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} isAdhoc={true} />,
       });
 
@@ -329,7 +329,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {isAdhoc: false} => does not render AD-HOC tag', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -339,7 +339,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {isAdhoc: true} => renders dashed border', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} isAdhoc={true} />,
       });
 
@@ -353,7 +353,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "pending", dependsOn: ["step-1"]} => renders depends on subtitle', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -370,7 +370,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "queued", dependsOn: ["step-1"]} => renders waiting for slot subtitle', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -388,7 +388,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {no deps, no files} => does not render subtitle', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -400,7 +400,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress"} => clicking header expands content', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -421,7 +421,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "pending", no entries} => clicking header does not expand', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -434,7 +434,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "pending", entries: [text]} => clicking header expands content', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -463,7 +463,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", no entries, before any click} => collapsed, no subagent-chain-duration', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -481,7 +481,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", no entries, 1 header click} => expands, no subagent-chain-duration', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -501,7 +501,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", no entries, 2 header clicks} => collapses again, no subagent-chain-duration', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -523,7 +523,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", no entries, 3 header clicks} => re-expands, no subagent-chain-duration', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -546,7 +546,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", no entries, 4 header clicks} => collapses again, no subagent-chain-duration', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -572,7 +572,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", entries, isRunningFocus: false} => starts collapsed, and a header click still expands it', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -593,7 +593,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: "in_progress", entries, isRunningFocus omitted} => auto-expands, as today', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -613,7 +613,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -641,7 +641,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const entries = [AssistantTextChatEntryStub({ content: 'Prior session output' })];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -669,7 +669,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const entries = [AssistantTextChatEntryStub({ content: 'Working...' })];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -697,7 +697,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const entries = [AssistantTextChatEntryStub({ content: 'Working on it' })];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -739,7 +739,7 @@ describe('ExecutionRowLayerWidget', () => {
 
       const entries = [AssistantTextChatEntryStub({ content: 'Done.' })];
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -772,7 +772,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, files} => shows files in expanded view', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -796,7 +796,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, errorMessage} => shows error message', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -817,7 +817,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, summary} => shows summary text', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -838,7 +838,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, summary + errorMessage} => shows both summary and error', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -862,7 +862,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, no summary} => does not render summary element', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -882,7 +882,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {in_progress with entries} => auto-expands and renders execution messages', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -901,7 +901,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {isStreaming true} => renders streaming bar', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -918,7 +918,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {ad-hoc with spiritmender entries} => renders with dashed border, AD-HOC tag, and messages', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -945,7 +945,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {in_progress with subagent entries} => renders subagent chain header', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -969,7 +969,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {multiple thinking entries, show all earlier} => all thinking rows render in order', async () => {
       const proxy = ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -993,7 +993,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {multiple thinking entries, default tail-window} => only the last thinking entry is rendered', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1014,7 +1014,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {multiple tool pairs separated by text, show all earlier} => all tool rows render', async () => {
       const proxy = ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1043,7 +1043,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {multiple tool pairs separated by text, default tail-window} => only last text + subsequent tool render', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1082,7 +1082,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: in_progress, expanded, 3 texts + 2 tool-pairs} => only the last text renders, earlier text is absent', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1102,7 +1102,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: complete, reader opens the row, SAME transcript} => every text and both tool rows render', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1129,7 +1129,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: failed, reader opens the row, SAME transcript} => every text renders', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1151,7 +1151,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: complete, reader opens the row then clicks the toggle} => the transcript folds back to its tail', async () => {
       const proxy = ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1175,7 +1175,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {wardResults with exitCode 0} => renders ward exit code with success', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1196,7 +1196,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {wardResults with exitCode 1 and wardMode "changed"} => renders exit code and ward mode', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1217,7 +1217,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {wardResults with wardMode "full"} => renders ward mode in parentheses', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1238,7 +1238,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {no wardResults} => does not render ward result elements', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1258,7 +1258,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {riftcarverResults with exitCode 0} => renders riftcarver exit code with outcome', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1279,7 +1279,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {riftcarverResults with exitCode 1 and outcome "repairable"} => renders exit code and outcome', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1302,7 +1302,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {no riftcarverResults} => does not render riftcarver result elements', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1322,7 +1322,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {expanded view} => does not render description element', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1342,7 +1342,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {workItem with assigned units} => renders the units-marks readout via the work item, not a separate prop', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1366,7 +1366,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {workItem: undefined} => does not render the units-marks readout', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1386,7 +1386,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {scopeWorkItems where a unit was marked twice} => renders the churn sequence', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1418,7 +1418,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {scopeWorkItems: undefined} => does not render the churn view', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1438,7 +1438,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, workItem with an unmet observation} => renders the unit id and evidence', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1468,7 +1468,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, workItem with both a met and an unmet observation} => renders only the unmet one', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1503,7 +1503,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {expanded, workItem with only a met observation} => does not render the unmet list', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1522,7 +1522,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {expanded, no workItem} => does not render the unmet list', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1542,7 +1542,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {inputContracts provided} => renders input contracts list', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1563,7 +1563,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {outputContracts provided} => renders output contracts list', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1589,7 +1589,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {attempt: 1, maxAttempts: 3} => renders retry badge', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1607,7 +1607,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {attempt: 0, maxAttempts: 3} => does not render retry badge', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1625,7 +1625,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {mintedByLabel: "walk pt: 1"} => renders a badge naming the row it returns to', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -1642,7 +1642,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {mintedByLabel omitted} => does not render the back-edge badge', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -1657,7 +1657,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EMPTY: {status: in_progress, now, no startedAt} => renders no duration element', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1682,7 +1682,7 @@ describe('ExecutionRowLayerWidget', () => {
         (status) => {
           ExecutionRowLayerWidgetProxy();
 
-          mantineRenderAdapter({
+          mantineRenderMiddleware({
             ui: (
               <ExecutionRowLayerWidget
                 {...defaultProps()}
@@ -1702,7 +1702,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 4m before now} => renders "4m" on first render, no tick', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1719,7 +1719,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 30s before now} => renders "<1m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1736,7 +1736,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 59s before now} => renders "<1m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1753,7 +1753,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {in_progress, startedAt exactly 60s before now} => renders "1m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1770,7 +1770,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 4m30s before now} => renders "4m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1787,7 +1787,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 59m59s before now} => renders "59m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1804,7 +1804,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {in_progress, startedAt exactly 60m before now} => renders "1h"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1821,7 +1821,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, startedAt 1h13m before now} => renders "1h13m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1838,7 +1838,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {in_progress, startedAt exactly 2h before now} => renders "2h"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1860,7 +1860,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress, freshly mounted with startedAt 4m58s before now} => the one and only render shows "4m", not a value carried over from before the mount', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1879,7 +1879,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {complete, 12s span} => renders "<1m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1898,7 +1898,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {complete, 4m12s span} => renders "4m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1917,7 +1917,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {complete, 1h13m span} => renders "1h13m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1936,7 +1936,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {complete, exactly 2h span} => renders "2h"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1955,7 +1955,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {complete, now advances 60s on rerender} => figure stays frozen at completedAt', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -1989,7 +1989,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress => complete, same now} => "4m" is replaced by "1h13m" on that render', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2020,7 +2020,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress <1m => complete 1h13m span, same now} => "<1m" is replaced by "1h13m" on that render', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2051,7 +2051,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress 1h13m => complete 2h span, same now} => "1h13m" is replaced by "2h" on that render', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2084,7 +2084,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {pending, startedAt, now} => status badge renders "PENDING"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2101,7 +2101,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {pending, startedAt, now} => renders no duration element', () => {
         ExecutionRowLayerWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2118,7 +2118,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress => pending => in_progress with fresh startedAt} => figure restarts at "<1m", not "4m"', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2157,7 +2157,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress <1m => pending, same now} => "<1m" figure disappears', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2185,7 +2185,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('VALID: {in_progress 1h13m => pending, same now} => "1h13m" figure disappears', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2213,7 +2213,7 @@ describe('ExecutionRowLayerWidget', () => {
       it('EDGE: {in_progress startedAt 59.5s before now (still "<1m") => pending, same now} => duration stays absent on the pause commit AND the commit after it (no stale node survives a second render)', () => {
         ExecutionRowLayerWidgetProxy();
 
-        const { rerender } = mantineRenderAdapter({
+        const { rerender } = mantineRenderMiddleware({
           ui: (
             <ExecutionRowLayerWidget
               {...defaultProps()}
@@ -2258,7 +2258,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {entries with usage, expanded} => renders context label in header', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2286,7 +2286,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {entries without usage} => does not render context label in header', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2302,7 +2302,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, tool-pair with usage} => no TOKEN_BADGE on tool row (per-tool delta is misattribution when multiple tools fire per turn)', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2331,7 +2331,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, tool-pair with result content} => renders RESULT_TOKEN_BADGE', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2355,7 +2355,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded, single assistant text with usage} => no TOKEN_BADGE (no prev to diff against; baseline is not a delta)', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2385,7 +2385,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {actualSignal=complete} => renders actual signal line', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2406,7 +2406,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {failed status, actualSignal} => signal text is rendered in danger color', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2427,7 +2427,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('EMPTY: {no actualSignal} => does not render signal block', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2449,7 +2449,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {collapsed} => header does not pin', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ExecutionRowLayerWidget {...defaultProps()} />,
       });
 
@@ -2461,7 +2461,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded} => header pins flush to the execution panel with the top band', async () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2488,7 +2488,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {expanded with subagent entries} => chain inside the row pins below the row header', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2536,7 +2536,7 @@ describe('ExecutionRowLayerWidget', () => {
     it("VALID: {status: in_progress, entries: Task tool use + subagent text} => the SUBAGENT_CHAIN element renders inside the row's own element", () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2555,7 +2555,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: in_progress, now supplied} => renders one subagent-chain-duration element carrying the elapsed band', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2574,7 +2574,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: complete, autoExpand, SAME entries and now as the in_progress case} => renders no subagent-chain-duration element', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2594,7 +2594,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {status: failed, autoExpand, SAME entries and now as the in_progress case} => renders no subagent-chain-duration element', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2620,7 +2620,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {riftcarver row, three output lines} => renders ONE message block carrying all three lines, not three', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2645,7 +2645,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {riftcarver row, npm script echo line} => renders it verbatim rather than as a markdown blockquote', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
@@ -2670,7 +2670,7 @@ describe('ExecutionRowLayerWidget', () => {
     it('VALID: {codeweaver row, three text entries} => does NOT join them, rendering one block per message', () => {
       ExecutionRowLayerWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}

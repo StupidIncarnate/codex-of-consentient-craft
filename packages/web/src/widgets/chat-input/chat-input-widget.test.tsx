@@ -6,7 +6,7 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { composerInsertImageBroker } from '../../brokers/composer/insert-image/composer-insert-image-broker';
 import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
@@ -48,7 +48,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -66,7 +66,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={true}
@@ -95,7 +95,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       proxy.attachFails({ error: new Error('unused by this assertion') });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -120,7 +120,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -147,7 +147,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -182,7 +182,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -222,7 +222,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -258,7 +258,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -292,7 +292,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -333,7 +333,7 @@ describe('ChatInputWidget', () => {
         error: new Error('exceeds the byte ceiling even at the downscale floor'),
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -368,7 +368,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       proxy.attachFails({ error: new Error('failed to decode image') });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -401,7 +401,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -428,7 +428,7 @@ describe('ChatInputWidget', () => {
         Promise.resolve(),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -451,7 +451,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -474,7 +474,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -498,7 +498,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -546,7 +546,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -597,7 +597,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -660,7 +660,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -725,7 +725,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -778,7 +778,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -831,7 +831,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -884,7 +884,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -933,7 +933,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -967,7 +967,7 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -994,7 +994,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1030,7 +1030,7 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1066,7 +1066,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1101,7 +1101,7 @@ describe('ChatInputWidget', () => {
       const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
         Promise.resolve(),
       );
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1136,7 +1136,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1189,7 +1189,7 @@ describe('ChatInputWidget', () => {
       const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
         Promise.resolve(),
       );
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1247,7 +1247,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1321,7 +1321,7 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1351,7 +1351,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       localStorage.setItem(DRAFT_STORAGE_KEY, 'A[Pasted Image 1]B');
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1381,7 +1381,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       proxy.indexedDbUnavailable({ error: new Error('indexedDB unavailable') });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1427,7 +1427,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1481,7 +1481,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1502,7 +1502,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1523,7 +1523,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1553,7 +1553,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1610,7 +1610,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1672,7 +1672,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1696,7 +1696,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1721,7 +1721,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1745,7 +1745,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1767,7 +1767,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1793,7 +1793,7 @@ describe('ChatInputWidget', () => {
         Promise.resolve(),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1858,7 +1858,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1905,7 +1905,7 @@ describe('ChatInputWidget', () => {
         return new Promise<void>(() => {});
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1947,7 +1947,7 @@ describe('ChatInputWidget', () => {
         return new Promise<void>(() => {});
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -1995,7 +1995,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2029,7 +2029,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Could not save pasted image')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2063,7 +2063,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2131,7 +2131,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Could not save pasted image')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2188,7 +2188,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2245,7 +2245,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2289,7 +2289,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2333,7 +2333,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2377,7 +2377,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2403,7 +2403,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2447,7 +2447,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => new Promise<void>(() => {}));
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2469,7 +2469,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       const onSendMessage = jest.fn(async (): Promise<void> => Promise.resolve());
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2497,7 +2497,7 @@ describe('ChatInputWidget', () => {
         Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2530,7 +2530,7 @@ describe('ChatInputWidget', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2578,7 +2578,7 @@ describe('ChatInputWidget', () => {
       // in-flight fetch's continuation.
       firstRender.unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2615,7 +2615,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       localStorage.setItem(MAIN_DRAFT_STORAGE_KEY, 'first scope draft');
 
-      const { rerender } = mantineRenderAdapter({
+      const { rerender } = mantineRenderMiddleware({
         ui: (
           <MemoryRouter initialEntries={[`/test-guild/quest/${SCOPE_CHANGE_QUEST_ID}`]}>
             <Routes>
@@ -2687,7 +2687,7 @@ describe('ChatInputWidget', () => {
       // The pre-scoping key: the prefix read ALONE, with no ":<scopeKey>" suffix.
       localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2716,7 +2716,7 @@ describe('ChatInputWidget', () => {
       proxy.clearStorage();
       localStorage.setItem(chatComposerStatics.draftStorageKeyPrefix, 'legacy draft');
 
-      const firstRender = mantineRenderAdapter({
+      const firstRender = mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}
@@ -2732,7 +2732,7 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <ChatInputWidget
             isStreaming={false}

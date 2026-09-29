@@ -2,7 +2,7 @@ import { waitFor } from '@testing-library/react';
 
 import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 
@@ -17,7 +17,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -30,7 +30,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -48,7 +48,7 @@ describe('CommentQueueBarWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -59,7 +59,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -72,7 +72,7 @@ describe('CommentQueueBarWidget', () => {
     it('VALID: {click COMMENT_CLEAR_BUTTON} => the dungeonmaster-quest-comments-{questId} key is absent from localStorage after clicking', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -84,7 +84,7 @@ describe('CommentQueueBarWidget', () => {
     it('VALID: {click COMMENT_CLEAR_BUTTON} => calls onSend zero times', async () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -99,7 +99,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -132,7 +132,7 @@ describe('CommentQueueBarWidget', () => {
         ],
       });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -164,7 +164,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendServerError({ error: 'Quest write failed' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -189,7 +189,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendServerError({ error: 'Quest write failed' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -211,7 +211,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendNetworkError();
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -231,7 +231,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendNetworkError();
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -277,7 +277,7 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -307,7 +307,7 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -341,7 +341,7 @@ describe('CommentQueueBarWidget', () => {
       proxy.setupSendStale({
         staleAnchors: [CommentAnchorStub({ flowId: 'flow-b', nodeId: 'node-b' })],
       });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -360,7 +360,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendSucceeds({ chatProcessId: 'proc-1' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 
@@ -380,7 +380,7 @@ describe('CommentQueueBarWidget', () => {
       const proxy = CommentQueueBarWidgetProxy();
       proxy.setupQueuedComments({ questId: QUEST_ID, entries: [CommentQueueEntryStub()] });
       proxy.setupSendServerError({ error: 'Quest write failed' });
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentQueueBarWidget questId={QUEST_ID} onSend={proxy.onSend} />,
       });
 

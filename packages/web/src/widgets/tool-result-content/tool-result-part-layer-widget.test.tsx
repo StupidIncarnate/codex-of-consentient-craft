@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CssPixelsStub } from '@dungeonmaster/shared/contracts';
 import {
   ToolResultMarkdownPartStub,
@@ -19,7 +19,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ text: 'file contents here' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -33,7 +33,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ label: 'model', text: 'sonnet' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -47,7 +47,7 @@ describe('ToolResultPartLayerWidget', () => {
       ToolResultPartLayerWidgetProxy();
       const part = ToolResultPartStub({ label: 'stdout', text: 'building...\nfailed at step 2' });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -68,7 +68,7 @@ describe('ToolResultPartLayerWidget', () => {
         source: '# Operator\n\nYou own ONE operation item.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 
@@ -83,7 +83,7 @@ describe('ToolResultPartLayerWidget', () => {
         source: '# Architecture Overview\n\nLLMs squirrel code away.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <ToolResultPartLayerWidget part={part} color={DIM} fontSize={FONT_SIZE} />,
       });
 

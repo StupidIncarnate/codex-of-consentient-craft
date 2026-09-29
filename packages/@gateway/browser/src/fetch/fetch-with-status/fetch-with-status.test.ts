@@ -95,12 +95,15 @@ describe('fetchWithStatus', () => {
       expect(result).toStrictEqual({ status: 200, ok: true, body: '{"id":"q1","n":[1,2]}' });
     });
 
-    it('ERROR: {bodyText that is not JSON} => throws at staging naming the text', () => {
+    it('VALID: {held bodyText that is not JSON, released} => resolves the text verbatim', async () => {
       const proxy = fetchWithStatusProxy();
+      const held = proxy.setupHeld({ url: '/api/quests', bodyText: 'plain text, not json' });
 
-      expect(() => proxy.setupHeld({ url: '/api/quests', bodyText: 'plain' })).toThrow(
-        /^setupHeld: bodyText must be JSON text, got: plain$/u,
-      );
+      const pending = fetchWithStatus({ url: '/api/quests' });
+      held.release();
+      const result = await pending;
+
+      expect(result).toStrictEqual({ status: 200, ok: true, body: 'plain text, not json' });
     });
   });
 

@@ -6,7 +6,7 @@ import {
   QuestSummaryObservableStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HumanCheckRowLayerWidget } from './human-check-row-layer-widget';
 import { HumanCheckRowLayerWidgetProxy } from './human-check-row-layer-widget.proxy';
 
@@ -20,7 +20,7 @@ describe('HumanCheckRowLayerWidget', () => {
         description: 'The dungeon-raid transition never stutters',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -31,7 +31,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const proxy = HumanCheckRowLayerWidgetProxy();
       const criterion = QuestSummaryObservableStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -43,7 +43,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const proxy = HumanCheckRowLayerWidgetProxy();
       const criterion = QuestSummaryObservableStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -55,7 +55,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const proxy = HumanCheckRowLayerWidgetProxy();
       const criterion = QuestSummaryObservableStub();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -70,7 +70,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const criterion = QuestSummaryObservableStub({ observableId: 'motion-feels-smooth' });
       proxy.setupRecorded();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -87,7 +87,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const criterion = QuestSummaryObservableStub({ observableId: 'motion-feels-smooth' });
       proxy.setupRecorded();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -104,7 +104,7 @@ describe('HumanCheckRowLayerWidget', () => {
       const criterion = QuestSummaryObservableStub({ observableId: 'motion-feels-smooth' });
       const { release } = proxy.setupHeld();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -130,7 +130,7 @@ describe('HumanCheckRowLayerWidget', () => {
         error: 'Observable "motion-feels-smooth" is not flagged verifyByHuman',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={null} />,
       });
 
@@ -155,7 +155,7 @@ describe('HumanCheckRowLayerWidget', () => {
         detail: 'Watched the raid transition end to end — it never stutters.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={note} />,
       });
 
@@ -175,7 +175,7 @@ describe('HumanCheckRowLayerWidget', () => {
         detail: 'The panel jumps two pixels right before it settles — visibly janky.',
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <HumanCheckRowLayerWidget questId={QUEST_ID} criterion={criterion} note={note} />,
       });
 

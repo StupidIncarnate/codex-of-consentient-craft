@@ -12,7 +12,7 @@ import {
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { act } from '#gateway/npm/testing-library__react';
 import { HomeContentWidget } from '../home-content/home-content-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
@@ -21,7 +21,7 @@ import { AppWidget } from './app-widget';
 import { AppWidgetProxy } from './app-widget.proxy';
 
 const renderApp = (): void => {
-  mantineRenderAdapter({
+  mantineRenderMiddleware({
     ui: (
       <MemoryRouter initialEntries={['/']}>
         <Routes>

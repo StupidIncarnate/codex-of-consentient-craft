@@ -5,7 +5,7 @@ import {
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
@@ -36,7 +36,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
 
@@ -48,7 +48,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -64,7 +64,7 @@ describe('CommentPopoverWidget', () => {
       proxy.setupEmptyQueue();
       const onCardClick = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <div onClick={onCardClick} role="presentation">
             <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />
@@ -83,7 +83,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -95,7 +95,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -117,7 +117,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -134,7 +134,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -151,7 +151,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -178,7 +178,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -192,7 +192,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <CommentPopoverWidget
             questId={QUEST_ID}
@@ -223,7 +223,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -243,7 +243,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'already queued' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -260,7 +260,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: LONG_TOKEN_TEXT })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -279,7 +279,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'already queued' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -296,7 +296,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'already queued' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -316,7 +316,7 @@ describe('CommentPopoverWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -342,7 +342,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
 
@@ -357,7 +357,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'already queued' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
 
@@ -369,7 +369,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -384,7 +384,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <div>
             <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />
@@ -401,7 +401,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -418,7 +418,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -439,7 +439,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'already queued' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -458,7 +458,7 @@ describe('CommentPopoverWidget', () => {
         ],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <CommentPopoverWidget
             questId={QUEST_ID}
@@ -480,7 +480,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'a note on the node, not the assertion' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <CommentPopoverWidget
             questId={QUEST_ID}
@@ -502,7 +502,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
 
@@ -513,7 +513,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
 
@@ -530,7 +530,7 @@ describe('CommentPopoverWidget', () => {
       const proxy = CommentPopoverWidgetProxy();
       proxy.setupEmptyQueue();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -549,7 +549,7 @@ describe('CommentPopoverWidget', () => {
         entries: [CommentQueueEntryStub({ text: 'original text' })],
       });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();
@@ -569,7 +569,7 @@ describe('CommentPopoverWidget', () => {
       ];
       proxy.setupQueuedComments({ questId: QUEST_ID, entries });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <CommentPopoverWidget questId={QUEST_ID} flowId={FLOW_ID} nodeId={NODE_ID} />,
       });
       await proxy.clickCommentButton();

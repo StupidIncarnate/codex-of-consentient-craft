@@ -6,13 +6,13 @@
  * import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
  */
 
-export { jestRegisterMockAdapter as registerMock } from './adapters/jest/register-mock/jest-register-mock-adapter';
+export { mockRegisterMiddleware as registerMock } from './middleware/mock-register/mock-register-middleware';
 export type { MockHandle } from './contracts/mock-handle/mock-handle-contract';
 export type { MockStaging } from './contracts/mock-staging/mock-staging-contract';
 export type { RecordedCalls } from './contracts/recorded-calls/recorded-calls-contract';
-export { jestRegisterSpyOnAdapter as registerSpyOn } from './adapters/jest/register-spy-on/jest-register-spy-on-adapter';
-export type { SpyOnHandle } from './adapters/jest/register-spy-on/jest-register-spy-on-adapter';
-export { jestRegisterModuleMockAdapter as registerModuleMock } from './adapters/jest/register-module-mock/jest-register-module-mock-adapter';
-export { jestRequireActualAdapter as requireActual } from './adapters/jest/require-actual/jest-require-actual-adapter';
-export { jestIsolateModulesAdapter as isolateModules } from './adapters/jest/isolate-modules/jest-isolate-modules-adapter';
-export type { IsolateModulesMock } from './adapters/jest/isolate-modules/jest-isolate-modules-adapter';
+export { spyOnRegisterMiddleware as registerSpyOn } from './middleware/spy-on-register/spy-on-register-middleware';
+export type { SpyOnHandle } from './middleware/spy-on-register/spy-on-register-middleware';
+export { moduleMockRegisterMiddleware as registerModuleMock } from './middleware/module-mock-register/module-mock-register-middleware';
+export { actualModuleRequireMiddleware as requireActual } from './middleware/actual-module-require/actual-module-require-middleware';
+export { modulesIsolateMiddleware as isolateModules } from './middleware/modules-isolate/modules-isolate-middleware';
+export type { IsolateModulesMock } from './contracts/isolate-modules-mock/isolate-modules-mock-contract';

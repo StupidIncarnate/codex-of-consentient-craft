@@ -1,6 +1,6 @@
 import { IconSend, IconTrash } from '@tabler/icons-react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
 import { ButtonVariantStub } from '../../contracts/button-variant/button-variant.stub';
 import { IconButtonSizeStub } from '../../contracts/icon-button-size/icon-button-size.stub';
@@ -30,7 +30,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {label, icon, onClick} => renders the glyph it was handed, as a button under the accessible name', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <IconButtonWidget label={LABEL} icon={IconSend} onClick={jest.fn()} testId={TEST_ID} />,
       });
 
@@ -42,7 +42,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {rendered} => the button carries the shared near-square corner radius', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <IconButtonWidget label={LABEL} icon={IconSend} onClick={jest.fn()} testId={TEST_ID} />,
       });
 
@@ -54,7 +54,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {no size} => falls back to the shared small member of the Mantine scale', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <IconButtonWidget label={LABEL} icon={IconSend} onClick={jest.fn()} testId={TEST_ID} />,
       });
 
@@ -67,7 +67,7 @@ describe('IconButtonWidget', () => {
       (member) => {
         const proxy = IconButtonWidgetProxy();
 
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <IconButtonWidget
               label={LABEL}
@@ -89,7 +89,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {no variant} => renders the default brown treatment', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <IconButtonWidget label={LABEL} icon={IconSend} onClick={jest.fn()} testId={TEST_ID} />,
       });
 
@@ -100,7 +100,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {variant: ghost} => renders the same brown treatment omitting the variant does', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <IconButtonWidget
             label={LABEL}
@@ -119,7 +119,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {variant: primary} => renders the orange fill PLAY and SEND carry', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <IconButtonWidget
             label={LABEL}
@@ -138,7 +138,7 @@ describe('IconButtonWidget', () => {
     it('VALID: {variant: danger} => renders the STOP red fill', () => {
       const proxy = IconButtonWidgetProxy();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <IconButtonWidget
             label={LABEL}
@@ -160,7 +160,7 @@ describe('IconButtonWidget', () => {
       const proxy = IconButtonWidgetProxy();
       const onClick = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <IconButtonWidget label={LABEL} icon={IconSend} onClick={onClick} testId={TEST_ID} />,
       });
       await proxy.click();
@@ -172,7 +172,7 @@ describe('IconButtonWidget', () => {
       const proxy = IconButtonWidgetProxy();
       const onClick = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: (
           <IconButtonWidget
             label={LABEL}

@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { GuildAddModalWidget } from './guild-add-modal-widget';
 import { GuildAddModalWidgetProxy } from './guild-add-modal-widget.proxy';
 
@@ -11,7 +11,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -23,7 +23,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -35,7 +35,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -47,7 +47,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -59,7 +59,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -73,7 +73,7 @@ describe('GuildAddModalWidget', () => {
 
       proxy.setupDirectoryBrowse({ entries: [] });
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
 
@@ -88,7 +88,7 @@ describe('GuildAddModalWidget', () => {
       proxy.setupDirectoryBrowse({ entries: [] });
       const onClose = jest.fn();
 
-      mantineRenderAdapter({
+      mantineRenderMiddleware({
         ui: <GuildAddModalWidget opened={true} onClose={onClose} onSubmit={jest.fn()} />,
       });
 

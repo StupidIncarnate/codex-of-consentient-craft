@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { LogoWidget } from './logo-widget';
 import { LogoWidgetProxy } from './logo-widget.proxy';
 
@@ -9,7 +9,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders ASCII logo text', () => {
       const proxy = LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       expect(proxy.hasAsciiLogo()).toBe(true);
     });
@@ -17,7 +17,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders two pixel sprites for fireball icons', () => {
       const proxy = LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       expect(proxy.hasTwoSprites()).toBe(true);
     });
@@ -25,7 +25,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders logo group container', () => {
       const proxy = LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       expect(proxy.hasLogoGroup()).toBe(true);
     });
@@ -33,7 +33,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders ASCII pre element with primary color', () => {
       LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       const pre = screen.getByTestId('LOGO_ASCII');
 
@@ -43,7 +43,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders ASCII pre element with 7px font size', () => {
       LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       const pre = screen.getByTestId('LOGO_ASCII');
 
@@ -53,7 +53,7 @@ describe('LogoWidget', () => {
     it('VALID: {} => renders ASCII pre element with monospace font', () => {
       LogoWidgetProxy();
 
-      mantineRenderAdapter({ ui: <LogoWidget /> });
+      mantineRenderMiddleware({ ui: <LogoWidget /> });
 
       const pre = screen.getByTestId('LOGO_ASCII');
 

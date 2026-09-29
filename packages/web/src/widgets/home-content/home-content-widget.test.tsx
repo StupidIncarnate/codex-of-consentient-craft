@@ -14,7 +14,7 @@ import {
   SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
+import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
@@ -35,7 +35,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -64,7 +64,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -90,7 +90,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -123,7 +123,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -172,7 +172,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -214,7 +214,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -246,7 +246,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -274,7 +274,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -304,7 +304,7 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -361,7 +361,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -431,7 +431,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [session] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -510,7 +510,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [session] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter initialEntries={['/']}>
               <Routes>
@@ -583,7 +583,7 @@ describe('HomeContentWidget', () => {
       proxy.setupSessions({ sessions: [] });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -654,7 +654,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDeleteQuest();
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -714,7 +714,7 @@ describe('HomeContentWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -774,7 +774,7 @@ describe('HomeContentWidget', () => {
       proxy.setupDeleteQuestRejectsWithoutMessage({ questId, guildId });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -835,7 +835,7 @@ describe('HomeContentWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
@@ -872,7 +872,7 @@ describe('HomeContentWidget', () => {
       });
 
       await act(async () => {
-        mantineRenderAdapter({
+        mantineRenderMiddleware({
           ui: (
             <MemoryRouter>
               <HomeContentWidget />
