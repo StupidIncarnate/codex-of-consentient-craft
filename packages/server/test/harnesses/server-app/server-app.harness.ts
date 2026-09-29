@@ -22,6 +22,9 @@ import {
 import { tmpdir } from 'os';
 import { join } from 'path';
 
+import { serve } from '@hono/node-server';
+import type { AddressInfo } from 'net';
+import { Hono } from 'hono';
 import { z } from 'zod';
 
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
@@ -45,6 +48,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
+import { StartHydrationRecipes } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
 import type { QuestFields } from '@dungeonmaster/hydration-recipes/contracts';
 
@@ -133,6 +137,22 @@ export const serverAppHarness = (): {
     guildPath: string;
     fields: Partial<QuestFields>;
   }) => Promise<{ guild: Guild; quest: Quest }>;
+  // Runs a REAL recipe from the catalog against the REAL server routes, in process: the target's
+  // `request` dispatches into the given Hono sub-apps, so a recipe's `in_progress` hop reaches the
+  // real QuestStartResponder and the real orchestrator Start, exactly as it does against a lane.
+  seedRecipeThroughApps: (params: {
+    recipeName: string;
+    params?: Record<string, unknown>;
+    apps: readonly Hono[];
+  }) => Promise<unknown>;
+  // Every quest.json under the current DUNGEONMASTER_HOME, reduced to what a seeded state promises:
+  // title, status, and each ledger row's role + status. Sorted by title so a test asserts one array.
+  readSeededQuests: () => readonly unknown[];
+  // The Node dispatcher's persisted play/pause mode under the current DUNGEONMASTER_HOME.
+  readDispatchMode: () => Promise<unknown>;
+  // Every guild id with a folder under the current DUNGEONMASTER_HOME — the handle a stacked recipe
+  // (one that takes a `guildId` input) needs from the recipe that seeded the guild.
+  readSeededGuildIds: () => readonly unknown[];
   // Writes a REAL file to a real `images` directory in a fresh temp dir — a bytes-match-disk claim
   // can't be settled against a mocked read, so a test that serves an image over HTTP and diffs the
   // response against the file needs a genuine file on a genuine filesystem.
@@ -678,9 +698,96 @@ export const serverAppHarness = (): {
   }): Promise<ClaudeInvocationPrompt> =>
     claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params)).prompt;
 
+  const seedRecipeThroughApps = async ({
+    recipeName,
+    params,
+    apps,
+  }: {
+    recipeName: string;
+    params?: Record<string, unknown>;
+    apps: readonly Hono[];
+  }): Promise<unknown> => {
+    const home = process.env.DUNGEONMASTER_HOME;
+    if (home === undefined) {
+      throw new Error('seedRecipeThroughApps: call setupTestHome first');
+    }
+    const root = new Hono();
+    apps.forEach((app) => {
+      root.route('/', app);
+    });
+    // A real listening socket on an OS-assigned port, so the seed takes the exact path a lane's
+    // `start --seed` takes: StartHydrationRecipes.seed with a baseUrl, over real HTTP.
+    const { server, port } = await new Promise<{
+      server: ReturnType<typeof serve>;
+      port: AddressInfo['port'];
+    }>((resolve) => {
+      const listening = serve({ fetch: root.fetch, port: 0, hostname: '127.0.0.1' }, (info) => {
+        resolve({ server: listening, port: info.port });
+      });
+    });
+    try {
+      return await StartHydrationRecipes.seed({
+        recipeName,
+        home,
+        baseUrl: `http://127.0.0.1:${String(port)}`,
+        ...(params === undefined ? {} : { params }),
+      });
+    } finally {
+      await new Promise<void>((resolve) => {
+        server.close(() => {
+          resolve();
+        });
+      });
+    }
+  };
+
+  const readSeededQuests = (): readonly unknown[] => {
+    const home = process.env.DUNGEONMASTER_HOME;
+    if (home === undefined) {
+      throw new Error('readSeededQuests: call setupTestHome first');
+    }
+    const guildsDir = join(home, 'guilds');
+    const questFiles = existsSync(guildsDir)
+      ? readdirSync(guildsDir).flatMap((guildId) => {
+          const questsDir = join(guildsDir, guildId, 'quests');
+          return existsSync(questsDir)
+            ? readdirSync(questsDir).map((folder) => join(questsDir, folder, 'quest.json'))
+            : [];
+        })
+      : [];
+    return questFiles
+      .filter((questFile) => existsSync(questFile))
+      .map((questFile) => {
+        const quest = JSON.parse(readFileSync(questFile, 'utf8')) as Quest;
+        return {
+          title: quest.title,
+          status: quest.status,
+          operations: quest.operations.map(({ role, status }) => ({ role, status })),
+          workItems: quest.workItems.map(({ role, status }) => ({ role, status })),
+        };
+      })
+      .sort((a, b) => String(a.title).localeCompare(String(b.title)));
+  };
+
+  const readDispatchMode = async (): Promise<unknown> =>
+    (await StartOrchestrator.getDispatchState()).mode;
+
+  const readSeededGuildIds = (): readonly unknown[] => {
+    const home = process.env.DUNGEONMASTER_HOME;
+    if (home === undefined) {
+      throw new Error('readSeededGuildIds: call setupTestHome first');
+    }
+    const guildsDir = join(home, 'guilds');
+    return existsSync(guildsDir) ? readdirSync(guildsDir) : [];
+  };
+
   return {
     setupTestHome,
     toPlain,
+    seedRecipeThroughApps,
+    readSeededQuests,
+    readDispatchMode,
+    readSeededGuildIds,
     seedQuest,
     seedQuestFields,
     seedGuildAndQuestFields,

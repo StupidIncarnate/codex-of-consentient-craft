@@ -37,12 +37,25 @@
  * which is what keeps this inline rather than a nested function `forbid-non-exported-functions`
  * refuses.
  *
+ * The START call carries `{ play: false }`. The real route presses play on the Node dispatcher, and
+ * a played dispatcher runs the relay the START just seeded — a real riftcarver, against a seeded
+ * quest in a lane home with no git repo, which fails at `base_branch` and blocks the quest the
+ * recipe asked for. A recipe walks a quest to a status to set up state, never to run it.
+ *
+ * A walk that carries on PAST `in_progress` (to `complete`) drops what START seeded for the entry
+ * family — its operation and the work item that would carve it — straight after START lands. The
+ * quest was never carved, and a `complete` quest holding a `pending` carve step reads one step
+ * short of done and hands a later play a riftcarver to run.
+ *
  * USAGE:
  * await questReachRouteBroker({ from: 'created', to: 'explore_flows', target, record: quest });
  * // Returns the reloaded Quest record once every hop between "created" and "explore_flows" lands
  */
 import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
+import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import {
+  fileContentsContract,
+  filePathContract,
   getQuestInputContract,
   questContract,
   questIdContract,
@@ -56,6 +69,8 @@ import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http
 import { questFieldsToModifyInputTransformer } from '../../../transformers/quest-fields-to-modify-input/quest-fields-to-modify-input-transformer';
 import { questStatusWalkPathTransformer } from '../../../transformers/quest-status-walk-path/quest-status-walk-path-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
+import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
+import { questPersistDirectBroker } from '../persist-direct/quest-persist-direct-broker';
 
 const IN_PROGRESS_STATUS: QuestStatus = 'in_progress';
 const EXPLORE_FLOWS_STATUS: QuestStatus = 'explore_flows';
@@ -110,12 +125,60 @@ export const questReachRouteBroker = async ({
       const url = `${target.baseUrl}${startPath}`;
       const response = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {
         try {
-          return await dmHttpRequestAdapter({ target, method: 'POST', path: startPath });
+          return await dmHttpRequestAdapter({
+            target,
+            method: 'POST',
+            path: startPath,
+            body: { play: false },
+          });
         } catch (cause) {
           throw dmHttpTransportFailureTransformer({ cause, url });
         }
       })();
       dmHttpResponseUnwrapAdapter({ response, url });
+
+      if (hop === to) {
+        return;
+      }
+
+      const startedResult = await questGetBroker({
+        input: getQuestInputContract.parse({ questId }),
+      });
+      if (!startedResult.success) {
+        throw new Error(
+          `questReachRouteBroker: reload failed after START on the way to "${to}" — ${String(startedResult.error)}`,
+        );
+      }
+      const started = questContract.parse(startedResult.quest);
+      const flow = questFlowStatics[started.questType];
+      const entryRole = flow.families[flow.entry].role;
+      const entryRefs = new Set(
+        started.operations
+          .filter((operation) => operation.role === entryRole)
+          .map((operation) => `operations/${String(operation.id)}`),
+      );
+      if (entryRefs.size === 0) {
+        return;
+      }
+      const questFolderPath = await questFolderPathResolveBroker({ target, record: started });
+      await questPersistDirectBroker({
+        target,
+        questFilePath: filePathContract.parse(
+          `${questFolderPath}/${locationsStatics.quest.questFile}`,
+        ),
+        contents: fileContentsContract.parse(
+          JSON.stringify({
+            ...started,
+            operations: started.operations.filter(
+              (operation) => !entryRefs.has(`operations/${String(operation.id)}`),
+            ),
+            workItems: started.workItems.filter(
+              (workItem) => !workItem.relatedDataItems.some((ref) => entryRefs.has(String(ref))),
+            ),
+          }),
+        ),
+        questId,
+      });
       return;
     }
 

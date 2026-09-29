@@ -80,6 +80,81 @@ describe('QuestStartResponder', () => {
     );
   });
 
+  // A hydration recipe walks a quest through `in_progress` to set up state, not to run it. Playing
+  // there runs a real riftcarver against the seeded quest in a lane home with no git repo, which
+  // blocks it — the quest is started, and the dispatcher is left alone.
+  describe('play: false body', () => {
+    it('VALID: {body: {play: false}} => starts the quest, never plays dispatch, reports not started', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub();
+      const processId = ProcessIdStub();
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupStartQuest({ questId, processId });
+      proxy.setupDispatchPlays();
+
+      const result = await proxy.callResponder({ params: { questId }, body: { play: false } });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { processId, dispatch: { started: false, reason: 'play: false requested' } },
+      });
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([]);
+    });
+
+    it('VALID: {body: {play: true}} => plays dispatch exactly once', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub();
+      const processId = ProcessIdStub();
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupStartQuest({ questId, processId });
+      proxy.setupDispatchPlays();
+
+      const result = await proxy.callResponder({ params: { questId }, body: { play: true } });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { processId, dispatch: { started: true } },
+      });
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([[]]);
+    });
+
+    it('EMPTY: {body: {}} => plays dispatch exactly once', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub();
+      const processId = ProcessIdStub();
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupStartQuest({ questId, processId });
+      proxy.setupDispatchPlays();
+
+      const result = await proxy.callResponder({ params: { questId }, body: {} });
+
+      expect(result).toStrictEqual({
+        status: 200,
+        data: { processId, dispatch: { started: true } },
+      });
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([[]]);
+    });
+
+    it('INVALID: {body: {play: "no"}} => returns 400, never starts the quest or plays dispatch', async () => {
+      const proxy = QuestStartResponderProxy();
+      const questId = QuestIdStub();
+      const quest = QuestStub({ id: questId, status: 'approved' as never });
+      proxy.setupQuest({ quest });
+      proxy.setupDispatchPlays();
+
+      const result = await proxy.callResponder({ params: { questId }, body: { play: 'no' } });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'play must be a boolean' },
+      });
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([]);
+    });
+  });
+
   describe('dispatch failures never fail the start', () => {
     it('ERROR: {playDispatch throws} => returns 200 with the error as the dispatch reason', async () => {
       const proxy = QuestStartResponderProxy();

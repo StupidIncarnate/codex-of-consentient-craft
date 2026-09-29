@@ -6,10 +6,18 @@ import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-con
 import {
   GetQuestInputStub,
   GetQuestResultStub,
+  GuildListItemStub,
   ModifyQuestInputStub,
   ModifyQuestResultStub,
+  OperationItemStub,
   QuestStub,
+  WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
+
+const GUILD_ID = '11111111-1111-4111-8111-111111111111';
+const HOME = '/tmp/dm-home';
+const QUEST_FILE_PATH = `${HOME}/guilds/${GUILD_ID}/quests/add-auth/quest.json`;
+const OUTBOX_PATH = `${HOME}/event-outbox.jsonl`;
 
 describe('questReachRouteBroker', () => {
   describe('a single hop on a write-only target', () => {
@@ -130,6 +138,227 @@ describe('questReachRouteBroker', () => {
       });
 
       expect(outcome).toStrictEqual(reloadedQuest);
+    });
+  });
+
+  // A played dispatcher runs the relay START just seeded — a real riftcarver, against a seeded
+  // quest in a lane home with no git repo — so every START a recipe sends asks the route not to.
+  describe('the START request itself', () => {
+    it('VALID: {to: in_progress, target.request} => posts {play: false} to the start route', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const calls: unknown[] = [];
+      const target = DmTargetStub({
+        baseUrl: 'http://app.in-process',
+        request: async (args: { method: string; path: string; body?: unknown }) => {
+          calls.push(args);
+          return Promise.resolve(DmHttpResponseStub({ status: 200, body: { success: true } }));
+        },
+      });
+      const record = QuestStub({ id: 'add-auth', status: 'approved' });
+      const reloadedQuest = QuestStub({ id: 'add-auth', status: 'in_progress' });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: reloadedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'approved',
+        to: 'in_progress',
+        target,
+        record,
+      });
+
+      expect(calls).toStrictEqual([
+        { method: 'POST', path: '/api/quests/add-auth/start', body: { play: false } },
+      ]);
+      expect(outcome).toStrictEqual(reloadedQuest);
+    });
+
+    it('VALID: {to: in_progress, START seeded a riftcarver item} => keeps the seeded riftcarver item, never persists', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({
+        home: HOME,
+        claudeHome: HOME,
+        baseUrl: 'http://app.in-process',
+        request: async () =>
+          Promise.resolve(DmHttpResponseStub({ status: 200, body: { success: true } })),
+      });
+      const record = QuestStub({ id: 'add-auth', status: 'approved' });
+      const reloadedQuest = QuestStub({
+        id: 'add-auth',
+        status: 'in_progress',
+        operations: [
+          OperationItemStub({
+            id: '22222222-0000-4000-8000-000000000002',
+            role: 'riftcarver',
+            status: 'in_progress',
+          }),
+        ],
+      });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: reloadedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'approved',
+        to: 'in_progress',
+        target,
+        record,
+      });
+
+      expect(proxy.pathsTouched()).toStrictEqual([]);
+      expect(outcome).toStrictEqual(reloadedQuest);
+    });
+  });
+
+  // A walk that carries on past `in_progress` never carved the quest, so what START seeded for the
+  // entry family is dropped straight after it lands — otherwise a `complete` quest holds a pending
+  // carve step.
+  describe('walking past in_progress to complete', () => {
+    it('VALID: {from: approved, to: complete, START seeded riftcarver} => drops the riftcarver operation and its carve work item, keeps the rest, then walks on', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({
+        home: HOME,
+        claudeHome: HOME,
+        baseUrl: 'http://app.in-process',
+        request: async () =>
+          Promise.resolve(DmHttpResponseStub({ status: 200, body: { success: true } })),
+      });
+      const record = QuestStub({ id: 'add-auth', folder: 'add-auth', status: 'approved' });
+      const intakeOperation = OperationItemStub({
+        id: '22222222-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+      });
+      const riftcarverOperation = OperationItemStub({
+        id: '22222222-0000-4000-8000-000000000002',
+        role: 'riftcarver',
+        status: 'in_progress',
+      });
+      const intakeWorkItem = WorkItemStub({
+        id: '33333333-0000-4000-8000-000000000001',
+        role: 'chaoswhisperer',
+        status: 'complete',
+        relatedDataItems: ['operations/22222222-0000-4000-8000-000000000001'],
+      });
+      const carveWorkItem = WorkItemStub({
+        id: '33333333-0000-4000-8000-000000000002',
+        role: 'riftcarver',
+        status: 'pending',
+        spawnerType: 'command',
+        relatedDataItems: ['operations/22222222-0000-4000-8000-000000000002'],
+      });
+      const startedQuest = QuestStub({
+        id: 'add-auth',
+        folder: 'add-auth',
+        status: 'in_progress',
+        operations: [intakeOperation, riftcarverOperation],
+        workItems: [intakeWorkItem, carveWorkItem],
+      });
+      proxy.setupReloadOnce({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: startedQuest }),
+      });
+      proxy.setupPersist({
+        guild: GuildListItemStub({ id: GUILD_ID }),
+        quest: startedQuest,
+        questFilePath: QUEST_FILE_PATH,
+        outboxPath: OUTBOX_PATH,
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'complete' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      const completedQuest = QuestStub({
+        id: 'add-auth',
+        folder: 'add-auth',
+        status: 'complete',
+        operations: [intakeOperation],
+        workItems: [intakeWorkItem],
+      });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: completedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'approved',
+        to: 'complete',
+        target,
+        record,
+      });
+
+      expect(
+        JSON.parse(String(proxy.getWrittenQuest({ questFilePath: QUEST_FILE_PATH }))),
+      ).toStrictEqual(
+        JSON.parse(
+          JSON.stringify({
+            ...startedQuest,
+            operations: [intakeOperation],
+            workItems: [intakeWorkItem],
+          }),
+        ),
+      );
+      expect(outcome).toStrictEqual(completedQuest);
+    });
+
+    it('EMPTY: {to: complete, START seeded no riftcarver item} => persists nothing and walks on', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({
+        home: HOME,
+        claudeHome: HOME,
+        baseUrl: 'http://app.in-process',
+        request: async () =>
+          Promise.resolve(DmHttpResponseStub({ status: 200, body: { success: true } })),
+      });
+      const record = QuestStub({ id: 'add-auth', status: 'approved' });
+      proxy.setupReloadOnce({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({
+          success: true,
+          quest: QuestStub({ id: 'add-auth', status: 'in_progress' }),
+        }),
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'complete' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      const completedQuest = QuestStub({ id: 'add-auth', status: 'complete' });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: completedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'approved',
+        to: 'complete',
+        target,
+        record,
+      });
+
+      expect(proxy.pathsTouched()).toStrictEqual([]);
+      expect(outcome).toStrictEqual(completedQuest);
+    });
+
+    it('ERROR: {to: complete, the reload after START fails} => throws naming the reload error', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({
+        baseUrl: 'http://app.in-process',
+        request: async () =>
+          Promise.resolve(DmHttpResponseStub({ status: 200, body: { success: true } })),
+      });
+      const record = QuestStub({ id: 'add-auth', status: 'approved' });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: false, error: 'Quest not found: add-auth' }),
+      });
+
+      await expect(
+        questReachRouteBroker({ from: 'approved', to: 'complete', target, record }),
+      ).rejects.toThrow(
+        /^questReachRouteBroker: reload failed after START on the way to "complete" — Quest not found: add-auth$/u,
+      );
     });
   });
 
