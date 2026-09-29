@@ -127,7 +127,7 @@ holds every earlier handoff.
   recording proxies with `getWrites`/`getWrittenText` and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow`
   and `setupNowOnce`; fetch `getCallsFor` and `statusText`; unix-socket request/serve fakes; `spawnDetached` staged
   by args; `rejectsOnce` on the write proxies; `kill` staged by tuple with recorded ESRCH/EPERM/EINVAL; `spawnPiped`;
-  `runSyncWithInput`), `getPlatform`, `setupCwd`, `getStdin` (a call-time function: a `stdin` const opened a pipe at
+  `runSyncWithInput`), GN11 (`setTimeout`/`clearTimeout` proxies), `getPlatform`, `setupCwd`, `getStdin` (a call-time function: a `stdin` const opened a pipe at
   import), C2's `tsxCliPath` and `tsxLoaderUrl` in `@gateway/npm`, and `@gateway/bin` npm and git not-installed
   error proxies, `setupNotFound` and `diffFiles` `excludeDeleted`. `bin-program-spawn-ban` watches `spawnPiped` and
   `runSyncWithInput`.
@@ -156,7 +156,7 @@ last report; uncommitted work in that area is that agent's.
 | web | B28 to B30 | done, committed ||
 | orchestrator | B03, widened: `isSpawnedStdout` accessor in B02's stream-json proxy | running |
 | server | B03 plus `server-init-responder.proxy.ts` clock staging | running |
-| GN11 | `@gateway/node` `setTimeout` proxy; moves siegelense `instance-kill` and `step-hold` proxies onto it | running |
+| GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` ||
 | siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging); S05's other files are uncommitted | running |
 
 ### How A18 was run (copy this)

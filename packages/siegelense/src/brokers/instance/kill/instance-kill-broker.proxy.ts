@@ -2,7 +2,7 @@ import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { setTimeout } from '#gateway/node/setTimeout';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
@@ -112,20 +112,12 @@ export const instanceKillBrokerProxy = (): {
 
   stderrProxy();
   // The SIGTERM-then-check-SIGKILL escalation always waits driverStatics.teardown.graceMs (3s)
-  // before probing aliveness. Addressed on the delay specifically (a predicate for the callback,
-  // since that reference differs per call) — global and unaddressed would ALSO catch
-  // unixSocketRequest's own request-timeout setTimeout, firing it immediately and rejecting
+  // before probing aliveness. Addressed on the delay specifically — an unaddressed stage would ALSO
+  // catch unixSocketRequest's own request-timeout setTimeout, firing it immediately and rejecting
   // every socket call before its mocked 'connect'/'data' events (scheduled via process.nextTick)
   // ever get a turn.
-  registerMock({ fn: setTimeout })
-    .calledWith([
-      (candidate: unknown) => typeof candidate === 'function',
-      driverStatics.teardown.graceMs,
-    ])
-    .implement((callback: () => void) => {
-      callback();
-      return 0;
-    });
+  const timeoutProxy = setTimeoutProxy();
+  timeoutProxy.setupFiresImmediately({ ms: driverStatics.teardown.graceMs });
   tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
 
   return {
