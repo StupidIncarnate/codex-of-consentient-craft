@@ -106,7 +106,8 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | t04w-t05e (sonnet) | T04 ward's last one; T05 eslint-plugin and local-eslint | `ward`, `eslint-plugin`, `local-eslint` tests and proxies | running |
 | t05-smt (sonnet) | T05: server, mcp, tooling | tests and proxies | done a477ddd82; T05 now at 0 in ward, cli, config, hooks, server, mcp, tooling |
 | t05-shf (sonnet) | T05: shared, hydration, session-forensics | tests and proxies | running |
-| s1-slow (sonnet) | Fix: S1's adapter-census integration test takes 12 to 30s (slow-test gate) | `tooling` tests | running |
+| s1-slow (sonnet) | S1 slow test | `tooling` tests | done 2db4b0cee |
+| a18-plan (opus) | A18 planning only: census raw outside calls and duplicate deps; write `## Plan` in the A18 item | none (reads) | running |
 
 After these land: A18 (raw calls and dependency cleanup), then A19 (`adapters` stops being a folder type; runs alone). A whole-repo `build:clean`, `check:consumer`, `check:published` and a full `npm run ward` are due at the first quiet point.
 
