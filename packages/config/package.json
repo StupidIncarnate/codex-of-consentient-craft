@@ -17,23 +17,17 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./contracts": {
-      "source": "./contracts.ts",
-      "types": "./dist/contracts.d.ts",
-      "import": "./dist/contracts.js",
-      "require": "./dist/contracts.js"
-    },
     "./*.proxy": {
-      "source": "./src/*.proxy.ts",
-      "types": "./dist/*.proxy.d.ts",
-      "import": "./dist/*.proxy.js",
-      "require": "./dist/*.proxy.js"
+      "source": "./src/*.proxy.ts"
     },
     "./*.stub": {
-      "source": "./src/*.stub.ts",
-      "types": "./dist/*.stub.d.ts",
-      "import": "./dist/*.stub.js",
-      "require": "./dist/*.stub.js"
+      "source": "./src/*.stub.ts"
+    },
+    "./contracts": {
+      "source": "./src/contracts/contracts.ts",
+      "types": "./dist/src/contracts/contracts.d.ts",
+      "import": "./dist/src/contracts/contracts.js",
+      "require": "./dist/src/contracts/contracts.js"
     }
   },
   "files": [
