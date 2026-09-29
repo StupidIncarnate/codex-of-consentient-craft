@@ -1,6 +1,8 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { pid } from '#gateway/node/process';
+import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import {
@@ -53,6 +55,7 @@ export const checkRunUnitBrokerProxy = (): {
 } => {
   const run = runProxy();
   RunNotFoundErrorProxy();
+  pidProxy();
   const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
   const existsProxy = existsSyncProxy();
   const globProxy = globDiscoverFilesBrokerProxy();
@@ -70,7 +73,7 @@ export const checkRunUnitBrokerProxy = (): {
   const handleReportPath = openHandleReportPathTransformer({
     tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
     checkType: 'unit',
-    processId: process.pid,
+    processId: pid,
   });
   const handleReadProxy = readFileProxy();
   handleReadProxy.returns({ path: handleReportPath, contents: '' });

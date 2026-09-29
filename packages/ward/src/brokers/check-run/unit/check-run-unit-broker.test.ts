@@ -1,3 +1,5 @@
+import { getEnv, pid } from '#gateway/node/process';
+
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { RawOutputStub } from '../../../contracts/raw-output/raw-output.stub';
@@ -1330,7 +1332,7 @@ describe('checkRunUnitBroker', () => {
       await checkRunUnitBroker({ projectFolder, fileList: [] });
 
       expect(proxy.getSpawnedHandleReportPath()).toBe(
-        `/tmp/ward-open-handles-${String(process.pid)}-unit.jsonl`,
+        `/tmp/ward-open-handles-${String(pid)}-unit.jsonl`,
       );
     });
 
@@ -1349,9 +1351,7 @@ describe('checkRunUnitBroker', () => {
         fileList: [GitRelativePathStub({ value: 'src/index.test.ts' })],
       });
 
-      expect(proxy.getSpawnedHandleReportPath()).toBe(
-        process.env[openHandleReportStatics.env.pathVar],
-      );
+      expect(proxy.getSpawnedHandleReportPath()).toBe(getEnv(openHandleReportStatics.env.pathVar));
     });
 
     it('VALID: {report names a leaked interval} => that leak reaches openHandles', async () => {

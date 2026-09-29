@@ -9,6 +9,7 @@
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, unlink } from '#gateway/node/fs__promises';
+import { pid } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -196,7 +197,7 @@ export const checkRunUnitBroker = async ({
   const handleReportPath = openHandleReportPathTransformer({
     tmpdir: tmpdirFindBroker(),
     checkType: 'unit',
-    processId: process.pid,
+    processId: pid,
   });
 
   // The jest configs ask for the `source` export condition through testEnvironmentOptions, which
