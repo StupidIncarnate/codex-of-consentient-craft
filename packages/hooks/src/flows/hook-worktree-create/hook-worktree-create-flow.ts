@@ -12,11 +12,10 @@ import { HookWorktreeCreateResponder } from '../../responders/hook/worktree-crea
 
 export const HookWorktreeCreateFlow = ({ inputData }: { inputData: string }): ExecResult => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
     // Parsed and discarded: the responder refuses every worktree whatever its name, but a hook
     // handed a payload it cannot read is a wiring fault rather than a refusal, and the two answer
     // with different exit codes.
-    worktreeCreateHookDataContract.parse(parsed);
+    worktreeCreateHookDataContract.parse(JSON.parse(inputData));
 
     const result = HookWorktreeCreateResponder();
 

@@ -8,6 +8,7 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookSubagentStopResponder } from '../../responders/hook/subagent-stop/hook-subagent-stop-responder';
+import { subagentStopHookDataContract } from '../../contracts/subagent-stop-hook-data/subagent-stop-hook-data-contract';
 
 export const HookSubagentStopFlow = async ({
   inputData,
@@ -15,9 +16,13 @@ export const HookSubagentStopFlow = async ({
   inputData: string;
 }): Promise<ExecResult> => {
   try {
-    const hookInput: unknown = JSON.parse(inputData);
+    const hookData = subagentStopHookDataContract.safeParse(JSON.parse(inputData));
 
-    return await HookSubagentStopResponder({ hookInput });
+    if (!hookData.success) {
+      return execResultContract.parse({ stderr: '', stdout: '', exitCode: 0 });
+    }
+
+    return await HookSubagentStopResponder({ hookInput: hookData.data });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : undefined;

@@ -8,11 +8,17 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreMcpCallerResponder } from '../../responders/hook/pre-mcp-caller/hook-pre-mcp-caller-responder';
+import { mcpPreToolUseHookDataContract } from '../../contracts/mcp-pre-tool-use-hook-data/mcp-pre-tool-use-hook-data-contract';
 
 export const HookPreMcpCallerFlow = ({ inputData }: { inputData: string }): ExecResult => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
-    const updatedInput = HookPreMcpCallerResponder({ input: parsed });
+    const hookData = mcpPreToolUseHookDataContract.safeParse(JSON.parse(inputData));
+
+    if (!hookData.success) {
+      return execResultContract.parse({ stderr: '', stdout: '', exitCode: 0 });
+    }
+
+    const updatedInput = HookPreMcpCallerResponder({ input: hookData.data });
 
     // No permissionDecision: this hook adds context and nothing else, so the call's ordinary
     // permission rules still decide whether it runs.

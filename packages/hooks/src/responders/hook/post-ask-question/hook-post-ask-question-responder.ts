@@ -93,16 +93,13 @@ export const HookPostAskQuestionResponder = async ({
     });
   }
 
-  let parsedBody: unknown = null;
-  if (lookupResult.body.length > 0) {
+  const sessionParsed = (() => {
     try {
-      parsedBody = JSON.parse(lookupResult.body);
+      return questBySessionResponseContract.safeParse(JSON.parse(lookupResult.body));
     } catch {
-      parsedBody = lookupResult.body;
+      return questBySessionResponseContract.safeParse(lookupResult.body);
     }
-  }
-
-  const sessionParsed = questBySessionResponseContract.safeParse(parsedBody);
+  })();
   if (!sessionParsed.success) {
     const message = `quest lookup at ${url} returned invalid shape: ${sessionParsed.error.message}`;
     stderr.write(`[post-ask-question] ${message}\n`);

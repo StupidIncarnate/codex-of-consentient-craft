@@ -8,15 +8,20 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreBashResponder } from '../../responders/hook/pre-bash/hook-pre-bash-responder';
+import { hookDataContract } from '../../contracts/hook-data/hook-data-contract';
 
 const EXIT_CODE_BLOCK = 2;
 
 export const HookPreBashFlow = ({ inputData }: { inputData: string }): ExecResult => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
+    const hookData = hookDataContract.safeParse(JSON.parse(inputData));
+
+    if (!hookData.success) {
+      return execResultContract.parse({ stderr: '', stdout: '', exitCode: 0 });
+    }
 
     const result = HookPreBashResponder({
-      input: parsed as Parameters<typeof HookPreBashResponder>[0]['input'],
+      input: hookData.data,
     });
 
     // Gated on `updatedCommand`, never on `updatedTimeout` alone. Claude Code REPLACES the tool

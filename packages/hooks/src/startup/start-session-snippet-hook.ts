@@ -13,6 +13,7 @@
 
 import { argv, exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 
+import { baseHookDataContract } from '../contracts/base-hook-data/base-hook-data-contract';
 import { HookSessionSnippetFlow } from '../flows/hook-session-snippet/hook-session-snippet-flow';
 
 const [, , snippetKey] = argv;
@@ -24,8 +25,10 @@ export const StartSessionSnippetHook = async ({
   snippetKeyArg: string | undefined;
   inputData: string;
 }): Promise<void> => {
-  const hookInput: unknown = JSON.parse(inputData);
-  const result = await HookSessionSnippetFlow({ snippetKey: snippetKeyArg, hookInput });
+  const result = await HookSessionSnippetFlow({
+    snippetKey: snippetKeyArg,
+    hookInput: baseHookDataContract.parse(JSON.parse(inputData)),
+  });
   stderr.write(result.stderr);
   stdout.write(result.stdout);
   exit(result.exitCode);

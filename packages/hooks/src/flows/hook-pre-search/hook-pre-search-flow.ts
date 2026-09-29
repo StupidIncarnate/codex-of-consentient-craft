@@ -8,15 +8,20 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreSearchResponder } from '../../responders/hook/pre-search/hook-pre-search-responder';
+import { preSearchHookDataContract } from '../../contracts/pre-search-hook-data/pre-search-hook-data-contract';
 
 const EXIT_CODE_BLOCK = 2;
 
 export const HookPreSearchFlow = ({ inputData }: { inputData: string }): ExecResult => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
+    const hookData = preSearchHookDataContract.safeParse(JSON.parse(inputData));
+
+    if (!hookData.success) {
+      return execResultContract.parse({ stderr: '', stdout: '', exitCode: 0 });
+    }
 
     const result = HookPreSearchResponder({
-      input: parsed,
+      input: hookData.data,
     });
 
     return execResultContract.parse({

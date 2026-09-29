@@ -11,6 +11,7 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreFolderDetailResponder } from '../../responders/hook/pre-folder-detail/hook-pre-folder-detail-responder';
+import { folderDetailHookDataContract } from '../../contracts/folder-detail-hook-data/folder-detail-hook-data-contract';
 import { folderDetailBlockMessageStatics } from '../../statics/folder-detail-block-message/folder-detail-block-message-statics';
 import { hookExitCodeStatics } from '../../statics/hook-exit-code/hook-exit-code-statics';
 
@@ -22,9 +23,17 @@ export const HookPreFolderDetailFlow = async ({
   inputData: string;
 }): Promise<ExecResult> => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
+    const hookData = folderDetailHookDataContract.safeParse(JSON.parse(inputData));
 
-    const result = await HookPreFolderDetailResponder({ input: parsed });
+    if (!hookData.success) {
+      return execResultContract.parse({
+        stderr: '',
+        stdout: '',
+        exitCode: hookExitCodeStatics.success,
+      });
+    }
+
+    const result = await HookPreFolderDetailResponder({ input: hookData.data });
 
     return execResultContract.parse({
       stderr: result.shouldBlock

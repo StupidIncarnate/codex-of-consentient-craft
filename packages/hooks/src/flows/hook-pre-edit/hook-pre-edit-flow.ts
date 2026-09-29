@@ -8,6 +8,7 @@
 
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPreEditResponder } from '../../responders/hook/pre-edit/hook-pre-edit-responder';
+import { hookDataContract } from '../../contracts/hook-data/hook-data-contract';
 
 const EXIT_CODE_BLOCK = 2;
 
@@ -17,10 +18,14 @@ export const HookPreEditFlow = async ({
   inputData: string;
 }): Promise<ExecResult> => {
   try {
-    const parsed: unknown = JSON.parse(inputData);
+    const hookData = hookDataContract.safeParse(JSON.parse(inputData));
+
+    if (!hookData.success) {
+      throw new Error('Unsupported hook event: payload is not valid hook data');
+    }
 
     const result = await HookPreEditResponder({
-      input: parsed as Parameters<typeof HookPreEditResponder>[0]['input'],
+      input: hookData.data,
     });
 
     return execResultContract.parse({
