@@ -120,4 +120,22 @@ describe('connect', () => {
       });
     });
   });
+
+  describe('connection counting', () => {
+    it('VALID: {connect called twice at the staged url} => getConnectionCount reads back 2', () => {
+      const proxy = connectProxy({ url: 'ws://localhost/ws' });
+      const onMessage = jest.fn();
+
+      connect({ url: 'ws://localhost/ws', onMessage });
+      connect({ url: 'ws://localhost/ws', onMessage });
+
+      expect(proxy.getConnectionCount()).toBe(2);
+    });
+
+    it('EMPTY: {connect never called} => getConnectionCount reads back 0', () => {
+      const proxy = connectProxy();
+
+      expect(proxy.getConnectionCount()).toBe(0);
+    });
+  });
 });

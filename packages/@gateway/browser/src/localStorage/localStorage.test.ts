@@ -1,4 +1,4 @@
-import { readItem, writeItem, removeItem, keys } from './localStorage';
+import { readItem, writeItem, removeItem, keys, clear } from './localStorage';
 
 describe('#gateway/browser/localStorage', () => {
   it('VALID: {barrel} => re-exports every curated localStorage function', () => {
@@ -6,5 +6,6 @@ describe('#gateway/browser/localStorage', () => {
     expect(writeItem).toStrictEqual(expect.any(Function));
     expect(removeItem).toStrictEqual(expect.any(Function));
     expect(keys).toStrictEqual(expect.any(Function));
+    expect(clear).toStrictEqual(expect.any(Function));
   });
 });

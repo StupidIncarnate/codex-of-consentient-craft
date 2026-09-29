@@ -63,6 +63,7 @@ export const connectProxy = ({
   triggerError: () => void;
   getSocket: () => MockSocket;
   getSentMessages: () => unknown[];
+  getConnectionCount: () => number;
 } => {
   const state: { sockets: MockSocket[]; sendHandles: MockHandle[] } = {
     sockets: [],
@@ -113,6 +114,9 @@ export const connectProxy = ({
       }
       return lastSocket;
     },
+
+    // One entry per `new WebSocket(url)` at the staged url, so a test can prove several callers share one socket.
+    getConnectionCount: (): number => state.sockets.length,
 
     getSentMessages: (): unknown[] => {
       const allCalls: unknown[] = [];

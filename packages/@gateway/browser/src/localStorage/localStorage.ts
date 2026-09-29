@@ -4,9 +4,10 @@
  * callers never reach `globalThis.localStorage` directly.
  *
  * USAGE:
- * import { readItem, writeItem, removeItem, keys } from '#gateway/browser/localStorage';
+ * import { readItem, writeItem, removeItem, keys, clear } from '#gateway/browser/localStorage';
  */
 
+export { clear } from './clear/clear';
 export { keys } from './keys/keys';
 export { readItem } from './read-item/read-item';
 export { removeItem } from './remove-item/remove-item';

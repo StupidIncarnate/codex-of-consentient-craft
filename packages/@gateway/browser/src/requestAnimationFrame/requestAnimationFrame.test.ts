@@ -1,7 +1,7 @@
 import { requestAnimationFrame } from './requestAnimationFrame';
 
 describe('#gateway/browser/requestAnimationFrame', () => {
-  it('VALID: {export} => is the same object the environment provides', () => {
-    expect(requestAnimationFrame).toBe(globalThis.requestAnimationFrame);
+  it('VALID: {barrel} => re-exports the curated requestAnimationFrame function', () => {
+    expect(requestAnimationFrame).toStrictEqual(expect.any(Function));
   });
 });

@@ -1,11 +1,9 @@
-/// <reference lib="dom" />
 /**
- * PURPOSE: Pass-through for the browser global `requestAnimationFrame`. Code outside the gateway reaches
- * requestAnimationFrame through here instead of the raw global, so a future guard lands in this one file and
- * reaches every caller.
+ * PURPOSE: Curated entry for the browser global `requestAnimationFrame`. The wrapper reads the
+ * global at call time, so a spy or fake timer installed after this module loads still controls it.
  *
  * USAGE:
  * import { requestAnimationFrame } from '#gateway/browser/requestAnimationFrame';
  */
 
-export const { requestAnimationFrame } = globalThis;
+export { requestAnimationFrame } from './request-animation-frame/request-animation-frame';
