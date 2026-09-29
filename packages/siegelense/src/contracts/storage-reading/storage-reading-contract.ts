@@ -12,7 +12,7 @@
  * // Returns a validated StorageReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const storageReadingContract = z
   .object({

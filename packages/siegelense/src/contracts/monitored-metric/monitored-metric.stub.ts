@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { monitoredMetricContract } from './monitored-metric-contract';
 import type { MonitoredMetric } from './monitored-metric-contract';

@@ -19,7 +19,7 @@
  * // unless what it resolved to is itself `/`-rooted
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { seedPlaceholderStatics } from '../../statics/seed-placeholder/seed-placeholder-statics';
 

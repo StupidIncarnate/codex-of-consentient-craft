@@ -8,7 +8,7 @@
  * // Returns a branded HealthVerdict
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { healthStatics } from '../../statics/health/health-statics';
 

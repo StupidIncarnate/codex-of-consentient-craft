@@ -20,7 +20,7 @@
  * // Returns a validated CapacitySuggestion
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';

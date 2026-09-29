@@ -16,7 +16,7 @@
  * // Returns a validated InstanceEvidenceListing
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
 

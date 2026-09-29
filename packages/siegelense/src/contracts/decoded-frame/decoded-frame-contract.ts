@@ -11,7 +11,7 @@
  * // Returns a validated DecodedFrame
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pixelCountContract } from '../pixel-count/pixel-count-contract';
 

@@ -11,7 +11,7 @@
  * // Returns { step: 'g', row: 'guild', field: 'id' } as branded StepRef
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';

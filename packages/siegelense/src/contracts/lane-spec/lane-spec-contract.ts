@@ -22,7 +22,7 @@
  * // Returns a validated LaneSpec
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
 

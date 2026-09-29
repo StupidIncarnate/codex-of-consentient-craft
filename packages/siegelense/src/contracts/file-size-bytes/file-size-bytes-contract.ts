@@ -9,7 +9,7 @@
  * // Returns a branded FileSizeBytes
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileSizeBytesContract = z.number().int().nonnegative().brand<'FileSizeBytes'>();
 

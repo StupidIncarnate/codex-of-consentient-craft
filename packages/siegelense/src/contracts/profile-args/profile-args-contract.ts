@@ -8,7 +8,7 @@
  * // Returns a validated ProfileArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { specNameContract } from '../spec-name/spec-name-contract';
 

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { ContentTextStub, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,

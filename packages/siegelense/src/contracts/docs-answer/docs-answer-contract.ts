@@ -12,7 +12,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { docsScopeContract } from '../docs-scope/docs-scope-contract';
 

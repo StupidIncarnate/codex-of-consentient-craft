@@ -12,7 +12,7 @@
  * // Returns: 'ping' as DriverRequestKind
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const driverRequestKindContract = z
   .enum(['ping', 'run', 'kill'])

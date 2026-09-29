@@ -20,7 +20,7 @@
  * // Returns a validated ShotListing
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 

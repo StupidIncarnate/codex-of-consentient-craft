@@ -9,7 +9,7 @@
  * // Returns a branded EpochMs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const epochMsContract = z.number().int().nonnegative().brand<'EpochMs'>();
 

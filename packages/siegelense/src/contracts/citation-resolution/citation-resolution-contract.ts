@@ -13,7 +13,7 @@
  * // Returns a validated CitationResolution — an unowned instance, nothing citing it, nothing unasked
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 

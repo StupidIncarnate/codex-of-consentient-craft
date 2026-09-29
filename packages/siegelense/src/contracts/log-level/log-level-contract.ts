@@ -10,7 +10,7 @@
  * // Returns a branded LogLevel
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const logLevelContract = z.enum(['error', 'warn', 'info']).brand<'LogLevel'>();
 

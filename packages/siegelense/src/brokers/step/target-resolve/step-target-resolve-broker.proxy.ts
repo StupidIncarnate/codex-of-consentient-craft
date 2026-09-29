@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';

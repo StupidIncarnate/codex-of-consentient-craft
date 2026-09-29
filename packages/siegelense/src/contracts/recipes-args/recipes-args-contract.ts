@@ -12,7 +12,7 @@
  * // Returns a validated RecipesArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const recipesArgsContract = z
   .object({

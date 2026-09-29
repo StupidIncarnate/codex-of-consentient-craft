@@ -9,7 +9,7 @@
  * // Returns a branded MatchCount
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 

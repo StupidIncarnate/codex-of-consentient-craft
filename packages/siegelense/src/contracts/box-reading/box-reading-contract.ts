@@ -18,7 +18,7 @@
  * // Returns a validated BoxReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pixelCoordinateContract } from '../pixel-coordinate/pixel-coordinate-contract';
 import { pixelCountContract } from '../pixel-count/pixel-count-contract';

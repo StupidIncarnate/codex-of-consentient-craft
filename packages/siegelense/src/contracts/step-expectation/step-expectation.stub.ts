@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { stepExpectationContract } from './step-expectation-contract';
 import type { StepExpectation } from './step-expectation-contract';

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { citationKindContract } from './citation-kind-contract';
 import type { CitationKind } from './citation-kind-contract';

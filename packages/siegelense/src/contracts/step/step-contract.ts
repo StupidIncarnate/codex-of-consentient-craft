@@ -31,7 +31,7 @@
  * // Returns the 'until' member, waiting on the ONE condition field the caller set
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   contentTextContract,

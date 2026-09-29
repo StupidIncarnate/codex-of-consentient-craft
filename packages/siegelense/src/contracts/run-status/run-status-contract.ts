@@ -10,7 +10,7 @@
  * // Returns a branded RunStatus
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const runStatusContract = z.enum(['done', 'timeout', 'failed']).brand<'RunStatus'>();
 

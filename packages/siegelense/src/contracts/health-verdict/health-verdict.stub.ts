@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { healthVerdictContract } from './health-verdict-contract';
 import type { HealthVerdict } from './health-verdict-contract';

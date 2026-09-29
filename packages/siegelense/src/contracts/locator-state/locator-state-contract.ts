@@ -10,7 +10,7 @@
  * // Returns a branded LocatorState
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const locatorStateContract = z
   .enum(['visible', 'hidden', 'attached', 'detached'])

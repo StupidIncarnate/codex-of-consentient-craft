@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { stepVerbContract } from './step-verb-contract';
 import type { StepVerb } from './step-verb-contract';

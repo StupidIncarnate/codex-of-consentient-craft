@@ -4,7 +4,7 @@
 // boundary (fs.stat). Stages Date.now ONLY when a test needs a controlled "waited Xms" figure.
 // USAGE: const proxy = stepUntilBrokerProxy(); const { lane } = proxy.laneVisibleResolving();
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';

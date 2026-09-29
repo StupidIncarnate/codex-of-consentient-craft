@@ -15,7 +15,7 @@
  * // Returns a validated PruneRemoval
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';

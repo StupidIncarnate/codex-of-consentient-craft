@@ -9,7 +9,7 @@
  * // Returns a branded BufferLineCount
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
 

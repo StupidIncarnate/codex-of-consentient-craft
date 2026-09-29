@@ -9,7 +9,7 @@
  * // Returns a branded StepOutputName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepOutputNameContract = z.string().min(1).brand<'StepOutputName'>();
 

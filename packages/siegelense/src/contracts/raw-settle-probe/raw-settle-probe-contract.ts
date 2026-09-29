@@ -10,7 +10,7 @@
  * // Returns the parsed probe
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';

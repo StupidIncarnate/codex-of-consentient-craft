@@ -10,7 +10,7 @@
  * // Returns: '/api/guilds' as UrlPath
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const urlPathContract = z.string().startsWith('/').brand<'UrlPath'>();
 

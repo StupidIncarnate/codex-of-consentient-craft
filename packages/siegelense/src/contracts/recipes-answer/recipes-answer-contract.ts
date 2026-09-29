@@ -11,7 +11,7 @@
  * // Returns a validated RecipesAnswer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipesListingContract } from '../recipes-listing/recipes-listing-contract';
 

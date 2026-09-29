@@ -12,7 +12,7 @@
  * // Returns a branded ElementFlag
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { keyStatics } from '../../statics/key/key-statics';
 

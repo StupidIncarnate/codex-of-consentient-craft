@@ -9,7 +9,7 @@
  * // Returns the parsed file payload
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const clipboardPayloadContract = z.discriminatedUnion('kind', [
   z.object({

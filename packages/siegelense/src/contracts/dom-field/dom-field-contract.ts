@@ -8,7 +8,7 @@
  * // Returns 'text' as a validated DomField
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { domStatics } from '../../statics/dom/dom-statics';
 

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { pruneAssetKindContract } from './prune-asset-kind-contract';
 import type { PruneAssetKind } from './prune-asset-kind-contract';

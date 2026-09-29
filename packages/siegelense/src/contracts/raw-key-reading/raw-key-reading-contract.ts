@@ -22,7 +22,7 @@
  * // Returns a validated RawKeyReading, and REJECTS a flag the statics do not name
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 

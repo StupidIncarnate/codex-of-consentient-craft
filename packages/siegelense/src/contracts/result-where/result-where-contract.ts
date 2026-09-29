@@ -11,7 +11,7 @@
  * // Returns a validated ResultWhere
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 

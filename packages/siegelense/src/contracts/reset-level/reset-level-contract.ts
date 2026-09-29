@@ -7,7 +7,7 @@
  * // Returns 'state' as branded ResetLevel
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const resetLevelContract = z.enum(['page', 'state', 'instance']).brand<'ResetLevel'>();
 

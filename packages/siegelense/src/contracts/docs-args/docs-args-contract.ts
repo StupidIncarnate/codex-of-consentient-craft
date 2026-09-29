@@ -12,7 +12,7 @@
  * // Returns a validated DocsArgs meaning "serve the walker's instructions as JSON"
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { docsScopeContract } from '../docs-scope/docs-scope-contract';
 

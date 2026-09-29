@@ -27,7 +27,7 @@
  * // Returns a validated SpecProfile
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 

@@ -9,7 +9,7 @@
  * // Returns a validated Registry
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { registryEntryContract } from '../registry-entry/registry-entry-contract';
 

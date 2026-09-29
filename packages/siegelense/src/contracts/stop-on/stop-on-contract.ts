@@ -10,7 +10,7 @@
  * // Returns a branded StopOn
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stopOnContract = z.enum(['error', 'never']).brand<'StopOn'>();
 

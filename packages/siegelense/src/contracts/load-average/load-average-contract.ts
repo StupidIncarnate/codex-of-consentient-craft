@@ -9,7 +9,7 @@
  * // Returns a branded LoadAverage
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const loadAverageContract = z
   .tuple([z.number(), z.number(), z.number()])

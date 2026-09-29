@@ -8,7 +8,7 @@
  * // Returns a branded VideoAction
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { videoStatics } from '../../statics/video/video-statics';
 

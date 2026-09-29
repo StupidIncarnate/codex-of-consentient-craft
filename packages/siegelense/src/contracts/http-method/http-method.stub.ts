@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { httpMethodContract } from './http-method-contract';
 import type { HttpMethod } from './http-method-contract';

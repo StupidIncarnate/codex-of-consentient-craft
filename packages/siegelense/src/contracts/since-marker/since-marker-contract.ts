@@ -10,7 +10,7 @@
  * // Returns: 'boot' as SinceMarker
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 

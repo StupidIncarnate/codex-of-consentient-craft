@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { instanceStateContract } from './instance-state-contract';
 import type { InstanceState } from './instance-state-contract';

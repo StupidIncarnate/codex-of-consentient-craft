@@ -10,7 +10,7 @@
  * // Returns a branded Megabytes
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const megabytesContract = z.number().int().nonnegative().brand<'Megabytes'>();
 

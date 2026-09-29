@@ -23,7 +23,7 @@
  * // Returns a validated StatusAnswer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { instanceStatusContract } from '../instance-status/instance-status-contract';

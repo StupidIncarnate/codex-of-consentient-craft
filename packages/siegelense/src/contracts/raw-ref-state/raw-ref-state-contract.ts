@@ -9,7 +9,7 @@
  * // Returns 'detached'
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rawRefStateContract = z.enum(['live', 'detached', 'out-of-range']);
 

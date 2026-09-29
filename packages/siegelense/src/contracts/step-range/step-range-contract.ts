@@ -11,7 +11,7 @@
  * // Returns: '4-9' as StepRange
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepRangeContract = z
   .string()

@@ -11,7 +11,7 @@
  * // Returns a branded ProfilePoolSize
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const profilePoolSizeContract = z.number().int().positive().brand<'ProfilePoolSize'>();
 

@@ -11,7 +11,7 @@
  * // Returns: 'a3f9c2e1' as SpecHash
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const specHashContract = z
   .string()

@@ -19,7 +19,7 @@
  * // Returns RecipeListingEntry
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';

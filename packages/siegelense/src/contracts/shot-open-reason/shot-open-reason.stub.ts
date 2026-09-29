@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { shotOpenReasonContract } from './shot-open-reason-contract';
 import type { ShotOpenReason } from './shot-open-reason-contract';

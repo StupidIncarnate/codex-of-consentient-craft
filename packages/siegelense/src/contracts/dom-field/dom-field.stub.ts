@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { domFieldContract } from './dom-field-contract';
 import type { DomField } from './dom-field-contract';

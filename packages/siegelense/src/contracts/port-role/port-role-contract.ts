@@ -9,7 +9,7 @@
  * // Returns: 'api' as PortRole
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const portRoleContract = z.enum(['api', 'web']).brand<'PortRole'>();
 

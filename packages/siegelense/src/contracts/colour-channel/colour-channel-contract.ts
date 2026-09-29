@@ -10,7 +10,7 @@
  * // Returns a branded ColourChannel
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { perceptionStatics } from '../../statics/perception/perception-statics';
 

@@ -13,7 +13,7 @@
  * // Returns a validated BlankReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
 

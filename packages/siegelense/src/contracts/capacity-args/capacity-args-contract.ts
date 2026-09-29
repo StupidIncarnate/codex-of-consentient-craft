@@ -13,7 +13,7 @@
  * // Returns a validated CapacityArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';

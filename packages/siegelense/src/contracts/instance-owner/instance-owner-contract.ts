@@ -12,7 +12,7 @@
  * // Returns: '42781' as InstanceOwner
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const instanceOwnerContract = z.string().min(1).brand<'InstanceOwner'>();
 

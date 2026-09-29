@@ -11,7 +11,7 @@
  * // Returns branded ProcessGroupId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processGroupIdContract = z.number().int().positive().brand<'ProcessGroupId'>();
 

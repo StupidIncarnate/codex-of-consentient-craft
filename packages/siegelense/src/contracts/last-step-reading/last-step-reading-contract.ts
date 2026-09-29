@@ -10,7 +10,7 @@
  * // Returns a validated LastStepReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { runIdContract } from '../run-id/run-id-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';

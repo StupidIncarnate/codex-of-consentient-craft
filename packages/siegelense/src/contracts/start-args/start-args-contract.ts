@@ -25,7 +25,7 @@
  * // Returns a validated StartArgs that seeds at boot and carries a raised idle ceiling
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   guildIdContract,

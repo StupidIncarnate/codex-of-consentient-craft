@@ -10,7 +10,7 @@
  * // Returns a branded NodeLabel
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const nodeLabelContract = z.string().min(1).brand<'NodeLabel'>();
 

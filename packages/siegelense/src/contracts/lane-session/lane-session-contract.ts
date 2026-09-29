@@ -23,7 +23,7 @@
  * // lane.browser is null on a browserless spec and a live BrowserSession on 'dungeonmaster-stack'
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { runStatusContract } from './run-status-contract';
 import type { RunStatus } from './run-status-contract';

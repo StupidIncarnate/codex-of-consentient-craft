@@ -8,7 +8,7 @@
  * // Returns 'full' as a validated DomTextMode
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { domStatics } from '../../statics/dom/dom-statics';
 

@@ -12,7 +12,7 @@
  * // Returns a branded ReadingCount
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const readingCountContract = z.number().int().nonnegative().brand<'ReadingCount'>();
 

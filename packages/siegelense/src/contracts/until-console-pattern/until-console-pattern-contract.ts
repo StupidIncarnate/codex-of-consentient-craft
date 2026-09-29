@@ -10,7 +10,7 @@
  * // Returns a branded UntilConsolePattern
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // A candidate needs a leading AND a trailing slash to read as slash-wrapped, so anything shorter
 // than two characters cannot be — a bare "/" is a legitimate pattern matching a literal slash.

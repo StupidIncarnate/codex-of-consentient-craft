@@ -22,7 +22,7 @@
  * // Returns a branded SettleReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readingCountContract } from '../reading-count/reading-count-contract';

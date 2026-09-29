@@ -19,7 +19,7 @@
  * // Returns a validated DriverResponse
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 

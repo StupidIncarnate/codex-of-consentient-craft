@@ -20,7 +20,7 @@
  * // Returns a validated LaneProcess
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 

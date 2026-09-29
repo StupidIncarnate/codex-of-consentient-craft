@@ -12,7 +12,7 @@
  * // Returns 'video' as PruneAssetKind
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pruneAssetKindContract = z
   .enum(['video', 'shot', 'transcript', 'log'])

@@ -13,7 +13,7 @@
  * // { success: false, ... } for anything else thrown
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const zodIssuePathSegmentContract = z.union([
   z.string().brand<'ZodIssuePathSegment'>(),

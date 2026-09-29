@@ -17,7 +17,7 @@
  * // Returns a validated RunArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { stepContract } from '../step/step-contract';

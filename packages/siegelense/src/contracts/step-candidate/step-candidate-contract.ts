@@ -26,7 +26,7 @@
  * // Returns a validated StepCandidate
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 

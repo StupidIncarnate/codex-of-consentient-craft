@@ -14,7 +14,7 @@
  * // Returns a branded SeedBindingName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const seedBindingNameContract = z
   .string()

@@ -15,7 +15,7 @@
  * // Returns a validated CapacityProfile
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';

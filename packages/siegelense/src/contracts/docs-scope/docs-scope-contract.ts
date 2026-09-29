@@ -11,7 +11,7 @@
  * // Returns a branded DocsScope
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 

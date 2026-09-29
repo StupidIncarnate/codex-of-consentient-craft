@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';

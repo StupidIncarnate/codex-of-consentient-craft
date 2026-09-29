@@ -9,7 +9,7 @@
  * // Returns a validated KillArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 

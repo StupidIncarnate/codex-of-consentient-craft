@@ -17,7 +17,7 @@
  * // Returns: 'pruned' as InstanceState
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const instanceStateContract = z
   .enum(['alive', 'killed', 'dead', 'pruned', 'unknown', 'unusable'])

@@ -11,7 +11,7 @@
  * // Returns a branded Selector
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const selectorContract = z.string().min(1).brand<'Selector'>();
 

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { locatorStateContract } from './locator-state-contract';
 import type { LocatorState } from './locator-state-contract';

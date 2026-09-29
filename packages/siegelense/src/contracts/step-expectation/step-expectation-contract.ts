@@ -10,7 +10,7 @@
  * // Returns a branded StepExpectation
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepExpectationContract = z.enum(['ok', 'error']).brand<'StepExpectation'>();
 

@@ -10,7 +10,7 @@
  * // Returns a branded PixelCoordinate for an offscreen position
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pixelCoordinateContract = z.number().int().brand<'PixelCoordinate'>();
 

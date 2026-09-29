@@ -19,7 +19,7 @@
  * // touches a Playwright Page
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 

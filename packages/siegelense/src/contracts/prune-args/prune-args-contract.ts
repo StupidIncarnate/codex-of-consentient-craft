@@ -13,7 +13,7 @@
  * // Returns a validated PruneArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pruneQueryContract } from '../prune-query/prune-query-contract';
 

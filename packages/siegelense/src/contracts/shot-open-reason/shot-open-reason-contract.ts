@@ -14,7 +14,7 @@
  * // Returns a branded ShotOpenReason
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const shotOpenReasonContract = z
   .enum(['blank', 'failed', 'start', 'end', 'changed'])

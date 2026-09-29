@@ -9,7 +9,7 @@
  * // Returns a branded HttpMethod
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const httpMethodContract = z
   .enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])

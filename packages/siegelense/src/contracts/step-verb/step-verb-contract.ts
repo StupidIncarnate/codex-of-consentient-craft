@@ -10,7 +10,7 @@
  * // Returns a branded StepVerb
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { stepStatics } from '../../statics/step/step-statics';
 

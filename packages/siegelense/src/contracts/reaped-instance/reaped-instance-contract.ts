@@ -14,7 +14,7 @@
  * // Returns a validated ReapedInstance
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';

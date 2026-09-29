@@ -9,7 +9,7 @@
  * // Returns a branded CountDelta
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const countDeltaContract = z
   .string()

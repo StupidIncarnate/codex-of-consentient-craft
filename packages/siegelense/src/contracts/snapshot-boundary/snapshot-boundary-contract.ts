@@ -11,7 +11,7 @@
  * // Returns a branded SnapshotBoundary
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const snapshotBoundaryContract = z.enum(['start', 'end']).brand<'SnapshotBoundary'>();
 

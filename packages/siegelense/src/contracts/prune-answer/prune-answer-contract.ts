@@ -19,7 +19,7 @@
  * // Returns a validated PruneAnswer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { citationGapContract } from '../citation-gap/citation-gap-contract';
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';

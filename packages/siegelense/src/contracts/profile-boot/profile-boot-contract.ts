@@ -20,7 +20,7 @@
  * // Returns a validated ProfileBoot
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';

@@ -16,7 +16,7 @@
  * // Returns a validated ResultsArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { resultFieldContract } from '../result-field/result-field-contract';

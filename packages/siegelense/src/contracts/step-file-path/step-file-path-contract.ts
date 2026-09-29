@@ -9,7 +9,7 @@
  * // Returns a branded StepFilePath
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { fileStatics } from '../../statics/file/file-statics';
 

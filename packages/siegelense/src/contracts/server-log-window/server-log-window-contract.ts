@@ -11,7 +11,7 @@
  * // Returns a validated ServerLogWindow
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
 

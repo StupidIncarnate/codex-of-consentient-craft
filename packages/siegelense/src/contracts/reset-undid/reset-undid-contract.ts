@@ -6,7 +6,7 @@
  * // Returns a validated ResetUndid
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { readingCountContract } from '../reading-count/reading-count-contract';
 

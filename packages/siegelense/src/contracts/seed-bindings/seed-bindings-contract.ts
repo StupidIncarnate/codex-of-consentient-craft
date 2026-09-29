@@ -14,7 +14,7 @@
  * // Returns the bindings a later step interpolates from
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { seedBindingNameContract } from '../seed-binding-name/seed-binding-name-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';

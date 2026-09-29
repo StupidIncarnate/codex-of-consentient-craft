@@ -8,7 +8,7 @@
  * // Returns a validated HoldReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { holdStatics } from '../../statics/hold/hold-statics';
 
 export const holdReadingContract = z

@@ -10,7 +10,7 @@
  * // Returns a branded ResultField
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const resultFieldContract = z.string().min(1).brand<'ResultField'>();
 

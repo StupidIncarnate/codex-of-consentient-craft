@@ -10,7 +10,7 @@
  * // Returns a validated CleanupArgs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cleanupArgsContract = z
   .object({

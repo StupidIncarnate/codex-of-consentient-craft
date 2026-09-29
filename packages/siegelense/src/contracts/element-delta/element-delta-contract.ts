@@ -22,7 +22,7 @@
  * // Returns a validated ElementDelta reporting no difference between two readings
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { keyRowContract } from '../key-row/key-row-contract';
 

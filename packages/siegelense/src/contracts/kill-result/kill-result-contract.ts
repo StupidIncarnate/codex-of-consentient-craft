@@ -20,7 +20,7 @@
  * // Returns a validated KillResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 

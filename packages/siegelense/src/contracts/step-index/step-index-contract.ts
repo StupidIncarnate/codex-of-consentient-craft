@@ -11,7 +11,7 @@
  * // Returns a branded StepIndex
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const stepIndexContract = z

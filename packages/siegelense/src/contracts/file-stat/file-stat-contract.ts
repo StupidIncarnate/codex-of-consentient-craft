@@ -9,7 +9,7 @@
  * // Returns a validated FileStat
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';

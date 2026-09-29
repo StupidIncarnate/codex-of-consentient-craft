@@ -15,7 +15,7 @@
  * // Returns a validated SnapshotsAnswer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';

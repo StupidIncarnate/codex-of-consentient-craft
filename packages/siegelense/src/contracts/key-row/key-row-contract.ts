@@ -29,7 +29,7 @@
  * // Returns a validated KeyRow
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 

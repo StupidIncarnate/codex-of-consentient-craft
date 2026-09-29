@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { resultKindContract } from './result-kind-contract';
 import type { ResultKind } from './result-kind-contract';

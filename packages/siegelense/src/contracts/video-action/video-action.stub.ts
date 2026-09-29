@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { videoActionContract } from './video-action-contract';
 import type { VideoAction } from './video-action-contract';

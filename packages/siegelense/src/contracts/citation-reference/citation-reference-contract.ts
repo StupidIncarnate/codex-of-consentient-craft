@@ -18,7 +18,7 @@
  * // Returns a validated CitationReference
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 

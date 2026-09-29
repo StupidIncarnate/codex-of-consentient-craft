@@ -10,7 +10,7 @@
  * // Returns a branded UntilFilePath
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const untilFilePathContract = z
   .string()

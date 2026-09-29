@@ -11,7 +11,7 @@
  * // Returns a branded SnapshotName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 

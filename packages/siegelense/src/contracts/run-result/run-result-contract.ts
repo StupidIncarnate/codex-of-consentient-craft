@@ -21,7 +21,7 @@
  * // Returns a validated RunResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { runIdContract } from '../run-id/run-id-contract';

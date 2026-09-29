@@ -10,7 +10,7 @@
  * // Returns: 'api' as LaneProcessName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const laneProcessNameContract = z.string().min(1).brand<'LaneProcessName'>();
 

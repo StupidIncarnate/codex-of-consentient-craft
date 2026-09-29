@@ -11,7 +11,7 @@
  * // Returns a branded PixelCount
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pixelCountContract = z.number().int().nonnegative().brand<'PixelCount'>();
 

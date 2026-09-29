@@ -13,7 +13,7 @@
  * // Returns a branded InstanceId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const instanceIdContract = z

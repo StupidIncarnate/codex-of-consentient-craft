@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { domTextModeContract } from './dom-text-mode-contract';
 import type { DomTextMode } from './dom-text-mode-contract';

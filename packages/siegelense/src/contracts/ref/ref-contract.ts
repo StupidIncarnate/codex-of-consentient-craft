@@ -18,7 +18,7 @@
  * // Returns a branded Ref
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const refContract = z.number().int().positive().brand<'Ref'>();
 

@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { logLevelContract } from './log-level-contract';
 import type { LogLevel } from './log-level-contract';
