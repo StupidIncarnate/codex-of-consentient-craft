@@ -102,4 +102,17 @@ describe('lineReader', () => {
       );
     });
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {one reader over a stream} => records the createInterface options tuple', () => {
+      const proxy = lineReaderProxy();
+      const input = Readable.from(['x\n']);
+      proxy.passesThroughFor({ input: (value) => value === input });
+
+      const reader = lineReader({ input });
+      reader.close();
+
+      expect(proxy.getCallsFor({ input: (value) => value === input })).toStrictEqual([[{ input }]]);
+    });
+  });
 });

@@ -9,6 +9,7 @@ export const fetchOkProxy = (): {
   setupUnreachable: (params: { url: string }) => void;
   setupAborted: (params: { url: string }) => void;
   setupUnexpectedError: (params: { url: string; error: Error }) => void;
+  getCallsFor: (params: { url: string }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -41,5 +42,6 @@ export const fetchOkProxy = (): {
     setupUnexpectedError: ({ url, error }: { url: string; error: Error }): void => {
       handle.calledWith([url]).rejects(error);
     },
+    getCallsFor: ({ url }: { url: string }): readonly unknown[][] => handle.callsMatching([url]),
   };
 };

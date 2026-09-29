@@ -16,6 +16,7 @@ const isReadableStream = (value: unknown): boolean => value instanceof Readable;
 // would otherwise answer.
 export const lineReaderProxy = (): {
   passesThroughFor: (params: { input: (value: unknown) => boolean }) => void;
+  getCallsFor: (params: { input: (value: unknown) => boolean }) => readonly unknown[][];
 } => {
   const realReadline = requireActual<{ createInterface: typeof createInterface }>({
     module: 'readline',
@@ -35,5 +36,7 @@ export const lineReaderProxy = (): {
           realReadline.createInterface(options),
         );
     },
+    getCallsFor: ({ input }: { input: (value: unknown) => boolean }): readonly unknown[][] =>
+      handle.callsMatching([{ input }]),
   };
 };

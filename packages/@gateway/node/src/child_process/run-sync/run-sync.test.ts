@@ -96,4 +96,38 @@ describe('runSync()', () => {
       expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
     });
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {two calls to one command, one with timeout and env} => records each full argument tuple in call order', () => {
+      const proxy = runSyncProxy();
+      proxy.setupSuccess({ command: 'npm', stdout: 'ok' });
+
+      runSync({ command: 'npm', args: ['install'], cwd: '/project' });
+      runSync({
+        command: 'npm',
+        args: ['run', 'build'],
+        cwd: '/other',
+        timeout: 500,
+        env: { RUN_SYNC_MARK: '1' },
+      });
+
+      expect(proxy.getCallsFor({ command: 'npm' })).toStrictEqual([
+        [
+          'npm',
+          ['install'],
+          { cwd: '/project', env: { ...process.env }, stdio: ['inherit', 'pipe', 'pipe'] },
+        ],
+        [
+          'npm',
+          ['run', 'build'],
+          {
+            cwd: '/other',
+            env: { ...process.env, RUN_SYNC_MARK: '1' },
+            stdio: ['inherit', 'pipe', 'pipe'],
+            timeout: 500,
+          },
+        ],
+      ]);
+    });
+  });
 });

@@ -53,4 +53,20 @@ describe('globSync', () => {
 
     expect(() => globSync({ patterns: '**/*.ts', cwd: '/repo/missing' })).toThrow(error);
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {two calls, one with an exclude} => records patterns and options of each call in order', () => {
+      const proxy = globSyncProxy();
+      proxy.returns({ patterns: '**/*.ts', cwd: '/repo/src', matches: ['a.ts'] });
+      const exclude = ['node_modules'];
+
+      globSync({ patterns: '**/*.ts', cwd: '/repo/src' });
+      globSync({ patterns: '**/*.ts', cwd: '/repo/src', exclude });
+
+      expect(proxy.getCallsFor({ patterns: '**/*.ts', cwd: '/repo/src' })).toStrictEqual([
+        ['**/*.ts', { cwd: '/repo/src' }],
+        ['**/*.ts', { cwd: '/repo/src', exclude }],
+      ]);
+    });
+  });
 });

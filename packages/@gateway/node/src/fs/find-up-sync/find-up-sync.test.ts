@@ -34,4 +34,21 @@ describe('findUpSync', () => {
       null,
     );
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {a match one level up} => records each probed candidate path in walk order', () => {
+      const proxy = findUpSyncProxy();
+      proxy.notFound({ path: join('/repo/packages/node/src', 'package.json') });
+      proxy.foundAt({ path: join('/repo/packages/node', 'package.json') });
+
+      findUpSync({ startDir: '/repo/packages/node/src', fileName: 'package.json' });
+
+      expect(
+        proxy.getCallsFor({ path: (value) => String(value).endsWith('package.json') }),
+      ).toStrictEqual([
+        [join('/repo/packages/node/src', 'package.json')],
+        [join('/repo/packages/node', 'package.json')],
+      ]);
+    });
+  });
 });

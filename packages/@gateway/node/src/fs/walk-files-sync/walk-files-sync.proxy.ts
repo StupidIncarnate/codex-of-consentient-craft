@@ -10,6 +10,7 @@ export const walkFilesSyncProxy = (): {
   setupUnreadableDirectory: (params: { dirPath: string; error: NodeJS.ErrnoException }) => void;
   setupFileStat: (params: { filePath: string; sizeBytes: number; modifiedAtMs: number }) => void;
   setupMissingFileStat: (params: { filePath: string; error: NodeJS.ErrnoException }) => void;
+  getCallsFor: (params: { seam: 'readdirSync' | 'statSync'; path: string }) => readonly unknown[][];
 } => {
   const readdirHandle = registerMock({ fn: readdirSync });
   const statHandle = registerMock({ fn: statSync });
@@ -76,5 +77,12 @@ export const walkFilesSyncProxy = (): {
         throw error;
       });
     },
+
+    // readdirSync is addressed by the directory plus the dirent option the wrapper always passes;
+    // statSync by the file path alone.
+    getCallsFor: ({ seam, path }): readonly unknown[][] =>
+      seam === 'readdirSync'
+        ? readdirHandle.callsMatching([path, { withFileTypes: true }])
+        : statHandle.callsMatching([path]),
   };
 };

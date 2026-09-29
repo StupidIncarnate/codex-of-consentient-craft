@@ -16,6 +16,7 @@ export const runSyncProxy = (): {
     stderr?: string;
   }) => void;
   setupNotFound: (params: { command: string; code: string; message: string }) => void;
+  getCallsFor: (params: { command: string }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: execFileSync });
 
@@ -82,5 +83,8 @@ export const runSyncProxy = (): {
         throw error;
       });
     },
+
+    getCallsFor: ({ command }: { command: string }): readonly unknown[][] =>
+      handle.callsMatching([command]),
   };
 };

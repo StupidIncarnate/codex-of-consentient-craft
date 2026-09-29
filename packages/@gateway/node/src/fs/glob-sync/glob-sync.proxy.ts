@@ -8,6 +8,7 @@ export const globSyncProxy = (): {
     cwd?: string;
     error: NodeJS.ErrnoException;
   }) => void;
+  getCallsFor: (params: { patterns: string | string[]; cwd?: string }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: globSync });
 
@@ -45,5 +46,13 @@ export const globSyncProxy = (): {
           throw error;
         });
     },
+    getCallsFor: ({
+      patterns,
+      cwd,
+    }: {
+      patterns: string | string[];
+      cwd?: string;
+    }): readonly unknown[][] =>
+      handle.callsMatching([patterns, { ...(cwd === undefined ? {} : { cwd }) }]),
   };
 };

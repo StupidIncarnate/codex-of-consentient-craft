@@ -56,4 +56,20 @@ describe('fetchOk', () => {
       unexpected,
     );
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {two probes of one url} => records the url and the abort-signal options of each call', async () => {
+      const proxy = fetchOkProxy();
+      proxy.setupReachable({ url: 'http://localhost/api/guilds' });
+
+      await fetchOk({ url: 'http://localhost/api/guilds', timeoutMs: 1000 });
+      await fetchOk({ url: 'http://localhost/api/guilds', timeoutMs: 2000 });
+
+      const calls = proxy.getCallsFor({ url: 'http://localhost/api/guilds' });
+
+      expect(JSON.stringify(calls)).toBe(
+        '[["http://localhost/api/guilds",{"signal":{}}],["http://localhost/api/guilds",{"signal":{}}]]',
+      );
+    });
+  });
 });

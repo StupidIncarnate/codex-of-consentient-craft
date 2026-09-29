@@ -93,4 +93,22 @@ describe('walkFilesSync', () => {
       expect(walkFilesSync({ rootPath: ROOT, suffix: '.jsonl' })).toStrictEqual([]);
     });
   });
+
+  describe('getCallsFor read-back', () => {
+    it('VALID: {a root with a file} => records the readdirSync and statSync argument tuples', () => {
+      const proxy = walkFilesSyncProxy();
+      proxy.setupDirectory({ dirPath: ROOT, files: ['a.jsonl'] });
+      proxy.setupFileStat({ filePath: `${ROOT}/a.jsonl`, sizeBytes: 1, modifiedAtMs: 2 });
+
+      walkFilesSync({ rootPath: ROOT, suffix: '.jsonl' });
+
+      expect({
+        readdir: proxy.getCallsFor({ seam: 'readdirSync', path: ROOT }),
+        stat: proxy.getCallsFor({ seam: 'statSync', path: `${ROOT}/a.jsonl` }),
+      }).toStrictEqual({
+        readdir: [[ROOT, { withFileTypes: true }]],
+        stat: [[`${ROOT}/a.jsonl`]],
+      });
+    });
+  });
 });
