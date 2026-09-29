@@ -6,6 +6,6 @@
  * import { ... } from '@dungeonmaster/siegelense/startup';
  */
 
-export * from './src/startup/start-install';
-export * from './src/startup/start-siegelense';
-export * from './src/startup/start-siegelense-driver';
+export * from './start-install';
+export * from './start-siegelense';
+export * from './start-siegelense-driver';

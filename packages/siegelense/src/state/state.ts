@@ -6,4 +6,4 @@
  * import { ... } from '@dungeonmaster/siegelense/state';
  */
 
-export * from './src/state/driver-session/driver-session-state';
+export * from './driver-session/driver-session-state';

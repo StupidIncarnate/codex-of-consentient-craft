@@ -9,59 +9,59 @@
     "#gateway/bin/*": "@dungeonmaster/bin/*"
   },
   "exports": {
-    "./contracts": {
-      "source": "./contracts.ts",
-      "types": "./dist/contracts.d.ts",
-      "import": "./dist/contracts.js",
-      "require": "./dist/contracts.js"
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts"
     },
-    "./statics": {
-      "source": "./statics.ts",
-      "types": "./dist/statics.d.ts",
-      "import": "./dist/statics.js",
-      "require": "./dist/statics.js"
-    },
-    "./errors": {
-      "source": "./errors.ts",
-      "types": "./dist/errors.d.ts",
-      "import": "./dist/errors.js",
-      "require": "./dist/errors.js"
-    },
-    "./guards": {
-      "source": "./guards.ts",
-      "types": "./dist/guards.d.ts",
-      "import": "./dist/guards.js",
-      "require": "./dist/guards.js"
+    "./*.stub": {
+      "source": "./src/*.stub.ts"
     },
     "./brokers": {
-      "source": "./brokers.ts",
-      "types": "./dist/brokers.d.ts",
-      "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js"
+      "source": "./src/brokers/brokers.ts",
+      "types": "./dist/src/brokers/brokers.d.ts",
+      "import": "./dist/src/brokers/brokers.js",
+      "require": "./dist/src/brokers/brokers.js"
     },
-    "./startup": {
-      "source": "./startup.ts",
-      "types": "./dist/startup.d.ts",
-      "import": "./dist/startup.js",
-      "require": "./dist/startup.js"
+    "./contracts": {
+      "source": "./src/contracts/contracts.ts",
+      "types": "./dist/src/contracts/contracts.d.ts",
+      "import": "./dist/src/contracts/contracts.js",
+      "require": "./dist/src/contracts/contracts.js"
+    },
+    "./errors": {
+      "source": "./src/errors/errors.ts",
+      "types": "./dist/src/errors/errors.d.ts",
+      "import": "./dist/src/errors/errors.js",
+      "require": "./dist/src/errors/errors.js"
     },
     "./flows": {
-      "source": "./flows.ts",
-      "types": "./dist/flows.d.ts",
-      "import": "./dist/flows.js",
-      "require": "./dist/flows.js"
+      "source": "./src/flows/flows.ts",
+      "types": "./dist/src/flows/flows.d.ts",
+      "import": "./dist/src/flows/flows.js",
+      "require": "./dist/src/flows/flows.js"
+    },
+    "./guards": {
+      "source": "./src/guards/guards.ts",
+      "types": "./dist/src/guards/guards.d.ts",
+      "import": "./dist/src/guards/guards.js",
+      "require": "./dist/src/guards/guards.js"
+    },
+    "./startup": {
+      "source": "./src/startup/startup.ts",
+      "types": "./dist/src/startup/startup.d.ts",
+      "import": "./dist/src/startup/startup.js",
+      "require": "./dist/src/startup/startup.js"
     },
     "./state": {
-      "source": "./state.ts",
-      "types": "./dist/state.d.ts",
-      "import": "./dist/state.js",
-      "require": "./dist/state.js"
+      "source": "./src/state/state.ts",
+      "types": "./dist/src/state/state.d.ts",
+      "import": "./dist/src/state/state.js",
+      "require": "./dist/src/state/state.js"
     },
-    "./testing": {
-      "source": "./testing.ts",
-      "types": "./dist/testing.d.ts",
-      "import": "./dist/testing.js",
-      "require": "./dist/testing.js"
+    "./statics": {
+      "source": "./src/statics/statics.ts",
+      "types": "./dist/src/statics/statics.d.ts",
+      "import": "./dist/src/statics/statics.js",
+      "require": "./dist/src/statics/statics.js"
     }
   },
   "files": [
