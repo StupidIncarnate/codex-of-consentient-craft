@@ -1,13 +1,14 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { basename, join } from '#gateway/node/path';
+import { join } from '#gateway/node/path';
+import { stdinIsTtyProxy } from '#gateway/node/process/stdin-is-tty/stdin-is-tty.proxy';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import {
   filePathContract,
   type FileContents,
   type FilePath,
   type PathSegment,
 } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { createPackageResolveRequestBrokerProxy } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker.proxy';
 import { packageRegisterBrokerProxy } from '../../../brokers/package/register/package-register-broker.proxy';
@@ -35,14 +36,8 @@ export const CliCreatePackageResponderProxy = (): {
   const scaffoldWriteProxy = packageScaffoldWriteBrokerProxy();
   const registerProxy = packageRegisterBrokerProxy();
   const readProxy = readFileProxy();
-  const realPath = requireActual<{ join: typeof join; basename: typeof basename }>({
-    module: 'path',
-  });
-  const joinHandle = registerMock({ fn: join });
-  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const basenameHandle = registerMock({ fn: basename });
-  const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-  stdoutSpy.calledWith([(chunk: unknown) => typeof chunk === 'string']).returns(true);
+  stdinIsTtyProxy();
+  const stdout = stdoutProxy();
   const rootPackageJsonPathHolder: FilePath[] = [];
 
   return {
@@ -56,7 +51,6 @@ export const CliCreatePackageResponderProxy = (): {
       const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
       readProxy.returns({ path: packageJsonPath, contents });
       rootPackageJsonPathHolder.push(packageJsonPath);
-      basenameHandle.calledWith([projectRoot]).returns(realPath.basename(projectRoot));
       // Covers packageRegisterBroker's OWN read of the same path plus its write, in case the
       // responder's registration step needs to persist a change.
       registerProxy.setupRootPackageJson({ projectRoot, contents });
@@ -83,7 +77,7 @@ export const CliCreatePackageResponderProxy = (): {
       existsProxy.returns({ path: jestConfigBasePath, exists: true });
     },
 
-    getOutput: (): readonly unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),
+    getOutput: (): readonly unknown[] => stdout.getWrites(),
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] => {
       const scaffolded = scaffoldWriteProxy.getWrittenFiles();

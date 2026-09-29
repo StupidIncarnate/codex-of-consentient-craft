@@ -13,6 +13,7 @@ import {
   removeAllListeners,
   emit,
   on,
+  stdinIsTty,
 } from './process';
 
 describe('#gateway/node/process', () => {
@@ -44,6 +45,7 @@ describe('#gateway/node/process', () => {
       removeAllListeners,
       emit,
       on,
+      stdinIsTty,
     }).toStrictEqual({
       envSnapshot: expect.any(Function),
       setEnv: expect.any(Function),
@@ -53,6 +55,7 @@ describe('#gateway/node/process', () => {
       removeAllListeners: expect.any(Function),
       emit: expect.any(Function),
       on: expect.any(Function),
+      stdinIsTty: expect.any(Function),
     });
   });
 });

@@ -3,7 +3,7 @@
  * colocated file with its own `.test.ts`/`.proxy.ts` — a global capture (`stdout`, `stderr`,
  * `argv`, `pid`, `platform`, `execPath`) same as a real wrapper function (`cwd`, `exit`, `on`,
  * `kill`, `getEnv`, `setEnv`, `deleteEnv`, `envSnapshot`, `chdir`, `nextTick`, `emit`,
- * `removeAllListeners`, `readStdinToEnd`, `getExitCode`, `setExitCode`) — so this file holds only
+ * `removeAllListeners`, `readStdinToEnd`, `stdinIsTty`, `getExitCode`, `setExitCode`) — so this file holds only
  * re-exports, never an implementation of its own.
  *
  * USAGE:
@@ -30,4 +30,5 @@ export { removeAllListeners } from './remove-all-listeners/remove-all-listeners'
 export { setEnv } from './set-env/set-env';
 export { setExitCode } from './set-exit-code/set-exit-code';
 export { stderr } from './stderr/stderr';
+export { stdinIsTty } from './stdin-is-tty/stdin-is-tty';
 export { stdout } from './stdout/stdout';

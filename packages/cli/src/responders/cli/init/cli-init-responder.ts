@@ -6,6 +6,7 @@
  * // Writes [OK] or [FAIL] status lines for each package to stdout
  */
 
+import { stdout } from '#gateway/node/process';
 import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -26,7 +27,7 @@ export const CliInitResponder = async ({
     // so a bare `result.message` prints the literal string "undefined" on every real failure.
     const detail =
       (result.success ? result.message : result.error) ?? 'no install message reported';
-    process.stdout.write(`[${status}] ${result.packageName}: ${detail}\n`);
+    stdout.write(`[${status}] ${result.packageName}: ${detail}\n`);
   }
   return adapterResultContract.parse({ success: true });
 };

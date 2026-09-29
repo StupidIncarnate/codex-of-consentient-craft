@@ -38,6 +38,7 @@ import {
 import { existsSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
+import { stdinIsTty, stdout } from '#gateway/node/process';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { createPackageResolveRequestBroker } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker';
@@ -84,7 +85,7 @@ export const CliCreatePackageResponder = async ({
   // Zero args at a terminal prompts; zero args with no TTY falls through to the resolver, which
   // throws naming --name, so a script or agent can never hang on stdin — any args at all is
   // already non-interactive.
-  const interactive = args.length === 0 && process.stdin.isTTY;
+  const interactive = args.length === 0 && stdinIsTty();
 
   const request = await createPackageResolveRequestBroker({
     args: parsedArgs,
@@ -96,13 +97,13 @@ export const CliCreatePackageResponder = async ({
     join(context.targetProjectRoot, request.packagesDir, request.directoryName),
   );
 
-  process.stdout.write(`Scaffolding ${request.packageName} at ${packageRoot}\n`);
+  stdout.write(`Scaffolding ${request.packageName} at ${packageRoot}\n`);
   files.forEach((file) => {
-    process.stdout.write(`  ${file.relativePath}\n`);
+    stdout.write(`  ${file.relativePath}\n`);
   });
 
   if (parsedArgs.dryRun) {
-    process.stdout.write(`Would write ${files.length} files. Nothing was written.\n`);
+    stdout.write(`Would write ${files.length} files. Nothing was written.\n`);
     return adapterResultContract.parse({ success: true });
   }
 
@@ -112,8 +113,8 @@ export const CliCreatePackageResponder = async ({
     packageName: request.packageName,
   });
 
-  process.stdout.write(`Wrote ${writtenFiles.length} files.\n`);
-  process.stdout.write(
+  stdout.write(`Wrote ${writtenFiles.length} files.\n`);
+  stdout.write(
     registered
       ? `Registered ${request.packageName} in the root package.json.\n`
       : `${request.packageName} was already registered in the root package.json.\n`,
@@ -125,12 +126,12 @@ export const CliCreatePackageResponder = async ({
     (file) => file.relativePath === packageScaffoldConfigStatics.playwrightConfigFileName,
   );
 
-  process.stdout.write('Next steps:\n');
-  process.stdout.write('  npm install\n');
-  process.stdout.write(`  npm run ward -- -- ${request.packagesDir}/${request.directoryName}\n`);
+  stdout.write('Next steps:\n');
+  stdout.write('  npm install\n');
+  stdout.write(`  npm run ward -- -- ${request.packagesDir}/${request.directoryName}\n`);
 
   if (isE2eEligible) {
-    process.stdout.write(
+    stdout.write(
       '  ward\'s e2e check stays red until this package adds a "dev:no-watch" script and at least one *.e2e.ts spec.\n',
     );
   }
