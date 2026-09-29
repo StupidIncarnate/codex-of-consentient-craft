@@ -62,7 +62,6 @@ export * from './src/contracts/recipe-manifest/recipe-manifest.stub';
 export * from './src/contracts/recipe-context/recipe-context-contract';
 export * from './src/contracts/recipe-context/recipe-context.stub';
 
-
 export * from './src/contracts/guild-listing/guild-listing-contract';
 export * from './src/contracts/guild-listing/guild-listing.stub';
 

@@ -202,7 +202,7 @@ if (sampleOut) {
   }
 } else if (APPLY) {
   for (const [abs, text] of writes) {
-    if (text === null) fs.rmSync(abs);
+    if (text === null) { const mv = path.join(ROOT, 'tmp/deletions/3.3', rel(abs)); fs.mkdirSync(path.dirname(mv), { recursive: true }); fs.renameSync(abs, mv); }
     else {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, text);

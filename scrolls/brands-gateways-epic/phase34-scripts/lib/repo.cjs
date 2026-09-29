@@ -242,8 +242,8 @@ const threeKeyExports = (w) => {
     require: `${d}/${distPat}.js`,
   });
   return {
-    './*.proxy': entry('*.proxy', '*.proxy'),
-    './*.stub': entry('*.stub', '*.stub'),
+    './*.proxy': w.short === 'testing' ? entry('*.proxy', '*.proxy') : { source: './src/*.proxy.ts' },
+    './*.stub': w.short === 'testing' ? entry('*.stub', '*.stub') : { source: './src/*.stub.ts' },
     './*': entry('*/*', '*/*'),
   };
 };
