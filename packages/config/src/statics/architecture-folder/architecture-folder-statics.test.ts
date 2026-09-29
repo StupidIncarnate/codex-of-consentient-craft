@@ -9,7 +9,6 @@ describe('architectureFolderStatics', () => {
           'transformers',
           'errors',
           'flows',
-          'adapters',
           'middleware',
           'brokers',
           'bindings',

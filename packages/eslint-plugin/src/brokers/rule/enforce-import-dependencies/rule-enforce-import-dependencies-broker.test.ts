@@ -19,14 +19,10 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/guards/input/input-guard.ts',
     },
 
-    // Brokers can import from brokers, adapters, contracts, statics, errors
+    // Brokers can import from brokers, contracts, statics, errors
     {
       code: 'import { userBroker } from "../../user/fetch/user-fetch-broker";',
       filename: '/project/src/brokers/auth/login/auth-login-broker.ts',
-    },
-    {
-      code: 'import { httpGetAdapter } from "../../../adapters/http/get/http-get-adapter";',
-      filename: '/project/src/brokers/api/fetch/api-fetch-broker.ts',
     },
     {
       code: 'import { userContract } from "../../../contracts/user/user-contract";',
@@ -41,47 +37,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/brokers/api/fetch/api-fetch-broker.ts',
     },
 
-    // Adapters can import external packages (node_modules)
-    {
-      code: 'import express from "express";',
-      filename: '/project/src/adapters/express/express-adapter.ts',
-    },
-    {
-      code: 'import { z } from "zod";',
-      filename: '/project/src/adapters/zod/zod-adapter.ts',
-    },
-    {
-      code: 'import axios from "axios";',
-      filename: '/project/src/adapters/http/http-client.ts',
-    },
-    {
-      code: 'import { configStatics } from "../../statics/config/config-statics";',
-      filename: '/project/src/adapters/config/config-adapter.ts',
-    },
-    {
-      code: 'import { userContract } from "../../contracts/user/user-contract";',
-      filename: '/project/src/adapters/api/api-adapter.ts',
-    },
-    // Adapters can import scoped npm packages
-    {
-      code: 'import { ESLint } from "@typescript-eslint/utils";',
-      filename: '/project/src/adapters/typescript-eslint/typescript-eslint-adapter.ts',
-    },
-    {
-      code: 'import { parseAsync } from "@babel/parser";',
-      filename: '/project/src/adapters/babel/babel-parser-adapter.ts',
-    },
-    {
-      code: 'import type { Rule } from "@typescript-eslint/utils/ts-eslint";',
-      filename: '/project/src/adapters/typescript-eslint/typescript-eslint-rule-adapter.ts',
-    },
-
     // @dungeonmaster/shared imports follow folder dependency rules
-    // Adapters can import from @dungeonmaster/shared/contracts
-    {
-      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
-      filename: '/project/src/adapters/path/path-adapter.ts',
-    },
     // Brokers can import from @dungeonmaster/shared/contracts
     {
       code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
@@ -99,10 +55,6 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     },
 
     // Root-barrel imports are classified by the imported name's suffix (single-barrel packages)
-    {
-      code: 'import { filePathContract } from "@dungeonmaster/shared";',
-      filename: '/project/src/adapters/path/path-adapter.ts',
-    },
     {
       code: 'import { filePathContract } from "@dungeonmaster/shared";',
       filename: '/project/src/brokers/config/load/config-load-broker.ts',
@@ -123,10 +75,6 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/brokers/auth/login/auth-login-broker.test.ts',
     },
     {
-      code: 'import { FilePathStub } from "../../contracts/file-path/file-path.stub";',
-      filename: '/project/src/adapters/path/path-adapter.test.ts',
-    },
-    {
       code: 'import { ConfigStub } from "../../contracts/config/config.stub";',
       filename: '/project/src/guards/validation/validation-guard.spec.ts',
     },
@@ -135,10 +83,6 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { FilePathStub } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/brokers/config/load/config-load-broker.test.ts',
-    },
-    {
-      code: 'import { AbsoluteFilePathStub } from "@dungeonmaster/shared/contracts";',
-      filename: '/project/src/adapters/path/path-dirname.test.ts',
     },
     // Test files in folders that normally can't import contracts can still import from @dungeonmaster/shared/contracts
     {
@@ -157,10 +101,6 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     },
 
     // Files in the same domain folder can import each other
-    {
-      code: 'import { fsExistsSyncAdapter } from "./fs-exists-sync-adapter";',
-      filename: '/project/src/adapters/fs/fs-exists-sync-adapter.test.ts',
-    },
     {
       code: 'import { userContract } from "./user-contract";',
       filename: '/project/src/contracts/user/user.stub.ts',
@@ -243,15 +183,6 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
     {
       code: 'import { authVerifyBroker } from "../../auth/verify/auth-verify-broker";',
       filename: '/project/src/brokers/payment/process/payment-process-broker.ts',
-    },
-    // Brokers (depth 2) importing from depth-2 adapters - requires 4 levels up
-    {
-      code: 'import { postgresQueryAdapter } from "../../../../adapters/postgres/query/postgres-query-adapter";',
-      filename: '/project/src/brokers/database/query/database-query-broker.ts',
-    },
-    {
-      code: 'import { redisSetAdapter } from "../../../../adapters/redis/set/redis-set-adapter";',
-      filename: '/project/src/brokers/cache/set/cache-set-broker.ts',
     },
     // Brokers (depth 2) importing from depth-1 contracts - requires 3 levels up
     {
@@ -434,11 +365,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/state/store/store-state.ts',
     },
 
-    // Middleware (depth 1) can import from adapters (depth 2), middleware, statics
-    {
-      code: 'import { winstonLogAdapter } from "../../../adapters/winston/log/winston-log-adapter";',
-      filename: '/project/src/middleware/http-telemetry/http-telemetry-middleware.ts',
-    },
+    // Middleware (depth 1) can import from middleware, statics
     {
       code: 'import { errorTrackingMiddleware } from "../error-tracking/error-tracking-middleware";',
       filename: '/project/src/middleware/request-logger/request-logger-middleware.ts',
@@ -523,12 +450,12 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
 
     // Proxy files are exempt from import restrictions (have their own proxy rules)
     {
-      code: 'import { fsEnsureReadFileSyncAdapterProxy } from "../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.proxy";',
+      code: 'import { userCardWidgetProxy } from "../../../widgets/user-card/user-card-widget.proxy";',
       filename:
         '/project/src/brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.proxy.ts',
     },
     {
-      code: 'import { httpGetAdapterProxy } from "../../../../adapters/http/get/http-get-adapter.proxy";',
+      code: 'import { userProfileWidgetProxy } from "../../../../widgets/user-profile/user-profile-widget.proxy";',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
     },
     {

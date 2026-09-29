@@ -15,7 +15,6 @@ describe('frameworkPresetKeysStatics', () => {
           'transformers',
           'errors',
           'middleware',
-          'adapters',
           'startup',
         ],
       },

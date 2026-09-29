@@ -20,7 +20,6 @@ export const frameworkPresetKeysStatics = {
       'transformers',
       'errors',
       'middleware',
-      'adapters',
       'startup',
     ] as const,
   },

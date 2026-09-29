@@ -135,8 +135,3 @@ architecture responder is the exception: it parses the repo root through `absolu
 the path lattice: the brand is a compile-time domain marker carrying no runtime guarantee. A value
 that must be genuinely absolute has to be parsed through `absoluteFilePathContract`; never infer
 absoluteness from a `PathSegment` brand.
-
-**One local contract a dedup pass *should* remove** (a named follow-up, not drive-by work):
-`contracts/import-path/import-path-contract.ts` is byte-identical to
-`packages/shared/src/contracts/import-path/import-path-contract.ts`, and nothing in this package
-imports it outside its own stub and test.

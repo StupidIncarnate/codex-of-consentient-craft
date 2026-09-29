@@ -14,7 +14,6 @@ export const architectureFolderStatics = {
       'transformers',
       'errors',
       'flows',
-      'adapters',
       'middleware',
       'brokers',
       'bindings',
