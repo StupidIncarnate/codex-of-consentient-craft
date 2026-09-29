@@ -32,8 +32,9 @@
  * Usage: node scripts/consumer-check/run.mjs [--mode=local|global|all] [--keep]
  *   --mode   which install scenario(s) to run (repo CLAUDE.md's "Four Resolution Scenarios",
  *            3 = local node_modules, 4 = global install only). Default: all.
- *   --keep   never delete the consumer directories, even on a full pass (default: delete on pass,
- *            always keep and print the path on any failure).
+ *   --keep   never delete the consumer directories or the global-mode npm prefix, even on a full
+ *            pass (default: delete a consumer directory on pass, always keep and print its path on
+ *            any failure; the global prefix is deleted on pass, fail and crash).
  */
 
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
@@ -139,6 +140,21 @@ const runGlobalMode = async ({ tarballs, gt }) => {
   const report = createReport({ sectionName: 'global mode (scenario 4: global install only)' });
 
   const globalPrefixDir = makeWorkDir({ prefix: 'dm-consumer-check-global-prefix' });
+  // The prefix is a throwaway npm install (~1GB), not debugging evidence, so it goes on pass,
+  // fail and exception alike; only `--keep` retains it. The consumer directory is the artifact a
+  // failed run keeps.
+  try {
+    return await runGlobalModeInPrefix({ report, globalPrefixDir, tarballs, gt });
+  } finally {
+    if (keep) {
+      process.stdout.write(`\nKept global prefix (--keep): ${globalPrefixDir}\n`);
+    } else {
+      rmSync(globalPrefixDir, { recursive: true, force: true });
+    }
+  }
+};
+
+const runGlobalModeInPrefix = async ({ report, globalPrefixDir, tarballs, gt }) => {
   await installTarballsGlobally({ globalPrefixDir, tarballs });
   const env = envWithGlobalPrefix({ globalPrefixDir });
 
