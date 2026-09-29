@@ -28,8 +28,8 @@ describe('SiegelensePruneResponder', () => {
     it('VALID: {an all-empty answer, confirm: true} => still writes a document, so a caller never reads silence as success', async () => {
       const proxy = SiegelensePruneResponderProxy();
       const answer = PruneAnswerStub({
-        freedMB: 0 as never,
-        freedBytes: 0 as never,
+        freedMB: 0,
+        freedBytes: 0,
         removed: [],
         refused: [],
         unresolved: [],

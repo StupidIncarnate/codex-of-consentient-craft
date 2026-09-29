@@ -236,7 +236,7 @@ describe('prune, against a real evidence tree', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
                   runId: SiegeRunIdStub({ value: 'run_2' }),
@@ -256,12 +256,12 @@ describe('prune, against a real evidence tree', () => {
 
     // Sweep 1 — the default window over files the suite wrote seconds ago.
     freshWindowSweep = await pruneRunBroker({
-      query: PruneQueryStub({ instanceId: null, kind: null, olderThan: '7d' as never }),
+      query: PruneQueryStub({ instanceId: null, kind: null, olderThan: '7d' }),
     });
 
     // Sweep 2 — one instance, everything up to this instant.
     neighbourSweep = await pruneRunBroker({
-      query: PruneQueryStub({ instanceId: NEIGHBOUR_ID, kind: null, olderThan: '0s' as never }),
+      query: PruneQueryStub({ instanceId: NEIGHBOUR_ID, kind: null, olderThan: '0s' }),
     });
     neighbourLogAfterScopedSweep = await statIfExists(`${neighbourEvidence}/api-server.log`);
     uncitedLogAfterScopedSweep = await statIfExists(`${uncitedEvidence}/api-server.log`);
@@ -273,7 +273,7 @@ describe('prune, against a real evidence tree', () => {
     // integration test captures BOUNDARY_ID's state between two sweeps: reading disk from an `it()`
     // would only ever see the state AFTER every beforeAll sweep has run.
     dryRunSweep = await pruneRunBroker({
-      query: PruneQueryStub({ instanceId: DRY_RUN_ID, kind: null, olderThan: '0s' as never }),
+      query: PruneQueryStub({ instanceId: DRY_RUN_ID, kind: null, olderThan: '0s' }),
       dryRun: true,
     });
     dryRunLogAfterSweep = await statIfExists(`${dryRunEvidence}/api-server.log`);
@@ -281,7 +281,7 @@ describe('prune, against a real evidence tree', () => {
 
     // Sweep 3 — the whole fleet, everything up to this instant.
     fleetSweep = await pruneRunBroker({
-      query: PruneQueryStub({ instanceId: null, kind: null, olderThan: '0s' as never }),
+      query: PruneQueryStub({ instanceId: null, kind: null, olderThan: '0s' }),
     });
     uncitedLogAfterFleetSweep = await statIfExists(`${uncitedEvidence}/api-server.log`);
     citedLogAfterFleetSweep = await statIfExists(`${citedEvidence}/api-server.log`);

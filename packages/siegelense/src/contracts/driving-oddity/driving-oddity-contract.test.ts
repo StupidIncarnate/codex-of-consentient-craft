@@ -31,7 +31,7 @@ describe('drivingOddityContract', () => {
   describe('invalid entries', () => {
     it('INVALID: {kind: "broken"} => an unlisted kind throws validation error', () => {
       expect(() => {
-        DrivingOddityStub({ kind: 'broken' as never });
+        DrivingOddityStub({ kind: 'broken' });
       }).toThrow(/Invalid option/u);
     });
 
@@ -51,7 +51,7 @@ describe('drivingOddityContract', () => {
           line: 'Something odd about this screen.',
           kind: 'quirk',
           route: '/guilds',
-        } as never);
+        });
       }).toThrow(/Unrecognized key: \\"route\\"/u);
     });
   });
@@ -59,13 +59,13 @@ describe('drivingOddityContract', () => {
   describe('empty inputs', () => {
     it('EMPTY: {key: ""} => throws validation error', () => {
       expect(() => {
-        DrivingOddityStub({ key: '' as never });
+        DrivingOddityStub({ key: '' });
       }).toThrow(/>=1 characters/u);
     });
 
     it('EMPTY: {line: ""} => throws validation error', () => {
       expect(() => {
-        DrivingOddityStub({ line: '' as never });
+        DrivingOddityStub({ line: '' });
       }).toThrow(/>=1 characters/u);
     });
   });

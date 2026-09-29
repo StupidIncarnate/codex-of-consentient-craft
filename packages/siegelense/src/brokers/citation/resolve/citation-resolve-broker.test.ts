@@ -195,7 +195,7 @@ describe('citationResolveBroker', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                   runId: SiegeRunIdStub({ value: 'run_7' }),
@@ -251,7 +251,7 @@ describe('citationResolveBroker', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: OTHER_INSTANCE }),
                   runId: SiegeRunIdStub({ value: 'run_7' }),
@@ -295,7 +295,7 @@ describe('citationResolveBroker', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                   runId: SiegeRunIdStub({ value: 'run_7' }),
@@ -339,7 +339,7 @@ describe('citationResolveBroker', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'out-of-scope-thing' as never,
+                  id: 'out-of-scope-thing',
                   kind: 'out-of-scope',
                   instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                   runId: SiegeRunIdStub({ value: 'run_7' }),

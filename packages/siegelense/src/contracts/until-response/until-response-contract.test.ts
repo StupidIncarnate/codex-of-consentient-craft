@@ -33,14 +33,12 @@ describe('untilResponseContract', () => {
 
     it('INVALID: {+extra key} => throws naming the stray key', () => {
       expect(() =>
-        untilResponseContract.parse({ method: 'POST', path: '/api/quests', extra: 'x' } as never),
+        untilResponseContract.parse({ method: 'POST', path: '/api/quests', extra: 'x' }),
       ).toThrow(/Unrecognized key: \\"extra\\"/u);
     });
 
     it('INVALID: {missing path} => throws for the missing field', () => {
-      expect(() => untilResponseContract.parse({ method: 'POST' } as never)).toThrow(
-        /received undefined/u,
-      );
+      expect(() => untilResponseContract.parse({ method: 'POST' })).toThrow(/received undefined/u);
     });
   });
 });

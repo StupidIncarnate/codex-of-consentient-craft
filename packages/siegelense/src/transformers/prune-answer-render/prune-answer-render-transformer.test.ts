@@ -22,9 +22,9 @@ describe('pruneAnswerRenderTransformer', () => {
       const answer = PruneAnswerStub({
         removed: [
           PruneRemovalStub({
-            kind: 'video' as never,
-            freedBytes: 3072 as never,
-            freedMB: 0 as never,
+            kind: 'video',
+            freedBytes: 3072,
+            freedMB: 0,
             tombstoned: false,
           }),
         ],
@@ -44,8 +44,8 @@ describe('pruneAnswerRenderTransformer', () => {
   describe('an empty answer', () => {
     it('EMPTY: {nothing matched} => REFUSED and NOT CHECKED are still printed, so an empty refusal never reads as "nothing cites any of this"', () => {
       const answer = PruneAnswerStub({
-        freedMB: 0 as never,
-        freedBytes: 0 as never,
+        freedMB: 0,
+        freedBytes: 0,
         removed: [],
         refused: [],
         unresolved: [],
@@ -60,14 +60,14 @@ describe('pruneAnswerRenderTransformer', () => {
   describe('several refusals', () => {
     it('VALID: {two refusals} => both are listed, each with its own reason', () => {
       const answer = PruneAnswerStub({
-        freedMB: 0 as never,
-        freedBytes: 0 as never,
+        freedMB: 0,
+        freedBytes: 0,
         removed: [],
         refused: [
           PruneRefusalStub(),
           PruneRefusalStub({
-            id: 'inst_7f3a' as never,
-            why: 'live — last beat 2s ago' as never,
+            id: 'inst_7f3a',
+            why: 'live — last beat 2s ago',
           }),
         ],
         unresolved: [],

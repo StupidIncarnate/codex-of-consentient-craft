@@ -23,7 +23,7 @@ describe('blankReadingContract', () => {
       expect(() =>
         blankReadingContract.parse({
           colour: null,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

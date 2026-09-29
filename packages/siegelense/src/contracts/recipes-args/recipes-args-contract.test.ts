@@ -40,7 +40,7 @@ describe('recipesArgsContract', () => {
         recipesArgsContract.parse({
           isJson: true,
           instanceId: 'inst_7f3a9c21',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

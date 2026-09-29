@@ -69,7 +69,7 @@ describe('compareAnswerContract', () => {
           pixels: null,
           elements: { runA: null, runB: null },
           bogusField: 'x',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"bogusField\\"/u);
     });
   });

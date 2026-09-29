@@ -323,7 +323,7 @@ describe('SiegelensePruneLayerFlow', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-prune-audit' as never,
+                  id: 'walked-prune-audit',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
                   runId: SiegeRunIdStub({ value: 'run_1' }),

@@ -49,7 +49,7 @@ describe('docsAnswerContract', () => {
   describe('invalid answers', () => {
     it('INVALID: {extra key "count"} => throws Unrecognized key on the answer', () => {
       expect(() =>
-        docsAnswerContract.parse({ requested: null, about: [], scopes: [], count: 7 } as never),
+        docsAnswerContract.parse({ requested: null, about: [], scopes: [], count: 7 }),
       ).toThrow(/Unrecognized key/u);
     });
 
@@ -66,7 +66,7 @@ describe('docsAnswerContract', () => {
               sections: [{ heading: 'THE LADDER', lines: [], rungs: 5 }],
             },
           ],
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
 

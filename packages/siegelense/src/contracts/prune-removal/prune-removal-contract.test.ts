@@ -18,7 +18,7 @@ describe('pruneRemovalContract', () => {
     });
 
     it('VALID: {kind: "video", tombstoned: false} => one class taken leaves the row untombstoned, so results keeps answering off the rest', () => {
-      const removal = PruneRemovalStub({ kind: 'video' as never, tombstoned: false });
+      const removal = PruneRemovalStub({ kind: 'video', tombstoned: false });
 
       const result = pruneRemovalContract.parse(removal);
 
@@ -33,8 +33,8 @@ describe('pruneRemovalContract', () => {
 
     it('EDGE: {freedBytes: 3072, freedMB: 0} => a sub-megabyte reclaim keeps the real byte count, which is why the field exists', () => {
       const removal = PruneRemovalStub({
-        freedBytes: 3072 as never,
-        freedMB: 0 as never,
+        freedBytes: 3072,
+        freedMB: 0,
       });
 
       const result = pruneRemovalContract.parse(removal);
@@ -52,7 +52,7 @@ describe('pruneRemovalContract', () => {
   describe('invalid removals', () => {
     it('INVALID: {freedMB: 4100.5} => a fractional megabyte throws', () => {
       expect(() => {
-        PruneRemovalStub({ freedMB: 4100.5 as never });
+        PruneRemovalStub({ freedMB: 4100.5 });
       }).toThrow(/expected int, received number/u);
     });
 

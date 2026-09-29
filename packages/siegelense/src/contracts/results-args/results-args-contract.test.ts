@@ -59,7 +59,7 @@ describe('resultsArgsContract', () => {
           fields: null,
           since: null,
           isJson: false,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"instance\\"/u);
     });
   });

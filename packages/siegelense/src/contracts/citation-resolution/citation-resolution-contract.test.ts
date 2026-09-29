@@ -37,7 +37,7 @@ describe('citationResolutionContract', () => {
 
     it('VALID: {blocked: a reason} => parses, so "could not establish" is representable and never collapses to an empty list', () => {
       const resolution = CitationResolutionStub({
-        blocked: 'quest q1 is recorded on the row but its guild is not' as never,
+        blocked: 'quest q1 is recorded on the row but its guild is not',
       });
 
       const result = citationResolutionContract.parse(resolution);

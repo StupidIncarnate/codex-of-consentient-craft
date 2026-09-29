@@ -41,7 +41,7 @@ describe('driverRequestContract', () => {
 
   describe('malformed frames', () => {
     it('INVALID: {kind: "status"} => an unlisted kind throws validation error rather than something unrecognisable', () => {
-      expect(() => driverRequestContract.parse({ kind: 'status' as never, payload: '' })).toThrow(
+      expect(() => driverRequestContract.parse({ kind: 'status', payload: '' })).toThrow(
         /Invalid option/u,
       );
     });

@@ -52,7 +52,7 @@ describe('resultsQueryContract', () => {
           fields: null,
           since: null,
           unknownField: true,
-        } as never),
+        }),
       ).toThrow(/"message": "Unrecognized key: \\"unknownField\\""/u);
     });
   });

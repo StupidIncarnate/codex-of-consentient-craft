@@ -43,7 +43,7 @@ describe('recipesAnswerContract', () => {
         recipesAnswerContract.parse({
           recipes: [],
           count: 0,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

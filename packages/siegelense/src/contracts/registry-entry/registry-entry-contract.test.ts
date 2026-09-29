@@ -266,7 +266,7 @@ describe('registryEntryContract', () => {
           pgids: [],
           socketPath: null,
           ports: { api: 34_172, web: 34_173 },
-          state: 'starting' as never,
+          state: 'starting',
           reservedAtMs: 1_700_000_000_000,
           bootedAtMs: null,
           lastBeatMs: null,

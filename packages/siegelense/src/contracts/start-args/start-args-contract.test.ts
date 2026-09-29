@@ -144,7 +144,7 @@ describe('startArgsContract', () => {
           guildId: null,
           seed: null,
           reason: 'done testing',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

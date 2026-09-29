@@ -115,7 +115,7 @@ describe('stoppedAtContract', () => {
           step: 4,
           verb: 'click',
           candidates: [],
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -125,7 +125,7 @@ describe('stoppedAtContract', () => {
           step: 4,
           verb: 'click',
           error: 'AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]',
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

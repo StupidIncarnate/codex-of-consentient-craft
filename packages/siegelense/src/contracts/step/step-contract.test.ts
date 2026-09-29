@@ -173,9 +173,9 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
-      expect(() =>
-        stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
-      ).toThrow(/Unrecognized key: \\"target\\"/u);
+      expect(() => stepContract.parse({ step: 'look', target: '[data-testid="X"]' })).toThrow(
+        /Unrecognized key: \\"target\\"/u,
+      );
     });
 
     it('VALID: {step: box} => parses the complete box member', () => {
@@ -190,12 +190,12 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: box, no ref} => throws for the missing ref', () => {
-      expect(() => stepContract.parse({ step: 'box' } as never)).toThrow(/received undefined/u);
+      expect(() => stepContract.parse({ step: 'box' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: box, +target} => throws naming the stray key, because box takes ref only', () => {
       expect(() =>
-        stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' } as never),
+        stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -231,7 +231,7 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: dom, no target} => throws for missing target', () => {
-      expect(() => stepContract.parse({ step: 'dom' } as never)).toThrow(/received undefined/u);
+      expect(() => stepContract.parse({ step: 'dom' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: dom, +ref} => throws naming the stray key, because dom takes target only', () => {
@@ -240,7 +240,7 @@ describe('stepContract', () => {
           step: 'dom',
           target: '[data-testid="X"]',
           ref: 26,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"ref\\"/u);
     });
 
@@ -329,7 +329,7 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: key, missing press} => throws for missing press', () => {
-      expect(() => stepContract.parse({ step: 'key' } as never)).toThrow(/received undefined/u);
+      expect(() => stepContract.parse({ step: 'key' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: key, +target} => throws naming the stray key, because key takes press only', () => {
@@ -338,7 +338,7 @@ describe('stepContract', () => {
           step: 'key',
           press: 'Enter',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -373,7 +373,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'health',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -528,20 +528,20 @@ describe('stepContract', () => {
           target: '[data-testid="PIXEL_BTN"]',
           within: null,
           node: null,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: waitFor, path, no target/state} => throws for the missing waitFor fields', () => {
       expect(() =>
-        stepContract.parse({ step: 'waitFor', path: '/api/guilds', node: null } as never),
+        stepContract.parse({ step: 'waitFor', path: '/api/guilds', node: null }),
       ).toThrow(/received undefined/u);
     });
 
     it("INVALID: {step: click, path, no target} => throws naming goto's field as the stray key", () => {
-      expect(() =>
-        stepContract.parse({ step: 'click', path: '/api/guilds', node: null } as never),
-      ).toThrow(/Unrecognized key: \\"path\\"/u);
+      expect(() => stepContract.parse({ step: 'click', path: '/api/guilds', node: null })).toThrow(
+        /Unrecognized key: \\"path\\"/u,
+      );
     });
 
     it('INVALID: {step: type, target, no value} => throws for the missing type field', () => {
@@ -552,13 +552,13 @@ describe('stepContract', () => {
           within: null,
           timeoutMs: null,
           node: null,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: screenshot, source, no name} => throws for the missing screenshot field', () => {
       expect(() =>
-        stepContract.parse({ step: 'screenshot', source: 'document.title', node: null } as never),
+        stepContract.parse({ step: 'screenshot', source: 'document.title', node: null }),
       ).toThrow(/received undefined/u);
     });
 
@@ -645,9 +645,7 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: seed, no recipe} => throws for the missing seed field', () => {
-      expect(() => stepContract.parse({ step: 'seed', node: null } as never)).toThrow(
-        /received undefined/u,
-      );
+      expect(() => stepContract.parse({ step: 'seed', node: null })).toThrow(/received undefined/u);
     });
   });
 
@@ -659,7 +657,7 @@ describe('stepContract', () => {
           path: '/api/guilds',
           node: null,
           target: '[data-testid="PIXEL_BTN"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -673,7 +671,7 @@ describe('stepContract', () => {
           timeoutMs: 20000,
           node: null,
           path: '/api/guilds',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
@@ -686,7 +684,7 @@ describe('stepContract', () => {
           timeoutMs: null,
           node: null,
           value: '<script>alert(1)</script>',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"value\\"/u);
     });
 
@@ -700,7 +698,7 @@ describe('stepContract', () => {
           timeoutMs: null,
           node: null,
           name: 'step1.png',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"name\\"/u);
     });
 
@@ -711,7 +709,7 @@ describe('stepContract', () => {
           name: 'step1.png',
           node: null,
           source: 'document.title',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"source\\"/u);
     });
 
@@ -722,7 +720,7 @@ describe('stepContract', () => {
           source: 'document.querySelectorAll("button").length',
           node: null,
           path: '/api/guilds',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
@@ -733,7 +731,7 @@ describe('stepContract', () => {
           source: 'document.querySelectorAll("button").length',
           node: null,
           path: '/api/guilds',
-        } as never),
+        }),
       ).toThrow(
         '[\n' +
           '  {\n' +
@@ -754,7 +752,7 @@ describe('stepContract', () => {
           step: 'until',
           visible: '[data-testid="X"]',
           path: '/api/guilds',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
@@ -767,7 +765,7 @@ describe('stepContract', () => {
           state: 'visible',
           timeoutMs: 20000,
           node: null,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"taget\\"/u);
     });
 
@@ -777,16 +775,16 @@ describe('stepContract', () => {
           step: 'seed',
           recipe: 'guild-mid-execution',
           target: '[data-testid="PIXEL_BTN"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
   describe('an unknown discriminator', () => {
     it('INVALID: {step: "teleport"} => throws for a verb outside the union', () => {
-      expect(() =>
-        stepContract.parse({ step: 'teleport', target: '[data-testid="X"]' } as never),
-      ).toThrow(/Invalid discriminator/u);
+      expect(() => stepContract.parse({ step: 'teleport', target: '[data-testid="X"]' })).toThrow(
+        /Invalid discriminator/u,
+      );
     });
 
     it('INVALID: {step: "teleport", every field of every member} => discriminator error wins over any unknown-key error', () => {
@@ -802,7 +800,7 @@ describe('stepContract', () => {
           name: 'step1.png',
           source: 'document.title',
           node: null,
-        } as never),
+        }),
       ).toThrow(/Invalid discriminator/u);
     });
   });
@@ -1039,7 +1037,7 @@ describe('stepContract', () => {
           step: 'resize',
           width: 0,
           height: 720,
-        } as never),
+        }),
       ).toThrow(/expected number to be >0/u);
     });
 
@@ -1049,7 +1047,7 @@ describe('stepContract', () => {
           step: 'resize',
           width: 1280.5,
           height: 720,
-        } as never),
+        }),
       ).toThrow(/expected int/u);
     });
 
@@ -1059,7 +1057,7 @@ describe('stepContract', () => {
           step: 'resize',
           width: 1280,
           height: -10,
-        } as never),
+        }),
       ).toThrow(/expected number to be >0/u);
     });
 
@@ -1070,7 +1068,7 @@ describe('stepContract', () => {
           width: 1280,
           height: 720,
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1114,7 +1112,7 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({
           step: 'request',
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -1124,7 +1122,7 @@ describe('stepContract', () => {
           step: 'request',
           path: '/api/guilds',
           method: 'INVALID_METHOD',
-        } as never),
+        }),
       ).toThrow(/Invalid option/u);
     });
 
@@ -1134,7 +1132,7 @@ describe('stepContract', () => {
           step: 'request',
           path: '/api/guilds',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1182,7 +1180,7 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({
           step: 'before',
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -1192,7 +1190,7 @@ describe('stepContract', () => {
           step: 'before',
           source: 'window.__injected = true;',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1240,7 +1238,7 @@ describe('stepContract', () => {
       expect(() =>
         stepContract.parse({
           step: 'file',
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -1250,7 +1248,7 @@ describe('stepContract', () => {
           step: 'file',
           path: 'guilds/g1/quests/q1/quest.json',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1313,7 +1311,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'storage',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -1366,7 +1364,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'hold',
           frames: 1,
-        } as never),
+        }),
       ).toThrow(/expected number to be >=2/u);
     });
 
@@ -1375,7 +1373,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'hold',
           everyMs: 0,
-        } as never),
+        }),
       ).toThrow(/expected number to be >0/u);
     });
 
@@ -1384,7 +1382,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'hold',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1436,7 +1434,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'video',
           action: 'pause',
-        } as never),
+        }),
       ).toThrow(/Invalid option/u);
     });
 
@@ -1446,7 +1444,7 @@ describe('stepContract', () => {
           step: 'video',
           action: 'start',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
@@ -1498,7 +1496,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'snapshot',
           as: '',
-        } as never),
+        }),
       ).toThrow(/expected string to have >=1 characters/u);
     });
 
@@ -1507,7 +1505,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'snapshot',
           as: 'invalid name!',
-        } as never),
+        }),
       ).toThrow(/Invalid/u);
     });
 
@@ -1517,7 +1515,7 @@ describe('stepContract', () => {
           step: 'snapshot',
           as: 'clean',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
@@ -1575,7 +1573,7 @@ describe('stepContract', () => {
           step: 'reset',
           level: 'state',
           to: null,
-        } as never),
+        }),
       ).toThrow(/requires an explicit.*to.*snapshot name/u);
     });
 
@@ -1585,7 +1583,7 @@ describe('stepContract', () => {
           step: 'reset',
           level: 'page',
           target: '[data-testid="X"]',
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });

@@ -45,7 +45,7 @@ describe('compareArgsContract', () => {
         compareArgsContract.parse({
           instanceA: 'inst_7f3a9c21',
           instanceB: 'inst_9b2c1234',
-        } as never),
+        }),
       ).toThrow(/Unrecognized keys: \\"instanceA\\", \\"instanceB\\"/u);
     });
   });

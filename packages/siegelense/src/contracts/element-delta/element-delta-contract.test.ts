@@ -34,9 +34,9 @@ describe('elementDeltaContract', () => {
 
   describe('invalid deltas', () => {
     it("INVALID: {+moved} => throws naming the stray key, because 'moved' is a comparison this shape does not attempt", () => {
-      expect(() =>
-        elementDeltaContract.parse({ ...ElementDeltaStub(), moved: 2 } as never),
-      ).toThrow(/Unrecognized key: \\"moved\\"/u);
+      expect(() => elementDeltaContract.parse({ ...ElementDeltaStub(), moved: 2 })).toThrow(
+        /Unrecognized key: \\"moved\\"/u,
+      );
     });
 
     it('INVALID: {changed: [{before only}]} => throws Required for the missing "after" field', () => {

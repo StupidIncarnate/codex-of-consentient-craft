@@ -18,7 +18,7 @@ describe('citationGapContract', () => {
   describe('invalid gaps', () => {
     it('INVALID: {kind: "issue"} => an unlisted citation kind throws', () => {
       expect(() => {
-        CitationGapStub({ kind: 'issue' as never });
+        CitationGapStub({ kind: 'issue' });
       }).toThrow(/Invalid option/u);
     });
 

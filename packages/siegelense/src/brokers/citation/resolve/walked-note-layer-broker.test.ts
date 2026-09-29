@@ -26,7 +26,7 @@ describe('walkedNoteLayerBroker', () => {
             operationPlans: [],
             questNotes: [
               QuestNoteStub({
-                id: 'walked-path-3' as never,
+                id: 'walked-path-3',
                 kind: 'walked',
                 instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                 runId: SiegeRunIdStub({ value: 'run_2' }),
@@ -60,13 +60,13 @@ describe('walkedNoteLayerBroker', () => {
             operationPlans: [],
             questNotes: [
               QuestNoteStub({
-                id: 'walked-path-3' as never,
+                id: 'walked-path-3',
                 kind: 'walked',
                 instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                 runId: SiegeRunIdStub({ value: 'run_2' }),
               }),
               QuestNoteStub({
-                id: 'walked-path-4' as never,
+                id: 'walked-path-4',
                 kind: 'walked',
                 instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                 runId: SiegeRunIdStub({ value: 'run_3' }),
@@ -92,7 +92,7 @@ describe('walkedNoteLayerBroker', () => {
             operationPlans: [],
             questNotes: [
               QuestNoteStub({
-                id: 'walked-path-3' as never,
+                id: 'walked-path-3',
                 kind: 'walked',
                 instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                 runId: null,
@@ -124,13 +124,13 @@ describe('walkedNoteLayerBroker', () => {
           instanceId: InstanceIdStub({ value: INSTANCE }),
           questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
           quest: QuestStub({
-            status: status as never,
+            status,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: INSTANCE }),
                   runId: SiegeRunIdStub({ value: 'run_2' }),
@@ -169,9 +169,7 @@ describe('walkedNoteLayerBroker', () => {
           planningNotes: {
             blightLedger: [],
             operationPlans: [],
-            questNotes: [
-              QuestNoteStub({ id: 'walked-path-3' as never, kind: 'walked', instanceId: null }),
-            ],
+            questNotes: [QuestNoteStub({ id: 'walked-path-3', kind: 'walked', instanceId: null })],
           },
         }),
       });

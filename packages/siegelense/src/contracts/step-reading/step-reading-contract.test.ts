@@ -205,7 +205,7 @@ describe('stepReadingContract', () => {
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: 1_700_000_000_000,
           endedAtMs: 1_700_000_000_210,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -224,7 +224,7 @@ describe('stepReadingContract', () => {
           blankColour: null,
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: 1_700_000_000_000,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -243,7 +243,7 @@ describe('stepReadingContract', () => {
           blankColour: null,
           startedAtMs: 1_700_000_000_000,
           endedAtMs: 1_700_000_000_210,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

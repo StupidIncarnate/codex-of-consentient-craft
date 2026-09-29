@@ -20,7 +20,7 @@ describe('laneProcessNameContract', () => {
 
   describe('invalid names', () => {
     it('INVALID: {value: ""} => throws for an empty string', () => {
-      expect(() => laneProcessNameContract.parse('' as never)).toThrow(
+      expect(() => laneProcessNameContract.parse('')).toThrow(
         /expected string to have >=1 characters/u,
       );
     });

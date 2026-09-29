@@ -42,7 +42,7 @@ describe('keyReadingContract', () => {
     expect(() =>
       keyReadingContract.parse({
         focused: null,
-      } as never),
+      }),
     ).toThrow(/received undefined/u);
   });
 
@@ -52,7 +52,7 @@ describe('keyReadingContract', () => {
         press: 'Enter',
         focused: null,
         extra: 'not-allowed',
-      } as never),
+      }),
     ).toThrow(/unrecognized/iu);
   });
 });

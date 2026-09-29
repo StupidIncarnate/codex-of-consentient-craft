@@ -29,19 +29,19 @@ describe('citationReferenceContract', () => {
   describe('invalid references', () => {
     it('INVALID: {citingFile: "quest.json"} => a relative path throws, so a refusal can never name an unopenable file', () => {
       expect(() => {
-        CitationReferenceStub({ citingFile: 'quest.json' as never });
+        CitationReferenceStub({ citingFile: 'quest.json' });
       }).toThrow(/Path must be absolute/u);
     });
 
     it('INVALID: {kind: "prelude"} => an unlisted citation kind throws', () => {
       expect(() => {
-        CitationReferenceStub({ kind: 'prelude' as never });
+        CitationReferenceStub({ kind: 'prelude' });
       }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {runId: "run_zero"} => a malformed run id throws rather than reaching a refusal sentence', () => {
       expect(() => {
-        CitationReferenceStub({ runId: 'run_zero' as never });
+        CitationReferenceStub({ runId: 'run_zero' });
       }).toThrow(/Invalid/u);
     });
   });

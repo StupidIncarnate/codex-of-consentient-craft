@@ -99,7 +99,7 @@ describe('instanceHeartbeatContract', () => {
         instanceHeartbeatContract.parse({
           instanceId: 'inst_7f3a9c21',
           pid: 'proc-12345',
-          pgids: [-1 as never],
+          pgids: [-1],
           beatAtMs: 1_700_000_000_000,
         }),
       ).toThrow(/too_small/u);

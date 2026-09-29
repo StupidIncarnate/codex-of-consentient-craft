@@ -21,7 +21,7 @@ describe('serverLogWindowContract', () => {
       expect(() =>
         serverLogWindowContract.parse({
           fromByte: 0,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 

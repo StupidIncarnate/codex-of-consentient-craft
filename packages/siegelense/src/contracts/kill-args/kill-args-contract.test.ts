@@ -46,7 +46,7 @@ describe('killArgsContract', () => {
         killArgsContract.parse({
           instanceId: 'inst_7f3a9c21',
           force: true,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

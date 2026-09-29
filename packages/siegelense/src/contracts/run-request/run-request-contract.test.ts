@@ -46,7 +46,7 @@ describe('runRequestContract', () => {
         runRequestContract.parse({
           instanceId: 'inst_7f3a9c21',
           steps: [],
-        } as never),
+        }),
       ).toThrow(/"path": \[\n {6}"stopOn"\n {4}\]/u);
     });
 
@@ -55,7 +55,7 @@ describe('runRequestContract', () => {
         runRequestContract.parse({
           steps: [],
           stopOn: 'error',
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

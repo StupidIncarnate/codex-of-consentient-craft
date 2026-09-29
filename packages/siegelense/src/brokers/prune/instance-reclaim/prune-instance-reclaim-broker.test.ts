@@ -20,10 +20,11 @@ const INSTANCE_ID = InstanceIdStub({ value: 'inst_9b2c0001' });
 // The open-issue gap rides every citation resolution for an unowned (questId: null) instance —
 // see citation-resolve-broker.ts's own OPEN_ISSUE_GAP.
 const OPEN_ISSUE_GAP = CitationGapStub({
-  why: ('not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
+  why:
+    'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
     "a typed instanceId/runId — a workItem's own observation carries neither field and " +
     'questNoteKindContract has no issue member — so a walker records a defect as a failing test ' +
-    'or as prose in a note, neither of which a resolver can match an instance against.') as never,
+    'or as prose in a note, neither of which a resolver can match an instance against.',
 });
 
 describe('pruneInstanceReclaimBroker', () => {
@@ -302,7 +303,7 @@ describe('pruneInstanceReclaimBroker', () => {
           bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
           lastBeatMs: null,
         }),
-        query: PruneQueryStub({ kind: 'shot' as never }),
+        query: PruneQueryStub({ kind: 'shot' }),
         olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
         nowMs: EpochMsStub({ value: NOW_MS }),
       });
@@ -367,7 +368,7 @@ describe('pruneInstanceReclaimBroker', () => {
           bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
           lastBeatMs: null,
         }),
-        query: PruneQueryStub({ kind: 'transcript' as never }),
+        query: PruneQueryStub({ kind: 'transcript' }),
         olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
         nowMs: EpochMsStub({ value: NOW_MS }),
       });
@@ -415,7 +416,7 @@ describe('pruneInstanceReclaimBroker', () => {
           bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
           lastBeatMs: null,
         }),
-        query: PruneQueryStub({ kind: 'video' as never }),
+        query: PruneQueryStub({ kind: 'video' }),
         olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
         nowMs: EpochMsStub({ value: NOW_MS }),
       });

@@ -20,11 +20,11 @@ describe('urlPathContract', () => {
 
   describe('invalid paths', () => {
     it('INVALID: {value: "api/guilds"} => throws for a missing leading slash', () => {
-      expect(() => urlPathContract.parse('api/guilds' as never)).toThrow(/must start with/u);
+      expect(() => urlPathContract.parse('api/guilds')).toThrow(/must start with/u);
     });
 
     it('INVALID: {value: 42} => throws for a non-string', () => {
-      expect(() => urlPathContract.parse(42 as never)).toThrow(/expected string/iu);
+      expect(() => urlPathContract.parse(42)).toThrow(/expected string/iu);
     });
   });
 });

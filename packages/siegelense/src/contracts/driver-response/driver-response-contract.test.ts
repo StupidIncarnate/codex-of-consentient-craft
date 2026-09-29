@@ -50,9 +50,9 @@ describe('driverResponseContract', () => {
 
   describe('malformed frames', () => {
     it('INVALID: {ok: "yes"} => a non-boolean ok throws validation error rather than something unrecognisable', () => {
-      expect(() =>
-        driverResponseContract.parse({ ok: 'yes' as never, payload: '', error: null }),
-      ).toThrow(/expected boolean/u);
+      expect(() => driverResponseContract.parse({ ok: 'yes', payload: '', error: null })).toThrow(
+        /expected boolean/u,
+      );
     });
 
     it('INVALID: {missing error} => throws Required, because .nullable() is not .optional()', () => {

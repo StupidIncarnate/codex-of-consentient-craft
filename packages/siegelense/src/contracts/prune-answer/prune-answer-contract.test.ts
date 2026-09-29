@@ -32,8 +32,8 @@ describe('pruneAnswerContract', () => {
 
     it('EMPTY: {nothing matched} => an all-empty answer parses, and still carries the unchecked-kind list', () => {
       const answer = PruneAnswerStub({
-        freedMB: 0 as never,
-        freedBytes: 0 as never,
+        freedMB: 0,
+        freedBytes: 0,
         removed: [],
         refused: [],
       });

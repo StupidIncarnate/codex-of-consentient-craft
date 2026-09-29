@@ -156,7 +156,7 @@ describe('assetsAgeLayerBroker', () => {
               operationPlans: [],
               questNotes: [
                 QuestNoteStub({
-                  id: 'walked-path-3' as never,
+                  id: 'walked-path-3',
                   kind: 'walked',
                   instanceId: SiegeInstanceIdStub({ value: 'inst_1d090002' }),
                   runId: SiegeRunIdStub({ value: 'run_2' }),

@@ -21,7 +21,7 @@ describe('pruneQueryContract', () => {
     });
 
     it('VALID: {kind: "video", olderThan: "2d"} => the two selectors combine, which is the spec\'s own worked call', () => {
-      const query = PruneQueryStub({ kind: 'video' as never, olderThan: '2d' as never });
+      const query = PruneQueryStub({ kind: 'video', olderThan: '2d' });
 
       const result = pruneQueryContract.parse(query);
 
@@ -38,7 +38,7 @@ describe('pruneQueryContract', () => {
 
     it('INVALID: {instanceId: "inst_"} => a malformed instance id throws naming the shape it needed', () => {
       expect(() => {
-        PruneQueryStub({ instanceId: 'inst_' as never });
+        PruneQueryStub({ instanceId: 'inst_' });
       }).toThrow(/Instance id must look like/u);
     });
 

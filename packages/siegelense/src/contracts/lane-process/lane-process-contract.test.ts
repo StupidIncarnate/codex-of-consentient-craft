@@ -70,7 +70,7 @@ describe('laneProcessContract', () => {
           readyPath: '/api/guilds',
           logFileName: 'api-server.log',
           env: {},
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

@@ -44,7 +44,7 @@ describe('focusedElementContract', () => {
         domId: null,
         text: null,
         ref: null,
-      } as never),
+      }),
     ).toThrow(/received undefined/u);
   });
 
@@ -58,7 +58,7 @@ describe('focusedElementContract', () => {
         text: null,
         ref: null,
         extra: 'forbidden',
-      } as never),
+      }),
     ).toThrow(/unrecognized/iu);
   });
 });

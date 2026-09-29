@@ -93,7 +93,7 @@ describe('statusArgsContract', () => {
       expect(() =>
         statusArgsContract.parse({
           instanceId: null,
-          since: '2h' as never,
+          since: '2h',
           isJson: true,
         }),
       ).toThrow(/Invalid option/u);
@@ -105,7 +105,7 @@ describe('statusArgsContract', () => {
           instanceId: null,
           isJson: true,
           verbose: true,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key/u);
     });
   });

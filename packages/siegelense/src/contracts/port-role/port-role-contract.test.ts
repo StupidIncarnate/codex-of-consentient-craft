@@ -15,7 +15,7 @@ describe('portRoleContract', () => {
   describe('invalid members', () => {
     it('INVALID: {value: "database"} => an unlisted string throws validation error', () => {
       expect(() => {
-        PortRoleStub({ value: 'database' as never });
+        PortRoleStub({ value: 'database' });
       }).toThrow(/Invalid option/u);
     });
   });

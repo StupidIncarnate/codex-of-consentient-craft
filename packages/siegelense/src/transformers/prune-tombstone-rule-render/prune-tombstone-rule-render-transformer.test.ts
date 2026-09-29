@@ -21,7 +21,7 @@ describe('pruneTombstoneRuleRenderTransformer', () => {
     it('VALID: {kind and window} => both, kind before the window', () => {
       expect(
         pruneTombstoneRuleRenderTransformer({
-          query: PruneQueryStub({ kind: 'video' as never, olderThan: '2d' as never }),
+          query: PruneQueryStub({ kind: 'video', olderThan: '2d' }),
         }),
       ).toBe('kind video, olderThan 2d');
     });
@@ -31,8 +31,8 @@ describe('pruneTombstoneRuleRenderTransformer', () => {
         pruneTombstoneRuleRenderTransformer({
           query: PruneQueryStub({
             instanceId: InstanceIdStub({ value: 'inst_9b2c' }),
-            kind: 'shot' as never,
-            olderThan: '30m' as never,
+            kind: 'shot',
+            olderThan: '30m',
           }),
         }),
       ).toBe('instance inst_9b2c, kind shot, olderThan 30m');

@@ -572,7 +572,7 @@ describe('laneBootBroker', () => {
       const proxy = laneBootBrokerProxy();
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
-      const spec = Object.assign(LaneSpecStub({ name: 'empty' }), { processes: [] }) as never;
+      const spec = Object.assign(LaneSpecStub({ name: 'empty' }), { processes: [] });
 
       await expect(
         laneBootBroker({

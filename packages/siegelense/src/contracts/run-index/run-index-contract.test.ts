@@ -41,7 +41,7 @@ describe('runIndexContract', () => {
           console: { errors: 0, warnings: 0 },
           server: { errors: 0 },
           network: { exchanges: 14 },
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -51,7 +51,7 @@ describe('runIndexContract', () => {
           console: { errors: -1, warnings: 0 },
           server: { errors: 0 },
           network: { exchanges: 0, non2xx: 0 },
-        } as never),
+        }),
       ).toThrow(/expected number to be >=0/u);
     });
   });

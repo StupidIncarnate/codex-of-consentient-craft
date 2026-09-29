@@ -36,7 +36,7 @@ describe('storageReadingContract', () => {
     it('INVALID: {origin: 123} => throws validation error on non-string origin', () => {
       expect(() => {
         storageReadingContract.parse({
-          origin: 123 as never,
+          origin: 123,
           local: {},
           session: {},
         });
@@ -47,7 +47,7 @@ describe('storageReadingContract', () => {
       expect(() => {
         storageReadingContract.parse({
           origin: 'http://localhost:3000',
-          local: 'not an object' as never,
+          local: 'not an object',
           session: {},
         });
       }).toThrow(/Invalid input: expected record/u);
@@ -58,7 +58,7 @@ describe('storageReadingContract', () => {
         storageReadingContract.parse({
           origin: 'http://localhost:3000',
           local: {},
-          session: { key: 123 as never },
+          session: { key: 123 },
         });
       }).toThrow(/expected string/u);
     });

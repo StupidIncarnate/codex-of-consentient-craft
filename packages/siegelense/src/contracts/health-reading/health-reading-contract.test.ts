@@ -59,7 +59,7 @@ describe('healthReadingContract', () => {
         healthReadingContract.parse({
           rootPresent: true,
           blank: false,
-        } as never);
+        });
       }).toThrow(/received undefined/u);
     });
   });

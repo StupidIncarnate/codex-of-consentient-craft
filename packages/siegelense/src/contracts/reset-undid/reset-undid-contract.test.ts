@@ -33,13 +33,13 @@ describe('resetUndidContract', () => {
   describe('invalid shapes', () => {
     it('INVALID: {files: -1} => negative count throws validation error', () => {
       expect(() => {
-        ResetUndidStub({ files: -1 as never });
+        ResetUndidStub({ files: -1 });
       }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {added: 1.5} => non-integer throws validation error', () => {
       expect(() => {
-        ResetUndidStub({ added: 1.5 as never });
+        ResetUndidStub({ added: 1.5 });
       }).toThrow(/expected int, received number/u);
     });
   });

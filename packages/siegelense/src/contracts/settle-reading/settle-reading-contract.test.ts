@@ -77,15 +77,15 @@ describe('settleReadingContract', () => {
 
   describe('invalid readings', () => {
     it('INVALID: {reason: "gave-up"} => throws naming the accepted reasons', () => {
-      expect(() => SettleReadingStub({ reason: 'gave-up' as never })).toThrow(/Invalid option/u);
+      expect(() => SettleReadingStub({ reason: 'gave-up' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {unsettled: ["paint"]} => throws naming the accepted signals', () => {
-      expect(() => SettleReadingStub({ unsettled: ['paint'] as never })).toThrow(/Invalid option/u);
+      expect(() => SettleReadingStub({ unsettled: ['paint'] })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {waitedMs: -1} => throws on a negative wait', () => {
-      expect(() => SettleReadingStub({ waitedMs: -1 as never })).toThrow(/to be >=0/u);
+      expect(() => SettleReadingStub({ waitedMs: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {an unknown key} => throws on the unrecognized key', () => {

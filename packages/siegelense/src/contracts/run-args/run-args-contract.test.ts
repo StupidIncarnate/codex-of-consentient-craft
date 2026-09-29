@@ -117,7 +117,7 @@ describe('runArgsContract', () => {
           steps: [],
           stopOn: 'error',
           runId: 'run_2',
-        } as never),
+        }),
       ).toThrow(/"message": "Unrecognized key: \\"runId\\""/u);
     });
   });

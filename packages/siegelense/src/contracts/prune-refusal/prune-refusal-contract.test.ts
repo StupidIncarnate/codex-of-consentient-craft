@@ -15,7 +15,7 @@ describe('pruneRefusalContract', () => {
     });
 
     it('VALID: {a live instance} => the same shape carries a non-citation reason', () => {
-      const refusal = PruneRefusalStub({ why: 'live — last beat 2s ago' as never });
+      const refusal = PruneRefusalStub({ why: 'live — last beat 2s ago' });
 
       const result = pruneRefusalContract.parse(refusal);
 
@@ -26,7 +26,7 @@ describe('pruneRefusalContract', () => {
   describe('invalid refusals', () => {
     it('INVALID: {id: "1d09"} => a malformed instance id throws naming the shape it needed', () => {
       expect(() => {
-        PruneRefusalStub({ id: '1d09' as never });
+        PruneRefusalStub({ id: '1d09' });
       }).toThrow(/Instance id must look like/u);
     });
 

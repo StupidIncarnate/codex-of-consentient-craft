@@ -18,7 +18,7 @@ describe('driverRequestKindContract', () => {
   describe('invalid members', () => {
     it('INVALID: {value: "status"} => an unlisted string throws validation error', () => {
       expect(() => {
-        DriverRequestKindStub({ value: 'status' as never });
+        DriverRequestKindStub({ value: 'status' });
       }).toThrow(/Invalid option/u);
     });
   });

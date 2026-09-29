@@ -126,7 +126,7 @@ describe('shotListingContract', () => {
           pixelChange: null,
           blank: false,
           blankColour: null,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
 
@@ -140,7 +140,7 @@ describe('shotListingContract', () => {
           node: null,
           blank: false,
           blankColour: null,
-        } as never),
+        }),
       ).toThrow(/received undefined/u);
     });
   });

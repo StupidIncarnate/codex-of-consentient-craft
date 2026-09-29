@@ -56,7 +56,7 @@ describe('resultWhereContract', () => {
           level: null,
           steps: null,
           serverError: true,
-        } as never),
+        }),
       ).toThrow(/Unrecognized key: \\"serverError\\"/u);
     });
   });
