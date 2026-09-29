@@ -44,7 +44,9 @@
  * are `null` on a non-capturing step (no `session.look()` was ever taken to diff) and degrade to `null`
  * on their own read failure without disturbing anything else this file already measured or threw — an
  * evidence read must never replace the step's real outcome, the same rule the screenshot capture above
- * already follows.
+ * already follows. `failureShotPath` is the capture path for a step that has no `shotPath` of its
+ * own (`waitFor`, `eval`, …): such a step captures nothing on success, but a REAL failure still
+ * screenshots the page at that moment, so every failed step leaves a picture behind.
  *
  * USAGE:
  * await stepDispatchBroker({
@@ -87,6 +89,7 @@ export const stepDispatchBroker = async ({
   step,
   index,
   shotPath,
+  failureShotPath = null,
   browserWindowStart,
   lastShotPath,
   setLastShotPath,
@@ -96,6 +99,7 @@ export const stepDispatchBroker = async ({
   step: Step;
   index: StepIndex;
   shotPath: AbsoluteFilePath | null;
+  failureShotPath?: AbsoluteFilePath | null;
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => AbsoluteFilePath | null;
   setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
@@ -210,15 +214,16 @@ export const stepDispatchBroker = async ({
       // `.catch`, so it rides upward on the rethrow instead: `StepFailureCaptureError` carries both
       // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
       // honestly rather than hardcoding `null` or guessing from the filesystem.
+      const failureCapturePath = shotPath ?? failureShotPath;
       if (
-        shotPath !== null &&
+        failureCapturePath !== null &&
         session !== null &&
         step.step !== 'screenshot' &&
         step.step !== 'health' &&
         step.step !== 'hold'
       ) {
         const captured = await session
-          .capture({ filePath: shotPath })
+          .capture({ filePath: failureCapturePath })
           .then(() => true)
           .catch((captureError: unknown) => {
             process.stderr.write(
@@ -240,12 +245,15 @@ export const stepDispatchBroker = async ({
         if (captured) {
           try {
             const [measuredBlank, measuredChange] = await Promise.all([
-              shotBlankReadBroker({ shotPath }),
-              shotChangeReadBroker({ previousPath: lastShotPath(), currentPath: shotPath }),
+              shotBlankReadBroker({ shotPath: failureCapturePath }),
+              shotChangeReadBroker({
+                previousPath: lastShotPath(),
+                currentPath: failureCapturePath,
+              }),
             ]);
             blankReading = measuredBlank;
             pixelChange = measuredChange;
-            setLastShotPath({ path: shotPath });
+            setLastShotPath({ path: failureCapturePath });
           } catch (readError: unknown) {
             process.stderr.write(
               `[step-dispatch] failure screenshot measurement failed for step ${String(index)}: ${String(readError)}\n`,

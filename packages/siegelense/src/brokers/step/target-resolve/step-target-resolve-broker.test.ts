@@ -1,6 +1,7 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
+import type { StepNoMatchError } from '../../../errors/step-no-match/step-no-match-error';
 import { stepTargetResolveBroker } from './step-target-resolve-broker';
 import { stepTargetResolveBrokerProxy } from './step-target-resolve-broker.proxy';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
@@ -144,13 +145,46 @@ describe('stepTargetResolveBroker', () => {
         (): never => {
           throw new Error('Expected stepTargetResolveBroker to reject');
         },
+        (caught: unknown): StepNoMatchError => caught as StepNoMatchError,
+      );
+
+      expect({ name: error.name, message: error.message, key: error.key }).toStrictEqual({
+        name: 'StepNoMatchError',
+        message:
+          'NO MATCH: 0 elements match target [data-testid="GUILD_ADD"]. Nearest names on this page: GUILD_LIST, GUILD_ITEM_f52cd, PIXEL_BTN.',
+        key: 'key: (no addressable elements on this page)',
+      });
+    });
+
+    it('VALID: {zero matches, seven names in document order} => names the five most like the target first and counts the other two', async () => {
+      const proxy = stepTargetResolveBrokerProxy();
+      const nearest = [
+        ContentTextStub({ value: 'APP_ROOT_BG' }),
+        ContentTextStub({ value: 'PIXEL_BTN' }),
+        ContentTextStub({ value: 'GUILD_LIST' }),
+        ContentTextStub({ value: 'QUEST_QUEUE' }),
+        ContentTextStub({ value: 'GUILD_ADD_BTN' }),
+        ContentTextStub({ value: 'APP_MAP_CONTAINER' }),
+        ContentTextStub({ value: 'PIXEL_SPRITE' }),
+      ];
+      const session = proxy.sessionWithNearest({ nearest });
+
+      const error = await stepTargetResolveBroker({
+        session,
+        target: '[data-testid="GUILD_ADD"]',
+        within: null,
+        ref: null,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepTargetResolveBroker to reject');
+        },
         (caught: unknown): Error => caught as Error,
       );
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'StepNoMatchError',
         message:
-          'NO MATCH: 0 elements match target [data-testid="GUILD_ADD"]. Nearest names on this page: GUILD_LIST, GUILD_ITEM_f52cd, PIXEL_BTN.',
+          'NO MATCH: 0 elements match target [data-testid="GUILD_ADD"]. Nearest names on this page: GUILD_ADD_BTN, GUILD_LIST, PIXEL_BTN, QUEST_QUEUE, APP_ROOT_BG (+2 more).',
       });
     });
   });

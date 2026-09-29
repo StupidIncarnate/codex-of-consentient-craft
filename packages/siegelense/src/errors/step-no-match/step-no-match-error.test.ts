@@ -7,6 +7,8 @@ describe('StepNoMatchError', () => {
         target: '[data-testid="GUILD_ADD"]',
         within: null,
         nearest: ['GUILD_LIST', 'GUILD_ITEM_f52cd', 'PIXEL_BTN'],
+        more: 0,
+        key: null,
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
@@ -21,6 +23,8 @@ describe('StepNoMatchError', () => {
         target: '[data-testid="CONFIRM"]',
         within: 'MODAL',
         nearest: ['CANCEL'],
+        more: 0,
+        key: null,
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
@@ -35,12 +39,31 @@ describe('StepNoMatchError', () => {
         target: '[data-testid="X"]',
         within: null,
         nearest: [],
+        more: 0,
+        key: null,
       });
 
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'StepNoMatchError',
         message:
           'NO MATCH: 0 elements match target [data-testid="X"]. Nearest names on this page: (none found on this page).',
+      });
+    });
+
+    it('VALID: {five ranked names, more: 13, key} => names the five, counts the rest, and keeps the key off the message', () => {
+      const error = new StepNoMatchError({
+        target: '[data-testid="NOPE"]',
+        within: null,
+        nearest: ['NODE', 'ROPE', 'PIXEL_BTN', 'APP_ROOT_BG', 'GUILD_LIST'],
+        more: 13,
+        key: 'key: 18 rows',
+      });
+
+      expect({ name: error.name, message: error.message, key: error.key }).toStrictEqual({
+        name: 'StepNoMatchError',
+        message:
+          'NO MATCH: 0 elements match target [data-testid="NOPE"]. Nearest names on this page: NODE, ROPE, PIXEL_BTN, APP_ROOT_BG, GUILD_LIST (+13 more).',
+        key: 'key: 18 rows',
       });
     });
   });
@@ -51,6 +74,8 @@ describe('StepNoMatchError', () => {
         target: '[data-testid="GUILD_ADD"]',
         within: null,
         nearest: ['GUILD_LIST'],
+        more: 0,
+        key: null,
       });
 
       expect(error instanceof StepNoMatchError).toBe(true);
@@ -61,6 +86,8 @@ describe('StepNoMatchError', () => {
         target: '[data-testid="GUILD_ADD"]',
         within: null,
         nearest: ['GUILD_LIST'],
+        more: 0,
+        key: null,
       });
 
       expect(error instanceof Error).toBe(true);

@@ -20,6 +20,130 @@ describe('resultsAnswerRenderTransformer', () => {
 
       expect(result).toBe('INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: none found for query\n');
     });
+
+    it('VALID: {kind: network, run_7 empty, run_5 holds 7} => names the window read and where the requests are', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'network',
+        latestRunWithRows: { runId: 'run_5', rows: 7 },
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 network requests during run_7. Each run holds only what arrived during its own steps; the latest network requests on this instance are 7 from run_5 — read them with --run run_5, or --since boot for the whole timeline.\n',
+      );
+    });
+
+    it('EMPTY: {kind: console, latestRunWithRows: null} => says nothing of the kind was ever recorded', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'console',
+        latestRunWithRows: null,
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 console lines during run_7. Nothing of this kind was recorded on this instance at all.\n',
+      );
+    });
+
+    it('VALID: {kind: network, step 3, the same run holds 4} => says the run has lines but none match the step', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'network',
+        step: 3,
+        latestRunWithRows: { runId: 'run_7', rows: 4 },
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        "INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 network requests during run_7 step 3. run_7 holds 4 network requests in all; none match this query's step or filter.\n",
+      );
+    });
+
+    it('VALID: {kind: server, a zero-width window} => names the bytes covered and that nothing was written', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'server',
+        serverWindow: { fromByte: 2048, toByte: 2048 },
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 server log lines during run_7. Covered api-server.log bytes 2048-2048: the server wrote nothing while these steps ran.\n',
+      );
+    });
+
+    it('VALID: {kind: server, a window with bytes, a level filter} => names the bytes covered', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'server',
+        serverWindow: { fromByte: 1024, toByte: 2048 },
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 server log lines during run_7. Covered api-server.log bytes 1024-2048.\n',
+      );
+    });
+
+    it('EMPTY: {kind: server, serverWindow: null} => says no step recorded a window', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: 'run_7',
+        kind: 'server',
+        serverWindow: null,
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 server log lines during run_7. No step in this query recorded a server log window.\n',
+      );
+    });
+
+    it('EMPTY: {kind: ws, runId: null (since boot)} => names the since-boot window', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        runId: null,
+        kind: 'ws',
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: 0 websocket frames since boot.\n',
+      );
+    });
+
+    it('EMPTY: {kind: network, instanceState: pruned} => keeps the plain notice the state already explains', () => {
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'pruned' }),
+        kind: 'network',
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe('INSTANCE: inst_7f3a9c21 (pruned)\nREADINGS: none found for query\n');
+    });
   });
 
   describe('step readings present', () => {

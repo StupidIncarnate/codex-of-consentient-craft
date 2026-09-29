@@ -2,8 +2,8 @@
  * PURPOSE: The one door every driving step goes through before it acts — "Nothing ever silently
  * picks a match. Ambiguity is an ERROR" (siegelense-tooling.md line 2109). One match proceeds; more
  * than one throws `StepAmbiguousError` carrying every candidate from `session.describeMatches`, each
- * with the `ref` that picks it; zero throws `StepNoMatchError` naming the near misses from
- * `session.nearestNames`. Exists as its own broker rather than three copies of a count-and-branch
+ * with the `ref` that picks it; zero throws `StepNoMatchError` naming the near misses
+ * `stepMissEvidenceBroker` ranks by likeness to the target, and carrying the page's key at failure. Exists as its own broker rather than three copies of a count-and-branch
  * inside `click`, `type` and `waitFor` — three copies is three places for `.first()` to come back.
  *
  * **A `ref` resolves through this same door, and that is deliberate.** A ref can never be ambiguous:
@@ -31,6 +31,7 @@ import { RefUnknownError } from '../../../errors/ref-unknown/ref-unknown-error';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { StepNoMatchError } from '../../../errors/step-no-match/step-no-match-error';
 import { refStatics } from '../../../statics/ref/ref-statics';
+import { stepMissEvidenceBroker } from '../miss-evidence/step-miss-evidence-broker';
 
 export const stepTargetResolveBroker = async ({
   session,
@@ -78,6 +79,6 @@ export const stepTargetResolveBroker = async ({
     throw new StepAmbiguousError({ target, within, candidates });
   }
 
-  const nearest = await session.nearestNames({ target });
-  throw new StepNoMatchError({ target, within, nearest });
+  const { nearest, more, key } = await stepMissEvidenceBroker({ session, target });
+  throw new StepNoMatchError({ target, within, nearest, more, key });
 };
