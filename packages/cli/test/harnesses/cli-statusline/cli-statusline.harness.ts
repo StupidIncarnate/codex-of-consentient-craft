@@ -94,8 +94,16 @@ export const cliStatuslineHarness = (): {
     process.stdout.write = captureWrite as typeof process.stdout.write;
     return {
       getOutput: (): readonly unknown[] => writes,
+      // Restores only while the capture is still the installed writer. `original` is jest's
+      // DefaultReporter wrapper, which buffers and flushes on a 100ms timer, and the reporter
+      // swaps the real writer back in once the run completes. A restore arriving AFTER that —
+      // from a hook that timed out while this capture was active — would reinstall the buffering
+      // wrapper just before jest prints its `--json` report, and `--forceExit` then drops the
+      // unflushed report, which ward reads as a crash.
       restore: (): void => {
-        process.stdout.write = original;
+        if (process.stdout.write === captureWrite) {
+          process.stdout.write = original;
+        }
       },
     };
   },
@@ -113,8 +121,11 @@ export const cliStatuslineHarness = (): {
     process.stderr.write = captureWrite as typeof process.stderr.write;
     return {
       getOutput: (): readonly unknown[] => writes,
+      // Same guard as captureStdout's restore, for the same reporter swap on stderr.
       restore: (): void => {
-        process.stderr.write = original;
+        if (process.stderr.write === captureWrite) {
+          process.stderr.write = original;
+        }
       },
     };
   },
