@@ -1,7 +1,7 @@
 import { eslintLintRunWithFixBroker } from './eslint-lint-run-with-fix-broker';
 import { eslintLintRunWithFixBrokerProxy } from './eslint-lint-run-with-fix-broker.proxy';
-import { LinterConfigStub } from '../../../contracts/linter-config/linter-config.stub';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
+import { FlatConfigStub } from '#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub';
 
 describe('eslintLintRunWithFixBroker()', () => {
   describe('with errors only', () => {
@@ -36,7 +36,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub({ rules: { 'explicit-return-types': 'error' } });
+      const config = FlatConfigStub({ rules: { 'explicit-return-types': 'error' } });
       const results = await eslintLintRunWithFixBroker({
         filePath: 'test.ts',
         config,
@@ -85,7 +85,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub({ rules: { 'prefer-const': 'warn' } });
+      const config = FlatConfigStub({ rules: { 'prefer-const': 'warn' } });
       const results = await eslintLintRunWithFixBroker({
         filePath: 'test.ts',
         config,
@@ -119,7 +119,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub({ rules: {} });
+      const config = FlatConfigStub({ rules: {} });
       const results = await eslintLintRunWithFixBroker({
         filePath: 'test.ts',
         config,
@@ -152,7 +152,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunWithFixBroker({
         filePath: 'marker.ts',
         config,
@@ -201,7 +201,7 @@ describe('eslintLintRunWithFixBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub({ rules: { 'explicit-return-types': 'error' } });
+      const config = FlatConfigStub({ rules: { 'explicit-return-types': 'error' } });
       const results = await eslintLintRunWithFixBroker({
         filePath: 'test.ts',
         config,
@@ -247,7 +247,7 @@ describe('eslintLintRunWithFixBroker()', () => {
 
       await eslintLintRunWithFixBroker({
         filePath: 'fixed.ts',
-        config: LinterConfigStub(),
+        config: FlatConfigStub(),
         cwd: '/home/test',
       });
 

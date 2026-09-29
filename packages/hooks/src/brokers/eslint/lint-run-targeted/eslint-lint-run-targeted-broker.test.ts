@@ -1,6 +1,6 @@
 import { eslintLintRunTargetedBroker } from './eslint-lint-run-targeted-broker';
 import { eslintLintRunTargetedBrokerProxy } from './eslint-lint-run-targeted-broker.proxy';
-import { LinterConfigStub } from '../../../contracts/linter-config/linter-config.stub';
+import { FlatConfigStub } from '#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub';
 
 describe('eslintLintRunTargetedBroker()', () => {
   describe('valid input', () => {
@@ -27,7 +27,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub({ rules: { 'prefer-const': 'warn' } });
+      const config = FlatConfigStub({ rules: { 'prefer-const': 'warn' } });
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1;',
         filePath: 'test.ts',
@@ -67,7 +67,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1;',
         filePath: 'test.ts',
@@ -103,7 +103,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'const marker = 1;',
         filePath: 'marker.ts',
@@ -124,7 +124,7 @@ describe('eslintLintRunTargetedBroker()', () => {
   describe('empty content handling', () => {
     it('EMPTY: {content: "", filePath: "test.ts", config: {}} => returns empty array', async () => {
       eslintLintRunTargetedBrokerProxy();
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: '',
         filePath: 'test.ts',
@@ -136,7 +136,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
     it('EMPTY: {content: "   ", filePath: "test.ts", config: {}} => returns empty array', async () => {
       eslintLintRunTargetedBrokerProxy();
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: '   ',
         filePath: 'test.ts',
@@ -148,7 +148,7 @@ describe('eslintLintRunTargetedBroker()', () => {
 
     it('EMPTY: {content: "\\n\\t  \\n", filePath: "test.ts", config: {}} => returns empty array', async () => {
       eslintLintRunTargetedBrokerProxy();
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: '\n\t  \n',
         filePath: 'test.ts',
@@ -183,7 +183,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1',
         filePath: 'file.ts',
@@ -245,7 +245,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'any x; let y = 1; function f() {}',
         filePath: 'multi.ts',
@@ -307,7 +307,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'syntax error code',
         filePath: 'norule.ts',
@@ -358,7 +358,7 @@ describe('eslintLintRunTargetedBroker()', () => {
         ],
       });
 
-      const config = LinterConfigStub();
+      const config = FlatConfigStub();
 
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1',
@@ -395,7 +395,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1;',
         filePath: 'error.ts',
-        config: LinterConfigStub(),
+        config: FlatConfigStub(),
         cwd: '/broken',
       });
 
@@ -412,7 +412,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1;',
         filePath: 'error.ts',
-        config: LinterConfigStub(),
+        config: FlatConfigStub(),
         cwd: '/custom',
       });
 
@@ -431,7 +431,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       await eslintLintRunTargetedBroker({
         content: 'const seen = 1;',
         filePath: 'seen.ts',
-        config: LinterConfigStub(),
+        config: FlatConfigStub(),
         cwd: '/custom',
       });
 
@@ -465,7 +465,7 @@ describe('eslintLintRunTargetedBroker()', () => {
       await eslintLintRunTargetedBroker({
         content: 'const retry = 1;',
         filePath: 'retry.ts',
-        config: LinterConfigStub(),
+        config: FlatConfigStub(),
         cwd: '/custom',
       });
 
