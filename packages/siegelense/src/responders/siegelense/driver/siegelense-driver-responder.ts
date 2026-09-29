@@ -37,6 +37,7 @@
 
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { getPid, stderr } from '#gateway/node/process';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
@@ -116,7 +117,7 @@ export const SiegelenseDriverResponder = async ({
           ),
         });
       } catch (markerWriteError: unknown) {
-        process.stderr.write(
+        stderr.write(
           `SiegelenseDriverResponder: writing the boot-failure marker for ${instanceId} failed: ${String(markerWriteError)}\n`,
         );
       }
@@ -134,7 +135,7 @@ export const SiegelenseDriverResponder = async ({
           ? {
               ...row,
               bootedAtMs: epochMsContract.parse(Date.now()),
-              pid: processIdContract.parse(String(process.pid)),
+              pid: processIdContract.parse(String(getPid())),
               pgids: lane.pgids,
               socketPath,
             }

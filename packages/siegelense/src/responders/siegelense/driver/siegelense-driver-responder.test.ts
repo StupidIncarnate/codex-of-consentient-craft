@@ -10,7 +10,6 @@ import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
-import { pid } from '#gateway/node/process';
 
 const SPEC_NAME = SpecNameStub({ value: 'api' });
 
@@ -37,6 +36,7 @@ describe('SiegelenseDriverResponder', () => {
       const lane = LaneSessionStub();
       proxy.stageRegistryRow({ entry });
       proxy.stageBootSucceeds({ lane });
+      proxy.stagePid({ pid: 48213 });
 
       await SiegelenseDriverResponder({ instanceId });
       const mutated = proxy.applyRegistryMutate({ current: { instances: [entry] } });
@@ -47,7 +47,7 @@ describe('SiegelenseDriverResponder', () => {
         pgids: stampedRow?.pgids,
         socketPath: stampedRow?.socketPath,
       }).toStrictEqual({
-        pid: String(pid),
+        pid: '48213',
         pgids: lane.pgids,
         socketPath: proxy.getExpectedSocketPath({ instanceId }),
       });
@@ -121,6 +121,10 @@ describe('SiegelenseDriverResponder', () => {
       });
 
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
+
+      expect(proxy.getStderrText()).toBe(
+        'SiegelenseDriverResponder: writing the boot-failure marker for inst_bad60071 failed: Error: ENOSPC: no space left on device\n',
+      );
     });
   });
 

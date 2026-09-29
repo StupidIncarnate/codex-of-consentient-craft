@@ -725,6 +725,9 @@ describe('stepDispatchBroker', () => {
           },
         ],
       ]);
+      expect(proxy.getStderrText()).toBe(
+        '[step-dispatch] failure screenshot capture failed for step 1: Error: ENOSPC: no space left on device\n',
+      );
     });
 
     it('ERROR: {click throws for a real reason, the failure capture succeeds} => the wrapped error carries the measured blank, blankColour and pixelChange, not null', async () => {

@@ -60,6 +60,7 @@
  */
 
 import { ensureDir } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
@@ -218,7 +219,7 @@ export const runExecuteBroker = async ({
     }),
     manual: false,
   }).catch((error: unknown) => {
-    process.stderr.write(`[run-execute] start snapshot failed for ${runId}: ${String(error)}\n`);
+    stderr.write(`[run-execute] start snapshot failed for ${runId}: ${String(error)}\n`);
   });
 
   const readings: StepReading[] = [];
@@ -329,7 +330,7 @@ export const runExecuteBroker = async ({
     name: snapshotAutoNameTransformer({ runId, boundary: snapshotBoundaryContract.parse('end') }),
     manual: false,
   }).catch((error: unknown) => {
-    process.stderr.write(`[run-execute] end snapshot failed for ${runId}: ${String(error)}\n`);
+    stderr.write(`[run-execute] end snapshot failed for ${runId}: ${String(error)}\n`);
   });
 
   // The FIRST failure only — a later one under stopOn: 'never' still gets its own transcript

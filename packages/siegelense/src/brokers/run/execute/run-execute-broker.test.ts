@@ -1161,7 +1161,15 @@ describe('runExecuteBroker', () => {
         status: result.status,
         stepsRun: result.stepsRun,
         stoppedAt: result.stoppedAt,
-      }).toStrictEqual({ status: 'done', stepsRun: 3, stoppedAt: null });
+        stderr: proxy.getStderrText(),
+      }).toStrictEqual({
+        status: 'done',
+        stepsRun: 3,
+        stoppedAt: null,
+        stderr:
+          '[run-execute] start snapshot failed for run_1: Error: ENOSPC: no space left on device\n' +
+          '[run-execute] end snapshot failed for run_1: Error: ENOSPC: no space left on device\n',
+      });
     });
   });
 

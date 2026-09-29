@@ -32,7 +32,7 @@
  *   });
  * });
  */
-import { writeFileSync } from 'fs';
+import { writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { dynamicImport } from '#gateway/node/module';

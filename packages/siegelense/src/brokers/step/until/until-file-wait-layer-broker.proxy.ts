@@ -12,6 +12,7 @@ import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testi
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
 export const untilFileWaitLayerBrokerProxy = (): {
   fileAppears: (params: { filePath: AbsoluteFilePath }) => void;
@@ -19,6 +20,7 @@ export const untilFileWaitLayerBrokerProxy = (): {
   stageElapsedMs: (params: { nowMs: number }) => void;
 } => {
   const statProxy = statIfExistsProxy();
+  setTimeoutProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
   // the broker imports.

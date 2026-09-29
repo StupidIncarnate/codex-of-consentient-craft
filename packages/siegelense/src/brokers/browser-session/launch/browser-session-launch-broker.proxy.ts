@@ -8,6 +8,9 @@
 
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { setEnvProxy } from '#gateway/node/process/set-env/set-env.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { chromiumProxy } from '#gateway/npm/playwright__test/chromium/chromium.proxy';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
@@ -101,6 +104,12 @@ export const browserSessionLaunchBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
 
+  // Inert env proxies for enforce-proxy-child-creation; the PLAYWRIGHT_BROWSERS_PATH default writes
+  // the real process.env, as before.
+  getEnvProxy();
+  setEnvProxy();
+  // Capture-failure logs are recorded and kept off the runner's own output.
+  stderrProxy();
   refRegistryLayerBrokerProxy();
   // Built before the `Date.now` spy below: its virtual clock is a `Date.now` staging at the same
   // address, and the later one wins, so every facade reading is stamped FIXED_EPOCH_MS.

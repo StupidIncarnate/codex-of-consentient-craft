@@ -10,6 +10,7 @@ import type {
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -95,6 +96,7 @@ export const stepDispatchBrokerProxy = (): {
     sourcePath: AbsoluteFilePath;
     destinationPath: AbsoluteFilePath;
   }) => void;
+  getStderrText: () => ContentText;
 } => {
   // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
   // layer's own proxy is ever addressed: a `seed` step drives no page and so has no BrowserSession
@@ -102,6 +104,9 @@ export const stepDispatchBrokerProxy = (): {
   // delegates to it.
   const verbLayerProxy = runVerbLayerBrokerProxy();
   isNativeErrorProxy();
+  // Every best-effort read or capture failure is logged to stderr; recorded here, off the runner's
+  // own output.
+  const stderrLog = stderrProxy();
 
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
   dateHandle.calledWith([]).returns(FIXED_NOW_MS);
@@ -319,5 +324,7 @@ export const stepDispatchBrokerProxy = (): {
         questIds,
         ...(secondGuild === undefined ? {} : { secondGuild }),
       }),
+
+    getStderrText: (): ContentText => contentTextContract.parse(stderrLog.getWrittenText()),
   };
 };

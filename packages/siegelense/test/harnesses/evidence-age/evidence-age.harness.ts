@@ -19,8 +19,8 @@
  * age.exists({ filePath: videoPath }); // false once a sweep has taken it
  */
 
-import { existsSync } from 'fs';
-import fsPromises from 'fs/promises';
+import { existsSync } from '#gateway/node/fs';
+import { ensureDir, stat, utimes, writeFile } from '#gateway/node/fs__promises';
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -67,12 +67,12 @@ export const evidenceAgeHarness = (): {
     daysOld: number;
   }): Promise<void> => {
     const when = Date.now() / 1000 - daysOld * DAY_SECONDS;
-    await fsPromises.utimes(String(filePath), when, when);
+    await utimes(String(filePath), when, when);
   };
 
   const mtimeMs = async ({ filePath }: { filePath: AbsoluteFilePath }): Promise<EpochMs> => {
-    const stat = await fsPromises.stat(String(filePath));
-    return EpochMsStub({ value: Math.round(stat.mtimeMs) });
+    const fileStat = await stat(String(filePath));
+    return EpochMsStub({ value: fileStat.modifiedAtMs });
   };
 
   const exists = ({ filePath }: { filePath: AbsoluteFilePath }): boolean =>
@@ -91,13 +91,13 @@ export const evidenceAgeHarness = (): {
     const instanceId = InstanceIdStub({ value: `inst_a9e0000${mintedCount}` });
     const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
     const runDir = `${evidenceDir}/runs/${RUN_ID}`;
-    await fsPromises.mkdir(runDir, { recursive: true });
+    await ensureDir(runDir);
 
     const videoPath = AbsoluteFilePathStub({ value: `${runDir}/${VIDEO_FILE_NAME}` });
     const shotPath = AbsoluteFilePathStub({ value: `${runDir}/${SHOT_FILE_NAME}` });
 
-    await fsPromises.writeFile(String(videoPath), VIDEO_BODY);
-    await fsPromises.writeFile(String(shotPath), SHOT_BODY);
+    await writeFile(String(videoPath), VIDEO_BODY);
+    await writeFile(String(shotPath), SHOT_BODY);
 
     await backdateFile({ filePath: videoPath, daysOld });
     await backdateFile({ filePath: shotPath, daysOld });

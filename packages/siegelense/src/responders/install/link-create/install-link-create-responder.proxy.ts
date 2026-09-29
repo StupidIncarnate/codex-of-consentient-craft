@@ -5,7 +5,6 @@ import { join } from '#gateway/node/path';
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { mkdir, readlink, symlink } from 'fs/promises';
 
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
@@ -76,10 +75,21 @@ export const InstallLinkCreateResponderProxy = (): {
   // ensureDir runs for BOTH the link's target (the siegelense root it points to) and its own parent
   // (assetsDir) on every path through the responder, regardless of whether the link itself exists
   // yet — so every setup method stages both, in that order.
+  // Each mkdir is answered only while no symlink has been made yet, so a responder that links
+  // before creating either directory hits an unstaged mkdir and throws — the order proof
+  // `assertMkdirCalledBeforeSymlink` reads back, since no gateway proxy records cross-call order.
+  const noSymlinkYet = (): boolean =>
+    linkProxy.getCallsFor({ target: TARGET_DIR_VALUE, path: LINK_PATH_VALUE }).length === 0;
   const setupBothMkdirs = (): void => {
-    mkdirProxy.succeeds({ path: TARGET_DIR_VALUE });
-    mkdirProxy.succeeds({ path: ASSETS_DIR_VALUE });
+    mkdirProxy.succeedsMatchingPath({
+      path: (value: unknown): boolean => value === TARGET_DIR_VALUE && noSymlinkYet(),
+    });
+    mkdirProxy.succeedsMatchingPath({
+      path: (value: unknown): boolean => value === ASSETS_DIR_VALUE && noSymlinkYet(),
+    });
   };
+  const isStagedMkdirPath = (value: unknown): boolean =>
+    value === TARGET_DIR_VALUE || value === ASSETS_DIR_VALUE;
 
   // The legacy flat `.siegelense` check runs unconditionally on every call, after the nested link's
   // own branch resolves — so every one of this proxy's base setups stages it, defaulting to the
@@ -159,7 +169,12 @@ export const InstallLinkCreateResponderProxy = (): {
         .map((call) => ({ targetPath: call[0], linkPath: call[1], type: call[2] })),
 
     getReadlinkCalls: (): readonly unknown[] =>
-      (readlink as jest.MockedFunction<typeof readlink>).mock.calls.map(([path]) => path),
+      linkReadlink
+        .getCallsFor({
+          path: (value: unknown): boolean =>
+            value === LINK_PATH_VALUE || value === LEGACY_LINK_PATH_VALUE,
+        })
+        .map((call) => call[0]),
 
     getUnlinkedPaths: (): readonly unknown[] =>
       deleteProxy
@@ -168,12 +183,9 @@ export const InstallLinkCreateResponderProxy = (): {
         })
         .map((call) => call[0]),
 
-    // Reads jest's own recorded calls off the real 'fs/promises' mkdir directly, in real
-    // invocation order — ensureDirProxy's own getCallsFor is addressed per-path, and combining two
-    // separately-addressed lists cannot recover the ORDER a single real call sequence has, which
-    // this responder's own two-mkdir-then-symlink ordering assertion depends on.
+    // Every staged mkdir, in real invocation order.
     getMkdirCalls: (): readonly unknown[] =>
-      (mkdir as jest.MockedFunction<typeof mkdir>).mock.calls.map(([path]) => path),
+      mkdirProxy.getCallsFor({ path: isStagedMkdirPath }).map((call) => call[0]),
 
     // The nested link's own join call is addressed by its FIRST argument, ASSETS_DIR_VALUE — the
     // one call among the four this file's join queue answers whose first segment is the assets
@@ -183,20 +195,11 @@ export const InstallLinkCreateResponderProxy = (): {
     // return value would otherwise mask it.
     getLinkPathJoinArgs: (): readonly unknown[][] => joinHandle.callsMatching([ASSETS_DIR_VALUE]),
 
-    // Cross-mock order cannot be read off either adapter proxy alone — each only tracks its own
-    // call history — so this reads jest's own invocationCallOrder off the two underlying
-    // 'fs/promises' exports directly, the same technique quest-chat-responder.proxy.ts uses to
-    // prove resume precedes start-chat. Two mkdir calls happen per run now (target, then assets
-    // parent), so this takes the LATEST mkdir order — symlink must follow both, not just the first.
-    assertMkdirCalledBeforeSymlink: (): boolean => {
-      const mkdirFn = mkdir as jest.MockedFunction<typeof mkdir>;
-      const symlinkFn = symlink as jest.MockedFunction<typeof symlink>;
-      const mkdirOrders = mkdirFn.mock.invocationCallOrder;
-      const [symlinkOrder] = symlinkFn.mock.invocationCallOrder;
-      if (mkdirOrders.length === 0 || symlinkOrder === undefined) {
-        return false;
-      }
-      return Math.max(...mkdirOrders) < symlinkOrder;
-    },
+    // Both mkdirs ran and a symlink followed. Each mkdir stage above answers only while no symlink
+    // exists yet, so reaching here with all three calls recorded proves both mkdirs came first.
+    assertMkdirCalledBeforeSymlink: (): boolean =>
+      mkdirProxy.getCallsFor({ path: TARGET_DIR_VALUE }).length > 0 &&
+      mkdirProxy.getCallsFor({ path: ASSETS_DIR_VALUE }).length > 0 &&
+      !noSymlinkYet(),
   };
 };

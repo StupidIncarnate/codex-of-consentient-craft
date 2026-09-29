@@ -36,7 +36,7 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { spawnDetached } from '#gateway/node/child_process';
 import { closeSync, openForAppendSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
+import { cwd, envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -84,7 +84,7 @@ export const laneBootBroker = async ({
   // `unknown` so a value already known non-undefined at runtime passes through with no type
   // predicate, and a genuinely undefined one is filtered out first.
   const inheritedEnv: Record<PropertyKey, ContentText> = Object.fromEntries(
-    Object.entries(process.env)
+    Object.entries(envSnapshot())
       .filter(([, value]) => value !== undefined)
       .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
   );

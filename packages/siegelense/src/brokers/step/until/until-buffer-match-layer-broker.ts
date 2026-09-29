@@ -22,6 +22,7 @@
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';

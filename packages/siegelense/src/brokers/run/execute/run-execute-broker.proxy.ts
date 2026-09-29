@@ -1,5 +1,6 @@
 import { z } from '#gateway/npm/zod';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import {
@@ -160,6 +161,7 @@ export const runExecuteBrokerProxy = (): {
     snapshotCountAtEachStep: () => readonly ReadingCount[];
   };
   failSnapshotCapture: (params: { error: Error }) => void;
+  getStderrText: () => ReturnType<typeof ContentTextStub>;
 } => {
   // Satisfies enforce-proxy-child-creation for every broker/adapter run-execute-broker.ts imports.
   locationsRunPathsFindBrokerProxy();
@@ -168,6 +170,9 @@ export const runExecuteBrokerProxy = (): {
   // Unlike the old shared fsMkdirAdapter, ensureDirProxy has no permissive default — stagePaths
   // below addresses it at the exact shotsDir the same real locationsRunPathsFindBroker call computes.
   const mkdirProxy = ensureDirProxy();
+  // A failed automatic snapshot is logged to stderr; the gateway proxy records it and keeps it off
+  // the test runner's own output.
+  const stderrLog = stderrProxy();
   // Constructed for enforce-proxy-child-creation only; `snapshotCaptureBroker` is staged directly
   // below because it carries its own suite. Deliberately BEFORE the step-layer proxy: this one
   // registers `Date.now` without staging it, so whatever the step layer stages afterwards is what
@@ -598,5 +603,8 @@ export const runExecuteBrokerProxy = (): {
     failSnapshotCapture: ({ error }: { error: Error }): void => {
       snapshotCaptureHandle.calledWith([]).rejects(error);
     },
+
+    getStderrText: (): ReturnType<typeof ContentTextStub> =>
+      ContentTextStub({ value: stderrLog.getWrittenText() }),
   };
 };

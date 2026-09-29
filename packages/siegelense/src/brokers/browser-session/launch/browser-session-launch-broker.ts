@@ -30,6 +30,7 @@
 import { chromium } from '#gateway/npm/playwright__test';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { getEnv, setEnv, stderr } from '#gateway/node/process';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -135,7 +136,9 @@ export const browserSessionLaunchBroker = async ({
   baseUrl: string;
   evidencePath: AbsoluteFilePath;
 }): Promise<BrowserSession> => {
-  process.env.PLAYWRIGHT_BROWSERS_PATH ??= join(homedir(), '.cache', 'ms-playwright');
+  if (getEnv('PLAYWRIGHT_BROWSERS_PATH') === undefined) {
+    setEnv('PLAYWRIGHT_BROWSERS_PATH', join(homedir(), '.cache', 'ms-playwright'));
+  }
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -237,9 +240,7 @@ export const browserSessionLaunchBroker = async ({
         );
       })
       .catch((error: unknown) => {
-        process.stderr.write(
-          `[browser-session-launch-broker] response capture failed: ${String(error)}\n`,
-        );
+        stderr.write(`[browser-session-launch-broker] response capture failed: ${String(error)}\n`);
       });
   });
 
@@ -394,7 +395,7 @@ export const browserSessionLaunchBroker = async ({
         await page.locator(refRegistry.targetSelector()).click({ timeout: timeoutMs });
       } finally {
         await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
-          process.stderr.write(
+          stderr.write(
             `[browser-session-launch-broker] unstamp after clickRef failed: ${String(error)}\n`,
           );
         });
@@ -415,7 +416,7 @@ export const browserSessionLaunchBroker = async ({
         await page.locator(refRegistry.targetSelector()).fill(value, { timeout: timeoutMs });
       } finally {
         await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
-          process.stderr.write(
+          stderr.write(
             `[browser-session-launch-broker] unstamp after fillRef failed: ${String(error)}\n`,
           );
         });
@@ -609,7 +610,7 @@ export const browserSessionLaunchBroker = async ({
         await page.locator(refRegistry.targetSelector()).focus({ timeout: timeoutMs });
       } finally {
         await page.evaluate(refRegistry.unstampSource()).catch((error: unknown) => {
-          process.stderr.write(
+          stderr.write(
             `[browser-session-launch-broker] unstamp after pasteRef failed: ${String(error)}\n`,
           );
         });

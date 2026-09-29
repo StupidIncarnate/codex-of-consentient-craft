@@ -34,6 +34,8 @@ import {
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootFailureMarkerWriteBrokerProxy } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker.proxy';
@@ -82,7 +84,12 @@ export const SiegelenseDriverResponderProxy = (): {
   getBootLockReleaseCallArgs: () => unknown;
   getBootFailureMarkerWriteCallArgs: () => unknown;
   getRegistryUpdateCallCount: () => ReadingCount;
+  stagePid: (params: { pid: number }) => void;
+  getStderrText: () => ReturnType<typeof ContentTextStub>;
 } => {
+  const pidProxy = getPidProxy();
+  // The responder logs a failed boot-failure-marker write to stderr; recorded here, off the runner's output.
+  const stderrLog = stderrProxy();
   laneBootBrokerProxy();
   DriverServeLayerResponderProxy();
   laneSpecFindBrokerProxy();
@@ -221,5 +228,12 @@ export const SiegelenseDriverResponderProxy = (): {
 
     getRegistryUpdateCallCount: (): ReadingCount =>
       ReadingCountStub({ value: registryUpdateHandle.callsMatching([]).length }),
+
+    stagePid: ({ pid }: { pid: number }): void => {
+      pidProxy.setupPid({ pid });
+    },
+
+    getStderrText: (): ReturnType<typeof ContentTextStub> =>
+      ContentTextStub({ value: stderrLog.getWrittenText() }),
   };
 };

@@ -15,6 +15,7 @@
  */
 
 import { fetchOk } from '#gateway/node/fetch';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 import { driverStatics } from '../../../statics/driver/driver-statics';
 

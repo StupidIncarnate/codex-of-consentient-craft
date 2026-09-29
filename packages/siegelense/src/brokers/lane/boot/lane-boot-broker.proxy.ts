@@ -5,11 +5,12 @@
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
 import { join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
+import { cwd, envSnapshot } from '#gateway/node/process';
 import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/spawn-detached.proxy';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
 import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
@@ -97,8 +98,9 @@ export const laneBootBrokerProxy = (): {
   const mkdirProxy = ensureDirProxy();
   mkdirProxy.succeeds({ path: HOME_PATH_VALUE });
   mkdirProxy.succeeds({ path: EVIDENCE_PATH_VALUE });
-  // gateway proxy import — inert, satisfies enforce-proxy-child-creation.
+  // gateway proxy imports — inert, satisfy enforce-proxy-child-creation.
   cwdProxy();
+  envSnapshotProxy();
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   const spawnProxy = spawnDetachedProxy();
@@ -233,7 +235,7 @@ export const laneBootBrokerProxy = (): {
 
     getInheritedEnvSnapshot: (): Record<PropertyKey, ContentText> =>
       Object.fromEntries(
-        Object.entries(process.env)
+        Object.entries(envSnapshot())
           .filter(([, value]) => value !== undefined)
           .map(([key, value]): [PropertyKey, ContentText] => [
             key,

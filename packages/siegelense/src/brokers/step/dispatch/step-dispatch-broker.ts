@@ -60,6 +60,7 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
+import { stderr } from '#gateway/node/process';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BufferLengths } from '../../../contracts/browser-session/browser-session-contract';
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
@@ -124,7 +125,7 @@ export const stepDispatchBroker = async ({
     shotPath === null || session === null
       ? null
       : await session.look({ within: null }).catch((readError: unknown) => {
-          process.stderr.write(
+          stderr.write(
             `[step-dispatch] key listing read failed for step ${String(index)} before the verb ran: ${String(readError)}\n`,
           );
           return null;
@@ -174,7 +175,7 @@ export const stepDispatchBroker = async ({
         const afterReading = await session.look({ within: null });
         delta = elementDeltaComputeTransformer({ before: previousReading, after: afterReading });
       } catch (readError: unknown) {
-        process.stderr.write(
+        stderr.write(
           `[step-dispatch] key listing read failed for step ${String(index)} after the verb ran: ${String(readError)}\n`,
         );
       }
@@ -221,7 +222,7 @@ export const stepDispatchBroker = async ({
           .capture({ filePath: shotPath })
           .then(() => true)
           .catch((captureError: unknown) => {
-            process.stderr.write(
+            stderr.write(
               `[step-dispatch] failure screenshot capture failed for step ${String(index)}: ${String(captureError)}\n`,
             );
             return false;
@@ -247,7 +248,7 @@ export const stepDispatchBroker = async ({
             pixelChange = measuredChange;
             setLastShotPath({ path: shotPath });
           } catch (readError: unknown) {
-            process.stderr.write(
+            stderr.write(
               `[step-dispatch] failure screenshot measurement failed for step ${String(index)}: ${String(readError)}\n`,
             );
           }
@@ -264,7 +265,7 @@ export const stepDispatchBroker = async ({
               after: afterReading,
             });
           } catch (readError: unknown) {
-            process.stderr.write(
+            stderr.write(
               `[step-dispatch] key listing read failed for step ${String(index)} after a real failure's own capture: ${String(readError)}\n`,
             );
           }
@@ -325,7 +326,7 @@ export const stepDispatchBroker = async ({
         const afterReading = await session.look({ within: null });
         delta = elementDeltaComputeTransformer({ before: previousReading, after: afterReading });
       } catch (readError: unknown) {
-        process.stderr.write(
+        stderr.write(
           `[step-dispatch] key listing read failed for step ${String(index)} after the verb ran: ${String(readError)}\n`,
         );
       }

@@ -9,6 +9,7 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fetchOkProxy } from '#gateway/node/fetch/fetch-ok/fetch-ok.proxy';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
 export const laneReadyWaitBrokerProxy = (): {
   setupReachable: (params: { url: string }) => void;
@@ -16,6 +17,7 @@ export const laneReadyWaitBrokerProxy = (): {
   stageDeadlineExceeded: (params: { firstCallMs: number; thenMs: number }) => void;
 } => {
   const fetchProxy = fetchOkProxy();
+  setTimeoutProxy();
 
   return {
     setupReachable: ({ url }: { url: string }): void => {
