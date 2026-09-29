@@ -155,7 +155,7 @@ describe('opSetApplyLayerBroker', () => {
           },
         }),
       });
-      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' as never });
+      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' });
       state.records.set(RowRefStub({ value: 'quest[0:0]' }), { status: 'created' });
       const op = OpSetStub({
         ref: 'quest[0:0]',
@@ -236,7 +236,7 @@ describe('opSetApplyLayerBroker', () => {
           },
         }),
       });
-      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' as never });
+      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' });
       state.records.set(RowRefStub({ value: 'quest[0:0]' }), { title: 'Quest 1' });
       const op = OpSetStub({
         ref: 'quest[0:0]',
@@ -272,7 +272,7 @@ describe('opSetApplyLayerBroker', () => {
           },
         }),
       });
-      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' as never });
+      const state = HydrationRunStateStub({ recipeName: 'guild-mid-execution' });
       state.records.set(RowRefStub({ value: 'quest[0:0]' }), {
         status: 'finished',
         title: 'Quest 1',

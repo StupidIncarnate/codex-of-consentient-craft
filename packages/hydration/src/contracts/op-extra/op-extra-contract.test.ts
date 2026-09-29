@@ -43,7 +43,7 @@ describe('opExtraContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opExtraContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ref: 'session[0:0]',
           verb: 'withNestedChain',
           args: {},

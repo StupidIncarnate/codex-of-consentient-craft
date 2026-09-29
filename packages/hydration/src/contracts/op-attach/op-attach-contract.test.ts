@@ -50,7 +50,7 @@ describe('opAttachContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opAttachContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ingredient: 'quest',
           ref: 'quest[0:0]',
           ancestors: [],

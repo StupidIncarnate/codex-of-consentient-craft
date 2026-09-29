@@ -64,7 +64,7 @@ describe('ingredientDeclareBroker', () => {
       const defaults = (index: number): Record<string, unknown> => ({
         title: `Quest ${index + 1}`,
       });
-      const config = IngredientConfigStub({ defaults: defaults as never });
+      const config = IngredientConfigStub({ defaults });
 
       ingredientDeclareBroker(config as never);
 

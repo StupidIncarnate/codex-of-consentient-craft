@@ -92,7 +92,7 @@ describe('opFilterContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opFilterContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ingredient: 'operation',
           where: {},
           expect: 'one',

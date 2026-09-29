@@ -42,7 +42,7 @@ describe('opSetContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opSetContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ref: 'guild[0:0]/quest[0:2]',
           written: {},
         }),

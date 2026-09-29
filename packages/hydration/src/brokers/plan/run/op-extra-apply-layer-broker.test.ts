@@ -61,7 +61,7 @@ describe('opExtraApplyLayerBroker', () => {
     const op = OpExtraStub({
       ref: 'guild[0:0]/session[0:0]',
       verb: 'withNestedChain',
-      args: { depth: { __savedRef: true, name: 'origin', field: 'depth' } as never },
+      args: { depth: { __savedRef: true, name: 'origin', field: 'depth' } },
     });
 
     await opExtraApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state });

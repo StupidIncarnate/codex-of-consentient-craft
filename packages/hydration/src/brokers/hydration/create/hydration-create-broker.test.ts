@@ -89,7 +89,7 @@ describe('hydrationCreateBroker', () => {
       },
       copies: 'guildAddBroker',
     } as never);
-    dm.registry({ guilds: guild } as never);
+    dm.registry({ guilds: guild });
     const plan = HydrationPlanStub({
       ops: [OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', ancestors: [], fields: {} })],
     });
@@ -122,7 +122,7 @@ describe('hydrationCreateBroker', () => {
       routes: { write: (): unknown => undefined },
       copies: 'questPersistBroker',
     } as never);
-    dm.registry({ guilds: guild, quests: quest } as never);
+    dm.registry({ guilds: guild, quests: quest });
     const plan = HydrationPlanStub({
       ops: [
         OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] }),
@@ -150,7 +150,7 @@ describe('hydrationCreateBroker', () => {
       record: IngredientConfigStub().record,
       routes: { api: (): unknown => undefined },
     } as never);
-    dm.registry({ guilds: guild } as never);
+    dm.registry({ guilds: guild });
     const plan = HydrationPlanStub({
       ops: [OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] })],
     });
@@ -180,7 +180,7 @@ describe('hydrationCreateBroker', () => {
       routes: { write: (): unknown => undefined },
       copies: 'questPersistBroker',
     } as never);
-    dm.registry({ guilds: guild, quests: quest } as never);
+    dm.registry({ guilds: guild, quests: quest });
     const plan = HydrationPlanStub({
       ops: [
         OpCreateStub({ ingredient: 'guild', ref: 'guild[0:0]', index: 0, ancestors: [] }),

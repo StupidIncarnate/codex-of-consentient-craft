@@ -25,7 +25,7 @@ describe('opSaveRecordContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opSaveRecordContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ref: 'guild[0:0]/quest[0:2]',
           name: 'third',
         }),

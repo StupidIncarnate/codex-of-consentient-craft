@@ -49,7 +49,7 @@ describe('opCreateContract', () => {
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opCreateContract.parse({
-          op: 'nope' as never,
+          op: 'nope',
           ingredient: 'quest',
           ref: 'guild[0:0]/quest[0:2]',
           index: 2,

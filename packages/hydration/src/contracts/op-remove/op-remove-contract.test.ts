@@ -17,9 +17,9 @@ describe('opRemoveContract', () => {
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
-      expect(() =>
-        opRemoveContract.parse({ op: 'nope' as never, ref: 'guild[0:0]/quest[0:1]' }),
-      ).toThrow(/Invalid input: expected/u);
+      expect(() => opRemoveContract.parse({ op: 'nope', ref: 'guild[0:0]/quest[0:1]' })).toThrow(
+        /Invalid input: expected/u,
+      );
     });
   });
 });
