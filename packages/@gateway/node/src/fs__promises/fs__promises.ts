@@ -18,6 +18,7 @@ export { pathExists } from './path-exists/path-exists';
 export { readFile } from './read-file/read-file';
 export { readFileBytes } from './read-file-bytes/read-file-bytes';
 export { readFileFromOffset } from './read-file-from-offset/read-file-from-offset';
+export { fileHandleSchema } from './read-file-from-offset/file-handle-schema';
 export { readFileIfExists } from './read-file-if-exists/read-file-if-exists';
 export { readJsonFile } from './read-json-file/read-json-file';
 export { readJsonFileIfExists } from './read-json-file-if-exists/read-json-file-if-exists';
