@@ -62,6 +62,15 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const userContract = z.object({});',
       filename: '/project/src/contracts/user/user-contract.ts',
     },
+    // Types-only contract: a function type or method set Zod cannot check
+    {
+      code: 'export type UserLoader = (id: string) => void;',
+      filename: '/project/src/contracts/user-loader/user-loader-contract.ts',
+    },
+    {
+      code: 'export interface UserApi { load: () => void; clear: () => void }',
+      filename: '/project/src/contracts/user-api/user-api-contract.ts',
+    },
     {
       code: 'export class ValidationError extends Error {}',
       filename: '/project/src/errors/validation/validation-error.ts',
@@ -310,6 +319,28 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
     // No exports
     {
       code: 'const helper = () => {};',
+      filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
+      errors: [{ messageId: 'missingExpectedExport' }],
+    },
+    // Empty contract file is still missing its export
+    {
+      code: 'const helper = () => {};',
+      filename: '/project/src/contracts/user/user-contract.ts',
+      errors: [{ messageId: 'missingExpectedExport' }],
+    },
+    // Type-only exports satisfy only a contract file
+    {
+      code: 'export type IsAdmin = (id: string) => boolean;',
+      filename: '/project/src/guards/is-admin/is-admin-guard.ts',
+      errors: [{ messageId: 'missingExpectedExport' }],
+    },
+    {
+      code: 'export type Config = { port: number };',
+      filename: '/project/src/statics/config/config-statics.ts',
+      errors: [{ messageId: 'missingExpectedExport' }],
+    },
+    {
+      code: 'export type UserFetch = () => void;',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
       errors: [{ messageId: 'missingExpectedExport' }],
     },

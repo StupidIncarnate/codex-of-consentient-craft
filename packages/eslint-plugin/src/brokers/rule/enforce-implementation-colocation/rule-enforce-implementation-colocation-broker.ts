@@ -16,6 +16,7 @@ import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
 import { isReexportOnlyProgramGuard } from '../../../guards/is-reexport-only-program/is-reexport-only-program-guard';
+import { isTypesOnlyProgramGuard } from '../../../guards/is-types-only-program/is-types-only-program-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
@@ -117,6 +118,10 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           suffix: 'contract',
         });
 
+        // A contract that exports only types (a function type or method set Zod cannot check)
+        // has nothing to parse, so it has no test and no stub to require.
+        const isTypesOnlyContract = isContract && isTypesOnlyProgramGuard({ node });
+
         // Read testType from folder config to determine test requirements
         const rawTestType = folderConfig?.testType;
         const testType =
@@ -208,7 +213,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           // type keeps the unconditional requirement.
           const staticsNeedsNoTest = folderType === 'statics' && !hasRegexLiteral;
 
-          if (!staticsNeedsNoTest) {
+          if (!staticsNeedsNoTest && !isTypesOnlyContract) {
             // Check if any test file exists
             const hasTestFile = testFilePaths.some((testFilePath) => {
               const parsedPath = filePathContract.parse(testFilePath);
@@ -231,7 +236,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
         // testType === 'none' → no test file required (assets, migrations)
 
         // For contract files, also check for stub file
-        if (isContract) {
+        if (isContract && !isTypesOnlyContract) {
           const filenameParts = filename.split('/');
           const contractFileName = filenameParts.pop() ?? '';
           const directory = filenameParts.join('/');

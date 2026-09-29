@@ -119,6 +119,29 @@ export const TsestreeStub = ({ ...props }: StubArgument<Tsestree> = {}): Tsestre
       filename: '/test/tsestree.stub.ts',
     },
 
+    // Test double for a types-only contract: the contract is imported as a type only, nothing to parse
+    {
+      code: `
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { BrowserSession } from './browser-session-contract';
+export const BrowserSessionStub = ({ ...props }: StubArgument<BrowserSession> = {}): BrowserSession => ({
+  close: jest.fn(),
+  ...props,
+});
+      `,
+      filename: '/test/browser-session.stub.ts',
+    },
+    {
+      code: `
+import { type StubArgument } from '@dungeonmaster/shared/@types';
+import { type BrowserSession } from './browser-session-contract';
+export const BrowserSessionStub = ({ ...props }: StubArgument<BrowserSession> = {}): BrowserSession => ({
+  close: jest.fn(),
+  ...props,
+});
+      `,
+      filename: '/test/browser-session.stub.ts',
+    },
     // Non-stub file - rule should not apply
     {
       code: 'export const regularFunction = ({ props }: { props: SomeType }) => props',
@@ -147,6 +170,26 @@ export const AstNodeStub = ({ props }: Partial<AstNode> = {}): AstNode => ({});
       `,
       filename: '/test/ast-node.stub.ts',
       errors: [{ messageId: 'useSpreadOperator' }],
+    },
+    // A value import of the contract is a schema to parse: the type-only exemption does not apply
+    {
+      code: `
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+import { userContract } from './user-contract';
+import type { User } from './user-contract';
+export const UserStub = ({ ...props }: StubArgument<User> = {}): User => ({ id: '1', ...props });
+      `,
+      filename: '/test/user.stub.ts',
+      errors: [{ messageId: 'useContractParse' }],
+    },
+    // No contract import at all: still must parse
+    {
+      code: `
+import type { StubArgument } from '@dungeonmaster/shared/@types';
+export const UserStub = ({ ...props }: StubArgument<User> = {}): User => ({ id: '1', ...props });
+      `,
+      filename: '/test/user.stub.ts',
+      errors: [{ messageId: 'useContractParse' }],
     },
     // Branded string stub (single value) missing contract.parse() - returns raw value
     {

@@ -5,6 +5,10 @@
  * const rule = ruleEnforceStubPatternsBroker();
  * // Returns RuleModule that validates stub files use proper patterns
  *
+ * A stub that imports every `-contract` file as a type only is a test double for a types-only contract
+ * (a function type or method set Zod cannot check); it has no schema to parse, so `useContractParse`
+ * does not apply to it.
+ *
  * WHEN-TO-USE: When registering ESLint rules in the plugin startup to enforce stub function coding standards
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
@@ -42,7 +46,28 @@ export const ruleEnforceStubPatternsBroker = (): TSESLint.RuleModule<
       return {};
     }
 
+    let importsContractsAsTypesOnly = false;
+
     return {
+      Program: (node: TSESTree.Program): void => {
+        const contractImports = node.body.filter(
+          (statement): statement is TSESTree.ImportDeclaration =>
+            statement.type === AST_NODE_TYPES.ImportDeclaration &&
+            statement.source.value.endsWith('-contract'),
+        );
+        importsContractsAsTypesOnly =
+          contractImports.length > 0 &&
+          contractImports.every(
+            (statement) =>
+              statement.importKind === 'type' ||
+              (statement.specifiers.length > 0 &&
+                statement.specifiers.every(
+                  (specifier) =>
+                    specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                    specifier.importKind === 'type',
+                )),
+          );
+      },
       ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
         // Only check root exported stub functions, not nested arrow functions
         if (!isAstNodeExportedGuard({ node })) {
@@ -77,7 +102,8 @@ export const ruleEnforceStubPatternsBroker = (): TSESLint.RuleModule<
         const hasSpread = isAstParamSpreadOperatorGuard({ funcNode: node });
         const isSingleValue = isAstParamSingleValuePropertyGuard({ funcNode: node });
         const hasStubArgument = isAstParamStubArgumentTypeGuard({ funcNode: node });
-        const hasContractParse = isAstFunctionUsesContractParseGuard({ funcNode: node });
+        const hasContractParse =
+          importsContractsAsTypesOnly || isAstFunctionUsesContractParseGuard({ funcNode: node });
 
         // Exception: Allow ({ value }: { value: string }) for branded string stubs
         if (isSingleValue) {

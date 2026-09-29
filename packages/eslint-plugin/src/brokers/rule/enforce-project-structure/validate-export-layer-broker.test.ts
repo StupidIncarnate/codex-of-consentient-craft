@@ -637,7 +637,7 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('INVALID: type-only export in contracts (no value export) => reports missingExpectedExport', () => {
+    it('VALID: type-only export in a contract file (no value export) => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
@@ -651,6 +651,52 @@ describe('validateExportLayerBroker', () => {
         node,
         context,
         filename: '/project/src/contracts/user/user-contract.ts',
+        firstFolder,
+        folderConfig: folderConfigStatics.contracts,
+        collectedExports,
+      });
+
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('INVALID: no exports at all in a contract file => reports missingExpectedExport', () => {
+      validateExportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
+      const firstFolder = IdentifierStub({ value: 'contracts' });
+
+      validateExportLayerBroker({
+        node,
+        context,
+        filename: '/project/src/contracts/user/user-contract.ts',
+        firstFolder,
+        folderConfig: folderConfigStatics.contracts,
+        collectedExports: [],
+      });
+
+      expect(mockReport).toHaveBeenCalledTimes(1);
+      expect(mockReport).toHaveBeenCalledWith({
+        node,
+        messageId: 'missingExpectedExport',
+        data: { expectedName: 'userContract', actualCount: '0' },
+      });
+    });
+
+    it('INVALID: type-only export in a contracts stub file => reports missingExpectedExport', () => {
+      validateExportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
+      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const collectedExports = [
+        CollectedExportStub({ name: IdentifierStub({ value: 'User' }), isTypeOnly: true }),
+      ];
+
+      validateExportLayerBroker({
+        node,
+        context,
+        filename: '/project/src/contracts/user/user.stub.ts',
         firstFolder,
         folderConfig: folderConfigStatics.contracts,
         collectedExports,

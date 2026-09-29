@@ -6,10 +6,16 @@ export const ruleRequireContractParseBrokerProxy = (): {
     parsedContractText,
     lonelyContractText,
     parsingBrokerText,
+    functionTypesContractText,
+    dataTypeContractText,
+    driftedTypeContractText,
   }: {
     parsedContractText: string;
     lonelyContractText: string;
     parsingBrokerText: string;
+    functionTypesContractText: string;
+    dataTypeContractText: string;
+    driftedTypeContractText: string;
   }) => void;
 } => {
   const buildProxy = contractIndexBuildBrokerProxy();
@@ -23,10 +29,16 @@ export const ruleRequireContractParseBrokerProxy = (): {
       parsedContractText,
       lonelyContractText,
       parsingBrokerText,
+      functionTypesContractText,
+      dataTypeContractText,
+      driftedTypeContractText,
     }: {
       parsedContractText: string;
       lonelyContractText: string;
       parsingBrokerText: string;
+      functionTypesContractText: string;
+      dataTypeContractText: string;
+      driftedTypeContractText: string;
     }): void => {
       buildProxy.setupSubfolders({
         dirPath: AbsoluteFilePathStub({ value: '/project/packages' }),
@@ -41,7 +53,7 @@ export const ruleRequireContractParseBrokerProxy = (): {
       });
       buildProxy.setupWalkedFolder({
         dirPath: contractsDir,
-        folders: ['thing', 'lonely'],
+        folders: ['thing', 'lonely', 'handler', 'plain', 'drifted'],
         files: [],
       });
       buildProxy.setupWalkedFolder({
@@ -53,6 +65,21 @@ export const ruleRequireContractParseBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/lonely` }),
         folders: [],
         files: ['lonely-contract.ts'],
+      });
+      buildProxy.setupWalkedFolder({
+        dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/handler` }),
+        folders: [],
+        files: ['handler-contract.ts'],
+      });
+      buildProxy.setupWalkedFolder({
+        dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/plain` }),
+        folders: [],
+        files: ['plain-contract.ts'],
+      });
+      buildProxy.setupWalkedFolder({
+        dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/drifted` }),
+        folders: [],
+        files: ['drifted-contract.ts'],
       });
       buildProxy.setupWalkedFolder({ dirPath: brokersDir, folders: ['use'], files: [] });
       buildProxy.setupWalkedFolder({
@@ -67,6 +94,18 @@ export const ruleRequireContractParseBrokerProxy = (): {
       buildProxy.setupSourceText({
         filePath: AbsoluteFilePathStub({ value: `${contractsDir}/lonely/lonely-contract.ts` }),
         text: lonelyContractText,
+      });
+      buildProxy.setupSourceText({
+        filePath: AbsoluteFilePathStub({ value: `${contractsDir}/handler/handler-contract.ts` }),
+        text: functionTypesContractText,
+      });
+      buildProxy.setupSourceText({
+        filePath: AbsoluteFilePathStub({ value: `${contractsDir}/plain/plain-contract.ts` }),
+        text: dataTypeContractText,
+      });
+      buildProxy.setupSourceText({
+        filePath: AbsoluteFilePathStub({ value: `${contractsDir}/drifted/drifted-contract.ts` }),
+        text: driftedTypeContractText,
       });
       buildProxy.setupSourceText({
         filePath: AbsoluteFilePathStub({ value: `${brokersDir}/use/use-broker.ts` }),

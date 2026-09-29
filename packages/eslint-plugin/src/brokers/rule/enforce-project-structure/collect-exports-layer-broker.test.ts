@@ -69,11 +69,77 @@ describe('collectExportsLayerBroker', () => {
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
-    it('VALID: type-only export => skips and returns empty', () => {
+    it('VALID: export type alias => collects a type entry', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'export type UserId = string;' });
+      const firstFolder = IdentifierStub({ value: 'contracts' });
+
+      const result = collectExportsLayerBroker({
+        node,
+        context,
+        filename: '/project/src/contracts/user/user-contract.ts',
+        firstFolder,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'TSTypeAliasDeclaration',
+          name: IdentifierStub({ value: 'UserId' }),
+          isTypeOnly: true,
+        },
+      ]);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: export interface => collects a type entry', () => {
+      collectExportsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: 'export interface UserApi { load: () => void }' });
+      const firstFolder = IdentifierStub({ value: 'contracts' });
+
+      const result = collectExportsLayerBroker({
+        node,
+        context,
+        filename: '/project/src/contracts/user/user-contract.ts',
+        firstFolder,
+      });
+
+      expect(result).toStrictEqual([
+        {
+          type: 'TSInterfaceDeclaration',
+          name: IdentifierStub({ value: 'UserApi' }),
+          isTypeOnly: true,
+        },
+      ]);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: export type specifier list => skips and returns empty', () => {
+      collectExportsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: 'type UserId = string;\nexport type { UserId };' });
+      const firstFolder = IdentifierStub({ value: 'contracts' });
+
+      const result = collectExportsLayerBroker({
+        node,
+        context,
+        filename: '/project/src/contracts/user/user-contract.ts',
+        firstFolder,
+      });
+
+      expect(result).toStrictEqual([]);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: export type from a source => skips and returns empty', () => {
+      collectExportsLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: "export type { UserId } from './user-id';" });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = collectExportsLayerBroker({

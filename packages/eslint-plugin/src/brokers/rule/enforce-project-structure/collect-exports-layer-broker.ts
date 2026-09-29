@@ -51,6 +51,22 @@ export const collectExportsLayerBroker = ({
         return null;
       }
 
+      // `export type X = ...` and `export interface X` are collected as type entries so a
+      // types-only contract file can be told apart from an empty one; `export type { X }` and
+      // `export type { X } from` carry no declaration and stay skipped.
+      if (
+        isTypeOnly &&
+        declaration &&
+        (declaration.type === AST_NODE_TYPES.TSTypeAliasDeclaration ||
+          declaration.type === AST_NODE_TYPES.TSInterfaceDeclaration)
+      ) {
+        exports.push({
+          type: declaration.type as CollectedExport['type'],
+          name: identifierContract.parse(declaration.id.name),
+          isTypeOnly: true,
+        });
+      }
+
       if (!isTypeOnly && declaration) {
         if (declaration.type === AST_NODE_TYPES.VariableDeclaration) {
           for (const declarator of declaration.declarations) {

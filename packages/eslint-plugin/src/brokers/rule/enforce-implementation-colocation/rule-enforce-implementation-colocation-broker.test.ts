@@ -175,6 +175,15 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const userContract = z.object({});',
       filename: '/project/src/contracts/user/user-contract.ts',
     },
+    // Types-only contract: no test and no stub required
+    {
+      code: 'export interface ActiveQuestFacade { setActive: () => void; clear: () => void }',
+      filename: '/project/src/contracts/active-quest-facade/active-quest-facade-contract.ts',
+    },
+    {
+      code: "import type { Line } from '../line/line-contract';\nexport type OnLine = (line: Line) => void;",
+      filename: '/project/src/contracts/on-line/on-line-contract.ts',
+    },
     // Files that should be skipped
     {
       code: 'describe("test", () => {});',
@@ -364,6 +373,18 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const productContract = z.object({});',
       filename: '/project/src/contracts/product/product-contract.ts',
       errors: [{ messageId: 'missingTestFileWithLayer' }, { messageId: 'missingStubFile' }],
+    },
+    // Contract with a const beside its types is not types-only: test and stub are required
+    {
+      code: 'export const gadgetContract = z.object({});\nexport type Gadget = z.infer<typeof gadgetContract>;',
+      filename: '/project/src/contracts/gadget/gadget-contract.ts',
+      errors: [{ messageId: 'missingTestFileWithLayer' }, { messageId: 'missingStubFile' }],
+    },
+    // A types-only file outside contracts/ still needs its test
+    {
+      code: 'export type IsThing = (value: string) => boolean;',
+      filename: '/project/src/guards/is-thing/is-thing-guard.ts',
+      errors: [{ messageId: 'missingTestFile' }],
     },
     // Contract with test but without stub file
     {

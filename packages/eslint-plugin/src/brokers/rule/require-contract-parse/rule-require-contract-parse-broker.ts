@@ -9,7 +9,8 @@
  *
  * USAGE:
  * const rule = ruleRequireContractParseBroker();
- * // Returns ESLint rule that reports `contractNeverParsed` on an unparsed contract file
+ * // Returns ESLint rule that reports `contractNeverParsed` on an unparsed contract file and
+ * // `typeNotSchemaInferred` on an exported type that is neither z.infer of a schema in the file nor exempt
  */
 import { contractIndexBuildBroker } from '@dungeonmaster/shared/brokers';
 import { repoRootFromSourcePathTransformer } from '@dungeonmaster/shared/transformers';
@@ -17,7 +18,9 @@ import { repoRootFromSourcePathTransformer } from '@dungeonmaster/shared/transfo
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
-export const ruleRequireContractParseBroker = (): TSESLint.RuleModule<'contractNeverParsed'> => ({
+export const ruleRequireContractParseBroker = (): TSESLint.RuleModule<
+  'contractNeverParsed' | 'typeNotSchemaInferred'
+> => ({
   meta: {
     type: 'problem',
     docs: {
@@ -27,6 +30,8 @@ export const ruleRequireContractParseBroker = (): TSESLint.RuleModule<'contractN
     messages: {
       contractNeverParsed:
         'Contract {{contractNames}} is never parsed by production code. Parse it at the boundary that receives the value, or delete it.',
+      typeNotSchemaInferred:
+        "`{{typeName}}` in `{{file}}` is not z.infer of a schema in this file. A contract's exported types must come from its own parse.",
     },
     schema: [],
   },
@@ -49,7 +54,23 @@ export const ruleRequireContractParseBroker = (): TSESLint.RuleModule<'contractN
       const entry = contractIndexBuildBroker({ rootDir }).find(
         (candidate) => candidate.filePath === filename,
       );
-      if (entry === undefined || entry.isParsed) {
+      if (entry === undefined) {
+        return;
+      }
+
+      const fileName = filename.split('/').pop() ?? filename;
+      for (const typeExport of entry.typeExports) {
+        if (!typeExport.isSchemaInferred && !typeExport.isExempt) {
+          context.report({
+            node,
+            messageId: 'typeNotSchemaInferred',
+            data: { typeName: typeExport.typeName, file: fileName },
+          });
+        }
+      }
+
+      // A file with no const has nothing to parse; the type check above is all it is graded on.
+      if (entry.isParsed || entry.exportedContractNames.length === 0) {
         return;
       }
 

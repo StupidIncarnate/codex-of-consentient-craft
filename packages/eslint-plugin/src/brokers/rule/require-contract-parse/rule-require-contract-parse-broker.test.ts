@@ -21,6 +21,21 @@ beforeEach(() => {
       'export type Lonely = z.infer<typeof lonelyContract>;',
       '',
     ].join('\n'),
+    functionTypesContractText: [
+      'export type OnLine = (line: string) => void;',
+      'export interface Loader {',
+      '  load: () => void;',
+      '  clear: () => void;',
+      '}',
+      '',
+    ].join('\n'),
+    dataTypeContractText: 'export type Plain = { name: string };\n',
+    driftedTypeContractText: [
+      "import { z } from 'zod';",
+      "export const driftedContract = z.string().brand<'Drifted'>();",
+      "export type Drifted = string & { readonly __brand: 'Drifted' };",
+      '',
+    ].join('\n'),
     parsingBrokerText: [
       "import { thingContract } from '../../contracts/thing/thing-contract';",
       'export const useBroker = ({ value }: { value: unknown }) => thingContract.parse(value);',
@@ -47,12 +62,40 @@ ruleTester.run('require-contract-parse', ruleRequireContractParseBroker(), {
       code: 'export const outsideContract = 1;',
       filename: '/project/scripts/outside-contract.ts',
     },
+    // A types-only file whose types are function types or a method set: nothing to parse
+    {
+      code: 'export type OnLine = (line: string) => void;',
+      filename: '/project/packages/alpha/src/contracts/handler/handler-contract.ts',
+    },
   ],
   invalid: [
     {
       code: 'export const lonelyContract = 1;',
       filename: '/project/packages/alpha/src/contracts/lonely/lonely-contract.ts',
       errors: [{ messageId: 'contractNeverParsed', data: { contractNames: 'lonelyContract' } }],
+    },
+    // A types-only file holding a plain data type: reported as not schema-inferred, and not as unparsed
+    {
+      code: 'export type Plain = { name: string };',
+      filename: '/project/packages/alpha/src/contracts/plain/plain-contract.ts',
+      errors: [
+        {
+          messageId: 'typeNotSchemaInferred',
+          data: { typeName: 'Plain', file: 'plain-contract.ts' },
+        },
+      ],
+    },
+    // A file with a const whose exported type is not z.infer of it
+    {
+      code: 'export const driftedContract = 1;',
+      filename: '/project/packages/alpha/src/contracts/drifted/drifted-contract.ts',
+      errors: [
+        {
+          messageId: 'typeNotSchemaInferred',
+          data: { typeName: 'Drifted', file: 'drifted-contract.ts' },
+        },
+        { messageId: 'contractNeverParsed', data: { contractNames: 'driftedContract' } },
+      ],
     },
   ],
 });

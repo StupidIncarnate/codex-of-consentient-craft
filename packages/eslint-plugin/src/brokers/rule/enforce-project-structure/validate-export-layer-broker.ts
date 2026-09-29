@@ -47,8 +47,13 @@ export const validateExportLayerBroker = ({
   const valueExports = collectedExports.filter((e) => !e.isTypeOnly);
   const isStartup = exportSuffix === '';
 
+  // A `-contract.ts` whose exports are all types is a types-only contract (a function type or
+  // method set Zod cannot check). `.stub.ts` and `.proxy.ts` names do not end in `-contract.ts`.
+  const isTypesOnlyContract =
+    firstFolder === 'contracts' && filename.endsWith('-contract.ts') && collectedExports.length > 0;
+
   if (valueExports.length === 0) {
-    if (!isStartup) {
+    if (!isStartup && !isTypesOnlyContract) {
       context.report({
         node,
         messageId: 'missingExpectedExport',
