@@ -29,14 +29,7 @@
  * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  AssistantTaskToolUseStreamLineStub,
-  AssistantTextStreamLineStub,
-  TaskToolResultStreamLineStub,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
@@ -51,6 +44,10 @@ import { guildListingContract } from '../../../contracts/guild-listing/guild-lis
 import type { RecipeContext } from '../../../contracts/recipe-context/recipe-context-contract';
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { seedFixtureStatics } from '../../../statics/seed-fixture/seed-fixture-statics';
+import { transcriptAssistantTaskToolUseLineTransformer } from '../../../transformers/transcript-assistant-task-tool-use-line/transcript-assistant-task-tool-use-line-transformer';
+import { transcriptAssistantTextLineTransformer } from '../../../transformers/transcript-assistant-text-line/transcript-assistant-text-line-transformer';
+import { transcriptTaskToolResultLineTransformer } from '../../../transformers/transcript-task-tool-result-line/transcript-task-tool-result-line-transformer';
+import { transcriptUserTextLineTransformer } from '../../../transformers/transcript-user-text-line/transcript-user-text-line-transformer';
 import { transcriptTimestampTransformer } from '../../../transformers/transcript-timestamp/transcript-timestamp-transformer';
 
 export const recipesSessionWithNestedSubagentBroker = async ({
@@ -94,9 +91,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
   const mainLines = [
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...UserTextStringStreamLineStub({
-          message: { role: 'user', content: fixture.userMessage },
-        }),
+        ...transcriptUserTextLineTransformer({ text: fixture.userMessage }),
         uuid: `${fixture.sessionId}-user`,
         timestamp: transcriptTimestampTransformer({
           offsetSeconds: fixture.offsetSeconds.userMessage,
@@ -105,22 +100,10 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     }),
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...AssistantTaskToolUseStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                type: 'tool_use',
-                id: fixture.outerToolUseId,
-                name: 'Agent',
-                input: {
-                  description: fixture.outerDescription,
-                  prompt: fixture.outerPrompt,
-                  subagent_type: 'general-purpose',
-                },
-              },
-            ],
-          },
+        ...transcriptAssistantTaskToolUseLineTransformer({
+          toolUseId: fixture.outerToolUseId,
+          description: fixture.outerDescription,
+          prompt: fixture.outerPrompt,
         }),
         uuid: `${fixture.sessionId}-task-outer`,
         timestamp: transcriptTimestampTransformer({
@@ -130,18 +113,10 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     }),
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...TaskToolResultStreamLineStub({
-          message: {
-            role: 'user',
-            content: [
-              {
-                type: 'tool_result',
-                tool_use_id: fixture.outerToolUseId,
-                content: fixture.completionText,
-              },
-            ],
-          },
-          toolUseResult: { agentId: fixture.outerAgentId },
+        ...transcriptTaskToolResultLineTransformer({
+          toolUseId: fixture.outerToolUseId,
+          content: fixture.completionText,
+          agentId: fixture.outerAgentId,
         }),
         uuid: `${fixture.sessionId}-task-outer-result`,
         timestamp: transcriptTimestampTransformer({
@@ -154,14 +129,11 @@ export const recipesSessionWithNestedSubagentBroker = async ({
   const outerLines = [
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...AssistantTextStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'text', text: fixture.outerText }],
-            usage: {
-              input_tokens: fixture.usage.inputTokens,
-              output_tokens: fixture.usage.outputTokens,
-            },
+        ...transcriptAssistantTextLineTransformer({
+          text: fixture.outerText,
+          usage: {
+            inputTokens: fixture.usage.inputTokens,
+            outputTokens: fixture.usage.outputTokens,
           },
         }),
         uuid: `${fixture.sessionId}-outer-text`,
@@ -172,22 +144,10 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     }),
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...AssistantTaskToolUseStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                type: 'tool_use',
-                id: fixture.nestedToolUseId,
-                name: 'Agent',
-                input: {
-                  description: fixture.nestedDescription,
-                  prompt: fixture.nestedPrompt,
-                  subagent_type: 'general-purpose',
-                },
-              },
-            ],
-          },
+        ...transcriptAssistantTaskToolUseLineTransformer({
+          toolUseId: fixture.nestedToolUseId,
+          description: fixture.nestedDescription,
+          prompt: fixture.nestedPrompt,
         }),
         uuid: `${fixture.sessionId}-task-nested`,
         timestamp: transcriptTimestampTransformer({
@@ -197,18 +157,10 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     }),
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...TaskToolResultStreamLineStub({
-          message: {
-            role: 'user',
-            content: [
-              {
-                type: 'tool_result',
-                tool_use_id: fixture.nestedToolUseId,
-                content: fixture.completionText,
-              },
-            ],
-          },
-          toolUseResult: { agentId: fixture.nestedAgentId },
+        ...transcriptTaskToolResultLineTransformer({
+          toolUseId: fixture.nestedToolUseId,
+          content: fixture.completionText,
+          agentId: fixture.nestedAgentId,
         }),
         uuid: `${fixture.sessionId}-task-nested-result`,
         timestamp: transcriptTimestampTransformer({
@@ -221,14 +173,11 @@ export const recipesSessionWithNestedSubagentBroker = async ({
   const nestedLines = [
     streamLineToJsonLineTransformer({
       streamLine: {
-        ...AssistantTextStreamLineStub({
-          message: {
-            role: 'assistant',
-            content: [{ type: 'text', text: fixture.nestedText }],
-            usage: {
-              input_tokens: fixture.usage.inputTokens,
-              output_tokens: fixture.usage.outputTokens,
-            },
+        ...transcriptAssistantTextLineTransformer({
+          text: fixture.nestedText,
+          usage: {
+            inputTokens: fixture.usage.inputTokens,
+            outputTokens: fixture.usage.outputTokens,
           },
         }),
         uuid: `${fixture.sessionId}-nested-text`,

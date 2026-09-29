@@ -3,14 +3,16 @@
  *
  * USAGE:
  * questFlowObservableSeedTransformer({ flows, status: 'review_observables' });
- * // Returns flows (possibly with an injected FlowObservableStub on the first terminal node missing observables)
+ * // Returns flows (possibly with an injected harness observable on the first terminal node missing observables)
  *
  * WHEN-TO-USE: Building quest JSON for E2E seeding where terminal-observable coverage is required by the status
- * WHEN-NOT-TO-USE: Production code — the injected observable is a harness stub
+ * WHEN-NOT-TO-USE: Production code — the injected observable is harness data
  */
 
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
-import { FlowObservableStub, questStatusContract } from '@dungeonmaster/shared/contracts';
+import { flowObservableContract, questStatusContract } from '@dungeonmaster/shared/contracts';
+
+import { questFlowObservableSeedStatics } from '../../statics/quest-flow-observable-seed/quest-flow-observable-seed-statics';
 
 type FlowInput = Record<PropertyKey, unknown>;
 
@@ -78,10 +80,7 @@ export const questFlowObservableSeedTransformer = ({
         ...node,
         observables: [
           ...existing,
-          FlowObservableStub({
-            id: 'harness-terminal-observable' as never,
-            description: 'harness-seeded observable' as never,
-          }),
+          flowObservableContract.parse({ ...questFlowObservableSeedStatics.observable }),
         ],
       };
     });

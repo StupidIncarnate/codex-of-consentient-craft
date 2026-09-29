@@ -26,9 +26,6 @@ import {
   absoluteFilePathContract,
   agentIdContract,
   sessionIdContract,
-  AssistantTaskToolUseStreamLineStub,
-  AssistantTextStreamLineStub,
-  TaskToolResultStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
@@ -41,8 +38,12 @@ import { subagentWriteRouteBroker } from '../../subagent/write-route/subagent-wr
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
+import { transcriptAssistantTaskToolUseLineTransformer } from '../../../transformers/transcript-assistant-task-tool-use-line/transcript-assistant-task-tool-use-line-transformer';
+import { transcriptAssistantTextLineTransformer } from '../../../transformers/transcript-assistant-text-line/transcript-assistant-text-line-transformer';
+import { transcriptTaskToolResultLineTransformer } from '../../../transformers/transcript-task-tool-result-line/transcript-task-tool-result-line-transformer';
 
 const NESTING_SUFFIX = '-1';
+const COMPLETION_RESULT = 'done';
 
 export const sessionNestedChainBroker = async ({
   target,
@@ -80,22 +81,10 @@ export const sessionNestedChainBroker = async ({
       path: parentFilePath,
       lines: [
         streamLineToJsonLineTransformer({
-          streamLine: AssistantTaskToolUseStreamLineStub({
-            message: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'tool_use',
-                  id: toolUseId,
-                  name: 'Agent',
-                  input: {
-                    description: `Nested task ${level}`,
-                    prompt: `Nested prompt ${level}`,
-                    subagent_type: 'general-purpose',
-                  },
-                },
-              ],
-            },
+          streamLine: transcriptAssistantTaskToolUseLineTransformer({
+            toolUseId,
+            description: `Nested task ${level}`,
+            prompt: `Nested prompt ${level}`,
           }),
         }),
       ],
@@ -110,11 +99,8 @@ export const sessionNestedChainBroker = async ({
         taskPrompt: `Nested prompt ${level}`,
         lines: [
           streamLineToJsonLineTransformer({
-            streamLine: AssistantTextStreamLineStub({
-              message: {
-                role: 'assistant',
-                content: [{ type: 'text', text: `Nested agent ${level} response` }],
-              },
+            streamLine: transcriptAssistantTextLineTransformer({
+              text: `Nested agent ${level} response`,
             }),
           }),
         ],
@@ -128,12 +114,10 @@ export const sessionNestedChainBroker = async ({
       path: parentFilePath,
       lines: [
         streamLineToJsonLineTransformer({
-          streamLine: TaskToolResultStreamLineStub({
-            message: {
-              role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: toolUseId, content: 'done' }],
-            },
-            toolUseResult: { agentId },
+          streamLine: transcriptTaskToolResultLineTransformer({
+            toolUseId,
+            content: COMPLETION_RESULT,
+            agentId,
           }),
         }),
       ],

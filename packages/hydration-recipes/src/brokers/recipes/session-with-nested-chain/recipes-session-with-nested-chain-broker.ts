@@ -22,15 +22,13 @@
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import {
-  absoluteFilePathContract,
-  UserTextStringStreamLineStub,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
 import { sessionWithNestedChainStatics } from '../../../statics/session-with-nested-chain/session-with-nested-chain-statics';
+import { transcriptUserTextLineTransformer } from '../../../transformers/transcript-user-text-line/transcript-user-text-line-transformer';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
@@ -51,8 +49,8 @@ export const recipesSessionWithNestedChainBroker = recipe(
         s[0].set({
           lines: [
             streamLineToJsonLineTransformer({
-              streamLine: UserTextStringStreamLineStub({
-                message: { role: 'user', content: 'Dispatch a nested sub-agent chain' },
+              streamLine: transcriptUserTextLineTransformer({
+                text: 'Dispatch a nested sub-agent chain',
               }),
             }),
           ],
