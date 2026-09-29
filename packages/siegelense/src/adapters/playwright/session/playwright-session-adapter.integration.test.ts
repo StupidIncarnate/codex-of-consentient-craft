@@ -266,7 +266,7 @@ describe('playwrightSessionAdapter against a real Chromium', () => {
             text: null,
             value: '',
             placeholder: 'my-guild',
-            domId: null,
+            domId: 'mantine-*',
             flags: [],
             attrs: [],
           },

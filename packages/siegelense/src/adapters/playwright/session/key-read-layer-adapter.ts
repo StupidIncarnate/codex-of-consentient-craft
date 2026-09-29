@@ -48,6 +48,7 @@ import type { ReadingCount } from '../../../contracts/reading-count/reading-coun
 import type { Selector } from '../../../contracts/selector/selector-contract';
 import { keyStatics } from '../../../statics/key/key-statics';
 import { refStatics } from '../../../statics/ref/ref-statics';
+import { domIdMaskTransformer } from '../../../transformers/dom-id-mask/dom-id-mask-transformer';
 import { attrsBudgetTransformer } from '../../../transformers/attrs-budget/attrs-budget-transformer';
 import { keyRenderTransformer } from '../../../transformers/key-render/key-render-transformer';
 
@@ -305,22 +306,15 @@ export const keyReadLayerAdapter = (): {
 
   toListing: ({ raw, within }: { raw: unknown; within: Selector | null }): KeyListing => {
     const reading = rawKeyReadingContract.parse(raw);
-    // The determinism guard, on the element column this time. Measured on this app: Mantine mints
-    // `mantine-gwrqe5vg6-label` per mount, so a key carrying it differs between two readings of the
-    // same state — the element-delta churn the attrs guard exists to prevent, arriving through a
-    // different column.
-    const generatedIdPattern = new RegExp(
-      keyStatics.attrs.generatedIdPattern.source,
-      keyStatics.attrs.generatedIdPattern.flags,
-    );
-
-    // `[n/m]` — the naming ladder's last rung, for siblings a testId and a text cannot tell apart.
-    // Keyed on the parent ROW rather than the DOM parent, because the tree's parent is the nearest
-    // testId ancestor and the intermediate wrappers collapsed out before this ran. Counted by
-    // filtering rather than by a tally object: the row cap bounds this at a couple of hundred, and
+    // `[n/m]` — the naming ladder's last rung, for elements a testId and a text cannot tell apart.
+    // An element with a testId is counted against EVERY element on the page carrying that testId,
+    // whatever its parent, because a target `[data-testid="X"]` matches them all and the number is
+    // how a caller picks one. An element with no testId is counted among its same-tag siblings under
+    // its parent row, since `(p)` across a whole page would be a count nobody addresses by. Counted
+    // by filtering rather than by a tally object: the row cap bounds this at a couple of hundred, and
     // a raw-keyed tally is what `ban-primitives` exists to keep out of a signature.
-    const groupKeys = reading.rows.map(
-      (row) => `${String(row.parentRef)}::${row.testId ?? `(${row.tag})`}`,
+    const groupKeys = reading.rows.map((row) =>
+      row.testId === null ? `${String(row.parentRef)}::(${row.tag})` : `testid::${row.testId}`,
     );
 
     const rows = reading.rows.map((row, position) => {
@@ -335,7 +329,7 @@ export const keyReadLayerAdapter = (): {
         testId: row.testId,
         tag: row.tag,
         role: row.role,
-        domId: row.domId === null || generatedIdPattern.test(row.domId) ? null : row.domId,
+        domId: row.domId === null ? null : domIdMaskTransformer({ domId: row.domId }),
         sibling: total > 1 ? `${String(ordinal)}/${String(total)}` : null,
         text: row.text,
         value: row.value,
@@ -350,30 +344,33 @@ export const keyReadLayerAdapter = (): {
     // The key-level reading `[n/m]` cannot catch: a testId appearing under two DIFFERENT parents.
     // That line is the bug all three trial arms found — an inner body rendered twice, once nested
     // correctly and once orphaned at a panel's root, with no console warning
-    // (siegelense-tooling.md line 524).
+    // (siegelense-tooling.md line 524). The count is elements, so it agrees with `[n/m]` and with
+    // what a `[data-testid]` target matches; the parents are the distinct places they sit.
     const namedTestIds = Array.from(
       new Set(reading.rows.map((row) => row.testId).filter((testId) => testId !== null)),
     );
     const duplicates = namedTestIds
-      .map((testId) => ({
-        testId,
-        parents: Array.from(
-          new Set(
-            reading.rows
-              .filter((row) => row.testId === testId)
-              .map((row) => {
+      .map((testId) => {
+        const holders = reading.rows.filter((row) => row.testId === testId);
+        return {
+          testId,
+          count: holders.length,
+          parents: Array.from(
+            new Set(
+              holders.map((row) => {
                 const parent = reading.rows.find((candidate) => candidate.ref === row.parentRef);
                 return parent === undefined
                   ? DOCUMENT_ROOT_LABEL
                   : (parent.testId ?? `(${parent.tag})`);
               }),
+            ),
           ),
-        ),
-      }))
+        };
+      })
       .filter((entry) => entry.parents.length > 1)
       .map((entry) =>
         contentTextContract.parse(
-          `… ${entry.testId} appears ${String(entry.parents.length)}× — under ${entry.parents.join(' and under ')}`,
+          `… ${entry.testId} appears ${String(entry.count)}× — under ${entry.parents.join(' and under ')}`,
         ),
       );
 

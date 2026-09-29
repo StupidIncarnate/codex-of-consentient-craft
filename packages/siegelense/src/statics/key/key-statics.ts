@@ -122,19 +122,20 @@ export const keyStatics = {
         '^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{12,}|:r[0-9a-z]+:|(?=[a-z0-9]*[0-9])(?=[a-z0-9]*[a-z])[a-z0-9]{16,})$',
       flags: 'iu',
     },
-    // The same determinism guard, aimed at a DOM `id` rather than an attribute value, and looser
-    // because a generated id is SEGMENTED where a generated attribute value usually is not.
-    // Measured on this app: Mantine mints `mantine-gwrqe5vg6-label` and `mantine-nsg303p87-label`
-    // per mount, so a key carrying either differs between two readings of the same state — which is
-    // exactly the element-delta churn the attrs guard exists to prevent, arriving through the
-    // element column instead. Matches a `-`/`_` segment of six or more characters holding a digit
-    // with a letter somewhere AFTER it, which is what a random base36 run looks like and what
-    // `EXECUTION_ROW_0`, `quest-row-2` and `main-content` do not.
-    generatedIdPattern: {
-      source:
-        '(?:^|[-_])(?=[A-Za-z0-9]{6,}(?:[-_]|$))[A-Za-z0-9]*[0-9][A-Za-z0-9]*[A-Za-z][A-Za-z0-9]*(?:[-_]|$)',
+    // The same determinism guard, aimed at a DOM `id`. Measured on this app: Mantine mints
+    // `mantine-gwrqe5vg6-label` and `mantine-oxhnuns51` per mount, so a key carrying either differs
+    // between two readings of the same state — the element-delta churn the attrs guard exists to
+    // prevent, arriving through the element column instead. The id is split on `-`/`_` and each
+    // segment is tested alone: a segment of six or more characters holding a digit AND a letter, in
+    // either order, is a mint and prints as the mask. Every id therefore prints, and prints the same
+    // way — `mantine-*-label`, `mantine-*` — where a whole-id test dropped `mantine-gwrqe5vg6` and
+    // kept `mantine-oxhnuns51` for the one difference of which character came last. `EXECUTION_ROW_0`,
+    // `quest-row-2` and `main-content` hold no such segment and print whole.
+    generatedIdSegmentPattern: {
+      source: '^(?=[A-Za-z0-9]*[0-9])(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{6,}$',
       flags: 'u',
     },
+    generatedIdMask: '*',
   },
   limits: {
     // The key is ~243 tokens because every column is short (line 469). These are what keep it there.

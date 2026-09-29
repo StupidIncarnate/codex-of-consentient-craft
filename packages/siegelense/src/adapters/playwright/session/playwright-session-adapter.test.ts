@@ -359,8 +359,8 @@ describe('playwrightSessionAdapter', () => {
       expect(result.rendered).toBe(
         [
           'key: 1 rows',
-          'ref  element          text / value  attrs  flags',
-          '---  ---------------  ------------  -----  -----',
+          'ref  element          text / value  attributes  flags',
+          '---  ---------------  ------------  ----------  -----',
           '  1  MAP_FRAME <div>',
         ].join('\n'),
       );

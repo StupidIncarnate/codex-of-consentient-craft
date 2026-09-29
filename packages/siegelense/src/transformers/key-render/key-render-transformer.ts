@@ -38,7 +38,7 @@ const HEADINGS = {
   ref: 'ref',
   element: 'element',
   text: 'text / value',
-  attrs: 'attrs',
+  attrs: 'attributes',
   flags: 'flags',
 } as const;
 
@@ -76,7 +76,7 @@ export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): Cont
       text: [
         row.text === null ? null : `"${row.text}"`,
         row.value === null ? null : `"${row.value}"`,
-        row.placeholder === null ? null : `ph:"${row.placeholder}"`,
+        row.placeholder === null ? null : `placeholder: "${row.placeholder}"`,
       ]
         .filter((part) => part !== null)
         .join(' '),

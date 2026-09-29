@@ -159,7 +159,7 @@ describe('keyReadLayerAdapter', () => {
         truncated: [],
         rendered: [
           'key: 2 rows',
-          'ref  element               text / value  attrs             flags',
+          'ref  element               text / value  attributes        flags',
           '---  --------------------  ------------  ----------------  --------',
           '  1  MAP_FRAME <div>',
           '  2    PIXEL_BTN <button>  "BROWSE"      data-status=open  disabled',
@@ -306,7 +306,7 @@ describe('keyReadLayerAdapter', () => {
       ]);
     });
 
-    it('VALID: {a per-mount generated DOM id} => dropped, because a key carrying one differs between two readings of the same state', () => {
+    it('VALID: {generated ids whose last character is a digit AND a letter} => both print with the minted segment masked, the same way', () => {
       keyReadLayerAdapterProxy();
       const key = keyReadLayerAdapter();
 
@@ -322,19 +322,153 @@ describe('keyReadLayerAdapter', () => {
               role: null,
               domId: 'mantine-gwrqe5vg6',
               text: null,
-              value: '',
-              placeholder: 'my-guild',
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 2,
+              depth: 0,
+              parentRef: null,
+              testId: 'GUILD_PATH_INPUT',
+              tag: 'input',
+              role: null,
+              domId: 'mantine-oxhnuns51',
+              text: null,
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 3,
+              depth: 0,
+              parentRef: null,
+              testId: 'GUILD_NAME_LABEL',
+              tag: 'label',
+              role: null,
+              domId: 'mantine-nsg303p87-label',
+              text: null,
+              value: null,
+              placeholder: null,
               attributes: [],
               flags: [],
               flagDetail: {},
             },
           ],
-          highestRef: 1,
+          highestRef: 3,
         }),
         within: null,
       });
 
-      expect(result.rows.map((row) => row.domId)).toStrictEqual([null]);
+      expect(result.rows.map((row) => row.domId)).toStrictEqual([
+        'mantine-*',
+        'mantine-*',
+        'mantine-*-label',
+      ]);
+    });
+
+    it('VALID: {three PIXEL_BTN under two different parents} => all three counted and numbered [1/3] to [3/3] in page order, and the duplicate line says 3×', () => {
+      keyReadLayerAdapterProxy();
+      const key = keyReadLayerAdapter();
+
+      const result = key.toListing({
+        raw: RawKeyReadingStub({
+          rows: [
+            {
+              ref: 1,
+              depth: 0,
+              parentRef: null,
+              testId: 'GUILD_INPUT_ALIGNMENT_GROUP',
+              tag: 'div',
+              role: null,
+              domId: null,
+              text: null,
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 2,
+              depth: 1,
+              parentRef: 1,
+              testId: 'PIXEL_BTN',
+              tag: 'button',
+              role: null,
+              domId: null,
+              text: 'BROWSE',
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 3,
+              depth: 0,
+              parentRef: null,
+              testId: 'MAP_FRAME',
+              tag: 'div',
+              role: null,
+              domId: null,
+              text: null,
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 4,
+              depth: 1,
+              parentRef: 3,
+              testId: 'PIXEL_BTN',
+              tag: 'button',
+              role: null,
+              domId: null,
+              text: 'CREATE',
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+            {
+              ref: 5,
+              depth: 1,
+              parentRef: 3,
+              testId: 'PIXEL_BTN',
+              tag: 'button',
+              role: null,
+              domId: null,
+              text: 'CANCEL',
+              value: null,
+              placeholder: null,
+              attributes: [],
+              flags: [],
+              flagDetail: {},
+            },
+          ],
+          highestRef: 5,
+        }),
+        within: null,
+      });
+
+      expect(result.rows.map((row) => row.sibling)).toStrictEqual([
+        null,
+        '1/3',
+        null,
+        '2/3',
+        '3/3',
+      ]);
+      expect(result.duplicates).toStrictEqual([
+        '… PIXEL_BTN appears 3× — under GUILD_INPUT_ALIGNMENT_GROUP and under MAP_FRAME',
+      ]);
     });
 
     it('VALID: {a stable DOM id} => kept, because it is the app speaking and not a mint', () => {
