@@ -2,7 +2,6 @@ import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.pro
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { homedir } from '#gateway/node/os';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   claudeLineNormalizeBrokerProxy,
   cwdResolveBrokerProxy,
@@ -51,7 +50,7 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupSubagentFile: (params: { content: string; sessionId?: SessionId }) => void;
   setupSubagentDirMissing: (params?: { sessionId?: SessionId }) => void;
   setupCwdResolveSuccess: (params: { cwd: string }) => void;
-  setupCwdResolveReject: (params: { error: Error }) => void;
+  setupCwdResolveReject: () => void;
   setupQuestSession: (params: { questId: QuestId; sessionId: SessionId; cwd: string }) => void;
   setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
   setupQuestRepoRoot: (params: { questId: QuestId; repoRoot: string }) => void;
@@ -59,9 +58,7 @@ export const chatHistoryReplayBrokerProxy = (): {
   setPort: (params: { value: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
-  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  cwdResolveBrokerProxy();
+  const cwdProxy = cwdResolveBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
   // The broker resolves a port to build the serverBaseUrl it hands the chat-line processor.
   // Staged here, before any test runs, so every existing test in this file — none of which
@@ -86,11 +83,9 @@ export const chatHistoryReplayBrokerProxy = (): {
 
   // chat-history-replay-broker walks up from the guild path to the repo root via
   // cwdResolveBroker so the encoded JSONL path matches the spawn cwd of the agent that
-  // wrote the session. Keyed on the real { startPath, kind } the broker calls with — startPath
-  // is always this test's own guild path, captured by setupGuild below. Default answer mirrors
-  // the guild's own path, matching the broker's behavior in standalone projects with no
-  // `.dungeonmaster.json` ancestor.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
+  // wrote the session. The walk runs for real over the staged filesystem from this test's own
+  // guild path, captured by setupGuild below. Default answer mirrors the guild's own path: a
+  // `.dungeonmaster.json` staged at the guild path itself.
   const guildStartPathsRef: { value: readonly FilePath[] } = { value: [] };
 
   // The broker reads the main session file and scans the subagents/ dir at a JSONL path it
@@ -166,9 +161,7 @@ export const chatHistoryReplayBrokerProxy = (): {
 
       guildStartPathsRef.value = config.guilds.map((guild) => filePathContract.parse(guild.path));
       for (const startPath of guildStartPathsRef.value) {
-        cwdResolveMock
-          .calledWith([{ startPath, kind: 'repo-root' }])
-          .resolves(repoRootCwdContract.parse(String(startPath)));
+        cwdProxy.setupRepoRootFoundAtStart({ startPath: String(startPath) });
       }
     },
     setupMainSession: ({
@@ -228,14 +221,12 @@ export const chatHistoryReplayBrokerProxy = (): {
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
       projectPathOverrideRef.value = absoluteFilePathContract.parse(cwd);
       for (const startPath of guildStartPathsRef.value) {
-        cwdResolveMock
-          .calledWith([{ startPath, kind: 'repo-root' }])
-          .resolves(repoRootCwdContract.parse(cwd));
+        cwdProxy.setupRepoRootFoundInParent({ startPath: String(startPath), repoRoot: cwd });
       }
     },
-    setupCwdResolveReject: ({ error }: { error: Error }): void => {
+    setupCwdResolveReject: (): void => {
       for (const startPath of guildStartPathsRef.value) {
-        cwdResolveMock.calledWith([{ startPath, kind: 'repo-root' }]).throws(error);
+        cwdProxy.setupRepoRootNotFound({ startPath: String(startPath) });
       }
     },
     // Each questCwdResolveBroker scenario below records the cwd it resolves, so a read staged

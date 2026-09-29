@@ -10,8 +10,8 @@ import { smoketestEnsureGuildBrokerProxy } from './smoketest-ensure-guild-broker
 
 const CODEX_GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 const SECOND_GUILD_ID = 'c6426b96-020d-8c0c-ac3a-dc1cf3952797';
-const HOME_PATH = '/home/testuser/.dungeonmaster-dev';
 const CODEX_REPO_ROOT = '/home/testuser/codex';
+const HOME_PATH = `${CODEX_REPO_ROOT}/.dungeonmaster-dev`;
 const OTHER_REPO_ROOT = '/home/testuser/other-repo';
 
 describe('smoketestEnsureGuildBroker', () => {

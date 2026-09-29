@@ -1,9 +1,9 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
+import { join } from '#gateway/node/path';
 import {
   GuildStub,
   QuestIdStub,
-  RepoRootCwdStub,
   FilePathStub,
   type AddQuestInput,
   type AddQuestResult,
@@ -13,14 +13,13 @@ import {
   type GuildPath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
   registerMock,
   registerModuleMock,
   type MockHandle,
 } from '@dungeonmaster/testing/register-mock';
-import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
 import { guildAddBrokerProxy } from '../../guild/add/guild-add-broker.proxy';
@@ -52,15 +51,15 @@ export const questMcpCreateBrokerProxy = (): {
   const listProxy = guildListBrokerProxy();
   // Initializing these proxies registers their companion mocks; we still override the
   // top-level mock per setup case below so this broker resolves through them cleanly.
-  // cwdResolveBroker is overridden via registerMock so its underlying fs/path mocks
-  // aren't actually exercised; guildAddBroker is module-mocked so its internals never run.
-  cwdResolveBrokerProxy();
+  // The repo-root walk runs for real over the staged fs; guildAddBroker is module-mocked so its
+  // internals never run.
+  const cwdResolveProxy = cwdResolveBrokerProxy();
   cwdProxy();
   guildAddBrokerProxy();
   questUserAddBrokerProxy();
 
   const cwdHandle: MockHandle = registerMock({ fn: cwd });
-  const resolveMock: MockHandle = registerMock({ fn: cwdResolveBroker });
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const listMock: MockHandle = registerMock({ fn: guildListBroker });
   const addGuildMock: MockHandle = registerMock({ fn: guildAddBroker });
   const addQuestMock: MockHandle = registerMock({ fn: questUserAddBroker });
@@ -78,18 +77,23 @@ export const questMcpCreateBrokerProxy = (): {
       repoRoot: string;
     }): void => {
       cwdHandle.calledWith([]).returns(currentWorkingDirectory);
-      resolveMock
-        .calledWith([{ startPath: currentWorkingDirectory }])
-        .resolves(RepoRootCwdStub({ value: repoRoot }));
+      if (repoRoot === currentWorkingDirectory) {
+        cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: currentWorkingDirectory });
+        return;
+      }
+      cwdResolveProxy.setupRepoRootFoundInParent({
+        startPath: currentWorkingDirectory,
+        repoRoot,
+      });
     },
 
     setupResolveFallback: ({ cwd: currentWorkingDirectory }: { cwd: string }): void => {
       cwdHandle.calledWith([]).returns(currentWorkingDirectory);
-      resolveMock
-        .calledWith([{ startPath: currentWorkingDirectory }])
-        .rejects(new ProjectRootNotFoundError({ startPath: currentWorkingDirectory }));
+      cwdResolveProxy.setupRepoRootNotFound({ startPath: currentWorkingDirectory });
     },
 
+    // The first config-path join is where the walk begins, so a throw there is the walk failing
+    // with something other than ProjectRootNotFoundError.
     setupResolveError: ({
       cwd: currentWorkingDirectory,
       error,
@@ -98,7 +102,9 @@ export const questMcpCreateBrokerProxy = (): {
       error: Error;
     }): void => {
       cwdHandle.calledWith([]).returns(currentWorkingDirectory);
-      resolveMock.calledWith([{ startPath: currentWorkingDirectory }]).rejects(error);
+      joinHandle
+        .calledWith([currentWorkingDirectory, dungeonmasterHomeStatics.paths.projectConfigFile])
+        .throws(error);
     },
 
     setupGuilds: ({ guilds }: { guilds: readonly GuildListItem[] }): void => {

@@ -381,7 +381,7 @@ describe('chatHistoryReplayBroker', () => {
       const config = GuildConfigStub({ guilds: [guild] });
 
       proxy.setupGuild({ config, sessionId, homeDir: '/tmp/dm-e2e' });
-      proxy.setupCwdResolveReject({ error: new Error('No .dungeonmaster.json found') });
+      proxy.setupCwdResolveReject();
       proxy.setupMainSession({
         content:
           '{"type":"assistant","uuid":"fallback-line-uuid","timestamp":"2025-01-01T00:00:01Z","message":{"content":[{"type":"text","text":"fallback reply"}]}}',

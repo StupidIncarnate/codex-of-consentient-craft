@@ -7,7 +7,6 @@
  * await RecoverGuildLayerResponder({guildItem});
  */
 
-import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { FilePathStub, GuildStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
@@ -135,15 +134,6 @@ export const RecoverGuildLayerResponderProxy = (): {
   const persistMock = registerMock({ fn: questPersistBroker });
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
   const worktreeRestoreMock = registerMock({ fn: worktreeResumeRestoreBroker });
-
-  // dungeonmasterHomeFindBroker() takes no arguments. Nothing in this proxy's own real
-  // execution reaches it any more (guildGetProxy/questListProxy/the three mocks above are all
-  // addressed directly), but it stays wrapped-and-unstaged for the whole test file the moment
-  // quest-find-quest-path-broker.proxy.ts's module loads — this is a defensive backstop in
-  // case any future real call reaches it.
-  registerMock({ fn: dungeonmasterHomeFindBroker })
-    .calledWith([])
-    .returns({ homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }) });
 
   registerSpyOn({ object: crypto, method: 'randomUUID' })
     .calledWith([])

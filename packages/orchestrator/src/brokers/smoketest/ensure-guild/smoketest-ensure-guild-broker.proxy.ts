@@ -1,4 +1,3 @@
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   type FilePath,
   type GuildConfig,
@@ -42,17 +41,30 @@ export const smoketestEnsureGuildBrokerProxy = (): {
   setupPassthrough: () => void;
   getCallArgs: () => RecordedCalls;
 } => {
-  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  cwdResolveBrokerProxy();
+  const cwdProxy = cwdResolveBrokerProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const listProxy = guildListBrokerProxy();
 
-  // smoketestEnsureGuildBroker resolves repo-root for the dungeonmaster home AND for every guild
-  // in the config. Stub cwdResolveBroker directly, keyed on the real { startPath, kind } each
-  // call carries, so passthrough tests don't have to worry about call order — the home walk-up
-  // and every per-guild walk-up address their own answer independently.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
+  // smoketestEnsureGuildBroker walks up to the repo root for the dungeonmaster home AND for every
+  // guild in the config. Each walk runs for real over the staged filesystem, addressed by its own
+  // start path, so passthrough tests don't have to worry about call order.
+  const stageRepoRoot = ({
+    startPath,
+    repoRoot,
+  }: {
+    startPath: string;
+    repoRoot: RepoRootCwd | null;
+  }): void => {
+    if (repoRoot === null) {
+      cwdProxy.setupRepoRootNotFound({ startPath });
+      return;
+    }
+    if (String(repoRoot) === startPath) {
+      cwdProxy.setupRepoRootFoundAtStart({ startPath });
+      return;
+    }
+    cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: String(repoRoot) });
+  };
 
   const mocked = registerMock({ fn: smoketestEnsureGuildBroker });
 
@@ -93,10 +105,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       // internally once guildListBroker() runs below. This stage and guildListBroker's own
       // internal restage of the identical {homeDir, homePath} pair both address the SAME exact
       // `join`/`homedir` tuples, so the second registration simply re-affirms the first rather
-      // than colliding with it — the actual homePath value returned here is never observed: it
-      // only feeds cwdResolveBroker's startPath for the home walk-up, which is addressed by
-      // `kind` alone (see the comment below), and dungeonmasterHomeFindBroker's other real caller
-      // in this chain (guildConfigReadBroker) never inspects it either.
+      // than colliding with it. homePath is the start path of the home walk-up staged below.
       homeFindProxy.setupHomePath({ homeDir, homePath });
 
       listProxy.setupGuildList({
@@ -106,32 +115,19 @@ export const smoketestEnsureGuildBrokerProxy = (): {
         guildEntries: guildEntries.slice(),
       });
 
-      // Default scenario: home and every guild resolve to '/repo-root', so the first guild
+      // Default scenario: home and every guild resolve to '/', the one root every start path sits under, so the first guild
       // matches. Tests that need a different layout pass `homeRepoRoot` + per-guild
-      // `guildRepoRoots` (null entries simulate cwdResolveBroker rejecting for that guild).
-      const homeAnchor = homeRepoRoot ?? repoRootCwdContract.parse('/repo-root');
+      // `guildRepoRoots` (null entries simulate the walk finding no `.dungeonmaster.json` for that
+      // guild). A repo root is an ancestor-or-self of the start path it answers for.
+      const homeAnchor = homeRepoRoot ?? repoRootCwdContract.parse('/');
       const perGuild =
         guildRepoRoots ??
-        (config.guilds.map(() =>
-          repoRootCwdContract.parse('/repo-root'),
-        ) as readonly RepoRootCwd[]);
+        (config.guilds.map(() => repoRootCwdContract.parse('/')) as readonly RepoRootCwd[]);
 
-      // cwdResolveBroker's own call order (home first, then each guild in config order —
-      // nothing else in this broker's run touches cwdResolveBroker) is what the home answer
-      // is staged against: the first `kind: 'repo-root'` call.
-      cwdResolveMock.onceFor([{ kind: 'repo-root' }]).resolves(homeAnchor);
+      stageRepoRoot({ startPath: String(homePath), repoRoot: homeAnchor });
 
-      // Each guild's own startPath is guild.path itself, passed straight through from config
-      // by guildListBroker with no pathJoin/homedir involvement — unlike the home case, this
-      // value IS reliable, so guild calls stay addressed by their real argument.
       config.guilds.forEach((guild, index) => {
-        const root = perGuild[index] ?? null;
-        const address = [{ startPath: guild.path, kind: 'repo-root' }];
-        if (root === null) {
-          cwdResolveMock.calledWith(address).rejects(new Error('repo-root not found'));
-        } else {
-          cwdResolveMock.calledWith(address).resolves(root);
-        }
+        stageRepoRoot({ startPath: String(guild.path), repoRoot: perGuild[index] ?? null });
       });
     },
   };

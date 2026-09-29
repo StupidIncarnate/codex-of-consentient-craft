@@ -50,7 +50,10 @@ describe('questMcpCreateBroker', () => {
         urlSlug: 'repo-guild' as never,
         valid: true,
       });
-      proxy.setupResolvedRepoRoot({ cwd: '/home/dev/elsewhere', repoRoot: '/home/dev/repo' });
+      proxy.setupResolvedRepoRoot({
+        cwd: '/home/dev/repo/packages/web',
+        repoRoot: '/home/dev/repo',
+      });
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSuccessfulAdd({ questId });
 
@@ -329,12 +332,9 @@ describe('questMcpCreateBroker', () => {
   });
 
   describe('error cases', () => {
-    it('ERROR: {cwdResolveBroker rejects with a non-ProjectRootNotFoundError} => rethrows that error', async () => {
+    it('ERROR: {the repo-root walk fails with a non-ProjectRootNotFoundError} => rethrows that error', async () => {
       const proxy = questMcpCreateBrokerProxy();
-      proxy.setupResolveError({
-        cwd: '/home/dev/guild',
-        error: new Error('disk read failed'),
-      });
+      proxy.setupResolveError({ cwd: '/home/dev/guild', error: new Error('disk read failed') });
 
       await expect(questMcpCreateBroker({ userRequest })).rejects.toThrow(/disk read failed/u);
     });

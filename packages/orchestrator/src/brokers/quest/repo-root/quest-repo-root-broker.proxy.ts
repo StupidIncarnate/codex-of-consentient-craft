@@ -6,7 +6,6 @@ import {
   GuildStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
   registerMock,
@@ -37,16 +36,9 @@ export const questRepoRootBrokerProxy = (): {
   setupRepoRoot: (params: { repoRoot: RepoRootCwd }) => void;
   getGuildPath: () => FilePath;
 } => {
-  // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
-  // entirely so cwdResolveBrokerProxy's underlying fs/path mocks aren't actually exercised.
-  cwdResolveBrokerProxy();
+  const cwdProxy = cwdResolveBrokerProxy();
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const guildProxy = guildGetBrokerProxy();
-
-  // questRepoRootBroker walks up from the guild path to the repo root via cwdResolveBroker.
-  // startPath varies with whichever guild a test seeds, so `[]` is the honest address — the
-  // outcome is chosen per test via setupResolveSuccess/setupResolveRejects below.
-  const cwdResolveMock = registerMock({ fn: cwdResolveBroker });
 
   // `questId` varies per test and the passthrough runs the REAL lookup against whatever it
   // receives rather than answering a canned value, so there is no per-input address to stage —
@@ -97,11 +89,17 @@ export const questRepoRootBrokerProxy = (): {
     },
 
     setupResolveSuccess: ({ repoRoot }: { repoRoot: RepoRootCwd }): void => {
-      cwdResolveMock.calledWith([]).resolves(repoRoot);
+      const startPath = String(GUILD_PATH);
+      const repoRootValue = String(repoRoot);
+      if (repoRootValue === startPath) {
+        cwdProxy.setupRepoRootFoundAtStart({ startPath });
+        return;
+      }
+      cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: repoRootValue });
     },
 
     setupResolveRejects: (): void => {
-      cwdResolveMock.calledWith([]).rejects(new Error('no .dungeonmaster.json ancestor'));
+      cwdProxy.setupRepoRootNotFound({ startPath: String(GUILD_PATH) });
     },
 
     // Answers this broker outright for every questId, skipping the quest lookup and the walk-up.

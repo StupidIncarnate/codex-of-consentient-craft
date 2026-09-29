@@ -43,7 +43,7 @@ describe('questRepoRootBroker', () => {
     const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
     proxy.setupQuestFound({ quest });
     const guildPath = proxy.getGuildPath();
-    const escapedAncestor = RepoRootCwdStub({ value: '/some/unrelated/ancestor/repo' });
+    const escapedAncestor = RepoRootCwdStub({ value: '/' });
     proxy.setupResolveSuccess({ repoRoot: escapedAncestor });
 
     const result = await questRepoRootBroker({ questId: QuestIdStub({ value: quest.id }) });
