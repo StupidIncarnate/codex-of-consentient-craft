@@ -9,7 +9,7 @@
  * // Returns { status: 200, data: QuestProjection } or { status: 400/404/500, data: { error } }
  */
 
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { QuestNotFoundError, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questProjectionParamsContract } from '../../../contracts/quest-projection-params/quest-projection-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -38,10 +38,9 @@ export const QuestProjectionResponder = async ({
       data: projection,
     });
   } catch (error: unknown) {
-    // Matched on `name`: the orchestrator barrel does not export QuestNotFoundError, so the class
-    // cannot be `instanceof`-checked from here. Every other failure (an unreadable or invalid
-    // quest file, a permission error) is a server fault, not a missing quest.
-    const isQuestGone = error instanceof Error && error.name === 'QuestNotFoundError';
+    // Every other failure (an unreadable or invalid quest file, a permission error) is a server
+    // fault, not a missing quest.
+    const isQuestGone = error instanceof QuestNotFoundError;
     return responderResultContract.parse({
       status: isQuestGone
         ? httpStatusStatics.clientError.notFound

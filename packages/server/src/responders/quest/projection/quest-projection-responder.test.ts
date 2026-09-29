@@ -38,24 +38,23 @@ describe('QuestProjectionResponder', () => {
   });
 
   describe('quest not found', () => {
-    it('ERROR: {orchestrator throws an Error} => returns 404 carrying that error message', async () => {
+    it('ERROR: {orchestrator throws QuestNotFoundError} => returns 404 carrying that error message', async () => {
       const proxy = QuestProjectionResponderProxy();
-      proxy.setupQuestNotFound({
-        message: 'Quest not found: 11111111-1111-4111-8111-111111111111',
-      });
+      proxy.setupQuestNotFound({});
 
       const result = await proxy.callResponder({ params: { questId: VALID_QUEST_ID } });
 
       expect(result).toStrictEqual({
         status: 404,
-        data: { error: 'Quest not found: 11111111-1111-4111-8111-111111111111' },
+        data: {
+          error: 'Quest with id "11111111-1111-4111-8111-111111111111" not found in any guild',
+        },
       });
     });
 
-    it('ERROR: {orchestrator throws an Error carrying a cause} => returns 404 with the cause unwound into the reason', async () => {
+    it('ERROR: {orchestrator throws QuestNotFoundError carrying a cause} => returns 404 with the cause unwound into the reason', async () => {
       const proxy = QuestProjectionResponderProxy();
       proxy.setupQuestNotFound({
-        message: 'Quest with id "q-gone" not found in any guild',
         cause: FileMissingErrorStub({ path: '/home/user/.dungeonmaster/guilds/g1/quests/q-gone' }),
       });
 
@@ -65,7 +64,7 @@ describe('QuestProjectionResponder', () => {
         status: 404,
         data: {
           error:
-            'Quest with id "q-gone" not found in any guild | cause: ENOENT: open \'/home/user/.dungeonmaster/guilds/g1/quests/q-gone\'',
+            'Quest with id "11111111-1111-4111-8111-111111111111" not found in any guild | cause: ENOENT: open \'/home/user/.dungeonmaster/guilds/g1/quests/q-gone\'',
         },
       });
     });

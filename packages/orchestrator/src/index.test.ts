@@ -16,6 +16,7 @@ describe('orchestrator', () => {
     expect(exportedKeys).toStrictEqual([
       'BaseBranchNotFoundError',
       'QuestBranchNameTakenError',
+      'QuestNotFoundError',
       'StartOrchestrator',
       'addQuestInputContract',
       'addQuestResultContract',

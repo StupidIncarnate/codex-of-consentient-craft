@@ -103,3 +103,5 @@ export type { StreamSignal } from './contracts/stream-signal/stream-signal-contr
 // `instanceof`-check them and answer 400 instead of the catch-all 500.
 export { BaseBranchNotFoundError } from './errors/base-branch-not-found/base-branch-not-found-error';
 export { QuestBranchNameTakenError } from './errors/quest-branch-name-taken/quest-branch-name-taken-error';
+// Exported so the server's quest read responders can `instanceof`-check it and answer 404.
+export { QuestNotFoundError } from './errors/quest-not-found/quest-not-found-error';

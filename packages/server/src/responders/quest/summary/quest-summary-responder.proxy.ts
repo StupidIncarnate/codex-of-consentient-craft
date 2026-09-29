@@ -1,3 +1,4 @@
+import { QuestNotFoundError } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
@@ -12,7 +13,7 @@ const SUMMARY_QUEST_ID = QuestIdStub({ value: '11111111-1111-4111-8111-111111111
 
 export const QuestSummaryResponderProxy = (): {
   setupSummary: (params: { summary: QuestSummary }) => void;
-  setupQuestNotFound: (params: { message: string; cause?: Error }) => void;
+  setupQuestNotFound: (params: { cause?: Error }) => void;
   setupQuestLoadFails: (params: { error: Error }) => void;
   callResponder: typeof QuestSummaryResponder;
 } => {
@@ -22,13 +23,11 @@ export const QuestSummaryResponderProxy = (): {
     setupSummary: ({ summary }: { summary: QuestSummary }): void => {
       orchestrator.getQuestSummaryReturns({ questId: SUMMARY_QUEST_ID, summary });
     },
-    // The orchestrator's missing-quest error is named QuestNotFoundError; its class is not exported
-    // from the orchestrator barrel, so the staged error carries the same name.
-    setupQuestNotFound: ({ message, cause }: { message: string; cause?: Error }): void => {
+    setupQuestNotFound: ({ cause }: { cause?: Error }): void => {
       orchestrator.getQuestSummaryThrows({
         questId: SUMMARY_QUEST_ID,
-        error: Object.assign(new Error(message, cause === undefined ? undefined : { cause }), {
-          name: 'QuestNotFoundError',
+        error: Object.assign(new QuestNotFoundError({ questId: SUMMARY_QUEST_ID }), {
+          ...(cause === undefined ? {} : { cause }),
         }),
       });
     },
