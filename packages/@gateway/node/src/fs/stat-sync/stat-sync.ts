@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const info = statSync('/tmp/config.json');
- * // Returns { kind: 'file', sizeBytes: 42, modifiedAtMs: 1700000000000 }
+ * // Returns { kind: 'file', sizeBytes: 42, modifiedAtMs: 1700000000000, inode: 1234567 }
  */
 import { statSync as nodeStatSync } from 'fs';
 import type { FsStat } from './fs-stat';
@@ -19,5 +19,5 @@ export const statSync = (path: string): FsStat => {
         ? 'symlink'
         : 'other';
 
-  return { kind, sizeBytes: stats.size, modifiedAtMs: stats.mtimeMs };
+  return { kind, sizeBytes: stats.size, modifiedAtMs: stats.mtimeMs, inode: stats.ino };
 };

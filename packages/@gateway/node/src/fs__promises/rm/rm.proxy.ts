@@ -9,7 +9,8 @@ export const rmProxy = (): {
   succeedsMatchingPath: ({ path }: { path: PathMatcher }) => void;
   rejectsMatchingPath: ({ path, error }: { path: PathMatcher; error: FsError }) => void;
   // Every call's FULL argument tuple — path and the options object `rm` passed, exactly as
-  // received (`[path, {recursive, force}]`) — for calls whose path matches, in call order.
+  // received (`[path, {recursive, force, maxRetries, retryDelay}]`) — for calls whose path
+  // matches, in call order.
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: rm });

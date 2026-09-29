@@ -6,9 +6,8 @@
  * await sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
  * // afterEach: cleans session directory
  */
-import { rm } from 'fs/promises';
 import { existsSync } from '#gateway/node/fs';
-import { appendFile, ensureDir, readdir, unlink } from '#gateway/node/fs__promises';
+import { appendFile, ensureDir, readdir, rm, unlink } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';

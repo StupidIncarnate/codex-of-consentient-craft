@@ -1,7 +1,7 @@
 import { readdirSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 import react from '#gateway/npm/vitejs__plugin-react';
-import { defineConfig } from 'vite';
+import type { UserConfig } from '#gateway/npm/vite';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { getEnv } from '#gateway/node/process';
@@ -29,7 +29,9 @@ const { hostname } = environmentStatics;
 const noWatch = getEnv('E2E_NO_WATCH') === '1';
 const frozenServerOptions = noWatch ? { hmr: false as const, watch: null } : {};
 
-export default defineConfig({
+// `satisfies UserConfig`, not vite's `defineConfig`: that function is an identity whose only job
+// is this type, and `#gateway/npm/vite` carries vite's types without loading its deprecated CJS entry.
+export default {
   resolve: {
     conditions: ['source'],
     alias: {
@@ -77,4 +79,4 @@ export default defineConfig({
       include: [/shared/u, /node_modules/u],
     },
   },
-});
+} satisfies UserConfig;

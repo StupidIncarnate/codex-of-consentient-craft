@@ -23,8 +23,15 @@
  * const children = await images.readBubbleChildren({ page });
  * // [{ tag: 'span', text: 'A', testId: 'CHAT_MESSAGE_TEXT', src: '' }, { tag: 'img', ... }, ...]
  */
-import { mkdtempSync, writeFileSync as writeBytesFileSync } from 'fs';
-import { ensureDirSync, existsSync, readdirSync, rmSync, writeFileSync } from '#gateway/node/fs';
+import {
+  ensureDirSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileBytesSync,
+  writeFileSync,
+} from '#gateway/node/fs';
 import { ensureDir, writeFile, writeFileBytes } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
@@ -658,7 +665,7 @@ export const transcriptImagesHarness = (): {
     ensureDirSync(imagesDir);
     writeFileSync(join(dir, locationsStatics.quest.questFile), QUEST_FILE_EXISTENCE_ONLY_CONTENT);
     const imagePath = join(imagesDir, fileName);
-    writeBytesFileSync(imagePath, bytes);
+    writeFileBytesSync(imagePath, bytes);
     return { imagePath, bytes };
   };
 

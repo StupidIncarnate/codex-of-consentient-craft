@@ -10,4 +10,5 @@ export interface FsStat {
   kind: 'file' | 'directory' | 'symlink' | 'other';
   sizeBytes: number;
   modifiedAtMs: number;
+  inode: number;
 }

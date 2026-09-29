@@ -11,11 +11,13 @@ export const statSyncProxy = (): {
     kind,
     sizeBytes,
     modifiedAtMs,
+    inode,
   }: {
     path: string;
     kind: StatKind;
     sizeBytes: number;
     modifiedAtMs: number;
+    inode?: number;
   }) => void;
   throws: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
   returnsMatchingPath: (params: {
@@ -23,6 +25,7 @@ export const statSyncProxy = (): {
     kind: StatKind;
     sizeBytes: number;
     modifiedAtMs: number;
+    inode?: number;
   }) => void;
   throwsMatchingPath: ({
     path,
@@ -36,23 +39,30 @@ export const statSyncProxy = (): {
   const handle = registerMock({ fn: statSync });
 
   return {
+    // `inode` defaults to 0 when a test does not care which inode the path has.
     returns: ({
       path,
       kind,
       sizeBytes,
       modifiedAtMs,
+      inode = 0,
     }: {
       path: string;
       kind: StatKind;
       sizeBytes: number;
       modifiedAtMs: number;
+      inode?: number;
     }): void => {
-      const stats: Pick<Stats, 'isDirectory' | 'isFile' | 'isSymbolicLink' | 'size' | 'mtimeMs'> = {
+      const stats: Pick<
+        Stats,
+        'isDirectory' | 'isFile' | 'isSymbolicLink' | 'size' | 'mtimeMs' | 'ino'
+      > = {
         isDirectory: (): boolean => kind === 'directory',
         isFile: (): boolean => kind === 'file',
         isSymbolicLink: (): boolean => kind === 'symlink',
         size: sizeBytes,
         mtimeMs: modifiedAtMs,
+        ino: inode,
       };
       handle.calledWith([path]).returns(stats as Stats);
     },
@@ -69,18 +79,24 @@ export const statSyncProxy = (): {
       kind,
       sizeBytes,
       modifiedAtMs,
+      inode = 0,
     }: {
       path: PathMatcher;
       kind: StatKind;
       sizeBytes: number;
       modifiedAtMs: number;
+      inode?: number;
     }): void => {
-      const stats: Pick<Stats, 'isDirectory' | 'isFile' | 'isSymbolicLink' | 'size' | 'mtimeMs'> = {
+      const stats: Pick<
+        Stats,
+        'isDirectory' | 'isFile' | 'isSymbolicLink' | 'size' | 'mtimeMs' | 'ino'
+      > = {
         isDirectory: (): boolean => kind === 'directory',
         isFile: (): boolean => kind === 'file',
         isSymbolicLink: (): boolean => kind === 'symlink',
         size: sizeBytes,
         mtimeMs: modifiedAtMs,
+        ino: inode,
       };
       handle.calledWith([path]).returns(stats as Stats);
     },

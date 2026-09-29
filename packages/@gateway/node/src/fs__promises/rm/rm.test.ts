@@ -42,6 +42,17 @@ describe('rm', () => {
         ['/repo/tmp/scratch', { recursive: true, force: true }],
       ]);
     });
+
+    it('VALID: {maxRetries and retryDelay} => passes both through to Node unchanged', async () => {
+      const proxy = rmProxy();
+      proxy.succeeds({ path: '/tmp/jsonl-dir' });
+
+      await rm('/tmp/jsonl-dir', { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+
+      expect(proxy.getCallsFor({ path: '/tmp/jsonl-dir' })).toStrictEqual([
+        ['/tmp/jsonl-dir', { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }],
+      ]);
+    });
   });
 
   describe('predicate addressing', () => {

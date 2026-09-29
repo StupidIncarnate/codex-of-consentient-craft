@@ -14,12 +14,12 @@
  * const states = await send.readComposerSendStates();
  * const posts = send.readPosts();
  */
-import { statSync } from 'fs';
 import {
   existsSync,
   readFileBytesSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
@@ -457,7 +457,7 @@ export const composerSendHarness = ({
         return { exists: false, ino: [], fileNames: [], dirPath };
       }
       const fileNames = readdirSync(dirPath).sort();
-      const ino = fileNames.map((fileName) => statSync(join(dirPath, fileName)).ino);
+      const ino = fileNames.map((fileName) => statSync(join(dirPath, fileName)).inode);
       return { exists: true, ino, fileNames, dirPath };
     },
 
