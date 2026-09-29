@@ -163,6 +163,17 @@ const resolveEnvValue = (value: string): ContentText => {
 // `@dungeonmaster/*` import to TypeScript source, so ANY write anywhere in the tree restarts the
 // process mid-suite: the port is gone for ~1.5s, Vite's `/api` proxy answers with a bare 500 and an
 // empty body, and whichever spec is in flight fails on whatever it happened to be doing.
+// Ward sets `--conditions=source` so the Playwright test process resolves workspace packages to
+// TypeScript; the servers must not inherit it. Vite loads `vite.config.ts` through plain Node, which
+// under that condition reads `.ts` barrels and dies on `SyntaxError: Unexpected token 'export'`. The
+// API server picks source itself (`tsx --conditions=source`), so stripping loses it nothing.
+const SERVER_NODE_OPTIONS = contentTextContract.parse(
+  (getEnv('NODE_OPTIONS') ?? '')
+    .split(' ')
+    .filter((token) => token !== '' && token !== '--conditions=source')
+    .join(' '),
+);
+
 const webServer = processes.map((entry) => {
   const port = PORT_BY_ROLE[entry.portRole];
   if (port === undefined) {
@@ -177,6 +188,7 @@ const webServer = processes.map((entry) => {
   const env: Record<PropertyKey, ContentText> = {
     DUNGEONMASTER_PORT: contentTextContract.parse(String(TEST_PORT)),
     DUNGEONMASTER_WEB_PORT: contentTextContract.parse(String(WEB_PORT)),
+    NODE_OPTIONS: SERVER_NODE_OPTIONS,
   };
   for (const [key, value] of Object.entries(entry.env ?? {})) {
     refuseUnresolvableToken({ value, field: `env.${key}` });

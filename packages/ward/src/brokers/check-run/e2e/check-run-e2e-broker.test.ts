@@ -417,6 +417,29 @@ describe('checkRunE2eBroker', () => {
     });
   });
 
+  describe('source export condition', () => {
+    it('VALID: {shared source barrel reachable} => spawns playwright with NODE_OPTIONS=--conditions=source', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'NODE_OPTIONS' })).toBe('--conditions=source');
+    });
+
+    it('VALID: {consumer install, shared packs dist only} => spawns playwright with no NODE_OPTIONS at all', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunE2eBrokerProxy();
+      proxy.setupSourceConditionUnsupported({ projectFolder });
+      proxy.setupPass({ projectFolder });
+
+      await checkRunE2eBroker({ projectFolder, fileList: [] });
+
+      expect(proxy.getSpawnedEnvValue({ key: 'NODE_OPTIONS' })).toBe(undefined);
+    });
+  });
+
   describe('the prebuilt bundle Playwright serves', () => {
     it('VALID: {a bundle already built for these inputs} => names it in DUNGEONMASTER_WEB_BUNDLE_DIR', async () => {
       const projectFolder = ProjectFolderStub();

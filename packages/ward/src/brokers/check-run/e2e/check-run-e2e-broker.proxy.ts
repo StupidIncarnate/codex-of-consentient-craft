@@ -21,6 +21,7 @@ import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.prox
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { bundleBuildBrokerProxy } from '../../bundle/build/bundle-build-broker.proxy';
+import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
@@ -41,6 +42,7 @@ export const checkRunE2eBrokerProxy = (): {
   setupFailWithEmptyOutput: (params: { projectFolder: ProjectFolder }) => void;
   setupNotE2eEligible: (params: { projectFolder: ProjectFolder }) => void;
   setupEligibleMissingConfig: (params: { projectFolder: ProjectFolder }) => void;
+  setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
   getRemovedCachePaths: (params: { projectFolder: ProjectFolder }) => readonly unknown[][];
   getSpawnedArgs: () => unknown;
   getSpawnedEnvValue: (params: { key: string }) => unknown;
@@ -77,6 +79,11 @@ export const checkRunE2eBrokerProxy = (): {
   // The resolved bin path depends on projectFolder.path, so the getters below (which take no
   // params) address the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
+  // `sourceConditionSupportedBroker` walks every ancestor of the cwd, so "reachable" is staged per
+  // cwd in `setupPlaywrightConfigExists`; a cwd `setupSourceConditionUnsupported` marked keeps that
+  // answer whichever order the two setups are called in.
+  const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
+  const unsupportedCwds = new Set<AbsoluteFilePath>();
 
   // The broker names its Playwright report AND its vite cache after the SERVER port, so this
   // number, the readFile address in setupPassWithJsonReport, and the removal staged below all have
@@ -141,6 +148,10 @@ export const checkRunE2eBrokerProxy = (): {
       path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
       exists: true,
     });
+    const cwd = absoluteFilePathContract.parse(projectFolder.path);
+    if (!unsupportedCwds.has(cwd)) {
+      sourceConditionProxy.setupSupported({ cwd });
+    }
   };
 
   const bundleDirFor = ({ projectFolder }: { projectFolder: ProjectFolder }): AbsoluteFilePath =>
@@ -272,6 +283,16 @@ export const checkRunE2eBrokerProxy = (): {
         path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
         exists: false,
       });
+    },
+
+    setupSourceConditionUnsupported: ({
+      projectFolder,
+    }: {
+      projectFolder: ProjectFolder;
+    }): void => {
+      const cwd = absoluteFilePathContract.parse(projectFolder.path);
+      unsupportedCwds.add(cwd);
+      sourceConditionProxy.setupUnsupported({ cwd });
     },
 
     getRemovedCachePaths: ({

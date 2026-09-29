@@ -49,6 +49,7 @@ import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
+import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 
 export const checkRunE2eBroker = async ({
@@ -138,10 +139,11 @@ export const checkRunE2eBroker = async ({
   // `dependencies` closure — so a run whose inputs have not changed reuses the build instead of
   // paying a dev server's startup and per-request transform for the whole suite.
   //
-  // IT DOES NOT REMOVE THE E2E TOOLING'S NEED FOR BUILT `dist/`. Playwright's config loader and its
-  // spec transform use plain Node resolution with no export conditions, so `@dungeonmaster/shared`
-  // and `@dungeonmaster/testing` still resolve to `dist/` at runtime here. Those two must be built
-  // before an e2e run; the bundle replaces the dev SERVER, not the packages the harness imports.
+  // The Playwright process (runner and worker, which import the harnesses) gets `--conditions=source`
+  // below, like ward's jest children, so `@dungeonmaster/shared` and `@dungeonmaster/testing` resolve
+  // to TypeScript there and a stub or proxy `dist/` does not ship is still reachable. The servers
+  // under test do not keep it: `packages/web/playwright.config.ts` strips it from their env, because
+  // Vite loads its config through plain Node and that condition sends it to `.ts` barrels.
   const bundle = await bundleBuildBroker({ packageRoot });
 
   if (bundle.error !== null) {
@@ -198,6 +200,7 @@ export const checkRunE2eBroker = async ({
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
       PLAYWRIGHT_JSON_OUTPUT_NAME: String(jsonReportPath),
+      ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       // Absent when the package has no build script to make a bundle with. The consumer's
       // playwright config decides what to serve then; ward states what it has rather than
       // pointing at a directory it never built.
