@@ -23,7 +23,7 @@ describe('mswRequestIdContract', () => {
   describe('invalid values', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
-        return mswRequestIdContract.parse(123 as never);
+        return mswRequestIdContract.parse(123);
       }).toThrow(/expected string/u);
     });
   });

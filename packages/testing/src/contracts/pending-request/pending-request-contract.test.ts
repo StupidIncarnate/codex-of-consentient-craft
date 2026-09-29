@@ -28,7 +28,7 @@ describe('pendingRequestContract', () => {
     it('INVALID: {method: number} => throws validation error', () => {
       expect(() => {
         return pendingRequestContract.parse({
-          method: 123 as never,
+          method: 123,
           url: '/api/test',
           timestampMs: 1000,
         });

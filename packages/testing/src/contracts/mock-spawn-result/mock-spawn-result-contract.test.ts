@@ -107,7 +107,7 @@ describe('mockSpawnResultContract', () => {
     it('INVALID: {code: "0"} => throws validation error for string code', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
-          code: '0' as never,
+          code: '0',
           stdout: '',
           stderr: '',
         });
@@ -118,7 +118,7 @@ describe('mockSpawnResultContract', () => {
       expect(() => {
         return mockSpawnResultContract.parse({
           code: 0,
-          stdout: 123 as never,
+          stdout: 123,
           stderr: '',
         });
       }).toThrow(/expected string/u);
@@ -129,7 +129,7 @@ describe('mockSpawnResultContract', () => {
         return mockSpawnResultContract.parse({
           code: 0,
           stdout: '',
-          stderr: null as never,
+          stderr: null,
         });
       }).toThrow(/expected string/u);
     });

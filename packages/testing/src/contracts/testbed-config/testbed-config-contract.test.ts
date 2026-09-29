@@ -108,7 +108,7 @@ describe('testbedConfigContract', () => {
     it('INVALID: {questFolder: 123} => throws validation error for non-string', () => {
       expect(() => {
         return testbedConfigContract.parse({
-          questFolder: 123 as never,
+          questFolder: 123,
           wardCommands: {},
         });
       }).toThrow(/expected string/u);
@@ -117,7 +117,7 @@ describe('testbedConfigContract', () => {
     it('INVALID: {questFolder: null} => throws validation error for null', () => {
       expect(() => {
         return testbedConfigContract.parse({
-          questFolder: null as never,
+          questFolder: null,
           wardCommands: {},
         });
       }).toThrow(/expected string/u);
@@ -127,7 +127,7 @@ describe('testbedConfigContract', () => {
       expect(() => {
         return testbedConfigContract.parse({
           questFolder: 'quest',
-          wardCommands: 'commands' as never,
+          wardCommands: 'commands',
         });
       }).toThrow(/expected record/u);
     });
@@ -136,7 +136,7 @@ describe('testbedConfigContract', () => {
       expect(() => {
         return testbedConfigContract.parse({
           questFolder: 'quest',
-          wardCommands: null as never,
+          wardCommands: null,
         });
       }).toThrow(/expected record/u);
     });
@@ -145,7 +145,7 @@ describe('testbedConfigContract', () => {
       expect(() => {
         return testbedConfigContract.parse({
           questFolder: 'quest',
-          wardCommands: [] as never,
+          wardCommands: [],
         });
       }).toThrow(/expected record/u);
     });

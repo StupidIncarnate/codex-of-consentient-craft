@@ -59,7 +59,7 @@ describe('wsLogEntryContract', () => {
       expect(() => {
         return wsLogEntryContract.parse({
           direction: 'received',
-          data: 123 as never,
+          data: 123,
           elapsedMs: 0,
         });
       }).toThrow(/expected string/u);

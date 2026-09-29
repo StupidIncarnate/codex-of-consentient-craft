@@ -23,7 +23,7 @@ describe('commandNameContract', () => {
   describe('invalid command names', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
-        return commandNameContract.parse(123 as never);
+        return commandNameContract.parse(123);
       }).toThrow(/expected string/u);
     });
   });

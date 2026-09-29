@@ -76,7 +76,7 @@ describe('networkLogEntryContract', () => {
     it('INVALID: {method: number} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({
-          method: 123 as never,
+          method: 123,
           url: '/api/guilds',
           source: 'mock',
         });

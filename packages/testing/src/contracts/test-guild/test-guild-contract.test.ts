@@ -104,7 +104,7 @@ describe('testGuildContract', () => {
     it('INVALID: {guildPath: 123} => throws validation error for non-string', () => {
       expect(() => {
         return testGuildContract.parse({
-          guildPath: 123 as never,
+          guildPath: 123,
           guildName: 'test',
           rootDir: '/tmp',
         });
@@ -114,7 +114,7 @@ describe('testGuildContract', () => {
     it('INVALID: {guildPath: null} => throws validation error for null', () => {
       expect(() => {
         return testGuildContract.parse({
-          guildPath: null as never,
+          guildPath: null,
           guildName: 'test',
           rootDir: '/tmp',
         });
@@ -125,7 +125,7 @@ describe('testGuildContract', () => {
       expect(() => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',
-          guildName: 123 as never,
+          guildName: 123,
           rootDir: '/tmp',
         });
       }).toThrow(/expected string/u);
@@ -136,7 +136,7 @@ describe('testGuildContract', () => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',
           guildName: 'test',
-          rootDir: [] as never,
+          rootDir: [],
         });
       }).toThrow(/expected string/u);
     });

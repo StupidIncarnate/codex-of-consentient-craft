@@ -18,7 +18,7 @@ describe('workspacePackageExportSourcePathContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws a Zod validation error', () => {
-      expect(() => workspacePackageExportSourcePathContract.parse(123 as never)).toThrow(
+      expect(() => workspacePackageExportSourcePathContract.parse(123)).toThrow(
         /Invalid input: expected string, received number/u,
       );
     });

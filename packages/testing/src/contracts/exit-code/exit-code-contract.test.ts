@@ -37,7 +37,7 @@ describe('exitCodeContract', () => {
 
     it('INVALID: {value: "0"} => throws validation error for string', () => {
       expect(() => {
-        return exitCodeContract.parse('0' as never);
+        return exitCodeContract.parse('0');
       }).toThrow(/number/iu);
     });
   });

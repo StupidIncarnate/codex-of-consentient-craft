@@ -26,7 +26,7 @@ describe('matchSpecificityContract', () => {
     });
 
     it('INVALID: {value: "3"} => throws', () => {
-      expect(() => matchSpecificityContract.parse('3' as never)).toThrow(/expected number/u);
+      expect(() => matchSpecificityContract.parse('3')).toThrow(/expected number/u);
     });
   });
 });

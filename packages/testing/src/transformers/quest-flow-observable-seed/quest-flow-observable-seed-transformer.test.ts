@@ -8,23 +8,23 @@ import { questFlowObservableSeedTransformer } from './quest-flow-observable-seed
 describe('questFlowObservableSeedTransformer', () => {
   describe('status requires terminal observable', () => {
     it('VALID: {status: review_observables, flows with terminal node missing observable} => injects one observable into the terminal node', () => {
-      const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+      const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
       const endNodeEmpty = FlowNodeStub({
-        id: 'end' as never,
-        label: 'End' as never,
+        id: 'end',
+        label: 'End',
         type: 'terminal',
       });
       const edge = FlowEdgeStub({
-        id: 'start-to-end' as never,
-        from: 'start' as never,
-        to: 'end' as never,
+        id: 'start-to-end',
+        from: 'start',
+        to: 'end',
       });
       const flows = [
         FlowStub({
-          id: 'flow-a' as never,
-          name: 'Flow A' as never,
-          entryPoint: 'start' as never,
-          exitPoints: ['end'] as never,
+          id: 'flow-a',
+          name: 'Flow A',
+          entryPoint: 'start',
+          exitPoints: ['end'],
           nodes: [startNode, endNodeEmpty],
           edges: [edge],
         }),
@@ -33,20 +33,20 @@ describe('questFlowObservableSeedTransformer', () => {
       const result = questFlowObservableSeedTransformer({ flows, status: 'review_observables' });
 
       const seededObservable = FlowObservableStub({
-        id: 'harness-terminal-observable' as never,
-        description: 'harness-seeded observable' as never,
+        id: 'harness-terminal-observable',
+        description: 'harness-seeded observable',
       });
       const endNodeSeeded = FlowNodeStub({
-        id: 'end' as never,
-        label: 'End' as never,
+        id: 'end',
+        label: 'End',
         type: 'terminal',
         observables: [seededObservable],
       });
       const expectedFlow = FlowStub({
-        id: 'flow-a' as never,
-        name: 'Flow A' as never,
-        entryPoint: 'start' as never,
-        exitPoints: ['end'] as never,
+        id: 'flow-a',
+        name: 'Flow A',
+        entryPoint: 'start',
+        exitPoints: ['end'],
         nodes: [startNode, endNodeSeeded],
         edges: [edge],
       });
@@ -56,27 +56,27 @@ describe('questFlowObservableSeedTransformer', () => {
 
     it('VALID: {status: review_observables, flows already have terminal observable} => returns flows unchanged', () => {
       const existingObservable = FlowObservableStub({
-        id: 'existing-observable' as never,
-        description: 'existing observable' as never,
+        id: 'existing-observable',
+        description: 'existing observable',
       });
-      const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+      const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
       const endNode = FlowNodeStub({
-        id: 'end' as never,
-        label: 'End' as never,
+        id: 'end',
+        label: 'End',
         type: 'terminal',
         observables: [existingObservable],
       });
       const edge = FlowEdgeStub({
-        id: 'start-to-end' as never,
-        from: 'start' as never,
-        to: 'end' as never,
+        id: 'start-to-end',
+        from: 'start',
+        to: 'end',
       });
       const flows = [
         FlowStub({
-          id: 'flow-a' as never,
-          name: 'Flow A' as never,
-          entryPoint: 'start' as never,
-          exitPoints: ['end'] as never,
+          id: 'flow-a',
+          name: 'Flow A',
+          entryPoint: 'start',
+          exitPoints: ['end'],
           nodes: [startNode, endNode],
           edges: [edge],
         }),
@@ -88,41 +88,41 @@ describe('questFlowObservableSeedTransformer', () => {
     });
 
     it('VALID: {status: review_observables, multiple flows with only first missing terminal observable} => injects into first terminal across all flows, subsequent terminals unchanged', () => {
-      const flowAStart = FlowNodeStub({ id: 'start-a' as never, label: 'Start A' as never });
+      const flowAStart = FlowNodeStub({ id: 'start-a', label: 'Start A' });
       const flowAEndEmpty = FlowNodeStub({
-        id: 'end-a' as never,
-        label: 'End A' as never,
+        id: 'end-a',
+        label: 'End A',
         type: 'terminal',
       });
       const flowAEdge = FlowEdgeStub({
-        id: 'a-start-to-end' as never,
-        from: 'start-a' as never,
-        to: 'end-a' as never,
+        id: 'a-start-to-end',
+        from: 'start-a',
+        to: 'end-a',
       });
-      const flowBStart = FlowNodeStub({ id: 'start-b' as never, label: 'Start B' as never });
+      const flowBStart = FlowNodeStub({ id: 'start-b', label: 'Start B' });
       const flowBEndEmpty = FlowNodeStub({
-        id: 'end-b' as never,
-        label: 'End B' as never,
+        id: 'end-b',
+        label: 'End B',
         type: 'terminal',
       });
       const flowBEdge = FlowEdgeStub({
-        id: 'b-start-to-end' as never,
-        from: 'start-b' as never,
-        to: 'end-b' as never,
+        id: 'b-start-to-end',
+        from: 'start-b',
+        to: 'end-b',
       });
       const flowA = FlowStub({
-        id: 'flow-a' as never,
-        name: 'Flow A' as never,
-        entryPoint: 'start-a' as never,
-        exitPoints: ['end-a'] as never,
+        id: 'flow-a',
+        name: 'Flow A',
+        entryPoint: 'start-a',
+        exitPoints: ['end-a'],
         nodes: [flowAStart, flowAEndEmpty],
         edges: [flowAEdge],
       });
       const flowB = FlowStub({
-        id: 'flow-b' as never,
-        name: 'Flow B' as never,
-        entryPoint: 'start-b' as never,
-        exitPoints: ['end-b'] as never,
+        id: 'flow-b',
+        name: 'Flow B',
+        entryPoint: 'start-b',
+        exitPoints: ['end-b'],
         nodes: [flowBStart, flowBEndEmpty],
         edges: [flowBEdge],
       });
@@ -133,20 +133,20 @@ describe('questFlowObservableSeedTransformer', () => {
       });
 
       const seededObservable = FlowObservableStub({
-        id: 'harness-terminal-observable' as never,
-        description: 'harness-seeded observable' as never,
+        id: 'harness-terminal-observable',
+        description: 'harness-seeded observable',
       });
       const flowAEndSeeded = FlowNodeStub({
-        id: 'end-a' as never,
-        label: 'End A' as never,
+        id: 'end-a',
+        label: 'End A',
         type: 'terminal',
         observables: [seededObservable],
       });
       const flowAExpected = FlowStub({
-        id: 'flow-a' as never,
-        name: 'Flow A' as never,
-        entryPoint: 'start-a' as never,
-        exitPoints: ['end-a'] as never,
+        id: 'flow-a',
+        name: 'Flow A',
+        entryPoint: 'start-a',
+        exitPoints: ['end-a'],
         nodes: [flowAStart, flowAEndSeeded],
         edges: [flowAEdge],
       });
@@ -157,23 +157,23 @@ describe('questFlowObservableSeedTransformer', () => {
 
   describe('status does not require terminal observable', () => {
     it('VALID: {status: created, flows without observable} => returns flows unchanged', () => {
-      const startNode = FlowNodeStub({ id: 'start' as never, label: 'Start' as never });
+      const startNode = FlowNodeStub({ id: 'start', label: 'Start' });
       const endNode = FlowNodeStub({
-        id: 'end' as never,
-        label: 'End' as never,
+        id: 'end',
+        label: 'End',
         type: 'terminal',
       });
       const edge = FlowEdgeStub({
-        id: 'start-to-end' as never,
-        from: 'start' as never,
-        to: 'end' as never,
+        id: 'start-to-end',
+        from: 'start',
+        to: 'end',
       });
       const flows = [
         FlowStub({
-          id: 'flow-a' as never,
-          name: 'Flow A' as never,
-          entryPoint: 'start' as never,
-          exitPoints: ['end'] as never,
+          id: 'flow-a',
+          name: 'Flow A',
+          entryPoint: 'start',
+          exitPoints: ['end'],
           nodes: [startNode, endNode],
           edges: [edge],
         }),

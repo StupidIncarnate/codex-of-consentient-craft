@@ -103,7 +103,7 @@ describe('mockStagingCreateTransformer', () => {
       const record = StagedCallStub();
       const staging = mockStagingCreateTransformer({ record, isNativeError: neverNativeError });
 
-      staging.implement((() => 'handled') as never);
+      staging.implement(() => 'handled');
 
       expect(record.impl()).toBe('handled');
     });

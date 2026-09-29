@@ -23,7 +23,7 @@ describe('epochTimestampContract', () => {
   describe('invalid values', () => {
     it('INVALID: {value: string} => throws validation error', () => {
       expect(() => {
-        return epochTimestampContract.parse('not-a-number' as never);
+        return epochTimestampContract.parse('not-a-number');
       }).toThrow(/expected number/u);
     });
 
