@@ -18,8 +18,10 @@
  * <Box ref={anchorRef} onClick={() => { holdAnchor(); setExpanded(!expanded); }} />
  */
 
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef } from '#gateway/npm/react';
 
+import { requestAnimationFrame } from '#gateway/browser/requestAnimationFrame';
+import { window } from '#gateway/browser/window';
 import { scrollOffsetPxContract } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
 import type { ScrollOffsetPx } from '../../contracts/scroll-offset-px/scroll-offset-px-contract';
 import { scrollPositionPxContract } from '../../contracts/scroll-position-px/scroll-position-px-contract';
@@ -53,8 +55,8 @@ export const useDisclosureAnchorBinding = (): {
     // auto-scroll the very resize this hold exists to suppress. Here: a component unmounted by its
     // own toggle never runs the effect, and a hold nothing releases disables the auto-scroll for
     // the rest of the session.
-    window.requestAnimationFrame((): void => {
-      window.requestAnimationFrame((): void => {
+    requestAnimationFrame((): void => {
+      requestAnimationFrame((): void => {
         disclosureAnchorState.release();
       });
     });

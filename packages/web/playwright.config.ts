@@ -1,11 +1,11 @@
-import * as os from 'os';
-import * as path from 'path';
-import { readFileSync } from 'fs';
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '#gateway/npm/playwright__test';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
-import { homedir } from '#gateway/node/os';
+import { readFileSync } from '#gateway/node/fs';
+import { homedir, tmpdir } from '#gateway/node/os';
+import { join, resolve } from '#gateway/node/path';
+import { getEnv, pid, setEnv } from '#gateway/node/process';
 import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
@@ -16,29 +16,32 @@ const CI_RETRIES = 1;
 const LOCAL_RETRIES = 0;
 const DEFAULT_E2E_PORT = 5737;
 
-const TEST_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_E2E_PORT;
-const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
-const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
-const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir);
-const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir);
+const TEST_PORT = Number(getEnv('DUNGEONMASTER_PORT')) || DEFAULT_E2E_PORT;
+const WEB_PORT = Number(getEnv('DUNGEONMASTER_WEB_PORT')) || TEST_PORT + 1;
+const TEST_HOME = getEnv('E2E_TEST_HOME') ?? join(tmpdir(), `dm-e2e-${pid}`);
+const FAKE_CLAUDE_QUEUE_DIR = join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir);
+const FAKE_WARD_QUEUE_DIR = join(TEST_HOME, locationsStatics.siegelense.wardQueueDir);
 const REAL_HOME = homedir();
 // Every configured process below spawns with this as its `cwd` — the same repo root a siegelense
 // lane always spawns from (`lane-boot-broker.ts`'s own `spawnCwd`), so a relative
 // `devServer.e2e.processes[].command`/`env` value in `.dungeonmaster.json` resolves identically
 // whichever one booted the server.
-const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const REPO_ROOT = resolve(__dirname, '..', '..');
 // Ward builds the UI once per hash of its inputs and hands the winning directory over here via this
 // env var — see check-run-e2e-broker.ts. Unset (a hand-run `npx playwright test`, or a siegelense
 // lane, which never sets it) falls through to whatever `devServer.e2e.processes` names for the web
 // process, ordinarily this package's own `dist` after `npm run build --workspace=@dungeonmaster/web`.
-const WEB_BUNDLE_DIR_OVERRIDE = process.env.DUNGEONMASTER_WEB_BUNDLE_DIR;
+const WEB_BUNDLE_DIR_OVERRIDE = getEnv('DUNGEONMASTER_WEB_BUNDLE_DIR');
 
-process.env.E2E_TEST_HOME = TEST_HOME;
-process.env.DUNGEONMASTER_PORT = String(TEST_PORT);
-process.env.DUNGEONMASTER_HOME = TEST_HOME;
-process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(REAL_HOME, '.cache', 'ms-playwright');
-process.env.HOME = TEST_HOME;
-process.env.E2E_SERVER_HOME ??= TEST_HOME;
+setEnv('E2E_TEST_HOME', TEST_HOME);
+setEnv('DUNGEONMASTER_PORT', String(TEST_PORT));
+setEnv('DUNGEONMASTER_HOME', TEST_HOME);
+setEnv(
+  'PLAYWRIGHT_BROWSERS_PATH',
+  getEnv('PLAYWRIGHT_BROWSERS_PATH') ?? join(REAL_HOME, '.cache', 'ms-playwright'),
+);
+setEnv('HOME', TEST_HOME);
+setEnv('E2E_SERVER_HOME', getEnv('E2E_SERVER_HOME') ?? TEST_HOME);
 // Belt-and-suspenders alongside HOME=TEST_HOME + global-setup.ts's <TEST_HOME>/.gitconfig: a
 // developer shell that exports its own XDG_CONFIG_HOME (pointing outside TEST_HOME) would
 // otherwise still resolve to a REAL `$XDG_CONFIG_HOME/git/config`, and GIT_CONFIG_NOSYSTEM keeps
@@ -47,8 +50,8 @@ process.env.E2E_SERVER_HOME ??= TEST_HOME;
 // environment.harness.ts's own `execFileSync('git', ...)` calls) and again via
 // `devServer.e2e.processes[].env` in `.dungeonmaster.json` below, matching every other var this
 // file threads both ways.
-process.env.GIT_CONFIG_NOSYSTEM = '1';
-process.env.XDG_CONFIG_HOME = path.join(TEST_HOME, '.config');
+setEnv('GIT_CONFIG_NOSYSTEM', '1');
+setEnv('XDG_CONFIG_HOME', join(TEST_HOME, '.config'));
 
 // Reads the SAME devServer.e2e.processes block a siegelense lane derives its spec from
 // (packages/siegelense/src/brokers/lane-spec/find/lane-spec-find-broker.ts) — one edit to
@@ -66,11 +69,11 @@ interface DungeonmasterConfigShape {
   devServer?: { e2e?: { processes?: E2eProcessConfig[] } };
 }
 
-const CONFIG_PATH = path.join(REPO_ROOT, locationsStatics.repoRoot.config);
+const CONFIG_PATH = join(REPO_ROOT, locationsStatics.repoRoot.config);
 
 const readRawConfig = (): unknown => {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+    return JSON.parse(readFileSync(CONFIG_PATH));
   } catch (error) {
     throw new Error(
       `playwright.config.ts could not read or parse .dungeonmaster.json at ${CONFIG_PATH}: ${String(error)}`,
@@ -95,7 +98,7 @@ const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
 
 // `__dirname` IS this package's own directory at runtime — never a literal `packages/web/...`
 // string, which `no-hardcoded-package-names` refuses inside an executable command.
-const WEB_VITE_CONFIG_PATH = path.join(__dirname, 'vite.config.ts');
+const WEB_VITE_CONFIG_PATH = join(__dirname, 'vite.config.ts');
 
 // Populated only when ward (or a hand-run `DUNGEONMASTER_WEB_BUNDLE_DIR=...`) names a prebuilt
 // bundle — keyed by portRole, like PORT_BY_ROLE above, rather than a bare `=== 'web'` branch: see
@@ -151,7 +154,7 @@ const isRelativePathEnvValue = (value: string): boolean =>
 const resolveEnvValue = (value: string): ContentText => {
   const substituted = substituteTokens(value);
   return isRelativePathEnvValue(substituted)
-    ? contentTextContract.parse(path.join(REPO_ROOT, substituted))
+    ? contentTextContract.parse(join(REPO_ROOT, substituted))
     : substituted;
 };
 
@@ -213,8 +216,8 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   timeout: 10_000,
-  forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI === undefined ? LOCAL_RETRIES : CI_RETRIES,
+  forbidOnly: Boolean(getEnv('CI')),
+  retries: getEnv('CI') === undefined ? LOCAL_RETRIES : CI_RETRIES,
   reporter: 'json',
 
   globalSetup: './test/harnesses/global-setup.ts',

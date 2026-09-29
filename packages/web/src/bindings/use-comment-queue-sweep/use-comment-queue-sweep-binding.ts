@@ -8,7 +8,7 @@
  * // Drops entries older than the 7 day window and removes any key the purge empties
  */
 
-import { useEffect } from 'react';
+import { useEffect } from '#gateway/npm/react';
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 

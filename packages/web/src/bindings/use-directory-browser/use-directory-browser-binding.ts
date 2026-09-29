@@ -5,8 +5,9 @@
  * const {currentPath, entries, loading, navigateTo, goUp} = useDirectoryBrowserBinding();
  * // Returns {currentPath: GuildPath | null, entries: DirectoryEntry[], loading: boolean, navigateTo, goUp}
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 
+import { console } from '#gateway/browser/console';
 import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBroker } from '../../brokers/directory/browse/directory-browse-broker';
@@ -47,7 +48,7 @@ export const useDirectoryBrowserBinding = (): {
 
   useEffect(() => {
     browse({ path: currentPath }).catch((error: unknown) => {
-      globalThis.console.error('[use-directory-browser]', error);
+      console.error('[use-directory-browser]', error);
     });
   }, [browse, currentPath]);
 

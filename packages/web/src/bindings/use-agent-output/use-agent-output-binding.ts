@@ -5,7 +5,7 @@
  * const {slotEntries, handleAgentOutput, clearOutput} = useAgentOutputBinding();
  * // Returns {slotEntries: Map<SlotIndex, ChatEntry[]>, handleAgentOutput: Function, clearOutput: Function}
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from '#gateway/npm/react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';

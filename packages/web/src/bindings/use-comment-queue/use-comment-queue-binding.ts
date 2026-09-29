@@ -9,7 +9,7 @@
  * // queueComment({ anchor, text }) stamps a fresh createdAt and replaces any entry on that box
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import type { CommentText, QuestId } from '@dungeonmaster/shared/contracts';
 

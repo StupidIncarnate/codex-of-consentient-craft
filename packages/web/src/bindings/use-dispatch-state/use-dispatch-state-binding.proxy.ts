@@ -1,3 +1,4 @@
+import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { orchestrationDispatchGetBrokerProxy } from '../../brokers/orchestration/dispatch-get/orchestration-dispatch-get-broker.proxy';
@@ -15,7 +16,7 @@ export const useDispatchStateBindingProxy = (): ReturnType<
   // composing this binding without staging a dispatch-state response would otherwise throw here.
   // passthrough: true — console.error is a shared sink; React's own internal warnings (e.g. act()
   // warnings) also flow through it and must keep printing normally, not throw for being unstaged.
-  registerSpyOn({ object: globalThis.console, method: 'error', passthrough: true })
+  registerSpyOn({ object: console, method: 'error', passthrough: true })
     .calledWith(['[use-dispatch-state]'])
     .returns(undefined);
 

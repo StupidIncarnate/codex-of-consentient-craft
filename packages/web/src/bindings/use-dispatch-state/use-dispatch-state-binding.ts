@@ -6,8 +6,9 @@
  * // state = DispatchState | null. Null until the first fetch resolves.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
+import { console } from '#gateway/browser/console';
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationDispatchGetBroker } from '../../brokers/orchestration/dispatch-get/orchestration-dispatch-get-broker';
@@ -25,7 +26,7 @@ export const useDispatchStateBinding = (): {
       const next = await orchestrationDispatchGetBroker();
       setState(next);
     } catch (error: unknown) {
-      globalThis.console.error('[use-dispatch-state]', error);
+      console.error('[use-dispatch-state]', error);
     } finally {
       setIsLoading(false);
     }
@@ -33,12 +34,12 @@ export const useDispatchStateBinding = (): {
 
   useEffect(() => {
     refresh().catch((error: unknown) => {
-      globalThis.console.error('[use-dispatch-state]', error);
+      console.error('[use-dispatch-state]', error);
     });
 
     const subscription = webSocketChannelState.dispatchStateChanged$().subscribe(() => {
       refresh().catch((error: unknown) => {
-        globalThis.console.error('[use-dispatch-state]', error);
+        console.error('[use-dispatch-state]', error);
       });
     });
 

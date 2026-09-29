@@ -6,8 +6,9 @@
  * // Spread scrollContainerProps onto the scrollable element, attach contentRef to the inner content wrapper that grows
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from '#gateway/npm/react';
 
+import { ResizeObserver } from '#gateway/browser/ResizeObserver';
 import type { ScrollPositionPx } from '../../contracts/scroll-position-px/scroll-position-px-contract';
 import { scrollThresholdPxContract } from '../../contracts/scroll-threshold-px/scroll-threshold-px-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
