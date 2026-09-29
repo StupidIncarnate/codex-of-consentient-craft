@@ -18,6 +18,36 @@ describe('runIndexContract', () => {
     });
   });
 
+  describe('an index an older build wrote', () => {
+    it('VALID: {network: {exchanges: 9, non2xx: 1}} => reads non2xx as failed', () => {
+      const result = runIndexContract.parse({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, non2xx: 1 },
+      });
+
+      expect(result).toStrictEqual({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 1 },
+      });
+    });
+
+    it('VALID: {network carries both failed and non2xx} => keeps failed and drops non2xx', () => {
+      const result = runIndexContract.parse({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 0, non2xx: 1 },
+      });
+
+      expect(result).toStrictEqual({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 0 },
+      });
+    });
+  });
+
   describe('empty windows', () => {
     it('EMPTY: {every count: 0} => a run that found nothing still produces a real index', () => {
       const result = runIndexContract.parse({

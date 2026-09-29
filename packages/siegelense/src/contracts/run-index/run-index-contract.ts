@@ -30,10 +30,23 @@ export const runIndexContract = z.object({
   server: z.object({
     errors: readingCountContract,
   }),
-  network: z.object({
-    exchanges: readingCountContract,
-    failed: readingCountContract,
-  }),
+  // A run file an older build wrote carries `non2xx` and no `failed`; it is read as `failed` so
+  // `results` and `compare` still open it. That old count also included 3xx, so it can overcount.
+  // Nothing is written back to the old file.
+  network: z.preprocess(
+    (value) =>
+      typeof value === 'object' &&
+      value !== null &&
+      !('failed' in value) &&
+      'non2xx' in value &&
+      'exchanges' in value
+        ? { exchanges: value.exchanges, failed: value.non2xx }
+        : value,
+    z.object({
+      exchanges: readingCountContract,
+      failed: readingCountContract,
+    }),
+  ),
 });
 
 export type RunIndex = z.infer<typeof runIndexContract>;
