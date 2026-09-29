@@ -233,27 +233,4 @@ describe('AdapterCensusFlow', () => {
       harness.timeoutMs,
     );
   });
-
-  describe('this repository, read-only', () => {
-    it(
-      'VALID: {--cwd=<this checkout>} => every adapter is counted once and every count adds up',
-      () => {
-        const result = harness.runCensus({ args: [`--cwd=${harness.repoRoot}`] });
-        const counts = harness.readCounts({ stdout: result.stdout });
-
-        expect({
-          exitCode: result.exitCode,
-          shapesAddUp: counts.adapters === counts.passThrough + counts.logic,
-          packagesAddUp: counts.adapters === counts.perPackageSum,
-          foundAdapters: counts.adapters > 0,
-        }).toStrictEqual({
-          exitCode: 0,
-          shapesAddUp: true,
-          packagesAddUp: true,
-          foundAdapters: true,
-        });
-      },
-      harness.timeoutMs,
-    );
-  });
 });

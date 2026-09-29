@@ -119,3 +119,7 @@ are: `source-code`, `glob-pattern`, `absolute-file-path`, `process-output`, `com
   `node_modules/.bin`.
 - Imports are resolved from a parse of each file rather than through the type checker, so the census
   needs no working `tsconfig`. A re-export that renames (`export { a as b }`) is followed by its exported name only.
+
+## Slow-test fix (2026-09-28)
+
+The integration test's "this repository, read-only" case is gone. The census reads every file in the repo to find callers whatever `--package` says (about 7s to 30s on a loaded machine, past `integrationTestWarnMs`), so no scoped real-repo run is cheap. The fixture cases assert exact counts, totals and shapes, which is what the real-repo case's sum checks proved. The harness's `readCounts` and `repoRoot` went with it. Each remaining test is one `tsx` spawn against a small fixture (about 2.5s).

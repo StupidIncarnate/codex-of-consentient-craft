@@ -1,8 +1,7 @@
 /**
- * PURPOSE: Runs the `adapter-census` bin as a real child process against a directory and reads the
- * counts off its table, for the integration tests. The child runs the TypeScript source under plain
- * `tsx --conditions=source`, so it needs no build. `repoRoot` is this checkout, for the test that
- * runs the census on the real repo read-only.
+ * PURPOSE: Runs the `adapter-census` bin as a real child process against a directory,
+ * for the integration tests. The child runs the TypeScript source under plain
+ * `tsx --conditions=source`, so it needs no build.
  *
  * USAGE:
  * const census = adapterCensusHarness();
@@ -12,7 +11,6 @@
 import * as path from 'path';
 import { execFileSync } from 'child_process';
 
-import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
@@ -27,8 +25,6 @@ type ExecError = ReturnType<typeof ExecErrorStub>;
 
 const PACKAGE_DIR = FilePathStub({ value: process.cwd() });
 const ENTRY_PATH = FilePathStub({ value: path.join(process.cwd(), 'bin', 'adapter-census.ts') });
-// harnesses/adapter-census -> harnesses -> test -> packages/tooling -> packages -> repo root
-const REPO_ROOT = FilePathStub({ value: path.resolve(__dirname, '..', '..', '..', '..', '..') });
 const MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
 const DEFAULT_EXIT_CODE = 1;
 const TIMEOUT_MS = CensusCountStub({ value: 300_000 });
@@ -41,14 +37,7 @@ const isExecError = (error: unknown): error is ExecError =>
 
 export const adapterCensusHarness = (): {
   runCensus: (params: { args: readonly string[] }) => ReturnType<typeof CommandResultStub>;
-  readCounts: (params: { stdout: string }) => {
-    adapters: ReturnType<typeof CensusCountStub>;
-    passThrough: ReturnType<typeof CensusCountStub>;
-    logic: ReturnType<typeof CensusCountStub>;
-    perPackageSum: ReturnType<typeof CensusCountStub>;
-  };
   installFixture: (params: { testbed: InstallTestbed }) => void;
-  repoRoot: FilePath;
   timeoutMs: ReturnType<typeof CensusCountStub>;
 } => {
   const runCensus = ({
@@ -82,27 +71,6 @@ export const adapterCensusHarness = (): {
         stderr: ProcessOutputStub({ value: error.stderr?.toString() ?? '' }),
       });
     }
-  };
-
-  // The table is the census's own summary: a per-package heading `<dir> (<name>): N adapters` and a
-  // closing `Totals: N adapters, P pass-through, L logic; ...` line.
-  const readCounts = ({
-    stdout,
-  }: {
-    stdout: string;
-  }): ReturnType<ReturnType<typeof adapterCensusHarness>['readCounts']> => {
-    const totals = /^Totals: (\d+) adapters, (\d+) pass-through, (\d+) logic;/mu.exec(stdout);
-    const perPackage = [...stdout.matchAll(/^\S+ \(\S+\): (\d+) adapters$/gmu)].map((match) =>
-      Number(match[1]),
-    );
-    return {
-      adapters: CensusCountStub({ value: Number(totals?.[1]) }),
-      passThrough: CensusCountStub({ value: Number(totals?.[2]) }),
-      logic: CensusCountStub({ value: Number(totals?.[3]) }),
-      perPackageSum: CensusCountStub({
-        value: perPackage.reduce((sum, count) => sum + count, 0),
-      }),
-    };
   };
 
   // A small workspace: `app` holds a pass-through adapter with a caller, a proxy chain and a
@@ -179,5 +147,5 @@ export const adapterCensusHarness = (): {
     }
   };
 
-  return { runCensus, readCounts, installFixture, repoRoot: REPO_ROOT, timeoutMs: TIMEOUT_MS };
+  return { runCensus, installFixture, timeoutMs: TIMEOUT_MS };
 };
