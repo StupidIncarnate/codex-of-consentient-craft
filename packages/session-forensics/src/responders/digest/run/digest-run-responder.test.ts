@@ -14,7 +14,6 @@ import {
 
 import { DigestRunResponder } from './digest-run-responder';
 import { DigestRunResponderProxy } from './digest-run-responder.proxy';
-import { DigestCommandStub } from '../../../contracts/digest-command/digest-command.stub';
 import { TranscriptRecordStub } from '../../../contracts/transcript-record/transcript-record.stub';
 import { BucketMinutesStub } from '../../../contracts/bucket-minutes/bucket-minutes.stub';
 import { GapFloorSecondsStub } from '../../../contracts/gap-floor-seconds/gap-floor-seconds.stub';
@@ -28,7 +27,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'summary' }),
+        command: 'summary',
         target,
       });
 
@@ -63,7 +62,7 @@ describe('DigestRunResponder', () => {
       proxy.setupNoTranscript();
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'summary' }),
+        command: 'summary',
         target: SessionIdStub({ value: 'session-ghost' }),
       });
 
@@ -106,7 +105,7 @@ describe('DigestRunResponder', () => {
       });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'summary' }),
+        command: 'summary',
         target,
       });
 
@@ -145,7 +144,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'buckets' }),
+        command: 'buckets',
         target,
       });
 
@@ -169,7 +168,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'buckets' }),
+        command: 'buckets',
         target,
       });
 
@@ -193,7 +192,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'buckets' }),
+        command: 'buckets',
         target,
         bucketMinutes: BucketMinutesStub({ value: 5 }),
       });
@@ -221,7 +220,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'gaps' }),
+        command: 'gaps',
         target,
       });
 
@@ -273,7 +272,7 @@ describe('DigestRunResponder', () => {
       });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'gaps' }),
+        command: 'gaps',
         target,
       });
 
@@ -306,7 +305,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'gaps' }),
+        command: 'gaps',
         target,
       });
 
@@ -337,7 +336,7 @@ describe('DigestRunResponder', () => {
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'gaps' }),
+        command: 'gaps',
         target,
         gapFloorSeconds: GapFloorSecondsStub({ value: 30 }),
       });
@@ -367,7 +366,7 @@ describe('DigestRunResponder', () => {
       proxy.setupQuest({ questId, questJson: { flows: [flow] } });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'coverage' }),
+        command: 'coverage',
         target: questId,
       });
 
@@ -391,7 +390,7 @@ describe('DigestRunResponder', () => {
       proxy.setupMissingQuest();
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'coverage' }),
+        command: 'coverage',
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
@@ -423,7 +422,7 @@ describe('DigestRunResponder', () => {
       proxy.setupQuest({ questId, questJson: { flows: [flow], workItems: [workItem] } });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'coverage' }),
+        command: 'coverage',
         target: questId,
       });
 
@@ -489,7 +488,7 @@ describe('DigestRunResponder', () => {
       });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'quest' }),
+        command: 'quest',
         target: questId,
       });
 
@@ -518,7 +517,7 @@ describe('DigestRunResponder', () => {
       proxy.setupMissingQuestIndex();
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'quest' }),
+        command: 'quest',
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
@@ -531,7 +530,7 @@ describe('DigestRunResponder', () => {
       proxy.setupQuestIndex({ questId, questJson: { userRequest: 'Fix the bug' } });
 
       const result = DigestRunResponder({
-        command: DigestCommandStub({ value: 'quest' }),
+        command: 'quest',
         target: questId,
       });
 
