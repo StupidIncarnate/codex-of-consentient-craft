@@ -10,6 +10,7 @@
 import type { Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/shared/contracts';
+import { replacementEntryContract } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
@@ -27,7 +28,8 @@ export const questWorkItemInsertBroker = async ({
   const updatedWorkItems = [...quest.workItems];
 
   if (replacementMapping) {
-    for (const { oldId, newId } of replacementMapping) {
+    const entries = replacementMapping.map((entry) => replacementEntryContract.parse(entry));
+    for (const { oldId, newId } of entries) {
       for (const workItem of updatedWorkItems) {
         if (workItem.dependsOn.some((id) => id === oldId)) {
           workItem.dependsOn = workItem.dependsOn.map((id) => (id === oldId ? newId : id));

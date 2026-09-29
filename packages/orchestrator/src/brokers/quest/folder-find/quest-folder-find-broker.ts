@@ -14,6 +14,7 @@ import { readdirSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
+import { questFolderFindResultContract } from '../../../contracts/quest-folder-find-result/quest-folder-find-result-contract';
 import type { QuestFolderFindResult } from '../../../contracts/quest-folder-find-result/quest-folder-find-result-contract';
 
 export const questFolderFindBroker = async ({
@@ -51,12 +52,16 @@ export const questFolderFindBroker = async ({
   const match = validResults.find((result) => result.quest.id === questId);
 
   if (match) {
-    return {
+    return questFolderFindResultContract.parse({
       found: true,
       folderPath: match.folderPath,
       quest: match.quest,
-    };
+    });
   }
 
-  return { found: false, folderPath: undefined, quest: undefined };
+  return questFolderFindResultContract.parse({
+    found: false,
+    folderPath: undefined,
+    quest: undefined,
+  });
 };

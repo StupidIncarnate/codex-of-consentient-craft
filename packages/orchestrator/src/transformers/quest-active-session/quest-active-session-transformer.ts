@@ -16,6 +16,7 @@
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard, isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
+import { activeSessionResultContract } from '../../contracts/active-session-result/active-session-result-contract';
 import type { ActiveSessionResult } from '../../contracts/active-session-result/active-session-result-contract';
 
 export const questActiveSessionTransformer = ({
@@ -31,7 +32,10 @@ export const questActiveSessionTransformer = ({
   );
 
   if (activeChat) {
-    return { sessionId: activeChat.sessionId, role: activeChat.role };
+    return activeSessionResultContract.parse({
+      sessionId: activeChat.sessionId,
+      role: activeChat.role,
+    });
   }
 
   const completedChats = workItems
@@ -44,7 +48,10 @@ export const questActiveSessionTransformer = ({
 
   const [mostRecentChat] = completedChats;
   if (mostRecentChat) {
-    return { sessionId: mostRecentChat.sessionId, role: mostRecentChat.role };
+    return activeSessionResultContract.parse({
+      sessionId: mostRecentChat.sessionId,
+      role: mostRecentChat.role,
+    });
   }
 
   const activeNonChat = workItems.find(
@@ -55,7 +62,10 @@ export const questActiveSessionTransformer = ({
   );
 
   if (activeNonChat) {
-    return { sessionId: activeNonChat.sessionId, role: activeNonChat.role };
+    return activeSessionResultContract.parse({
+      sessionId: activeNonChat.sessionId,
+      role: activeNonChat.role,
+    });
   }
 
   const completedNonChats = workItems
@@ -68,8 +78,11 @@ export const questActiveSessionTransformer = ({
 
   const [mostRecentNonChat] = completedNonChats;
   if (mostRecentNonChat) {
-    return { sessionId: mostRecentNonChat.sessionId, role: mostRecentNonChat.role };
+    return activeSessionResultContract.parse({
+      sessionId: mostRecentNonChat.sessionId,
+      role: mostRecentNonChat.role,
+    });
   }
 
-  return { sessionId: undefined, role: undefined };
+  return activeSessionResultContract.parse({ sessionId: undefined, role: undefined });
 };

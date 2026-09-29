@@ -21,6 +21,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
+import { activeQuestEntryContract } from '../../../contracts/active-quest-entry/active-quest-entry-contract';
 import type { ActiveQuestEntry } from '../../../contracts/active-quest-entry/active-quest-entry-contract';
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { questListBroker } from '../list/quest-list-broker';
@@ -40,7 +41,7 @@ export const questActiveQuestsBroker = async (): Promise<ActiveQuestEntry[]> => 
                 isAnyAgentRunningQuestStatusGuard({ status: q.status }) ||
                 isUserPausedQuestStatusGuard({ status: q.status }),
             )
-            .map((quest) => ({ quest, guildId: g.id, guildSlug }));
+            .map((quest) => activeQuestEntryContract.parse({ quest, guildId: g.id, guildSlug }));
         } catch {
           return [] as ActiveQuestEntry[];
         }

@@ -14,6 +14,7 @@ import {
   satisfiesDependencyWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
+import { nextReadyResultContract } from '../../contracts/next-ready-result/next-ready-result-contract';
 import type { NextReadyResult } from '../../contracts/next-ready-result/next-ready-result-contract';
 
 export const nextReadyWorkItemsTransformer = ({
@@ -22,14 +23,14 @@ export const nextReadyWorkItemsTransformer = ({
   workItems: WorkItem[];
 }): NextReadyResult => {
   if (workItems.length === 0) {
-    return { ready: [], questTerminal: true, questBlocked: false };
+    return nextReadyResultContract.parse({ ready: [], questTerminal: true, questBlocked: false });
   }
 
   const allTerminal = workItems.every((item) =>
     isTerminalWorkItemStatusGuard({ status: item.status }),
   );
   if (allTerminal) {
-    return { ready: [], questTerminal: true, questBlocked: false };
+    return nextReadyResultContract.parse({ ready: [], questTerminal: true, questBlocked: false });
   }
 
   const completedIds = new Set(
@@ -49,8 +50,8 @@ export const nextReadyWorkItemsTransformer = ({
   );
 
   if (ready.length === 0 && !anyInProgress) {
-    return { ready: [], questTerminal: false, questBlocked: true };
+    return nextReadyResultContract.parse({ ready: [], questTerminal: false, questBlocked: true });
   }
 
-  return { ready, questTerminal: false, questBlocked: false };
+  return nextReadyResultContract.parse({ ready, questTerminal: false, questBlocked: false });
 };

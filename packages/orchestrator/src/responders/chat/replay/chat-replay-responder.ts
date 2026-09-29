@@ -12,6 +12,7 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
+import { linkedQuestInfoContract } from '../../../contracts/linked-quest-info/linked-quest-info-contract';
 import type { LinkedQuestInfo } from '../../../contracts/linked-quest-info/linked-quest-info-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 
@@ -43,10 +44,10 @@ export const ChatReplayResponder = async ({
         return null;
       }
       const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
-      return {
+      return linkedQuestInfoContract.parse({
         questId: linkedQuest.id,
         ...(matchedWorkItem ? { workItemId: matchedWorkItem.id, role: matchedWorkItem.role } : {}),
-      };
+      });
     } catch {
       // Quest lookup failure should not block history replay
       return null;
