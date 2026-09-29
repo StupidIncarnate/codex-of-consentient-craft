@@ -1,3 +1,4 @@
+import { getExitCode, setExitCode } from '#gateway/node/process';
 import {
   installTestbedCreateBroker,
   BaseNameStub,
@@ -140,12 +141,12 @@ describe('WardFlow', () => {
   // no longer exists would otherwise go green having checked nothing.
   describe('unknown command routing', () => {
     it('ERROR: {args: ["node", "ward", "unknown-command"]} => writes error to stderr and exits non-zero', async () => {
-      process.exitCode = 0;
+      setExitCode(0);
       const rootPath = AbsoluteFilePathStub({ value: '/tmp/ward-flow-unknown' });
 
       const result = await WardFlow({ args: ['node', 'ward', 'unknown-command'], rootPath });
 
-      expect({ result, exitCode: process.exitCode }).toStrictEqual({
+      expect({ result, exitCode: getExitCode() }).toStrictEqual({
         result: { success: true },
         exitCode: 1,
       });

@@ -7,6 +7,7 @@
  */
 
 import { readdirEntries, readFile } from '#gateway/node/fs__promises';
+import { stderr } from '#gateway/node/process';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -34,7 +35,7 @@ export const packageReadLayerBroker = async ({
     const hasSrc = entries.some((entry) => entry.kind === 'directory' && entry.name === 'src');
 
     if (!hasSrc) {
-      process.stderr.write(`ward: skipping ${name} (no src/ directory)\n`);
+      stderr.write(`ward: skipping ${name} (no src/ directory)\n`);
       return null;
     }
 

@@ -6,6 +6,7 @@
  * // Delegates to WardRunResponder, WardListResponder, WardDetailResponder, or WardRawResponder
  */
 
+import { setExitCode, stderr } from '#gateway/node/process';
 import {
   adapterResultContract,
   type AbsoluteFilePath,
@@ -65,8 +66,8 @@ export const WardFlow = async ({
   // A NAME NOBODY ROUTES MUST NOT EXIT 0. Every caller of ward — a CI job, a pre-push gate, a
   // dispatched agent — reads the exit code as the verdict, so a subcommand that was renamed or
   // never existed comes back as a silent pass while nothing was checked at all.
-  process.stderr.write(`Unknown command: ${command}\n`);
-  process.stderr.write('Available commands: run, list, detail, raw\n');
-  process.exitCode = wardExitCodeStatics.exitCodes.failing;
+  stderr.write(`Unknown command: ${command}\n`);
+  stderr.write('Available commands: run, list, detail, raw\n');
+  setExitCode(wardExitCodeStatics.exitCodes.failing);
   return result;
 };

@@ -1,4 +1,4 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -8,16 +8,15 @@ export const packageReadLayerBrokerProxy = (): {
   setupReturnsPackageNoSrc: (params: { fullPath: string; name: string }) => void;
   setupThrows: (params: { fullPath: string }) => void;
   setupReturnsNoName: (params: { fullPath: string }) => void;
-  getStderrCalls: () => unknown[];
+  getStderrCalls: () => readonly unknown[];
 } => {
   const readProxy = readFileProxy();
   const readdirProxy = readdirEntriesProxy();
 
-  const stderrMock = registerSpyOn({ object: process.stderr, method: 'write' });
-  stderrMock.calledWith([]).returns(true);
+  const stderr = stderrProxy();
 
   return {
-    getStderrCalls: (): unknown[] => stderrMock.callsMatching([]).map((call) => call[0]),
+    getStderrCalls: (): readonly unknown[] => stderr.getWrites(),
 
     setupReturnsPackage: ({ fullPath, name }: { fullPath: string; name: string }): void => {
       readProxy.returns({
