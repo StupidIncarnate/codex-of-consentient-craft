@@ -135,6 +135,14 @@ export const keyStatics = {
       source: '^(?=[A-Za-z0-9]*[0-9])(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{6,}$',
       flags: 'u',
     },
+    // A segment right after a generator prefix that is a mint whatever it holds. Mantine's `useId`
+    // mints `mantine-` + `Math.random().toString(36).slice(2, 11)` — nine base36 characters, and a run
+    // of letters alone (`qeldlpsyt`) is as likely as one holding a digit. Exactly nine keeps a real
+    // word like `mantine-dropdown` whole; the rare shorter mint (a random with a short tail) prints raw.
+    generatedIdPrefixedPattern: {
+      source: '(?<=(?:^|[-_])mantine-)[a-z0-9]{9}(?![A-Za-z0-9])',
+      flags: 'gu',
+    },
     generatedIdMask: '*',
   },
   limits: {
