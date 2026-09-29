@@ -9,7 +9,7 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import { cwd as processCwd } from '#gateway/node/process';
+import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { adapterCensusRunBroker } from '../../../brokers/adapter-census/run/adapter-census-run-broker';
 import { censusArgsParseTransformer } from '../../../transformers/census-args-parse/census-args-parse-transformer';
@@ -28,7 +28,7 @@ export const AdapterCensusRunResponder = async ({
     ...(packageFilter === undefined ? {} : { packageFilter }),
   });
 
-  process.stdout.write(
+  stdout.write(
     format === 'json'
       ? `${JSON.stringify(census, null, censusLayoutStatics.jsonIndent)}\n`
       : censusTableRenderTransformer({ census }),

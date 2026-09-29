@@ -1,5 +1,6 @@
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { cwd, stdout } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { cwd } from '#gateway/node/process';
+import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { adapterCensusRunBrokerProxy } from '../../../brokers/adapter-census/run/adapter-census-run-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
@@ -19,10 +20,7 @@ export const AdapterCensusRunResponderProxy = (): {
   cwdProxy();
   registerMock({ fn: cwd }).calledWith([]).returns(String(DEFAULT_CWD));
 
-  // Record-and-swallow: the census text is computed at runtime, so there is no address to key on;
-  // each test asserts the captured text through getStdoutOutput.
-  const stdoutWrite = registerSpyOn({ object: stdout, method: 'write' });
-  stdoutWrite.calledWith([]).returns(true);
+  const stdoutHandle = stdoutProxy();
 
   return {
     setupSharedStemRepo: ({ repoRoot = DEFAULT_CWD }): void => {
@@ -31,6 +29,6 @@ export const AdapterCensusRunResponderProxy = (): {
     setupMissingRoot: ({ repoRoot = DEFAULT_CWD }): void => {
       brokerProxy.setupMissingRoot({ repoRoot });
     },
-    getStdoutOutput: (): readonly unknown[] => stdoutWrite.callsMatching([]).map((call) => call[0]),
+    getStdoutOutput: (): readonly unknown[] => stdoutHandle.getWrites(),
   };
 };

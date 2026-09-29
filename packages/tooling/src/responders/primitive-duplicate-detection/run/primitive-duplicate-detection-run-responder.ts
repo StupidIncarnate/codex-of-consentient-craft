@@ -7,7 +7,7 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import { cwd as processCwd } from '#gateway/node/process';
+import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { duplicateDetectionDetectBroker } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -46,36 +46,36 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
       )
     : duplicateDetectionStatics.defaults.minLength;
 
-  process.stdout.write(`Scanning for duplicate primitives...\n`);
-  process.stdout.write(`  Pattern: ${pattern}\n`);
-  process.stdout.write(`  Directory: ${cwd}\n`);
-  process.stdout.write(`  Threshold: ${threshold}+ occurrences\n`);
-  process.stdout.write(`  Min length: ${minLength} characters\n`);
-  process.stdout.write(`\n`);
+  stdout.write(`Scanning for duplicate primitives...\n`);
+  stdout.write(`  Pattern: ${pattern}\n`);
+  stdout.write(`  Directory: ${cwd}\n`);
+  stdout.write(`  Threshold: ${threshold}+ occurrences\n`);
+  stdout.write(`  Min length: ${minLength} characters\n`);
+  stdout.write(`\n`);
 
   const duplicates = await duplicateDetectionDetectBroker({ pattern, cwd, threshold, minLength });
 
   if (duplicates.length === 0) {
-    process.stdout.write('✅ No duplicate primitives found!\n');
+    stdout.write('✅ No duplicate primitives found!\n');
     return result;
   }
 
-  process.stdout.write(`Found ${duplicates.length} duplicate primitive(s):\n\n`);
+  stdout.write(`Found ${duplicates.length} duplicate primitive(s):\n\n`);
 
   for (const duplicate of duplicates) {
-    process.stdout.write(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
-    process.stdout.write(`${duplicate.type.toUpperCase()}: "${duplicate.value}"\n`);
-    process.stdout.write(`Occurrences: ${duplicate.count}\n`);
-    process.stdout.write(`\n`);
+    stdout.write(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+    stdout.write(`${duplicate.type.toUpperCase()}: "${duplicate.value}"\n`);
+    stdout.write(`Occurrences: ${duplicate.count}\n`);
+    stdout.write(`\n`);
 
     for (const occurrence of duplicate.occurrences) {
-      process.stdout.write(`  ${occurrence.filePath}:${occurrence.line}:${occurrence.column}\n`);
+      stdout.write(`  ${occurrence.filePath}:${occurrence.line}:${occurrence.column}\n`);
     }
 
-    process.stdout.write(`\n`);
+    stdout.write(`\n`);
   }
 
-  process.stdout.write(`\nSuggestion: Extract these literals to statics files:\n`);
-  process.stdout.write(`  packages/*/src/statics/[domain]/[domain]-statics.ts\n`);
+  stdout.write(`\nSuggestion: Extract these literals to statics files:\n`);
+  stdout.write(`  packages/*/src/statics/[domain]/[domain]-statics.ts\n`);
   return result;
 };
