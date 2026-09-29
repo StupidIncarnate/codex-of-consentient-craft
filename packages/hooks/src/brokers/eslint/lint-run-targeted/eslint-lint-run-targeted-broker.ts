@@ -7,7 +7,7 @@
  */
 import { ESLint, type Linter } from '#gateway/npm/eslint';
 import { resolve } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
+import { cwd, stderr } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { rawEslintConfigContract } from '../../../contracts/raw-eslint-config/raw-eslint-config-contract';
@@ -105,7 +105,7 @@ export const eslintLintRunTargetedBroker = async ({
   } catch (error) {
     // Log error but don't fail - return empty results
     // Using stderr to avoid no-console rule while still logging errors
-    process.stderr.write(
+    stderr.write(
       `ESLint error: ${error instanceof Error ? error.message : JSON.stringify(error)}\n`,
     );
     return [];

@@ -9,7 +9,7 @@ import { readFile } from '#gateway/node/fs__promises';
 import { ESLint } from '#gateway/npm/eslint';
 import { resolve } from '#gateway/node/path';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { cwd } from '#gateway/node/process';
+import { cwd, stderr } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
@@ -78,7 +78,7 @@ export const eslintLintRunWithFixBroker = async ({
     );
   } catch (error) {
     // Log error but don't fail - return empty results
-    process.stderr.write(
+    stderr.write(
       `ESLint error: ${error instanceof Error ? error.message : JSON.stringify(error)}\n`,
     );
     return [];
