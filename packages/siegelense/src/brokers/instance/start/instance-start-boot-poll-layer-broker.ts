@@ -21,6 +21,9 @@
  * // Resolves { status: 'timeout' } once deadlineMs passes with no answer and no marker
  */
 
+import { now } from '#gateway/node/Date';
+import { setTimeout } from '#gateway/node/setTimeout';
+
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { bootFailureMarkerReadBroker } from '../../boot-failure-marker/read/boot-failure-marker-read-broker';
 import { bootPollOutcomeContract } from '../../../contracts/boot-poll-outcome/boot-poll-outcome-contract';
@@ -57,7 +60,7 @@ export const instanceStartBootPollLayerBroker = async ({
       return bootPollOutcomeContract.parse({ status: 'failed', message: failureMarker.message });
     }
 
-    if (Date.now() >= deadlineMs) {
+    if (now() >= deadlineMs) {
       return bootPollOutcomeContract.parse({ status: 'timeout' });
     }
 

@@ -1,5 +1,5 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driver-socket-request-broker.proxy';
@@ -25,7 +25,8 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
 } => {
   const socketProxy = driverSocketRequestBrokerProxy();
   const markerProxy = bootFailureMarkerReadBrokerProxy();
-  const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
+  const clockProxy = nowProxy();
+  setTimeoutProxy();
 
   return {
     setupAnswersOk: ({ socketPath }: { socketPath: AbsoluteFilePath }): void => {
@@ -48,7 +49,7 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });
       markerProxy.setupMarkerMissing({ evidencePath });
-      dateHandle.onceFor([]).returns(deadlineMs >= nowMs ? deadlineMs : nowMs);
+      clockProxy.setupNowOnce({ ms: deadlineMs >= nowMs ? deadlineMs : nowMs });
     },
 
     // Fails the connect once, and a failure marker is already sitting beside the evidence —

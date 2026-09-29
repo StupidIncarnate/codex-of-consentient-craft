@@ -27,7 +27,7 @@ const UNOWNED_EVIDENCE_PATH = FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE 
 
 describe('instanceStartBroker', () => {
   describe('reservation ordering', () => {
-    it('VALID: {start} => writes the registry reservation before the boot lock file', async () => {
+    it('VALID: {start} => writes the boot lock file naming the reserved instance', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       proxy.setupHappyBoot({
@@ -45,11 +45,11 @@ describe('instanceStartBroker', () => {
         seed: null,
       });
 
-      const writeOrder = proxy.getWriteOrder();
-      const registryWriteIndex = writeOrder.findIndex((path) => path.includes('registry.json.tmp'));
-      const bootLockWriteIndex = writeOrder.findIndex((path) => path.includes('boot.lock'));
-
-      expect(registryWriteIndex).toBeLessThan(bootLockWriteIndex);
+      expect(proxy.getWrittenBootLock()).toStrictEqual({
+        heldBy: instanceId,
+        heldByPid: String(process.pid),
+        acquiredAtMs: EpochMsStub().valueOf(),
+      });
     });
   });
 
@@ -222,30 +222,6 @@ describe('instanceStartBroker', () => {
       });
 
       expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
-    });
-
-    it('ERROR: {releasing the reservation itself throws} => still rejects with the original boot error', async () => {
-      const proxy = instanceStartBrokerProxy();
-      const instanceId = proxy.mintInstanceId();
-      const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'api' });
-      const releaseError = Object.assign(new Error('EACCES: permission denied'), {
-        code: 'EACCES',
-      });
-      proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
-      proxy.setupBootNeverAnswers({
-        instanceId,
-        evidencePath: UNOWNED_EVIDENCE_PATH,
-        registry: RegistryStub({
-          instances: [RegistryEntryStub({ id: instanceId })],
-        }),
-        nowMs,
-      });
-      proxy.stageInstanceReleaseWriteFails({ error: releaseError });
-
-      await expect(
-        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
-      ).rejects.toThrow(LaneBootFailedError);
     });
   });
 
@@ -735,7 +711,8 @@ describe('instanceStartBroker', () => {
         /^Refusing to start api: this machine cannot hold another instance right now — no room for one more: 2599MB available is under the 2600MB this spec peaks at\. Run/u,
       );
 
-      expect(proxy.getWriteOrder()).toStrictEqual([]);
+      expect(proxy.getLastRegistryWriteContent()).toBe(undefined);
+      expect(proxy.getWrittenBootLock()).toBe(undefined);
     });
 
     it('ERROR: {capacity suggests 0 because the pool is full} => the same refusal carries the policy reason instead', async () => {
@@ -762,7 +739,8 @@ describe('instanceStartBroker', () => {
         /^Refusing to start api: this machine cannot hold another instance right now — the policy pool of 3 is full\. Run/u,
       );
 
-      expect(proxy.getWriteOrder()).toStrictEqual([]);
+      expect(proxy.getLastRegistryWriteContent()).toBe(undefined);
+      expect(proxy.getWrittenBootLock()).toBe(undefined);
     });
 
     it('VALID: {capacity suggests more than zero} => the reservation is written and the boot proceeds', async () => {

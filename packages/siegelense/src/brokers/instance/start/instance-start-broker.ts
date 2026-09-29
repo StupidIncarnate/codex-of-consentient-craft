@@ -74,9 +74,10 @@
  */
 
 import { spawnDetached } from '#gateway/node/child_process';
+import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
-import { cwd } from '#gateway/node/process';
+import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   contentTextContract,
@@ -156,9 +157,9 @@ export const instanceStartBroker = async ({
   // heartbeat to go cold, so nothing else here ever notices it, and it would count against
   // `aheadOfMe` forever until `cleanup` next ran. `nowMsForStaleness` is read ONCE, here, and reused
   // below for the opportunistic reap's own staleness check too — the two checks run close enough in
-  // time that a second `Date.now()` call would buy nothing but an extra call for a composing test's
+  // time that a second `now()` call would buy nothing but an extra call for a composing test's
   // mock queue to account for.
-  const nowMsForStaleness = epochMsContract.parse(Date.now());
+  const nowMsForStaleness = epochMsContract.parse(now());
   const aheadOfMe = readingCountContract.parse(
     registryBeforeReserve.instances.filter(
       (candidate) =>
@@ -184,7 +185,7 @@ export const instanceStartBroker = async ({
   await Promise.all(
     staleEntries.map(async (staleEntry) => {
       const reapResult = await instanceKillBroker({ instanceId: staleEntry.id });
-      process.stderr.write(
+      stderr.write(
         `instanceStartBroker: reaped stale instance ${staleEntry.id} — heartbeat gone cold, signalled pgids [${reapResult.reapedPgids.join(', ')}]\n`,
       );
     }),
@@ -213,20 +214,20 @@ export const instanceStartBroker = async ({
   // capacity until its own staleness window passes on its own. This catch releases exactly that
   // reservation and nothing else — the boot lock itself is never released here, because a throw at
   // this point means this call never held it.
-  const lockWaitStartedAtMs = epochMsContract.parse(Date.now());
+  const lockWaitStartedAtMs = epochMsContract.parse(now());
   try {
     await bootLockAcquireBroker({ instanceId: reservedEntry.id });
   } catch (lockAcquireError) {
     try {
       await instanceReleaseBroker({ instanceId: reservedEntry.id });
     } catch (releaseError: unknown) {
-      process.stderr.write(
+      stderr.write(
         `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot-lock acquire failed: ${String(releaseError)}\n`,
       );
     }
     throw lockAcquireError;
   }
-  const lockWaitEndedAtMs = epochMsContract.parse(Date.now());
+  const lockWaitEndedAtMs = epochMsContract.parse(now());
   const queuedMs = epochMsContract.parse(lockWaitEndedAtMs - lockWaitStartedAtMs);
 
   // An object property, never a bare `let` — a `let` reassigned only inside the `.catch()` closure
@@ -266,13 +267,13 @@ export const instanceStartBroker = async ({
     // for its own spawns; this is that pattern, applied here so the driver — spawned with no other
     // env override — is never the one call site still relying on Node's default.
     const inheritedEnv = Object.fromEntries(
-      Object.entries(process.env)
+      Object.entries(envSnapshot())
         .filter(([, value]) => value !== undefined)
         .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
     );
 
     spawnDetached({
-      command: process.execPath,
+      command: execPath,
       // `locationsStatics.siegelense.dir` doubles as the CLI subcommand name here — both are the
       // literal string 'siegelense', and `no-bare-location-literals` bans typing it a second time.
       args: [
@@ -290,7 +291,7 @@ export const instanceStartBroker = async ({
     });
 
     const socketPath = locationsSocketPathFindBroker({ instanceId: reservedEntry.id });
-    const bootStartedAtMs = epochMsContract.parse(Date.now());
+    const bootStartedAtMs = epochMsContract.parse(now());
     const bootDeadlineMs = epochMsContract.parse(
       bootStartedAtMs + driverStatics.boot.defaultTimeoutMs,
     );
@@ -318,7 +319,7 @@ export const instanceStartBroker = async ({
       // WHICH of the spec's processes stalled — a process with no readyPath is never a boot-
       // readiness candidate at all (lane-boot-broker never checks it), and a process that DOES
       // have one may already be answering fine while a sibling hangs. A fresh, immediate probe
-      // (`deadlineMs: Date.now()` — one attempt, no further poll wait) against each checkable
+      // (`deadlineMs: now()` — one attempt, no further poll wait) against each checkable
       // process's own readyPath is the only way this caller can tell those apart from here; the
       // driver crashing mid-boot kills every spawned process together, in which case every probe
       // below reports unready together too, which is the honest answer for that case.
@@ -343,7 +344,7 @@ export const instanceStartBroker = async ({
           const readyUrl = `http://${environmentStatics.hostname}:${String(port)}${readyPath}`;
           const stillAnswering = await laneReadyWaitBroker({
             url: readyUrl,
-            deadlineMs: Date.now(),
+            deadlineMs: now(),
           });
 
           return stillAnswering ? null : laneProcess.name;
@@ -358,7 +359,7 @@ export const instanceStartBroker = async ({
       });
     }
 
-    const bootEndedAtMs = epochMsContract.parse(Date.now());
+    const bootEndedAtMs = epochMsContract.parse(now());
     const bootMs = epochMsContract.parse(bootEndedAtMs - bootStartedAtMs);
 
     // This is the only side that sees a boot begin, so it is the only side that can measure one —
@@ -371,7 +372,7 @@ export const instanceStartBroker = async ({
       specHash,
       bootMs,
     }).catch((error: unknown) => {
-      process.stderr.write(
+      stderr.write(
         `instanceStartBroker: recording the boot profile for ${reservedEntry.id} failed, the instance is up regardless: ${String(error)}\n`,
       );
     });
@@ -501,13 +502,13 @@ export const instanceStartBroker = async ({
     try {
       await instanceKillBroker({ instanceId: reservedEntry.id });
     } catch (killError: unknown) {
-      process.stderr.write(
+      stderr.write(
         `instanceStartBroker: stopping ${reservedEntry.id} after a failed boot failed, falling back to releasing the reservation: ${String(killError)}\n`,
       );
       try {
         await instanceReleaseBroker({ instanceId: reservedEntry.id });
       } catch (releaseError: unknown) {
-        process.stderr.write(
+        stderr.write(
           `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot failed: ${String(releaseError)}\n`,
         );
       }
@@ -526,7 +527,7 @@ export const instanceStartBroker = async ({
         evidencePath: evidencePathForShutdown,
         reason: seedFailure.reason,
       }).catch((writeError: unknown) => {
-        process.stderr.write(
+        stderr.write(
           `instanceStartBroker: writing the shutdown reason for ${reservedEntry.id} failed: ${String(writeError)}\n`,
         );
       });

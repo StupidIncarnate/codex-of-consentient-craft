@@ -1,13 +1,13 @@
-import { existsSync } from 'fs';
-import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
-import { FileExistsRecordedErrorStub } from '#gateway/node/fs/file-exists-recorded-error/file-exists-recorded-error.stub';
-import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+import { randomUUID } from '#gateway/node/crypto';
 import { tmpdir } from '#gateway/node/os';
 import { dirname, join } from '#gateway/node/path';
-import { cwd } from '#gateway/node/process';
+import { execPath } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
+import { execPathProxy } from '#gateway/node/process/exec-path/exec-path.proxy';
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
@@ -15,7 +15,7 @@ import {
   ContentTextStub,
   FilePathStub,
   NetworkPortStub,
-  filePathContract,
+  ProcessIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { FilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -54,28 +54,17 @@ import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import { profileStatics } from '../../../statics/profile/profile-statics';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 type SpecName = ReturnType<typeof SpecNameStub>;
 
-// Every path below is REAL `path.join` output off two sticky roots (os.homedir() and `cwd()`'s
-// own built-in default) — never a one-shot stage on `#gateway/node/path`'s `join` mock.
-// instanceReserveBroker, bootLockAcquireBroker and every registry broker they compose ALSO
-// resolve their own paths through the SAME real `join` passthrough, so one sticky root answers
-// every caller consistently regardless of how many times each resolver runs — a one-shot queue
-// shared across a dozen unrelated resolvers has no such guarantee (the wrong call consumes the
-// wrong entry the moment two callers interleave).
+// Every path below is what the composed child proxies stage by exact tuple off the addressed home
+// and cwd; the `join` mock here is only the real passthrough for the segments no child names.
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const REGISTRY_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json`;
-const REGISTRY_TMP_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json.tmp`;
-const REGISTRY_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.lock`;
-const BOOT_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/boot.lock`;
 const CWD_PATH_VALUE = '/default/cwd';
-const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
 // Built from locationsStatics rather than a re-hardcoded literal, so this constant tracks
 // locationsRepoLinkPathFindBroker's own linkPath composition instead of drifting the moment the
 // nesting under repoRoot changes again. Plain string interpolation, NOT the real `join` call every
@@ -100,15 +89,6 @@ const UNOWNED_EVIDENCE_PATH_VALUE = `${ROOT_PATH_VALUE}/unowned/instances/inst_$
 const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
 const FIRST_PORT_VALUE = 40_000;
 const SECOND_PORT_VALUE = 40_001;
-// boot-lock-acquire-broker.proxy.ts and boot-lock-release-broker.proxy.ts each pre-stage their
-// OWN one-shot pathJoin/homedir resolutions unconditionally in their constructors (never gated
-// behind a semantic setup method) — 4 rounds of {homedir-join, root-join, bootlock-join} for
-// acquire, 1 round for release, 15 pathJoin one-shots total. enforce-proxy-child-creation requires
-// BOTH proxies be constructed here even though this file never calls their setup methods, so those
-// one-shots sit queued ahead of every real call this test drives. Draining well past that count
-// empties the queue back to this file's own sticky real-passthrough default on `join`, which every
-// call in this file relies on; a call past the real queue length is a harmless real join.
-const PATH_JOIN_DRAIN_COUNT = 40;
 // this broker's own nowMsForStaleness (1) + instanceReserveBroker's reservedAtMs (1) +
 // registryLockAcquireBroker's startedAtMs/nowMs (2) + this broker's own lockWaitStartedAtMs (1) +
 // bootLockAcquireBroker's startedAtMs/nowMs (2) + this broker's own lockWaitEndedAtMs (1) +
@@ -121,12 +101,6 @@ const DATE_NOW_CALLS_BEFORE_POLL_CHECK = 9;
 const DATE_NOW_CALLS_BEFORE_QUEUED_MS_END = 7;
 
 const ROOT_PATH_FILE = FilePathStub({ value: ROOT_PATH_VALUE });
-const REGISTRY_PATH_FILE = FilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_PATH_VALUE });
-const REGISTRY_TMP_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_TMP_PATH_VALUE });
-const REGISTRY_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_LOCK_PATH_VALUE });
-const BOOT_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: BOOT_LOCK_PATH_VALUE });
-const CONFIG_FILE_PATH = FilePathStub({ value: CONFIG_FILE_PATH_VALUE });
 const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
 const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
 
@@ -156,10 +130,9 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     driverMessage: string;
   }) => void;
-  stageInstanceReleaseWriteFails: (params: { error: Error }) => void;
   stageBootLockAcquireFailsWithReadError: (params: { registry: Registry }) => void;
   stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
-  getWriteOrder: () => readonly FilePath[];
+  getWrittenBootLock: () => unknown;
   getBootLockReleasedPaths: () => unknown[];
   getLastRegistryWriteContent: () => unknown;
   getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
@@ -184,18 +157,15 @@ export const instanceStartBrokerProxy = (): {
   // throws on an unaddressed call. No test in this file asserts on `branch`, so this stages the
   // same "no branch" answer the old adapter's proxy defaulted to implicitly.
   reserveProxy.setupBranch({ branch: null });
-  // instanceReleaseBroker (called on every failed-boot path, defect 2) composes real
-  // registryUpdateBroker underneath — the SAME generic writeFile/readFile mocks staged below
-  // already satisfy it, matching how instanceReserveBroker's own registryUpdateBroker call runs
-  // real against these identical mocks.
+  // instanceReleaseBroker (called on every failed-boot path) runs real registryUpdateBroker
+  // underneath, against the same registry mocks reserveProxy.setupRegistry stages.
   instanceReleaseBrokerProxy();
-  registryReadBrokerProxy();
+  const registryReadProxy = registryReadBrokerProxy();
   // Constructed for enforce-proxy-child-creation only. capacityReadBroker itself is staged directly
-  // below, so none of the three reads this proxy composes ever runs; anything its own construction
-  // queues onto the shared pathJoin mock is absorbed by stageBoot's drain.
+  // below, so none of the three reads this proxy composes ever runs.
   capacityReadBrokerProxy();
-  bootLockAcquireBrokerProxy();
-  bootLockReleaseBrokerProxy();
+  const bootLockAcquireProxy = bootLockAcquireBrokerProxy();
+  const bootLockReleaseProxy = bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   // Captured (not composed bare) so its own setupHomeOnly/setupCwd can stage the addressed home
   // and cwd this broker's own locationsRepoLinkPathFindBroker call reads, never a raw 'os' mock or
@@ -215,12 +185,6 @@ export const instanceStartBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  // setupBootRecordWrite is never called here: the boot record's path is keyed by the spec's REAL
-  // content hash, which no test in this file names by way of laneSpecFindBrokerProxy's own default
-  // spec, so the write below is addressed by a predicate on the boots directory instead — captured
-  // (not composed bare) so its own narrower setupBootsDirCreated can stage the mkdir alone, without
-  // setupBootRecordWrite's bundled Date.now() default colliding with this file's own call-count-
-  // tuned dateNowHandle queue.
   const profileBootRecordProxy = profileBootRecordBrokerProxy();
   // Constructed for enforce-proxy-child-creation: instanceStartBroker now calls
   // shutdownReasonWriteBroker directly too (a seed failure's own reason), even though every actual
@@ -251,16 +215,9 @@ export const instanceStartBrokerProxy = (): {
   const pollProxy = instanceStartBootPollLayerBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
   cwdProxy(); // gateway proxy import — inert, satisfies enforce-proxy-child-creation
-  const cwdHandle = registerMock({ fn: cwd });
-  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
-
-  const existsHandle: MockHandle = registerMock({ fn: existsSync });
-  const readHandle: MockHandle = registerMock({ fn: readFile });
-  const writeHandle: MockHandle = registerMock({ fn: writeFile });
-  const unlinkHandle: MockHandle = registerMock({ fn: unlink });
-  const realpathHandle: MockHandle = registerMock({ fn: realpath });
-  const renameHandle: MockHandle = registerMock({ fn: rename });
-  const accessHandle: MockHandle = registerMock({ fn: access });
+  const stderrRecorder = stderrProxy();
+  execPathProxy();
+  envSnapshotProxy();
 
   // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
   // reserves one. It is staged DIRECTLY rather than composed: capacityReadBroker's own reads
@@ -278,37 +235,10 @@ export const instanceStartBrokerProxy = (): {
   // reaches this call) or stages stageSeedFails() at the specific recipe address it names.
   const recipeSeedHandle: MockHandle = registerMock({ fn: recipeSeedRunBroker });
 
-  registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(MINTED_UUID_VALUE);
-  const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
-  dateNowHandle.calledWith([]).returns(EpochMsStub().valueOf());
+  registerMock({ fn: randomUUID }).calledWith([]).returns(MINTED_UUID_VALUE);
+  const clockProxy = nowProxy();
 
   tmpdirHandle.calledWith([]).returns(TMP_DIR_VALUE);
-  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
-  accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
-  // Record-and-swallow: no test cares what stderr does with the write, only what was written —
-  // asserted separately via getStderrMessages/callsMatching.
-  stderrHandle.calledWith([]).returns(true);
-
-  existsHandle.calledWith([REGISTRY_PATH_FILE]).returns(true);
-  existsHandle.calledWith([LINK_PATH_FILE]).returns(true);
-  realpathHandle.calledWith([LINK_PATH_FILE]).resolves(ROOT_PATH_VALUE);
-
-  writeHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-  writeHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
-  writeHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
-  // The boot profile record a successful boot writes. Addressed by a predicate rather than a
-  // literal path because its directory is the spec's real sha256 content hash — a value no test
-  // here names, and one that changes the moment a lane spec does. A literal `calledWith([path])`
-  // staged elsewhere still outranks this, so it shadows nothing.
-  writeHandle
-    .calledWith([
-      (candidate: unknown): boolean => String(candidate).includes(profileStatics.dirs.boots),
-    ])
-    .resolves(undefined);
-  // registryLockReleaseBroker unlinks unconditionally once registryUpdateBroker's write finishes
-  // (no heldBy check, unlike boot.lock's release) — staged sticky for every happy-path reserve.
-  unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
-  renameHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
 
   // instanceReserveBroker asks the OS for `claimAttempts` port-pair candidates upfront, through
   // reserveProxy's own freePortPair() staging — every scenario in this file is a machine with room
@@ -321,6 +251,14 @@ export const instanceStartBrokerProxy = (): {
     })),
   });
 
+  // The state every scenario shares: the registry as the test supplies it, and the reservation's
+  // own lock, write and rename.
+  const stageRegistryAndLocks = ({ registry }: { registry: Registry }): void => {
+    clockProxy.setupNow({ ms: EpochMsStub().valueOf() });
+    registryReadProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
+    reserveProxy.setupRegistry({ json: JSON.stringify(registry) });
+  };
+
   const stageBoot = ({
     instanceId,
     evidencePath,
@@ -332,19 +270,22 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     idleTimeoutMs?: TimeoutMs;
   }): void => {
-    // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to homedir() from
-    // '#gateway/node/os' — staged through locationsRepoLinkPathFindBrokerProxy's own setupHomeOnly
-    // forward (the instanceKillBrokerProxy.setupRegistry pattern), never a raw 'os' mock:
-    // dungeonmasterHomeFindBroker never touches the raw 'os' module, so a mock on it is never
-    // reached. Called explicitly here rather than relying on bootLockAcquireBrokerProxy's own
-    // constructor incidentally staging the same address via the dungeonmasterHomeFindBrokerProxy it
-    // composes — that stage is a side effect of an unrelated proxy's setup, not a guarantee this
-    // file controls.
-    repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
-    // locationsRepoLinkPathFindBroker calls cwd() on every invocation, and instanceReserveBroker's
-    // own git-branch lookup shares this same '#gateway/node/process' cwd() mock — staged here so
-    // neither ever reads the real working directory.
-    repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
+    stageRegistryAndLocks({ registry });
+    bootLockAcquireProxy.setupWriteSucceeds();
+    // A boot that reaches the poll answering `ready` is one the DRIVER already released boot.lock
+    // for itself (its own docstring) — the default here is that ordinary case, so a caller whose
+    // OWN failure (a seed) runs the catch block's bootLockReleaseBroker call for the first time in
+    // a happy-boot test finds no lock left to release, exactly as a real released lock reads.
+    bootLockReleaseProxy.setupNoLock();
+    // The link check, the repo-root config lookup and the cwd every broker reads, all off one
+    // addressed cwd and home.
+    repoLinkProxy.setupLinkResolvesToRoot({
+      cwdPath: CWD_PATH_VALUE,
+      linkPath: LINK_PATH_FILE,
+      homeDir: HOME_DIR_VALUE,
+      homePath: HOME_PATH,
+      rootPath: ROOT_PATH_FILE,
+    });
     // instanceReserveBroker's own reserve step creates the instance's evidence directory before
     // this broker ever reaches a boot attempt — routed through reserveProxy's own semantic method
     // (not a bare ensureDirProxy() composed here) since instanceStartBroker.ts itself never imports
@@ -355,58 +296,34 @@ export const instanceStartBrokerProxy = (): {
       rootPath: ROOT_PATH_FILE,
       evidencePath,
     });
-    // A successful boot's own profileBootRecordBroker call creates the boots directory under the
-    // default spec's real hash before writing to it; the write itself is already staged on
-    // writeHandle via the boots-dir predicate above. Routed through profileBootRecordProxy's own
-    // narrow setupBootsDirCreated (not a bare ensureDirProxy() here, for the same
-    // enforce-proxy-child-creation reason as reserveProxy.setupEvidenceDir above) — every test in
-    // this file that never calls stageLaneSpec resolves this same real hash.
-    profileBootRecordProxy.setupBootsDirCreated({
+    // The record a successful boot writes is addressed by the spec's real content hash, which is
+    // the same value in every test that never calls stageLaneSpec.
+    profileBootRecordProxy.setupBootRecordWrite({
+      homeDir: HOME_DIR_VALUE,
+      homePath: HOME_PATH,
+      rootPath: ROOT_PATH_FILE,
       profilesPath: FilePathStub({
         value: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
       }),
+      instanceId,
+      nowMs: EpochMsStub().valueOf(),
     });
 
-    // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
-    // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
-    // on PATH_JOIN_DRAIN_COUNT above) — done here rather than in the constructor because this
-    // rule's own "no side effects before return" check does not reach a nested helper like this
-    // one, only the outer proxy factory's own top-level statements.
-    Array.from({ length: PATH_JOIN_DRAIN_COUNT }, (_unused, drainIndex) => drainIndex).forEach(
-      (drainIndex) => {
-        join('drain', String(drainIndex));
-      },
-    );
-
-    // Computed AFTER the drain above, for the same reason the drain exists at all: `join` (from
-    // '#gateway/node/path') is globally mocked as a one-shot QUEUE by other composed proxies, and
-    // a call made before the queue is drained steals an entry staged for an unrelated caller
-    // instead of reaching the sticky real-passthrough default. Must mirror the real
-    // cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +
-    // join(dirname(...), ...) exactly.
-    // dirname is mocked by shared proxies composed above; the one path this scenario walks is
-    // staged as an exact-address real passthrough, which serves this call and the adapter's.
+    // Must mirror the real cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +
+    // join(dirname(...), ...) exactly. dirname is mocked by shared proxies composed above; the one
+    // path this scenario walks is staged as an exact-address real passthrough, which serves this
+    // call and the adapter's.
     const cliEntryPath = require.resolve('@dungeonmaster/cli');
     registerMock({ fn: dirname })
       .calledWith([cliEntryPath])
       .implement(requireActual<{ dirname: typeof dirname }>({ module: 'path' }).dirname);
     const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
-    readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
-
-    // A boot that reaches the poll answering `ready` is one the DRIVER already released boot.lock
-    // for itself (its own docstring) — the sticky default here is that ordinary case, so a caller
-    // whose OWN failure (a seed) runs the catch block's bootLockReleaseBroker call for the first
-    // time in a happy-boot test finds no lock left to release, exactly as a real released lock reads.
-    readHandle
-      .calledWith([BOOT_LOCK_PATH_ABS])
-      .rejects(FileMissingErrorStub({ path: BOOT_LOCK_PATH_VALUE }));
-
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
     openFdProxy.returns({ path: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
 
     spawnProxy.setupSuccess({
-      command: process.execPath,
+      command: execPath,
       args: [
         expectedDriverBinPath,
         'siegelense',
@@ -459,9 +376,9 @@ export const instanceStartBrokerProxy = (): {
         { length: DATE_NOW_CALLS_BEFORE_QUEUED_MS_END },
         (_unused, index) => index,
       ).forEach(() => {
-        dateNowHandle.onceFor([]).returns(startedAtMs);
+        clockProxy.setupNowOnce({ ms: startedAtMs });
       });
-      dateNowHandle.onceFor([]).returns(startedAtMs + queuedMs);
+      clockProxy.setupNowOnce({ ms: startedAtMs + queuedMs });
 
       const socketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
@@ -480,7 +397,7 @@ export const instanceStartBrokerProxy = (): {
       // already-past-deadline value instead of a real ~180s wait.
       Array.from({ length: DATE_NOW_CALLS_BEFORE_POLL_CHECK }, (_unused, index) => index).forEach(
         () => {
-          dateNowHandle.onceFor([]).returns(nowMs);
+          clockProxy.setupNowOnce({ ms: nowMs });
         },
       );
 
@@ -495,10 +412,11 @@ export const instanceStartBrokerProxy = (): {
         deadlineMs: nowMs + driverStatics.boot.defaultTimeoutMs,
       });
 
-      readHandle
-        .calledWith([BOOT_LOCK_PATH_ABS])
-        .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: nowMs }));
-      unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+      bootLockReleaseProxy.setupLockHeldBy({
+        heldBy: instanceId,
+        heldByPid: ProcessIdStub(),
+        acquiredAtMs: EpochMsStub({ value: nowMs }),
+      });
 
       // The driver's own ping never answers here, but this stages nothing about WHICH lane
       // process is unready — instanceStartBroker now probes each checkable process's own
@@ -543,10 +461,11 @@ export const instanceStartBrokerProxy = (): {
       // The driver never got as far as writing a boot lock in this scenario either — it dies
       // before laneBootBroker's own success path stamps anything — so releasing boot.lock reads
       // the same acquired-by-this-instance shape the timeout path above stages.
-      readHandle
-        .calledWith([BOOT_LOCK_PATH_ABS])
-        .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: 0 }));
-      unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+      bootLockReleaseProxy.setupLockHeldBy({
+        heldBy: instanceId,
+        heldByPid: ProcessIdStub(),
+        acquiredAtMs: EpochMsStub(),
+      });
 
       // Same reasoning as setupBootNeverAnswers above: the catch's instanceKillBroker call falls
       // to the orphan-reap path against a socket that never answered, and a driver that died
@@ -557,29 +476,14 @@ export const instanceStartBrokerProxy = (): {
       });
     },
 
-    // Reserve's own write (state: 'alive') always lands first and must keep succeeding — only the
-    // SECOND write to registry.json.tmp (instanceReleaseBroker's, after the boot fails) is made to
-    // fail, via a queued pair of one-shots on the SAME shared writeFile mock every registry broker
-    // in this file shares.
-    stageInstanceReleaseWriteFails: ({ error }: { error: Error }): void => {
-      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
-      writeHandle.onceFor([REGISTRY_TMP_PATH_ABS]).rejects(error);
-    },
+    getWrittenBootLock: (): unknown => bootLockAcquireProxy.getWrittenLock(),
 
-    getWriteOrder: (): readonly FilePath[] =>
-      writeHandle.callsMatching([]).map((call) => filePathContract.parse(String(call[0]))),
+    getBootLockReleasedPaths: (): unknown[] => bootLockReleaseProxy.getDeletedPaths(),
 
-    getBootLockReleasedPaths: (): unknown[] =>
-      unlinkHandle.callsMatching([BOOT_LOCK_PATH_ABS]).map((call) => call[0]),
-
-    getLastRegistryWriteContent: (): unknown => {
-      const calls = writeHandle.callsMatching([REGISTRY_TMP_PATH_ABS]);
-      const lastCall = calls[calls.length - 1];
-      return lastCall === undefined ? undefined : JSON.parse(String(lastCall[1]));
-    },
+    getLastRegistryWriteContent: (): unknown => reserveProxy.getWrittenRegistry(),
 
     getStderrMessages: (): readonly ReturnType<typeof ContentTextStub>[] =>
-      stderrHandle.callsMatching([]).map((call) => ContentTextStub({ value: String(call[0]) })),
+      stderrRecorder.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
 
     mintInstanceId: (): InstanceId =>
       InstanceIdStub({ value: `inst_${MINTED_UUID_VALUE.split('-').join('')}` }),
@@ -625,9 +529,9 @@ export const instanceStartBrokerProxy = (): {
     // read that classifies that failure fails for a reason that has nothing to do with absence —
     // the ONE branch that throws immediately, with no retry and no Date.now() sequencing to stage.
     stageBootLockAcquireFailsWithReadError: ({ registry }: { registry: Registry }): void => {
-      // Staged explicitly, as `stageBoot` does: this scenario reaches registryReadBroker's
-      // homedir() fallback with no other setup method having pinned it.
-      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
+      stageRegistryAndLocks({ registry });
+      // No link lookup is reached, but reserve's git-branch lookup reads cwd().
+      repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
       // Same reasoning as stageBoot's own evidence-dir stage: reserve creates the instance's
       // evidence directory before boot-lock-acquire ever runs. This scenario takes no
       // evidencePath param (it never reaches a boot attempt), so it addresses the one fixed
@@ -638,24 +542,9 @@ export const instanceStartBrokerProxy = (): {
         rootPath: ROOT_PATH_FILE,
         evidencePath: FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE }),
       });
-      // Same drain `stageBoot` runs, for the same reason (see PATH_JOIN_DRAIN_COUNT above):
-      // bootLockAcquireBrokerProxy/bootLockReleaseBrokerProxy each queue one-shot pathJoin
-      // resolutions unconditionally at construction, and this scenario reaches registryReadBroker's
-      // own real path joins before any of that queue has otherwise been drained.
-      Array.from({ length: PATH_JOIN_DRAIN_COUNT }, (_unused, drainIndex) => drainIndex).forEach(
-        (drainIndex) => {
-          join('drain', String(drainIndex));
-        },
-      );
-      readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
-      writeHandle
-        .calledWith([BOOT_LOCK_PATH_ABS])
-        .rejects(FileExistsRecordedErrorStub({ path: BOOT_LOCK_PATH_VALUE }));
       // EMFILE, not ENOENT: a read that fails for a reason other than absence, which the acquire
       // must throw rather than read as a released lock.
-      readHandle
-        .calledWith([BOOT_LOCK_PATH_ABS])
-        .rejects(FsErrorStub({ code: 'EMFILE', path: BOOT_LOCK_PATH_VALUE, syscall: 'open' }));
+      bootLockAcquireProxy.setupLockReadFailsForNonAbsenceReason();
     },
 
     // Addressed on the `recipe` field alone — a prefix match, so the real apiBaseUrl/homePath/

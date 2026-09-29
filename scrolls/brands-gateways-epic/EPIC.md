@@ -118,9 +118,9 @@ holds every earlier handoff.
 - **Phase 2 is complete.** No package has an `adapters/` folder (A13 done, 7cb5ff272). F76 is done.
 - **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
   - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B30; orchestrator B01 to B03; server B01 to B03;
-    siegelense S01 to S04 (siegelense uses its own re-census, not the plan's section; see below).
+    siegelense S01 to S05 (siegelense uses its own re-census, not the plan's section; see below).
   - Hand batches left: web B31 onward (about 87), orchestrator B04
-    onward (51), server B04 onward (7), siegelense S05 onward (29), and every batch for shared (16), testing (12,
+    onward (51), server B04 onward (7), siegelense S06 onward (28), and every batch for shared (16), testing (12,
     re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
     config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
 - **Gateway additions this session, all committed and built:** GN5 to GN10 (`stream`/`http`/`zlib`; stdout/stderr
@@ -157,7 +157,7 @@ last report; uncommitted work in that area is that agent's.
 | orchestrator | B03, with `isSpawnedStdout`/`isSpawnedStderr` on the stream-json proxy | done, committed. One raw `readline` import stays in the unified-spawn proxy: tail-file's proxy stages `createInterface` on the raw module and both must share one mock; a gateway-owned `createInterface` proxy would clear it |
 | server | B03 plus `server-init-responder.proxy.ts` clock staging | done, committed |
 | GN11 | `@gateway/node` `setTimeout` and `clearTimeout` read the global at call time and have proxies (`setupFiresImmediately`, `setupNeverFires`, `getCallsFor`); siegelense `instance-kill` and `step-hold` proxies moved | done, committed, built. Still hand-staged: orchestrator `timer-sleep-broker.proxy.ts` |
-| siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging); S05's other files are uncommitted | running |
+| siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging) | done, committed; two tests were deleted to get there, recorded as F77 (restore them first) |
 
 ### How A18 was run (copy this)
 
@@ -554,6 +554,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F64 | `@gateway/node` gaps that stop orchestrator's `read-jsonl`, `readdir` and `watch-tail` adapters (A10 `### G-CC fs`): `readNonEmptyLinesProxy` has no one-shot rejection; the sync readdir wrapper's proxy has no one-shot; `tailFile` returns no `initialDrain` and `tailFileProxy` stages every call as `calledWith([])`. | A10 G-CC fs | done c0b2972f1 | |
 | F61 | `@gateway/browser`'s `fetchJsonProxy` and `fetchWithStatusProxy` offer no request count, so seven web `fetch/post` brokers whose tests assert `getRequestCount()` cannot move (`orchestration-dispatch-pause`, `orchestration-dispatch-play`, `quest-clarify`, `quest-followup-stop`, `quest-merge`, `quest-pause`, `quest-resume`). Also: `directory-browse-broker` is called on mount by `DirectoryBrowserModalWidget`, so migrating it makes every widget test that does not stage that endpoint fail on an unhandled request. | A17 W-POST | done c7b81850d | Seven brokers moved in e1076c324. `directory-browse` stays open. |
 | F25 | `@gateway/node`'s `run`: `runProxy()` addresses a call by `command` alone, and `RunNotFoundError` has no proxy, so `enforce-proxy-child-creation` blocks any caller that catches it. W2 (40b6641d5) mocked `run` directly and let a missing `git` reject where the old adapter resolved `exitCode: 1`. F25 fixes the gateway, then restores that fallback in ward's git brokers. Every other `childProcessSpawnCaptureAdapter` group waits for F25. | W2 | done 5b3a16ede | `runProxy` stages by `command`, `args` and `cwd`; `RunNotFoundErrorProxy` exists; ward git brokers restored. `@gateway/node` rebuilt. The `run` recipe is in the A12 item. |
+| F77 | S05 (siegelense `instance-start`) deleted two tests to drop the proxy's raw `fs` staging: the one asserting the registry write lands before the boot-lock write (`getWriteOrder`), and "releasing the reservation itself throws" (`stageInstanceReleaseWriteFails`). Restore both. Needs: a write-order read-back and a fail-the-second-`registry.json.tmp`-write stage on the registry proxies (`instance-release-broker.proxy.ts`, `registry-update-broker.proxy.ts` or `registry-write-broker.proxy.ts`) that `instance-start`'s proxy can reach through its child proxies. Same file, also open: `registerMock({ fn: capacityReadBroker })` and `registerMock({ fn: recipeSeedRunBroker })` stay (the capacity proxy reads the same registry mock; the seed proxy has no reject stage and one-shot `cwd` staging), `stageSeedFails` still stages a hand-made `new Error`, and the boot lock's `heldByPid` is the real pid. | siegelense S05 | open | |
 | F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | done | a8369332a; ward rebuilt. Typecheck runs a second pass against `tsconfig.build.json`. It found TS2379 in `testing` (F11 fixing) and TS6059 in `@gateway/browser` (G21 fixing). |
 
 ## Blocked items
