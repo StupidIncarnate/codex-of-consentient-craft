@@ -28,6 +28,9 @@
  *
  * statusTableStatics.singleInstanceTable.headers;
  * // Returns ['FIELD', 'VALUE']
+ *
+ * statusTableStatics.evidenceTree.indent;
+ * // Returns '  ' — one nesting level of the EVIDENCE DIR file tree
  */
 
 export const statusTableStatics = {
@@ -48,6 +51,9 @@ export const statusTableStatics = {
   singleInstanceTable: {
     headers: ['FIELD', 'VALUE'] as const,
     cellPadding: 2,
+  },
+  evidenceTree: {
+    indent: '  ',
   },
   sinceWindows: {
     order: ['1h', '6h', '1d', 'beginning'] as const,

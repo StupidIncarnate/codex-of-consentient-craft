@@ -32,7 +32,7 @@ describe('SiegelenseStatusResponder', () => {
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
-          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
       ]);
     });
@@ -46,7 +46,7 @@ describe('SiegelenseStatusResponder', () => {
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
-          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
       ]);
     });
@@ -76,7 +76,6 @@ describe('SiegelenseStatusResponder', () => {
           cores: 8,
           loadAvg: [7.9, 6.2, 4.1],
           oomKillsSinceBoot: 2,
-          lastOomAt: '20:11:04',
         },
         instances: [
           InstanceStatusStub({
@@ -86,8 +85,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 3,
-            rssMB: 1840,
-            rssAtLastBeat: null,
+            memory: { megabytes: 1840, measured: 'live' },
             lastStep: null,
             orphans: [],
             evidence: null,
@@ -100,8 +98,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: null,
             lastBeat: '9h ago',
             runs: 5,
-            rssMB: null,
-            rssAtLastBeat: 1200,
+            memory: { megabytes: 1200, measured: 'at-last-beat' },
             lastStep: null,
             orphans: [{ pgid: 33_812, cmd: null, alive: true }],
             evidence: null,
@@ -128,7 +125,6 @@ describe('SiegelenseStatusResponder', () => {
           cores: 8,
           loadAvg: [7.9, 6.2, 4.1],
           oomKillsSinceBoot: 2,
-          lastOomAt: '20:11:04',
         },
         instances: [
           InstanceStatusStub({
@@ -138,8 +134,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: '14m',
             lastBeat: '2s ago',
             runs: 3,
-            rssMB: 1840,
-            rssAtLastBeat: null,
+            memory: { megabytes: 1840, measured: 'live' },
             lastStep: null,
             orphans: [],
             evidence: null,
@@ -152,8 +147,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: null,
             lastBeat: '9h ago',
             runs: 5,
-            rssMB: null,
-            rssAtLastBeat: 1200,
+            memory: { megabytes: 1200, measured: 'at-last-beat' },
             lastStep: null,
             orphans: [{ pgid: 33_812, cmd: null, alive: true }],
             evidence: null,
@@ -167,7 +161,7 @@ describe('SiegelenseStatusResponder', () => {
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
-          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
           '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
@@ -194,8 +188,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: null,
             lastBeat: '9h ago',
             runs: 3,
-            rssMB: null,
-            rssAtLastBeat: 1840,
+            memory: { megabytes: 1840, measured: 'at-last-beat' },
             lastStep: { run: 'run_2', step: 7, verb: 'click' },
             orphans: [
               { pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true },
@@ -206,9 +199,12 @@ describe('SiegelenseStatusResponder', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
                 linkPresent: true,
               },
-              transcript: 'run_2.jsonl',
-              logs: ['api-server.log', 'web-server.log'],
-              lastShot: 'run_2/step7.png',
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+                  bytes: 2048,
+                },
+              ],
             },
             likelyCause:
               'OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot',
@@ -239,8 +235,7 @@ describe('SiegelenseStatusResponder', () => {
             uptime: null,
             lastBeat: '9h ago',
             runs: 3,
-            rssMB: null,
-            rssAtLastBeat: 1840,
+            memory: { megabytes: 1840, measured: 'at-last-beat' },
             lastStep: { run: 'run_2', step: 7, verb: 'click' },
             orphans: [
               { pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true },
@@ -251,9 +246,12 @@ describe('SiegelenseStatusResponder', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
                 linkPresent: true,
               },
-              transcript: 'run_2.jsonl',
-              logs: ['api-server.log', 'web-server.log'],
-              lastShot: 'run_2/step7.png',
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+                  bytes: 2048,
+                },
+              ],
             },
             likelyCause:
               'OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot',
@@ -278,10 +276,7 @@ describe('SiegelenseStatusResponder', () => {
           '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
           '│              │ pgid 33840 (dead)                                                                       │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
-          '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
-          '│ LOGS         │ api-server.log                                                                          │\n' +
-          '│              │ web-server.log                                                                          │\n' +
-          '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
+          '│              │ api-server.log (2048 bytes)                                                             │\n' +
           '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       ]);

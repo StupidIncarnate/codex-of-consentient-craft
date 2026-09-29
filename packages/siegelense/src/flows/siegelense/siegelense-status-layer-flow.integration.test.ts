@@ -19,9 +19,9 @@
  * `--branch`/`--since` case below renders the human table rather than `--json`. The two `--json`
  * assertions that remain stay exact-literal only because their `instances` array is empty (a
  * `--branch` matching nothing, an unknown `--instance`), the same `machine`-block-stripped technique
- * `siegelense-flow.integration.test.ts` already applies to `status --json`. The one place a live value
- * survives into an assertion — the known-instance human render's `LIKELY CAUSE` line — is normalised by
- * its own regex before the `toBe`, same idea, applied to that one line instead of a JSON block.
+ * `siegelense-flow.integration.test.ts` already applies to `status --json`. The known-instance human
+ * render carries no live value at all: a `killed` instance with no recorded shutdown reason has no
+ * `LIKELY CAUSE`, so that row renders `-`.
  *
  * USAGE:
  * await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', 'beginning'] });
@@ -57,14 +57,6 @@ const UNKNOWN_INSTANCE_ID = InstanceIdStub({ value: 'inst_deadbeef01' });
 const SPEC_NAME = SpecNameStub({ value: 'dungeonmaster-stack' });
 
 const MACHINE_BLOCK_PATTERN = / {2}"machine": \{[\s\S]*?\n {2}\},\n/u;
-// Matches the LIKELY CAUSE cell's own trimmed VALUE (no "LIKELY CAUSE:" prefix, no box-drawing
-// padding) — the single-instance view now renders as a box-drawing table whose VALUE column width
-// depends on the live evidence-dir path length, so the row is parsed into a plain field/value
-// object before this pattern normalises the one host-dependent cell, rather than pattern-matching
-// the raw padded table text.
-const LIKELY_CAUSE_VALUE_PATTERN =
-  /^memory unavailable at last beat; kernel OOM (?:kills since boot: \d+|events unavailable)$/u;
-
 const EMPTY_BRANCH_STATUS_JSON = `${JSON.stringify(
   { monitored: machineStatics.monitored, instances: [], queriedInstanceState: null },
   null,
@@ -325,7 +317,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   });
 
   describe('the --instance flag naming a known instance', () => {
-    it('VALID: {callArgs: [--instance, <known id>]} => renders that one instance in full instead of the fleet', async () => {
+    it('VALID: {callArgs: [--instance, <known killed id>]} => renders that one instance in full instead of the fleet, with no LIKELY CAUSE for a deliberate kill', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -353,12 +345,8 @@ describe('SiegelenseStatusLayerFlow', () => {
               .map((cell) => cell.trim()),
           ),
       );
-      const normalizedLikelyCause = String(renderedFields['LIKELY CAUSE']).replace(
-        LIKELY_CAUSE_VALUE_PATTERN,
-        '<host-dependent OOM reading, normalised>',
-      );
 
-      expect({ ...renderedFields, 'LIKELY CAUSE': normalizedLikelyCause }).toStrictEqual({
+      expect(renderedFields).toStrictEqual({
         INSTANCE: `${MAIN_RECENT_ID} — killed`,
         SPEC: 'dungeonmaster-stack',
         UPTIME: '-',
@@ -368,10 +356,8 @@ describe('SiegelenseStatusLayerFlow', () => {
         'LAST STEP': '-',
         ORPHANS: 'none',
         'EVIDENCE DIR': `${testbed.guildPath}/siegelense/unowned/instances/${MAIN_RECENT_ID}`,
-        TRANSCRIPT: '-',
-        LOGS: 'none',
-        'LAST SHOT': '-',
-        'LIKELY CAUSE': '<host-dependent OOM reading, normalised>',
+        '': 'no files',
+        'LIKELY CAUSE': '-',
       });
     });
   });

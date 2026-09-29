@@ -8,7 +8,7 @@
  * orphaned process-group ids themselves are recorded (spec lines 1132-1133, 1672). `rssMB` is measured
  * over these SAME pgids via `machineRssByPgidBroker` and written into the beat itself — the last
  * chance to record it while the pgids are still alive, since `status` reads it back as a dead
- * instance's `rssAtLastBeat` rather than trying to re-measure a process group that may already be
+ * instance's `memory` (`measured: 'at-last-beat'`) rather than trying to re-measure a process group that may already be
  * gone. That measurement happens AFTER both path-resolving calls below, never before: reordering it
  * earlier would race it against the evidence-dir and heartbeat-path resolution in a mocked test.
  *

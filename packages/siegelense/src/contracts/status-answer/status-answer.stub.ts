@@ -19,7 +19,6 @@ export const StatusAnswerStub = ({ ...props }: StubArgument<StatusAnswer> = {}):
       cores: 8,
       loadAvg: [7.9, 6.2, 4.1],
       oomKillsSinceBoot: 2,
-      lastOomAt: '20:11:04',
     },
     instances: [],
     queriedInstanceState: null,

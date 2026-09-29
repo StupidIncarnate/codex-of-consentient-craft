@@ -1,5 +1,4 @@
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
@@ -94,7 +93,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: ids.map((id) => ({
             id,
@@ -103,14 +101,13 @@ describe('statusReadBroker', () => {
             uptime: '1m',
             lastBeat: '1s',
             runs: 0,
-            rssMB: 0,
-            rssAtLastBeat: null,
+            memory: { megabytes: 0, measured: 'live' },
             lastStep: null,
             orphans: [],
             evidence: null,
             likelyCause: null,
             branch: null,
-            evidenceComplete: true,
+            lastRunSaved: null,
           })),
         }),
       );
@@ -147,7 +144,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [],
         }),
@@ -156,7 +152,7 @@ describe('statusReadBroker', () => {
   });
 
   describe('a named dead instance, with a completed run', () => {
-    it('VALID: {instanceId named, a dead instance} => evidence, lastStep, orphans, rssAtLastBeat and likelyCause all populated', async () => {
+    it('VALID: {instanceId named, a dead instance} => evidence, lastStep, orphans, memory at last beat and likelyCause all populated', async () => {
       const proxy = statusReadBrokerProxy();
       const nowMs = 1_700_001_000_000;
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
@@ -222,10 +218,6 @@ describe('statusReadBroker', () => {
       proxy.setupPidCmdlinePathJoin({ pid: '100' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
-      proxy.setupApiLogPresent({ evidencePath });
-      proxy.setupWebLogPresent({ evidencePath });
-      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -233,9 +225,22 @@ describe('statusReadBroker', () => {
         homePath,
         rootPath,
       });
-      proxy.setupLogFullPathJoins({
-        repoLocalPath: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}`,
-        logs: [locationsStatics.siegelense.apiLog, locationsStatics.siegelense.webLog],
+      proxy.setupEvidenceTreeDir({
+        dirPath: String(evidencePath),
+        files: [
+          { name: 'web-server.log', bytes: 300 },
+          { name: 'api-server.log', bytes: 1200 },
+        ],
+        dirs: ['runs'],
+      });
+      proxy.setupEvidenceTreeDir({
+        dirPath: `${evidencePath}/runs`,
+        files: [{ name: 'run_2.jsonl', bytes: 2000 }],
+        dirs: ['run_2'],
+      });
+      proxy.setupEvidenceTreeDir({
+        dirPath: `${evidencePath}/runs/run_2`,
+        files: [{ name: 'step7.png', bytes: 51000 }],
       });
       proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
@@ -264,7 +269,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [
             {
@@ -274,8 +278,7 @@ describe('statusReadBroker', () => {
               uptime: null,
               lastBeat: '4m',
               runs: 2,
-              rssMB: null,
-              rssAtLastBeat: 2980,
+              memory: { megabytes: 2980, measured: 'at-last-beat' },
               lastStep: { run: 'run_2', step: 7, verb: 'click' },
               orphans: [{ pgid: 33_812, cmd: 'npm run dev:no-watch', alive: true }],
               evidence: {
@@ -283,17 +286,29 @@ describe('statusReadBroker', () => {
                   path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}`,
                   linkPresent: true,
                 },
-                transcript: 'run_2.jsonl',
-                logs: [
-                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
-                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                files: [
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
+                    bytes: 1200,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/runs/run_2/step7.png`,
+                    bytes: 51000,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/runs/run_2.jsonl`,
+                    bytes: 2000,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                    bytes: 300,
+                  },
                 ],
-                lastShot: 'run_2/step7.png',
               },
               likelyCause:
                 'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
               branch: null,
-              evidenceComplete: false,
+              lastRunSaved: false,
             },
           ],
           queriedInstanceState: 'dead',
@@ -335,7 +350,6 @@ describe('statusReadBroker', () => {
             cores: 8,
             loadAvg: [7.9, 6.2, 4.1],
             oomKillsSinceBoot: 2,
-            lastOomAt: null,
           },
           instances: [],
           queriedInstanceState: 'unknown',
@@ -410,14 +424,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'feat/branch-a',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -489,14 +502,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -568,14 +580,13 @@ describe('statusReadBroker', () => {
           uptime: null,
           lastBeat: null,
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: null,
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -671,14 +682,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
         {
           id: idOld,
@@ -687,14 +697,13 @@ describe('statusReadBroker', () => {
           uptime: null,
           lastBeat: '7h',
           runs: 0,
-          rssMB: null,
-          rssAtLastBeat: null,
+          memory: null,
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
@@ -766,14 +775,13 @@ describe('statusReadBroker', () => {
           uptime: '1m',
           lastBeat: '1s',
           runs: 0,
-          rssMB: 0,
-          rssAtLastBeat: null,
+          memory: { megabytes: 0, measured: 'live' },
           lastStep: null,
           orphans: [],
           evidence: null,
           likelyCause: null,
           branch: 'main',
-          evidenceComplete: true,
+          lastRunSaved: null,
         },
       ]);
     });
