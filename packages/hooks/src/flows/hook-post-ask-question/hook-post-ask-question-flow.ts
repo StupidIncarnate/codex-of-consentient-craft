@@ -6,6 +6,7 @@
  * // Returns ExecResult with stdout, stderr, exitCode (0 on success, 2 on failure).
  */
 
+import { stderr } from '#gateway/node/process';
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { HookPostAskQuestionResponder } from '../../responders/hook/post-ask-question/hook-post-ask-question-responder';
 import { hookExitCodeStatics } from '../../statics/hook-exit-code/hook-exit-code-statics';
@@ -17,7 +18,7 @@ export const HookPostAskQuestionFlow = async ({
 }): Promise<ExecResult> => {
   const result = await HookPostAskQuestionResponder({ inputData }).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`[post-ask-question] ${message}\n`);
+    stderr.write(`[post-ask-question] ${message}\n`);
     return execResultContract.parse({
       stdout: '',
       stderr: message,
