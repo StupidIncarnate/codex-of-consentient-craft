@@ -111,6 +111,35 @@ beforeEach(() => {
 
 ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationColocationBroker(), {
   valid: [
+    // Package barrels: src/<folderType>/<folderType>.ts re-exporting only, no test or proxy
+    {
+      code: "export * from './user/user-contract';",
+      filename: '/project/src/contracts/contracts.ts',
+    },
+    {
+      code: "export * from './is-key-of/is-key-of-guard';",
+      filename: '/project/src/guards/guards.ts',
+    },
+    {
+      code: "export * from './format-date/format-date-transformer';",
+      filename: '/project/src/transformers/transformers.ts',
+    },
+    {
+      code: "export * from './architecture/overview/architecture-overview-broker';",
+      filename: '/project/src/brokers/brokers.ts',
+    },
+    {
+      code: "export * from './user/user-statics';",
+      filename: '/project/src/statics/statics.ts',
+    },
+    {
+      code: "export * from './validation/validation-error';",
+      filename: '/project/src/errors/errors.ts',
+    },
+    {
+      code: "export type { StubArgument } from './stub-argument.type';",
+      filename: '/project/src/@types/@types.ts',
+    },
     // Implementation files with colocated tests
     {
       code: 'export const userFetchBroker = () => {};',
@@ -267,6 +296,32 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     },
   ],
   invalid: [
+    // A barrel-named file holding an implementation is graded like any other file
+    {
+      code: 'export const orderFetchBroker = () => {};',
+      filename: '/project/src/brokers/brokers.ts',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
+    },
+    {
+      code: "import { z } from 'zod';\nexport * from './user/user-contract';",
+      filename: '/project/src/brokers/brokers.ts',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
+    },
+    // A barrel-named file one folder too deep is not a barrel
+    {
+      code: "export * from './user/user-contract';",
+      filename: '/project/src/brokers/brokers/brokers.ts',
+      errors: [
+        { messageId: 'missingTestFileWithLayer' },
+        { messageId: 'missingProxyFileWithLayer' },
+      ],
+    },
     // Statics with a regex literal and no test file - invalid: the regex is logic,
     // so it still needs a colocated test even though plain statics data does not
     {

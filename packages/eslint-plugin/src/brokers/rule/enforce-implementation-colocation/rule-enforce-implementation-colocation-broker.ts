@@ -17,6 +17,8 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
+import { isReexportOnlyProgramGuard } from '../../../guards/is-reexport-only-program/is-reexport-only-program-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
@@ -88,6 +90,12 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
 
         // Only check files in /src/ directory
         if (!filename.includes('/src/')) {
+          return;
+        }
+
+        // A folder type's own re-export-only barrel needs no test or proxy; a same-named
+        // file holding an implementation is graded like any other.
+        if (isPackageBarrelFileGuard({ filename }) && isReexportOnlyProgramGuard({ node })) {
           return;
         }
 

@@ -5,6 +5,40 @@ const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(), {
   valid: [
+    // ========== PACKAGE BARRELS: src/<folderType>/<folderType>.ts re-exporting only ==========
+    {
+      code: "export * from './user/user-contract';\nexport * from './order/order-contract';",
+      filename: '/project/src/contracts/contracts.ts',
+    },
+    {
+      code: "export * from './is-key-of/is-key-of-guard';",
+      filename: '/project/src/guards/guards.ts',
+    },
+    {
+      code: "export * from './format-date/format-date-transformer';",
+      filename: '/project/src/transformers/transformers.ts',
+    },
+    {
+      code: "export * from './user/user-statics';",
+      filename: '/project/src/statics/statics.ts',
+    },
+    {
+      code: "export * from './architecture/overview/architecture-overview-broker';",
+      filename: '/project/src/brokers/brokers.ts',
+    },
+    {
+      code: "export * from './validation/validation-error';",
+      filename: '/project/src/errors/errors.ts',
+    },
+    {
+      code: "export type { StubArgument } from './stub-argument.type';",
+      filename: '/project/src/@types/@types.ts',
+    },
+    {
+      code: "export { userContract } from './user/user-contract';\nexport type { User } from './user/user-contract';",
+      filename: '/project/src/contracts/contracts.ts',
+    },
+
     // ========== END-TO-END VALID: Representative cases across folder types ==========
     {
       code: 'export const userFetchBroker = () => {};',
@@ -69,6 +103,45 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
   ],
 
   invalid: [
+    // ========== PACKAGE BARREL IMPOSTERS ==========
+    {
+      code: 'export const userContract = z.object({});',
+      filename: '/project/src/contracts/contracts.ts',
+      errors: [{ messageId: 'invalidFolderDepth' }],
+    },
+    {
+      code: "import { z } from 'zod';\nexport * from './user/user-contract';",
+      filename: '/project/src/contracts/contracts.ts',
+      errors: [{ messageId: 'invalidFolderDepth' }],
+    },
+    {
+      code: "export * from './user/user-contract';",
+      filename: '/project/src/contracts/contracts/contracts.ts',
+      errors: [{ messageId: 'invalidFileSuffixWithLayer' }],
+    },
+    {
+      code: "export * from './user/user-contract';",
+      filename: '/project/src/brokers/brokers/brokers.ts',
+      errors: [{ messageId: 'invalidFolderDepth' }],
+    },
+    {
+      code: "export * from './user/user-contract';",
+      filename: '/project/src/contracts/user/contracts.ts',
+      errors: [
+        { messageId: 'invalidFileSuffixWithLayer' },
+        { messageId: 'invalidFilenameCaseWithLayer' },
+      ],
+    },
+    {
+      code: "export * from './x/x-thing';",
+      filename: '/project/src/things/things.ts',
+      errors: [{ messageId: 'unknownFolder' }],
+    },
+    {
+      code: 'export const stubArgument = 1;',
+      filename: '/project/src/@types/@types.ts',
+      errors: [{ messageId: 'unknownFolder' }],
+    },
     // ========== GATE PATTERN: L1 fail stops L2/L3/L4 ==========
     // Forbidden folder -> ONLY L1 error, no depth/filename/export errors
     {

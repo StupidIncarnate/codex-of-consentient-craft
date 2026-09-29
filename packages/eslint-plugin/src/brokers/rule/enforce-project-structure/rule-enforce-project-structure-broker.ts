@@ -11,6 +11,8 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
+import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
+import { isReexportOnlyProgramGuard } from '../../../guards/is-reexport-only-program/is-reexport-only-program-guard';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { validateFolderLocationLayerBroker } from './validate-folder-location-layer-broker';
 import { validateFolderDepthLayerBroker } from './validate-folder-depth-layer-broker';
@@ -93,6 +95,12 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
       return {
         Program: (node: Tsestree): void => {
+          // A folder type's own barrel (`src/contracts/contracts.ts`) sits at depth 0 and
+          // re-exports with `export *`; a same-named file holding anything else is graded normally.
+          if (isPackageBarrelFileGuard({ filename }) && isReexportOnlyProgramGuard({ node })) {
+            return;
+          }
+
           const isLayerFile = filename.includes('-layer-');
           const folderConfig = folderConfigStatics[firstFolder as keyof typeof folderConfigStatics];
 
