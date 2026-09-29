@@ -1,3 +1,4 @@
+import { setImmediate } from '#gateway/node/setImmediate';
 import { RepoRootCwdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';

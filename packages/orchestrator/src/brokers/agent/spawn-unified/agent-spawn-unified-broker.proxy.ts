@@ -5,7 +5,6 @@ import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { createInterface } from 'readline';
-import { Readable } from 'stream';
 
 import { agentSpawnStreamJsonBrokerProxy } from '../spawn-stream-json/agent-spawn-stream-json-broker.proxy';
 
@@ -40,15 +39,21 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   stderrProxy();
   const spawnProxy = agentSpawnStreamJsonBrokerProxy();
 
-  // `readline.createInterface` is one shared handle: the file tailer's proxy stages it for its own
-  // fabricated stream. The child's stdout is a real `stream.Readable`, so `input instanceof
-  // Readable` is a self-contained address, and the reader behind it is the real one — the lines a
-  // test pushes onto stdout are what the broker reads.
+  // `createInterface` is one shared handle: the file tailer's proxy stages it for its own
+  // fabricated stream. This answers only for a stdout or stderr the spawn proxy handed out, and the reader
+  // behind it is the real one — the lines a test pushes onto stdout are what the broker reads.
+  // The raw `readline` import is deliberate: registerMock keys a mock by the module a function is
+  // imported from, and the file tailer's proxy stages the raw module's `createInterface`, which
+  // `#gateway/node/readline`'s re-export does not share.
   const realReadline = requireActual<{ createInterface: typeof createInterface }>({
     module: 'readline',
   });
-  registerMock({ fn: createInterface })
-    .calledWith([{ input: (input: unknown): boolean => input instanceof Readable }])
+  const interfaceMock = registerMock({ fn: createInterface });
+  interfaceMock
+    .calledWith([{ input: spawnProxy.isSpawnedStdout }])
+    .implement((options: never) => realReadline.createInterface(options));
+  interfaceMock
+    .calledWith([{ input: spawnProxy.isSpawnedStderr }])
     .implement((options: never) => realReadline.createInterface(options));
 
   return {

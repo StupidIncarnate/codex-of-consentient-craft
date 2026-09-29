@@ -41,6 +41,8 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
   setupSpawnThrowOnce: (params: { error: Error }) => void;
   setupAutoStdoutLines: (params: { lines: readonly string[] }) => void;
   emitStdoutLines: (params: { lines: readonly string[] }) => void;
+  isSpawnedStdout: (value: unknown) => boolean;
+  isSpawnedStderr: (value: unknown) => boolean;
   setupSettingsNotFound: () => void;
   setupSettingsJson: (params: { json: string }) => void;
   getSpawnedArgs: () => unknown;
@@ -103,8 +105,14 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
   // Every child's stdout, oldest first, so a test can push lines to the children spawned so far.
   const spawnedStdouts: NonNullable<MockProcess['stdout']>[] = [];
 
+  // The broker taps a child's stderr through a line reader when it is handed `onStderrLine`.
+  const spawnedStderrs: NonNullable<MockProcess['stderr']>[] = [];
+
   const createMockProcess = (): MockProcess => {
     const mockProcess = Object.assign(ChildProcessStub(), { kill: jest.fn() });
+    if (mockProcess.stderr !== null) {
+      spawnedStderrs.push(mockProcess.stderr);
+    }
     if (mockProcess.stdout !== null) {
       spawnedStdouts.push(mockProcess.stdout);
     }
@@ -217,6 +225,10 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
         stdout.push(lines.map((line) => `${line}\n`).join(''));
       }
     },
+
+    isSpawnedStdout: (value: unknown): boolean => spawnedStdouts.some((stdout) => stdout === value),
+
+    isSpawnedStderr: (value: unknown): boolean => spawnedStderrs.some((stderr) => stderr === value),
 
     setupSettingsNotFound: (): void => {
       settingsProxy.throwsMatchingPath({
