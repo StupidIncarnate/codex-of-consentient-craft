@@ -1,3 +1,4 @@
+import { stderr } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { processStaleWatchBrokerProxy } from '../../../brokers/process/stale-watch/process-stale-watch-broker.proxy';
@@ -18,7 +19,7 @@ export const ProcessStaleWatchBootstrapResponderProxy = (): {
   ) => void;
   reset: () => void;
   // The one real fact a tick can produce: a `[dev] WARN stale ...` line, written directly to
-  // process.stderr.write (not through an adapter) by the responder's own onStale callback.
+  // stderr.write (not through an adapter) by the responder's own onStale callback.
   stderrLines: () => unknown;
   registerProcess: (params: { orchestrationProcess: OrchestrationProcess }) => void;
 } => {
@@ -33,7 +34,7 @@ export const ProcessStaleWatchBootstrapResponderProxy = (): {
   // composes the state's own proxy to seed a registered process for the tick to scan.
   const processesProxy = orchestrationProcessesStateProxy();
 
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
   stderrSpy.calledWith([]).returns(true);
 
   return {

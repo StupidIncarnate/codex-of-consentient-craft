@@ -15,6 +15,7 @@
  * // { attempted: false, restored: false } when this quest has no worktree branch to put back
  */
 
+import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract, type Quest } from '@dungeonmaster/shared/contracts';
 
 import type { QuestCwdResolution } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
@@ -50,7 +51,7 @@ export const worktreeEnsureQuestBranchBroker = async ({
   // resumed agent can still work from whatever branch it is actually on. Log instead of throwing
   // so the mismatch is diagnosable without stopping a resume, a guild sweep, or a dispatch.
   if (!restored) {
-    process.stderr.write(
+    stderr.write(
       `[${trigger}] worktree restore failed for quest ${quest.id} on branch ${branchName}: ${output}\n`,
     );
   }

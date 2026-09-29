@@ -16,8 +16,10 @@
  * stop();
  * await end();
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
+import * as fs from '#gateway/node/fs';
+import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
@@ -65,8 +67,8 @@ export const questOutboxHarness = (): {
     const testbed = installTestbedCreateBroker({ baseName: name });
     const homeDir = testbed.guildPath;
 
-    const savedHome = process.env.DUNGEONMASTER_HOME;
-    process.env.DUNGEONMASTER_HOME = homeDir;
+    const savedHome = getEnv('DUNGEONMASTER_HOME');
+    setEnv('DUNGEONMASTER_HOME', homeDir);
 
     fs.mkdirSync(homeDir, { recursive: true });
 
@@ -79,9 +81,9 @@ export const questOutboxHarness = (): {
           setTimeout(resolve, QUIET_WINDOW_MS);
         });
         if (savedHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = savedHome;
+          setEnv('DUNGEONMASTER_HOME', savedHome);
         }
         testbed.cleanup();
       },
@@ -92,13 +94,13 @@ export const questOutboxHarness = (): {
   // line, newline-terminated.
   appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: QuestId }): void => {
     const line = QuestOutboxLineStub({ questId, timestamp: new Date().toISOString() as never });
-    fs.appendFileSync(path.join(homeDir, OUTBOX_FILENAME), `${JSON.stringify(line)}\n`, 'utf8');
+    fs.appendFileSync(path.join(homeDir, OUTBOX_FILENAME), `${JSON.stringify(line)}\n`);
   },
 
   // Each line goes back through the outbox-line stub, so a line the contract no longer accepts
   // fails here rather than comparing equal to an expectation as raw text.
   readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }): readonly QuestId[] => {
-    const raw = fs.readFileSync(path.join(homeDir, OUTBOX_FILENAME), 'utf8');
+    const raw = fs.readFileSync(path.join(homeDir, OUTBOX_FILENAME));
     return raw
       .split('\n')
       .filter((line) => line.length > 0)

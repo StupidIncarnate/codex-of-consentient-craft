@@ -1,3 +1,4 @@
+import { stderr } from '#gateway/node/process';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -32,7 +33,7 @@ export const createSyncHandlerLayerBrokerProxy = (): {
       questId: QuestId;
       error: Error;
     }): { wroteRejectionLog: () => boolean } => {
-      const handle = registerSpyOn({ object: process.stderr, method: 'write' });
+      const handle = registerSpyOn({ object: stderr, method: 'write' });
       const rejectionLog = `[questQueueSyncListenerBroker] handler failed for quest ${questId}: ${String(error)}\n`;
       handle.calledWith([rejectionLog]).returns(true);
       return {

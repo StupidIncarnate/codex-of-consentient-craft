@@ -1,3 +1,4 @@
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import { BaseNameStub } from '@dungeonmaster/testing';
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
 
@@ -23,24 +24,24 @@ describe('OrchestrationDispatchFlow', () => {
     it('VALID: {first call} => wires the runner; get() still resolves the paused default', async () => {
       // Point the home at a nonexistent dir so boot normalization reads the paused default
       // and never touches the developer's real ~/.dungeonmaster.
-      process.env.DUNGEONMASTER_HOME = '/tmp/dm-dispatch-flow-integration-nonexistent';
+      setEnv('DUNGEONMASTER_HOME', '/tmp/dm-dispatch-flow-integration-nonexistent');
 
       OrchestrationDispatchFlow.bootstrap();
       const state = await OrchestrationDispatchFlow.get();
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       expect(state).toStrictEqual({ mode: 'paused', updatedAt: '1970-01-01T00:00:00.000Z' });
     });
 
     it('VALID: {second call} => idempotent; get() still resolves the paused default', async () => {
-      process.env.DUNGEONMASTER_HOME = '/tmp/dm-dispatch-flow-integration-nonexistent';
+      setEnv('DUNGEONMASTER_HOME', '/tmp/dm-dispatch-flow-integration-nonexistent');
       OrchestrationDispatchFlow.bootstrap();
 
       OrchestrationDispatchFlow.bootstrap();
       const state = await OrchestrationDispatchFlow.get();
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       expect(state).toStrictEqual({ mode: 'paused', updatedAt: '1970-01-01T00:00:00.000Z' });
     });
@@ -48,11 +49,11 @@ describe('OrchestrationDispatchFlow', () => {
 
   describe('get', () => {
     it('VALID: {missing state file} => resolves the paused default', async () => {
-      process.env.DUNGEONMASTER_HOME = '/tmp/dm-dispatch-flow-integration-nonexistent';
+      setEnv('DUNGEONMASTER_HOME', '/tmp/dm-dispatch-flow-integration-nonexistent');
 
       const state = await OrchestrationDispatchFlow.get();
 
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
 
       expect(state).toStrictEqual({
         mode: 'paused',

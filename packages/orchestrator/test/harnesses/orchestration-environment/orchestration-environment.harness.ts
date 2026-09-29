@@ -6,8 +6,11 @@
  * const env = envHarness.setup({ tempDir: testbed.guildPath, queueHarness });
  * await envHarness.withRestore(env, async () => { ... });
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
+import * as fs from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import * as path from '#gateway/node/path';
 
 import { GuildNameStub, guildPathContract } from '@dungeonmaster/shared/contracts';
 import type {
@@ -116,16 +119,16 @@ export const orchestrationEnvironmentHarness = (): {
       }
     },
     setupHome: ({ tempDir }: { tempDir: GuildPath }): { restore: () => void } => {
-      const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
-      process.env.DUNGEONMASTER_HOME = tempDir;
+      const savedDungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
+      setEnv('DUNGEONMASTER_HOME', tempDir);
 
       seedHomeFiles({ homeDir: tempDir });
 
       const restore = (): void => {
         if (savedDungeonmasterHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
+          setEnv('DUNGEONMASTER_HOME', savedDungeonmasterHome);
         }
       };
 
@@ -148,9 +151,9 @@ export const orchestrationEnvironmentHarness = (): {
     },
     writeRepoRootMarker: async ({ repoRoot }: { repoRoot: GuildPath }): Promise<void> => {
       // Drop a `.dungeonmaster.json` at the repo root so cwdResolveBroker({ kind: 'repo-root' })
-      // walking up from process.cwd() resolves to this directory.
-      await fs.promises.mkdir(repoRoot, { recursive: true });
-      await fs.promises.writeFile(path.join(repoRoot, '.dungeonmaster.json'), '{}');
+      // walking up from cwd() resolves to this directory.
+      await ensureDir(repoRoot);
+      await writeFile(path.join(repoRoot, '.dungeonmaster.json'), '{}');
     },
     seedQuestRepoPackages: async ({
       repoRoot,
@@ -166,12 +169,10 @@ export const orchestrationEnvironmentHarness = (): {
       // guild path here rather than to some ancestor of /tmp, and each declared location is
       // repo-relative to exactly that root — which is where questModifyBroker's write-time
       // existence check for an 'edit' entry looks.
-      await fs.promises.mkdir(repoRoot, { recursive: true });
-      await fs.promises.writeFile(path.join(repoRoot, '.dungeonmaster.json'), '{}');
+      await ensureDir(repoRoot);
+      await writeFile(path.join(repoRoot, '.dungeonmaster.json'), '{}');
       await Promise.all(
-        locations.map(async (location) =>
-          fs.promises.mkdir(path.resolve(repoRoot, location), { recursive: true }),
-        ),
+        locations.map(async (location) => ensureDir(path.resolve(repoRoot, location))),
       );
       // `sources` are contract source paths the blueprint declares as already existing. They are
       // anchored on the same root for the same reason the locations are: questModifyBroker's
@@ -180,31 +181,31 @@ export const orchestrationEnvironmentHarness = (): {
       await Promise.all(
         sources.map(async (source) => {
           const sourcePath = path.resolve(repoRoot, source);
-          await fs.promises.mkdir(path.dirname(sourcePath), { recursive: true });
-          await fs.promises.writeFile(sourcePath, '');
+          await ensureDir(path.dirname(sourcePath));
+          await writeFile(sourcePath, '');
         }),
       );
     },
     chdirInto: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
-      // questMcpCreateBroker reads process.cwd() verbatim via processCwdAdapter; chdir so the
+      // questMcpCreateBroker reads cwd() verbatim via processCwdAdapter; chdir so the
       // real cwd walk-up anchors on this testbed dir, not the host repo.
-      const savedCwd = process.cwd();
-      process.chdir(dir);
+      const savedCwd = cwd();
+      chdir(dir);
       return {
         restore: (): void => {
-          process.chdir(savedCwd);
+          chdir(savedCwd);
         },
       };
     },
     makeAndChdir: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
       // Create a nested subfolder (so create-quest can run from inside an ancestor guild) and
       // chdir into it; restore the original cwd afterwards.
-      const savedCwd = process.cwd();
+      const savedCwd = cwd();
       fs.mkdirSync(dir, { recursive: true });
-      process.chdir(dir);
+      chdir(dir);
       return {
         restore: (): void => {
-          process.chdir(savedCwd);
+          chdir(savedCwd);
         },
       };
     },
@@ -213,7 +214,7 @@ export const orchestrationEnvironmentHarness = (): {
     }: {
       tempDir: GuildPath;
     }): readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[] => {
-      const raw = fs.readFileSync(path.join(tempDir, 'config.json'), 'utf-8');
+      const raw = fs.readFileSync(path.join(tempDir, 'config.json'));
       const parsed = JSON.parse(raw) as {
         guilds: { name: GuildName; path: GuildPath; id: GuildId; urlSlug: UrlSlug }[];
       };
@@ -238,7 +239,7 @@ export const orchestrationEnvironmentHarness = (): {
       const questFilePath = path.join(tempDir, 'guilds', guildId, 'quests', questId, 'quest.json');
       const exists = fs.existsSync(questFilePath);
       const parsed = exists
-        ? (JSON.parse(fs.readFileSync(questFilePath, 'utf-8')) as { id?: QuestId })
+        ? (JSON.parse(fs.readFileSync(questFilePath)) as { id?: QuestId })
         : { id: undefined };
       return { exists, questIdInFile: parsed.id === questId };
     },
@@ -273,36 +274,52 @@ export const orchestrationEnvironmentHarness = (): {
       queueHarness.resetCounters();
       const { claudeQueueDir, wardQueueDir } = queueHarness.initDirs({ baseDir: tempDir });
 
-      const savedClaudeCliPath = process.env.CLAUDE_CLI_PATH;
-      const savedFakeClaudeQueueDir = process.env.FAKE_CLAUDE_QUEUE_DIR;
-      const savedFakeWardQueueDir = process.env.FAKE_WARD_QUEUE_DIR;
-      const savedPath = process.env.PATH;
-      const savedDungeonmasterHome = process.env.DUNGEONMASTER_HOME;
-      const savedWardCliPath = process.env.WARD_CLI_PATH;
+      const savedClaudeCliPath = getEnv('CLAUDE_CLI_PATH');
+      const savedFakeClaudeQueueDir = getEnv('FAKE_CLAUDE_QUEUE_DIR');
+      const savedFakeWardQueueDir = getEnv('FAKE_WARD_QUEUE_DIR');
+      const savedPath = getEnv('PATH');
+      const savedDungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
+      const savedWardCliPath = getEnv('WARD_CLI_PATH');
 
-      process.env.CLAUDE_CLI_PATH = FAKE_CLAUDE_CLI;
-      process.env.FAKE_CLAUDE_QUEUE_DIR = String(claudeQueueDir);
-      process.env.FAKE_WARD_QUEUE_DIR = String(wardQueueDir);
-      process.env.PATH = `${FAKE_WARD_BIN_DIR}:${process.env.PATH ?? ''}`;
-      process.env.WARD_CLI_PATH = FAKE_WARD_CLI;
-      process.env.DUNGEONMASTER_HOME = tempDir;
+      setEnv('CLAUDE_CLI_PATH', FAKE_CLAUDE_CLI);
+      setEnv('FAKE_CLAUDE_QUEUE_DIR', String(claudeQueueDir));
+      setEnv('FAKE_WARD_QUEUE_DIR', String(wardQueueDir));
+      setEnv('PATH', `${FAKE_WARD_BIN_DIR}:${getEnv('PATH') ?? ''}`);
+      setEnv('WARD_CLI_PATH', FAKE_WARD_CLI);
+      setEnv('DUNGEONMASTER_HOME', tempDir);
 
       seedHomeFiles({ homeDir: tempDir });
 
       const restore = (): void => {
-        process.env.CLAUDE_CLI_PATH = savedClaudeCliPath;
-        process.env.FAKE_CLAUDE_QUEUE_DIR = savedFakeClaudeQueueDir;
-        process.env.FAKE_WARD_QUEUE_DIR = savedFakeWardQueueDir;
-        process.env.PATH = savedPath;
-        if (savedWardCliPath === undefined) {
-          Reflect.deleteProperty(process.env, 'WARD_CLI_PATH');
+        if (savedClaudeCliPath === undefined) {
+          deleteEnv('CLAUDE_CLI_PATH');
         } else {
-          process.env.WARD_CLI_PATH = savedWardCliPath;
+          setEnv('CLAUDE_CLI_PATH', savedClaudeCliPath);
+        }
+        if (savedFakeClaudeQueueDir === undefined) {
+          deleteEnv('FAKE_CLAUDE_QUEUE_DIR');
+        } else {
+          setEnv('FAKE_CLAUDE_QUEUE_DIR', savedFakeClaudeQueueDir);
+        }
+        if (savedFakeWardQueueDir === undefined) {
+          deleteEnv('FAKE_WARD_QUEUE_DIR');
+        } else {
+          setEnv('FAKE_WARD_QUEUE_DIR', savedFakeWardQueueDir);
+        }
+        if (savedPath === undefined) {
+          deleteEnv('PATH');
+        } else {
+          setEnv('PATH', savedPath);
+        }
+        if (savedWardCliPath === undefined) {
+          deleteEnv('WARD_CLI_PATH');
+        } else {
+          setEnv('WARD_CLI_PATH', savedWardCliPath);
         }
         if (savedDungeonmasterHome === undefined) {
-          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+          deleteEnv('DUNGEONMASTER_HOME');
         } else {
-          process.env.DUNGEONMASTER_HOME = savedDungeonmasterHome;
+          setEnv('DUNGEONMASTER_HOME', savedDungeonmasterHome);
         }
       };
 

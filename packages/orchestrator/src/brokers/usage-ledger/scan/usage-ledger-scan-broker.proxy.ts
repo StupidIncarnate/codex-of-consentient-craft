@@ -1,3 +1,4 @@
+import { stderr } from '#gateway/node/process';
 import {
   AbsoluteFilePathStub,
   FilePathStub,
@@ -46,7 +47,7 @@ export const usageLedgerScanBrokerProxy = (): {
   usageLedgerReadBrokerProxy();
   usageLedgerWriteBrokerProxy();
 
-  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
   stderrSpy.calledWith([]).returns(true);
 
   const readMock = usageLedgerReadBroker as jest.MockedFunction<typeof usageLedgerReadBroker>;

@@ -17,11 +17,15 @@
  * await harness.awaitHoldDetail({ tempDir, detail: '7d window at 90% — dispatch holds until it resets' });
  * await end();
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import { setTimeout } from '#gateway/node/setTimeout';
+import { deleteEnv, getEnv, setEnv, stderr } from '#gateway/node/process';
+import * as fs from '#gateway/node/fs';
+import { writeFile } from '#gateway/node/fs__promises';
+import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { GuildPath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import type { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
@@ -105,7 +109,7 @@ export const rateLimitsWatcherHarness = (): {
       tempDir: GuildPath;
       snapshot: RateLimitsSnapshot;
     }): Promise<void> => {
-      await fs.promises.writeFile(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
+      await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
     },
 
     writeRaw: async ({
@@ -115,7 +119,7 @@ export const rateLimitsWatcherHarness = (): {
       tempDir: GuildPath;
       content: string;
     }): Promise<void> => {
-      await fs.promises.writeFile(path.join(tempDir, SNAPSHOT_FILENAME), content);
+      await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), content);
     },
 
     // One hour of measured spend and the two LEARNED CEILINGS, stamped NOW so the scan takes its
@@ -135,7 +139,7 @@ export const rateLimitsWatcherHarness = (): {
       hourAt: number;
       tokens: number;
     }): Promise<void> => {
-      await fs.promises.writeFile(
+      await writeFile(
         path.join(tempDir, USAGE_LEDGER_FILENAME),
         JSON.stringify({
           buckets: {
@@ -157,7 +161,7 @@ export const rateLimitsWatcherHarness = (): {
       mode: DispatchState['mode'];
       hold?: DispatchHold;
     }): Promise<void> => {
-      await fs.promises.writeFile(
+      await writeFile(
         path.join(tempDir, DISPATCH_STATE_FILENAME),
         JSON.stringify({
           mode,
@@ -171,7 +175,7 @@ export const rateLimitsWatcherHarness = (): {
     // explicitly cleared one comes back null, which is the difference between "the guardrail never
     // wrote" and "the guardrail lifted the hold".
     readDispatch: ({ tempDir }: { tempDir: GuildPath }): PersistedDispatchState => {
-      const raw = fs.readFileSync(path.join(tempDir, DISPATCH_STATE_FILENAME), 'utf-8');
+      const raw = fs.readFileSync(path.join(tempDir, DISPATCH_STATE_FILENAME));
       const parsed = JSON.parse(raw) as {
         mode: DispatchState['mode'];
         hold?: DispatchHold | null;
@@ -269,18 +273,17 @@ export const rateLimitsWatcherHarness = (): {
       hasLineWithSubstring: ({ substring }: { substring: string }) => boolean;
       restore: () => void;
     } => {
-      const lines: unknown[] = [];
-      const original = process.stderr.write.bind(process.stderr);
-      const captureWrite = (chunk: unknown): boolean => {
-        lines.push(chunk);
-        return true;
-      };
-      process.stderr.write = captureWrite as typeof process.stderr.write;
+      // Recorded and swallowed through a spy on the gateway's stderr (the same object the watcher
+      // writes to); restore hands every later write back to the real stream.
+      const original = stderr.write.bind(stderr);
+      const stderrSpy = registerSpyOn({ object: stderr, method: 'write' });
+      stderrSpy.calledWith([]).returns(true);
       return {
         hasLineWithSubstring: ({ substring }: { substring: string }): boolean =>
-          lines.some((line) => String(line).includes(substring)),
+          stderrSpy.callsMatching([]).filter((call) => String(call[0]).includes(substring)).length >
+          0,
         restore: (): void => {
-          process.stderr.write = original;
+          stderrSpy.calledWith([]).implement((chunk: never) => original(chunk));
         },
       };
     },
@@ -293,14 +296,14 @@ export const rateLimitsWatcherHarness = (): {
       const testbed = installTestbedCreateBroker({ baseName: name });
       const tempDir = testbed.guildPath;
 
-      const savedHome = process.env.DUNGEONMASTER_HOME;
-      const savedPollMs = process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS;
+      const savedHome = getEnv('DUNGEONMASTER_HOME');
+      const savedPollMs = getEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS');
       // RateLimitsBootstrapResponder reads the cadence once, at the moment bootstrap() is called
       // and falls back to the 5s production one when it is unset — so the env has to be in place
       // before the test calls bootstrap(), which is why it rides begin() rather than a call a test
       // could forget.
-      process.env.DUNGEONMASTER_HOME = tempDir;
-      process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS = String(POLL_INTERVAL_MS);
+      setEnv('DUNGEONMASTER_HOME', tempDir);
+      setEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS', String(POLL_INTERVAL_MS));
 
       // An empty guild config, written rather than left absent. guildConfigReadBroker's ENOENT
       // branch turns on `cause instanceof Error`, and an error node's own fs raised outside jest's
@@ -336,14 +339,14 @@ export const rateLimitsWatcherHarness = (): {
           await core.awaitQuiet();
           core.resetDispatchState();
           if (savedHome === undefined) {
-            Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+            deleteEnv('DUNGEONMASTER_HOME');
           } else {
-            process.env.DUNGEONMASTER_HOME = savedHome;
+            setEnv('DUNGEONMASTER_HOME', savedHome);
           }
           if (savedPollMs === undefined) {
-            Reflect.deleteProperty(process.env, 'DUNGEONMASTER_RATE_LIMITS_POLL_MS');
+            deleteEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS');
           } else {
-            process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS = savedPollMs;
+            setEnv('DUNGEONMASTER_RATE_LIMITS_POLL_MS', savedPollMs);
           }
           testbed.cleanup();
         },
