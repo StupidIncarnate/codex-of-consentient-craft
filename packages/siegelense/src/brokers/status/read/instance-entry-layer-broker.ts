@@ -7,7 +7,9 @@
  * two tools can never disagree about how many runs an instance holds or whether the latest one
  * finished. `lastStep` and `evidence` populate ONLY when `named` is true — a `status {}` fleet
  * listing never carries a run or an evidence path for an instance the caller has not already named
- * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). `rssMB` (current) and `rssAtLastBeat`
+ * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). A named `evidence` is the directory
+ * plus EVERY file `evidenceTreeLayerBroker` finds under it, each an absolute path — never a fixed set
+ * of known names, which is how a recorded video went unlisted. `rssMB` (current) and `rssAtLastBeat`
  * (from the heartbeat file) never both carry a value: the first only while `state` is `'alive'`, the
  * second only once it is not. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`,
  * and `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
@@ -31,12 +33,11 @@
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -57,6 +58,7 @@ import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
+import { evidenceTreeLayerBroker } from './evidence-tree-layer-broker';
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { profileSoloReadLayerBroker } from './profile-solo-read-layer-broker';
 
@@ -153,53 +155,11 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.apiLog] }),
-      ),
-    }),
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.webLog] }),
-      ),
-    }),
-    fsStatAdapter({
-      filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.driverLog] }),
-      ),
-    }),
-    locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
-  ]);
-
-  // Full repo-local paths, not bare names — a bare "api-server.log" gives a reader nothing to
-  // `Read`. `fileNameContract` is an unbranded-format string brand (no path-shape constraint), so a
-  // full path parses through it cleanly; reusing it here — rather than widening the
-  // `instanceEvidenceListingContract.logs` element type to something path-shaped — is what keeps
-  // this a broker-only change.
-  const logs = [
-    ...(apiLogStat === null
-      ? []
-      : [
-          fileNameContract.parse(
-            pathJoinAdapter({ paths: [repoLocalDir.path, locationsStatics.siegelense.apiLog] }),
-          ),
-        ]),
-    ...(webLogStat === null
-      ? []
-      : [
-          fileNameContract.parse(
-            pathJoinAdapter({ paths: [repoLocalDir.path, locationsStatics.siegelense.webLog] }),
-          ),
-        ]),
-    ...(driverLogStat === null
-      ? []
-      : [
-          fileNameContract.parse(
-            pathJoinAdapter({ paths: [repoLocalDir.path, locationsStatics.siegelense.driverLog] }),
-          ),
-        ]),
-  ];
+  const repoLocalDir = await locationsRepoLinkPathFindBroker({ homePath: evidenceDir });
+  const evidence = instanceEvidenceListingContract.parse({
+    dir: repoLocalDir,
+    files: await evidenceTreeLayerBroker({ homeDir: evidenceDir, repoLocalDir: repoLocalDir.path }),
+  });
 
   if (lastRunId === null) {
     return instanceStatusContract.parse({
@@ -213,12 +173,7 @@ export const instanceEntryLayerBroker = async ({
       rssAtLastBeat,
       lastStep: null,
       orphans,
-      evidence: instanceEvidenceListingContract.parse({
-        dir: repoLocalDir,
-        transcript: null,
-        logs,
-        lastShot: null,
-      }),
+      evidence,
       likelyCause,
       branch: entry.branch ?? null,
       evidenceComplete,
@@ -233,45 +188,8 @@ export const instanceEntryLayerBroker = async ({
   const transcriptContent = await fsReadFileAdapter({ filePath: transcriptPath });
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);
   const lastLine = transcriptLines[transcriptLines.length - 1];
-
-  if (lastLine === undefined) {
-    return instanceStatusContract.parse({
-      id: entry.id,
-      state,
-      specName: entry.specName,
-      uptime,
-      lastBeat,
-      runs,
-      rssMB,
-      rssAtLastBeat,
-      lastStep: null,
-      orphans,
-      evidence: instanceEvidenceListingContract.parse({
-        dir: repoLocalDir,
-        transcript: fileNameContract.parse(
-          `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-        ),
-        logs,
-        lastShot: null,
-      }),
-      likelyCause,
-      branch: entry.branch ?? null,
-      evidenceComplete,
-    });
-  }
-
-  const lastReading = stepReadingContract.parse(JSON.parse(lastLine));
-  const lastStep = lastStepReadingContract.parse({
-    run: lastRunId,
-    step: lastReading.step,
-    verb: lastReading.verb,
-  });
-  const lastShot =
-    lastReading.shot === null
-      ? null
-      : fileNameContract.parse(
-          `${lastRunId}/${evidenceFileStatics.naming.shotPrefix}${lastReading.step}${evidenceFileStatics.extensions.shot}`,
-        );
+  const lastReading =
+    lastLine === undefined ? null : stepReadingContract.parse(JSON.parse(lastLine));
 
   return instanceStatusContract.parse({
     id: entry.id,
@@ -282,16 +200,16 @@ export const instanceEntryLayerBroker = async ({
     runs,
     rssMB,
     rssAtLastBeat,
-    lastStep,
+    lastStep:
+      lastReading === null
+        ? null
+        : lastStepReadingContract.parse({
+            run: lastRunId,
+            step: lastReading.step,
+            verb: lastReading.verb,
+          }),
     orphans,
-    evidence: instanceEvidenceListingContract.parse({
-      dir: repoLocalDir,
-      transcript: fileNameContract.parse(
-        `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-      ),
-      logs,
-      lastShot,
-    }),
+    evidence,
     likelyCause,
     branch: entry.branch ?? null,
     evidenceComplete,

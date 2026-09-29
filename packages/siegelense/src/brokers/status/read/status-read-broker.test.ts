@@ -1,5 +1,4 @@
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
-import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
@@ -222,10 +221,6 @@ describe('statusReadBroker', () => {
       proxy.setupPidCmdlinePathJoin({ pid: '100' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
-      proxy.setupApiLogPresent({ evidencePath });
-      proxy.setupWebLogPresent({ evidencePath });
-      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -233,9 +228,22 @@ describe('statusReadBroker', () => {
         homePath,
         rootPath,
       });
-      proxy.setupLogFullPathJoins({
-        repoLocalPath: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}`,
-        logs: [locationsStatics.siegelense.apiLog, locationsStatics.siegelense.webLog],
+      proxy.setupEvidenceTreeDir({
+        dirPath: String(evidencePath),
+        files: [
+          { name: 'web-server.log', bytes: 300 },
+          { name: 'api-server.log', bytes: 1200 },
+        ],
+        dirs: ['runs'],
+      });
+      proxy.setupEvidenceTreeDir({
+        dirPath: `${evidencePath}/runs`,
+        files: [{ name: 'run_2.jsonl', bytes: 2000 }],
+        dirs: ['run_2'],
+      });
+      proxy.setupEvidenceTreeDir({
+        dirPath: `${evidencePath}/runs/run_2`,
+        files: [{ name: 'step7.png', bytes: 51000 }],
       });
       proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
@@ -283,12 +291,24 @@ describe('statusReadBroker', () => {
                   path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}`,
                   linkPresent: true,
                 },
-                transcript: 'run_2.jsonl',
-                logs: [
-                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
-                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                files: [
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
+                    bytes: 1200,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/runs/run_2/step7.png`,
+                    bytes: 51000,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/runs/run_2.jsonl`,
+                    bytes: 2000,
+                  },
+                  {
+                    path: `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                    bytes: 300,
+                  },
                 ],
-                lastShot: 'run_2/step7.png',
               },
               likelyCause:
                 'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',

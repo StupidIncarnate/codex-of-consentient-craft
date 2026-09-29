@@ -206,9 +206,12 @@ describe('SiegelenseStatusResponder', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
                 linkPresent: true,
               },
-              transcript: 'run_2.jsonl',
-              logs: ['api-server.log', 'web-server.log'],
-              lastShot: 'run_2/step7.png',
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+                  bytes: 2048,
+                },
+              ],
             },
             likelyCause:
               'OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot',
@@ -251,9 +254,12 @@ describe('SiegelenseStatusResponder', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
                 linkPresent: true,
               },
-              transcript: 'run_2.jsonl',
-              logs: ['api-server.log', 'web-server.log'],
-              lastShot: 'run_2/step7.png',
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+                  bytes: 2048,
+                },
+              ],
             },
             likelyCause:
               'OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot',
@@ -278,10 +284,7 @@ describe('SiegelenseStatusResponder', () => {
           '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
           '│              │ pgid 33840 (dead)                                                                       │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
-          '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
-          '│ LOGS         │ api-server.log                                                                          │\n' +
-          '│              │ web-server.log                                                                          │\n' +
-          '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
+          '│              │ api-server.log (2048 bytes)                                                             │\n' +
           '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       ]);

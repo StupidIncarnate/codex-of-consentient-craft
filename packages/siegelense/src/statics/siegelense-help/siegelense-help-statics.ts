@@ -288,7 +288,7 @@ export const siegelenseHelpStatics = {
           value: '<id>',
           required: false,
           description:
-            'report that one instance in full — last beat, last step, MEMORY, orphans, evidence paths, likelyCause — instead of the fleet.',
+            'report that one instance in full — last beat, last step, MEMORY, orphans, the evidence directory with every file in it, and likelyCause when it died unexpectedly — instead of the fleet.',
         },
         {
           name: '--branch',
@@ -310,7 +310,7 @@ export const siegelenseHelpStatics = {
         'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
-        "The fleet view lists instances but not their evidence paths or runs. Name one with --instance to get those. By default, the fleet prints as a box-drawing table (monitored vocabulary, machine reading, one row per instance); naming --instance prints that one instance in full as its own box-drawing table (last beat, last step, MEMORY, orphans, evidence paths, likelyCause) instead of the fleet. MEMORY is the last measured memory of the instance's processes; for a killed instance, it is the instance's footprint at the moment it ended, not a current reading. `--json` prints the raw StatusAnswer either way.",
+        "The fleet view lists instances but not their evidence paths or runs. Name one with --instance to get those. By default, the fleet prints as a box-drawing table (monitored vocabulary, machine reading, one row per instance); naming --instance prints that one instance in full as its own box-drawing table (last beat, last step, MEMORY, orphans, EVIDENCE DIR, likelyCause) instead of the fleet. EVIDENCE DIR is the absolute path of the instance's evidence directory, followed by a file tree of everything in it (logs, heartbeat, runs/*.jsonl transcripts and stored returns, screenshots, video), each file with its size; `--json` carries the same as evidence.dir plus evidence.files, one absolute path per file. LIKELY CAUSE appears only for an instance that ended unexpectedly — a recorded shutdown reason, or the memory and OOM evidence for a death nothing explained — and reads `-` for a live instance or a plain kill. MEMORY is the last measured memory of the instance's processes; for a killed instance, it is the instance's footprint at the moment it ended, not a current reading. `--json` prints the raw StatusAnswer either way.",
       example: 'dungeonmaster siegelense status --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c',
     },
     cleanup: {

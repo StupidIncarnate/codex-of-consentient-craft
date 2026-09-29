@@ -57,9 +57,12 @@ describe('instanceStatusContract', () => {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
             linkPresent: true,
           },
-          transcript: 'run_2.jsonl',
-          logs: ['api-server.log', 'web-server.log'],
-          lastShot: 'run_2/step7.png',
+          files: [
+            {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+              bytes: 2048,
+            },
+          ],
         },
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
@@ -84,9 +87,12 @@ describe('instanceStatusContract', () => {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
             linkPresent: true,
           },
-          transcript: 'run_2.jsonl',
-          logs: ['api-server.log', 'web-server.log'],
-          lastShot: 'run_2/step7.png',
+          files: [
+            {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+              bytes: 2048,
+            },
+          ],
         },
         likelyCause:
           'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',

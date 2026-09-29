@@ -192,7 +192,7 @@ describe('statusAnswerRenderTransformer', () => {
   });
 
   describe('a named dead instance', () => {
-    it('VALID: {orphans, evidence and likelyCause all present} => the full single-instance form', () => {
+    it("VALID: {orphans, evidence and likelyCause all present} => the full single-instance form, with every evidence file (both runs' shots and the video) in a tree under EVIDENCE DIR", () => {
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -214,9 +214,24 @@ describe('statusAnswerRenderTransformer', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
                 linkPresent: true,
               },
-              transcript: 'run_2.jsonl',
-              logs: ['api-server.log', 'web-server.log'],
-              lastShot: 'run_2/step7.png',
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+                  bytes: 2048,
+                },
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/runs/run_1/step1.png',
+                  bytes: 50000,
+                },
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/runs/run_2/step7.png',
+                  bytes: 51000,
+                },
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/video/703547507e7caf9bcbc8328daae3e4d1.webm',
+                  bytes: 860132,
+                },
+              ],
             },
             likelyCause:
               'OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot',
@@ -241,10 +256,14 @@ describe('statusAnswerRenderTransformer', () => {
           '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
           '│              │ pgid 33840 (dead)                                                                       │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
-          '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
-          '│ LOGS         │ api-server.log                                                                          │\n' +
-          '│              │ web-server.log                                                                          │\n' +
-          '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
+          '│              │ api-server.log (2048 bytes)                                                             │\n' +
+          '│              │ runs/                                                                                   │\n' +
+          '│              │   run_1/                                                                                │\n' +
+          '│              │     step1.png (50000 bytes)                                                             │\n' +
+          '│              │   run_2/                                                                                │\n' +
+          '│              │     step7.png (51000 bytes)                                                             │\n' +
+          '│              │ video/                                                                                  │\n' +
+          '│              │   703547507e7caf9bcbc8328daae3e4d1.webm (860132 bytes)                                  │\n' +
           '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       );
@@ -252,7 +271,7 @@ describe('statusAnswerRenderTransformer', () => {
   });
 
   describe('a named dead instance with several logs and orphans', () => {
-    it('VALID: {3 logs, 2 orphans} => each log and each orphan gets its own row, so EVIDENCE DIR alone sets the table width', () => {
+    it('VALID: {3 evidence files, 2 orphans} => each file and each orphan gets its own row, so EVIDENCE DIR alone sets the table width', () => {
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -274,9 +293,20 @@ describe('statusAnswerRenderTransformer', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd',
                 linkPresent: true,
               },
-              transcript: null,
-              logs: ['api-server.log', 'web-server.log', 'driver.log'],
-              lastShot: null,
+              files: [
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd/api-server.log',
+                  bytes: 10,
+                },
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd/driver.log',
+                  bytes: 30,
+                },
+                {
+                  path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd/web-server.log',
+                  bytes: 20,
+                },
+              ],
             },
             likelyCause: null,
           }),
@@ -300,16 +330,14 @@ describe('statusAnswerRenderTransformer', () => {
           '│ ORPHANS      │ pgid 33812 (dead)                                                         │\n' +
           '│              │ pgid 33840 (dead)                                                         │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd │\n' +
-          '│ TRANSCRIPT   │ -                                                                         │\n' +
-          '│ LOGS         │ api-server.log                                                            │\n' +
-          '│              │ web-server.log                                                            │\n' +
-          '│              │ driver.log                                                                │\n' +
-          '│ LAST SHOT    │ -                                                                         │\n' +
+          '│              │ api-server.log (10 bytes)                                                 │\n' +
+          '│              │ driver.log (30 bytes)                                                     │\n' +
+          '│              │ web-server.log (20 bytes)                                                 │\n' +
           '│ LIKELY CAUSE │ -                                                                         │\n' +
           '└──────────────┴───────────────────────────────────────────────────────────────────────────┘\n',
       );
 
-      // The defect this guards: three log paths joined onto ONE row with commas pushed a real
+      // The defect this guards: several evidence paths joined onto ONE row with commas pushed a real
       // terminal table to roughly 500 characters wide. With one row per item, every line in the
       // rendered table stays no wider than the longest single cell (EVIDENCE DIR here).
       const widestLine = Math.max(...result.split('\n').map((line) => line.length));
@@ -319,7 +347,7 @@ describe('statusAnswerRenderTransformer', () => {
   });
 
   describe('a named alive instance', () => {
-    it('VALID: {no orphans, no runs yet, likelyCause unknown} => "-" and "none" fill every absent field', () => {
+    it('VALID: {no orphans, no runs yet, no evidence files, likelyCause unknown} => "-", "none" and "no files" fill every absent field', () => {
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -338,9 +366,7 @@ describe('statusAnswerRenderTransformer', () => {
                 path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a',
                 linkPresent: true,
               },
-              transcript: null,
-              logs: [],
-              lastShot: null,
+              files: [],
             },
             likelyCause: null,
           }),
@@ -363,9 +389,7 @@ describe('statusAnswerRenderTransformer', () => {
           '│ LAST STEP    │ -                                                                           │\n' +
           '│ ORPHANS      │ none                                                                        │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a │\n' +
-          '│ TRANSCRIPT   │ -                                                                           │\n' +
-          '│ LOGS         │ none                                                                        │\n' +
-          '│ LAST SHOT    │ -                                                                           │\n' +
+          '│              │ no files                                                                    │\n' +
           '│ LIKELY CAUSE │ -                                                                           │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────┘\n',
       );

@@ -21,6 +21,9 @@ describe('statusTableStatics', () => {
         headers: ['FIELD', 'VALUE'],
         cellPadding: 2,
       },
+      evidenceTree: {
+        indent: '  ',
+      },
       sinceWindows: {
         order: ['1h', '6h', '1d', 'beginning'],
         widest: 'beginning',

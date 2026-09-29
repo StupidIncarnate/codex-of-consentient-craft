@@ -11,7 +11,9 @@
  * size 1) reading, resolved by `profileSoloReadLayerBroker` the SAME way `capacityReadBroker`
  * resolves a profile — and the machine's kernel OOM-kill count: the only evidence there is for a
  * death nothing explained. `null` for a LIVE instance either way — nothing went wrong, so a cause
- * would be an invention (chunk-03-read-path-and-perception.md §3.D).
+ * would be an invention (chunk-03-read-path-and-perception.md §3.D). `null` too for a `killed`
+ * instance with no recorded reason: a plain `kill` records none, so the instance ended because it
+ * was asked to, and a memory/OOM recital beside a deliberate stop reads as a suspected crash.
  *
  * USAGE:
  * likelyCauseLayerBroker({
@@ -78,6 +80,10 @@ export const likelyCauseLayerBroker = ({
 
   if (shutdownReason !== null) {
     return shutdownReason;
+  }
+
+  if (state === 'killed') {
+    return null;
   }
 
   const profileClause =

@@ -653,7 +653,7 @@ describe('SiegelenseFlow', () => {
         expect(answer.queriedInstanceState).toBe(null);
       });
 
-      it('VALID: {status, the killed instance named} => its evidence dir, transcript, last shot and last step, all off the real tree', async () => {
+      it("VALID: {status, the killed instance named} => its evidence dir with every file under it (both runs' shots included), and its last step, all off the real tree", async () => {
         const answer = await tree.readStatus({ instanceId: tree.killedInstanceId() });
         const [entry] = answer.instances;
 
@@ -661,11 +661,19 @@ describe('SiegelenseFlow', () => {
           tree.killedInstanceId(),
         ]);
         expect(entry?.evidence?.dir.path).toBe(tree.killedInstanceEvidenceDir());
-        expect(entry?.evidence?.transcript).toBe('run_2.jsonl');
-        expect(entry?.evidence?.logs).toStrictEqual([
-          `${tree.killedInstanceEvidenceDir()}/api-server.log`,
+        expect(entry?.evidence?.files).toStrictEqual([
+          { path: `${tree.killedInstanceEvidenceDir()}/api-server.log`, bytes: 77 },
+          { path: `${tree.killedInstanceEvidenceDir()}/console.jsonl`, bytes: 931 },
+          { path: `${tree.killedInstanceEvidenceDir()}/heartbeat.json`, bytes: 99 },
+          { path: `${tree.killedInstanceEvidenceDir()}/network.jsonl`, bytes: 788 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1/step1.png`, bytes: 97 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.json`, bytes: 414 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.jsonl`, bytes: 969 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png`, bytes: 104 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.json`, bytes: 413 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 384 },
+          { path: `${tree.killedInstanceEvidenceDir()}/ws.jsonl`, bytes: 0 },
         ]);
-        expect(entry?.evidence?.lastShot).toBe('run_2/step1.png');
         expect(entry?.lastStep).toStrictEqual({ run: 'run_2', step: 1, verb: 'goto' });
         expect(entry?.rssAtLastBeat).toBe(1_840);
         expect(entry?.runs).toBe(2);
@@ -676,7 +684,7 @@ describe('SiegelenseFlow', () => {
         expect(answer.queriedInstanceState).toBe('killed');
       });
 
-      it('VALID: {status, the killed instance after its run crashed} => evidenceComplete is false', async () => {
+      it('VALID: {status, the killed instance after its run crashed} => evidenceComplete is false and run_2.json is absent from the evidence files', async () => {
         tree.crashRun2();
 
         const answer = await tree.readStatus({ instanceId: tree.killedInstanceId() });
@@ -684,7 +692,18 @@ describe('SiegelenseFlow', () => {
 
         expect(entry?.evidenceComplete).toBe(false);
         expect(entry?.runs).toBe(2);
-        expect(entry?.evidence?.transcript).toBe('run_2.jsonl');
+        expect(entry?.evidence?.files).toStrictEqual([
+          { path: `${tree.killedInstanceEvidenceDir()}/api-server.log`, bytes: 77 },
+          { path: `${tree.killedInstanceEvidenceDir()}/console.jsonl`, bytes: 931 },
+          { path: `${tree.killedInstanceEvidenceDir()}/heartbeat.json`, bytes: 99 },
+          { path: `${tree.killedInstanceEvidenceDir()}/network.jsonl`, bytes: 788 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1/step1.png`, bytes: 97 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.json`, bytes: 414 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_1.jsonl`, bytes: 969 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2/step1.png`, bytes: 104 },
+          { path: `${tree.killedInstanceEvidenceDir()}/runs/run_2.jsonl`, bytes: 384 },
+          { path: `${tree.killedInstanceEvidenceDir()}/ws.jsonl`, bytes: 0 },
+        ]);
       });
 
       it('VALID: {dungeonmaster siegelense status --json through SiegelenseFlow} => the fleet as one JSON document, killed then live', async () => {

@@ -11,8 +11,11 @@ export const InstanceEvidenceListingStub = ({
       path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
       linkPresent: true,
     },
-    transcript: 'run_2.jsonl',
-    logs: ['api-server.log', 'web-server.log'],
-    lastShot: 'run_2/step7.png',
+    files: [
+      {
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+        bytes: 2048,
+      },
+    ],
     ...props,
   });
