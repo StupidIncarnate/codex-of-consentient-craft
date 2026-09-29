@@ -23,10 +23,19 @@ export const domIdMaskTransformer = ({ domId }: { domId: ContentText }): Content
     keyStatics.attrs.generatedIdSegmentPattern.flags,
   );
 
+  const prefixedPattern = new RegExp(
+    keyStatics.attrs.generatedIdPrefixedPattern.source,
+    keyStatics.attrs.generatedIdPrefixedPattern.flags,
+  );
+
+  // Two tests, one mask: a segment holding a digit and a letter is a mint, and so is the nine
+  // base36 characters straight after `mantine-`, because Mantine's `useId` mints letters-only ids
+  // (`qeldlpsyt`) too. Nothing else prints as the mask, so `main-content` and `quest-row-2` stay whole.
   return contentTextContract.parse(
     domId
       .split(/([-_])/u)
       .map((segment) => (segmentPattern.test(segment) ? keyStatics.attrs.generatedIdMask : segment))
-      .join(''),
+      .join('')
+      .replace(prefixedPattern, keyStatics.attrs.generatedIdMask),
   );
 };
