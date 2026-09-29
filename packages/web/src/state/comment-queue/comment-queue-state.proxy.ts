@@ -2,6 +2,7 @@ import { console } from '#gateway/browser/console';
 import { clear, readItem, writeItem } from '#gateway/browser/localStorage';
 import { keysProxy } from '#gateway/browser/localStorage/keys/keys.proxy';
 import { readItemProxy } from '#gateway/browser/localStorage/read-item/read-item.proxy';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
 import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remove-item.proxy';
 import { writeItemProxy } from '#gateway/browser/localStorage/write-item/write-item.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -73,7 +74,7 @@ export const commentQueueStateProxy = (): {
     setupReadRejected: ({ questId }: { questId: QuestId }): void => {
       readProxy.setupReadFails({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
-        error: new Error('SecurityError'),
+        error: StorageDisabledErrorStub(),
       });
     },
 

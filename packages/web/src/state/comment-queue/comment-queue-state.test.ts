@@ -1,4 +1,6 @@
 import { readItem, writeItem } from '#gateway/browser/localStorage';
+import { StorageDisabledErrorStub } from '#gateway/browser/localStorage/read-item/storage-disabled-error.stub';
+import { StorageQuotaErrorStub } from '#gateway/browser/localStorage/write-item/storage-quota-error.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
@@ -142,7 +144,7 @@ describe('commentQueueState', () => {
       proxy.seedQueue({ questId, entries: [existing] });
       proxy.setupWriteRejected({
         questId,
-        error: Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' }),
+        error: StorageQuotaErrorStub(),
       });
 
       commentQueueState.queue({ questId, entry: added });
@@ -155,7 +157,7 @@ describe('commentQueueState', () => {
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
       const added = CommentQueueEntryStub({ nodeId: 'dashboard' });
-      const quotaError = Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' });
+      const quotaError = StorageQuotaErrorStub();
       proxy.setupWriteRejected({ questId, error: quotaError });
 
       commentQueueState.queue({ questId, entry: added });
@@ -171,7 +173,7 @@ describe('commentQueueState', () => {
       const proxy = commentQueueStateProxy();
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
-      const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      const securityError = StorageDisabledErrorStub();
       proxy.setupRemoveRejected({ questId, error: securityError });
 
       commentQueueState.clearQueue({ questId });
@@ -187,9 +189,7 @@ describe('commentQueueState', () => {
       const questId = QuestIdStub({ value: 'quest-a' });
       const entry = CommentQueueEntryStub({ createdAt: '2026-07-27T00:00:00.000Z' });
       proxy.seedQueue({ questId, entries: [entry] });
-      proxy.setupScanRejected({
-        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
-      });
+      proxy.setupScanRejected({ error: StorageDisabledErrorStub() });
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
 
@@ -204,9 +204,7 @@ describe('commentQueueState', () => {
         createdAt: new Date(NOW_MS - 8 * DAY_MS).toISOString(),
       });
       proxy.seedQueue({ questId, entries: [stale] });
-      proxy.setupScanRejected({
-        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
-      });
+      proxy.setupScanRejected({ error: StorageDisabledErrorStub() });
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
 
@@ -218,7 +216,7 @@ describe('commentQueueState', () => {
       proxy.setupEmptyStorage();
       const questId = QuestIdStub({ value: 'quest-a' });
       proxy.seedQueue({ questId, entries: [CommentQueueEntryStub({})] });
-      const scanError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      const scanError = StorageDisabledErrorStub();
       proxy.setupScanRejected({ error: scanError });
 
       commentQueueState.sweepExpired({ nowMs: NOW_MS });
@@ -276,7 +274,7 @@ describe('commentQueueState', () => {
       proxy.seedQueue({ questId, entries: [kept, removed] });
       proxy.setupWriteRejected({
         questId,
-        error: Object.assign(new Error('quota exceeded'), { name: 'QuotaExceededError' }),
+        error: StorageQuotaErrorStub(),
       });
 
       commentQueueState.remove({ questId, anchor: CommentAnchorStub({ nodeId: 'login-page' }) });
