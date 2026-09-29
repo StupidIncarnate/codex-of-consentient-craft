@@ -2,7 +2,6 @@ import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-lay
 import { checkFolderReturnTypeLayerBrokerProxy } from './check-folder-return-type-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 describe('checkFolderReturnTypeLayerBroker', () => {
@@ -49,14 +48,14 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'folderVoidReturn',
-        data: { folderType: FolderTypeStub({ value: 'brokers' }) },
+        data: { folderType: 'brokers' },
       });
     });
 
@@ -99,7 +98,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -123,7 +122,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -178,14 +177,14 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'folderPromiseVoidReturn',
-        data: { folderType: FolderTypeStub({ value: 'brokers' }) },
+        data: { folderType: 'brokers' },
       });
     });
 
@@ -239,7 +238,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -287,14 +286,14 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'folderDisguisedVoidReturn',
-        data: { folderType: FolderTypeStub({ value: 'brokers' }) },
+        data: { folderType: 'brokers' },
       });
     });
 
@@ -340,7 +339,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -384,7 +383,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -423,7 +422,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -466,7 +465,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -490,7 +489,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         isProxyFile: true,
       });
 
@@ -516,7 +515,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -539,7 +538,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -562,7 +561,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
@@ -590,7 +589,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'guards' }),
+        folderType: 'guards',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
@@ -617,7 +616,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -642,7 +641,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -668,7 +667,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'transformers' }),
+        folderType: 'transformers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -683,7 +682,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
 
       checkFolderReturnTypeLayerBroker({
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -717,7 +716,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);

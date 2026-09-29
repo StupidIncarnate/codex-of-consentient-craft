@@ -2,7 +2,6 @@ import { validateExternalImportLayerBroker } from './validate-external-import-la
 import { validateExternalImportLayerBrokerProxy } from './validate-external-import-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateExternalImportLayerBroker', () => {
@@ -16,7 +15,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         allowedImports: folderConfigStatics.brokers.allowedImports,
         importSource: '@dungeonmaster/shared/@types',
       });
@@ -34,7 +33,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         allowedImports: folderConfigStatics.brokers.allowedImports,
         importSource: '@dungeonmaster/orchestrator',
       });
@@ -52,7 +51,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         allowedImports: folderConfigStatics.brokers.allowedImports,
         importSource: '@acme/domain/contracts',
       });
@@ -70,7 +69,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         allowedImports: folderConfigStatics.contracts.allowedImports,
         importSource: '@dungeonmaster/node/fs',
       });
@@ -88,7 +87,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         allowedImports: folderConfigStatics.contracts.allowedImports,
         importSource: '@dungeonmaster/npm',
       });
@@ -106,7 +105,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         allowedImports: folderConfigStatics.contracts.allowedImports,
         importSource: '#gateway/npm/glob',
       });
@@ -124,7 +123,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'contracts' }),
+        folderType: 'contracts',
         allowedImports: folderConfigStatics.contracts.allowedImports,
         importSource: '#gateway/npm',
       });
@@ -142,7 +141,7 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'brokers' }),
+        folderType: 'brokers',
         allowedImports: ['node_modules', 'statics/'],
         importSource: 'lodash',
       });
@@ -158,7 +157,7 @@ describe('validateExternalImportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
-      const folderType = FolderTypeStub({ value: 'brokers' });
+      const folderType = 'brokers';
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -186,7 +185,7 @@ describe('validateExternalImportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
-      const folderType = FolderTypeStub({ value: 'brokers' });
+      const folderType = 'brokers';
 
       const result = validateExternalImportLayerBroker({
         node,

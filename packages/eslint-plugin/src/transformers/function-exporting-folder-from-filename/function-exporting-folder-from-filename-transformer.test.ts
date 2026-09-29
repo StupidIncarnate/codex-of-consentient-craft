@@ -1,5 +1,4 @@
 import { functionExportingFolderFromFilenameTransformer } from './function-exporting-folder-from-filename-transformer';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 describe('functionExportingFolderFromFilenameTransformer', () => {
   it('VALID: broker filename => returns brokers', () => {
@@ -7,7 +6,7 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'brokers' }));
+    expect(result).toBe('brokers');
   });
 
   it('EMPTY: adapter filename => returns undefined, since adapters is not a folder type', () => {
@@ -23,7 +22,7 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
       filename: '/project/src/guards/is-valid/is-valid-guard.ts',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'guards' }));
+    expect(result).toBe('guards');
   });
 
   it('VALID: widget tsx filename => returns widgets', () => {
@@ -31,7 +30,7 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
       filename: '/project/src/widgets/pixel-btn/pixel-btn-widget.tsx',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'widgets' }));
+    expect(result).toBe('widgets');
   });
 
   it('VALID: startup filename with no suffix => returns startup', () => {
@@ -39,7 +38,7 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
       filename: '/project/src/startup/start-server.ts',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'startup' }));
+    expect(result).toBe('startup');
   });
 
   it('VALID: middleware filename => returns middleware', () => {
@@ -47,7 +46,7 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
       filename: '/project/src/middleware/auth/auth-middleware.ts',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'middleware' }));
+    expect(result).toBe('middleware');
   });
 
   it('INVALID: contract filename => returns undefined', () => {
