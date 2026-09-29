@@ -16,7 +16,6 @@ const DIR_SEGMENTS = __dirname.split('/');
 const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 const BROKER_FILE = `${DIR_SEGMENTS.join('/')}/rule-enforce-folder-return-types-broker.ts`;
 const BROKER_PROXY_FILE = `${DIR_SEGMENTS.join('/')}/check-folder-return-type-layer-broker.proxy.ts`;
-const ADAPTER_FILE = `${REPO_ROOT}/packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.ts`;
 const GUARD_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/guards/is-gateway-file/is-gateway-file-guard.ts`;
 const RESPONDER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`;
 const FLOW_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.ts`;
@@ -28,10 +27,6 @@ const ruleTester = typedRuleTesterHarness();
 ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker(), {
   valid: [
     // missingReturnType does not apply once a return type is present
-    {
-      code: `export const fetchDataAdapter = (): Promise<string> => Promise.resolve('data');`,
-      filename: ADAPTER_FILE,
-    },
     {
       code: `export const HandleResponder = (): Promise<{ data: number }> => Promise.resolve({ data: 1 });`,
       filename: RESPONDER_FILE,
