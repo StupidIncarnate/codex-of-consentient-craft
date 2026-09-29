@@ -11,6 +11,7 @@ const OUR_WRAPPERS = [
   'spawnDetached',
   'spawnLive',
   'spawnLongLived',
+  'spawnPiped',
   'stream',
   'streamLines',
   'childProcessSchema',

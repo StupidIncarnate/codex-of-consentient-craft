@@ -5,7 +5,7 @@
  * long the process lives.
  *
  * USAGE:
- * import { run, runSync, stream, streamLines, spawnDetached, spawnLongLived, spawnLive, runFireAndForget, RunNotFoundError } from '#gateway/node/child_process';
+ * import { run, runSync, stream, streamLines, spawnDetached, spawnLongLived, spawnPiped, spawnLive, runFireAndForget, RunNotFoundError } from '#gateway/node/child_process';
  */
 
 export * from 'child_process';
@@ -16,6 +16,7 @@ export { runSync } from './run-sync/run-sync';
 export { spawnDetached } from './spawn-detached/spawn-detached';
 export { spawnLive } from './spawn-live/spawn-live';
 export { spawnLongLived } from './spawn-long-lived/spawn-long-lived';
+export { spawnPiped } from './spawn-piped/spawn-piped';
 export { stream } from './stream/stream';
 export { streamLines } from './stream-lines/stream-lines';
 export { childProcessSchema } from './child-process/child-process-schema';
