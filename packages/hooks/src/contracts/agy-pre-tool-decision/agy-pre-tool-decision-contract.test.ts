@@ -25,7 +25,7 @@ describe('agyPreToolDecisionContract', () => {
   describe('invalid input', () => {
     it('INVALID: {decision: invalid} => throws validation error', () => {
       expect(() => {
-        return agyPreToolDecisionContract.parse({ decision: 'invalid' } as never);
+        return agyPreToolDecisionContract.parse({ decision: 'invalid' });
       }).toThrow(/Invalid option/u);
     });
   });

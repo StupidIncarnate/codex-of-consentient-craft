@@ -12,7 +12,7 @@ describe('agentsSkillsConfigContract', () => {
 
   it('INVALID: {missing entries} => throws validation error', () => {
     expect(() => {
-      return agentsSkillsConfigContract.parse({} as never);
+      return agentsSkillsConfigContract.parse({});
     }).toThrow(/received undefined/u);
   });
 });

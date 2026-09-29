@@ -22,7 +22,7 @@ describe('sessionStartHookDataContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return sessionStartHookDataContract.parse({} as never);
+        return sessionStartHookDataContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

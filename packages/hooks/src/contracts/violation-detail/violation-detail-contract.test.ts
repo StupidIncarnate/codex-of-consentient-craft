@@ -32,7 +32,7 @@ describe('violationDetailContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return violationDetailContract.parse({} as never);
+        return violationDetailContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

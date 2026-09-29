@@ -156,7 +156,7 @@ describe('editToolInputContract', () => {
     it('INVALID: {file_path is number} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({
-          file_path: 123 as never,
+          file_path: 123,
           old_string: 'old',
           new_string: 'new',
         });
@@ -167,7 +167,7 @@ describe('editToolInputContract', () => {
       expect(() => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
-          old_string: 123 as never,
+          old_string: 123,
           new_string: 'new',
         });
       }).toThrow(/expected string/u);
@@ -178,7 +178,7 @@ describe('editToolInputContract', () => {
         return editToolInputContract.parse({
           file_path: '/test/file.ts',
           old_string: 'old',
-          new_string: 123 as never,
+          new_string: 123,
         });
       }).toThrow(/expected string/u);
     });
@@ -189,7 +189,7 @@ describe('editToolInputContract', () => {
           file_path: '/test/file.ts',
           old_string: 'old',
           new_string: 'new',
-          replace_all: 'true' as never,
+          replace_all: 'true',
         });
       }).toThrow(/expected boolean/u);
     });
@@ -198,7 +198,7 @@ describe('editToolInputContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return editToolInputContract.parse({} as never);
+        return editToolInputContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

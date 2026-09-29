@@ -29,7 +29,7 @@ describe('preToolUseHookDataContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return preToolUseHookDataContract.parse({} as never);
+        return preToolUseHookDataContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

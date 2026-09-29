@@ -48,7 +48,7 @@ describe('postToolUseHookDataContract', () => {
           session_id: 'test',
           transcript_path: '/test',
           cwd: '/cwd',
-          hook_event_name: 'PreToolUse' as never,
+          hook_event_name: 'PreToolUse',
           tool_name: 'Write',
           tool_input: { file_path: '/test.ts', content: '' },
         });
@@ -62,7 +62,7 @@ describe('postToolUseHookDataContract', () => {
           transcript_path: '/test',
           cwd: '/cwd',
           hook_event_name: 'PostToolUse',
-        } as never);
+        });
       }).toThrow(/received undefined/u);
     });
   });

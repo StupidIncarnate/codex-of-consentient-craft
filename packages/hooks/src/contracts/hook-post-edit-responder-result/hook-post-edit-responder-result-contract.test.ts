@@ -53,7 +53,7 @@ describe('hookPostEditResponderResultContract', () => {
     it('INVALID: {violations: "not array", message: "msg"} => throws error', () => {
       expect(() =>
         hookPostEditResponderResultContract.parse({
-          violations: 'not array' as never,
+          violations: 'not array',
           message: 'test',
         }),
       ).toThrow(/Expected array/iu);
@@ -63,7 +63,7 @@ describe('hookPostEditResponderResultContract', () => {
       expect(() =>
         hookPostEditResponderResultContract.parse({
           violations: [],
-          message: 123 as never,
+          message: 123,
         }),
       ).toThrow(/Expected string/iu);
     });
@@ -71,8 +71,8 @@ describe('hookPostEditResponderResultContract', () => {
     it('INVALID: {violations: "bad", message: 123} => throws error', () => {
       expect(() =>
         hookPostEditResponderResultContract.parse({
-          violations: 'bad' as never,
-          message: 123 as never,
+          violations: 'bad',
+          message: 123,
         }),
       ).toThrow(/Expected/iu);
     });

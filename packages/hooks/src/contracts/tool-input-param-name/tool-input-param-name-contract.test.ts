@@ -14,7 +14,7 @@ describe('toolInputParamNameContract', () => {
 
   describe('invalid names', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => toolInputParamNameContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => toolInputParamNameContract.parse(123)).toThrow(/expected string/u);
     });
   });
 });

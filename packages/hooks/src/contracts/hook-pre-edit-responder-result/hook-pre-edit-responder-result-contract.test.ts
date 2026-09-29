@@ -28,7 +28,7 @@ describe('hookPreEditResponderResultContract', () => {
     it('INVALID: {shouldBlock: not a boolean} => throws validation error', () => {
       expect(() => {
         return hookPreEditResponderResultContract.parse({
-          shouldBlock: 'not a boolean' as never,
+          shouldBlock: 'not a boolean',
         });
       }).toThrow(/expected boolean/u);
     });
@@ -37,7 +37,7 @@ describe('hookPreEditResponderResultContract', () => {
       expect(() => {
         return hookPreEditResponderResultContract.parse({
           shouldBlock: false,
-          message: 123 as never,
+          message: 123,
         });
       }).toThrow(/expected string/u);
     });

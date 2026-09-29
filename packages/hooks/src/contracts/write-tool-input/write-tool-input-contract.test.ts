@@ -26,7 +26,7 @@ describe('writeToolInputContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return writeToolInputContract.parse({} as never);
+        return writeToolInputContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

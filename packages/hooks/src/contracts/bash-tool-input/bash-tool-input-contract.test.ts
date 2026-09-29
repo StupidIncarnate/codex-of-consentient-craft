@@ -80,13 +80,13 @@ describe('bashToolInputContract', () => {
 
     it('INVALID: {command is number} => throws validation error', () => {
       expect(() => {
-        return bashToolInputContract.parse({ command: 123 as never });
+        return bashToolInputContract.parse({ command: 123 });
       }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
-        return bashToolInputContract.parse({} as never);
+        return bashToolInputContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

@@ -36,7 +36,7 @@ describe('violationComparisonContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return violationComparisonContract.parse({} as never);
+        return violationComparisonContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

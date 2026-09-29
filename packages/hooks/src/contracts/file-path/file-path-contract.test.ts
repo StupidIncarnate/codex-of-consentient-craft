@@ -23,7 +23,7 @@ describe('filePathContract', () => {
   describe('invalid input', () => {
     it('INVALID: {number instead of string} => throws validation error', () => {
       expect(() => {
-        return filePathContract.parse(123 as never);
+        return filePathContract.parse(123);
       }).toThrow(/expected string/u);
     });
   });

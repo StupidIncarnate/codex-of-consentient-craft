@@ -41,7 +41,7 @@ describe('hookDataContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return hookDataContract.parse({} as never);
+        return hookDataContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

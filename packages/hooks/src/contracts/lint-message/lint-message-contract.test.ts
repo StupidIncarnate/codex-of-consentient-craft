@@ -35,7 +35,7 @@ describe('lintMessageContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return lintMessageContract.parse({} as never);
+        return lintMessageContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

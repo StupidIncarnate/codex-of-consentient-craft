@@ -99,7 +99,7 @@ describe('folderDetailHookDataContract', () => {
     const result = folderDetailHookDataContract.safeParse({
       hook_event_name: 'PreToolUse',
       tool_name: 'Write',
-      tool_input: { file_path: 42 as never },
+      tool_input: { file_path: 42 },
       transcript_path: '/tmp/transcript.jsonl',
     });
 

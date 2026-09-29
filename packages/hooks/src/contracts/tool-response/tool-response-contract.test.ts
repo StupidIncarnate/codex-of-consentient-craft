@@ -26,7 +26,7 @@ describe('toolResponseContract', () => {
   describe('invalid input', () => {
     it('INVALID: {success: not a boolean} => throws validation error', () => {
       expect(() => {
-        return toolResponseContract.parse({ success: 'yes' as never });
+        return toolResponseContract.parse({ success: 'yes' });
       }).toThrow(/expected boolean/u);
     });
   });

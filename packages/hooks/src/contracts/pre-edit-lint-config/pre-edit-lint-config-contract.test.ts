@@ -21,7 +21,7 @@ describe('preEditLintConfigContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return preEditLintConfigContract.parse({} as never);
+        return preEditLintConfigContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

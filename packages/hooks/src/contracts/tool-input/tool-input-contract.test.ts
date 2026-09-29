@@ -38,7 +38,7 @@ describe('toolInputContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return toolInputContract.parse({} as never);
+        return toolInputContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

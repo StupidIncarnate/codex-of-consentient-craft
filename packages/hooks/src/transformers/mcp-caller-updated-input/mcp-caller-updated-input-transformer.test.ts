@@ -22,9 +22,9 @@ describe('mcpCallerUpdatedInputTransformer', () => {
 
   it('VALID: {sub-agent call} => adds the agentId too', () => {
     const hookData = McpPreToolUseHookDataStub({
-      cwd: '/home/user/repo/worktrees/x' as never,
+      cwd: '/home/user/repo/worktrees/x',
       tool_input: { agent: 'codeweaver-worker' },
-      agent_id: 'a493e1c2168b46114' as never,
+      agent_id: 'a493e1c2168b46114',
     });
 
     const result = mcpCallerUpdatedInputTransformer({ hookData });

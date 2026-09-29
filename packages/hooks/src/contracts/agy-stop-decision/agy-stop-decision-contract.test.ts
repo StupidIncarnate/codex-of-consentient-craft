@@ -25,7 +25,7 @@ describe('agyStopDecisionContract', () => {
   describe('invalid input', () => {
     it('INVALID: {decision: invalid} => throws validation error', () => {
       expect(() => {
-        return agyStopDecisionContract.parse({ decision: 'invalid' } as never);
+        return agyStopDecisionContract.parse({ decision: 'invalid' });
       }).toThrow(/Invalid option/u);
     });
   });

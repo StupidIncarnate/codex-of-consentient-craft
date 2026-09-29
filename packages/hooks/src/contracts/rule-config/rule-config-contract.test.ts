@@ -24,7 +24,7 @@ describe('ruleConfigContract', () => {
   describe('invalid input', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
-        return ruleConfigContract.parse({} as never);
+        return ruleConfigContract.parse({});
       }).toThrow(/received undefined/u);
     });
   });

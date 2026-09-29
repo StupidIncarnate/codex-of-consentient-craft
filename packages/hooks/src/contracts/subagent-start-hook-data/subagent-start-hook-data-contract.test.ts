@@ -30,7 +30,7 @@ describe('subagentStartHookDataContract', () => {
   describe('invalid input', () => {
     it('INVALID: {empty object} => throws validation error', () => {
       expect(() => {
-        return subagentStartHookDataContract.parse({} as never);
+        return subagentStartHookDataContract.parse({});
       }).toThrow(/received undefined/u);
     });
 
@@ -43,7 +43,7 @@ describe('subagentStartHookDataContract', () => {
           hook_event_name: 'SessionStart',
           agent_id: 'agent-1',
           agent_type: 'Explore',
-        } as never);
+        });
       }).toThrow(/Invalid input: expected/u);
     });
   });

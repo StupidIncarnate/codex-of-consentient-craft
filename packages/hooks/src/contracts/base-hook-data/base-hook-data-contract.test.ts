@@ -34,7 +34,7 @@ describe('baseHookDataContract', () => {
     it('INVALID: {session_id: number} => throws validation error', () => {
       expect(() => {
         return baseHookDataContract.parse({
-          session_id: 123 as never,
+          session_id: 123,
           transcript_path: '/test',
           cwd: '/cwd',
           hook_event_name: 'PreToolUse',
@@ -48,7 +48,7 @@ describe('baseHookDataContract', () => {
           session_id: 'test',
           transcript_path: '/test',
           hook_event_name: 'PreToolUse',
-        } as never);
+        });
       }).toThrow(/received undefined/u);
     });
   });
