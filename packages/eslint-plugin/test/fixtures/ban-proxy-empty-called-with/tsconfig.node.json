@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "skipLibCheck": true,
+    "typeRoots": ["../../../../../node_modules/@types"]
+  },
+  "files": [
+    "../../../src/statics/regex-match-methods/regex-match-methods-statics.ts",
+    "../../../src/brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.proxy.ts"
+  ]
+}

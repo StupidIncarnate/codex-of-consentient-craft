@@ -5,8 +5,11 @@ import { typedSpyMethodTakesNoArgsLayerBroker } from './typed-spy-method-takes-n
 // Real ESLint + real TypeScript program, the way typedFunctionTakesNoArgsTransformer is exercised:
 // the broker only resolves anything once a full typed lint pass has built one. Each snippet declares
 // one `spy({ object })` call; the probe hands the `object` node, and the case's method name, to the
-// broker. The filename is this package's own real src/index.ts so `project: true` finds a tsconfig.
-const REAL_FILE = `${__dirname.split('/brokers/')[0]}/index.ts`;
+// broker. The filename is a tiny real statics file that a two-file fixture tsconfig names, so the
+// program holds that file and the lib, not every source file of the package.
+const [SRC_DIR] = __dirname.split('/brokers/');
+const REAL_FILE = `${SRC_DIR}/statics/regex-match-methods/regex-match-methods-statics.ts`;
+const FIXTURE_TSCONFIG = `${SRC_DIR}/../test/fixtures/ban-proxy-empty-called-with/tsconfig.node.json`;
 
 describe('typedSpyMethodTakesNoArgsLayerBroker', () => {
   it.each([
@@ -25,7 +28,7 @@ describe('typedSpyMethodTakesNoArgsLayerBroker', () => {
         files: ['**/*.ts'],
         languageOptions: {
           parser: tsParser,
-          parserOptions: { ecmaVersion: 2020, sourceType: 'module', project: true },
+          parserOptions: { ecmaVersion: 2020, sourceType: 'module', project: FIXTURE_TSCONFIG },
         },
         plugins: {
           probe: {
