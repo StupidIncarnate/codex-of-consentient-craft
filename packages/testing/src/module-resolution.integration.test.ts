@@ -8,7 +8,7 @@
  *
  * `import-path-resolver-middleware.test.ts` cannot stand in for this file, and believing it did is
  * what left the gap: that middleware normalises `/dist/` out of a path and `.js` to `.ts`, so
- * `packages/shared/dist/testing.js` and `packages/shared/testing.ts` collapse to the SAME string
+ * `packages/shared/dist/src/statics/statics.js` and `packages/shared/src/statics/statics.ts` collapse to the SAME string
  * before any assertion sees them. It passes under either resolution.
  *
  * Resolving to compiled output is what makes a green suite meaningless: a sub-agent edits
@@ -26,7 +26,7 @@ describe('jest module resolution', () => {
       const resolved = require.resolve('@dungeonmaster/shared/statics');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/statics.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/statics/statics.ts`,
         insideDist: false,
       });
     });
@@ -35,16 +35,27 @@ describe('jest module resolution', () => {
       const resolved = require.resolve('@dungeonmaster/shared/contracts');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/contracts.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/contracts/contracts.ts`,
         insideDist: false,
       });
     });
 
-    it('VALID: {@dungeonmaster/shared/testing} => resolves to the source barrel, never dist', () => {
-      const resolved = require.resolve('@dungeonmaster/shared/testing');
+    it('VALID: {@dungeonmaster/shared/<path>.proxy} => resolves to the per-file source proxy, never dist', () => {
+      const resolved =
+        require.resolve('@dungeonmaster/shared/brokers/gateway-lint-config/read/gateway-lint-config-read-broker.proxy');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/testing.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/brokers/gateway-lint-config/read/gateway-lint-config-read-broker.proxy.ts`,
+        insideDist: false,
+      });
+    });
+
+    it('VALID: {@dungeonmaster/shared/<path>.stub} => resolves to the per-file source stub, never dist', () => {
+      const resolved =
+        require.resolve('@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub');
+
+      expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
+        resolved: `${REPO_ROOT}/packages/shared/src/contracts/absolute-file-path/absolute-file-path.stub.ts`,
         insideDist: false,
       });
     });

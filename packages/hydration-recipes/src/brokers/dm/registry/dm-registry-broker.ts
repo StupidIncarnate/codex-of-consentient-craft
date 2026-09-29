@@ -34,6 +34,9 @@
  * await dmRegistryBroker.run(somePlan, target);
  * const { runs, makes } = dmRegistryBroker.listing(somePlan);
  */
+import type { Entry, HydrationFor } from '@dungeonmaster/hydration/contracts';
+
+import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { guildIngredientBroker } from '../../guild/ingredient/guild-ingredient-broker';
 import { operationIngredientBroker } from '../../operation/ingredient/operation-ingredient-broker';
@@ -51,4 +54,11 @@ const dm = registry({
   subagents: subagentIngredientBroker,
 });
 
-export const dmRegistryBroker = { ...dm, run, listing };
+export const dmRegistryBroker: Entry<{
+  guilds: typeof guildIngredientBroker;
+  quests: typeof questIngredientBroker;
+  operations: typeof operationIngredientBroker;
+  sessions: typeof sessionIngredientBroker;
+  subagents: typeof subagentIngredientBroker;
+}> &
+  Pick<HydrationFor<DmTarget>, 'run' | 'listing'> = { ...dm, run, listing };
