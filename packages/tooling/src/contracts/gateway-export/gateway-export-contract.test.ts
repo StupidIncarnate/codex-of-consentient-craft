@@ -19,9 +19,7 @@ describe('gatewayExportContract', () => {
   });
 
   it('INVALID: {match: "close"} => throws an invalid-option error', () => {
-    expect(() => GatewayExportStub({ match: 'close' as never })).toThrow(
-      /^[\s\S]*Invalid option[\s\S]*$/u,
-    );
+    expect(() => GatewayExportStub({ match: 'close' })).toThrow(/^[\s\S]*Invalid option[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

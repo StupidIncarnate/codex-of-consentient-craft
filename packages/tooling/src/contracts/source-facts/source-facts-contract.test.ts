@@ -15,16 +15,14 @@ describe('sourceFactsContract', () => {
 
   it('VALID: {a star re-export} => keeps the flag and an empty name list', () => {
     const result = SourceFactsStub({
-      reExports: [{ specifier: './a' as never, names: [], isStar: true }],
+      reExports: [{ specifier: './a', names: [], isStar: true }],
     });
 
     expect(result.reExports).toStrictEqual([{ specifier: './a', names: [], isStar: true }]);
   });
 
   it('INVALID: {imports: [{}]} => throws a required-field error', () => {
-    expect(() => SourceFactsStub({ imports: [{}] as never })).toThrow(
-      /^[\s\S]*expected string[\s\S]*$/iu,
-    );
+    expect(() => SourceFactsStub({ imports: [{}] })).toThrow(/^[\s\S]*expected string[\s\S]*$/iu);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

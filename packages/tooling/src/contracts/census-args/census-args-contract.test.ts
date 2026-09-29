@@ -10,24 +10,20 @@ describe('censusArgsContract', () => {
 
   it('VALID: {every field} => all three kept', () => {
     const result = CensusArgsStub({
-      cwd: '/repo' as never,
+      cwd: '/repo',
       format: 'json',
-      packageFilter: 'lib' as never,
+      packageFilter: 'lib',
     });
 
     expect(result).toStrictEqual({ cwd: '/repo', format: 'json', packageFilter: 'lib' });
   });
 
   it('INVALID: {format: "xml"} => throws an invalid-option error', () => {
-    expect(() => CensusArgsStub({ format: 'xml' as never })).toThrow(
-      /^[\s\S]*Invalid option[\s\S]*$/u,
-    );
+    expect(() => CensusArgsStub({ format: 'xml' })).toThrow(/^[\s\S]*Invalid option[\s\S]*$/u);
   });
 
   it('INVALID: {packageFilter: ""} => throws a too-small error', () => {
-    expect(() => CensusArgsStub({ packageFilter: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => CensusArgsStub({ packageFilter: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

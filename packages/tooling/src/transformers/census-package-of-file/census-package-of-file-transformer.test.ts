@@ -3,10 +3,10 @@ import { CensusPathStub } from '../../contracts/census-path/census-path.stub';
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 
 describe('censusPackageOfFileTransformer', () => {
-  const api = CensusPackageStub({ name: '@acme/api' as never, dir: 'packages/api' as never });
+  const api = CensusPackageStub({ name: '@acme/api', dir: 'packages/api' });
   const node = CensusPackageStub({
-    name: '@acme/node' as never,
-    dir: 'packages/@gateway/node' as never,
+    name: '@acme/node',
+    dir: 'packages/@gateway/node',
   });
 
   it('VALID: {a file under a package dir} => that package', () => {
@@ -29,8 +29,8 @@ describe('censusPackageOfFileTransformer', () => {
 
   it('VALID: {nested package dirs} => the longest dir wins', () => {
     const inner = CensusPackageStub({
-      name: '@acme/inner' as never,
-      dir: 'packages/api/inner' as never,
+      name: '@acme/inner',
+      dir: 'packages/api/inner',
     });
 
     const result = censusPackageOfFileTransformer({

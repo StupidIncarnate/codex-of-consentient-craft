@@ -18,7 +18,7 @@ describe('adapterAnalysisContract', () => {
   });
 
   it('INVALID: {reasons: ["other"]} => throws an invalid-option error', () => {
-    expect(() => AdapterAnalysisStub({ reasons: ['other'] as never })).toThrow(
+    expect(() => AdapterAnalysisStub({ reasons: ['other'] })).toThrow(
       /^[\s\S]*Invalid option[\s\S]*$/u,
     );
   });

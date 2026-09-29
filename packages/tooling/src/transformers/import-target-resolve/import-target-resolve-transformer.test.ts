@@ -4,8 +4,8 @@ import { CensusPackageStub } from '../../contracts/census-package/census-package
 
 describe('importTargetResolveTransformer', () => {
   const packages = [
-    CensusPackageStub({ name: '@acme/api' as never, dir: 'packages/api' as never }),
-    CensusPackageStub({ name: '@acme/api-extra' as never, dir: 'packages/api-extra' as never }),
+    CensusPackageStub({ name: '@acme/api', dir: 'packages/api' }),
+    CensusPackageStub({ name: '@acme/api-extra', dir: 'packages/api-extra' }),
   ];
 
   describe('relative specifiers', () => {

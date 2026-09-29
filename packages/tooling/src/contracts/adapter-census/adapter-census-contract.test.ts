@@ -26,9 +26,7 @@ describe('adapterCensusContract', () => {
   });
 
   it('INVALID: {scope: ""} => throws a too-small error', () => {
-    expect(() => AdapterCensusStub({ scope: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => AdapterCensusStub({ scope: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

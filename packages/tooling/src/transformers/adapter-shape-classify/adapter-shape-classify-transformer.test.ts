@@ -25,7 +25,7 @@ describe('adapterShapeClassifyTransformer', () => {
   it('VALID: {two outside calls} => logic, multiple-outside-calls', () => {
     const result = adapterShapeClassifyTransformer({
       analysis: AdapterAnalysisStub({
-        outsideCalls: [OutsideCallStub(), OutsideCallStub({ name: 'writeFile' as never })],
+        outsideCalls: [OutsideCallStub(), OutsideCallStub({ name: 'writeFile' })],
       }),
       gateway: [GatewayExportStub()],
     });

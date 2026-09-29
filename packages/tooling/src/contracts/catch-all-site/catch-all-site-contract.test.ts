@@ -19,13 +19,11 @@ describe('catchAllSiteContract', () => {
   });
 
   it('INVALID: {line: 0} => throws a too-small error', () => {
-    expect(() => CatchAllSiteStub({ line: 0 as never })).toThrow(/^[\s\S]*>0[\s\S]*$/u);
+    expect(() => CatchAllSiteStub({ line: 0 })).toThrow(/^[\s\S]*>0[\s\S]*$/u);
   });
 
   it('INVALID: {kind: "other"} => throws an invalid-option error', () => {
-    expect(() => CatchAllSiteStub({ kind: 'other' as never })).toThrow(
-      /^[\s\S]*Invalid option[\s\S]*$/u,
-    );
+    expect(() => CatchAllSiteStub({ kind: 'other' })).toThrow(/^[\s\S]*Invalid option[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

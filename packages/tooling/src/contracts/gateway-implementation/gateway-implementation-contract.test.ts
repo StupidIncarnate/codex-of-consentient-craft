@@ -20,7 +20,7 @@ describe('gatewayImplementationContract', () => {
   });
 
   it('INVALID: {moduleDir: ""} => throws a too-small error', () => {
-    expect(() => GatewayImplementationStub({ moduleDir: '' as never })).toThrow(
+    expect(() => GatewayImplementationStub({ moduleDir: '' })).toThrow(
       /^[\s\S]*>=1 characters[\s\S]*$/u,
     );
   });

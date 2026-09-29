@@ -25,8 +25,6 @@ describe('censusRootPackageContract', () => {
   });
 
   it('INVALID: {name: ""} => throws a too-small error', () => {
-    expect(() => CensusRootPackageStub({ name: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => CensusRootPackageStub({ name: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 });

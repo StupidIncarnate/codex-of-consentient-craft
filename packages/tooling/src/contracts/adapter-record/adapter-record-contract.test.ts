@@ -26,9 +26,7 @@ describe('adapterRecordContract', () => {
   });
 
   it('INVALID: {shape: "other"} => throws an invalid-option error', () => {
-    expect(() => AdapterRecordStub({ shape: 'other' as never })).toThrow(
-      /^[\s\S]*Invalid option[\s\S]*$/u,
-    );
+    expect(() => AdapterRecordStub({ shape: 'other' })).toThrow(/^[\s\S]*Invalid option[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

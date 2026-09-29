@@ -42,7 +42,7 @@ describe('adapterCensusTotalsTransformer', () => {
   });
 
   it('VALID: {callers sharing composing and catch-all proxies} => each proxy counts once', () => {
-    const shared = 'packages/a/src/shared.proxy.ts' as never;
+    const shared = 'packages/a/src/shared.proxy.ts';
     const result = adapterCensusTotalsTransformer({
       packages: [
         PackageCensusStub({
@@ -50,7 +50,7 @@ describe('adapterCensusTotalsTransformer', () => {
             AdapterRecordStub({
               productionCallers: [
                 AdapterCallerStub({
-                  composedBy: [shared, 'packages/a/src/one.proxy.ts' as never],
+                  composedBy: [shared, 'packages/a/src/one.proxy.ts'],
                   catchAll: [ProxyCatchAllStub({ file: shared })],
                 }),
                 AdapterCallerStub({

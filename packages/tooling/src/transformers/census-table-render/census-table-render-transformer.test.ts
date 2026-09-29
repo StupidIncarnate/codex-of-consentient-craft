@@ -26,16 +26,14 @@ describe('censusTableRenderTransformer', () => {
           AdapterRecordStub({
             productionCallers: [
               AdapterCallerStub({
-                composedBy: ['packages/example/src/top.proxy.ts' as never],
-                catchAll: [
-                  ProxyCatchAllStub({ file: 'packages/example/src/top.proxy.ts' as never }),
-                ],
+                composedBy: ['packages/example/src/top.proxy.ts'],
+                catchAll: [ProxyCatchAllStub({ file: 'packages/example/src/top.proxy.ts' })],
               }),
             ],
-            testFiles: ['packages/example/src/adapters/fs/read-file/x.test.ts' as never],
+            testFiles: ['packages/example/src/adapters/fs/read-file/x.test.ts'],
           }),
           AdapterRecordStub({
-            file: 'packages/example/src/adapters/net/check/net-check-adapter.ts' as never,
+            file: 'packages/example/src/adapters/net/check/net-check-adapter.ts',
             shape: 'logic',
             reasons: ['no-gateway-export', 'try-catch'],
             gateway: [],

@@ -18,9 +18,7 @@ describe('proxyCatchAllContract', () => {
   });
 
   it('INVALID: {file: ""} => throws a too-small error', () => {
-    expect(() => ProxyCatchAllStub({ file: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => ProxyCatchAllStub({ file: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

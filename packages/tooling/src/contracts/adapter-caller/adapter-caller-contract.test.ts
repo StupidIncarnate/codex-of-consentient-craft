@@ -20,7 +20,7 @@ describe('adapterCallerContract', () => {
   });
 
   it('INVALID: {composedBy: [""]} => throws a too-small error', () => {
-    expect(() => AdapterCallerStub({ composedBy: [''] as never })).toThrow(
+    expect(() => AdapterCallerStub({ composedBy: [''] })).toThrow(
       /^[\s\S]*>=1 characters[\s\S]*$/u,
     );
   });

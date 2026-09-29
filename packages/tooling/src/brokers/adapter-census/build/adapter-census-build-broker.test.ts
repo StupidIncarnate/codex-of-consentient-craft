@@ -6,11 +6,11 @@ import { AdapterRecordStub } from '../../../contracts/adapter-record/adapter-rec
 import { CensusSourceEntryStub } from '../../../contracts/census-source-entry/census-source-entry.stub';
 
 const layout = CensusRepoLayoutStub({
-  scope: '@acme' as never,
+  scope: '@acme',
   packages: [
-    CensusPackageStub({ name: '@acme/app' as never, dir: 'packages/app' as never }),
-    CensusPackageStub({ name: '@acme/lib' as never, dir: 'packages/lib' as never }),
-    CensusPackageStub({ name: '@acme/node' as never, dir: 'packages/@gateway/node' as never }),
+    CensusPackageStub({ name: '@acme/app', dir: 'packages/app' }),
+    CensusPackageStub({ name: '@acme/lib', dir: 'packages/lib' }),
+    CensusPackageStub({ name: '@acme/node', dir: 'packages/@gateway/node' }),
   ],
 });
 
@@ -21,7 +21,7 @@ const source = ({
   file: string;
   lines: readonly string[];
 }): ReturnType<typeof CensusSourceEntryStub> =>
-  CensusSourceEntryStub({ file: file as never, text: lines.join('\n') as never });
+  CensusSourceEntryStub({ file, text: lines.join('\n') });
 
 const sources = [
   source({

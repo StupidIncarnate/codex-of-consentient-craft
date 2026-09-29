@@ -12,15 +12,13 @@ describe('censusSourceEntryContract', () => {
   });
 
   it('EMPTY: {text: ""} => an empty file still parses', () => {
-    const result = CensusSourceEntryStub({ text: '' as never });
+    const result = CensusSourceEntryStub({ text: '' });
 
     expect(result.text).toBe('');
   });
 
   it('INVALID: {file: ""} => throws a too-small error', () => {
-    expect(() => CensusSourceEntryStub({ file: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => CensusSourceEntryStub({ file: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

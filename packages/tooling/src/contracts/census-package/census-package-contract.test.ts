@@ -10,17 +10,15 @@ describe('censusPackageContract', () => {
 
   it('VALID: {a gateway package} => keeps the nested dir', () => {
     const result = CensusPackageStub({
-      name: '@acme/node' as never,
-      dir: 'packages/@gateway/node' as never,
+      name: '@acme/node',
+      dir: 'packages/@gateway/node',
     });
 
     expect(result).toStrictEqual({ name: '@acme/node', dir: 'packages/@gateway/node' });
   });
 
   it('INVALID: {name: ""} => throws a too-small error', () => {
-    expect(() => CensusPackageStub({ name: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => CensusPackageStub({ name: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {

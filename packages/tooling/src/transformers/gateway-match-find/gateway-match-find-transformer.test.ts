@@ -5,8 +5,8 @@ import { OutsideCallStub } from '../../contracts/outside-call/outside-call.stub'
 describe('gatewayMatchFindTransformer', () => {
   const readFile = GatewayImplementationStub();
   const statIfExists = GatewayImplementationStub({
-    name: 'statIfExists' as never,
-    outsideCalls: [OutsideCallStub({ name: 'stat' as never })],
+    name: 'statIfExists',
+    outsideCalls: [OutsideCallStub({ name: 'stat' })],
   });
 
   it('VALID: {a call to fs/promises readFile} => the exact gateway export', () => {
@@ -22,7 +22,7 @@ describe('gatewayMatchFindTransformer', () => {
 
   it('VALID: {a call to fs/promises stat} => a related wrapper that calls stat', () => {
     const result = gatewayMatchFindTransformer({
-      outsideCalls: [OutsideCallStub({ name: 'stat' as never })],
+      outsideCalls: [OutsideCallStub({ name: 'stat' })],
       implementations: [readFile, statIfExists],
     });
 
@@ -33,12 +33,12 @@ describe('gatewayMatchFindTransformer', () => {
 
   it('VALID: {an exact and a related match} => exact lists first', () => {
     const stat = GatewayImplementationStub({
-      name: 'stat' as never,
-      outsideCalls: [OutsideCallStub({ name: 'stat' as never })],
+      name: 'stat',
+      outsideCalls: [OutsideCallStub({ name: 'stat' })],
     });
 
     const result = gatewayMatchFindTransformer({
-      outsideCalls: [OutsideCallStub({ name: 'stat' as never })],
+      outsideCalls: [OutsideCallStub({ name: 'stat' })],
       implementations: [statIfExists, stat],
     });
 
@@ -52,8 +52,8 @@ describe('gatewayMatchFindTransformer', () => {
     const result = gatewayMatchFindTransformer({
       outsideCalls: [
         OutsideCallStub({
-          module: '#gateway/node/fs__promises' as never,
-          name: 'readFile' as never,
+          module: '#gateway/node/fs__promises',
+          name: 'readFile',
         }),
       ],
       implementations: [],
@@ -66,7 +66,7 @@ describe('gatewayMatchFindTransformer', () => {
 
   it('VALID: {a node: prefixed module} => matches the same gateway folder', () => {
     const result = gatewayMatchFindTransformer({
-      outsideCalls: [OutsideCallStub({ module: 'node:fs/promises' as never })],
+      outsideCalls: [OutsideCallStub({ module: 'node:fs/promises' })],
       implementations: [readFile],
     });
 
@@ -77,7 +77,7 @@ describe('gatewayMatchFindTransformer', () => {
 
   it('EMPTY: {a call into a module the gateway does not wrap} => no match', () => {
     const result = gatewayMatchFindTransformer({
-      outsideCalls: [OutsideCallStub({ module: 'left-pad' as never, name: 'pad' as never })],
+      outsideCalls: [OutsideCallStub({ module: 'left-pad', name: 'pad' })],
       implementations: [readFile, statIfExists],
     });
 

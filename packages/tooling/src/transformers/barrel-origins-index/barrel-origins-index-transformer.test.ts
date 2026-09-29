@@ -6,9 +6,7 @@ import { ExportNameStub } from '../../contracts/export-name/export-name.stub';
 import { ModuleSpecifierStub } from '../../contracts/module-specifier/module-specifier.stub';
 
 describe('barrelOriginsIndexTransformer', () => {
-  const packages = [
-    CensusPackageStub({ name: '@acme/api' as never, dir: 'packages/api' as never }),
-  ];
+  const packages = [CensusPackageStub({ name: '@acme/api', dir: 'packages/api' })];
   const barrel = CensusPathStub({ value: 'packages/api/adapters.ts' });
   const readAdapter = CensusPathStub({ value: 'packages/api/src/adapters/a/a-adapter.ts' });
   const writeAdapter = CensusPathStub({ value: 'packages/api/src/adapters/b/b-adapter.ts' });

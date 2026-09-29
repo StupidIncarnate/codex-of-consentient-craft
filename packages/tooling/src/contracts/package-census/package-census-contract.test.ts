@@ -17,7 +17,7 @@ describe('packageCensusContract', () => {
   });
 
   it('INVALID: {adapters: [{}]} => throws a required-field error', () => {
-    expect(() => PackageCensusStub({ adapters: [{}] as never })).toThrow(
+    expect(() => PackageCensusStub({ adapters: [{}] })).toThrow(
       /^[\s\S]*expected string[\s\S]*$/iu,
     );
   });

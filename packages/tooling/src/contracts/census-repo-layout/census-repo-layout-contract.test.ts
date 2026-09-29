@@ -18,9 +18,7 @@ describe('censusRepoLayoutContract', () => {
   });
 
   it('INVALID: {scope: ""} => throws a too-small error', () => {
-    expect(() => CensusRepoLayoutStub({ scope: '' as never })).toThrow(
-      /^[\s\S]*>=1 characters[\s\S]*$/u,
-    );
+    expect(() => CensusRepoLayoutStub({ scope: '' })).toThrow(/^[\s\S]*>=1 characters[\s\S]*$/u);
   });
 
   it('VALID: {stub output} => parses again to the same value', () => {
