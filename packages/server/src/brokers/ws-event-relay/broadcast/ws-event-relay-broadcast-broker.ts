@@ -8,16 +8,16 @@
 
 import type { WsMessage } from '@dungeonmaster/shared/contracts';
 
-import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
+import type { WSContext } from '#gateway/npm/hono__ws';
 
 export const wsEventRelayBroadcastBroker = ({
   clients,
   message,
 }: {
-  clients: Set<WsClient>;
+  clients: Set<WSContext>;
   message: WsMessage;
-}): Set<WsClient> => {
-  const deadClients = new Set<WsClient>();
+}): Set<WSContext> => {
+  const deadClients = new Set<WSContext>();
   const serialized = JSON.stringify(message);
 
   for (const client of clients) {

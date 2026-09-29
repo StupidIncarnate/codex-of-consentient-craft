@@ -1,18 +1,20 @@
 import type { WsMessage } from '@dungeonmaster/shared/contracts';
 
-import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
-import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
+import type { WSContext } from '#gateway/npm/hono__ws';
+import { WsContextStub } from '#gateway/npm/hono__ws/ws-context/ws-context.stub';
 
 export const wsEventRelayBroadcastBrokerProxy = (): {
-  captureClient: WsClient;
+  captureClient: WSContext;
   getCapturedMessages: () => WsMessage[];
 } => {
   const messages: WsMessage[] = [];
 
-  const captureClient = WsClientStub({
-    send: jest.fn((data: string) => {
-      messages.push(JSON.parse(data) as WsMessage);
-    }),
+  const captureClient = WsContextStub({
+    send: (data): void => {
+      if (typeof data === 'string') {
+        messages.push(JSON.parse(data) as WsMessage);
+      }
+    },
   });
 
   return {

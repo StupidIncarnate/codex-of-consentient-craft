@@ -1,7 +1,5 @@
 import { WsMessageStub } from '@dungeonmaster/shared/contracts/ws-message/ws-message.stub';
 
-import type { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
-
 import { wsEventRelayBroadcastBroker } from './ws-event-relay-broadcast-broker';
 import { wsEventRelayBroadcastBrokerProxy } from './ws-event-relay-broadcast-broker.proxy';
 import { WsContextStub } from '#gateway/npm/hono__ws/ws-context/ws-context.stub';
@@ -10,7 +8,7 @@ describe('wsEventRelayBroadcastBroker', () => {
   describe('event subscription (broadcast to clients)', () => {
     it('EMPTY: {no clients} => returns empty dead clients set', () => {
       wsEventRelayBroadcastBrokerProxy();
-      const clients = new Set<ReturnType<typeof WsClientStub>>();
+      const clients = new Set<ReturnType<typeof WsContextStub>>();
       const message = WsMessageStub();
 
       const result = wsEventRelayBroadcastBroker({ clients, message });
