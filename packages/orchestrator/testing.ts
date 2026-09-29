@@ -20,20 +20,18 @@ export * from './src/brokers/quest/modify/quest-modify-broker.proxy';
 export * from './src/brokers/graph-reachability/check/graph-reachability-check-broker.proxy';
 
 // Contract Stubs
-export {
-  AddQuestResultStub,
-  GetQuestResultStub,
-  ModifyQuestResultStub,
-  QuestSummaryStub,
-} from '@dungeonmaster/shared/contracts';
+export { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
+export { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
+export { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
+export { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 export { AgentRoleStub } from './src/contracts/agent-role/agent-role.stub';
 export { IsoTimestampStub } from './src/contracts/iso-timestamp/iso-timestamp.stub';
-export { SlotCountStub } from '@dungeonmaster/shared/contracts';
-export { SlotIndexStub } from '@dungeonmaster/shared/contracts';
+export { SlotCountStub } from '@dungeonmaster/shared/contracts/slot-count/slot-count.stub';
+export { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 export { SlotManagerResultStub } from './src/contracts/slot-manager-result/slot-manager-result.stub';
-export { StreamJsonLineStub } from '@dungeonmaster/shared/contracts';
+export { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 export { StreamSignalStub } from './src/contracts/stream-signal/stream-signal.stub';
-export { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
+export { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 export { WorkItemIdStub } from './src/contracts/work-item-id/work-item-id.stub';
 export { FollowupDepthStub } from './src/contracts/followup-depth/followup-depth.stub';
 export { NextStepStub } from './src/contracts/next-step/next-step.stub';

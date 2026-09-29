@@ -9,12 +9,6 @@
     "#gateway/bin/*": "@dungeonmaster/bin/*"
   },
   "exports": {
-    "./testing": {
-      "source": "./testing.ts",
-      "types": "./dist/testing.d.ts",
-      "import": "./dist/testing.js",
-      "require": "./dist/testing.js"
-    },
     "./*.proxy": {
       "source": "./src/*.proxy.ts"
     },
