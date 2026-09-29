@@ -1,10 +1,9 @@
 import { folderDetailWasCalledBroker } from './folder-detail-was-called-broker';
 import { folderDetailWasCalledBrokerProxy } from './folder-detail-was-called-broker.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FolderTypeStub } from '@dungeonmaster/shared/contracts';
 
 const TRANSCRIPT_PATH = FilePathStub({ value: '/tmp/transcript.jsonl' });
-const BROKERS_FOLDER_TYPE = FolderTypeStub({ value: 'brokers' });
+const BROKERS_FOLDER_TYPE = 'brokers';
 
 const matchingLine = JSON.stringify({
   type: 'assistant',
