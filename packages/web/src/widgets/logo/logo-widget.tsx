@@ -37,14 +37,17 @@ export const LogoWidget = (): React.JSX.Element => {
   const spriteHeight = dimensions.height as PixelDimension;
 
   return (
-    <Group align="center" gap={LOGO_GAP} data-testid="LOGO_GROUP">
-      <PixelSpriteWidget
-        pixels={spritePixels}
-        scale={spriteScale}
-        width={spriteWidth}
-        height={spriteHeight}
-      />
+    <Group align="center" wrap="nowrap" gap={LOGO_GAP} data-testid="LOGO_GROUP">
+      <div className="logo-sprite" data-testid="LOGO_SPRITE_SLOT">
+        <PixelSpriteWidget
+          pixels={spritePixels}
+          scale={spriteScale}
+          width={spriteWidth}
+          height={spriteHeight}
+        />
+      </div>
       <pre
+        className="logo-ascii"
         data-testid="LOGO_ASCII"
         style={{
           color: colors.primary,
@@ -57,13 +60,15 @@ export const LogoWidget = (): React.JSX.Element => {
       >
         {logo}
       </pre>
-      <PixelSpriteWidget
-        pixels={spritePixels}
-        scale={spriteScale}
-        width={spriteWidth}
-        height={spriteHeight}
-        flip={true}
-      />
+      <div className="logo-sprite" data-testid="LOGO_SPRITE_SLOT">
+        <PixelSpriteWidget
+          pixels={spritePixels}
+          scale={spriteScale}
+          width={spriteWidth}
+          height={spriteHeight}
+          flip={true}
+        />
+      </div>
     </Group>
   );
 };

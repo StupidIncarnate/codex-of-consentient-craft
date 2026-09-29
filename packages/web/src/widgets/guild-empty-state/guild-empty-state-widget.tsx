@@ -15,6 +15,7 @@ import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/cont
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
+import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { DirectoryBrowserModalWidget } from '../directory-browser-modal/directory-browser-modal-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -27,6 +28,9 @@ const createLabel = buttonLabelContract.parse('CREATE');
 const cancelLabel = buttonLabelContract.parse('CANCEL');
 const browseLabel = buttonLabelContract.parse('BROWSE');
 const ghostVariant = buttonVariantContract.parse('ghost');
+const createTestId = testIdContract.parse('GUILD_CREATE_BUTTON');
+const cancelTestId = testIdContract.parse('GUILD_CANCEL_BUTTON');
+const browseTestId = testIdContract.parse('GUILD_BROWSE_BUTTON');
 
 export interface GuildEmptyStateWidgetProps {
   onAddGuild: ({ name, path }: { name: GuildName; path: GuildPath }) => void;
@@ -89,6 +93,7 @@ export const GuildEmptyStateWidget = ({
             />
             <PixelBtnWidget
               label={browseLabel}
+              testId={browseTestId}
               variant={ghostVariant}
               onClick={() => {
                 setBrowserOpened(true);
@@ -99,6 +104,7 @@ export const GuildEmptyStateWidget = ({
         <Group gap="xs">
           <PixelBtnWidget
             label={createLabel}
+            testId={createTestId}
             onClick={() => {
               onAddGuild({
                 name: guildNameContract.parse(name),
@@ -107,7 +113,12 @@ export const GuildEmptyStateWidget = ({
             }}
           />
           {onCancel ? (
-            <PixelBtnWidget label={cancelLabel} onClick={onCancel} variant={ghostVariant} />
+            <PixelBtnWidget
+              label={cancelLabel}
+              testId={cancelTestId}
+              onClick={onCancel}
+              variant={ghostVariant}
+            />
           ) : null}
         </Group>
       </Stack>
