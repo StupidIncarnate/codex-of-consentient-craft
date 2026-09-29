@@ -30,6 +30,16 @@ export const citationStatics = {
     // subdirectories covers every shape either convention produces.
     scanDepth: 1,
   },
+  openIssue: {
+    kind: 'open-issue',
+    // The gap answer's own `why`: one sentence for every caller, so `prune`, `cleanup` and the
+    // resolver never word the same unchecked question three ways.
+    uncheckedWhy:
+      'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
+      "a typed instanceId/runId — a workItem's own observation carries neither field and " +
+      'questNoteKindContract has no issue member — so a walker records a defect as a failing test ' +
+      'or as prose in a note, neither of which a resolver can match an instance against.',
+  },
   walked: {
     // `questNoteKindContract`'s fifth member. Compared against rather than imported, because
     // `statics/` may not import `contracts/`.

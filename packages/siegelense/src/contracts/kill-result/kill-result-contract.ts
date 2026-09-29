@@ -8,6 +8,9 @@
  * `reapedPgids` is empty on the ordinary path and carries the groups it found on the orphan path — the
  * one field a caller reads to tell which of the two actually happened.
  *
+ * `alreadyKilledAtMs` is absent on a kill that did something; on a repeat kill of a row already at
+ * rest it carries when that row was killed, or `null` when no time was recorded.
+ *
  * USAGE:
  * killResultContract.parse({
  *   instanceId: 'inst_7f3a9c21',
@@ -24,6 +27,7 @@ import { z } from 'zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
+import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
@@ -36,6 +40,7 @@ export const killResultContract = z.object({
   evidenceKept: repoLocalPathContract,
   reapedPgids: z.array(processGroupIdContract).readonly(),
   killed: z.array(processGroupIdContract).readonly().optional(),
+  alreadyKilledAtMs: epochMsContract.nullable().optional(),
 });
 
 export type KillResult = z.infer<typeof killResultContract>;

@@ -1,5 +1,12 @@
 import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
-import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  ContentTextStub,
+  FileNameStub,
+  GuildIdStub,
+  GuildStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -277,6 +284,42 @@ describe('stepResetBroker', () => {
       expect(result).toBe(
         '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
       );
+    });
+
+    it('VALID: {no to, reseed guild-with-three-quests} => restored names the level, reseeded names the recipe, and the reseed records ride the reading as bindings', async () => {
+      const proxy = stepResetBrokerProxy();
+      const lane = LaneSessionStub({ browser: null });
+      const guild = GuildStub({
+        id: GuildIdStub({ value: 'a1b2c3d4-0000-4000-8000-000000000001' }),
+      });
+
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+      proxy.setupReseed({ apiBaseUrl: lane.apiBaseUrl, guild, questIds: [] });
+
+      const result = await stepResetBroker({
+        lane,
+        level: ResetLevelStub({ value: 'instance' }),
+        to: null,
+        reseed: ContentTextStub({ value: 'guild-with-three-quests' }),
+      });
+
+      const reading: unknown = JSON.parse(result);
+      const expectedBindings: unknown = JSON.parse(
+        JSON.stringify({
+          guild,
+          questCreated: QuestStub(),
+          questInProgress: QuestStub(),
+          questComplete: QuestStub(),
+        }),
+      );
+
+      expect(reading).toStrictEqual({
+        restored: 'instance',
+        undid: { files: 0, added: 0, modified: 0, removed: 0 },
+        NOT_cleared: ['server memory', 'open websockets'],
+        reseeded: 'guild-with-three-quests',
+        bindings: expectedBindings,
+      });
     });
 
     it('VALID: with no to and an earlier boot capture => restores the earliest snapshot and reports what it undid (DEF-82)', async () => {

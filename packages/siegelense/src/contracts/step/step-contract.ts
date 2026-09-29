@@ -319,6 +319,7 @@ export const stepContract = z
         level: resetLevelContract.default('state'),
         to: snapshotNameContract.nullable().default(null),
         reseed: contentTextContract.nullable().default(null),
+        as: stepOutputNameContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })

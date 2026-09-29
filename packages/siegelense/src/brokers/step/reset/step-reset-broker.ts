@@ -152,21 +152,17 @@ export const stepResetBroker = async ({
     undid = await snapshotRestoreLayerBroker({ homePath: lane.homePath, payloadPath: record.path });
   }
 
-  if (reseed !== null) {
-    await recipeSeedRunBroker({
-      recipe: recipeNameContract.parse(reseed),
-      apiBaseUrl: lane.apiBaseUrl,
-      homePath: lane.homePath,
-      parameters: {},
-    });
-  }
+  const reseedBindings =
+    reseed === null
+      ? null
+      : await recipeSeedRunBroker({
+          recipe: recipeNameContract.parse(reseed),
+          apiBaseUrl: lane.apiBaseUrl,
+          homePath: lane.homePath,
+          parameters: {},
+        });
 
-  let restored: ContentText = contentTextContract.parse('instance');
-  if (to !== null) {
-    restored = contentTextContract.parse(to);
-  } else if (reseed !== null) {
-    restored = reseed;
-  }
+  const restored: ContentText = contentTextContract.parse(to === null ? 'instance' : to);
 
   const reading = resetReadingContract.parse({
     restored,
@@ -174,6 +170,9 @@ export const stepResetBroker = async ({
     NOT_cleared: instanceStorageCleared
       ? notCleared
       : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
+    ...(reseed === null || reseedBindings === null
+      ? {}
+      : { reseeded: reseed, bindings: reseedBindings }),
   });
 
   return resetReadingRenderTransformer({ reading });

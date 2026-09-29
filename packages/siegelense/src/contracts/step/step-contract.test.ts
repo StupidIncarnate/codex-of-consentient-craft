@@ -1536,6 +1536,7 @@ describe('stepContract', () => {
         level: 'state',
         to: 'clean',
         reseed: null,
+        as: null,
         node: 'after-reset',
         expect: 'ok',
       });
@@ -1552,6 +1553,26 @@ describe('stepContract', () => {
         level: 'page',
         to: null,
         reseed: null,
+        as: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset, reseed, as: "g"} => keeps the binding name the reseed result is recorded under', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'instance',
+        reseed: 'guild-empty',
+        as: 'g',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'instance',
+        to: null,
+        reseed: 'guild-empty',
+        as: 'g',
         node: null,
         expect: 'ok',
       });
@@ -1565,6 +1586,7 @@ describe('stepContract', () => {
         level: 'state',
         to: 'clean',
         reseed: null,
+        as: null,
         node: null,
         expect: 'ok',
       });

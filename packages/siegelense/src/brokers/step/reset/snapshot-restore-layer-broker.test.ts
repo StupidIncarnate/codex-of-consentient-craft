@@ -353,6 +353,127 @@ describe('snapshotRestoreLayerBroker', () => {
     });
   });
 
+  it('VALID: {a folder created since the snapshot, holding one file} => removes the folder itself and counts it as addedFolders 1', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const newDirName = FileNameStub({ value: 'guild-2' });
+    const nestedFileName = FileNameStub({ value: 'guild.json' });
+    const newDirPath = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(newDirName)}` });
+    const nestedFilePath = AbsoluteFilePathStub({
+      value: `${String(newDirPath)}/${String(nestedFileName)}`,
+    });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeDirEntry({ name: newDirName })] },
+        { dirPath: newDirPath, entries: [makeFileEntry({ name: nestedFileName })] },
+        { dirPath: payloadPath, entries: [] },
+      ],
+    });
+    proxy.setupFileStats({
+      stats: [
+        {
+          filePath: nestedFilePath,
+          sizeBytes: FileSizeBytesStub({ value: 10 }),
+          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+        },
+      ],
+    });
+    proxy.setupRmSucceeds({ filePaths: [nestedFilePath, newDirPath] });
+    proxy.setupCpSucceeds({ sourcePath: payloadPath, destinationPath: homePath, entries: [] });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(proxy.getRemovedPaths()).toStrictEqual([nestedFilePath, newDirPath]);
+    expect(result).toStrictEqual({
+      files: 1,
+      added: 1,
+      modified: 0,
+      removed: 0,
+      addedFolders: 1,
+    });
+  });
+
+  it('VALID: {an empty folder created since the snapshot} => removes it and counts addedFolders 1 with no files', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const newDirName = FileNameStub({ value: 'guild-2' });
+    const newDirPath = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(newDirName)}` });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeDirEntry({ name: newDirName })] },
+        { dirPath: newDirPath, entries: [] },
+        { dirPath: payloadPath, entries: [] },
+      ],
+    });
+    proxy.setupRmSucceeds({ filePaths: [newDirPath] });
+    proxy.setupCpSucceeds({ sourcePath: payloadPath, destinationPath: homePath, entries: [] });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(proxy.getRemovedPaths()).toStrictEqual([newDirPath]);
+    expect(result).toStrictEqual({
+      files: 0,
+      added: 0,
+      modified: 0,
+      removed: 0,
+      addedFolders: 1,
+    });
+  });
+
+  it('VALID: {a nested new folder chain, both new} => removes only the outermost folder but counts both', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const outerName = FileNameStub({ value: 'outer' });
+    const innerName = FileNameStub({ value: 'inner' });
+    const outerPath = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(outerName)}` });
+    const innerPath = AbsoluteFilePathStub({ value: `${String(outerPath)}/${String(innerName)}` });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeDirEntry({ name: outerName })] },
+        { dirPath: outerPath, entries: [makeDirEntry({ name: innerName })] },
+        { dirPath: innerPath, entries: [] },
+        { dirPath: payloadPath, entries: [] },
+      ],
+    });
+    proxy.setupRmSucceeds({ filePaths: [outerPath] });
+    proxy.setupCpSucceeds({ sourcePath: payloadPath, destinationPath: homePath, entries: [] });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(proxy.getRemovedPaths()).toStrictEqual([outerPath]);
+    expect(result).toStrictEqual({
+      files: 0,
+      added: 0,
+      modified: 0,
+      removed: 0,
+      addedFolders: 2,
+    });
+  });
+
+  it('VALID: {a folder the snapshot also holds} => leaves it in place and reports no addedFolders key', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const keptName = FileNameStub({ value: 'guild-1' });
+    const homeKeptPath = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(keptName)}` });
+    const payloadKeptPath = AbsoluteFilePathStub({
+      value: `${String(payloadPath)}/${String(keptName)}`,
+    });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeDirEntry({ name: keptName })] },
+        { dirPath: homeKeptPath, entries: [] },
+        { dirPath: payloadPath, entries: [makeDirEntry({ name: keptName })] },
+        { dirPath: payloadKeptPath, entries: [] },
+      ],
+    });
+    proxy.setupCpSucceeds({ sourcePath: payloadPath, destinationPath: homePath, entries: [] });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(proxy.getRemovedPaths()).toStrictEqual([]);
+    expect(result).toStrictEqual({ files: 0, added: 0, modified: 0, removed: 0 });
+  });
+
   it('ERROR: {cp failure} => propagates copy error', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = FileNameStub({ value: 'data.txt' });

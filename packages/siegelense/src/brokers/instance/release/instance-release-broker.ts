@@ -16,6 +16,7 @@
  */
 
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -35,6 +36,7 @@ export const instanceReleaseBroker = async ({
               pid: null,
               pgids: [],
               socketPath: null,
+              killedAtMs: epochMsContract.parse(Date.now()),
             })
           : entry,
       ),

@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Restores state from a snapshot payload into the instance's throwaway home directory.
  * Compares files in homePath and payloadPath (excluding .siegelense-snapshots), removes
- * added files, copies the payload into home, and reports the undid diff ({ files, added,
+ * added files and the folders the snapshot never held, copies the payload into home, and reports the undid diff ({ files, added,
  * modified, removed }).
  *
  * A same-size pair is decided by CONTENT, never by mtime (DEF-81): `snapshotCaptureBroker`'s own
@@ -15,7 +15,8 @@
  *   homePath: AbsoluteFilePathStub({ value: '/tmp/instance-home' }),
  *   payloadPath: AbsoluteFilePathStub({ value: '/tmp/instance-home/.siegelense-snapshots/1' }),
  * });
- * // Returns { files: 3, added: 1, modified: 1, removed: 1 }
+ * // Returns { files: 3, added: 1, modified: 1, removed: 1 }, plus `addedFolders` when home holds a
+ * // folder the snapshot never did (the key is absent otherwise)
  */
 
 import { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
@@ -47,6 +48,7 @@ export const snapshotRestoreLayerBroker = async ({
   const homeFiles = new Map<RelativeFilePath, FileStat>();
   const homeQueue: AbsoluteFilePath[] = [homePath];
   const homeFilePaths: AbsoluteFilePath[] = [];
+  const homeDirPaths: AbsoluteFilePath[] = [];
   const homePrefixLen = String(homePath).length + 1;
 
   while (homeQueue.length > 0) {
@@ -61,6 +63,7 @@ export const snapshotRestoreLayerBroker = async ({
       }
       const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
       if (entry.isDirectory()) {
+        homeDirPaths.push(entryPath);
         homeQueue.push(entryPath);
       } else {
         homeFilePaths.push(entryPath);
@@ -83,6 +86,7 @@ export const snapshotRestoreLayerBroker = async ({
   const payloadFiles = new Map<RelativeFilePath, FileStat>();
   const payloadQueue: AbsoluteFilePath[] = [payloadPath];
   const payloadFilePaths: AbsoluteFilePath[] = [];
+  const payloadDirRels = new Set<RelativeFilePath>();
   const payloadPrefixLen = String(payloadPath).length + 1;
 
   while (payloadQueue.length > 0) {
@@ -94,6 +98,9 @@ export const snapshotRestoreLayerBroker = async ({
     for (const entry of entries) {
       const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
       if (entry.isDirectory()) {
+        payloadDirRels.add(
+          relativeFilePathContract.parse(`./${String(entryPath).slice(payloadPrefixLen)}`),
+        );
         payloadQueue.push(entryPath);
       } else {
         payloadFilePaths.push(entryPath);
@@ -119,7 +126,23 @@ export const snapshotRestoreLayerBroker = async ({
     return !payloadFiles.has(relPath);
   });
 
-  await Promise.all(addedPaths.map(async (dirPath) => fsRmAdapter({ dirPath })));
+  // A folder the snapshot never held is taken with everything under it. Only the outermost ones
+  // are removed (one recursive rm covers a nested chain), but every one is counted.
+  const addedDirRels = homeDirPaths
+    .map((dirPath) => relativeFilePathContract.parse(`./${String(dirPath).slice(homePrefixLen)}`))
+    .filter((relPath) => !payloadDirRels.has(relPath));
+  const outermostAddedDirRels = addedDirRels.filter(
+    (relPath) => !addedDirRels.some((other) => String(relPath).startsWith(`${String(other)}/`)),
+  );
+
+  await Promise.all([
+    ...addedPaths.map(async (dirPath) => fsRmAdapter({ dirPath })),
+    ...outermostAddedDirRels.map(async (relPath) =>
+      fsRmAdapter({
+        dirPath: absoluteFilePathContract.parse(`${String(homePath)}${String(relPath).slice(1)}`),
+      }),
+    ),
+  ]);
 
   let modifiedCount = 0;
   let removedCount = 0;
@@ -171,5 +194,8 @@ export const snapshotRestoreLayerBroker = async ({
     added: readingCountContract.parse(addedCount),
     modified: readingCountContract.parse(modifiedCount),
     removed: readingCountContract.parse(removedCount),
+    ...(addedDirRels.length === 0
+      ? {}
+      : { addedFolders: readingCountContract.parse(addedDirRels.length) }),
   });
 };

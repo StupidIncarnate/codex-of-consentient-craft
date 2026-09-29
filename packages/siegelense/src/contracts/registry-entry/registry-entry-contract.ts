@@ -73,6 +73,7 @@ export const registryEntryContract = z.object({
   reservedAtMs: epochMsContract,
   bootedAtMs: epochMsContract.nullable(),
   lastBeatMs: epochMsContract.nullable(),
+  killedAtMs: epochMsContract.nullish(),
   prunedAtMs: epochMsContract.nullable(),
   prunedByRule: contentTextContract.nullable(),
   branch: contentTextContract.nullish(),
