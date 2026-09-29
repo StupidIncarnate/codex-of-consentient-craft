@@ -64,8 +64,6 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
         invalidExportCase: 'Lvl4: Export must use {{expected}} for {{folderType}}/ folder',
         filenameMismatch:
           'Lvl4: Export name "{{exportName}}" does not match expected "{{expectedName}}" based on filename',
-        adapterMustBeArrowFunction:
-          'Lvl4: Adapters must export arrow functions (export const x = () => {}), not {{actualType}}',
         proxyMustBeArrowFunction:
           'Lvl4: Proxy must export arrow function (export const x = () => {}), not {{actualType}}',
 

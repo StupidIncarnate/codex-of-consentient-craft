@@ -5,6 +5,9 @@ import { isObjectLiteralKeyLabelLayerBrokerProxy } from './is-object-literal-key
 import { propertyIdentifierToCheckLayerBrokerProxy } from './property-identifier-to-check-layer-broker.proxy';
 import { resolvePackagePlatformLayerBrokerProxy } from './resolve-package-platform-layer-broker.proxy';
 import { resolveGatewayScopeLayerBrokerProxy } from './resolve-gateway-scope-layer-broker.proxy';
+import { isPageCallbackCallLayerBrokerProxy } from './is-page-callback-call-layer-broker.proxy';
+import { isInsideInlinePageCallbackLayerBrokerProxy } from './is-inside-inline-page-callback-layer-broker.proxy';
+import { enclosingFunctionBindingNamesLayerBrokerProxy } from './enclosing-function-binding-names-layer-broker.proxy';
 
 /**
  * Proxy for platform-globals-ban rule broker. The rule's own test drives it through
@@ -20,6 +23,9 @@ export const rulePlatformGlobalsBanBrokerProxy = (): {
   propertyIdentifierToCheckLayerBrokerProxy();
   resolvePackagePlatformLayerBrokerProxy();
   resolveGatewayScopeLayerBrokerProxy();
+  isPageCallbackCallLayerBrokerProxy();
+  isInsideInlinePageCallbackLayerBrokerProxy();
+  enclosingFunctionBindingNamesLayerBrokerProxy();
 
   return {
     createContext: (): EslintContext => ({

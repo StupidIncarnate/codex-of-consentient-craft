@@ -2,8 +2,7 @@
  * PURPOSE: Recursively walks the call graph from a source file (typically a responder), rendering
  * one `→ <exportName>` line per non-excluded import and recursing into non-terminal nodes. The
  * display token is the actual exported identifier read from the imported file's source (e.g.
- * `questLoadBroker`), prefixed with `<pkg>/<folderType>/` when the import crosses packages. Adapters
- * are package exits — rendered as leaves and never followed. Folder types in
+ * `questLoadBroker`), prefixed with `<pkg>/<folderType>/` when the import crosses packages. Folder types in
  * `projectMapCallGraphStatics.excludedFolderTypes` (contracts, transformers, guards, assets,
  * statics, errors) are filtered out entirely. Folder types in `structuralFolderTypes` (startup,
  * flows, responders, widgets, bindings) are skipped to avoid duplicating the outer Boot-tree
@@ -37,7 +36,6 @@ import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-fin
 
 const BASE_INDENT_DEFAULT: ContentText = contentTextContract.parse('      ');
 const DEPTH_INDENT_UNIT = '  ';
-const TERMINAL_FOLDER_TYPE: FolderType = folderTypeContract.parse('adapters');
 
 export const callChainLinesRenderLayerBroker = ({
   sourceFile,
@@ -88,8 +86,6 @@ export const callChainLinesRenderLayerBroker = ({
       }
 
       lines.push(contentTextContract.parse(`${indent}→ ${String(display)}`));
-
-      if (folderType === TERMINAL_FOLDER_TYPE) continue;
 
       const recurseArgs =
         baseIndent === undefined

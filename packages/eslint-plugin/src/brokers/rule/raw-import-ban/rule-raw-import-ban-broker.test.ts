@@ -7,19 +7,7 @@ const ruleTester = ruleTesterHarness();
 // is ever read) so this rule's own unit test never falls through to the real filesystem walk.
 ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
   valid: [
-    // --- gateway subpath imports are workspace imports, always allowed ---
-    {
-      code: "import { readFileIfExists } from '@dungeonmaster/node/fs';",
-      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
-      options: [{ scope: '@dungeonmaster' }],
-    },
-    {
-      code: "import type { Page } from '@dungeonmaster/npm/@playwright/test';",
-      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
-      options: [{ scope: '@dungeonmaster' }],
-    },
-
-    // --- the '#gateway/<folder>' import-alias form is a workspace import too, allowed the same way ---
+    // --- the '#gateway/<folder>' import-alias form is the one accepted way into the gateway ---
     {
       code: "import { readFileIfExists } from '#gateway/node/fs';",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
@@ -31,7 +19,13 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       options: [{ scope: '@dungeonmaster' }],
     },
 
-    // --- any other workspace package is allowed ---
+    // --- any other workspace package is allowed, including one whose name merely starts with a
+    // gateway folder name ---
+    {
+      code: "import { helper } from '@dungeonmaster/node-helpers';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
     {
       code: "import { userContract } from '@dungeonmaster/shared/contracts';",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
@@ -79,6 +73,62 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
   ],
 
   invalid: [
+    // --- the scoped gateway package name is flagged; the alias is the fix ---
+    {
+      code: "import { readFileIfExists } from '@dungeonmaster/node/fs';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'scopedGatewayImport',
+          data: { importSource: '@dungeonmaster/node/fs', gatewayPath: '#gateway/node/fs' },
+        },
+      ],
+    },
+    {
+      code: "import type { z } from '@dungeonmaster/npm/zod';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'scopedGatewayImport',
+          data: { importSource: '@dungeonmaster/npm/zod', gatewayPath: '#gateway/npm/zod' },
+        },
+      ],
+    },
+    {
+      code: "export * from '@dungeonmaster/browser';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'scopedGatewayImport',
+          data: { importSource: '@dungeonmaster/browser', gatewayPath: '#gateway/browser' },
+        },
+      ],
+    },
+    {
+      code: "const git = require('@dungeonmaster/bin/git');",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+      errors: [
+        {
+          messageId: 'scopedGatewayImport',
+          data: { importSource: '@dungeonmaster/bin/git', gatewayPath: '#gateway/bin/git' },
+        },
+      ],
+    },
+    {
+      code: "import { readFileIfExists } from '@acme/node/fs';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@acme' }],
+      errors: [
+        {
+          messageId: 'scopedGatewayImport',
+          data: { importSource: '@acme/node/fs', gatewayPath: '#gateway/node/fs' },
+        },
+      ],
+    },
     // --- bare Node built-in ---
     {
       code: "import fs from 'fs';",

@@ -175,10 +175,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'httpGetAdapterProxy' }),
+          name: IdentifierStub({ value: 'httpGetBrokerProxy' }),
           isTypeOnly: false,
         }),
       ];
@@ -186,9 +186,9 @@ describe('validateExportLayerBroker', () => {
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
         collectedExports,
       });
 
@@ -691,12 +691,12 @@ describe('validateExportLayerBroker', () => {
       });
     });
 
-    it('INVALID: adapter with type-only export => reports missingExpectedExport', () => {
+    it('INVALID: broker with type-only export => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'Rule' }), isTypeOnly: true }),
       ];
@@ -704,9 +704,9 @@ describe('validateExportLayerBroker', () => {
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/eslint/rule/eslint-rule-adapter.ts',
+        filename: '/project/src/brokers/eslint/rule/eslint-rule-broker.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
         collectedExports,
       });
 
@@ -714,7 +714,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'missingExpectedExport',
-        data: { expectedName: 'eslintRuleAdapter', actualCount: '0' },
+        data: { expectedName: 'eslintRuleBroker', actualCount: '0' },
       });
     });
   });
@@ -891,10 +891,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'httpGetAdapter' }),
+          name: IdentifierStub({ value: 'httpGetBroker' }),
           isTypeOnly: false,
         }),
       ];
@@ -902,9 +902,9 @@ describe('validateExportLayerBroker', () => {
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
         collectedExports,
       });
 
@@ -917,7 +917,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).toHaveBeenNthCalledWith(2, {
         node,
         messageId: 'filenameMismatch',
-        data: { exportName: 'httpGetAdapter', expectedName: 'httpGetAdapterProxy' },
+        data: { exportName: 'httpGetBroker', expectedName: 'httpGetBrokerProxy' },
       });
     });
 
@@ -952,23 +952,23 @@ describe('validateExportLayerBroker', () => {
     });
   });
 
-  describe('adapter export validation', () => {
-    it('INVALID: adapter without Adapter suffix => reports invalidExportSuffix and filenameMismatch', () => {
+  describe('binding export validation', () => {
+    it('INVALID: binding without Binding suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'axiosGet' }), isTypeOnly: false }),
+        CollectedExportStub({ name: IdentifierStub({ value: 'useQuest' }), isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
+        filename: '/project/src/bindings/use-quest/use-quest-binding.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.bindings,
         collectedExports,
       });
 
@@ -976,24 +976,24 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).toHaveBeenNthCalledWith(1, {
         node,
         messageId: 'invalidExportSuffix',
-        data: { expected: 'Adapter', folderType: firstFolder },
+        data: { expected: 'Binding', folderType: firstFolder },
       });
       expect(mockReport).toHaveBeenNthCalledWith(2, {
         node,
         messageId: 'filenameMismatch',
-        data: { exportName: 'axiosGet', expectedName: 'axiosGetAdapter' },
+        data: { exportName: 'useQuest', expectedName: 'useQuestBinding' },
       });
     });
 
-    it('INVALID: PascalCase adapter => reports invalidExportCase and filenameMismatch', () => {
+    it('INVALID: PascalCase binding => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'AxiosGetAdapter' }),
+          name: IdentifierStub({ value: 'UseQuestBinding' }),
           isTypeOnly: false,
         }),
       ];
@@ -1001,9 +1001,9 @@ describe('validateExportLayerBroker', () => {
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
+        filename: '/project/src/bindings/use-quest/use-quest-binding.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.bindings,
         collectedExports,
       });
 
@@ -1016,19 +1016,19 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).toHaveBeenNthCalledWith(2, {
         node,
         messageId: 'filenameMismatch',
-        data: { exportName: 'AxiosGetAdapter', expectedName: 'axiosGetAdapter' },
+        data: { exportName: 'UseQuestBinding', expectedName: 'useQuestBinding' },
       });
     });
 
-    it('INVALID: adapter with wrong name => reports filenameMismatch', () => {
+    it('INVALID: binding with wrong name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'fetchDataAdapter' }),
+          name: IdentifierStub({ value: 'fetchDataBinding' }),
           isTypeOnly: false,
         }),
       ];
@@ -1036,9 +1036,9 @@ describe('validateExportLayerBroker', () => {
       validateExportLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
+        filename: '/project/src/bindings/use-quest/use-quest-binding.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.bindings,
         collectedExports,
       });
 
@@ -1046,7 +1046,7 @@ describe('validateExportLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'filenameMismatch',
-        data: { exportName: 'fetchDataAdapter', expectedName: 'axiosGetAdapter' },
+        data: { exportName: 'fetchDataBinding', expectedName: 'useQuestBinding' },
       });
     });
   });

@@ -72,7 +72,7 @@ beforeEach(() => {
         return null;
       }
 
-      // All broker files that import httpAdapter only
+      // All broker files that import httpBroker only
       if (
         filePath.includes('brokers/user/user-broker.ts') ||
         filePath.includes('brokers/user/no-creation-broker.ts') ||
@@ -81,10 +81,10 @@ beforeEach(() => {
       ) {
         return FileContentsStub({
           value: `
-        import { httpAdapter } from '../../adapters/http/http-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
 
         export const userBroker = () => {
-          return httpAdapter.get();
+          return httpBroker.get();
         };
       `,
         });
@@ -101,7 +101,7 @@ beforeEach(() => {
         });
       }
 
-      // user-broker.ts with multiple adapters
+      // user-broker.ts with multiple brokers
       if (
         filePath.includes('brokers/user-multi/user-broker.ts') ||
         filePath.includes('brokers/user-multi/missing-db-broker.ts') ||
@@ -109,12 +109,12 @@ beforeEach(() => {
       ) {
         return FileContentsStub({
           value: `
-        import { httpAdapter } from '../../adapters/http/http-adapter';
-        import { dbAdapter } from '../../adapters/db/db-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
+        import { dbBroker } from '../../brokers/db/db-broker';
 
         export const userBroker = () => {
-          const http = httpAdapter.get();
-          const db = dbAdapter.query();
+          const http = httpBroker.get();
+          const db = dbBroker.query();
           return { http, db };
         };
       `,
@@ -231,33 +231,33 @@ beforeEach(() => {
         });
       }
 
-      // eslint-rule-tester-adapter.ts - has example code in comments
-      if (filePath.includes('adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts')) {
+      // eslint-rule-tester-broker.ts - has example code in comments
+      if (filePath.includes('brokers/eslint/rule-tester/eslint-rule-tester-broker.ts')) {
         return FileContentsStub({
           value: `
         /**
          * @example
          * \`\`\`typescript
-         * import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+         * import { eslintRuleTesterBroker } from '../../../brokers/eslint/rule-tester/eslint-rule-tester-broker';
          * import { myRuleBroker } from './my-rule-broker';
          *
-         * const ruleTester = eslintRuleTesterAdapter();
+         * const ruleTester = eslintRuleTesterBroker();
          * \`\`\`
          */
-        export const eslintRuleTesterAdapter = (): RuleTester => {
+        export const eslintRuleTesterBroker = (): RuleTester => {
           return new RuleTester();
         };
       `,
         });
       }
 
-      // http-adapter.ts - only npm packages
-      if (filePath.includes('adapters/http/http-adapter.ts')) {
+      // http-broker.ts - only npm packages
+      if (filePath.includes('brokers/http/http-broker.ts')) {
         return FileContentsStub({
           value: `
         import axios from 'axios';
 
-        export const httpAdapter = {
+        export const httpBroker = {
           get: async () => axios.get('/api')
         };
       `,
@@ -286,7 +286,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
-        import { httpAdapter } from '../../adapters/http/http-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
 
         export const scopedBroker = () => {
           const root = projectRootFindBroker();
@@ -315,7 +315,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { userContract } from '@dungeonmaster/shared/contracts';
-        import { httpAdapter } from '../../adapters/http/http-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
 
         export const scopedContractsBroker = () => {
           return { data: 'test' };
@@ -329,7 +329,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { userBroker } from '@acme/core/brokers';
-        import { httpAdapter } from '../../adapters/http/http-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
 
         export const acmeBroker = () => {
           const user = userBroker();
@@ -343,10 +343,10 @@ beforeEach(() => {
       if (filePath.includes('brokers/myorg-import/myorg-broker.ts')) {
         return FileContentsStub({
           value: `
-        import { logAdapter } from '@myorg/utils/adapters';
+        import { logBroker } from '@myorg/utils/brokers';
 
         export const myorgBroker = () => {
-          const log = logAdapter();
+          const log = logBroker();
           return { log };
         };
       `,
@@ -358,7 +358,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { userContract } from '@acme/core/contracts';
-        import { httpAdapter } from '../../adapters/http/http-adapter';
+        import { httpBroker } from '../../brokers/http/http-broker';
 
         export const acmeContractsBroker = () => {
           return { data: 'test' };
@@ -371,10 +371,10 @@ beforeEach(() => {
       if (filePath.includes('widgets/button/button-widget.tsx')) {
         return FileContentsStub({
           value: `
-        import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter';
+        import { inkBoxBroker } from '../../brokers/ink/box/ink-box-broker';
 
         export const ButtonWidget = () => {
-          return inkBoxAdapter();
+          return inkBoxBroker();
         };
       `,
         });
@@ -384,10 +384,10 @@ beforeEach(() => {
       if (filePath.includes('brokers/tsx-import/tsx-import-broker.ts')) {
         return FileContentsStub({
           value: `
-        import { inkBoxAdapter } from '../../adapters/ink/box/ink-box-adapter.tsx';
+        import { inkBoxBroker } from '../../brokers/ink/box/ink-box-broker.tsx';
 
         export const tsxImportBroker = () => {
-          return inkBoxAdapter();
+          return inkBoxBroker();
         };
       `,
         });
@@ -482,47 +482,43 @@ beforeEach(() => {
         return FileContentsStub({ value: `export const StartOrchestratorProxy = () => ({});` });
       }
 
-      // Adapter that imports StartOrchestrator bare-root, per-file, and uses it — the real A00
-      // shape (packages/mcp/src/adapters/orchestrator/get-next-step/...).
+      // Broker that imports StartOrchestrator bare-root, per-file, and uses it — the real A00
+      // shape (packages/mcp/src/brokers/orchestrator/get-next-step/...).
       if (
-        filePath.includes(
-          'adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.ts',
-        )
+        filePath.includes('brokers/orchestrator/get-next-step/orchestrator-get-next-step-broker.ts')
       ) {
         return FileContentsStub({
           value: `
         import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-        export const orchestratorGetNextStepAdapter = () => {
+        export const orchestratorGetNextStepBroker = () => {
           return StartOrchestrator.getNextStep();
         };
       `,
         });
       }
 
-      // Adapter that imports ONLY agentRoleContract bare-root (a pass-through — contracts use
+      // Broker that imports ONLY agentRoleContract bare-root (a pass-through — contracts use
       // stubs, never a proxy) — proves recording every bare-root name costs nothing extra.
-      if (
-        filePath.includes('adapters/orchestrator/agent-role/orchestrator-agent-role-adapter.ts')
-      ) {
+      if (filePath.includes('brokers/orchestrator/agent-role/orchestrator-agent-role-broker.ts')) {
         return FileContentsStub({
           value: `
         import { agentRoleContract } from '@dungeonmaster/orchestrator';
 
-        export const orchestratorAgentRoleAdapter = () => {
+        export const orchestratorAgentRoleBroker = () => {
           return agentRoleContract;
         };
       `,
         });
       }
 
-      // Adapter that imports NOTHING from '@dungeonmaster/orchestrator' at all — for the
+      // Broker that imports NOTHING from '@dungeonmaster/orchestrator' at all — for the
       // still-flagged phantom-creation case: a proxy composing StartOrchestratorProxy() here has
       // nothing real behind it.
-      if (filePath.includes('adapters/orchestrator/phantom/orchestrator-phantom-adapter.ts')) {
+      if (filePath.includes('brokers/orchestrator/phantom/orchestrator-phantom-broker.ts')) {
         return FileContentsStub({
           value: `
-        export const orchestratorPhantomAdapter = () => {
+        export const orchestratorPhantomBroker = () => {
           return { data: 'test' };
         };
       `,
@@ -539,12 +535,12 @@ beforeEach(() => {
       if (filePath.includes('packages/demo/src/widgets/demo/demo-widget.proxy.ts')) {
         return FileContentsStub({ value: `export const DemoWidgetProxy = () => ({});` });
       }
-      if (filePath.includes('adapters/demo/demo-adapter.ts')) {
+      if (filePath.includes('brokers/demo/demo-broker.ts')) {
         return FileContentsStub({
           value: `
         import { DemoWidget } from '@dungeonmaster/demo';
 
-        export const demoAdapter = () => {
+        export const demoBroker = () => {
           return DemoWidget;
         };
       `,
@@ -564,12 +560,12 @@ beforeEach(() => {
       ) {
         return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
       }
-      if (filePath.includes('acme-repo/packages/mcp/src/adapters/orders/orders-adapter.ts')) {
+      if (filePath.includes('acme-repo/packages/mcp/src/brokers/orders/orders-broker.ts')) {
         return FileContentsStub({
           value: `
         import { OrdersBroker } from '@acme/orders';
 
-        export const ordersAdapter = () => {
+        export const ordersBroker = () => {
           return OrdersBroker.list();
         };
       `,
@@ -591,14 +587,12 @@ beforeEach(() => {
       ) {
         return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
       }
-      if (
-        filePath.includes('acme-devdeps-repo/packages/mcp/src/adapters/orders/orders-adapter.ts')
-      ) {
+      if (filePath.includes('acme-devdeps-repo/packages/mcp/src/brokers/orders/orders-broker.ts')) {
         return FileContentsStub({
           value: `
         import { OrdersBroker } from '@acme/orders';
 
-        export const ordersAdapter = () => {
+        export const ordersBroker = () => {
           return OrdersBroker.list();
         };
       `,
@@ -616,10 +610,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports and creates child proxy
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {
@@ -633,12 +627,12 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Multiple child proxies
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
-        import { dbAdapterProxy } from '../../adapters/db/db-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
+        import { dbBrokerProxy } from '../../brokers/db/db-broker.proxy';
 
         export const userBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
-          const dbProxy = dbAdapterProxy();
+          const httpProxy = httpBrokerProxy();
+          const dbProxy = dbBrokerProxy();
 
           return {
             setup: () => {}
@@ -662,10 +656,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // (no ReturnStatement node exists at all for this shape, so the call is tracked no matter what).
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => ({
-          ...httpAdapterProxy(),
+          ...httpBrokerProxy(),
         });
       `,
       filename: '/project/src/brokers/user/user-broker.proxy.ts',
@@ -676,11 +670,11 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // deferred inside a nested returned method.
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => {
           return {
-            ...httpAdapterProxy(),
+            ...httpBrokerProxy(),
           };
         };
       `,
@@ -705,7 +699,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         import axios from 'axios';
         jest.mock('axios');
 
-        export const httpAdapterProxy = () => {
+        export const httpBrokerProxy = () => {
           const mock = jest.mocked(axios);
           mock.mockImplementation(async () => ({ data: {} }));
 
@@ -714,7 +708,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+      filename: '/project/src/brokers/http/http-broker.proxy.ts',
     },
     // ✅ CORRECT - No implementation file (skip validation)
     {
@@ -731,19 +725,19 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import type { RuleTester } from 'eslint';
-        import { eslintRuleTesterAdapter } from './eslint-rule-tester-adapter';
+        import { eslintRuleTesterBroker } from './eslint-rule-tester-broker';
 
-        export const eslintRuleTesterAdapterProxy = (): {
+        export const eslintRuleTesterBrokerProxy = (): {
           returnsRuleTester: () => RuleTester;
         } => {
-          const ruleTester = eslintRuleTesterAdapter();
+          const ruleTester = eslintRuleTesterBroker();
 
           return {
             returnsRuleTester: (): RuleTester => ruleTester,
           };
         };
       `,
-      filename: '/project/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.proxy.ts',
+      filename: '/project/src/brokers/eslint/rule-tester/eslint-rule-tester-broker.proxy.ts',
     },
     // ✅ CORRECT - Implementation only imports statics (no proxies needed)
     {
@@ -856,11 +850,11 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedBrokerProxy = () => {
           const projectRootProxy = projectRootFindBrokerProxy();
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -888,10 +882,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import { userContract } from '@dungeonmaster/shared/contracts';
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedContractsBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -904,11 +898,11 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import { userBrokerProxy } from '@acme/core/testing';
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const acmeBrokerProxy = () => {
           const userProxy = userBrokerProxy();
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -920,10 +914,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Proxy imports only from different scoped package (@myorg/utils)
     {
       code: `
-        import { logAdapterProxy } from '@myorg/utils/testing';
+        import { logBrokerProxy } from '@myorg/utils/testing';
 
         export const myorgBrokerProxy = () => {
-          const logProxy = logAdapterProxy();
+          const logProxy = logBrokerProxy();
 
           return {
             setup: () => {}
@@ -936,10 +930,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import { userContract } from '@acme/core/contracts';
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const acmeContractsBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -951,10 +945,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ✅ CORRECT - Widget proxy with .tsx extension
     {
       code: `
-        import { inkBoxAdapterProxy } from '../../adapters/ink/box/ink-box-adapter.proxy';
+        import { inkBoxBrokerProxy } from '../../brokers/ink/box/ink-box-broker.proxy';
 
         export const ButtonWidgetProxy = () => {
-          const boxProxy = inkBoxAdapterProxy();
+          const boxProxy = inkBoxBrokerProxy();
 
           return {
             setup: () => {}
@@ -1023,7 +1017,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       code: `
         import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
-        export const orchestratorGetNextStepAdapterProxy = () => {
+        export const orchestratorGetNextStepBrokerProxy = () => {
           const orchestrator = StartOrchestratorProxy();
 
           return {
@@ -1032,7 +1026,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename:
-        '/repo/packages/mcp/src/adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy.ts',
+        '/repo/packages/mcp/src/brokers/orchestrator/get-next-step/orchestrator-get-next-step-broker.proxy.ts',
     },
     // ✅ CORRECT - Bare workspace-package ROOT import of a name with NO colocated proxy on disk
     // (a contract, re-exported from orchestrator's root barrel same as StartOrchestrator) — a
@@ -1040,14 +1034,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // nothing.
     {
       code: `
-        export const orchestratorAgentRoleAdapterProxy = () => {
+        export const orchestratorAgentRoleBrokerProxy = () => {
           return {
             setup: () => {}
           };
         };
       `,
       filename:
-        '/repo/packages/mcp/src/adapters/orchestrator/agent-role/orchestrator-agent-role-adapter.proxy.ts',
+        '/repo/packages/mcp/src/brokers/orchestrator/agent-role/orchestrator-agent-role-broker.proxy.ts',
     },
     // ✅ CORRECT - A SECOND, differently-named workspace package (not orchestrator): proves the
     // bare-root mapping reads each package's OWN root barrel rather than a hardcoded name.
@@ -1055,7 +1049,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       code: `
         import { DemoWidgetProxy } from '@dungeonmaster/demo/widgets/demo/demo-widget.proxy';
 
-        export const demoAdapterProxy = () => {
+        export const demoBrokerProxy = () => {
           const demoProxy = DemoWidgetProxy();
 
           return {
@@ -1063,7 +1057,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/repo/packages/mcp/src/adapters/demo/demo-adapter.proxy.ts',
+      filename: '/repo/packages/mcp/src/brokers/demo/demo-broker.proxy.ts',
     },
     // ✅ CORRECT - A CONSUMER repo's own workspace, scoped '@acme' rather than '@dungeonmaster' —
     // proves the workspace scope is read off the REAL workspace root (this repo's own operator
@@ -1072,7 +1066,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       code: `
         import { OrdersBrokerProxy } from '@acme/orders/brokers/orders/orders-broker.proxy';
 
-        export const ordersAdapterProxy = () => {
+        export const ordersBrokerProxy = () => {
           const ordersProxy = OrdersBrokerProxy();
 
           return {
@@ -1080,7 +1074,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/acme-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
+      filename: '/acme-repo/packages/mcp/src/brokers/orders/orders-broker.proxy.ts',
     },
     // ✅ CORRECT - F13: the SAME consumer scope resolves correctly even when root `devDependencies`
     // hold '@dungeonmaster/*' tooling and root `dependencies` holds nothing at all — proving the
@@ -1090,7 +1084,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       code: `
         import { OrdersBrokerProxy } from '@acme/orders/brokers/orders/orders-broker.proxy';
 
-        export const ordersAdapterProxy = () => {
+        export const ordersBrokerProxy = () => {
           const ordersProxy = OrdersBrokerProxy();
 
           return {
@@ -1098,7 +1092,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           };
         };
       `,
-      filename: '/acme-devdeps-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
+      filename: '/acme-devdeps-repo/packages/mcp/src/brokers/orders/orders-broker.proxy.ts',
     },
   ],
   invalid: [
@@ -1116,8 +1110,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'httpAdapter',
-            proxyPath: '../../adapters/http/http-adapter.proxy',
+            implementationName: 'httpBroker',
+            proxyPath: '../../brokers/http/http-broker.proxy',
           },
         },
       ],
@@ -1125,7 +1119,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Has proxy import but missing creation
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => {
           return {
@@ -1138,8 +1132,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyCreation',
           data: {
-            implementationName: 'httpAdapter',
-            proxyName: 'httpAdapterProxy',
+            implementationName: 'httpBroker',
+            proxyName: 'httpBrokerProxy',
           },
         },
       ],
@@ -1147,12 +1141,12 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Proxy created after return (not in constructor)
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => {
           return {
             setup: () => {
-              const httpProxy = httpAdapterProxy();
+              const httpProxy = httpBrokerProxy();
               httpProxy.returns({ data: {} });
             }
           };
@@ -1163,19 +1157,19 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyCreation',
           data: {
-            implementationName: 'httpAdapter',
-            proxyName: 'httpAdapterProxy',
+            implementationName: 'httpBroker',
+            proxyName: 'httpBrokerProxy',
           },
         },
       ],
     },
-    // ❌ WRONG - One missing proxy (has httpAdapter, missing dbAdapter)
+    // ❌ WRONG - One missing proxy (has httpBroker, missing dbBroker)
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const userBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -1187,8 +1181,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'dbAdapter',
-            proxyPath: '../../adapters/db/db-adapter.proxy',
+            implementationName: 'dbBroker',
+            proxyPath: '../../brokers/db/db-broker.proxy',
           },
         },
       ],
@@ -1207,28 +1201,28 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'httpAdapter',
-            proxyPath: '../../adapters/http/http-adapter.proxy',
+            implementationName: 'httpBroker',
+            proxyPath: '../../brokers/http/http-broker.proxy',
           },
         },
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'dbAdapter',
-            proxyPath: '../../adapters/db/db-adapter.proxy',
+            implementationName: 'dbBroker',
+            proxyPath: '../../brokers/db/db-broker.proxy',
           },
         },
       ],
     },
-    // ❌ WRONG - Phantom proxy (proxy creates dbAdapterProxy but impl doesn't use dbAdapter)
+    // ❌ WRONG - Phantom proxy (proxy creates dbBrokerProxy but impl doesn't use dbBroker)
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
-        import { dbAdapterProxy } from '../../adapters/db/db-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
+        import { dbBrokerProxy } from '../../brokers/db/db-broker.proxy';
 
         export const userBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
-          const dbProxy = dbAdapterProxy();
+          const httpProxy = httpBrokerProxy();
+          const dbProxy = dbBrokerProxy();
 
           return {
             setup: () => {}
@@ -1240,9 +1234,9 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'phantomProxyCreation',
           data: {
-            proxyName: 'dbAdapterProxy',
+            proxyName: 'dbBrokerProxy',
             implementationFile: 'phantom-proxy-broker.ts',
-            implementationName: 'dbAdapter',
+            implementationName: 'dbBroker',
           },
         },
       ],
@@ -1250,12 +1244,12 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Multiple phantom proxies (impl uses nothing, proxy creates 2)
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
-        import { dbAdapterProxy } from '../../adapters/db/db-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
+        import { dbBrokerProxy } from '../../brokers/db/db-broker.proxy';
 
         export const emptyBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
-          const dbProxy = dbAdapterProxy();
+          const httpProxy = httpBrokerProxy();
+          const dbProxy = dbBrokerProxy();
 
           return {
             setup: () => {}
@@ -1267,17 +1261,17 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'phantomProxyCreation',
           data: {
-            proxyName: 'httpAdapterProxy',
+            proxyName: 'httpBrokerProxy',
             implementationFile: 'empty-broker.ts',
-            implementationName: 'httpAdapter',
+            implementationName: 'httpBroker',
           },
         },
         {
           messageId: 'phantomProxyCreation',
           data: {
-            proxyName: 'dbAdapterProxy',
+            proxyName: 'dbBrokerProxy',
             implementationFile: 'empty-broker.ts',
-            implementationName: 'dbAdapter',
+            implementationName: 'dbBroker',
           },
         },
       ],
@@ -1285,10 +1279,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Missing scoped package proxy import
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -1310,10 +1304,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     {
       code: `
         import { projectRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const scopedBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -1354,10 +1348,10 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Missing proxy import from different scoped package (@acme/core)
     {
       code: `
-        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+        import { httpBrokerProxy } from '../../brokers/http/http-broker.proxy';
 
         export const acmeBrokerProxy = () => {
-          const httpProxy = httpAdapterProxy();
+          const httpProxy = httpBrokerProxy();
 
           return {
             setup: () => {}
@@ -1378,7 +1372,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // ❌ WRONG - Scoped package proxy from @myorg/utils imported but not created
     {
       code: `
-        import { logAdapterProxy } from '@myorg/utils/testing';
+        import { logBrokerProxy } from '@myorg/utils/testing';
 
         export const myorgBrokerProxy = () => {
           return {
@@ -1391,8 +1385,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyCreation',
           data: {
-            implementationName: 'logAdapter',
-            proxyName: 'logAdapterProxy',
+            implementationName: 'logBroker',
+            proxyName: 'logBrokerProxy',
           },
         },
       ],
@@ -1411,7 +1405,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'logAdapter',
+            implementationName: 'logBroker',
             proxyPath: '@myorg/utils/testing',
           },
         },
@@ -1431,8 +1425,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'inkBoxAdapter',
-            proxyPath: '../../adapters/ink/box/ink-box-adapter.proxy',
+            implementationName: 'inkBoxBroker',
+            proxyPath: '../../brokers/ink/box/ink-box-broker.proxy',
           },
         },
       ],
@@ -1451,8 +1445,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         {
           messageId: 'missingProxyImport',
           data: {
-            implementationName: 'inkBoxAdapter',
-            proxyPath: '../../adapters/ink/box/ink-box-adapter.proxy',
+            implementationName: 'inkBoxBroker',
+            proxyPath: '../../brokers/ink/box/ink-box-broker.proxy',
           },
         },
       ],
@@ -1524,14 +1518,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // proxy for StartOrchestrator must still be caught, not silently waved through.
     {
       code: `
-        export const orchestratorGetNextStepAdapterProxy = () => {
+        export const orchestratorGetNextStepBrokerProxy = () => {
           return {
             setup: () => {}
           };
         };
       `,
       filename:
-        '/repo/packages/mcp/src/adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy.ts',
+        '/repo/packages/mcp/src/brokers/orchestrator/get-next-step/orchestrator-get-next-step-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',
@@ -1550,7 +1544,7 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       code: `
         import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
-        export const orchestratorPhantomAdapterProxy = () => {
+        export const orchestratorPhantomBrokerProxy = () => {
           const orchestrator = StartOrchestratorProxy();
 
           return {
@@ -1559,13 +1553,13 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename:
-        '/repo/packages/mcp/src/adapters/orchestrator/phantom/orchestrator-phantom-adapter.proxy.ts',
+        '/repo/packages/mcp/src/brokers/orchestrator/phantom/orchestrator-phantom-broker.proxy.ts',
       errors: [
         {
           messageId: 'phantomProxyCreation',
           data: {
             proxyName: 'StartOrchestratorProxy',
-            implementationFile: 'orchestrator-phantom-adapter.ts',
+            implementationFile: 'orchestrator-phantom-broker.ts',
             implementationName: 'StartOrchestrator',
           },
         },
@@ -1576,13 +1570,13 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
     // missing child proxy just because it is not '@dungeonmaster'.
     {
       code: `
-        export const ordersAdapterProxy = () => {
+        export const ordersBrokerProxy = () => {
           return {
             setup: () => {}
           };
         };
       `,
-      filename: '/acme-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
+      filename: '/acme-repo/packages/mcp/src/brokers/orders/orders-broker.proxy.ts',
       errors: [
         {
           messageId: 'missingProxyImport',

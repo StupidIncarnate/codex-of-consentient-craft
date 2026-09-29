@@ -743,7 +743,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'brokers',
             importedFolder: 'widgets',
             allowed:
-              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
+              'brokers/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -760,7 +760,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'brokers',
             importedFolder: 'responders',
             allowed:
-              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
+              'brokers/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -783,7 +783,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
     {
-      code: 'import { utility } from "../../../adapters/axios/utility";',
+      code: 'import { utility } from "../../../transformers/format-date/utility";',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
       errors: [
         {
@@ -791,8 +791,8 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'brokers',
             importedFile: 'utility',
-            importedFolder: 'adapters',
-            pattern: '-adapter.ts',
+            importedFolder: 'transformers',
+            pattern: '-transformer.ts',
           },
         },
       ],
@@ -888,7 +888,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'responders',
             allowed:
-              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
+              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -911,16 +911,16 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       ],
     },
     {
-      code: 'import { axiosMock } from "../../../adapters/axios/axios-get.mock";',
+      code: 'import { formatDateMock } from "../../../transformers/format-date/format-date.mock";',
       filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
       errors: [
         {
           messageId: 'nonEntryFileImport',
           data: {
             folderType: 'brokers',
-            importedFile: 'axios-get.mock',
-            importedFolder: 'adapters',
-            pattern: '-adapter.ts',
+            importedFile: 'format-date.mock',
+            importedFolder: 'transformers',
+            pattern: '-transformer.ts',
           },
         },
       ],
@@ -952,7 +952,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'flows',
             allowed:
-              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
+              'widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -985,7 +985,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'flows',
             allowed:
-              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
           },
         },
       ],
@@ -1000,7 +1000,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'widgets',
             importedFolder: 'responders',
             allowed:
-              'adapters/, bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
+              'bindings/, brokers/, state/, contracts/, transformers/, guards/, statics/, errors/, widgets/, react, @mantine/core, @mantine/hooks, ansi-to-react, react-router-dom, @tabler/icons-react, @testing-library/react, @testing-library/user-event',
           },
         },
       ],
@@ -1044,7 +1044,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'state',
             importedFolder: 'brokers',
-            allowed: 'adapters/, contracts/, statics/, errors/, guards/, transformers/',
+            allowed: 'contracts/, statics/, errors/, guards/, transformers/',
           },
         },
       ],
@@ -1073,7 +1073,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
           data: {
             folderType: 'middleware',
             importedFolder: 'brokers',
-            allowed: 'adapters/, middleware/, statics/, contracts/, guards/, transformers/',
+            allowed: 'middleware/, statics/, contracts/, guards/, transformers/',
           },
         },
       ],
@@ -1166,7 +1166,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'brokers',
             importedFolder: 'flows',
             allowed:
-              'brokers/, adapters/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
+              'brokers/, contracts/, statics/, errors/, guards/, transformers/, @dungeonmaster/orchestrator',
           },
         },
       ],

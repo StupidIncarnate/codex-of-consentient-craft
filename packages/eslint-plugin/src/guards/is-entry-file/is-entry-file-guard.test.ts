@@ -12,10 +12,10 @@ describe('isEntryFileGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: axios-get-adapter.ts is entry file for adapters/', () => {
+    it('VALID: auth-middleware.ts is entry file for middleware/', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/adapters/axios/get/axios-get-adapter.ts',
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        filePath: '/project/src/middleware/auth/auth-middleware.ts',
+        folderType: FolderTypeStub({ value: 'middleware' }),
       });
 
       expect(result).toBe(true);
@@ -88,8 +88,8 @@ describe('isEntryFileGuard', () => {
 
     it('INVALID: user.mock.ts is not entry file (multi-dot file)', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/adapters/user/user.mock.ts',
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        filePath: '/project/src/brokers/user/user.mock.ts',
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(result).toBe(false);
@@ -104,10 +104,10 @@ describe('isEntryFileGuard', () => {
       expect(result).toBe(false);
     });
 
-    it('INVALID: utility.ts is not entry file for adapters/', () => {
+    it('INVALID: utility.ts is not entry file for middleware/', () => {
       const result = isEntryFileGuard({
-        filePath: '/project/src/adapters/axios/utility.ts',
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        filePath: '/project/src/middleware/auth/utility.ts',
+        folderType: FolderTypeStub({ value: 'middleware' }),
       });
 
       expect(result).toBe(false);

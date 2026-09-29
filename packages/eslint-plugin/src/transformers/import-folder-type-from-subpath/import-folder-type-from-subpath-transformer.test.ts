@@ -8,10 +8,16 @@ describe('importFolderTypeFromSubpathTransformer', () => {
       ).toBe('contracts');
     });
 
-    it('VALID: {importPath: "@acme/domain/adapters/http"} => returns "adapters"', () => {
+    it('VALID: {importPath: "@acme/domain/brokers/http"} => returns "brokers"', () => {
+      expect(
+        importFolderTypeFromSubpathTransformer({ importPath: '@acme/domain/brokers/http' }),
+      ).toBe('brokers');
+    });
+
+    it('EMPTY: {importPath: "@acme/domain/adapters/http"} => returns null, since adapters is not a folder type', () => {
       expect(
         importFolderTypeFromSubpathTransformer({ importPath: '@acme/domain/adapters/http' }),
-      ).toBe('adapters');
+      ).toBe(null);
     });
 
     it('VALID: {importPath: "core/flows"} => returns "flows"', () => {

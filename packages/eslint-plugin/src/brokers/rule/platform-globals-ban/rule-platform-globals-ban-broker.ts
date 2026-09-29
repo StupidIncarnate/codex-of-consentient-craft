@@ -13,7 +13,11 @@
  * (`Buffer` the class vs. `buffer` the module) — the subpath falls back to the lowercased
  * identifier only when that lowercase form is itself a real Node builtin, so `process`/`crypto`
  * (already lowercase, already builtins) are untouched and `setTimeout` (lowercase but not a
- * builtin) stays camelCase.
+ * builtin) stays camelCase. A global inside a function the driven browser runs is left alone:
+ * one written inline as the first argument of `page.evaluate`/`locator.evaluateAll`/
+ * `page.waitForFunction`/`page.addInitScript` is decided on the spot, and one inside a NAMED
+ * function is held until `Program:exit`, then dropped if that name was passed as such a first
+ * argument anywhere in the file (`page.evaluate(READ_FN)`).
  *
  * USAGE:
  * const rule = rulePlatformGlobalsBanBroker();
@@ -21,6 +25,7 @@
  * // suggesting `import { stdout } from '#gateway/node/process'`
  */
 import { gatewayLocationsStatics, nodeBuiltinStatics } from '@dungeonmaster/shared/statics';
+import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -33,6 +38,9 @@ import { isObjectLiteralKeyLabelLayerBroker } from './is-object-literal-key-labe
 import { propertyIdentifierToCheckLayerBroker } from './property-identifier-to-check-layer-broker';
 import { resolvePackagePlatformLayerBroker } from './resolve-package-platform-layer-broker';
 import { resolveGatewayScopeLayerBroker } from './resolve-gateway-scope-layer-broker';
+import { isPageCallbackCallLayerBroker } from './is-page-callback-call-layer-broker';
+import { isInsideInlinePageCallbackLayerBroker } from './is-inside-inline-page-callback-layer-broker';
+import { enclosingFunctionBindingNamesLayerBroker } from './enclosing-function-binding-names-layer-broker';
 
 // CommonJS module-scope values: each module gets its own copy (`__dirname` is the calling file's
 // own folder, `module` is the calling file's own module record — `require.main === module` asks
@@ -62,7 +70,35 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
       return {};
     }
 
+    // Names passed as the first argument of a browser-side Playwright call, and the reports held
+    // back because their identifier sits inside a named function — both settled at Program:exit,
+    // since a function is usually declared above the call that ships it to the browser.
+    const browserFunctionNames = new Set<Identifier>();
+    const heldReportNames = new Map<Tsestree, Identifier[]>();
+    const heldReportData = new Map<Tsestree, Record<PropertyKey, unknown>>();
+
     return {
+      CallExpression: (node: Tsestree): void => {
+        const [firstArgument] = node.arguments ?? [];
+        if (
+          firstArgument?.type === 'Identifier' &&
+          firstArgument.name !== undefined &&
+          isPageCallbackCallLayerBroker({ node })
+        ) {
+          browserFunctionNames.add(identifierContract.parse(firstArgument.name));
+        }
+      },
+      'Program:exit': (): void => {
+        for (const [target, names] of heldReportNames) {
+          if (!names.some((name) => browserFunctionNames.has(name))) {
+            ctx.report({
+              node: target,
+              messageId: 'platformGlobal',
+              data: heldReportData.get(target) ?? {},
+            });
+          }
+        }
+      },
       Identifier: (node: Tsestree): void => {
         if (node.name === undefined || EXEMPT_NAMES.has(String(node.name))) {
           return;
@@ -105,6 +141,17 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
             ? lowercasedName
             : identifierName;
         const gatewayPath = `${gatewayLocationsStatics.importPrefix}/${platform}/${subpath}`;
+
+        if (isInsideInlinePageCallbackLayerBroker({ node: target })) {
+          return;
+        }
+
+        const enclosingNames = enclosingFunctionBindingNamesLayerBroker({ node: target });
+        if (enclosingNames.length > 0) {
+          heldReportNames.set(target, enclosingNames);
+          heldReportData.set(target, { name: identifierName, gatewayPath });
+          return;
+        }
 
         ctx.report({
           node: target,

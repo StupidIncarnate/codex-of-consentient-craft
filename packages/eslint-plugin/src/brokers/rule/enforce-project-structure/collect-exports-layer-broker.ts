@@ -77,19 +77,6 @@ export const collectExportsLayerBroker = ({
                 return null;
               }
 
-              if (firstFolder === 'adapters' && !isArrowFunction) {
-                const actualType =
-                  init?.type === 'Identifier'
-                    ? 're-exported variable'
-                    : (init?.type ?? 'non-function value');
-                context.report({
-                  node,
-                  messageId: 'adapterMustBeArrowFunction',
-                  data: { actualType },
-                });
-                return null;
-              }
-
               exports.push({
                 type: 'VariableDeclaration' as CollectedExport['type'],
                 name: declarator.id.name,
@@ -108,14 +95,6 @@ export const collectExportsLayerBroker = ({
             });
             return null;
           }
-          if (firstFolder === 'adapters') {
-            context.report({
-              node,
-              messageId: 'adapterMustBeArrowFunction',
-              data: { actualType: 'function declaration' },
-            });
-            return null;
-          }
           exports.push({
             type: 'FunctionDeclaration' as CollectedExport['type'],
             name: declaration.id.name,
@@ -128,14 +107,6 @@ export const collectExportsLayerBroker = ({
             context.report({
               node,
               messageId: 'proxyMustBeArrowFunction',
-              data: { actualType: 'class' },
-            });
-            return null;
-          }
-          if (firstFolder === 'adapters') {
-            context.report({
-              node,
-              messageId: 'adapterMustBeArrowFunction',
               data: { actualType: 'class' },
             });
             return null;

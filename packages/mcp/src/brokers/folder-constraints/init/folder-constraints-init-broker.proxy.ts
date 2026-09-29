@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Test setup helper for folder constraints init broker. The gateway's `readFileProxy`
- * ships no real-disk passthrough the way the old local adapter proxy did, so every one of the 14
- * constraint files the broker looks up is staged explicitly here, addressed by its own real
+ * ships no real-disk passthrough, so every constraint file the broker looks up is staged
+ * explicitly here, addressed by its own real
  * resolved path. Each file's content is the literal opening line every constraint file on disk
- * starts with, plus — for the five folder types folder-constraints-init-broker.test.ts asserts
+ * starts with, plus — for each folder type folder-constraints-init-broker.test.ts asserts
  * content on — that file's own real section header, copied verbatim from disk.
  *
  * USAGE:
@@ -26,7 +26,6 @@ const FOLDER_STRUCTURE_HEADING = ContentTextStub({ value: '**FOLDER STRUCTURE:**
 // The one real section-header line each content-asserting test in
 // folder-constraints-init-broker.test.ts checks for, copied verbatim from its constraint file.
 const SECTION_HEADING_BY_FOLDER_TYPE: Partial<Record<FolderTypeWithConstraints, ContentText>> = {
-  adapters: ContentTextStub({ value: '**TRANSLATION BOUNDARY:**' }),
   brokers: ContentTextStub({ value: '**PROXY PATTERN:**' }),
   guards: ContentTextStub({ value: '**OBJECT ARGUMENTS FOR STATICS:**' }),
   contracts: ContentTextStub({ value: '**CRITICAL - TEST IMPORTS:**' }),

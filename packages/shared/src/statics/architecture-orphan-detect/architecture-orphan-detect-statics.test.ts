@@ -4,7 +4,6 @@ describe('architectureOrphanDetectStatics', () => {
   it('VALID: statics => match expected shape', () => {
     expect(architectureOrphanDetectStatics).toStrictEqual({
       walkedFolderTypes: [
-        'adapters',
         'bindings',
         'brokers',
         'flows',

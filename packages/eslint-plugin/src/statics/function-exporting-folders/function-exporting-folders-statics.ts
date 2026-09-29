@@ -7,7 +7,6 @@
  */
 export const functionExportingFoldersStatics = {
   names: [
-    'adapters',
     'bindings',
     'brokers',
     'flows',

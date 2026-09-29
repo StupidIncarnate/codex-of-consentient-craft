@@ -82,25 +82,6 @@ describe('validateFolderDepthLayerBroker', () => {
       expect(result).toBe(true);
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
-
-    it('VALID: adapters at depth 2 => returns true', () => {
-      validateFolderDepthLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
-
-      const result = validateFolderDepthLayerBroker({
-        node,
-        context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
-        firstFolder,
-        folderConfig: folderConfigStatics.adapters,
-      });
-
-      expect(result).toBe(true);
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
   });
 
   describe('invalid folder depth', () => {
@@ -249,19 +230,19 @@ describe('validateFolderDepthLayerBroker', () => {
       });
     });
 
-    it('INVALID: adapters at depth 0 => reports invalidFolderDepth', () => {
+    it('INVALID: brokers at depth 0 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFolderDepthLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/axios-get-adapter.ts',
+        filename: '/project/src/brokers/axios-get-broker.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
       });
 
       expect(result).toBe(false);
@@ -273,7 +254,7 @@ describe('validateFolderDepthLayerBroker', () => {
           folder: firstFolder,
           expected: '2',
           actual: '0',
-          pattern: folderConfigStatics.adapters.folderPattern,
+          pattern: folderConfigStatics.brokers.folderPattern,
         },
       });
     });

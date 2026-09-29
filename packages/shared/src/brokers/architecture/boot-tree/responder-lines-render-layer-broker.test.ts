@@ -4,8 +4,8 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('responderLinesRenderLayerBroker', () => {
-  describe('single responder no adapters', () => {
-    it('VALID: {flow with one responder and no adapters} => returns ↳ responder line', () => {
+  describe('single responder no brokers', () => {
+    it('VALID: {flow with one responder and no brokers} => returns ↳ responder line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
       const flowFile = AbsoluteFilePathStub({
         value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
@@ -36,8 +36,8 @@ describe('responderLinesRenderLayerBroker', () => {
     });
   });
 
-  describe('responder with adapter', () => {
-    it('VALID: {flow with responder and adapter} => renders ↳ line and → adapter line', () => {
+  describe('responder with broker', () => {
+    it('VALID: {flow with responder and broker} => renders ↳ line and → broker line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
       const flowFile = AbsoluteFilePathStub({
         value: '/repo/packages/server/src/flows/server/server-flow.ts',
@@ -54,12 +54,12 @@ describe('responderLinesRenderLayerBroker', () => {
           }),
           'server-init-responder.ts': ContentTextStub({
             value: [
-              `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+              `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
               `export const serverInitResponder = () => {};`,
             ].join('\n'),
           }),
-          'hono-serve-adapter.ts': ContentTextStub({
-            value: `export const honoServeAdapter = () => {};`,
+          'server-init-broker.ts': ContentTextStub({
+            value: `export const serverInitBroker = () => {};`,
           }),
         },
       });
@@ -72,7 +72,7 @@ describe('responderLinesRenderLayerBroker', () => {
 
       expect(result).toStrictEqual([
         ContentTextStub({ value: '  ↳ serverInitResponder' }),
-        ContentTextStub({ value: '      → honoServeAdapter' }),
+        ContentTextStub({ value: '      → serverInitBroker' }),
       ]);
     });
   });

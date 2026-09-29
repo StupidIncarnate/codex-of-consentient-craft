@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const folderType = folderTypeContract.parse('brokers');
- * // Returns branded FolderType (e.g., 'brokers', 'adapters', 'contracts', 'guards')
+ * // Returns branded FolderType (e.g., 'brokers', 'contracts', 'guards')
  */
 import { z } from '#gateway/npm/zod';
 import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';

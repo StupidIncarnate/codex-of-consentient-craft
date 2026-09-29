@@ -142,8 +142,8 @@ describe('validateExternalImportLayerBroker', () => {
       const result = validateExternalImportLayerBroker({
         node,
         context,
-        folderType: FolderTypeStub({ value: 'adapters' }),
-        allowedImports: folderConfigStatics.adapters.allowedImports,
+        folderType: FolderTypeStub({ value: 'brokers' }),
+        allowedImports: ['node_modules', 'statics/'],
         importSource: 'lodash',
       });
 

@@ -15,8 +15,8 @@ beforeEach(() => {
     const existingTestFiles = [
       '/project/src/brokers/user/fetch/user-fetch-broker.test.ts',
       '/project/src/transformers/format-date/format-date-transformer.test.ts',
-      '/project/src/adapters/axios/axios-get-adapter.test.ts',
-      '/project/src/adapters/http/http-adapter.test.ts', // For invalid proxy pattern test
+      '/project/src/brokers/axios/axios-get-broker.test.ts',
+      '/project/src/brokers/http/http-broker.test.ts', // For invalid proxy pattern test
       '/project/src/brokers/order/create/order-create-broker.test.ts', // For invalid proxy pattern test
       '/project/src/transformers/parse-json/parse-json-transformer.test.ts', // For invalid proxy pattern test
       '/project/src/guards/has-permission/has-permission-guard.test.ts',
@@ -61,7 +61,7 @@ beforeEach(() => {
     const existingProxyFiles = [
       '/project/src/brokers/user/fetch/user-fetch-broker.proxy.ts',
       '/project/src/transformers/format-date/format-date-transformer.proxy.ts',
-      '/project/src/adapters/axios/axios-get-adapter.proxy.ts',
+      '/project/src/brokers/axios/axios-get-broker.proxy.ts',
       '/project/src/guards/has-permission/has-permission-guard.proxy.ts',
       '/project/src/widgets/my-component/my-component-widget.proxy.tsx',
       '/project/src/state/user-cache/user-cache-state.proxy.ts',
@@ -96,7 +96,7 @@ beforeEach(() => {
 
     // Invalid proxy filename patterns (for testing validation)
     const invalidProxyFiles = [
-      '/project/src/adapters/http/http.proxy.ts', // Missing -adapter
+      '/project/src/brokers/http/http.proxy.ts', // Missing -broker
       '/project/src/brokers/order/create/order.proxy.ts', // Missing -create-broker
       '/project/src/transformers/parse-json/parse.proxy.ts', // Missing -json-transformer
     ];
@@ -121,8 +121,8 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       filename: '/project/src/transformers/format-date/format-date-transformer.ts',
     },
     {
-      code: 'export const axiosGetAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-get-adapter.ts',
+      code: 'export const axiosGetBroker = () => {};',
+      filename: '/project/src/brokers/axios/axios-get-broker.ts',
     },
     {
       code: 'export const hasPermissionGuard = () => {};',
@@ -284,8 +284,8 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       ],
     },
     {
-      code: 'export const axiosPostAdapter = () => {};',
-      filename: '/project/src/adapters/axios/axios-post-adapter.ts',
+      code: 'export const axiosPostBroker = () => {};',
+      filename: '/project/src/brokers/axios/axios-post-broker.ts',
       errors: [
         { messageId: 'missingTestFileWithLayer' },
         { messageId: 'missingProxyFileWithLayer' },
@@ -316,10 +316,10 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       filename: '/project/src/contracts/order/order-contract.ts',
       errors: [{ messageId: 'missingStubFile' }],
     },
-    // Proxy file exists but with incorrect naming pattern (missing -adapter)
+    // Proxy file exists but with incorrect naming pattern (missing -broker)
     {
-      code: 'export const httpAdapter = () => {};',
-      filename: '/project/src/adapters/http/http-adapter.ts',
+      code: 'export const httpBroker = () => {};',
+      filename: '/project/src/brokers/http/http-broker.ts',
       errors: [{ messageId: 'invalidProxyFilename' }],
     },
     // Proxy file exists but with incorrect naming pattern (missing -create-broker)
@@ -331,9 +331,9 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
 
     // Layer files without colocated proxy and test files (should fail)
     {
-      code: 'export const checkAdapterMockSetupLayerBroker = () => {};',
+      code: 'export const checkBrokerMockSetupLayerBroker = () => {};',
       filename:
-        '/project/src/brokers/rule/enforce-proxy-patterns/check-adapter-mock-setup-layer-broker.ts',
+        '/project/src/brokers/rule/enforce-proxy-patterns/check-broker-mock-setup-layer-broker.ts',
       errors: [
         { messageId: 'missingTestFileWithLayer' },
         { messageId: 'missingProxyFileWithLayer' },

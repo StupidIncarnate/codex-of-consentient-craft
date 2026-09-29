@@ -27,21 +27,13 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       filename: '/project/src/startup/start-app.ts',
     },
     {
-      code: 'export const axiosGetAdapter = () => {};',
-      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
-    },
-    {
-      code: 'export const httpGetAdapterProxy = () => {};',
-      filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+      code: 'export const httpGetBrokerProxy = () => {};',
+      filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
     },
     {
       code: 'export const validateFolderDepthLayerBroker = () => {};',
       filename:
         '/project/src/brokers/rule/enforce-project-structure/validate-folder-depth-layer-broker.ts',
-    },
-    {
-      code: 'export const parseResponseLayerAdapter = () => {};',
-      filename: '/project/src/adapters/axios/get/parse-response-layer-adapter.ts',
     },
     // Layer files now allowed in contracts/, transformers/, statics/ and bindings/
     {
@@ -89,6 +81,21 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const foo = "bar";',
       filename: '/project/src/unknown-folder/some-file.ts',
       errors: [{ messageId: 'unknownFolder' }],
+    },
+    // adapters/ is not a folder type -> ONLY L1 error, even for a well-formed adapter file
+    {
+      code: 'export const axiosGetAdapter = () => {};',
+      filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
+      errors: [
+        {
+          messageId: 'unknownFolder',
+          data: {
+            folder: 'adapters',
+            allowed:
+              'statics, contracts, guards, transformers, errors, flows, middleware, brokers, bindings, state, responders, widgets, startup, assets, migrations',
+          },
+        },
+      ],
     },
     // Layer file in disallowed folder -> ONLY L1 error
     {

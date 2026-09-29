@@ -266,21 +266,21 @@ brokers/       # Can import: transformers, guards, contracts, statics`,
   describe('with node_modules import', () => {
     it('VALID: {allowedImports: ["node_modules", "statics/"]} => includes node_modules in output', () => {
       const folderConfigs = FolderConfigsStub({
-        adapters: FolderConfigStub({ allowedImports: ['node_modules', 'statics/'] }),
+        brokers: FolderConfigStub({ allowedImports: ['node_modules', 'statics/'] }),
       });
 
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
         hierarchy: ContentTextStub({
-          value: 'adapters/  # Can import: node_modules, statics',
+          value: 'brokers/  # Can import: node_modules, statics',
         }),
         graph: {
-          adapters: ['node_modules', 'statics'],
+          brokers: ['node_modules', 'statics'],
         },
         matrix: buildMatrixStub({
-          folders: ['adapters'],
-          dependencies: { adapters: ['node_modules', 'statics'] },
+          folders: ['brokers'],
+          dependencies: { brokers: ['node_modules', 'statics'] },
         }),
       });
     });

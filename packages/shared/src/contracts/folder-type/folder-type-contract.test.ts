@@ -8,10 +8,16 @@ describe('FolderTypeStub', () => {
     expect(result).toBe('contracts');
   });
 
-  it('VALID: {value: "adapters"} => returns branded FolderType', () => {
-    const result = FolderTypeStub({ value: 'adapters' });
+  it('VALID: {value: "brokers"} => returns branded FolderType', () => {
+    const result = FolderTypeStub({ value: 'brokers' });
 
-    expect(result).toBe('adapters');
+    expect(result).toBe('brokers');
+  });
+
+  it('INVALID: {value: "adapters"} => throws ZodError, since adapters is not a folder type', () => {
+    expect(() => {
+      FolderTypeStub({ value: 'adapters' });
+    }).toThrow('Invalid option');
   });
 
   it('VALID: {} => returns default "contracts"', () => {

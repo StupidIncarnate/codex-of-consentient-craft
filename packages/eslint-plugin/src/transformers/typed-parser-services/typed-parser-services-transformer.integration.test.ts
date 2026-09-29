@@ -111,4 +111,41 @@ describe('typedParserServicesTransformer', () => {
 
     expect(found.every((fileName) => fileName === REAL_FILE)).toBe(true);
   });
+
+  it('VALID: {shorthand property value reading an ambient global} => returns the global declaration file for the value, the literal for the key', () => {
+    const found: ReturnType<typeof typedParserServicesTransformer>[] = [];
+    const linter = new Linter({ configType: 'flat' });
+
+    linter.verify(
+      'const holder = { process };',
+      {
+        files: ['**/*.ts'],
+        languageOptions: {
+          parser: tsParser,
+          parserOptions: { ecmaVersion: 2020, sourceType: 'module', project: true },
+        },
+        plugins: {
+          probe: {
+            rules: {
+              x: {
+                create: (context: unknown) => ({
+                  Identifier: (node: unknown): void => {
+                    found.push(typedParserServicesTransformer({ context, node }));
+                  },
+                }),
+              },
+            },
+          },
+        },
+        rules: { 'probe/x': 'error' },
+      },
+      { filename: REAL_FILE },
+    );
+
+    expect(found).toStrictEqual([
+      REAL_FILE,
+      REAL_FILE,
+      `${REPO_ROOT}/node_modules/@types/node/globals.d.ts`,
+    ]);
+  });
 });

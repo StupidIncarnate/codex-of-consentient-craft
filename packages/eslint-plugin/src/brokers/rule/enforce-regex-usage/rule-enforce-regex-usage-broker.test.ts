@@ -66,7 +66,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
     },
     {
       code: 'expect(result).toMatch(/^[a-z]+$/);',
-      filename: '/project/src/adapters/http/get/http-get-adapter.test.ts',
+      filename: '/project/src/responders/http/get/http-get-responder.test.ts',
     },
     {
       code: 'const mockValue = "test".match(/[a-z]/g);',
@@ -106,15 +106,15 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
       ],
     },
 
-    // Adapters cannot use regex
+    // Middleware cannot use regex
     {
       code: 'const cleaned = value.replace(/\\s+/g, "");',
-      filename: '/project/src/adapters/http/get/http-get-adapter.ts',
+      filename: '/project/src/middleware/http-get/http-get-middleware.ts',
       errors: [
         {
           messageId: 'forbiddenRegex',
           data: {
-            folderType: 'adapters',
+            folderType: 'middleware',
             allowedFolders: 'statics, contracts, guards, transformers',
           },
         },

@@ -4,7 +4,7 @@
  * USAGE:
  * import { forbiddenFolderStatics } from './statics/forbidden-folder/forbidden-folder-statics';
  * const alternative = forbiddenFolderStatics.mappings['utils'];
- * // Returns 'adapters or transformers'
+ * // Returns 'guards or transformers'
  * const isFolder Forbidden = forbiddenFolderStatics.folders.includes('helpers');
  * // Returns true
  *
@@ -12,8 +12,8 @@
  */
 export const forbiddenFolderStatics = {
   mappings: {
-    utils: 'adapters or transformers',
-    lib: 'adapters',
+    utils: 'guards or transformers',
+    lib: 'brokers',
     helpers: 'guards or transformers',
     common: 'distribute by function',
     shared: 'distribute by function',

@@ -26,10 +26,10 @@ describe('folderDetailInputContract', () => {
     expect(result).toStrictEqual({ folderType: 'transformers' });
   });
 
-  it('VALID: {folderType: "adapters"} => parses successfully', () => {
-    const result = FolderDetailInputStub({ folderType: 'adapters' });
-
-    expect(result).toStrictEqual({ folderType: 'adapters' });
+  it('INVALID: {folderType: "adapters"} => throws, since adapters is not a folder type', () => {
+    expect(() => {
+      folderDetailInputContract.parse({ folderType: 'adapters' });
+    }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {folderType, extra} => throws Unrecognized key error', () => {

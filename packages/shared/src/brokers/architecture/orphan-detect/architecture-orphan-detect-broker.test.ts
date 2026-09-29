@@ -115,11 +115,11 @@ describe('architectureOrphanDetectBroker', () => {
           ['/repo/packages/sample/src/startup', [fileEntry({ name: 'start-app.ts' })]],
           ['/repo/packages/sample/src/responders', [dirEntry({ name: 'zeta' })]],
           ['/repo/packages/sample/src/responders/zeta', [fileEntry({ name: 'zeta-responder.ts' })]],
-          ['/repo/packages/sample/src/adapters', [dirEntry({ name: 'alpha' })]],
-          ['/repo/packages/sample/src/adapters/alpha', [dirEntry({ name: 'get' })]],
+          ['/repo/packages/sample/src/brokers', [dirEntry({ name: 'alpha' })]],
+          ['/repo/packages/sample/src/brokers/alpha', [dirEntry({ name: 'get' })]],
           [
-            '/repo/packages/sample/src/adapters/alpha/get',
-            [fileEntry({ name: 'alpha-get-adapter.ts' })],
+            '/repo/packages/sample/src/brokers/alpha/get',
+            [fileEntry({ name: 'alpha-get-broker.ts' })],
           ],
           ['/repo/packages/sample/src/state', [dirEntry({ name: 'middle' })]],
           ['/repo/packages/sample/src/state/middle', [fileEntry({ name: 'middle-state.ts' })]],
@@ -143,7 +143,7 @@ describe('architectureOrphanDetectBroker', () => {
     const result = architectureOrphanDetectBroker({ packageSrcPath });
 
     expect(String(result)).toBe(
-      '## Unreferenced\n\n```\nadapters/alpha/get/alpha-get-adapter\nresponders/zeta/zeta-responder\nstate/middle/middle-state\n```',
+      '## Unreferenced\n\n```\nbrokers/alpha/get/alpha-get-broker\nresponders/zeta/zeta-responder\nstate/middle/middle-state\n```',
     );
   });
 

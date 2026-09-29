@@ -125,18 +125,18 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
-    it('VALID: layer file in adapters => returns true', () => {
+    it('VALID: layer file in bindings => returns true', () => {
       validateFolderLocationLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'bindings' });
 
       const result = validateFolderLocationLayerBroker({
         node,
         context,
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.bindings,
         isLayerFile: true,
       });
 
@@ -200,25 +200,6 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(result).toBe(true);
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
-
-    it('VALID: layer file in bindings => returns true', () => {
-      validateFolderLocationLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'bindings' });
-
-      const result = validateFolderLocationLayerBroker({
-        node,
-        context,
-        firstFolder,
-        folderConfig: folderConfigStatics.bindings,
-        isLayerFile: true,
-      });
-
-      expect(result).toBe(true);
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
   });
 
   describe('forbidden folders', () => {
@@ -242,7 +223,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'forbiddenFolder',
-        data: { folder: firstFolder, suggestion: 'adapters or transformers' },
+        data: { folder: firstFolder, suggestion: 'guards or transformers' },
       });
     });
 
@@ -257,7 +238,7 @@ describe('validateFolderLocationLayerBroker', () => {
         node,
         context,
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
         isLayerFile: false,
       });
 
@@ -266,7 +247,7 @@ describe('validateFolderLocationLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'forbiddenFolder',
-        data: { folder: firstFolder, suggestion: 'adapters' },
+        data: { folder: firstFolder, suggestion: 'brokers' },
       });
     });
 

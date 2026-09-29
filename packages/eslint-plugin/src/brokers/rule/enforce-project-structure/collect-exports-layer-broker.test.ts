@@ -321,138 +321,12 @@ describe('collectExportsLayerBroker', () => {
     });
   });
 
-  describe('adapter must be arrow function', () => {
-    it('INVALID: re-exported variable in adapters => reports adapterMustBeArrowFunction', () => {
-      collectExportsLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                TsestreeStub({
-                  id: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                    name: IdentifierStub({ value: 'loadAdapter' }),
-                  }),
-                  init: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                  }),
-                }),
-              ],
-            }),
-          }),
-        ],
-      });
-
-      const result = collectExportsLayerBroker({
-        node,
-        context,
-        filename: '/project/src/adapters/typescript-eslint/load/typescript-eslint-load-adapter.ts',
-        firstFolder,
-      });
-
-      expect(result).toBe(null);
-      expect(mockReport).toHaveBeenCalledTimes(1);
-      expect(mockReport).toHaveBeenCalledWith({
-        node,
-        messageId: 'adapterMustBeArrowFunction',
-        data: { actualType: 're-exported variable' },
-      });
-    });
-
-    it('INVALID: function declaration in adapters => reports adapterMustBeArrowFunction', () => {
-      collectExportsLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.FunctionDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'axiosGetAdapter' }),
-              }),
-            }),
-          }),
-        ],
-      });
-
-      const result = collectExportsLayerBroker({
-        node,
-        context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
-        firstFolder,
-      });
-
-      expect(result).toBe(null);
-      expect(mockReport).toHaveBeenCalledTimes(1);
-      expect(mockReport).toHaveBeenCalledWith({
-        node,
-        messageId: 'adapterMustBeArrowFunction',
-        data: { actualType: 'function declaration' },
-      });
-    });
-
-    it('INVALID: class declaration in adapters => reports adapterMustBeArrowFunction', () => {
-      collectExportsLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.ClassDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'AxiosGetAdapter' }),
-              }),
-            }),
-          }),
-        ],
-      });
-
-      const result = collectExportsLayerBroker({
-        node,
-        context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
-        firstFolder,
-      });
-
-      expect(result).toBe(null);
-      expect(mockReport).toHaveBeenCalledTimes(1);
-      expect(mockReport).toHaveBeenCalledWith({
-        node,
-        messageId: 'adapterMustBeArrowFunction',
-        data: { actualType: 'class' },
-      });
-    });
-  });
-
   describe('proxy must be arrow function', () => {
     it('INVALID: function declaration in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const node = TsestreeStub({
         type: TsestreeNodeType.Program,
         body: [
@@ -464,7 +338,7 @@ describe('collectExportsLayerBroker', () => {
               type: TsestreeNodeType.FunctionDeclaration,
               id: TsestreeStub({
                 type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'httpGetAdapterProxy' }),
+                name: IdentifierStub({ value: 'httpGetBrokerProxy' }),
               }),
             }),
           }),
@@ -474,7 +348,7 @@ describe('collectExportsLayerBroker', () => {
       const result = collectExportsLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
       });
 
@@ -491,7 +365,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const node = TsestreeStub({
         type: TsestreeNodeType.Program,
         body: [
@@ -503,7 +377,7 @@ describe('collectExportsLayerBroker', () => {
               type: TsestreeNodeType.ClassDeclaration,
               id: TsestreeStub({
                 type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'HttpGetAdapterProxy' }),
+                name: IdentifierStub({ value: 'HttpGetBrokerProxy' }),
               }),
             }),
           }),
@@ -513,7 +387,7 @@ describe('collectExportsLayerBroker', () => {
       const result = collectExportsLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
       });
 
@@ -573,13 +447,13 @@ describe('collectExportsLayerBroker', () => {
     });
   });
 
-  describe('arrow function adapters and proxies pass', () => {
-    it('VALID: arrow function adapter => collects without error', () => {
+  describe('arrow function brokers and proxies pass', () => {
+    it('VALID: arrow function broker => collects without error', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'axiosGetAdapter' });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const exportName = IdentifierStub({ value: 'axiosGetBroker' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const node = TsestreeStub({
         type: TsestreeNodeType.Program,
         body: [
@@ -608,7 +482,7 @@ describe('collectExportsLayerBroker', () => {
       const result = collectExportsLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/axios/get/axios-get-adapter.ts',
+        filename: '/project/src/brokers/axios/get/axios-get-broker.ts',
         firstFolder,
       });
 
@@ -622,8 +496,8 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'httpGetAdapterProxy' });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const exportName = IdentifierStub({ value: 'httpGetBrokerProxy' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
       const node = TsestreeStub({
         type: TsestreeNodeType.Program,
         body: [
@@ -652,7 +526,7 @@ describe('collectExportsLayerBroker', () => {
       const result = collectExportsLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
       });
 

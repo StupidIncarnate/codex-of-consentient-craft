@@ -133,7 +133,7 @@ fixtures.
 
 Landed this session: `build:clean` green; GB4 (`@gateway/browser` `consoleError`/`consoleWarn`/`consoleLog`/
 `consoleInfo`/`consoleDebug` with recording proxies, `randomUuid` with `randomUuidProxy`, `#gateway/browser/Date`
-`now`/`nowIso` with `setupNow`). F77 part 1 (write-order test). Active: codemod, A19 prep, U1+U2 (`@gateway/node`, plus `writeFileProxy.succeedsOnce` and a stageable pid for F77), U3 landed: `rulesProxy` at `#gateway/npm/eslint-plugin-jest/rules/rules.proxy` (the eslint-plugin create-responder proxy calls it first and drops its raw module mock).
+`now`/`nowIso` with `setupNow`). F77 part 1 (write-order test). Active: codemod, A19 prep, U1+U2 (`@gateway/node`, plus `writeFileProxy.succeedsOnce` and a stageable pid for F77), A19 prep landed, and shared's `startupReferencesArgvGuard` now also sees `argv` imported from `#gateway/node/process` (cli was no longer detected as a cli-tool). U3 landed: `rulesProxy` at `#gateway/npm/eslint-plugin-jest/rules/rules.proxy` (the eslint-plugin create-responder proxy calls it first and drops its raw module mock).
 
 Last updated 2026-09-28 night, at the end of an operator session. The user asked the operator to launch no more
 agents and to leave this file ready for the next handoff. Read this section, then the status tables. Git history
@@ -467,7 +467,7 @@ Package items run side by side, one agent group per package. Each is split by th
 | A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | `packages/ward/src/adapters/` is gone (7f79340c8). |
 | A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | done | `packages/web/src/adapters/` is gone (2d7f1d25f). Global stylesheets load from `src/main.ts` (concession 9). |
 | A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | active | Plan written (`## Plan`). Done: wave 0, GN5 to GN10, C2, every package's `zod` sweep, ward and hooks hand batches, and the batches listed under START HERE "In flight". Next: the remaining hand batches per package, then dependency removals. |
-| A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | todo | runs alone |
+| A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | active | runs alone for the switch-on only. Prep landed (the A19-prep commit): `adapters` folder type gone from `folderConfigStatics` and every reader; `platform-globals-ban` catches `{ fetch }` shorthand and exempts `evaluate`/`evaluateAll`/`waitForFunction`/`addInitScript` callbacks (inline, or a named function passed to one); `raw-import-ban` refuses the scoped gateway name (`@dungeonmaster/node/fs`). Left: uncomment the three rules once A18 is at 0; concession 14's file-scoped off. Known leftovers for Z items: config's consumer preset keys (`architecture-folder-statics.ts`, `framework-preset-keys-statics.ts`) still list `'adapters'`; `adapter-imports-find-layer-broker.ts` is unused; `rule-enforce-import-dependencies-broker.test.ts`'s `adapters/` valid cases test nothing. |
 
 ### Phase 3 — brands foundation
 

@@ -4,8 +4,8 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureBootTreeBroker', () => {
-  describe('single startup → single flow → single responder → single adapter', () => {
-    it('VALID: {simple startup→flow→responder→adapter chain} => renders clean boot tree', () => {
+  describe('single startup → single flow → single responder → single broker', () => {
+    it('VALID: {simple startup→flow→responder→broker chain} => renders clean boot tree', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
@@ -26,12 +26,12 @@ describe('architectureBootTreeBroker', () => {
           }),
           'server-init-responder.ts': ContentTextStub({
             value: [
-              `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+              `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
               `export const serverInitResponder = () => {};`,
             ].join('\n'),
           }),
-          'hono-serve-adapter.ts': ContentTextStub({
-            value: `export const honoServeAdapter = () => {};`,
+          'server-init-broker.ts': ContentTextStub({
+            value: `export const serverInitBroker = () => {};`,
           }),
         },
       });
@@ -49,7 +49,7 @@ describe('architectureBootTreeBroker', () => {
             '',
             'serverFlow',
             '  ↳ serverInitResponder',
-            '      → honoServeAdapter',
+            '      → serverInitBroker',
             '```',
           ].join('\n'),
         }),
@@ -149,8 +149,8 @@ describe('architectureBootTreeBroker', () => {
     });
   });
 
-  describe('WS subscriber adapter', () => {
-    it('VALID: {EventsOn adapter in responder} => renders as a regular → adapter leaf', () => {
+  describe('WS subscriber broker', () => {
+    it('VALID: {EventsOn broker in responder} => renders as a regular → broker leaf', () => {
       const proxy = architectureBootTreeBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
 
@@ -171,12 +171,12 @@ describe('architectureBootTreeBroker', () => {
           }),
           'server-init-responder.ts': ContentTextStub({
             value: [
-              `import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';`,
+              `import { orchestratorEventsOnBroker } from '../../../brokers/orchestrator/events-on/orchestrator-events-on-broker';`,
               `export const serverInitResponder = () => {};`,
             ].join('\n'),
           }),
-          'orchestrator-events-on-adapter.ts': ContentTextStub({
-            value: `export const orchestratorEventsOnAdapter = () => {};`,
+          'orchestrator-events-on-broker.ts': ContentTextStub({
+            value: `export const orchestratorEventsOnBroker = () => {};`,
           }),
         },
       });
@@ -194,7 +194,7 @@ describe('architectureBootTreeBroker', () => {
             '',
             'serverFlow',
             '  ↳ serverInitResponder',
-            '      → orchestratorEventsOnAdapter',
+            '      → orchestratorEventsOnBroker',
             '```',
           ].join('\n'),
         }),

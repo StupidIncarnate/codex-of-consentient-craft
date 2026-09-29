@@ -3,7 +3,6 @@ import { folderConstraintsStatics } from './folder-constraints-statics';
 describe('folderConstraintsStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(folderConstraintsStatics).toStrictEqual({
-      adapters: 'adapters-constraints.md',
       bindings: 'bindings-constraints.md',
       brokers: 'brokers-constraints.md',
       contracts: 'contracts-constraints.md',

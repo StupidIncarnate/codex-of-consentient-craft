@@ -29,6 +29,28 @@ describe('buildFolderTypesTableTransformer', () => {
       expect(staticsIndex).toBeLessThan(brokersIndex);
     });
 
+    it('VALID: {} => emits one row per folder type, ordered by depth then name, with no adapters/ row', () => {
+      const result = buildFolderTypesTableTransformer();
+
+      expect(String(result).match(/^\| [a-z]+\/ /gmu)).toStrictEqual([
+        '| startup/ ',
+        '| assets/ ',
+        '| bindings/ ',
+        '| contracts/ ',
+        '| errors/ ',
+        '| flows/ ',
+        '| guards/ ',
+        '| middleware/ ',
+        '| migrations/ ',
+        '| state/ ',
+        '| statics/ ',
+        '| transformers/ ',
+        '| widgets/ ',
+        '| brokers/ ',
+        '| responders/ ',
+      ]);
+    });
+
     it('VALID: {} => result is under 2048 bytes', () => {
       const result = buildFolderTypesTableTransformer();
 

@@ -2,20 +2,20 @@ import { ForbiddenFolderNameStub } from '../../contracts/forbidden-folder-name/f
 import { forbiddenFolderSuggestionTransformer } from './forbidden-folder-suggestion-transformer';
 
 describe('forbiddenFolderSuggestionTransformer', () => {
-  it('VALID: {forbiddenFolder: "utils"} => returns "adapters or transformers"', () => {
+  it('VALID: {forbiddenFolder: "utils"} => returns "guards or transformers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: ForbiddenFolderNameStub({ value: 'utils' }),
     });
 
-    expect(result).toBe('adapters or transformers');
+    expect(result).toBe('guards or transformers');
   });
 
-  it('VALID: {forbiddenFolder: "lib"} => returns "adapters"', () => {
+  it('VALID: {forbiddenFolder: "lib"} => returns "brokers"', () => {
     const result = forbiddenFolderSuggestionTransformer({
       forbiddenFolder: ForbiddenFolderNameStub({ value: 'lib' }),
     });
 
-    expect(result).toBe('adapters');
+    expect(result).toBe('brokers');
   });
 
   it('VALID: {forbiddenFolder: "helpers"} => returns "guards or transformers"', () => {

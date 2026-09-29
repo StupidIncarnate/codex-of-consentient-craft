@@ -4,7 +4,7 @@
  *
  * USAGE:
  * architectureOrphanDetectStatics.walkedFolderTypes;
- * // ['adapters', 'bindings', 'brokers', 'flows', 'middleware', 'migrations', 'responders', 'startup', 'state', 'widgets']
+ * // ['bindings', 'brokers', 'flows', 'middleware', 'migrations', 'responders', 'startup', 'state', 'widgets']
  *
  * WHEN-TO-USE: orphan-detect layer brokers enumerating candidate files and seeding the
  * reachability walk from startup/.
@@ -12,7 +12,6 @@
 
 export const architectureOrphanDetectStatics = {
   walkedFolderTypes: [
-    'adapters',
     'bindings',
     'brokers',
     'flows',

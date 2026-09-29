@@ -8,10 +8,16 @@ describe('AllowedImportStub', () => {
     expect(result).toBe('contracts/');
   });
 
-  it('VALID: {value: "adapters/"} => returns branded AllowedImport', () => {
-    const result = AllowedImportStub({ value: 'adapters/' });
+  it('VALID: {value: "brokers/"} => returns branded AllowedImport', () => {
+    const result = AllowedImportStub({ value: 'brokers/' });
 
-    expect(result).toBe('adapters/');
+    expect(result).toBe('brokers/');
+  });
+
+  it('INVALID: {value: "adapters/"} => throws ZodError, since no folder type allows adapters/', () => {
+    expect(() => {
+      allowedImportContract.parse('adapters/');
+    }).toThrow('Invalid option');
   });
 
   it('VALID: {} => returns default "contracts/"', () => {

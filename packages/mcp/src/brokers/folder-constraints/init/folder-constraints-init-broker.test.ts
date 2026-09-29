@@ -12,15 +12,6 @@ describe('folderConstraintsInitBroker', () => {
     expect(folderConstraints.size).toBe(Object.keys(folderConstraintsStatics).length);
   });
 
-  it('VALID: adapters constraints include translation boundary guidance', async () => {
-    folderConstraintsInitBrokerProxy();
-
-    const result = await folderConstraintsInitBroker();
-    const adaptersConstraints = result.folderConstraints.get(FolderTypeStub({ value: 'adapters' }));
-
-    expect(adaptersConstraints).toMatch(/^\*\*TRANSLATION BOUNDARY:\*\*$/mu);
-  });
-
   it('VALID: brokers constraints include proxy pattern guidance', async () => {
     folderConstraintsInitBrokerProxy();
 

@@ -21,12 +21,11 @@ describe('folderConfigTransformer', () => {
       expect(result).toStrictEqual(folderConfigStatics.brokers);
     });
 
-    it("VALID: {folderType: 'adapters'} => returns adapters config with allowedImports", () => {
-      const result = folderConfigTransformer({ folderType: 'adapters' });
+    it("VALID: {folderType: 'middleware'} => returns middleware config with allowedImports", () => {
+      const result = folderConfigTransformer({ folderType: 'middleware' });
 
-      expect(result).toStrictEqual(folderConfigStatics.adapters);
+      expect(result).toStrictEqual(folderConfigStatics.middleware);
       expect(result!.allowedImports).toStrictEqual([
-        'node_modules',
         'middleware/',
         'statics/',
         'contracts/',
@@ -44,6 +43,12 @@ describe('folderConfigTransformer', () => {
   });
 
   describe('invalid folder types', () => {
+    it("INVALID: {folderType: 'adapters'} => returns undefined, since adapters is not a folder type", () => {
+      const result = folderConfigTransformer({ folderType: 'adapters' });
+
+      expect(result).toBe(undefined);
+    });
+
     it("INVALID: {folderType: 'unknown'} => returns undefined", () => {
       const result = folderConfigTransformer({ folderType: 'unknown' });
 

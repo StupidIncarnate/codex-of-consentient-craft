@@ -4,8 +4,8 @@ import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/abso
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('callChainLinesRenderLayerBroker', () => {
-  describe('terminal adapter import', () => {
-    it('VALID: {responder importing one adapter} => emits one → adapter line', () => {
+  describe('leaf broker import', () => {
+    it('VALID: {responder importing one broker that imports nothing} => emits one → broker line', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
       const sourceFile = AbsoluteFilePathStub({
         value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
@@ -18,10 +18,10 @@ describe('callChainLinesRenderLayerBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'quest-start-responder.ts': ContentTextStub({
-            value: `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+            value: `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
           }),
-          'hono-serve-adapter.ts': ContentTextStub({
-            value: `export const honoServeAdapter = () => {};`,
+          'quest-start-broker.ts': ContentTextStub({
+            value: `export const questStartBroker = () => {};`,
           }),
         },
       });
@@ -32,12 +32,12 @@ describe('callChainLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '      → honoServeAdapter' })]);
+      expect(result).toStrictEqual([ContentTextStub({ value: '      → questStartBroker' })]);
     });
   });
 
-  describe('broker chain into adapter', () => {
-    it('VALID: {responder → broker → adapter} => emits two → lines, indented for depth', () => {
+  describe('broker chain into broker', () => {
+    it('VALID: {responder → broker → broker} => emits two → lines, indented for depth', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
       const sourceFile = AbsoluteFilePathStub({
         value: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
@@ -56,12 +56,12 @@ describe('callChainLinesRenderLayerBroker', () => {
           }),
           'chat-start-broker.ts': ContentTextStub({
             value: [
-              `import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';`,
+              `import { chatPersistBroker } from '../persist/chat-persist-broker';`,
               `export const chatStartBroker = () => {};`,
             ].join('\n'),
           }),
-          'fs-write-file-adapter.ts': ContentTextStub({
-            value: `export const fsWriteFileAdapter = () => {};`,
+          'chat-persist-broker.ts': ContentTextStub({
+            value: `export const chatPersistBroker = () => {};`,
           }),
         },
       });
@@ -74,7 +74,7 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       expect(result).toStrictEqual([
         ContentTextStub({ value: '      → chatStartBroker' }),
-        ContentTextStub({ value: '        → fsWriteFileAdapter' }),
+        ContentTextStub({ value: '        → chatPersistBroker' }),
       ]);
     });
   });
@@ -162,9 +162,9 @@ describe('callChainLinesRenderLayerBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'quest-start-responder.ts': ContentTextStub({
-            value: `import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';`,
+            value: `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
           }),
-          'hono-serve-adapter.ts': ContentTextStub({
+          'quest-start-broker.ts': ContentTextStub({
             value: `// no export declaration here`,
           }),
         },
@@ -176,12 +176,12 @@ describe('callChainLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '      → hono-serve-adapter' })]);
+      expect(result).toStrictEqual([ContentTextStub({ value: '      → quest-start-broker' })]);
     });
   });
 
   describe('layer file rendering', () => {
-    it('VALID: {parent broker importing a layer broker that calls an adapter} => renders layer at depth 0, adapter at depth 1', () => {
+    it('VALID: {parent broker importing a layer broker that calls another broker} => renders layer at depth 1, broker at depth 2', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
       const sourceFile = AbsoluteFilePathStub({
         value: '/repo/packages/orch/src/responders/quest/start/quest-start-responder.ts',
@@ -204,12 +204,12 @@ describe('callChainLinesRenderLayerBroker', () => {
           }),
           'run-siegemaster-layer-broker.ts': ContentTextStub({
             value: [
-              `import { childProcessSpawnAdapter } from '../../../adapters/child-process/spawn/child-process-spawn-adapter';`,
+              `import { siegeRunBroker } from '../../siege/run/siege-run-broker';`,
               `export const runSiegemasterLayerBroker = () => {};`,
             ].join('\n'),
           }),
-          'child-process-spawn-adapter.ts': ContentTextStub({
-            value: `export const childProcessSpawnAdapter = () => {};`,
+          'siege-run-broker.ts': ContentTextStub({
+            value: `export const siegeRunBroker = () => {};`,
           }),
         },
       });
@@ -223,7 +223,7 @@ describe('callChainLinesRenderLayerBroker', () => {
       expect(result).toStrictEqual([
         ContentTextStub({ value: '      → questOrchestrationLoopBroker' }),
         ContentTextStub({ value: '        → runSiegemasterLayerBroker' }),
-        ContentTextStub({ value: '          → childProcessSpawnAdapter' }),
+        ContentTextStub({ value: '          → siegeRunBroker' }),
       ]);
     });
 

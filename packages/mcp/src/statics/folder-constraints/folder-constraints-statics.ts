@@ -7,7 +7,6 @@
  * // Returns 'brokers-constraints.md'
  */
 export const folderConstraintsStatics = {
-  adapters: 'adapters-constraints.md',
   bindings: 'bindings-constraints.md',
   brokers: 'brokers-constraints.md',
   contracts: 'contracts-constraints.md',

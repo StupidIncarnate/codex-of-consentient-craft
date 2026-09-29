@@ -178,14 +178,14 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(1);
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'folderPromiseVoidReturn',
-        data: { folderType: FolderTypeStub({ value: 'adapters' }) },
+        data: { folderType: FolderTypeStub({ value: 'brokers' }) },
       });
     });
 
@@ -239,7 +239,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -625,7 +625,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
   });
 
   describe('non-void return types (loose-return and passthrough)', () => {
-    it('VALID: adapter with non-void return type => does not report', () => {
+    it('VALID: broker with non-void return type => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
       const ctx = EslintContextStub({ report: mockReport });
@@ -642,7 +642,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -683,7 +683,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
 
       checkFolderReturnTypeLayerBroker({
         ctx,
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -717,7 +717,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
       checkFolderReturnTypeLayerBroker({
         node,
         ctx,
-        folderType: FolderTypeStub({ value: 'adapters' }),
+        folderType: FolderTypeStub({ value: 'brokers' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);

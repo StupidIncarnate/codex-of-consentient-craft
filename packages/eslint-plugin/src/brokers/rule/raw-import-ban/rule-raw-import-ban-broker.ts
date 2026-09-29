@@ -1,9 +1,10 @@
 /**
  * PURPOSE: Bans a raw import/export/require/require.resolve of a non-workspace package (an npm
  * package or a Node built-in, `node:`-prefixed or bare) in any file outside the gateway packages
- * (`@<scope>/npm`, `@<scope>/node`, `@<scope>/browser`, `@<scope>/bin`) — an existing `@<scope>/...`
- * gateway import, or the `#gateway/...` import-alias form, is a workspace import already going
- * through the gateway and is never flagged. Value imports and `import type` are both flagged — the
+ * (`@<scope>/npm`, `@<scope>/node`, `@<scope>/browser`, `@<scope>/bin`). The `#gateway/...` alias is
+ * the one accepted way in; the scoped gateway package name (`@<scope>/node/fs`) is flagged too,
+ * with the alias spelling as the fix, so two callers cannot reach the same gateway two ways. Every
+ * other `@<scope>/...` workspace import is never flagged. Value imports and `import type` are both flagged — the
  * gateway is the one path to an outside package, whatever carries the specifier. `scope` defaults
  * to the value repoScopeResolveBroker reads from the repo root package.json at module load,
  * and can be overridden per-rule-instance via the `scope` option — the override exists so a
@@ -46,6 +47,8 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
       messages: {
         rawImport:
           'Import "{{importSource}}" through the gateway: "{{gatewayPath}}". If that subpath does not export what you need, add a wrapper there; never import the raw package.',
+        scopedGatewayImport:
+          'Import the gateway through its alias, "{{gatewayPath}}", not its package name "{{importSource}}".',
       },
       schema: [
         {
@@ -100,9 +103,26 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
           return;
         }
 
+        const isScopedGatewayImport = Object.values(gatewayLocationsStatics.folders).some(
+          (folder) =>
+            importSource === `${scope}/${folder}` || importSource.startsWith(`${scope}/${folder}/`),
+        );
+
+        if (isScopedGatewayImport) {
+          ctx.report({
+            node,
+            messageId: 'scopedGatewayImport',
+            data: {
+              importSource,
+              gatewayPath: `${gatewayLocationsStatics.importPrefix}${importSource.slice(scope.length)}`,
+            },
+          });
+          return;
+        }
+
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
         // A raw import already written as '#gateway/<folder>/...' is already going through the
-        // gateway, exactly like '@scope/<folder>/...' — never a "raw" import to flag.
+        // gateway — never a "raw" import to flag.
         const isWorkspacePackage =
           importSource === scope ||
           importSource.startsWith(`${scope}/`) ||
@@ -147,9 +167,26 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
           return;
         }
 
+        const isScopedGatewayImport = Object.values(gatewayLocationsStatics.folders).some(
+          (folder) =>
+            importSource === `${scope}/${folder}` || importSource.startsWith(`${scope}/${folder}/`),
+        );
+
+        if (isScopedGatewayImport) {
+          ctx.report({
+            node,
+            messageId: 'scopedGatewayImport',
+            data: {
+              importSource,
+              gatewayPath: `${gatewayLocationsStatics.importPrefix}${importSource.slice(scope.length)}`,
+            },
+          });
+          return;
+        }
+
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
         // A raw import already written as '#gateway/<folder>/...' is already going through the
-        // gateway, exactly like '@scope/<folder>/...' — never a "raw" import to flag.
+        // gateway — never a "raw" import to flag.
         const isWorkspacePackage =
           importSource === scope ||
           importSource.startsWith(`${scope}/`) ||

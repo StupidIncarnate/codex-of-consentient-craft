@@ -4,7 +4,6 @@ describe('functionExportingFoldersStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(functionExportingFoldersStatics).toStrictEqual({
       names: [
-        'adapters',
         'bindings',
         'brokers',
         'flows',

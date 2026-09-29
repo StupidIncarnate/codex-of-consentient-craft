@@ -43,16 +43,6 @@ describe('folderPurposeTransformer', () => {
       );
     });
 
-    it('VALID: {folderType: adapters} => returns I/O boundary purpose', () => {
-      const purpose = folderPurposeTransformer({
-        folderType: FolderTypeStub({ value: 'adapters' }),
-      });
-
-      expect(purpose).toBe(
-        'I/O boundary layer translating between external systems and internal contracts. Wrap npm packages, APIs, databases.',
-      );
-    });
-
     it('VALID: {folderType: widgets} => returns UI component purpose', () => {
       const purpose = folderPurposeTransformer({
         folderType: FolderTypeStub({ value: 'widgets' }),

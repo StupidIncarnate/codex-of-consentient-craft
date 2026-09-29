@@ -11,7 +11,6 @@
  *    avoid duplicating the skeleton structure inside each responder's downstream chain.
  *
  * The walker therefore traverses: full folder type set − excludedFolderTypes − structuralFolderTypes.
- * Today that resolves to ['adapters', 'brokers', 'middleware', 'state', 'migrations'].
  *
  * USAGE:
  * projectMapCallGraphStatics.excludedFolderTypes;

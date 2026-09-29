@@ -4,8 +4,8 @@ describe('forbiddenFolderStatics', () => {
   it('VALID: exported value => matches expected shape', () => {
     expect(forbiddenFolderStatics).toStrictEqual({
       mappings: {
-        utils: 'adapters or transformers',
-        lib: 'adapters',
+        utils: 'guards or transformers',
+        lib: 'brokers',
         helpers: 'guards or transformers',
         common: 'distribute by function',
         shared: 'distribute by function',

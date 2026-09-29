@@ -8,10 +8,16 @@ describe('hasFolderTypeSuffixGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {name: "http-adapter"} => returns true', () => {
-      const result = hasFolderTypeSuffixGuard({ name: 'http-adapter' });
+    it('VALID: {name: "auth-middleware"} => returns true', () => {
+      const result = hasFolderTypeSuffixGuard({ name: 'auth-middleware' });
 
       expect(result).toBe(true);
+    });
+
+    it('INVALID: {name: "http-adapter"} => returns false, since adapters is not a folder type', () => {
+      const result = hasFolderTypeSuffixGuard({ name: 'http-adapter' });
+
+      expect(result).toBe(false);
     });
 
     it('VALID: {name: "format-date-transformer"} => returns true', () => {

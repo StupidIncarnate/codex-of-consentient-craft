@@ -10,12 +10,12 @@ describe('functionExportingFolderFromFilenameTransformer', () => {
     expect(result).toBe(FolderTypeStub({ value: 'brokers' }));
   });
 
-  it('VALID: adapter filename => returns adapters', () => {
+  it('EMPTY: adapter filename => returns undefined, since adapters is not a folder type', () => {
     const result = functionExportingFolderFromFilenameTransformer({
       filename: '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts',
     });
 
-    expect(result).toBe(FolderTypeStub({ value: 'adapters' }));
+    expect(result).toBe(undefined);
   });
 
   it('VALID: guard filename => returns guards', () => {

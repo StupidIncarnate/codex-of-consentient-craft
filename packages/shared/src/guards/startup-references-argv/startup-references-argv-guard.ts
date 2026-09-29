@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Returns true when a startup file's content contains 'process.argv'
+ * PURPOSE: Returns true when a startup file's content reads the process arguments: 'process.argv', or `argv`
+ * imported from the gateway's `#gateway/node/process`
  *
  * USAGE:
  * startupReferencesArgvGuard({ startupFileContent: 'const args = process.argv.slice(2);' });
@@ -14,5 +15,10 @@ export const startupReferencesArgvGuard = ({
   if (startupFileContent === undefined) {
     return false;
   }
-  return startupFileContent.includes('process.argv');
+  return (
+    startupFileContent.includes('process.argv') ||
+    /import\s*\{[^}]*\bargv\b[^}]*\}\s*from\s*['"]#gateway\/node\/process['"]/u.test(
+      startupFileContent,
+    )
+  );
 };

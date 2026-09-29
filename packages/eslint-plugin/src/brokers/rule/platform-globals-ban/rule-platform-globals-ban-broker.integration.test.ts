@@ -19,6 +19,11 @@ const BROWSER_PACKAGE_FILE = `${REPO_ROOT}/packages/web/src/main.ts`;
 const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/process/process.ts`;
 const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/@gateway/browser/src/fetch/fetch.ts`;
 
+// Every browser-side callback case declares its own `page`, so the call type-checks with no
+// Playwright import in the fixture.
+const PAGE_DECLARATION =
+  'declare const page: { evaluate: (fn: unknown, arg?: unknown) => Promise<unknown>; evaluateAll: (fn: unknown) => Promise<unknown>; waitForFunction: (fn: unknown) => Promise<unknown>; addInitScript: (fn: unknown) => Promise<void>; click: (fn: unknown) => Promise<void> };';
+
 const ruleTester = typedRuleTesterHarness();
 
 ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
@@ -49,14 +54,82 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
     { code: "fetch('/x');", filename: GATEWAY_BROWSER_FILE },
     // A plain object-literal key is a label, not a reference to the ambient `fetch`
     { code: 'const o = { fetch: 1 };', filename: BROWSER_PACKAGE_FILE },
-    // KNOWN GAP: a shorthand `{fetch}` is a real reference to the ambient global, but
-    // TypeScript's checker resolves BOTH the key and value position of a shorthand property to
-    // the object literal's own property declaration, not the outer binding — catching this needs
-    // `checker.getShorthandAssignmentValueSymbol()`, which this rule does not call. Documented
-    // here as a valid (unflagged) case rather than left unstated.
-    { code: 'const o = { fetch };', filename: BROWSER_PACKAGE_FILE },
+    // A destructuring shorthand declares a local; it reads no ambient global
+    { code: 'const { fetch } = { fetch: 1 };', filename: BROWSER_PACKAGE_FILE },
+    // A function literal written as the FIRST argument of a Playwright browser-side call runs in
+    // the driven browser, so its DOM globals are the browser's own
+    {
+      code: `${PAGE_DECLARATION}\nvoid page.evaluate(() => document.title);`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
+    {
+      code: `${PAGE_DECLARATION}\nvoid page.waitForFunction(() => document.querySelector('x') !== null);`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
+    {
+      code: `${PAGE_DECLARATION}\nvoid page.evaluateAll((els: unknown[]) => els.map(() => window.innerWidth));`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
+    {
+      code: `${PAGE_DECLARATION}\nvoid page.addInitScript(function () {\n  localStorage.clear();\n});`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
+    // A named function passed BY REFERENCE as that first argument — declared above the call, the
+    // shape every *_BROWSER_FN in web's e2e harnesses takes
+    {
+      code: `${PAGE_DECLARATION}\nconst CLEAR_STORAGE_BROWSER_FN = (): void => {\n  localStorage.clear();\n  indexedDB.deleteDatabase('x');\n};\nvoid page.addInitScript(CLEAR_STORAGE_BROWSER_FN);`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
+    {
+      code: `${PAGE_DECLARATION}\nfunction readTitle(): string {\n  return document.title;\n}\nvoid page.evaluate(readTitle);`,
+      filename: BROWSER_PACKAGE_FILE,
+    },
   ],
   invalid: [
+    {
+      // the VALUE half of an object-literal shorthand reads the ambient global itself
+      code: 'const o = { fetch };',
+      filename: BROWSER_PACKAGE_FILE,
+      errors: [
+        {
+          messageId: 'platformGlobal',
+          data: { name: 'fetch', gatewayPath: '#gateway/browser/fetch' },
+        },
+      ],
+    },
+    {
+      // a later argument of page.evaluate is built in the calling process, not the browser
+      code: `${PAGE_DECLARATION}\nvoid page.evaluate((x: unknown) => x, document.title);`,
+      filename: BROWSER_PACKAGE_FILE,
+      errors: [
+        {
+          messageId: 'platformGlobal',
+          data: { name: 'document', gatewayPath: '#gateway/browser/document' },
+        },
+      ],
+    },
+    {
+      // a function literal handed to any other method runs in the calling process
+      code: `${PAGE_DECLARATION}\nvoid page.click(() => document.title);`,
+      filename: BROWSER_PACKAGE_FILE,
+      errors: [
+        {
+          messageId: 'platformGlobal',
+          data: { name: 'document', gatewayPath: '#gateway/browser/document' },
+        },
+      ],
+    },
+    {
+      // a named function never passed to a browser-side call is still reported, at Program:exit
+      code: 'const READ_TITLE = (): string => document.title;\nREAD_TITLE();',
+      filename: BROWSER_PACKAGE_FILE,
+      errors: [
+        {
+          messageId: 'platformGlobal',
+          data: { name: 'document', gatewayPath: '#gateway/browser/document' },
+        },
+      ],
+    },
     {
       code: "process.stdout.write('x');",
       filename: NODE_PACKAGE_FILE,

@@ -174,14 +174,14 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/http/get/http-get-adapter.proxy.ts',
+        filename: '/project/src/brokers/http/get/http-get-broker.proxy.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.brokers,
         isLayerFile: false,
       });
 
@@ -422,19 +422,19 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('INVALID: adapter missing -adapter.ts => reports invalidFileSuffixWithLayer', () => {
+    it('INVALID: responder missing -responder.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFilenameLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/eslint/rule/eslint-rule.ts',
+        filename: '/project/src/responders/eslint/rule/eslint-rule.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.responders,
         isLayerFile: false,
       });
 
@@ -442,7 +442,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).toHaveBeenCalledWith({
         node,
         messageId: 'invalidFileSuffixWithLayer',
-        data: { expected: '-adapter.ts', folderType: firstFolder },
+        data: { expected: '-responder.ts', folderType: firstFolder },
       });
     });
   });
@@ -498,19 +498,19 @@ describe('validateFilenameLayerBroker', () => {
   });
 
   describe('multiple Level 3 errors', () => {
-    it('INVALID: adapter with wrong suffix and non-kebab name => reports both suffix and case errors', () => {
+    it('INVALID: responder with wrong suffix and non-kebab name => reports both suffix and case errors', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub({ type: TsestreeNodeType.Program });
-      const firstFolder = IdentifierStub({ value: 'adapters' });
+      const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFilenameLayerBroker({
         node,
         context,
-        filename: '/project/src/adapters/eslint/rule-tester/eslintRuleTester.ts',
+        filename: '/project/src/responders/eslint/rule-tester/eslintRuleTester.ts',
         firstFolder,
-        folderConfig: folderConfigStatics.adapters,
+        folderConfig: folderConfigStatics.responders,
         isLayerFile: false,
       });
 
@@ -519,14 +519,14 @@ describe('validateFilenameLayerBroker', () => {
       expect(mockReport).toHaveBeenNthCalledWith(1, {
         node,
         messageId: 'invalidFileSuffixWithLayer',
-        data: { expected: '-adapter.ts', folderType: firstFolder },
+        data: { expected: '-responder.ts', folderType: firstFolder },
       });
       expect(mockReport).toHaveBeenNthCalledWith(2, {
         node,
         messageId: 'invalidFilenameCaseWithLayer',
         data: {
-          actual: 'eslintRuleTester-adapter',
-          expected: 'eslint-rule-tester-adapter',
+          actual: 'eslintRuleTester-responder',
+          expected: 'eslint-rule-tester-responder',
           ext: 'ts',
         },
       });

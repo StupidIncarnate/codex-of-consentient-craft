@@ -58,12 +58,12 @@ describe('folderTypeTransformer', () => {
       expect(result).toBe('flows');
     });
 
-    it('VALID: adapters path returns adapters', () => {
+    it('EMPTY: adapters path returns null, since adapters is not a folder type', () => {
       const result = folderTypeTransformer({
         filename: '/project/src/adapters/api/api-adapter.ts',
       });
 
-      expect(result).toBe('adapters');
+      expect(result).toBe(null);
     });
 
     it('VALID: middleware path returns middleware', () => {
