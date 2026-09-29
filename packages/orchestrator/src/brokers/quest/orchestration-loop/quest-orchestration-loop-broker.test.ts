@@ -14,6 +14,7 @@ import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-
 import { orchestrationLoopSummaryTransformer } from '../../../transformers/orchestration-loop-summary/orchestration-loop-summary-transformer';
 import { questOrchestrationLoopBroker } from './quest-orchestration-loop-broker';
 import { questOrchestrationLoopBrokerProxy } from './quest-orchestration-loop-broker.proxy';
+import { AbortController } from '#gateway/node/AbortController';
 
 // The orchestration loop dispatches only chat roles (chaoswhisperer / bughunt); every
 // execution role is dispatched through `quest-get-next-step-broker`. The coverage below

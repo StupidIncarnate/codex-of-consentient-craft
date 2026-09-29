@@ -2,6 +2,7 @@ import { claudeCliArgvStatics } from '../claude-cli-argv/claude-cli-argv-statics
 import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 
 import { dumpsterHuntPromptStatics } from './dumpster-hunt-prompt-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `template` is bound with every whitespace run — spaces,
 // newlines, indent — collapsed to a single space, so a needle written on ONE line finds its

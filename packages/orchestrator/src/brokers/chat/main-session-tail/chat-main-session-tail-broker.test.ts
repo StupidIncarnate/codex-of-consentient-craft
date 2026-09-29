@@ -9,6 +9,7 @@ import { chatLineProcessTransformer } from '../../../transformers/chat-line-proc
 
 import { chatMainSessionTailBroker } from './chat-main-session-tail-broker';
 import { chatMainSessionTailBrokerProxy } from './chat-main-session-tail-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const flushImmediate = async (): Promise<void> =>
   new Promise((resolve) => {

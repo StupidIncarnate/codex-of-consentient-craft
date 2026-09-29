@@ -7,6 +7,7 @@ import {
 
 import { questMonitorWatcherStartBroker } from './quest-monitor-watcher-start-broker';
 import { questMonitorWatcherStartBrokerProxy } from './quest-monitor-watcher-start-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 type EmitParam = Parameters<Parameters<typeof questMonitorWatcherStartBroker>[0]['emit']>[0];
 

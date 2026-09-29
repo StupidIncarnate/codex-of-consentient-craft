@@ -10,6 +10,8 @@ import {
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { createDriverHandlerLayerBroker } from './create-driver-handler-layer-broker';
 import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-layer-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
+import { AbortController } from '#gateway/node/AbortController';
 
 const QUEST_ID = QuestIdStub({ value: 'layer-handler-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-layer-quest' });

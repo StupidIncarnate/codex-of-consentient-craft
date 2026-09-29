@@ -5,6 +5,7 @@ import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-re
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
 import { siegePlannerStatics } from './siege-planner-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const WHITESPACE_RUN = /\s+/gu;
 

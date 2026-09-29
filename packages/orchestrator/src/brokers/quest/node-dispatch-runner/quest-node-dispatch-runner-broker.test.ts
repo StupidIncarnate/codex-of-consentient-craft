@@ -2,6 +2,7 @@ import { AdapterResultStub } from '@dungeonmaster/shared/contracts';
 
 import { questNodeDispatchRunnerBroker } from './quest-node-dispatch-runner-broker';
 import { questNodeDispatchRunnerBrokerProxy } from './quest-node-dispatch-runner-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 describe('questNodeDispatchRunnerBroker', () => {
   describe('start / stop', () => {

@@ -2,6 +2,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { ExecutionQueueSyncListenerBootstrapResponder } from './execution-queue-sync-listener-bootstrap-responder';
 import { ExecutionQueueSyncListenerBootstrapResponderProxy } from './execution-queue-sync-listener-bootstrap-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 // One macrotask turn drains every pending microtask chained off it (an `await` on an
 // already-resolving mock never introduces a new macrotask of its own), so each call here flushes

@@ -12,6 +12,8 @@ import { pastedImageStatics, workItemStatusMetadataStatics } from '@dungeonmaste
 import { OrchestrationEventPayloadKeyStub } from '../../../contracts/orchestration-event-payload-key/orchestration-event-payload-key.stub';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { FollowupChatStartResponderProxy } from './followup-chat-start-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 type WorkItemStatusKey = keyof typeof workItemStatusMetadataStatics.statuses;
 

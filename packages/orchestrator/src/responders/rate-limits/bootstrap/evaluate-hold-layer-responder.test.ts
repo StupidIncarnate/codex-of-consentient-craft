@@ -4,6 +4,7 @@ import { orchestrationDispatchState } from '../../../state/orchestration-dispatc
 
 import { EvaluateHoldLayerResponder } from './evaluate-hold-layer-responder';
 import { EvaluateHoldLayerResponderProxy } from './evaluate-hold-layer-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const HOUR = 3_600_000;
 const NOW = Date.parse('2026-09-13T05:00:00.000Z');

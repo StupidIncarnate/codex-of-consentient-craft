@@ -7,7 +7,7 @@
  * queue.enqueue({ queueDir: dirs.claudeQueueDir, response: agentSuccessResponse() });
  */
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from '#gateway/node/path';
 
 import type { FilePath, GuildPath } from '@dungeonmaster/shared/contracts';
 import { ArrayIndexStub, FilePathStub } from '@dungeonmaster/shared/contracts';

@@ -3,6 +3,7 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 
 import { siegeAdversarialWalkerStatics } from './siege-adversarial-walker-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `hasIn` collapses every whitespace run on BOTH sides, so a needle
 // written on one line finds its sentence however the markdown happens to wrap. Anything measuring

@@ -9,6 +9,7 @@ import {
 
 import { questMonitorJsonlWatcherBroker } from './quest-monitor-jsonl-watcher-broker';
 import { questMonitorJsonlWatcherBrokerProxy } from './quest-monitor-jsonl-watcher-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 

@@ -11,6 +11,7 @@ import { chatLineProcessTransformer } from '../../../transformers/chat-line-proc
 
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const flushImmediate = async (): Promise<void> =>
   new Promise((resolve) => {

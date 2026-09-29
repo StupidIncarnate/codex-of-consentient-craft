@@ -15,7 +15,7 @@
  * marker.cleanup({ path });
  */
 import { mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 
 import {
   absoluteFilePathContract,
@@ -24,6 +24,7 @@ import {
   type FileName,
 } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
+import { pid } from '#gateway/node/process';
 
 const MARKER_PREFIX = 'directory-flow-default-path-marker-';
 
@@ -36,7 +37,7 @@ export const homeDirectoryMarkerHarness = (): {
   // `orchestrationEnvironmentHarness.seedHome`.
   create: async (): Promise<{ name: FileName; path: AbsoluteFilePath }> => {
     await Promise.resolve();
-    const name = fileNameContract.parse(`${MARKER_PREFIX}${String(process.pid)}`);
+    const name = fileNameContract.parse(`${MARKER_PREFIX}${String(pid)}`);
     const markerPath = absoluteFilePathContract.parse(join(homedir(), name));
     mkdirSync(markerPath, { recursive: true });
     return { name, path: markerPath };

@@ -5,6 +5,7 @@ import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-stat
 import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-result-statics';
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 import { siegeHappyFixerStatics } from './siege-happy-fixer-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const TEMPLATE = siegeHappyFixerStatics.prompt.template;
 

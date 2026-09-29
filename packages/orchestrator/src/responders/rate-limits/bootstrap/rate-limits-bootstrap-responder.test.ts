@@ -4,6 +4,7 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 import { rateLimitsState } from '../../../state/rate-limits/rate-limits-state';
 import { RateLimitsBootstrapResponder } from './rate-limits-bootstrap-responder';
 import { RateLimitsBootstrapResponderProxy } from './rate-limits-bootstrap-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 describe('RateLimitsBootstrapResponder', () => {
   it('VALID: {the dead statusline file has a snapshot in it} => its CONTENT is ignored entirely', async () => {

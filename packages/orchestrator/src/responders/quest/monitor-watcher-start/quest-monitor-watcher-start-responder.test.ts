@@ -2,6 +2,7 @@ import { QuestWorkItemIdStub, QuestIdStub } from '@dungeonmaster/shared/contract
 
 import { QuestMonitorWatcherStartResponder } from './quest-monitor-watcher-start-responder';
 import { QuestMonitorWatcherStartResponderProxy } from './quest-monitor-watcher-start-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 describe('QuestMonitorWatcherStartResponder', () => {
   describe('start + stop lifecycle', () => {

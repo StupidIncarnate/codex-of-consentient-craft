@@ -4,6 +4,7 @@ import { codeweaverReviewerStatics } from '../codeweaver-reviewer/codeweaver-rev
 import { flowriderReviewerStatics } from '../flowrider-reviewer/flowrider-reviewer-statics';
 import { stepScopeStatics } from '../step-scope/step-scope-statics';
 import { flowEvidenceContractStatics } from './flow-evidence-contract-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `judgingMarkdown` is bound with every whitespace run — spaces,
 // newlines, indent — collapsed to a single space, so a needle written on ONE line finds its

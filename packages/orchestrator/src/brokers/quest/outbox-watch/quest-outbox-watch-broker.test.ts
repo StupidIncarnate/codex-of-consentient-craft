@@ -4,6 +4,7 @@ import { QuestOutboxLineStub } from '../../../contracts/quest-outbox-line/quest-
 
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 import { questOutboxWatchBrokerProxy } from './quest-outbox-watch-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const OUTBOX_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' });
 

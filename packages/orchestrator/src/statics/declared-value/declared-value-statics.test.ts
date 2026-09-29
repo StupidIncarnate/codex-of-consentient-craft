@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { declaredValueStatics } from './declared-value-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `has` collapses every whitespace run — spaces, newlines, indent —
 // on BOTH sides before it matches, so a needle written on one line finds its sentence however the

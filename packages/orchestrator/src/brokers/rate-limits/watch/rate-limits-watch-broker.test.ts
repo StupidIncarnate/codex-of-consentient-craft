@@ -2,6 +2,7 @@ import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
 
 import { rateLimitsWatchBroker } from './rate-limits-watch-broker';
 import { rateLimitsWatchBrokerProxy } from './rate-limits-watch-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 describe('rateLimitsWatchBroker', () => {
   it('VALID: {tick fires, file changed} => onSnapshot called with parsed snapshot', async () => {

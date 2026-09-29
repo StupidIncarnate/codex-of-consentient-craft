@@ -4,6 +4,7 @@ import { SmoketestListenerEntryStub } from '../../../contracts/smoketest-listene
 import { SmoketestScenarioMetaStub } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta.stub';
 import { SmoketestBootstrapListenerResponder } from './smoketest-bootstrap-listener-responder';
 import { SmoketestBootstrapListenerResponderProxy } from './smoketest-bootstrap-listener-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const tick = async (): Promise<void> =>
   new Promise((resolve) => {

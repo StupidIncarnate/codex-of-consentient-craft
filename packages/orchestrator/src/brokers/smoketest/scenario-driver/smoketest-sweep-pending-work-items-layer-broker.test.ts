@@ -16,6 +16,7 @@ import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
+import { AbortController } from '#gateway/node/AbortController';
 
 const QUEST_ID = QuestIdStub({ value: 'sweep-layer-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });

@@ -2,6 +2,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { questWithModifyLockBroker } from './quest-with-modify-lock-broker';
 import { questWithModifyLockBrokerProxy } from './quest-with-modify-lock-broker.proxy';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 describe('questWithModifyLockBroker', () => {
   describe('serialization of same questId', () => {

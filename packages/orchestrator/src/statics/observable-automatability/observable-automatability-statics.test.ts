@@ -1,6 +1,7 @@
 import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 
 import { observableAutomatabilityStatics } from './observable-automatability-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING, matching standardsReviewConcernsStatics.test.ts's own rationale:
 // `has` collapses every whitespace run on both sides before it matches, so re-flowing a paragraph

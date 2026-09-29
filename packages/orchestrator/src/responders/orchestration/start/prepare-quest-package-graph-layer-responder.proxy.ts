@@ -17,7 +17,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve } from '#gateway/node/path';
 
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';

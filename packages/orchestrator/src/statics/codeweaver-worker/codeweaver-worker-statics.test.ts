@@ -5,6 +5,7 @@ import { sadPathRoutingStatics } from '../sad-path-routing/sad-path-routing-stat
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
 import { codeweaverWorkerStatics } from './codeweaver-worker-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `hasIn` collapses every whitespace run on BOTH sides before it
 // matches, so re-flowing a paragraph reds nothing that is still true. The size assertion reads real

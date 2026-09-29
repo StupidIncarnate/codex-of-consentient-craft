@@ -6,6 +6,7 @@ import {
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
+import { pid } from '#gateway/node/process';
 
 export const usageLedgerWriteBrokerProxy = (): {
   setupWriteSuccess: (params: { nowMs: number }) => void;
@@ -31,7 +32,7 @@ export const usageLedgerWriteBrokerProxy = (): {
   // the broker always compute the identical token, which is what lets the write be staged against
   // the exact token-suffixed path instead of a prefix/suffix predicate.
   const queuePaths = ({ nowMs }: { nowMs: number }): ReturnType<typeof FilePathStub> => {
-    const token = `${String(process.pid)}-${String(nowMs)}`;
+    const token = `${String(pid)}-${String(nowMs)}`;
     const tmpPath = FilePathStub({
       value: `/home/user/.dungeonmaster/usage-ledger.json.tmp.${token}`,
     });

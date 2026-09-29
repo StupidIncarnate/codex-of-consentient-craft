@@ -3,6 +3,7 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { observableAutomatabilityStatics } from '../observable-automatability/observable-automatability-statics';
 
 import { siegeAdversarialFixerStatics } from './siege-adversarial-fixer-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const TEMPLATE = siegeAdversarialFixerStatics.prompt.template;
 

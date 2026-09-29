@@ -8,6 +8,8 @@ import {
 
 import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer-broker';
 import { createDriverPollTickLayerBrokerProxy } from './create-driver-poll-tick-layer-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
+import { AbortController } from '#gateway/node/AbortController';
 
 const QUEST_ID = QuestIdStub({ value: 'poll-tick-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });

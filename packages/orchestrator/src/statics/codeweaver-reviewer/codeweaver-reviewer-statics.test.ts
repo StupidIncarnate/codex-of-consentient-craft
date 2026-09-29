@@ -3,6 +3,7 @@ import { mcpToolResultStatics } from '@dungeonmaster/shared/statics';
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 
 import { codeweaverReviewerStatics } from './codeweaver-reviewer-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const WHITESPACE_RUN = /\s+/gu;
 

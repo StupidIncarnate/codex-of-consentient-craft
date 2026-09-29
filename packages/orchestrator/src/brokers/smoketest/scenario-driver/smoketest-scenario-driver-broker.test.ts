@@ -8,6 +8,7 @@ import {
 
 import { smoketestScenarioDriverBroker } from './smoketest-scenario-driver-broker';
 import { smoketestScenarioDriverBrokerProxy } from './smoketest-scenario-driver-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const QUEST_ID = QuestIdStub({ value: 'driver-test-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-driver-quest' });

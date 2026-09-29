@@ -5,6 +5,7 @@ import { spilledToolResultStatics } from '../spilled-tool-result/spilled-tool-re
 import { unitMarkingStatics } from '../unit-marking/unit-marking-statics';
 
 import { codeweaverPlannerStatics } from './codeweaver-planner-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 // PROSE COMPARES IGNORE WRAPPING. `hasIn` collapses every whitespace run on BOTH sides, so a needle
 // written on one line finds its sentence however the markdown happens to wrap. Anything measuring

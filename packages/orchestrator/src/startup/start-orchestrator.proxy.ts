@@ -69,6 +69,7 @@ import { QuestNotFoundError } from '../errors/quest-not-found/quest-not-found-er
 // confirmed by reproducing the exact failure in packages/mcp/src/responders/quest/handle/
 // quest-handle-responder.test.ts (see this item's DECISIONS).
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { setTimeout } from '#gateway/node/setTimeout';
 
 type AdapterResult = ReturnType<typeof AdapterResultStub>;
 type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;

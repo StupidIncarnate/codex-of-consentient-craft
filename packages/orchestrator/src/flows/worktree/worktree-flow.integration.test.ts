@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { WorktreeFlow } from './worktree-flow';
+import { chdir, cwd } from '#gateway/node/process';
 
 describe('WorktreeFlow', () => {
   describe('export', () => {
@@ -17,12 +18,12 @@ describe('WorktreeFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'worktree-flow-1' }),
       });
-      const previousCwd = process.cwd();
-      process.chdir(testbed.guildPath);
+      const previousCwd = cwd();
+      chdir(testbed.guildPath);
 
       const error = await WorktreeFlow.create({ name: 'probe' }).catch((thrown: unknown) => thrown);
 
-      process.chdir(previousCwd);
+      chdir(previousCwd);
       testbed.cleanup();
 
       expect((error as Error).name).toBe('ProjectRootNotFoundError');

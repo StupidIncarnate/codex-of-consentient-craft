@@ -15,6 +15,7 @@ import { FileNameStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const flushCycle = async (): Promise<void> =>
   new Promise<void>((resolve) => {

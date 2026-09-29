@@ -8,8 +8,8 @@
  * // already registered in config.json, so a broker that resolves the guild (guildGetBroker,
  * // questRepoRootBroker) finds it instead of a folder-name id nothing in config recognizes.
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from '#gateway/node/fs';
+import * as path from '#gateway/node/path';
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 

@@ -4,6 +4,7 @@ import { flowEvidenceContractStatics } from '../flow-evidence-contract/flow-evid
 import { standardsReviewConcernsStatics } from '../standards-review-concerns/standards-review-concerns-statics';
 
 import { flowriderReviewerStatics } from './flowrider-reviewer-statics';
+import { Buffer } from '#gateway/node/buffer';
 
 const WHITESPACE_RUN = /\s+/gu;
 

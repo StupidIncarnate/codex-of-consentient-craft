@@ -1,4 +1,5 @@
 import { readFileFromOffsetProxy } from '#gateway/node/fs__promises/read-file-from-offset/read-file-from-offset.proxy';
+import { Buffer } from '#gateway/node/buffer';
 
 export const foldBatchLayerBrokerProxy = (): {
   setupTranscript: (params: { path: string; contents: string; fromByte?: number }) => void;

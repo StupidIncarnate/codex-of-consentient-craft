@@ -13,6 +13,7 @@ import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transform
 
 import { chatStreamProcessHandleBroker } from './chat-stream-process-handle-broker';
 import { chatStreamProcessHandleBrokerProxy } from './chat-stream-process-handle-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
 
 const flushImmediate = async (): Promise<void> =>
   new Promise((resolve) => {

@@ -16,7 +16,7 @@
  * });
  * await git.createBranchAt({ repoPath, branchName: FileNameStub({ value: 'master' }) });
  */
-import * as fs from 'fs';
+import * as fs from '#gateway/node/fs';
 import {
   accessSync,
   chmodSync,
@@ -29,7 +29,7 @@ import {
   realpathSync,
   writeFileSync,
 } from 'fs';
-import { join } from 'path';
+import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
 import {
@@ -41,6 +41,7 @@ import {
   type FileName,
   type RepoRelativePath,
 } from '@dungeonmaster/shared/contracts';
+import { getEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
 const SHIM_MODE = 0o755;
@@ -405,7 +406,7 @@ export const gitWorktreeFixtureHarness = (): {
       );
       chmodSync(shimPath, SHIM_MODE);
 
-      const savedPath = process.env.PATH;
+      const savedPath = getEnv('PATH');
       process.env.PATH = `${captureDir}:${savedPath ?? ''}`;
 
       return {

@@ -2,6 +2,7 @@ import { questListBroker } from './quest-list-broker';
 import { questListBrokerProxy } from './quest-list-broker.proxy';
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '@dungeonmaster/shared/contracts';
+import { stderr } from '#gateway/node/process';
 
 describe('questListBroker', () => {
   describe('listing quests', () => {
@@ -181,7 +182,7 @@ describe('questListBroker', () => {
 
       await questListBroker({ guildId });
 
-      expect(process.stderr.write).toHaveBeenCalledWith(
+      expect(stderr.write).toHaveBeenCalledWith(
         '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/001-legacy/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n',
       );
     });

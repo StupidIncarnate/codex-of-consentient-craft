@@ -17,6 +17,8 @@ import {
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { chatSpawnBroker } from './chat-spawn-broker';
 import { chatSpawnBrokerProxy } from './chat-spawn-broker.proxy';
+import { setImmediate } from '#gateway/node/setImmediate';
+import { stderr } from '#gateway/node/process';
 
 // proxy.getSpawnedArgs() is declared `() => unknown` (chatSpawnBrokerProxy delegates straight
 // through agentLaunchBrokerProxy's own `unknown`-typed getter). Narrowing here via Array.isArray
@@ -507,7 +509,7 @@ describe('chatSpawnBroker', () => {
       // write inside this stderr spy's window. Simulate that interleaving so the assertion
       // is proven robust to shadowing — the chat-spawn line must be located among ALL
       // writes, never assumed to be the first.
-      process.stderr.write(
+      stderr.write(
         "rate-limits-watch read error: EACCES: permission denied, open '/home/x/.dungeonmaster/rate-limits.json'\n",
       );
 
