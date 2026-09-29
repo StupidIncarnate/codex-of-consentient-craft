@@ -14,7 +14,12 @@ import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config
 // `enforce-folder-return-types` "loses its tag" once R1 lands, the same way `ban-primitives` and
 // `require-zod-on-primitives` are slated to "leave the map" later — dropped entirely, not given a
 // third timing value.
-const WARD_ONLY_TYPE_CHECKED_RULES = ['@dungeonmaster/enforce-folder-return-types'];
+const WARD_ONLY_TYPE_CHECKED_RULES = [
+  '@dungeonmaster/enforce-folder-return-types',
+  '@dungeonmaster/raw-import-ban',
+  '@dungeonmaster/platform-globals-ban',
+  '@dungeonmaster/bin-program-spawn-ban',
+];
 
 interface Violation {
   ruleName: unknown;

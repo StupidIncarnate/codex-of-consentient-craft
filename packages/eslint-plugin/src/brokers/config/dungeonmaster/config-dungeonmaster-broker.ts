@@ -192,11 +192,11 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-workspace-export-mocks': ['off', { workspacePackageNames }],
     // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
     // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
-    // '@dungeonmaster/raw-import-ban': 'error',
+    '@dungeonmaster/raw-import-ban': 'error',
     // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
-    // '@dungeonmaster/platform-globals-ban': 'error',
+    '@dungeonmaster/platform-globals-ban': 'error',
     // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
-    // '@dungeonmaster/bin-program-spawn-ban': 'error',
+    '@dungeonmaster/bin-program-spawn-ban': 'error',
     // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): built
     // and scanned over the whole repo; off until the proxy fixes it flags are split per package and
     // applied — turning it on now would fail every proxy the scan already found.
