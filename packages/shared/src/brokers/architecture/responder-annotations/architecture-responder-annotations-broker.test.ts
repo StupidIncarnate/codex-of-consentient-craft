@@ -1,7 +1,6 @@
 import { architectureResponderAnnotationsBroker } from './architecture-responder-annotations-broker';
 import { architectureResponderAnnotationsBrokerProxy } from './architecture-responder-annotations-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import { PackageTypeStub } from '../../../contracts/package-type/package-type.stub';
 
 const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/foo' });
@@ -12,7 +11,7 @@ describe('architectureResponderAnnotationsBroker', () => {
       architectureResponderAnnotationsBrokerProxy();
 
       const result = architectureResponderAnnotationsBroker({
-        packageType: PackageTypeStub({ value: 'programmatic-service' }),
+        packageType: 'programmatic-service',
         projectRoot: PROJECT_ROOT,
         packageRoot: PACKAGE_ROOT,
       });
@@ -27,7 +26,7 @@ describe('architectureResponderAnnotationsBroker', () => {
       architectureResponderAnnotationsBrokerProxy();
 
       const result = architectureResponderAnnotationsBroker({
-        packageType: PackageTypeStub({ value: 'frontend-react' }),
+        packageType: 'frontend-react',
         projectRoot: PROJECT_ROOT,
         packageRoot: PACKAGE_ROOT,
       });
@@ -42,7 +41,7 @@ describe('architectureResponderAnnotationsBroker', () => {
       architectureResponderAnnotationsBrokerProxy();
 
       const result = architectureResponderAnnotationsBroker({
-        packageType: PackageTypeStub({ value: 'eslint-plugin' }),
+        packageType: 'eslint-plugin',
         projectRoot: PROJECT_ROOT,
         packageRoot: PACKAGE_ROOT,
       });

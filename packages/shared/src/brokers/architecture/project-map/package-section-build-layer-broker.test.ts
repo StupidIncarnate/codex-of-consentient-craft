@@ -2,7 +2,6 @@ import { packageSectionBuildLayerBroker } from './package-section-build-layer-br
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import { PackageTypeStub } from '../../../contracts/package-type/package-type.stub';
 
 const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
@@ -16,7 +15,7 @@ describe('packageSectionBuildLayerBroker', () => {
       const result = packageSectionBuildLayerBroker({
         packageName: PACKAGE_NAME,
         packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'programmatic-service' }),
+        packageType: 'programmatic-service',
         projectRoot: PROJECT_ROOT,
       });
 
@@ -29,7 +28,7 @@ describe('packageSectionBuildLayerBroker', () => {
       const result = packageSectionBuildLayerBroker({
         packageName: PACKAGE_NAME,
         packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
         projectRoot: PROJECT_ROOT,
       });
 
@@ -46,7 +45,7 @@ describe('packageSectionBuildLayerBroker', () => {
       const result = packageSectionBuildLayerBroker({
         packageName: PACKAGE_NAME,
         packageRoot: PACKAGE_ROOT,
-        packageType: PackageTypeStub({ value: 'http-backend' }),
+        packageType: 'http-backend',
         projectRoot: PROJECT_ROOT,
       });
 

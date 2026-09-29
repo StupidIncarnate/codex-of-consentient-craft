@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import { PackageTypeStub } from '../../../contracts/package-type/package-type.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { architecturePackageTypeDetectBrokerProxy } from './architecture-package-type-detect-broker.proxy';
 import { architecturePackageTypeDetectBroker } from './architecture-package-type-detect-broker';
@@ -20,7 +19,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'http-backend' })]);
+      expect(result).toStrictEqual(['http-backend']);
     });
 
     it('VALID: {express in dependencies + flows/} => returns http-backend', async () => {
@@ -35,7 +34,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'http-backend' })]);
+      expect(result).toStrictEqual(['http-backend']);
     });
   });
 
@@ -54,7 +53,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'mcp-server' })]);
+      expect(result).toStrictEqual(['mcp-server']);
     });
 
     it('VALID: {flow file imports ToolRegistration} => returns mcp-server', async () => {
@@ -72,7 +71,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'mcp-server' })]);
+      expect(result).toStrictEqual(['mcp-server']);
     });
   });
 
@@ -96,7 +95,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'mcp-server' })]);
+      expect(result).toStrictEqual(['mcp-server']);
     });
 
     it('VALID: {the SDK dependency with no flows folder, as in @gateway/npm} => returns library', async () => {
@@ -113,7 +112,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'library' })]);
+      expect(result).toStrictEqual(['library']);
     });
   });
 
@@ -130,7 +129,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'frontend-ink' })]);
+      expect(result).toStrictEqual(['frontend-ink']);
     });
   });
 
@@ -147,7 +146,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'frontend-react' })]);
+      expect(result).toStrictEqual(['frontend-react']);
     });
   });
 
@@ -168,7 +167,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'hook-handlers' })]);
+      expect(result).toStrictEqual(['hook-handlers']);
     });
   });
 
@@ -188,7 +187,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'eslint-plugin' })]);
+      expect(result).toStrictEqual(['eslint-plugin']);
     });
   });
 
@@ -209,7 +208,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'cli-tool' })]);
+      expect(result).toStrictEqual(['cli-tool']);
     });
   });
 
@@ -229,7 +228,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'programmatic-service' })]);
+      expect(result).toStrictEqual(['programmatic-service']);
     });
   });
 
@@ -245,7 +244,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'library' })]);
+      expect(result).toStrictEqual(['library']);
     });
   });
 
@@ -262,10 +261,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([
-        PackageTypeStub({ value: 'http-backend' }),
-        PackageTypeStub({ value: 'frontend-react' }),
-      ]);
+      expect(result).toStrictEqual(['http-backend', 'frontend-react']);
     });
 
     it('VALID: {widgets + flows + ink + hono in dependencies} => http-backend wins the label, and frontend-ink is still reported behind it', async () => {
@@ -280,10 +276,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([
-        PackageTypeStub({ value: 'http-backend' }),
-        PackageTypeStub({ value: 'frontend-ink' }),
-      ]);
+      expect(result).toStrictEqual(['http-backend', 'frontend-ink']);
     });
 
     it('VALID: {widgets + react, no shadowing http-backend signal} => frontend-react is reported ONCE, never repeated behind itself', async () => {
@@ -298,7 +291,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'frontend-react' })]);
+      expect(result).toStrictEqual(['frontend-react']);
     });
   });
 
@@ -317,7 +310,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'cli-tool' })]);
+      expect(result).toStrictEqual(['cli-tool']);
     });
 
     it('VALID: {config package shape} => returns library', async () => {
@@ -331,7 +324,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'library' })]);
+      expect(result).toStrictEqual(['library']);
     });
 
     it('VALID: {eslint-plugin package shape} => returns eslint-plugin', async () => {
@@ -349,7 +342,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'eslint-plugin' })]);
+      expect(result).toStrictEqual(['eslint-plugin']);
     });
 
     it('VALID: {hooks package shape} => returns hook-handlers', async () => {
@@ -368,7 +361,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'hook-handlers' })]);
+      expect(result).toStrictEqual(['hook-handlers']);
     });
 
     it('VALID: {mcp package shape} => returns mcp-server', async () => {
@@ -385,7 +378,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'mcp-server' })]);
+      expect(result).toStrictEqual(['mcp-server']);
     });
 
     it('VALID: {orchestrator package shape} => returns programmatic-service', async () => {
@@ -403,7 +396,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'programmatic-service' })]);
+      expect(result).toStrictEqual(['programmatic-service']);
     });
 
     it('VALID: {server package shape} => returns http-backend', async () => {
@@ -418,7 +411,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'http-backend' })]);
+      expect(result).toStrictEqual(['http-backend']);
     });
 
     it('VALID: {shared package shape} => returns library', async () => {
@@ -432,7 +425,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'library' })]);
+      expect(result).toStrictEqual(['library']);
     });
 
     it('VALID: {tooling package shape} => returns cli-tool', async () => {
@@ -451,7 +444,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'cli-tool' })]);
+      expect(result).toStrictEqual(['cli-tool']);
     });
 
     it('VALID: {ward package shape} => returns cli-tool', async () => {
@@ -470,7 +463,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'cli-tool' })]);
+      expect(result).toStrictEqual(['cli-tool']);
     });
 
     it('VALID: {web package shape} => returns frontend-react', async () => {
@@ -485,7 +478,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
       });
 
-      expect(result).toStrictEqual([PackageTypeStub({ value: 'frontend-react' })]);
+      expect(result).toStrictEqual(['frontend-react']);
     });
   });
 });

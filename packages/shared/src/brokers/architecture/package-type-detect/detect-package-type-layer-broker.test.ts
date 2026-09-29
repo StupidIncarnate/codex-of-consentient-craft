@@ -1,5 +1,4 @@
 import { PackageJsonStub } from '../../../contracts/package-json/package-json.stub';
-import { PackageTypeStub } from '../../../contracts/package-type/package-type.stub';
 import { FileCountStub } from '../../../contracts/file-count/file-count.stub';
 import { detectPackageTypeLayerBrokerProxy } from './detect-package-type-layer-broker.proxy';
 import { detectPackageTypeLayerBroker } from './detect-package-type-layer-broker';
@@ -24,7 +23,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
+      expect(result).toBe('http-backend');
     });
   });
 
@@ -47,7 +46,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
+      expect(result).toBe('http-backend');
     });
 
     it('VALID: {hono in dependencies, no flows folder} => returns library', () => {
@@ -68,7 +67,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'library' }));
+      expect(result).toBe('library');
     });
   });
 
@@ -91,7 +90,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+      expect(result).toBe('mcp-server');
     });
 
     it('VALID: {the create-package seed flow, SDK in dependencies, flows folder} => returns mcp-server', () => {
@@ -113,7 +112,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+      expect(result).toBe('mcp-server');
     });
 
     it('VALID: {MCP SDK in dependencies, no flows folder} => returns library', () => {
@@ -134,7 +133,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'library' }));
+      expect(result).toBe('library');
     });
 
     it('VALID: {flowFileContent with ToolRegistration import} => returns mcp-server', () => {
@@ -155,7 +154,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'mcp-server' }));
+      expect(result).toBe('mcp-server');
     });
   });
 
@@ -178,7 +177,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'frontend-ink' }));
+      expect(result).toBe('frontend-ink');
     });
   });
 
@@ -201,7 +200,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'frontend-react' }));
+      expect(result).toBe('frontend-react');
     });
   });
 
@@ -224,7 +223,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 2 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'hook-handlers' }));
+      expect(result).toBe('hook-handlers');
     });
   });
 
@@ -247,7 +246,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'eslint-plugin' }));
+      expect(result).toBe('eslint-plugin');
     });
   });
 
@@ -270,7 +269,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 1 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'cli-tool' }));
+      expect(result).toBe('cli-tool');
     });
   });
 
@@ -294,7 +293,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'programmatic-service' }));
+      expect(result).toBe('programmatic-service');
     });
   });
 
@@ -317,7 +316,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'library' }));
+      expect(result).toBe('library');
     });
   });
 
@@ -340,7 +339,7 @@ describe('detectPackageTypeLayerBroker', () => {
         binEntryCount: FileCountStub({ value: 0 }),
       });
 
-      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
+      expect(result).toBe('http-backend');
     });
   });
 });
