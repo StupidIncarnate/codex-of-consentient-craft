@@ -1,21 +1,11 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { astGetCallFirstArgumentNameTransformer } from './ast-get-call-first-argument-name-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
 
 describe('astGetCallFirstArgumentNameTransformer', () => {
   describe('valid calls with identifier arguments', () => {
     it("VALID: {node: jest.spyOn(Date, 'now')} => returns 'Date'", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'jest' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'spyOn' }),
-        }),
-        arguments: [
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'Date' }),
-          TsestreeStub({ type: TsestreeNodeType.Literal, value: 'now' }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'jest.spyOn(Date, "now");' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -23,18 +13,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it("VALID: {node: jest.spyOn(axios, 'get')} => returns 'axios'", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'jest' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'spyOn' }),
-        }),
-        arguments: [
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'axios' }),
-          TsestreeStub({ type: TsestreeNodeType.Literal, value: 'get' }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'jest.spyOn(axios, "get");' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -42,11 +21,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it("VALID: {node: someFunction(myVar)} => returns 'myVar'", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'myVar' })],
-      });
+      const node = CallExpressionStub({ code: 'someFunction(myVar);' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -54,18 +29,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it("VALID: {node: jest.spyOn(console, 'log')} => returns 'console'", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'jest' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'spyOn' }),
-        }),
-        arguments: [
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'console' }),
-          TsestreeStub({ type: TsestreeNodeType.Literal, value: 'log' }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'jest.spyOn(console, "log");' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -75,18 +39,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
   describe('calls with non-identifier first arguments', () => {
     it("EDGE: {node: jest.spyOn('literal', 'method')} => returns null", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'jest' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'spyOn' }),
-        }),
-        arguments: [
-          TsestreeStub({ type: TsestreeNodeType.Literal, value: 'literal' }),
-          TsestreeStub({ type: TsestreeNodeType.Literal, value: 'method' }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'jest.spyOn("literal", "method");' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -94,11 +47,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it('EDGE: {node: someFunction(123)} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [TsestreeStub({ type: TsestreeNodeType.Literal, value: 123 })],
-      });
+      const node = CallExpressionStub({ code: 'someFunction(123);' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -106,17 +55,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it('EDGE: {node: someFunction(obj.property)} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [
-          TsestreeStub({
-            type: TsestreeNodeType.MemberExpression,
-            object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'obj' }),
-            property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'property' }),
-          }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'someFunction(obj.property);' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -138,47 +77,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it('EMPTY: {node: CallExpression with no arguments} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [],
-      });
-
-      const result = astGetCallFirstArgumentNameTransformer({ node });
-
-      expect(result).toBe(null);
-    });
-
-    it('EMPTY: {node: CallExpression with undefined arguments} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: undefined,
-      });
-
-      const result = astGetCallFirstArgumentNameTransformer({ node });
-
-      expect(result).toBe(null);
-    });
-
-    it('EDGE: {node: Identifier with no name} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [TsestreeStub({ type: TsestreeNodeType.Identifier, name: undefined })],
-      });
-
-      const result = astGetCallFirstArgumentNameTransformer({ node });
-
-      expect(result).toBe(null);
-    });
-
-    it('EDGE: {node: Identifier with empty string name} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someFunction' }),
-        arguments: [TsestreeStub({ type: TsestreeNodeType.Identifier, name: '' })],
-      });
+      const node = CallExpressionStub({ code: 'someFunction();' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -186,10 +85,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
     });
 
     it('EDGE: {node: non-CallExpression} => returns null', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Identifier,
-        name: 'someVar',
-      });
+      const node = IdentifierStub({ code: 'someVar;' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 
@@ -199,15 +95,7 @@ describe('astGetCallFirstArgumentNameTransformer', () => {
 
   describe('multiple arguments', () => {
     it("VALID: {node: call(first, second, third)} => returns 'first'", () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'call' }),
-        arguments: [
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'first' }),
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'second' }),
-          TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'third' }),
-        ],
-      });
+      const node = CallExpressionStub({ code: 'call(first, second, third);' });
 
       const result = astGetCallFirstArgumentNameTransformer({ node });
 

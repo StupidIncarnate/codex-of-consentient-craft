@@ -18,16 +18,14 @@
  *
  * USAGE:
  * const rule = ruleBinProgramSpawnBanBroker();
- * // Returns an EslintRule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
+ * // Returns an RuleModule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
  * // naming currentBranch() from #gateway/bin/git in the report message
  */
 import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { objectPropertyValueTransformer } from '../../../transformers/object-property-value/object-property-value-transformer';
 import { childProcessFunctionNamesStatics } from '../../../statics/child-process-function-names/child-process-function-names-statics';
@@ -38,42 +36,43 @@ import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-lay
 // case passes `scope` explicitly, so the real filesystem walk only ever runs for a real ESLint run.
 const defaultScopeCache: { value?: PackageName } = {};
 
-export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban a direct spawn of a program that has a home in @<scope>/bin. Use that program's own wrapper there instead.",
-      },
-      messages: {
-        binProgramSpawn:
-          'Spawning "{{program}}" directly is not allowed. Use {{binFunction}}() from "{{gatewayPath}}" instead.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            scope: {
-              type: 'string',
-              description:
-                'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope read from the repo root package.json at rule module load.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramSpawn'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban a direct spawn of a program that has a home in @<scope>/bin. Use that program's own wrapper there instead.",
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context as EslintContext & { options?: { scope?: PackageName }[] };
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    messages: {
+      binProgramSpawn:
+        'Spawning "{{program}}" directly is not allowed. Use {{binFunction}}() from "{{gatewayPath}}" instead.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          scope: {
+            type: 'string',
+            description:
+              'Override the workspace `@scope` used to build the `@scope/bin/<program>` path. Defaults to the scope read from the repo root package.json at rule module load.',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
+      options?: { scope?: PackageName }[];
+    };
+    const { filename } = ctx;
 
     if (filename.length === 0 || isGatewayFileGuard({ filename })) {
       return {};
     }
 
-    const optionScope = ctx.options?.[0]?.scope;
+    const optionScope = ctx.options[0]?.scope;
     const scope = ((): PackageName => {
       if (optionScope !== undefined) {
         return optionScope;
@@ -89,23 +88,20 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
     const scopedGatewaySource = `${scope}/${gatewayLocationsStatics.folders.node}/child_process`;
     const aliasedGatewaySource = `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.node}/child_process`;
 
-    let moduleBody: Tsestree[] = [];
+    let moduleBody: readonly TSESTree.ProgramStatement[] = [];
     const gatewayLocalNames = new Set<ContentText>();
     const rawLocalNames = new Map<ContentText, ContentText>();
     const rawNamespaceNames = new Set<ContentText>();
 
     return {
-      Program: (node: Tsestree): void => {
-        moduleBody = Array.isArray(node.body) ? node.body : [];
+      Program: (node: TSESTree.Program): void => {
+        moduleBody = node.body;
 
         for (const statement of moduleBody) {
-          if (statement.type !== 'ImportDeclaration') {
+          if (statement.type !== AST_NODE_TYPES.ImportDeclaration) {
             continue;
           }
-          const source = statement.source?.value;
-          if (typeof source !== 'string') {
-            continue;
-          }
+          const source = statement.source.value;
 
           const isGatewaySource = source === scopedGatewaySource || source === aliasedGatewaySource;
           const isNodeModuleSource = source === 'child_process' || source === 'node:child_process';
@@ -116,17 +112,14 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
             continue;
           }
 
-          for (const specifier of statement.specifiers ?? []) {
-            if (specifier.type === 'ImportSpecifier') {
+          for (const specifier of statement.specifiers) {
+            if (specifier.type === AST_NODE_TYPES.ImportSpecifier) {
               const importedName =
-                specifier.imported?.type === 'Identifier'
-                  ? contentTextContract.parse(String(specifier.imported.name))
+                specifier.imported.type === AST_NODE_TYPES.Identifier
+                  ? contentTextContract.parse(specifier.imported.name)
                   : undefined;
-              const localName =
-                specifier.local?.type === 'Identifier'
-                  ? contentTextContract.parse(String(specifier.local.name))
-                  : undefined;
-              if (importedName === undefined || localName === undefined) {
+              const localName = contentTextContract.parse(specifier.local.name);
+              if (importedName === undefined) {
                 continue;
               }
 
@@ -148,35 +141,27 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
               }
             }
 
-            if (specifier.type === 'ImportNamespaceSpecifier' && isNodeModuleSource) {
-              const localName =
-                specifier.local?.type === 'Identifier'
-                  ? contentTextContract.parse(String(specifier.local.name))
-                  : undefined;
-              if (localName !== undefined) {
-                rawNamespaceNames.add(localName);
-              }
+            if (specifier.type === AST_NODE_TYPES.ImportNamespaceSpecifier && isNodeModuleSource) {
+              const localName = contentTextContract.parse(specifier.local.name);
+              rawNamespaceNames.add(localName);
             }
           }
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        const args = (node.arguments ?? []).flatMap((argument) =>
-          argument === null ? [] : [argument],
-        );
+        const args = node.arguments.flatMap((argument) => [argument]);
 
         if (
-          callee?.type === 'Identifier' &&
-          callee.name !== undefined &&
-          gatewayLocalNames.has(contentTextContract.parse(String(callee.name)))
+          callee.type === AST_NODE_TYPES.Identifier &&
+          gatewayLocalNames.has(contentTextContract.parse(callee.name))
         ) {
           const [optionsArg] = args;
-          if (optionsArg?.type !== 'ObjectExpression') {
+          if (optionsArg?.type !== AST_NODE_TYPES.ObjectExpression) {
             return;
           }
-          const properties = optionsArg.properties ?? [];
+          const { properties } = optionsArg;
           reportBinProgramSpawnLayerBroker({
             ctx,
             node,
@@ -189,18 +174,17 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
         }
 
         const rawImportedName = ((): ContentText | undefined => {
-          if (callee?.type === 'Identifier' && callee.name !== undefined) {
-            return rawLocalNames.get(contentTextContract.parse(String(callee.name)));
+          if (callee.type === AST_NODE_TYPES.Identifier) {
+            return rawLocalNames.get(contentTextContract.parse(callee.name));
           }
           if (
-            callee?.type === 'MemberExpression' &&
+            callee.type === AST_NODE_TYPES.MemberExpression &&
             !callee.computed &&
-            callee.object?.type === 'Identifier' &&
-            callee.object.name !== undefined &&
-            rawNamespaceNames.has(contentTextContract.parse(String(callee.object.name))) &&
-            callee.property?.type === 'Identifier'
+            callee.object.type === AST_NODE_TYPES.Identifier &&
+            rawNamespaceNames.has(contentTextContract.parse(callee.object.name)) &&
+            callee.property.type === AST_NODE_TYPES.Identifier
           ) {
-            const propertyName = contentTextContract.parse(String(callee.property.name));
+            const propertyName = contentTextContract.parse(callee.property.name);
             return childProcessFunctionNamesStatics.rawFunctionNames.some(
               (name) => name === propertyName,
             )

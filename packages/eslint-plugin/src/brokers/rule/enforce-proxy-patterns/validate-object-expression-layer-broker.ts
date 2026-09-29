@@ -7,27 +7,24 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 
 export const validateObjectExpressionLayerBroker = ({
   objectNode,
   context,
 }: {
-  objectNode: Tsestree;
-  context: EslintContext;
+  objectNode: TSESTree.ObjectExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  const { properties } = objectNode;
-
-  if (!properties) return result;
 
   // Check for bootstrap property and mock in helper names
-  for (const property of properties) {
-    if (property.type === 'Property' || property.type === 'MethodDefinition') {
+  for (const property of objectNode.properties) {
+    if (property.type === AST_NODE_TYPES.Property) {
       const { key } = property;
-      const keyName = key?.name;
+      const keyName = 'name' in key ? key.name : undefined;
 
       if (keyName === 'bootstrap') {
         context.report({

@@ -12,29 +12,31 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const validateFunctionParamsUseObjectDestructuringTransformer = ({
   node,
   context,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node:
+    TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  if (!node.params || node.params.length === 0) {
+  if (node.params.length === 0) {
     return result;
   }
 
-  if (node.returnType?.typeAnnotation?.type === 'TSTypePredicate') {
+  if (node.returnType?.typeAnnotation.type === AST_NODE_TYPES.TSTypePredicate) {
     return result;
   }
 
   for (const param of node.params) {
     const isObjectDestructuring =
-      param.type === 'ObjectPattern' ||
-      (param.type === 'AssignmentPattern' && param.left?.type === 'ObjectPattern');
+      param.type === AST_NODE_TYPES.ObjectPattern ||
+      (param.type === AST_NODE_TYPES.AssignmentPattern &&
+        param.left.type === AST_NODE_TYPES.ObjectPattern);
 
     if (!isObjectDestructuring) {
       context.report({

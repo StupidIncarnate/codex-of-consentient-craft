@@ -18,44 +18,47 @@
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the
  * standing "nothing ever silently picks a match" constraint over the step-command implementations.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { locatorPickStatics } from '../../../statics/locator-pick/locator-pick-statics';
 import { isLocatorPickScopeFileGuard } from '../../../guards/is-locator-pick-scope-file/is-locator-pick-scope-file-guard';
 
-export const ruleBanLocatorPickBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban '.first()'/'.last()' and a literal '.nth()' on a locator inside the step-command broker implementations only (packages/siegelense/src/brokers/step/**) — ambiguity there must throw, never silently resolve to one match.",
-      },
-      messages: {
-        locatorPick:
-          "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.{{method}}()' here — it silently resolves an ambiguity the caller did not resolve. Let the target-resolve broker throw instead, or narrow with `within`.",
-        literalNth:
-          "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.nth({{argument}})' with a literal index — '.nth(0)' written as a literal is '.first()' with extra steps. '.nth()' is allowed only when its index comes from caller input (a parameter or a variable).",
-      },
-      schema: [],
+export const ruleBanLocatorPickBroker = (): TSESLint.RuleModule<'locatorPick' | 'literalNth'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban '.first()'/'.last()' and a literal '.nth()' on a locator inside the step-command broker implementations only (packages/siegelense/src/brokers/step/**) — ambiguity there must throw, never silently resolve to one match.",
     },
-  }),
+    messages: {
+      locatorPick:
+        "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.{{method}}()' here — it silently resolves an ambiguity the caller did not resolve. Let the target-resolve broker throw instead, or narrow with `within`.",
+      literalNth:
+        "This rule enforces the no-pick rule inside the step-command broker implementations only ({{scope}}). Do not call '.nth({{argument}})' with a literal index — '.nth(0)' written as a literal is '.first()' with extra steps. '.nth()' is allowed only when its index comes from caller input (a parameter or a variable).",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
-    if (!isLocatorPickScopeFileGuard({ filename: String(filename) })) {
+    if (!isLocatorPickScopeFileGuard({ filename })) {
       return {};
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        if (!callee || callee.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        const methodName = callee.property?.name;
+        const methodName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
         if (methodName === undefined) {
           return;
         }
@@ -68,7 +71,7 @@ export const ruleBanLocatorPickBroker = (): EslintRule => ({
             node,
             messageId: 'locatorPick',
             data: {
-              method: String(methodName),
+              method: methodName,
               scope: locatorPickStatics.scope.inScopePathSubstring,
             },
           });
@@ -79,8 +82,8 @@ export const ruleBanLocatorPickBroker = (): EslintRule => ({
           return;
         }
 
-        const [firstArgument] = node.arguments ?? [];
-        if (!firstArgument || firstArgument.type !== 'Literal') {
+        const [firstArgument] = node.arguments;
+        if (!firstArgument || firstArgument.type !== AST_NODE_TYPES.Literal) {
           return;
         }
 

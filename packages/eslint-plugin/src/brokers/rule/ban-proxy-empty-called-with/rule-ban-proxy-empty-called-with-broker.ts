@@ -16,18 +16,16 @@
  * // and `registerSpyOn({ object: process.stderr, method: 'write' })` then `spy.calledWith([])`;
  * // leaves `registerMock({ fn: randomUUID })` then `handle.calledWith([]).returns(uuid)` alone
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
 import { typedSpyMethodTakesNoArgsLayerBroker } from './typed-spy-method-takes-no-args-layer-broker';
 
-export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanProxyEmptyCalledWithBroker =
+  (): TSESLint.RuleModule<'emptyCalledWithRequiresArgs'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -40,150 +38,169 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context;
-    const filename = String(ctx.filename ?? '');
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      const { filename } = ctx;
 
-    if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
-      return {};
-    }
+      if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
+        return {};
+      }
 
-    // `Property.value` reads as `unknown` from the Tsestree contract (the same gap
-    // validate-no-exposed-child-proxies-layer-broker documents) — each node is handed straight to
-    // the type-checker helpers, whose own parameters are `unknown` and narrow via the real
-    // TSESTree.Node cast. A handle maps to a thunk so the type checker runs only when a
-    // `calledWith([])` on it is actually found.
-    const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
-    // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`) is a recorder, not a
-    // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
-    // which point every read-back in the file has been seen.
-    const voidSinkHandleNames = new Set<Identifier>();
-    const readBackHandleNames = new Set<Identifier>();
-    const deferredReports: { node: Tsestree; handleName: Identifier }[] = [];
+      // Each node is handed straight to the type-checker helpers, whose own parameters are `unknown`
+      // and narrow via the real TSESTree.Node cast. A handle maps to a thunk so the type checker runs
+      // only when a `calledWith([])` on it is actually found.
+      const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
+      // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`) is a recorder, not a
+      // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
+      // which point every read-back in the file has been seen.
+      const voidSinkHandleNames = new Set<Identifier>();
+      const readBackHandleNames = new Set<Identifier>();
+      const deferredReports: { node: TSESTree.Node; handleName: Identifier }[] = [];
 
-    return {
-      VariableDeclarator: (node: Tsestree): void => {
-        const { id, init } = node;
+      return {
+        VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+          const { id, init } = node;
 
-        if (!id?.name || init?.type !== 'CallExpression' || init.callee?.type !== 'Identifier') {
-          return;
-        }
+          if (
+            id.type !== AST_NODE_TYPES.Identifier ||
+            init?.type !== AST_NODE_TYPES.CallExpression ||
+            init.callee.type !== AST_NODE_TYPES.Identifier
+          ) {
+            return;
+          }
 
-        const registerName = init.callee.name;
+          const registerName = init.callee.name;
 
-        if (registerName !== 'registerMock' && registerName !== 'registerSpyOn') {
-          return;
-        }
+          if (registerName !== 'registerMock' && registerName !== 'registerSpyOn') {
+            return;
+          }
 
-        const [optionsArgument] = init.arguments ?? [];
+          const [optionsArgument] = init.arguments;
 
-        if (optionsArgument?.type !== 'ObjectExpression') {
-          return;
-        }
+          if (optionsArgument?.type !== AST_NODE_TYPES.ObjectExpression) {
+            return;
+          }
 
-        const properties = optionsArgument.properties ?? [];
-        const handleName = identifierContract.parse(id.name);
+          const properties = optionsArgument.properties.filter(
+            (property) => property.type === AST_NODE_TYPES.Property,
+          );
+          const handleName = identifierContract.parse(id.name);
 
-        if (registerName === 'registerMock') {
-          const fnNode = properties.find((property) => property.key?.name === 'fn')?.value;
+          if (registerName === 'registerMock') {
+            const fnNode = properties.find(
+              (property) =>
+                property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'fn',
+            )?.value;
 
-          if (fnNode) {
+            if (fnNode) {
+              takesNoArgsByHandleName.set(handleName, () =>
+                typedFunctionTakesNoArgsTransformer({ context: ctx, node: fnNode }),
+              );
+            }
+
+            return;
+          }
+
+          const objectNode = properties.find(
+            (property) =>
+              property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'object',
+          )?.value;
+          const method = properties.find(
+            (property) =>
+              property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'method',
+          )?.value;
+
+          if (
+            objectNode &&
+            method?.type === AST_NODE_TYPES.Literal &&
+            typeof method.value === 'string'
+          ) {
+            const methodName = method.value;
+
+            if (voidSinkSpyLayerBroker({ objectNode, method: methodName })) {
+              voidSinkHandleNames.add(handleName);
+            }
+
             takesNoArgsByHandleName.set(handleName, () =>
-              typedFunctionTakesNoArgsTransformer({ context: ctx, node: fnNode }),
+              typedSpyMethodTakesNoArgsLayerBroker({
+                context: ctx,
+                objectNode,
+                method: methodName,
+              }),
             );
           }
+        },
 
-          return;
-        }
+        MemberExpression: (node: TSESTree.MemberExpression): void => {
+          if (
+            node.object.type === AST_NODE_TYPES.Identifier &&
+            node.object.name &&
+            (((node.property.type === AST_NODE_TYPES.Identifier ||
+              node.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+              node.property.name === 'callsMatching') ||
+              ((node.property.type === AST_NODE_TYPES.Identifier ||
+                node.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+                node.property.name === 'mock'))
+          ) {
+            readBackHandleNames.add(identifierContract.parse(node.object.name));
+          }
+        },
 
-        const objectNode = properties.find((property) => property.key?.name === 'object')?.value;
-        const method = properties.find((property) => property.key?.name === 'method')?.value;
+        'Program:exit': (): void => {
+          for (const { node, handleName } of deferredReports) {
+            if (readBackHandleNames.has(handleName)) {
+              continue;
+            }
+            if (takesNoArgsByHandleName.get(handleName)?.() === false) {
+              ctx.report({ node, messageId: 'emptyCalledWithRequiresArgs' });
+            }
+          }
+        },
 
-        if (
-          objectNode &&
-          typeof method === 'object' &&
-          method !== null &&
-          'value' in method &&
-          typeof method.value === 'string'
-        ) {
-          const methodName = method.value;
+        CallExpression: (node: TSESTree.CallExpression): void => {
+          const { callee } = node;
 
-          if (voidSinkSpyLayerBroker({ objectNode, method: methodName })) {
-            voidSinkHandleNames.add(handleName);
+          if (
+            callee.type !== AST_NODE_TYPES.MemberExpression ||
+            (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+              ? callee.property.name
+              : undefined) !== 'calledWith' ||
+            callee.object.type !== AST_NODE_TYPES.Identifier ||
+            !callee.object.name
+          ) {
+            return;
           }
 
-          takesNoArgsByHandleName.set(handleName, () =>
-            typedSpyMethodTakesNoArgsLayerBroker({
-              context: ctx,
-              objectNode,
-              method: methodName,
-            }),
+          const takesNoArgsOf = takesNoArgsByHandleName.get(
+            identifierContract.parse(callee.object.name),
           );
-        }
-      },
 
-      MemberExpression: (node: Tsestree): void => {
-        if (
-          node.object?.type === 'Identifier' &&
-          node.object.name &&
-          (node.property?.name === 'callsMatching' || node.property?.name === 'mock')
-        ) {
-          readBackHandleNames.add(identifierContract.parse(node.object.name));
-        }
-      },
-
-      'Program:exit': (): void => {
-        for (const { node, handleName } of deferredReports) {
-          if (readBackHandleNames.has(handleName)) {
-            continue;
+          if (!takesNoArgsOf) {
+            return;
           }
-          if (takesNoArgsByHandleName.get(handleName)?.() === false) {
+
+          const [addressArgument] = node.arguments;
+
+          if (
+            addressArgument?.type !== AST_NODE_TYPES.ArrayExpression ||
+            addressArgument.elements.length !== 0
+          ) {
+            return;
+          }
+
+          const handleName = identifierContract.parse(callee.object.name);
+
+          if (voidSinkHandleNames.has(handleName)) {
+            deferredReports.push({ node, handleName });
+            return;
+          }
+
+          if (takesNoArgsOf() === false) {
             ctx.report({ node, messageId: 'emptyCalledWithRequiresArgs' });
           }
-        }
-      },
-
-      CallExpression: (node: Tsestree): void => {
-        const { callee } = node;
-
-        if (
-          callee?.type !== 'MemberExpression' ||
-          callee.property?.name !== 'calledWith' ||
-          callee.object?.type !== 'Identifier' ||
-          !callee.object.name
-        ) {
-          return;
-        }
-
-        const takesNoArgsOf = takesNoArgsByHandleName.get(
-          identifierContract.parse(callee.object.name),
-        );
-
-        if (!takesNoArgsOf) {
-          return;
-        }
-
-        const [addressArgument] = node.arguments ?? [];
-
-        if (
-          addressArgument?.type !== 'ArrayExpression' ||
-          (addressArgument.elements ?? []).length !== 0
-        ) {
-          return;
-        }
-
-        const handleName = identifierContract.parse(callee.object.name);
-
-        if (voidSinkHandleNames.has(handleName)) {
-          deferredReports.push({ node, handleName });
-          return;
-        }
-
-        if (takesNoArgsOf() === false) {
-          ctx.report({ node, messageId: 'emptyCalledWithRequiresArgs' });
-        }
-      },
-    };
-  },
-});
+        },
+      };
+    },
+  });

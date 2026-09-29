@@ -5,61 +5,57 @@
  * const rule = ruleBanPrimitivesBroker();
  * // Returns ESLint rule that prevents `string` and `number` types, requiring branded types like EmailAddress, FilePath
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
 
-export const ruleBanPrimitivesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Ban raw string and number types in favor of Zod contract types',
-      },
-      messages: {
-        banPrimitive:
-          'Raw {{typeName}} type is not allowed. Use the discover endpoint to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            allowPrimitiveInputs: {
-              type: 'boolean',
-              description: 'Allow raw primitives in function parameters',
-            },
-            allowPrimitiveReturns: {
-              type: 'boolean',
-              description: 'Allow raw primitives in function return types',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBanPrimitivesBroker = (): TSESLint.RuleModule<'banPrimitive'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Ban raw string and number types in favor of Zod contract types',
     },
-  }),
+    messages: {
+      banPrimitive:
+        'Raw {{typeName}} type is not allowed. Use the discover endpoint to search for existing contracts (e.g., {{suggestion}}). If none fits, create a new contract.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          allowPrimitiveInputs: {
+            type: 'boolean',
+            description: 'Allow raw primitives in function parameters',
+          },
+          allowPrimitiveReturns: {
+            type: 'boolean',
+            description: 'Allow raw primitives in function return types',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
-    const ctx = context as EslintContext & {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { allowPrimitiveInputs?: boolean; allowPrimitiveReturns?: boolean }[];
     };
-    const filename = ctx.getFilename?.() ?? undefined;
+    const { filename } = ctx;
 
     // Get rule options (default both to false)
-    const options = ctx.options?.[0] ?? {};
+    const options = ctx.options[0] ?? {};
     const allowPrimitiveInputs = options.allowPrimitiveInputs ?? false;
     const allowPrimitiveReturns = options.allowPrimitiveReturns ?? false;
 
     // Skip stub files - they need to use primitives for type conversion
-    if (filename && hasFileSuffixGuard({ filename, suffix: 'stub' })) {
+    if (hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};
     }
 
     // Skip .d.ts declaration files - they define external types and need primitives
-    if (filename && filename.endsWith('.d.ts')) {
+    if (filename.endsWith('.d.ts')) {
       return {};
     }
 
@@ -71,7 +67,7 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
     }
 
     return {
-      TSStringKeyword: (node: Tsestree): void => {
+      TSStringKeyword: (node: TSESTree.TSStringKeyword): void => {
         checkPrimitiveViolationLayerBroker({
           node,
           typeName: 'string',
@@ -81,7 +77,7 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
           ctx,
         });
       },
-      TSNumberKeyword: (node: Tsestree): void => {
+      TSNumberKeyword: (node: TSESTree.TSNumberKeyword): void => {
         checkPrimitiveViolationLayerBroker({
           node,
           typeName: 'number',

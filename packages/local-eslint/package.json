@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*"
   },
   "devDependencies": {

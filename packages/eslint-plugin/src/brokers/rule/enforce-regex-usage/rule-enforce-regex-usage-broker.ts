@@ -5,10 +5,7 @@
  * const rule = ruleEnforceRegexUsageBroker();
  * // Returns ESLint rule that allows regex only in folders with allowRegex: true (guards, transformers, etc.)
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { folderTypeTransformer } from '../../../transformers/folder-type/folder-type-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -20,31 +17,30 @@ const allowedFolders = Object.entries(folderConfigStatics)
   .map(([folderType]) => folderType)
   .join(', ');
 
-export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce regex usage is only allowed in folders with allowRegex: true',
-      },
-      messages: {
-        forbiddenRegex:
-          'Regex literals are not allowed in {{folderType}}/ folder. Only allowed in: {{allowedFolders}}. Use the discover endpoint to search for existing code that does what you need. If none exists, create one in an allowed folder.',
-      },
-      schema: [],
+export const ruleEnforceRegexUsageBroker = (): TSESLint.RuleModule<'forbiddenRegex'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce regex usage is only allowed in folders with allowRegex: true',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      forbiddenRegex:
+        'Regex literals are not allowed in {{folderType}}/ folder. Only allowed in: {{allowedFolders}}. Use the discover endpoint to search for existing code that does what you need. If none exists, create one in an allowed folder.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
-      Literal: (node: Tsestree): void => {
+      Literal: (node: TSESTree.Literal): void => {
         // Check if this is a regex literal by checking if value is a RegExp
         if (!(node.value instanceof RegExp)) {
           return;
         }
 
-        const filename = ctx.filename ?? '';
+        const { filename } = ctx;
 
         // Allow regex in test files
         if (isTestFileGuard({ filename })) {

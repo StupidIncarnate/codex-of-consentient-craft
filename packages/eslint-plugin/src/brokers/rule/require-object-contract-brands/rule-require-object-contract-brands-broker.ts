@@ -16,10 +16,8 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isAstGetterReturnTypeGuard } from '../../../guards/is-ast-getter-return-type/is-ast-getter-return-type-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
@@ -37,41 +35,52 @@ import { astObjectBrandAnchorTransformer } from '../../../transformers/ast-objec
 import { astZodRootMethodTransformer } from '../../../transformers/ast-zod-root-method/ast-zod-root-method-transformer';
 import { brandTextDeriveTransformer } from '../../../transformers/brand-text-derive/brand-text-derive-transformer';
 
-export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      fixable: 'code',
-      docs: {
-        description:
-          "Every object schema in a contract carries a brand whose text is the owner's name plus the field key; a brand sits only on an object contract or one of its fields",
-      },
-      messages: {
-        objectNoBrand: "z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().",
-        fieldListBranded:
-          "{{name}} is a field list spread into {{owner}}. It carries no brand of its own: the owner's brand is the only one on the object.",
-        wrongBrandText: "Brand text '{{actual}}' must be '{{expected}}'.",
-        localIdBrandText: "Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.",
-        brandOnUnbrandable: '{{key}} is an enum, literal or boolean. Remove the brand.',
-        brandElsewhere:
-          'A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.',
-        unknownSchema:
-          "{{key}} is z.unknown(), which checks nothing. Use the value's contract, or z.json() when it is any JSON value.",
-        lazySchema:
-          'A contract that holds itself uses an annotated getter, not z.lazy. See "A contract that holds itself".',
-        zodTypeGetter:
-          'A getter\'s return type wraps z.core.$ZodType<Self>, never z.ZodType<Self>. See "A contract that holds itself".',
-        selfTypeBrand:
-          "The local type of a self-referencing contract ends in z.$brand<'{{expected}}'>, the owner's brand, so the getter's elements carry it.",
-        reuseAddsCheck:
-          '{{key}} reuses {{source}}. Add no check to it: one brand text means one check.',
-      },
-      schema: [],
+export const ruleRequireObjectContractBrandsBroker = (): TSESLint.RuleModule<
+  | 'objectNoBrand'
+  | 'fieldListBranded'
+  | 'wrongBrandText'
+  | 'localIdBrandText'
+  | 'brandOnUnbrandable'
+  | 'brandElsewhere'
+  | 'unknownSchema'
+  | 'lazySchema'
+  | 'zodTypeGetter'
+  | 'selfTypeBrand'
+  | 'reuseAddsCheck'
+> => ({
+  meta: {
+    type: 'problem',
+    fixable: 'code',
+    docs: {
+      description:
+        "Every object schema in a contract carries a brand whose text is the owner's name plus the field key; a brand sits only on an object contract or one of its fields",
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      objectNoBrand: "z.object in {{file}} has no brand. Add .brand<'{{expected}}'>().",
+      fieldListBranded:
+        "{{name}} is a field list spread into {{owner}}. It carries no brand of its own: the owner's brand is the only one on the object.",
+      wrongBrandText: "Brand text '{{actual}}' must be '{{expected}}'.",
+      localIdBrandText: "Brand text '{{actual}}' must be '{{expected}}', the id of {{owner}}.",
+      brandOnUnbrandable: '{{key}} is an enum, literal or boolean. Remove the brand.',
+      brandElsewhere:
+        'A brand sits only on an object contract or one of its fields. Move it onto the field that owns the value, or drop it.',
+      unknownSchema:
+        "{{key}} is z.unknown(), which checks nothing. Use the value's contract, or z.json() when it is any JSON value.",
+      lazySchema:
+        'A contract that holds itself uses an annotated getter, not z.lazy. See "A contract that holds itself".',
+      zodTypeGetter:
+        'A getter\'s return type wraps z.core.$ZodType<Self>, never z.ZodType<Self>. See "A contract that holds itself".',
+      selfTypeBrand:
+        "The local type of a self-referencing contract ends in z.$brand<'{{expected}}'>, the owner's brand, so the getter's elements carry it.",
+      reuseAddsCheck:
+        '{{key}} reuses {{source}}. Add no check to it: one brand text means one check.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
     const baseName = filename.split('/').pop() ?? '';
 
     // A test, proxy, stub, harness or declaration file has more than one dot; none of them declares
@@ -94,7 +103,7 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
     const localIdConsts = new Map<Identifier, Identifier>();
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         if (!isContract) {
           return;
         }
@@ -106,27 +115,27 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
         }
       },
 
-      TSTypeReference: (node: Tsestree): void => {
+      TSTypeReference: (node: TSESTree.TSTypeReference): void => {
         const { typeName } = node;
         if (
           isContract &&
           isAstGetterReturnTypeGuard({ node }) &&
-          typeName?.type === 'TSQualifiedName' &&
-          typeName.left?.type === 'Identifier' &&
+          typeName.type === AST_NODE_TYPES.TSQualifiedName &&
+          typeName.left.type === AST_NODE_TYPES.Identifier &&
           typeName.left.name === 'z' &&
-          typeName.right?.name === 'ZodType'
+          typeName.right.name === 'ZodType'
         ) {
           ctx.report({ node, messageId: 'zodTypeGetter' });
         }
       },
 
-      TSTypeAliasDeclaration: (node: Tsestree): void => {
+      TSTypeAliasDeclaration: (node: TSESTree.TSTypeAliasDeclaration): void => {
         const annotation = node.typeAnnotation;
-        if (!isContract || !annotation) {
+        if (!isContract) {
           return;
         }
 
-        const annotationText = String(ctx.sourceCode?.getText(annotation));
+        const annotationText = ctx.sourceCode.getText(annotation);
 
         for (const [list, owner] of fieldListOwners) {
           const expected = brandTextDeriveTransformer({ path: [owner] });
@@ -144,7 +153,7 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
             data: { expected },
             // A union takes the brand as a whole, so it needs parentheses to bind the `&` correctly.
             fix: (fixer) =>
-              annotation.type === 'TSUnionType'
+              annotation.type === AST_NODE_TYPES.TSUnionType
                 ? [
                     fixer.insertTextBefore(annotation, '('),
                     fixer.insertTextAfter(annotation, `) & ${marker}`),
@@ -154,7 +163,7 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
         const method = astCallMethodNameTransformer({ node });
 
@@ -175,13 +184,21 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
 
         // `owner.shape.key.<method>(…)`: the reuse keeps its source's checks and its brand.
         if (isContract && isAstShapeReuseCheckGuard({ node })) {
-          const reused = callee?.type === 'MemberExpression' ? callee.object : null;
+          const reused = callee.type === AST_NODE_TYPES.MemberExpression ? callee.object : null;
           ctx.report({
             node,
             messageId: 'reuseAddsCheck',
             data: {
-              key: String(reused?.property?.name),
-              source: String(ctx.sourceCode?.getText(reused ?? undefined)),
+              key: String(
+                reused?.type === AST_NODE_TYPES.MemberExpression ||
+                  reused?.type === AST_NODE_TYPES.MetaProperty
+                  ? reused.property.type === AST_NODE_TYPES.Identifier ||
+                    reused.property.type === AST_NODE_TYPES.PrivateIdentifier
+                    ? reused.property.name
+                    : undefined
+                  : undefined,
+              ),
+              source: ctx.sourceCode.getText(reused ?? undefined),
             },
           });
           return;
@@ -189,7 +206,10 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
 
         if (method === 'brand') {
           const literal = astBrandLiteralTransformer({ node });
-          const actual = literal === null ? null : String(literal.value);
+          const actual =
+            literal !== null && 'value' in literal && typeof literal.value === 'string'
+              ? literal.value
+              : null;
           if (actual?.startsWith(zodObjectBrandStatics.gateway.brandPrefix)) {
             return;
           }
@@ -200,8 +220,8 @@ export const ruleRequireObjectContractBrandsBroker = (): EslintRule => ({
             root === 'derive' || zodObjectBrandStatics.objectRoots.some((name) => name === root);
 
           if (isContract && zodObjectBrandStatics.unbrandableRoots.some((name) => name === root)) {
-            const receiver = callee?.type === 'MemberExpression' ? callee.object : null;
-            const receiverText = receiver ? String(ctx.sourceCode?.getText(receiver)) : '';
+            const receiver = callee.type === AST_NODE_TYPES.MemberExpression ? callee.object : null;
+            const receiverText = receiver ? ctx.sourceCode.getText(receiver) : '';
             ctx.report({
               node,
               messageId: 'brandOnUnbrandable',

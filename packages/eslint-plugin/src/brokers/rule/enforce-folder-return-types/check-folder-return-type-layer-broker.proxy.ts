@@ -1,20 +1,19 @@
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
-import type { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
-type Tsestree = ReturnType<typeof TsestreeStub>;
 type FilePath = ReturnType<typeof FilePathStub>;
 
 export const checkFolderReturnTypeLayerBrokerProxy = (): {
-  setupDeclaredReturn: (args: { node: Tsestree; isVoidLike: boolean | undefined }) => void;
+  setupDeclaredReturn: (args: { node: TSESTree.Node; isVoidLike: boolean | undefined }) => void;
   setupCallDeclarationFile: (args: {
-    callNode: Tsestree;
+    callNode: TSESTree.CallExpression;
     declarationFile: FilePath | undefined;
   }) => void;
   setupCallReturnIsVoidLike: (args: {
-    callNode: Tsestree;
+    callNode: TSESTree.Node;
     isVoidLike: boolean | undefined;
   }) => void;
 } => {
@@ -28,10 +27,17 @@ export const checkFolderReturnTypeLayerBrokerProxy = (): {
       node,
       isVoidLike,
     }: {
-      node: Tsestree;
+      node: TSESTree.Node;
       isVoidLike: boolean | undefined;
     }): void => {
-      returnIsVoidLikeHandle.calledWith([{ node }]).returns(isVoidLike);
+      returnIsVoidLikeHandle
+        .calledWith([
+          (argument: { node: TSESTree.Node }) =>
+            argument.node.type === node.type &&
+            argument.node.range[0] === node.range[0] &&
+            argument.node.range[1] === node.range[1],
+        ])
+        .returns(isVoidLike);
     },
     // Where a discarded call's callee is declared — the file path the layer broker classifies as
     // gateway, broker, or neither.
@@ -39,20 +45,34 @@ export const checkFolderReturnTypeLayerBrokerProxy = (): {
       callNode,
       declarationFile,
     }: {
-      callNode: Tsestree;
+      callNode: TSESTree.CallExpression;
       declarationFile: FilePath | undefined;
     }): void => {
-      declarationFileHandle.calledWith([{ node: callNode.callee }]).returns(declarationFile);
+      declarationFileHandle
+        .calledWith([
+          (argument: { node: TSESTree.Node }) =>
+            argument.node.type === callNode.callee.type &&
+            argument.node.range[0] === callNode.callee.range[0] &&
+            argument.node.range[1] === callNode.callee.range[1],
+        ])
+        .returns(declarationFile);
     },
     // Whether one specific discarded call's own resolved return type is void-like.
     setupCallReturnIsVoidLike: ({
       callNode,
       isVoidLike,
     }: {
-      callNode: Tsestree;
+      callNode: TSESTree.Node;
       isVoidLike: boolean | undefined;
     }): void => {
-      returnIsVoidLikeHandle.calledWith([{ node: callNode }]).returns(isVoidLike);
+      returnIsVoidLikeHandle
+        .calledWith([
+          (argument: { node: TSESTree.Node }) =>
+            argument.node.type === callNode.type &&
+            argument.node.range[0] === callNode.range[0] &&
+            argument.node.range[1] === callNode.range[1],
+        ])
+        .returns(isVoidLike);
     },
   };
 };

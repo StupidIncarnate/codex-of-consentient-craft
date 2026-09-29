@@ -8,8 +8,7 @@
 import type { AdapterResult, Identifier } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isCamelCaseGuard } from '../../../guards/is-camel-case/is-camel-case-guard';
@@ -25,8 +24,8 @@ export const validateExportLayerBroker = ({
   folderConfig,
   collectedExports,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];

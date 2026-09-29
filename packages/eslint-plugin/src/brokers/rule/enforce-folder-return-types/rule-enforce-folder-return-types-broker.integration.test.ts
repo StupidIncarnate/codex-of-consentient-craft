@@ -19,7 +19,7 @@ const BROKER_PROXY_FILE = `${DIR_SEGMENTS.join('/')}/check-folder-return-type-la
 const GUARD_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/guards/is-gateway-file/is-gateway-file-guard.ts`;
 const RESPONDER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`;
 const FLOW_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.ts`;
-const CONTRACT_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/contracts/eslint-rule/eslint-rule-contract.ts`;
+const CONTRACT_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/contracts/eslint-rules/eslint-rules-contract.ts`;
 const TRANSFORMER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/transformers/function-exporting-folder-from-filename/function-exporting-folder-from-filename-transformer.ts`;
 
 const ruleTester = typedRuleTesterHarness();

@@ -7,8 +7,8 @@
  * const isValid = validateExternalImportLayerBroker({ node, context, folderType, allowedImports, importSource });
  * // Returns true if the import is allowed, false if a violation was reported via context
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard';
@@ -24,8 +24,8 @@ export const validateExternalImportLayerBroker = ({
   allowedImports,
   importSource,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   folderType: FolderType;
   allowedImports: readonly string[];
   importSource: string;
@@ -69,8 +69,8 @@ export const validateExternalImportLayerBroker = ({
     return true;
   }
 
-  const isTestFile = isTestFileGuard({ filename: context.filename ?? '' });
-  const isCurrentFileStub = isStubFileGuard({ filename: context.filename ?? '' });
+  const isTestFile = isTestFileGuard({ filename: context.filename });
+  const isCurrentFileStub = isStubFileGuard({ filename: context.filename });
 
   // Test files may import @dungeonmaster/testing (workspace test infrastructure) — but NOT
   // contracts, which must come from a shared contracts barrel.
@@ -78,12 +78,17 @@ export const validateExternalImportLayerBroker = ({
     importSource === '@dungeonmaster/testing' || importSource.startsWith('@dungeonmaster/testing/');
 
   if (isTestFile && isDungeonmasterTesting) {
-    const importsContract = node.specifiers?.some((specifier) => {
-      const name = specifier.imported?.name;
-      return typeof name === 'string' && name.endsWith('Contract');
-    });
+    const importsContract =
+      (node.type === AST_NODE_TYPES.ImportDeclaration ||
+        node.type === AST_NODE_TYPES.ExportNamedDeclaration) &&
+      node.specifiers.some(
+        (specifier) =>
+          specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+          specifier.imported.type === AST_NODE_TYPES.Identifier &&
+          specifier.imported.name.endsWith('Contract'),
+      );
 
-    if (importsContract === true) {
+    if (importsContract) {
       context.report({
         node,
         messageId: 'forbiddenExternalImport',
@@ -95,7 +100,7 @@ export const validateExternalImportLayerBroker = ({
   }
 
   // Integration test files may import Node builtins (fs, path, crypto, etc.)
-  const isIntegrationTest = (context.filename ?? '').includes('.integration.test.');
+  const isIntegrationTest = context.filename.includes('.integration.test.');
   const bareModule = importSource.startsWith('node:')
     ? importSource.slice('node:'.length)
     : importSource;
@@ -142,12 +147,21 @@ export const validateExternalImportLayerBroker = ({
   // an allow-only upgrade — anything else falls through to the external-import gate.
   const namedFolderTypes: FolderType[] = [];
 
-  for (const specifier of node.specifiers ?? []) {
-    const importedName = specifier.imported?.name;
+  const specifiers =
+    node.type === AST_NODE_TYPES.ImportDeclaration ||
+    node.type === AST_NODE_TYPES.ExportNamedDeclaration
+      ? node.specifiers
+      : [];
 
-    if (typeof importedName !== 'string') {
+  for (const specifier of specifiers) {
+    if (
+      specifier.type !== AST_NODE_TYPES.ImportSpecifier ||
+      specifier.imported.type !== AST_NODE_TYPES.Identifier
+    ) {
       continue;
     }
+
+    const importedName = specifier.imported.name;
 
     const namedFolderType = importFolderTypeFromNameTransformer({ importName: importedName });
 

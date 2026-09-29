@@ -14,7 +14,8 @@
  */
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { readFileSyncIfExists } from '#gateway/node/fs';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { staticsStringPropertyTransformer } from '../../../transformers/statics-string-property/statics-string-property-transformer';
 
@@ -26,25 +27,23 @@ export const resolveImportedStaticsLayerBroker = ({
 }: {
   objectName: string;
   propertyName: string;
-  moduleBody: readonly Tsestree[];
+  moduleBody: readonly TSESTree.ProgramStatement[];
   filename: string;
 }): ContentText | undefined => {
   for (const statement of moduleBody) {
-    const source = statement.source?.value;
-    if (
-      statement.type !== 'ImportDeclaration' ||
-      typeof source !== 'string' ||
-      !source.startsWith('.')
-    ) {
+    if (statement.type !== AST_NODE_TYPES.ImportDeclaration) {
+      continue;
+    }
+    const source = statement.source.value;
+    if (!source.startsWith('.')) {
       continue;
     }
 
-    for (const specifier of statement.specifiers ?? []) {
+    for (const specifier of statement.specifiers) {
       if (
-        specifier.type !== 'ImportSpecifier' ||
-        specifier.local?.type !== 'Identifier' ||
-        String(specifier.local.name) !== objectName ||
-        specifier.imported?.type !== 'Identifier'
+        specifier.type !== AST_NODE_TYPES.ImportSpecifier ||
+        specifier.local.name !== objectName ||
+        specifier.imported.type !== AST_NODE_TYPES.Identifier
       ) {
         continue;
       }
@@ -60,7 +59,7 @@ export const resolveImportedStaticsLayerBroker = ({
         if (contents !== null) {
           return staticsStringPropertyTransformer({
             source: contents,
-            objectName: String(specifier.imported.name),
+            objectName: specifier.imported.name,
             propertyName,
           });
         }

@@ -8,13 +8,10 @@
  * const rule = ruleBanJsxOutsideWidgetsAndFlowsBroker();
  * // Reports `<Box />` in /src/brokers/x/x-broker.tsx, passes it in /src/widgets/x/x-widget.tsx
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const ruleBanJsxOutsideWidgetsAndFlowsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanJsxOutsideWidgetsAndFlowsBroker =
+  (): TSESLint.RuleModule<'jsxOutsideWidgetsAndFlows'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -26,37 +23,37 @@ export const ruleBanJsxOutsideWidgetsAndFlowsBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context;
-    const filename = ctx.filename ?? '';
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      const { filename } = ctx;
 
-    if (filename.includes('/widgets/') || filename.includes('/flows/')) {
-      return {};
-    }
+      if (filename.includes('/widgets/') || filename.includes('/flows/')) {
+        return {};
+      }
 
-    // Only the outermost node of a tree is reported, so one piece of markup is one violation.
-    const depth = { value: 0 };
+      // Only the outermost node of a tree is reported, so one piece of markup is one violation.
+      const depth = { value: 0 };
 
-    return {
-      JSXElement: (node: Tsestree): void => {
-        if (depth.value === 0) {
-          ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
-        }
-        depth.value += 1;
-      },
-      JSXFragment: (node: Tsestree): void => {
-        if (depth.value === 0) {
-          ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
-        }
-        depth.value += 1;
-      },
-      'JSXElement:exit': (): void => {
-        depth.value -= 1;
-      },
-      'JSXFragment:exit': (): void => {
-        depth.value -= 1;
-      },
-    };
-  },
-});
+      return {
+        JSXElement: (node: TSESTree.JSXElement): void => {
+          if (depth.value === 0) {
+            ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
+          }
+          depth.value += 1;
+        },
+        JSXFragment: (node: TSESTree.JSXFragment): void => {
+          if (depth.value === 0) {
+            ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
+          }
+          depth.value += 1;
+        },
+        'JSXElement:exit': (): void => {
+          depth.value -= 1;
+        },
+        'JSXFragment:exit': (): void => {
+          depth.value -= 1;
+        },
+      };
+    },
+  });

@@ -7,21 +7,20 @@
  * isAstNameImportedGuard({ program, name: 'Quest' });
  * // Returns true when any import declaration has a specifier whose local name is Quest
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstNameImportedGuard = ({
   program,
   name,
 }: {
-  program?: Tsestree;
+  program?: TSESTree.Program;
   name?: string;
 }): boolean => {
   if (program === undefined || name === undefined) {
     return false;
   }
-  return (Array.isArray(program.body) ? program.body : [])
-    .filter((statement) => statement.type === 'ImportDeclaration')
-    .some((statement) =>
-      (statement.specifiers ?? []).some((specifier) => specifier.local?.name === name),
-    );
+  return program.body
+    .filter((statement) => statement.type === AST_NODE_TYPES.ImportDeclaration)
+    .some((statement) => statement.specifiers.some((specifier) => specifier.local.name === name));
 };

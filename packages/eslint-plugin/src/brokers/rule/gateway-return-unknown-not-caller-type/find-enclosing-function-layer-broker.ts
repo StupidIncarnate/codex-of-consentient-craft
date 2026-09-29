@@ -8,21 +8,22 @@
  * // Returns the nearest FunctionDeclaration/FunctionExpression/ArrowFunctionExpression ancestor,
  * // or undefined at the top of the chain
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const findEnclosingFunctionLayerBroker = ({
   node,
 }: {
-  node: Tsestree | null | undefined;
-}): Tsestree | undefined => {
+  node: TSESTree.Node | null | undefined;
+}): TSESTree.Node | undefined => {
   if (!node) {
     return undefined;
   }
 
   if (
-    node.type === 'FunctionDeclaration' ||
-    node.type === 'FunctionExpression' ||
-    node.type === 'ArrowFunctionExpression'
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression ||
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression
   ) {
     return node;
   }

@@ -5,9 +5,9 @@
  * isAstBrandInChainGuard({ node: astNode })
  * // Returns true for z.string().email().brand<'EmailAddress'>(), false for z.string().email()
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstBrandInChainGuard = ({ node }: { node?: Tsestree }): boolean => {
+export const isAstBrandInChainGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
   if (!node) {
     return false;
   }
@@ -18,7 +18,6 @@ export const isAstBrandInChainGuard = ({ node }: { node?: Tsestree }): boolean =
     if (
       'property' in current &&
       typeof current.property === 'object' &&
-      current.property !== null &&
       'name' in current.property &&
       current.property.name === 'brand'
     ) {

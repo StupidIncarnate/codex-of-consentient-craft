@@ -5,31 +5,28 @@
  * const rule = ruleEnforceMagicArraysBroker();
  * // Returns ESLint rule that prevents `const x = ['a', 'b']` and requires moving arrays to statics files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
-export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid inline string/number array const declarations - use statics files instead',
-      },
-      messages: {
-        forbidMagicArray:
-          'Magic {{arrayType}} arrays must be defined in statics files (statics/{{domain}}/{{domain}}-statics.ts), not scattered inline. Move this array to a statics file and reference it.',
-      },
-      schema: [],
+export const ruleEnforceMagicArraysBroker = (): TSESLint.RuleModule<'forbidMagicArray'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid inline string/number array const declarations - use statics files instead',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      forbidMagicArray:
+        'Magic {{arrayType}} arrays must be defined in statics files (statics/{{domain}}/{{domain}}-statics.ts), not scattered inline. Move this array to a statics file and reference it.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.getFilename?.() ?? undefined;
+    const { filename } = ctx;
 
     // Skip files that are allowed to have inline arrays
     if (!filename) {
@@ -47,29 +44,29 @@ export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
     }
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
-        const { id, init } = node;
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+        const { init } = node;
 
         // Only check const declarations
-        if (!id || !init) {
+        if (!init) {
           return;
         }
 
         // Unwrap TSAsExpression (e.g., `as const`)
         let arrayExpression = init;
-        if (init.type === 'TSAsExpression') {
-          arrayExpression = init.expression ?? init;
+        if (init.type === AST_NODE_TYPES.TSAsExpression) {
+          arrayExpression = init.expression;
         }
 
         // Check if it's an ArrayExpression
-        if (arrayExpression.type !== 'ArrayExpression') {
+        if (arrayExpression.type !== AST_NODE_TYPES.ArrayExpression) {
           return;
         }
 
         const { elements } = arrayExpression;
 
         // Empty arrays are fine
-        if (!elements || elements.length === 0) {
+        if (elements.length === 0) {
           return;
         }
 
@@ -79,8 +76,8 @@ export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
             return false; // Sparse arrays
           }
           return (
-            (element.type === 'Literal' && typeof element.value === 'string') ||
-            element.type === 'TemplateLiteral'
+            (element.type === AST_NODE_TYPES.Literal && typeof element.value === 'string') ||
+            element.type === AST_NODE_TYPES.TemplateLiteral
           );
         });
 
@@ -89,7 +86,7 @@ export const ruleEnforceMagicArraysBroker = (): EslintRule => ({
           if (!element) {
             return false; // Sparse arrays
           }
-          return element.type === 'Literal' && typeof element.value === 'number';
+          return element.type === AST_NODE_TYPES.Literal && typeof element.value === 'number';
         });
 
         // Only report if it's a pure string or number array

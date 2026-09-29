@@ -7,33 +7,28 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const validateProxyConstructorSideEffectsLayerBroker = ({
   functionNode,
   context,
 }: {
-  functionNode: Tsestree;
-  context: EslintContext;
+  functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
   const { body } = functionNode;
 
-  if (!body) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
 
-  if (Array.isArray(body)) return result;
-
-  if (body.type !== 'BlockStatement') return result;
-
-  if (!body.body || !Array.isArray(body.body)) return result;
   const statements = body.body;
 
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
-    if (stmt && stmt.type === 'ReturnStatement') {
+    if (stmt && stmt.type === AST_NODE_TYPES.ReturnStatement) {
       returnStatementIndex = i;
       break;
     }
@@ -46,70 +41,61 @@ export const validateProxyConstructorSideEffectsLayerBroker = ({
     const statement = statements[i];
     if (!statement) continue;
 
-    // Check for ExpressionStatement containing side effects
-    if (statement.type === 'ExpressionStatement') {
-      const { expression } = statement;
+    // Check for a CallExpression statement containing side effects
+    if (
+      statement.type === AST_NODE_TYPES.ExpressionStatement &&
+      statement.expression.type === AST_NODE_TYPES.CallExpression &&
+      statement.expression.callee.type === AST_NODE_TYPES.MemberExpression
+    ) {
+      // Check for MemberExpression (obj.method())
+      const { object, property } = statement.expression.callee;
 
-      if (expression) {
-        // Check for CallExpression
-        if (expression.type === 'CallExpression') {
-          const { callee } = expression;
+      // Check if it's calling a mock method (allowed)
+      const propertyName = 'name' in property ? property.name : undefined;
+      const isNativeJestMockMethod =
+        propertyName !== undefined &&
+        jestMockingStatics.nativeJestMockMethods.some((method) => method === propertyName);
 
-          if (callee) {
-            // Check for MemberExpression (obj.method())
-            if (callee.type === 'MemberExpression') {
-              const { object } = callee;
+      // Bare argument-addressed staging/query call: handle.calledWith([args]),
+      // handle.onceFor([args]), handle.callsMatching([args]) — allowed on their own.
+      const isBareChainedMockCall =
+        propertyName !== undefined &&
+        (jestMockingStatics.chainedMockStagingMethodSet.has(propertyName) ||
+          jestMockingStatics.chainedMockQueryMethodSet.has(propertyName));
 
-              // Check if it's calling a mock method (allowed)
-              const { property } = callee;
-              const propertyName = property?.name;
-              const isNativeJestMockMethod =
-                propertyName !== undefined &&
-                jestMockingStatics.nativeJestMockMethods.some((method) => method === propertyName);
+      // Chained result call: handle.calledWith([args]).resolves(value) — the outer
+      // callee's object is itself a CallExpression whose own callee is a staging method
+      // (calledWith/onceFor). Only counts as mock setup when the chain actually bottoms
+      // out there; a call like foo.query().returns(1) does not qualify.
+      const stagingAntecedentName =
+        object.type === AST_NODE_TYPES.CallExpression &&
+        object.callee.type === AST_NODE_TYPES.MemberExpression &&
+        'name' in object.callee.property
+          ? object.callee.property.name
+          : undefined;
+      const isChainedResultCall =
+        propertyName !== undefined &&
+        jestMockingStatics.chainedMockResultMethodSet.has(propertyName) &&
+        stagingAntecedentName !== undefined &&
+        jestMockingStatics.chainedMockStagingMethodSet.has(stagingAntecedentName);
 
-              // Bare argument-addressed staging/query call: handle.calledWith([args]),
-              // handle.onceFor([args]), handle.callsMatching([args]) — allowed on their own.
-              const isBareChainedMockCall =
-                propertyName !== undefined &&
-                (jestMockingStatics.chainedMockStagingMethodSet.has(propertyName) ||
-                  jestMockingStatics.chainedMockQueryMethodSet.has(propertyName));
+      const isMockMethod = isNativeJestMockMethod || isBareChainedMockCall || isChainedResultCall;
 
-              // Chained result call: handle.calledWith([args]).resolves(value) — the outer
-              // callee's object is itself a CallExpression whose own callee is a staging method
-              // (calledWith/onceFor). Only counts as mock setup when the chain actually bottoms
-              // out there; a call like foo.query().returns(1) does not qualify.
-              const stagingAntecedentName =
-                object?.type === 'CallExpression' && object.callee?.type === 'MemberExpression'
-                  ? object.callee.property?.name
-                  : undefined;
-              const isChainedResultCall =
-                propertyName !== undefined &&
-                jestMockingStatics.chainedMockResultMethodSet.has(propertyName) &&
-                stagingAntecedentName !== undefined &&
-                jestMockingStatics.chainedMockStagingMethodSet.has(stagingAntecedentName);
+      if (!isMockMethod) {
+        const objectName = 'name' in object ? object.name : 'unknown';
 
-              const isMockMethod =
-                isNativeJestMockMethod || isBareChainedMockCall || isChainedResultCall;
+        // Check if this is an allowed operation (jest or child proxy)
+        const isJestOperation = objectName === 'jest';
+        const isChildProxyCreation = objectName.endsWith('Proxy');
+        const isAllowed = isJestOperation || isChildProxyCreation;
 
-              if (!isMockMethod) {
-                const objectName = object?.name ?? 'unknown';
-
-                // Check if this is an allowed operation (jest or child proxy)
-                const isJestOperation = objectName === 'jest';
-                const isChildProxyCreation = objectName.endsWith('Proxy');
-                const isAllowed = isJestOperation || isChildProxyCreation;
-
-                // Everything else is a side effect
-                if (!isAllowed) {
-                  context.report({
-                    node: statement,
-                    messageId: 'proxyConstructorNoSideEffects',
-                    data: { type: `${objectName}.${propertyName ?? 'method'}()` },
-                  });
-                }
-              }
-            }
-          }
+        // Everything else is a side effect
+        if (!isAllowed) {
+          context.report({
+            node: statement,
+            messageId: 'proxyConstructorNoSideEffects',
+            data: { type: `${objectName}.${propertyName ?? 'method'}()` },
+          });
         }
       }
     }

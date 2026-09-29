@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { collectExportsLayerBroker } from './collect-exports-layer-broker';
 import { collectExportsLayerBrokerProxy } from './collect-exports-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('collectExportsLayerBroker', () => {
@@ -9,32 +9,9 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: arrow function variable declaration => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const exportName = IdentifierStub({ value: 'userFetchBroker' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                TsestreeStub({
-                  id: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                    name: exportName,
-                  }),
-                  init: TsestreeStub({
-                    type: TsestreeNodeType.ArrowFunctionExpression,
-                  }),
-                }),
-              ],
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export const userFetchBroker = () => {};' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = collectExportsLayerBroker({
@@ -53,25 +30,9 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: class declaration export => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const exportName = IdentifierStub({ value: 'ValidationError' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.ClassDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: exportName,
-              }),
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export class ValidationError {}' });
       const firstFolder = IdentifierStub({ value: 'errors' });
 
       const result = collectExportsLayerBroker({
@@ -90,25 +51,9 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: function declaration export => collects export', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const exportName = IdentifierStub({ value: 'apiClientBroker' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.FunctionDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: exportName,
-              }),
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export function apiClientBroker() {}' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = collectExportsLayerBroker({
@@ -127,20 +72,8 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: type-only export => skips and returns empty', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'type',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-            }),
-          }),
-        ],
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: 'export type UserId = string;' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = collectExportsLayerBroker({
@@ -157,36 +90,8 @@ describe('collectExportsLayerBroker', () => {
     it('EMPTY: no exports => returns empty array', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.VariableDeclaration,
-          }),
-        ],
-      });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
-
-      const result = collectExportsLayerBroker({
-        node,
-        context,
-        filename: '/project/src/brokers/user/fetch/user-fetch-broker.ts',
-        firstFolder,
-      });
-
-      expect(result).toStrictEqual([]);
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
-    it('EMPTY: body is undefined => returns empty array', () => {
-      collectExportsLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: undefined,
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: 'const x;' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = collectExportsLayerBroker({
@@ -205,15 +110,8 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: default export => reports noDefaultExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportDefaultDeclaration,
-          }),
-        ],
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: 'export default x;' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = collectExportsLayerBroker({
@@ -231,15 +129,8 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: export * from => reports noNamespaceExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportAllDeclaration,
-          }),
-        ],
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: "export * from 'x';" });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = collectExportsLayerBroker({
@@ -257,19 +148,9 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: re-export with source => reports noReExport and returns null', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: TsestreeStub({ type: TsestreeNodeType.Literal }),
-            declaration: null,
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: "export { userFetchBroker } from './user-fetch-broker';" });
 
       const result = collectExportsLayerBroker({
         node,
@@ -290,19 +171,9 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: named export without declaration => reports noReExport', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const firstFolder = IdentifierStub({ value: 'contracts' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: null,
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export {  };' });
 
       const result = collectExportsLayerBroker({
         node,
@@ -325,25 +196,9 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: function declaration in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.FunctionDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'httpGetBrokerProxy' }),
-              }),
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export function httpGetBrokerProxy() {}' });
 
       const result = collectExportsLayerBroker({
         node,
@@ -364,25 +219,9 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: class declaration in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.ClassDeclaration,
-              id: TsestreeStub({
-                type: TsestreeNodeType.Identifier,
-                name: IdentifierStub({ value: 'HttpGetBrokerProxy' }),
-              }),
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export class HttpGetBrokerProxy {}' });
 
       const result = collectExportsLayerBroker({
         node,
@@ -403,32 +242,9 @@ describe('collectExportsLayerBroker', () => {
     it('INVALID: non-arrow variable in proxy file => reports proxyMustBeArrowFunction', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                TsestreeStub({
-                  id: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                    name: IdentifierStub({ value: 'userFetchBrokerProxy' }),
-                  }),
-                  init: TsestreeStub({
-                    type: TsestreeNodeType.FunctionExpression,
-                  }),
-                }),
-              ],
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export const userFetchBrokerProxy = function () {};' });
 
       const result = collectExportsLayerBroker({
         node,
@@ -451,33 +267,10 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: arrow function broker => collects without error', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const exportName = IdentifierStub({ value: 'axiosGetBroker' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                TsestreeStub({
-                  id: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                    name: exportName,
-                  }),
-                  init: TsestreeStub({
-                    type: TsestreeNodeType.ArrowFunctionExpression,
-                  }),
-                }),
-              ],
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export const axiosGetBroker = () => {};' });
 
       const result = collectExportsLayerBroker({
         node,
@@ -495,33 +288,10 @@ describe('collectExportsLayerBroker', () => {
     it('VALID: arrow function proxy => collects without error', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
+      const context = RuleContextStub({ report: mockReport });
       const exportName = IdentifierStub({ value: 'httpGetBrokerProxy' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          TsestreeStub({
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            exportKind: 'value',
-            source: null,
-            declaration: TsestreeStub({
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                TsestreeStub({
-                  id: TsestreeStub({
-                    type: TsestreeNodeType.Identifier,
-                    name: exportName,
-                  }),
-                  init: TsestreeStub({
-                    type: TsestreeNodeType.ArrowFunctionExpression,
-                  }),
-                }),
-              ],
-            }),
-          }),
-        ],
-      });
+      const node = ProgramStub({ code: 'export const httpGetBrokerProxy = () => {};' });
 
       const result = collectExportsLayerBroker({
         node,

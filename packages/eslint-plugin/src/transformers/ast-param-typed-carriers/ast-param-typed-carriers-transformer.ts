@@ -9,23 +9,31 @@
  * astParamTypedCarriersTransformer({ param: destructuredParamNode });
  * // Returns the TSPropertySignature nodes of `{ questId: string; label: string }`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const astParamTypedCarriersTransformer = ({ param }: { param: Tsestree }): Tsestree[] => {
-  const target = param.type === 'AssignmentPattern' && param.left ? param.left : param;
-  const annotated = target.typeAnnotation?.typeAnnotation;
+export const astParamTypedCarriersTransformer = ({
+  param,
+}: {
+  param: TSESTree.Parameter;
+}): (TSESTree.Identifier | TSESTree.TSPropertySignature)[] => {
+  const target = param.type === AST_NODE_TYPES.AssignmentPattern ? param.left : param;
 
-  if (target.type === 'Identifier') {
-    return annotated ? [target] : [];
+  if (target.type === AST_NODE_TYPES.Identifier) {
+    return target.typeAnnotation?.typeAnnotation ? [target] : [];
   }
 
-  if (target.type === 'ObjectPattern' && annotated?.type === 'TSTypeLiteral') {
-    return (annotated.members ?? []).filter(
-      (member) =>
-        member.type === 'TSPropertySignature' &&
-        member.key?.type === 'Identifier' &&
-        member.computed !== true &&
-        member.typeAnnotation?.typeAnnotation !== undefined,
+  if (
+    target.type === AST_NODE_TYPES.ObjectPattern &&
+    target.typeAnnotation?.typeAnnotation.type === AST_NODE_TYPES.TSTypeLiteral
+  ) {
+    return target.typeAnnotation.typeAnnotation.members.flatMap((member) =>
+      member.type === AST_NODE_TYPES.TSPropertySignature &&
+      member.key.type === AST_NODE_TYPES.Identifier &&
+      !member.computed &&
+      member.typeAnnotation !== undefined
+        ? [member]
+        : [],
     );
   }
 

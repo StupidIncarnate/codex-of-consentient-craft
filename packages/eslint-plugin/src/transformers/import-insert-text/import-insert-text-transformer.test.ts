@@ -1,11 +1,12 @@
+import { ImportSpecifierStub } from '#gateway/npm/typescript-eslint__utils/import-specifier/import-specifier.stub';
+import { ImportDeclarationStub } from '#gateway/npm/typescript-eslint__utils/import-declaration/import-declaration.stub';
 import { importInsertTextTransformer } from './import-insert-text-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
 
 describe('importInsertTextTransformer', () => {
   describe('an existing import of the module', () => {
     it('VALID: {specifier anchor} => adds the name after it', () => {
       const result = importInsertTextTransformer({
-        anchor: TsestreeStub({ type: TsestreeNodeType.ImportSpecifier }),
+        anchor: ImportSpecifierStub({ code: "import { x } from 'x';" }),
         name: 'Quest',
         source: '../quest/quest-contract',
         importKind: 'type',
@@ -18,7 +19,7 @@ describe('importInsertTextTransformer', () => {
   describe('a new import statement', () => {
     it('VALID: {declaration anchor, type import} => a type import on its own line', () => {
       const result = importInsertTextTransformer({
-        anchor: TsestreeStub({ type: TsestreeNodeType.ImportDeclaration }),
+        anchor: ImportDeclarationStub({ code: "import 'x';" }),
         name: 'Quest',
         source: '../quest/quest-contract',
         importKind: 'type',
@@ -29,7 +30,7 @@ describe('importInsertTextTransformer', () => {
 
     it('VALID: {declaration anchor, value import} => a value import on its own line', () => {
       const result = importInsertTextTransformer({
-        anchor: TsestreeStub({ type: TsestreeNodeType.ImportDeclaration }),
+        anchor: ImportDeclarationStub({ code: "import 'x';" }),
         name: 'questContract',
         source: '../quest/quest-contract',
         importKind: 'value',

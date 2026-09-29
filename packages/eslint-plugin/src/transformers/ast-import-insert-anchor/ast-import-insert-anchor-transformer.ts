@@ -7,27 +7,26 @@
  * astImportInsertAnchorTransformer({ program, source: '../quest/quest-contract', importKind: 'type' });
  * // Returns the last ImportSpecifier of `import type { … } from '../quest/quest-contract'`, else the last ImportDeclaration
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astImportInsertAnchorTransformer = ({
   program,
   source,
   importKind,
 }: {
-  program: Tsestree;
+  program: TSESTree.Program;
   source: string;
   importKind: 'type' | 'value';
-}): Tsestree | null => {
-  const body = Array.isArray(program.body) ? program.body : [];
-  const imports = body.filter((statement) => statement.type === 'ImportDeclaration');
+}): TSESTree.ImportDeclaration | TSESTree.ImportSpecifier | null => {
+  const imports = program.body.filter(
+    (statement) => statement.type === AST_NODE_TYPES.ImportDeclaration,
+  );
 
   const lastSpecifier = imports
-    .filter(
-      (statement) =>
-        statement.source?.value === source && (statement.importKind ?? 'value') === importKind,
-    )
+    .filter((statement) => statement.source.value === source && statement.importKind === importKind)
     .flatMap((statement) =>
-      (statement.specifiers ?? []).filter((specifier) => specifier.type === 'ImportSpecifier'),
+      statement.specifiers.filter((specifier) => specifier.type === AST_NODE_TYPES.ImportSpecifier),
     )
     .at(-1);
 

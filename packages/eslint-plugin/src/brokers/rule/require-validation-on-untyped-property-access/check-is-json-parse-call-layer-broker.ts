@@ -5,23 +5,26 @@
  * const ok = checkIsJsonParseCallLayerBroker({ node });
  * // Returns true if node is a CallExpression whose callee is `JSON.parse`
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const checkIsJsonParseCallLayerBroker = ({ node }: { node?: Tsestree | null }): boolean => {
-  if (!node || node.type !== 'CallExpression') {
+export const checkIsJsonParseCallLayerBroker = ({
+  node,
+}: {
+  node?: TSESTree.Node | null;
+}): boolean => {
+  if (!node || node.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
   const { callee } = node;
-  if (!callee || callee.type !== 'MemberExpression') {
+  if (callee.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
   }
   const { object, property } = callee;
-  return Boolean(
-    object &&
-    object.type === 'Identifier' &&
+  return (
+    object.type === AST_NODE_TYPES.Identifier &&
     object.name === 'JSON' &&
-    property &&
-    property.type === 'Identifier' &&
-    property.name === 'parse',
+    property.type === AST_NODE_TYPES.Identifier &&
+    property.name === 'parse'
   );
 };

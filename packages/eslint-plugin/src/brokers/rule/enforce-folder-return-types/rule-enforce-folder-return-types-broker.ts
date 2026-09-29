@@ -7,47 +7,52 @@
  *
  * USAGE:
  * const rule = ruleEnforceFolderReturnTypesBroker();
- * // Returns EslintRule that validates exported-function return types against folder type expectations
+ * // Returns RuleModule that validates exported-function return types against folder type expectations
  */
 import { folderTypeContract } from '@dungeonmaster/shared/contracts';
 import { functionExportingFoldersStatics } from '../../../statics/function-exporting-folders/function-exporting-folders-statics';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { functionExportingFolderFromFilenameTransformer } from '../../../transformers/function-exporting-folder-from-filename/function-exporting-folder-from-filename-transformer';
 import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-layer-broker';
 
-export const ruleEnforceFolderReturnTypesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce return type rules on exported functions — annotation required everywhere, void/Promise<void>/a single-value type permitted in function-exporting folders exactly when every call the function discards also told it nothing, guards must return boolean',
-      },
-      messages: {
-        missingReturnType: 'Exported functions must have explicit return types',
-        folderVoidReturn:
-          'This function discards a call that returned something real — return that value (or pass it through) instead of void. void is fine here ONLY when every gateway/broker call it discards also returned void.',
-        folderPromiseVoidReturn:
-          'This function discards a call that returned something real — return Promise<the real value> (or pass it through) instead of Promise<void>. Promise<void> is fine here ONLY when every gateway/broker call it discards also returned void.',
-        folderDisguisedVoidReturn:
-          'This return type can only ever hold one value, which says nothing more than void would — and this function discards a call that returned something real. Return that value instead.',
-        folderUnknownReturn:
-          'Functions in {{folderType}}/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary)',
-        folderObjectReturn:
-          'Functions in {{folderType}}/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary)',
-        folderRecordUnknownReturn:
-          'Functions in {{folderType}}/ must not return Record<string, unknown> or Record<PropertyKey, unknown> — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return loose Record at the I/O boundary)',
-        guardMustReturnBoolean: 'Guard functions must return boolean or type predicate (x is T)',
-      },
-      schema: [],
+export const ruleEnforceFolderReturnTypesBroker = (): TSESLint.RuleModule<
+  | 'missingReturnType'
+  | 'folderVoidReturn'
+  | 'folderPromiseVoidReturn'
+  | 'folderDisguisedVoidReturn'
+  | 'folderUnknownReturn'
+  | 'folderObjectReturn'
+  | 'folderRecordUnknownReturn'
+  | 'guardMustReturnBoolean'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce return type rules on exported functions — annotation required everywhere, void/Promise<void>/a single-value type permitted in function-exporting folders exactly when every call the function discards also told it nothing, guards must return boolean',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      missingReturnType: 'Exported functions must have explicit return types',
+      folderVoidReturn:
+        'This function discards a call that returned something real — return that value (or pass it through) instead of void. void is fine here ONLY when every gateway/broker call it discards also returned void.',
+      folderPromiseVoidReturn:
+        'This function discards a call that returned something real — return Promise<the real value> (or pass it through) instead of Promise<void>. Promise<void> is fine here ONLY when every gateway/broker call it discards also returned void.',
+      folderDisguisedVoidReturn:
+        'This return type can only ever hold one value, which says nothing more than void would — and this function discards a call that returned something real. Return that value instead.',
+      folderUnknownReturn:
+        'Functions in {{folderType}}/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary)',
+      folderObjectReturn:
+        'Functions in {{folderType}}/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary)',
+      folderRecordUnknownReturn:
+        'Functions in {{folderType}}/ must not return Record<string, unknown> or Record<PropertyKey, unknown> — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return loose Record at the I/O boundary)',
+      guardMustReturnBoolean: 'Guard functions must return boolean or type predicate (x is T)',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const { filename } = ctx;
     const baseFolderType = functionExportingFolderFromFilenameTransformer({ filename });
     // Proxy files (e.g., foo-broker.proxy.ts) live in function-exporting folders but the
     // base transformer ignores them because their suffix is .proxy.ts. Detect proxy files
@@ -62,33 +67,41 @@ export const ruleEnforceFolderReturnTypesBroker = (): EslintRule => ({
 
     return {
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression:not([returnType])':
-        (node: Tsestree): void => {
+        (node: TSESTree.ArrowFunctionExpression): void => {
           ctx.report({ node, messageId: 'missingReturnType' });
         },
-      'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (node: Tsestree): void => {
+      'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportDefaultDeclaration > FunctionDeclaration:not([returnType])': (
-        node: Tsestree,
+        node: TSESTree.FunctionDeclaration,
       ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportDefaultDeclaration > ArrowFunctionExpression:not([returnType])': (
-        node: Tsestree,
+        node: TSESTree.ArrowFunctionExpression,
       ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression[returnType]':
-        (node: Tsestree): void => {
+        (node: TSESTree.ArrowFunctionExpression): void => {
           checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
         },
-      'ExportNamedDeclaration > FunctionDeclaration[returnType]': (node: Tsestree): void => {
+      'ExportNamedDeclaration > FunctionDeclaration[returnType]': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
-      'ExportDefaultDeclaration > FunctionDeclaration[returnType]': (node: Tsestree): void => {
+      'ExportDefaultDeclaration > FunctionDeclaration[returnType]': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
-      'ExportDefaultDeclaration > ArrowFunctionExpression[returnType]': (node: Tsestree): void => {
+      'ExportDefaultDeclaration > ArrowFunctionExpression[returnType]': (
+        node: TSESTree.ArrowFunctionExpression,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
     };

@@ -7,23 +7,29 @@
  * isAstShapeReuseCheckGuard({ node: callNodeForUserContractShapeIdMin });
  * // Returns true for `userContract.shape.id.min(5)`, false for `userContract.shape.id.optional()`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { zodObjectBrandStatics } from '../../statics/zod-object-brand/zod-object-brand-statics';
 
-export const isAstShapeReuseCheckGuard = ({ node }: { node?: Tsestree }): boolean => {
-  const callee = node?.callee;
-  if (node?.type !== 'CallExpression' || callee?.type !== 'MemberExpression') {
+export const isAstShapeReuseCheckGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
+  if (
+    node?.type !== AST_NODE_TYPES.CallExpression ||
+    node.callee.type !== AST_NODE_TYPES.MemberExpression
+  ) {
     return false;
   }
 
-  const method = callee.property?.type === 'Identifier' ? callee.property.name : undefined;
+  const { callee } = node;
+  const method =
+    callee.property.type === AST_NODE_TYPES.Identifier ? callee.property.name : undefined;
   const reused = callee.object;
 
   return (
     method !== undefined &&
-    reused?.type === 'MemberExpression' &&
-    reused.object?.type === 'MemberExpression' &&
-    reused.object.property?.name === 'shape' &&
+    reused.type === AST_NODE_TYPES.MemberExpression &&
+    reused.object.type === AST_NODE_TYPES.MemberExpression &&
+    'name' in reused.object.property &&
+    reused.object.property.name === 'shape' &&
     !zodObjectBrandStatics.reuseModifiers.some((modifier) => modifier === method)
   );
 };

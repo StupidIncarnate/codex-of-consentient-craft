@@ -7,42 +7,39 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce asserting both keys and values
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isAstObjectKeysCallGuard } from '../../../guards/is-ast-object-keys-call/is-ast-object-keys-call-guard';
 
-export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban expect(Object.keys(...)) — assert full object shape with .toStrictEqual() instead of just keys.',
-      },
-      messages: {
-        noObjectKeysInExpect:
-          'Do not use Object.keys() inside expect(). Assert the full object shape with .toStrictEqual() to verify both keys and values.',
-      },
-      schema: [],
+export const ruleBanObjectKeysInExpectBroker = (): TSESLint.RuleModule<'noObjectKeysInExpect'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban expect(Object.keys(...)) — assert full object shape with .toStrictEqual() instead of just keys.',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      noObjectKeysInExpect:
+        'Do not use Object.keys() inside expect(). Assert the full object shape with .toStrictEqual() to verify both keys and values.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
     }
 
-    const objectKeysVariables = new Set<Identifier>();
+    const objectKeysVariables = new Set<string>();
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
-        if (node.id?.type !== 'Identifier' || node.id.name === undefined) {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+        if (node.id.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
@@ -51,16 +48,16 @@ export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
         // Check if this is expect(...)
-        if (callee?.type !== 'Identifier' || callee.name !== 'expect') {
+        if (callee.type !== AST_NODE_TYPES.Identifier || callee.name !== 'expect') {
           return;
         }
 
-        const firstArg = node.arguments?.[0];
-        if (firstArg === null || firstArg === undefined) {
+        const [firstArg] = node.arguments;
+        if (firstArg === undefined) {
           return;
         }
 
@@ -74,11 +71,7 @@ export const ruleBanObjectKeysInExpectBroker = (): EslintRule => ({
         }
 
         // Check if the argument is a variable assigned from Object.keys(...)
-        if (
-          firstArg.type === 'Identifier' &&
-          firstArg.name !== undefined &&
-          objectKeysVariables.has(firstArg.name)
-        ) {
+        if (firstArg.type === AST_NODE_TYPES.Identifier && objectKeysVariables.has(firstArg.name)) {
           ctx.report({
             node,
             messageId: 'noObjectKeysInExpect',

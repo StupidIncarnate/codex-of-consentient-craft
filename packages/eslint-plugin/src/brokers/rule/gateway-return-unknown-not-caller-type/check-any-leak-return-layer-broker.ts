@@ -12,8 +12,8 @@
  * // enclosing function declares no return type
  */
 import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { findEnclosingFunctionLayerBroker } from './find-enclosing-function-layer-broker';
 import { isJsonParseOrDynamicImportCallLayerBroker } from './is-json-parse-or-dynamic-import-call-layer-broker';
 
@@ -21,41 +21,52 @@ export const checkAnyLeakReturnLayerBroker = ({
   node,
   context,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
   const enclosingFunction = findEnclosingFunctionLayerBroker({ node: node.parent });
 
-  if (!enclosingFunction || enclosingFunction.returnType) {
+  if (
+    !enclosingFunction ||
+    ('returnType' in enclosingFunction ? enclosingFunction.returnType : undefined)
+  ) {
     return result;
   }
 
-  const { argument } = node;
+  const argument = 'argument' in node ? node.argument : undefined;
 
   if (isJsonParseOrDynamicImportCallLayerBroker({ node: argument })) {
     context.report({ node, messageId: 'anyLeakNoReturnType' });
     return result;
   }
 
-  if (argument?.type !== 'Identifier' || argument.name === undefined) {
+  if (argument?.type !== AST_NODE_TYPES.Identifier) {
     return result;
   }
 
-  const targetName = String(argument.name);
+  const targetName = argument.name;
   const parentNode = node.parent;
-  const blockStatements = parentNode && Array.isArray(parentNode.body) ? parentNode.body : [];
+  const blockStatements =
+    parentNode && Array.isArray('body' in parentNode ? parentNode.body : undefined)
+      ? 'body' in parentNode
+        ? parentNode.body
+        : undefined
+      : [];
 
-  const hasRiskyDeclarator = blockStatements.some(
-    (statement) =>
-      statement.type === 'VariableDeclaration' &&
-      (statement.declarations ?? []).some(
-        (declarator) =>
-          declarator.id?.type === 'Identifier' &&
-          declarator.id.name === targetName &&
-          isJsonParseOrDynamicImportCallLayerBroker({ node: declarator.init }),
-      ),
-  );
+  const hasRiskyDeclarator =
+    blockStatements && 'some' in blockStatements
+      ? blockStatements.some(
+          (statement) =>
+            statement.type === AST_NODE_TYPES.VariableDeclaration &&
+            statement.declarations.some(
+              (declarator) =>
+                declarator.id.type === AST_NODE_TYPES.Identifier &&
+                declarator.id.name === targetName &&
+                isJsonParseOrDynamicImportCallLayerBroker({ node: declarator.init }),
+            ),
+        )
+      : undefined;
 
   if (hasRiskyDeclarator) {
     context.report({ node, messageId: 'anyLeakNoReturnType' });

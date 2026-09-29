@@ -15,16 +15,14 @@
  * // inside an ingredient declaration file — by path, or by calling `ingredient({...})` — and
  * // stays silent on the same calls elsewhere (a route broker minting a real id is untouched).
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { nondeterministicCallWatchlistStatics } from '../../../statics/nondeterministic-call-watchlist/nondeterministic-call-watchlist-statics';
 import { isIngredientDeclarationFileGuard } from '../../../guards/is-ingredient-declaration-file/is-ingredient-declaration-file-guard';
 import { isIngredientDeclarationCallGuard } from '../../../guards/is-ingredient-declaration-call/is-ingredient-declaration-call-guard';
 
-export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanNondeterminismInIngredientsBroker =
+  (): TSESLint.RuleModule<'nondeterministicCallInIngredient'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -37,55 +35,56 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    defaultOptions: [],
+    create: (context: unknown) => {
+      const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+      const { filename } = ctx;
 
-    const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
-      filename: String(filename),
-    });
-    let isKnownIngredientFileByCall = false;
-    const pendingReports: (() => void)[] = [];
+      const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
+        filename,
+      });
+      let isKnownIngredientFileByCall = false;
+      const pendingReports: (() => void)[] = [];
 
-    return {
-      CallExpression: (node: Tsestree): void => {
-        if (isIngredientDeclarationCallGuard({ node })) {
-          isKnownIngredientFileByCall = true;
-        }
+      return {
+        CallExpression: (node: TSESTree.CallExpression): void => {
+          if (isIngredientDeclarationCallGuard({ node })) {
+            isKnownIngredientFileByCall = true;
+          }
 
-        const { callee } = node;
-        if (callee?.type !== 'MemberExpression') {
-          return;
-        }
-        const objectName = callee.object?.type === 'Identifier' ? callee.object.name : undefined;
-        const propertyName =
-          callee.property?.type === 'Identifier' ? callee.property.name : undefined;
-        if (objectName === undefined || propertyName === undefined) {
-          return;
-        }
+          const { callee } = node;
+          if (callee.type !== AST_NODE_TYPES.MemberExpression) {
+            return;
+          }
+          const objectName =
+            callee.object.type === AST_NODE_TYPES.Identifier ? callee.object.name : undefined;
+          const propertyName =
+            callee.property.type === AST_NODE_TYPES.Identifier ? callee.property.name : undefined;
+          if (objectName === undefined || propertyName === undefined) {
+            return;
+          }
 
-        const isBanned = nondeterministicCallWatchlistStatics.bannedCalls.some(
-          (call) => call.objectName === objectName && call.propertyName === propertyName,
-        );
-        if (isBanned) {
-          pendingReports.push(() => {
-            ctx.report({
-              node,
-              messageId: 'nondeterministicCallInIngredient',
-              data: { objectName: String(objectName), propertyName: String(propertyName) },
+          const isBanned = nondeterministicCallWatchlistStatics.bannedCalls.some(
+            (call) => call.objectName === objectName && call.propertyName === propertyName,
+          );
+          if (isBanned) {
+            pendingReports.push(() => {
+              ctx.report({
+                node,
+                messageId: 'nondeterministicCallInIngredient',
+                data: { objectName, propertyName },
+              });
             });
-          });
-        }
-      },
+          }
+        },
 
-      'Program:exit': (): void => {
-        if (isKnownIngredientFileByPath || isKnownIngredientFileByCall) {
-          pendingReports.forEach((report) => {
-            report();
-          });
-        }
-      },
-    };
-  },
-});
+        'Program:exit': (): void => {
+          if (isKnownIngredientFileByPath || isKnownIngredientFileByCall) {
+            pendingReports.forEach((report) => {
+              report();
+            });
+          }
+        },
+      };
+    },
+  });

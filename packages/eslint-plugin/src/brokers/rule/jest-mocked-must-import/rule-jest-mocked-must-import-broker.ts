@@ -3,14 +3,11 @@
  *
  * USAGE:
  * const rule = ruleJestMockedMustImportBroker();
- * // Returns EslintRule that validates jest.mocked() calls use imported npm packages, not adapters
+ * // Returns RuleModule that validates jest.mocked() calls use imported npm packages, not adapters
  *
  * WHEN-TO-USE: When registering ESLint rules to enforce proper mocking patterns in proxy files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
@@ -19,40 +16,41 @@ import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 
-export const ruleJestMockedMustImportBroker = (): EslintRule => {
+export const ruleJestMockedMustImportBroker = (): TSESLint.RuleModule<
+  'mockedNotImported' | 'mockingAdapter' | 'notNpmPackage'
+> => {
   const importedNames = new Map<Identifier, ModulePath>(); // local name -> source
 
   return {
-    ...eslintRuleContract.parse({
-      meta: {
-        type: 'problem',
-        docs: {
-          description: 'Enforce that jest.mocked() arguments are imported at the top of the file',
-        },
-        messages: {
-          mockedNotImported:
-            'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}',
-          mockingAdapter:
-            'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).',
-          notNpmPackage:
-            'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.',
-        },
-        schema: [],
+    meta: {
+      type: 'problem',
+      docs: {
+        description: 'Enforce that jest.mocked() arguments are imported at the top of the file',
       },
-    }),
-    create: (context: EslintContext) => {
+      messages: {
+        mockedNotImported:
+          'jest.mocked({{name}}) requires importing {{name}}. Add: import {{importStatement}}',
+        mockingAdapter:
+          'jest.mocked({{name}}) - Do not mock the adapter itself. Mock the npm package it uses instead (e.g., mock axios, not httpAdapter).',
+        notNpmPackage:
+          'jest.mocked({{name}}) - In adapter proxies, only mock npm packages (axios, fs, etc.), not adapters or business logic.',
+      },
+      schema: [],
+    },
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context;
       // Reset state for each file
       importedNames.clear();
 
       // Only check proxy files
-      if (!hasFileSuffixGuard({ filename: ctx.filename ?? '', suffix: 'proxy' })) {
+      if (!hasFileSuffixGuard({ filename: ctx.filename, suffix: 'proxy' })) {
         return {};
       }
 
       return {
         // Track all imports
-        ImportDeclaration: (node: Tsestree): void => {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
           const imports = astGetImportsTransformer({ node });
           for (const [name, source] of imports) {
             importedNames.set(name, source);
@@ -60,7 +58,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
         },
 
         // Check jest.mocked() calls
-        CallExpression: (node: Tsestree): void => {
+        CallExpression: (node: TSESTree.CallExpression): void => {
           if (!isAstMethodCallGuard({ node, object: 'jest', method: 'mocked' })) {
             return;
           }
@@ -88,7 +86,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
 
           // Additional validation for I/O-boundary proxies (adapters/, and gateway wrappers
           // under packages/{node,npm,browser,bin}/)
-          const filename = ctx.filename ?? '';
+          const { filename } = ctx;
           if (
             isIoBoundaryProxyGuard({ filename }) &&
             hasFileSuffixGuard({ filename, suffix: 'proxy' })

@@ -1,176 +1,52 @@
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { isAstMethodCallGuard } from './is-ast-method-call-guard';
 
 describe('isAstMethodCallGuard', () => {
   it('VALID: {object: "jest", method: "spyOn", node: jest.spyOn()} => returns true', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest.spyOn();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(true);
   });
 
   it('VALID: {object: "console", method: "log", node: console.log()} => returns true', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'console',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'log',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'console.log();' });
 
     expect(isAstMethodCallGuard({ node, object: 'console', method: 'log' })).toBe(true);
   });
 
   it('INVALID: {object: "jest", method: "spyOn", node: foo.spyOn()} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'foo',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'foo.spyOn();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
   it('INVALID: {object: "jest", method: "spyOn", node: jest.mock()} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'mock',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest.mock();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
   it('INVALID: {node without callee} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'Identifier',
-      callee: undefined,
-    });
+    const node = IdentifierStub({ code: 'x;' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
   it('INVALID: {callee is not MemberExpression} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'Identifier',
-        name: 'jest',
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
   it('INVALID: {callee.object is not Identifier} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Literal',
-          value: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: '"jest".spyOn();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
 
   it('INVALID: {callee.property is not Identifier} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Literal',
-          value: 'spyOn',
-        }),
-      }),
-    });
-
-    expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
-  });
-
-  it('EMPTY: {callee.object has no name} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: undefined,
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
-
-    expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
-  });
-
-  it('EMPTY: {callee.property has no name} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: undefined,
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest["spyOn"]();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest', method: 'spyOn' })).toBe(false);
   });
@@ -180,39 +56,13 @@ describe('isAstMethodCallGuard', () => {
   });
 
   it('EMPTY: {object omitted} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest.spyOn();' });
 
     expect(isAstMethodCallGuard({ node, method: 'spyOn' })).toBe(false);
   });
 
   it('EMPTY: {method omitted} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'CallExpression',
-      callee: TsestreeStub({
-        type: 'MemberExpression',
-        object: TsestreeStub({
-          type: 'Identifier',
-          name: 'jest',
-        }),
-        property: TsestreeStub({
-          type: 'Identifier',
-          name: 'spyOn',
-        }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'jest.spyOn();' });
 
     expect(isAstMethodCallGuard({ node, object: 'jest' })).toBe(false);
   });

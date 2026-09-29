@@ -5,18 +5,16 @@
  * const proxy = ruleBanSilentCatchBrokerProxy();
  * const context = proxy.createContext();
  */
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 import { isSilentBodyLayerBrokerProxy } from './is-silent-body-layer-broker.proxy';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanSilentCatchBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => {
   isSilentBodyLayerBrokerProxy();
 
   return {
-    createContext: (): EslintContext => ({
-      filename: undefined,
-      report: jest.fn(),
-    }),
+    createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
   };
 };

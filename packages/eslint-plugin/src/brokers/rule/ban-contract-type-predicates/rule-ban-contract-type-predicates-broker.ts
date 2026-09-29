@@ -18,93 +18,85 @@
  * // leaves `(node: TSESTree.Node): node is TSESTree.CallExpression => …` alone (a library type).
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const ruleBanContractTypePredicatesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'A type predicate may narrow to a library type, never to one of our contract types or an indexed type off one — parse through the contract instead.',
-      },
-      messages: {
-        contractTypePredicate:
-          '{{typeName}}, imported from "{{importSource}}", is one of our contract types. A type predicate mints it with no check — parse it through its own contract\'s .safeParse/.parse instead, and read the parsed data on success.',
-        indexedTypePredicate:
-          '{{typeName}} indexes into a type for one field. A predicate cannot check a branded field safely — parse the owning contract and read the field off the parsed result.',
-      },
-      schema: [],
+export const ruleBanContractTypePredicatesBroker = (): TSESLint.RuleModule<
+  'contractTypePredicate' | 'indexedTypePredicate'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'A type predicate may narrow to a library type, never to one of our contract types or an indexed type off one — parse through the contract instead.',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      contractTypePredicate:
+        '{{typeName}}, imported from "{{importSource}}", is one of our contract types. A type predicate mints it with no check — parse it through its own contract\'s .safeParse/.parse instead, and read the parsed data on success.',
+      indexedTypePredicate:
+        '{{typeName}} indexes into a type for one field. A predicate cannot check a branded field safely — parse the owning contract and read the field off the parsed result.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     // Populated by every ImportDeclaration before a later TSTypePredicate reads it — imports are
     // always syntactically ahead of their usage, so one forward pass over the file is enough.
-    const importSourceByLocalName = new Map<Identifier, FilePath>();
+    const importSourceByLocalName = new Map<string, FilePath>();
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const sourceValue = typeof node.source?.value === 'string' ? node.source.value : undefined;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const sourceValue = typeof node.source.value === 'string' ? node.source.value : undefined;
         if (sourceValue === undefined) {
           return;
         }
 
         const importSource = filePathContract.parse(sourceValue);
 
-        for (const specifier of node.specifiers ?? []) {
-          const localName =
-            specifier.local?.type === 'Identifier' ? specifier.local.name : undefined;
-          if (localName !== undefined) {
-            importSourceByLocalName.set(localName, importSource);
-          }
+        for (const specifier of node.specifiers) {
+          importSourceByLocalName.set(specifier.local.name, importSource);
         }
       },
 
-      TSTypePredicate: (node: Tsestree): void => {
+      TSTypePredicate: (node: TSESTree.TSTypePredicate): void => {
         // `asserts value` (no `is X` at all) carries no typeAnnotation — nothing to judge.
         const targetType = node.typeAnnotation?.typeAnnotation;
-        if (targetType === null || targetType === undefined) {
+        if (targetType === undefined) {
           return;
         }
 
         const source = ctx.sourceCode;
-        if (source === undefined) {
-          return;
-        }
 
         // `Quest['id']` — refused regardless of where Quest itself comes from: indexing into any
         // type for one field's type is reaching for a branded piece the same way a direct import
         // does.
-        if (targetType.type === 'TSIndexedAccessType') {
+        if (targetType.type === AST_NODE_TYPES.TSIndexedAccessType) {
           ctx.report({
             node,
             messageId: 'indexedTypePredicate',
-            data: { typeName: String(source.getText(targetType)) },
+            data: { typeName: source.getText(targetType) },
           });
           return;
         }
 
-        if (targetType.type !== 'TSTypeReference') {
+        if (targetType.type !== AST_NODE_TYPES.TSTypeReference) {
           return;
         }
 
         // The root identifier of a (possibly qualified) type name — `TSESTree.CallExpression`
         // roots at `TSESTree`, `Contracts.Quest` roots at `Contracts` — since only the root's own
         // import decides whether the whole chain reaches a contract.
-        let typeNameNode = targetType.typeName ?? undefined;
-        while (typeNameNode?.type === 'TSQualifiedName') {
-          typeNameNode = typeNameNode.left ?? undefined;
+        let typeNameNode = targetType.typeName;
+        while (typeNameNode.type === AST_NODE_TYPES.TSQualifiedName) {
+          typeNameNode = typeNameNode.left;
         }
         const rootIdentifierName =
-          typeNameNode?.type === 'Identifier' ? typeNameNode.name : undefined;
+          typeNameNode.type === AST_NODE_TYPES.Identifier ? typeNameNode.name : undefined;
         if (rootIdentifierName === undefined) {
           return;
         }
@@ -131,7 +123,7 @@ export const ruleBanContractTypePredicatesBroker = (): EslintRule => ({
         ctx.report({
           node,
           messageId: 'contractTypePredicate',
-          data: { typeName: String(source.getText(targetType)), importSource },
+          data: { typeName: source.getText(targetType), importSource },
         });
       },
     };

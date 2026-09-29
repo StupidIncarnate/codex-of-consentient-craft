@@ -1,6 +1,6 @@
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { isInsideInlinePageCallbackLayerBroker } from './is-inside-inline-page-callback-layer-broker';
 import { isInsideInlinePageCallbackLayerBrokerProxy } from './is-inside-inline-page-callback-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 // The true case needs `call.arguments[0] === fn`, an object-identity check that
 // `tsestreeContract.parse` cannot preserve through a stub (every nested field is re-parsed into its
@@ -10,14 +10,7 @@ describe('isInsideInlinePageCallbackLayerBroker', () => {
   describe('outside any browser-side callback', () => {
     it('INVALID: {identifier with no enclosing function} => returns false', () => {
       isInsideInlinePageCallbackLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Identifier,
-        name: 'document',
-        parent: TsestreeStub({
-          type: TsestreeNodeType.ExpressionStatement,
-          parent: TsestreeStub({ type: TsestreeNodeType.Program }),
-        }),
-      });
+      const node = IdentifierStub({ code: 'document;' });
 
       const result = isInsideInlinePageCallbackLayerBroker({ node });
 
@@ -26,21 +19,7 @@ describe('isInsideInlinePageCallbackLayerBroker', () => {
 
     it('INVALID: {identifier inside an arrow passed to page.click} => returns false', () => {
       isInsideInlinePageCallbackLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Identifier,
-        name: 'document',
-        parent: TsestreeStub({
-          type: TsestreeNodeType.ArrowFunctionExpression,
-          parent: TsestreeStub({
-            type: TsestreeNodeType.CallExpression,
-            callee: TsestreeStub({
-              type: TsestreeNodeType.MemberExpression,
-              computed: false,
-              property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'click' }),
-            }),
-          }),
-        }),
-      });
+      const node = IdentifierStub({ code: '(() => document)();' });
 
       const result = isInsideInlinePageCallbackLayerBroker({ node });
 

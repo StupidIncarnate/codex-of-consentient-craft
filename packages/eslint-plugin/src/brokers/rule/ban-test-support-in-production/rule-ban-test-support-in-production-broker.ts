@@ -6,15 +6,12 @@
  * // Flags `import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub'` in a broker,
  * // and `export * from './quest.stub'` in `src/contracts/contracts.ts`
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestSupportFileGuard } from '../../../guards/is-test-support-file/is-test-support-file-guard';
 import { reportTestSupportLayerBroker } from './report-test-support-layer-broker';
 
-export const ruleBanTestSupportInProductionBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanTestSupportInProductionBroker =
+  (): TSESLint.RuleModule<'testSupportInProduction'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -27,25 +24,25 @@ export const ruleBanTestSupportInProductionBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context;
-    const filename = String(ctx.filename ?? '');
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      const { filename } = ctx;
 
-    if (isTestSupportFileGuard({ filename })) {
-      return {};
-    }
+      if (isTestSupportFileGuard({ filename })) {
+        return {};
+      }
 
-    return {
-      ImportDeclaration: (node: Tsestree): void => {
-        reportTestSupportLayerBroker({ node, context: ctx, verb: 'imported' });
-      },
-      ExportNamedDeclaration: (node: Tsestree): void => {
-        reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
-      },
-      ExportAllDeclaration: (node: Tsestree): void => {
-        reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
-      },
-    };
-  },
-});
+      return {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+          reportTestSupportLayerBroker({ node, context: ctx, verb: 'imported' });
+        },
+        ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
+          reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
+        },
+        ExportAllDeclaration: (node: TSESTree.ExportAllDeclaration): void => {
+          reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
+        },
+      };
+    },
+  });

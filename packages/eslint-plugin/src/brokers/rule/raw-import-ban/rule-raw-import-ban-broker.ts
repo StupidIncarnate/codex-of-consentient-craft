@@ -16,17 +16,15 @@
  *
  * USAGE:
  * const rule = ruleRawImportBanBroker();
- * // Returns an EslintRule that flags `import fs from 'fs'` outside packages/@gateway/node/src/**,
+ * // Returns an RuleModule that flags `import fs from 'fs'` outside packages/@gateway/node/src/**,
  * // etc., naming the exact gateway replacement in the report message
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
 import { importPathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { minimatch } from '#gateway/npm/minimatch';
 import { isDungeonmasterToolkitImportGuard } from '../../../guards/is-dungeonmaster-toolkit-import/is-dungeonmaster-toolkit-import-guard';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
@@ -39,38 +37,41 @@ import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-reso
 // (which demands one) stop fighting each other over this declaration.
 const defaultScopeCache: { value?: PackageName } = {};
 
-export const ruleRawImportBanBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban raw imports, exports, require() and require.resolve() of non-workspace packages outside the gateway packages.',
-      },
-      messages: {
-        rawImport:
-          'Import "{{importSource}}" through the gateway: "{{gatewayPath}}". If that subpath does not export what you need, add a wrapper there; never import the raw package.',
-        scopedGatewayImport:
-          'Import the gateway through its alias, "{{gatewayPath}}", not its package name "{{importSource}}".',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: {
-            scope: {
-              type: 'string',
-              description:
-                'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope read from the repo root package.json at rule module load.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
+  'rawImport' | 'scopedGatewayImport'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban raw imports, exports, require() and require.resolve() of non-workspace packages outside the gateway packages.',
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context as EslintContext & { options?: { scope?: PackageName }[] };
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    messages: {
+      rawImport:
+        'Import "{{importSource}}" through the gateway: "{{gatewayPath}}". If that subpath does not export what you need, add a wrapper there; never import the raw package.',
+      scopedGatewayImport:
+        'Import the gateway through its alias, "{{gatewayPath}}", not its package name "{{importSource}}".',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          scope: {
+            type: 'string',
+            description:
+              'Override the workspace `@scope` used to allow workspace imports and build gateway paths. Defaults to the scope read from the repo root package.json at rule module load.',
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
+      options?: { scope?: PackageName }[];
+    };
+    const { filename } = ctx;
 
     const isGatewayFile = gatewayLocationsStatics.packageGlobs.some((glob) =>
       minimatch(filename, `**/${glob}`, { dot: true }),
@@ -80,7 +81,7 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
       return {};
     }
 
-    const optionScope = ctx.options?.[0]?.scope;
+    const optionScope = ctx.options[0]?.scope;
 
     const scope = ((): PackageName => {
       if (optionScope !== undefined) {
@@ -98,9 +99,14 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
 
     return {
       'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
-        node: Tsestree,
+        node:
+          | TSESTree.ImportDeclaration
+          | TSESTree.ExportNamedDeclaration
+          | TSESTree.ExportAllDeclaration
+          | TSESTree.ImportExpression,
       ): void => {
-        const importSource = node.source?.value;
+        const importSource =
+          node.source?.type === AST_NODE_TYPES.Literal ? node.source.value : undefined;
 
         if (typeof importSource !== 'string') {
           return;
@@ -151,24 +157,25 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
         });
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        const args = node.arguments ?? [];
+        const args = node.arguments;
         const [firstArg] = args;
 
-        const isRequireCall = callee?.type === 'Identifier' && callee.name === 'require';
+        const isRequireCall =
+          callee.type === AST_NODE_TYPES.Identifier && callee.name === 'require';
         const isRequireResolveCall =
-          callee?.type === 'MemberExpression' &&
-          callee.object?.type === 'Identifier' &&
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
           callee.object.name === 'require' &&
-          callee.property?.type === 'Identifier' &&
+          callee.property.type === AST_NODE_TYPES.Identifier &&
           callee.property.name === 'resolve';
 
         if (!isRequireCall && !isRequireResolveCall) {
           return;
         }
 
-        const importSource = firstArg?.type === 'Literal' ? firstArg.value : undefined;
+        const importSource = firstArg?.type === AST_NODE_TYPES.Literal ? firstArg.value : undefined;
 
         if (typeof importSource !== 'string') {
           return;

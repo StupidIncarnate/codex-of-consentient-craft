@@ -5,10 +5,7 @@
  * const rule = ruleEnforceImportDependenciesBroker();
  * // Returns ESLint rule that prevents brokers from importing from responders, enforces entry files, etc.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -21,41 +18,42 @@ import { filepathResolveRelativeImportTransformer } from '../../../transformers/
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { validateExternalImportLayerBroker } from './validate-external-import-layer-broker';
 
-export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description: 'Enforce folder-level import restrictions based on architecture',
-      },
-      messages: {
-        forbiddenImport:
-          '{{folderType}}/ cannot import from {{importedFolder}}/. Allowed imports: {{allowed}}',
-        forbiddenExternalImport:
-          '{{folderType}}/ cannot import external package "{{packageName}}". Only internal imports allowed.',
-        nonEntryFileImport:
-          'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
-        unnecessaryCategoryInPath:
-          'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
-      },
-      schema: [],
+export const ruleEnforceImportDependenciesBroker = (): TSESLint.RuleModule<
+  'forbiddenImport' | 'forbiddenExternalImport' | 'nonEntryFileImport' | 'unnecessaryCategoryInPath'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Enforce folder-level import restrictions based on architecture',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      forbiddenImport:
+        '{{folderType}}/ cannot import from {{importedFolder}}/. Allowed imports: {{allowed}}',
+      forbiddenExternalImport:
+        '{{folderType}}/ cannot import external package "{{packageName}}". Only internal imports allowed.',
+      nonEntryFileImport:
+        'Cannot import non-entry file "{{importedFile}}" from {{folderType}}/. Only entry files matching pattern {{pattern}} can be imported across folders.',
+      unnecessaryCategoryInPath:
+        'Unnecessary category name in import path. When importing within {{folderType}}/, use "{{suggestedPath}}" instead of "{{importPath}}".',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         // Skip validation for .proxy.ts files - they have their own proxy rules
         if (
           hasFileSuffixGuard({
-            ...(ctx.filename ? { filename: String(ctx.filename) } : {}),
+            ...(ctx.filename ? { filename: ctx.filename } : {}),
             suffix: 'proxy',
           })
         ) {
           return;
         }
 
-        const folderType = folderTypeTransformer({ filename: ctx.filename ?? '' });
+        const folderType = folderTypeTransformer({ filename: ctx.filename });
 
         if (folderType === null) {
           return;
@@ -63,7 +61,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
         const allowedImports = folderConfigTransformer({ folderType })?.allowedImports ?? [];
 
-        const importSource = node.source?.value;
+        const importSource = node.source.value;
 
         if (typeof importSource !== 'string') {
           return;
@@ -74,7 +72,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         if (isRelativeImport) {
           // Check if import is from the same domain folder
           const isSameFolder = isSameDomainFolderGuard({
-            currentFilePath: ctx.filename ?? '',
+            currentFilePath: ctx.filename,
             importPath: importSource,
           });
 
@@ -85,7 +83,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           // For cross-folder imports, determine the imported folder type by resolving the path
           const resolvedImportPath = filepathResolveRelativeImportTransformer({
-            currentFilePath: ctx.filename ?? '',
+            currentFilePath: ctx.filename,
             importPath: importSource,
           });
 
@@ -155,8 +153,8 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           if (!isEntryFile) {
             // Exception: Test files and stub files can import .stub.ts files from contracts folder
-            const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
-            const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
+            const isTestFile = isTestFileGuard({ filename: ctx.filename });
+            const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename });
             const isImportedFileStub = isStubFileGuard({ filename: importSource });
             const isFromContracts = importedFolderType === 'contracts';
 

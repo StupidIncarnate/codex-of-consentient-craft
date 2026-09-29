@@ -19,8 +19,7 @@
 import { routedGraphContract } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 import { graphReachabilityViolationsTransformer } from '@dungeonmaster/shared/transformers';
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { graphReachabilityStatics } from '../../../statics/graph-reachability/graph-reachability-statics';
 import { isGraphReachabilityScopeFileGuard } from '../../../guards/is-graph-reachability-scope-file/is-graph-reachability-scope-file-guard';
 
@@ -39,27 +38,26 @@ const graphViolations = Object.entries(questFlowStatics).flatMap(([questType, fa
   });
 });
 
-export const ruleGraphReachabilityBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Refuse a family graph (questFlowStatics) a route cannot reach, or that reaches no terminal. agentFlowStatics is checked at server boot instead of here.',
-      },
-      messages: {
-        graphViolation: '{{violation}}',
-      },
-      schema: [],
+export const ruleGraphReachabilityBroker = (): TSESLint.RuleModule<'graphViolation'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Refuse a family graph (questFlowStatics) a route cannot reach, or that reaches no terminal. agentFlowStatics is checked at server boot instead of here.',
     },
-  }),
+    messages: {
+      graphViolation: '{{violation}}',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     if (
       !isGraphReachabilityScopeFileGuard({
-        filename: String(filename),
+        filename,
         scopeFilePaths: graphReachabilityStatics.scopeFilePaths,
       })
     ) {
@@ -67,7 +65,7 @@ export const ruleGraphReachabilityBroker = (): EslintRule => ({
     }
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         for (const violation of graphViolations) {
           ctx.report({
             node,

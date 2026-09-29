@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { validateGatewaySpecifierLayerBroker } from './validate-gateway-specifier-layer-broker';
 import { validateGatewaySpecifierLayerBrokerProxy } from './validate-gateway-specifier-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 
 describe('validateGatewaySpecifierLayerBroker', () => {
@@ -17,8 +17,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -41,8 +41,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -66,8 +66,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -92,8 +92,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -114,8 +114,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         packageJson: { name: '@dungeonmaster/unmapped', imports: {} },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -150,8 +150,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -183,8 +183,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
         },
       });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,
@@ -214,8 +214,8 @@ describe('validateGatewaySpecifierLayerBroker', () => {
       proxy.setupNoPackageJsonAt({ dirPath: '/orphan' });
       proxy.setupNoPackageJsonAt({ dirPath: '/' });
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub();
+      const context = RuleContextStub({ report: mockReport });
+      const node = IdentifierStub({ code: 'x;' });
 
       validateGatewaySpecifierLayerBroker({
         node,

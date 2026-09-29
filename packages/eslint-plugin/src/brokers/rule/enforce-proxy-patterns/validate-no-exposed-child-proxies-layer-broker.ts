@@ -6,53 +6,42 @@
  * // Reports error if return object exposes child proxy via shorthand { childProxy } or explicit { child: childProxy }
  */
 import type { AdapterResult, Identifier } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { adapterResultContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const validateNoExposedChildProxiesLayerBroker = ({
   objectNode,
   proxyVariables,
   context,
 }: {
-  objectNode: Tsestree;
+  objectNode: TSESTree.ObjectExpression;
   proxyVariables: Map<Identifier, Identifier>;
-  context: EslintContext;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  const { properties } = objectNode;
 
-  if (!properties) return result;
-
-  for (const property of properties) {
-    if (property.type !== 'Property') continue;
+  for (const property of objectNode.properties) {
+    if (property.type !== AST_NODE_TYPES.Property) continue;
 
     const { shorthand, key, value } = property;
 
     // Check shorthand: { fooProxy }
-    if (shorthand && key?.name) {
-      if (proxyVariables.has(key.name)) {
+    if (shorthand && key.type === AST_NODE_TYPES.Identifier) {
+      const proxyName = identifierContract.parse(key.name);
+      if (proxyVariables.has(proxyName)) {
         context.report({
           node: property,
           messageId: 'exposedChildProxy',
-          data: { proxyName: key.name },
+          data: { proxyName },
         });
       }
     }
 
     // Check explicit: { child: fooProxy }
-    // value is typed as unknown from Tsestree contract, need to check it's an Identifier node
-    if (
-      !shorthand &&
-      value !== null &&
-      value !== undefined &&
-      typeof value === 'object' &&
-      'type' in value &&
-      value.type === 'Identifier' &&
-      'name' in value
-    ) {
-      const valueName = value.name as Identifier | undefined;
-      if (valueName && proxyVariables.has(valueName)) {
+    if (!shorthand && value.type === AST_NODE_TYPES.Identifier) {
+      const valueName = identifierContract.parse(value.name);
+      if (proxyVariables.has(valueName)) {
         context.report({
           node: property,
           messageId: 'exposedChildProxy',

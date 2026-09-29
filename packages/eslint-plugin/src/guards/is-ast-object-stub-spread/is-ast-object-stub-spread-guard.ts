@@ -8,10 +8,11 @@
  * }
  * // Returns true only when every property is a SpreadElement over a *Stub() call
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstObjectStubSpreadGuard = ({ node }: { node?: Tsestree }): boolean => {
-  if (node === undefined || node.type !== 'ObjectExpression' || !node.properties) {
+export const isAstObjectStubSpreadGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
+  if (node === undefined || node.type !== AST_NODE_TYPES.ObjectExpression) {
     return false;
   }
 
@@ -20,14 +21,17 @@ export const isAstObjectStubSpreadGuard = ({ node }: { node?: Tsestree }): boole
   }
 
   return node.properties.every((property) => {
-    const { argument } = property;
+    const argument = property.type === AST_NODE_TYPES.SpreadElement ? property.argument : undefined;
 
-    if (property.type !== 'SpreadElement' || argument?.type !== 'CallExpression') {
+    if (
+      property.type !== AST_NODE_TYPES.SpreadElement ||
+      argument?.type !== AST_NODE_TYPES.CallExpression
+    ) {
       return false;
     }
 
     const { callee } = argument;
 
-    return callee?.type === 'Identifier' && (callee.name ?? '').endsWith('Stub');
+    return callee.type === AST_NODE_TYPES.Identifier && callee.name.endsWith('Stub');
   });
 };

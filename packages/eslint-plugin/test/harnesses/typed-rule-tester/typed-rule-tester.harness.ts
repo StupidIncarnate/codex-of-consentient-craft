@@ -13,8 +13,8 @@
 import { RuleTester } from '#gateway/npm/eslint';
 import type { Linter, Rule } from '#gateway/npm/eslint';
 import * as tsParser from '#gateway/npm/typescript-eslint__parser';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { resolve } from '#gateway/node/path';
-import type { EslintRule } from '../../../src/contracts/eslint-rule/eslint-rule-contract';
 
 // `project: true`'s tsconfigRootDir defaults to `process.cwd()`, which under ward's per-package
 // jest run is the PACKAGE directory, not the repo root - and typescript-eslint refuses to walk
@@ -28,7 +28,7 @@ interface GlobalWithRuleTester {
 }
 
 export const typedRuleTesterHarness = (): {
-  run: (name: string, rule: EslintRule, tests: unknown) => void;
+  run: (name: string, rule: TSESLint.AnyRuleModule, tests: unknown) => void;
 } => {
   const tsParserAsLinterParser = tsParser as unknown as Linter.Parser;
 
@@ -46,7 +46,7 @@ export const typedRuleTesterHarness = (): {
   });
 
   return {
-    run: (name: string, rule: EslintRule, tests: unknown): void => {
+    run: (name: string, rule: TSESLint.AnyRuleModule, tests: unknown): void => {
       // Marks the run as a RuleTester test for @dungeonmaster/testing's assertion check;
       // RuleTester.run() creates its own assertions internally.
       const globalWithRuleTester = globalThis as GlobalWithRuleTester & typeof globalThis;

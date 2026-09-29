@@ -11,18 +11,18 @@
  *
  * WHEN-TO-USE: Inside a local ESLint rule walking upward from an expression node.
  */
-import type { Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 import { packageNameLiteralStatics } from '../../statics/package-name-literal/package-name-literal-statics';
 
 export const effectiveExpressionParentTransformer = ({
   node,
 }: {
-  node?: Tsestree | null;
-}): Tsestree | null => {
+  node?: TSESTree.Node | null;
+}): TSESTree.Node | null => {
   const parent = node?.parent;
 
-  if (parent === null || parent === undefined) {
+  if (!parent) {
     return null;
   }
 

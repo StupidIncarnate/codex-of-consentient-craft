@@ -11,19 +11,24 @@
  * propertyIdentifierToCheckLayerBroker({ node: stdoutPropertyOfProcessDotStdout });
  * // Returns undefined — a property label, not a reference
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const propertyIdentifierToCheckLayerBroker = ({
   node,
 }: {
-  node: Tsestree;
-}): Tsestree | undefined => {
+  node: TSESTree.Node;
+}): TSESTree.Node | undefined => {
   const { parent } = node;
-  if (parent?.type !== 'MemberExpression' || parent.property !== node || parent.computed) {
+  if (
+    parent?.type !== AST_NODE_TYPES.MemberExpression ||
+    parent.property !== node ||
+    parent.computed
+  ) {
     return node;
   }
   const { object } = parent;
-  if (object?.type === 'Identifier' && object.name === 'globalThis') {
+  if (object.type === AST_NODE_TYPES.Identifier && object.name === 'globalThis') {
     return node;
   }
   return undefined;

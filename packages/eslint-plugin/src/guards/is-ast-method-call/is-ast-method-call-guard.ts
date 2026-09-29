@@ -8,19 +8,21 @@
  * }
  * // Returns true if node is CallExpression matching object.method() pattern
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstMethodCallGuard = ({
   node,
   object,
   method,
 }: {
-  node?: Tsestree;
+  node?: TSESTree.Node;
   object?: string;
   method?: string;
 }): boolean =>
-  node?.callee?.type === 'MemberExpression' &&
-  node.callee.object?.type === 'Identifier' &&
+  (node?.type === AST_NODE_TYPES.CallExpression || node?.type === AST_NODE_TYPES.NewExpression) &&
+  node.callee.type === AST_NODE_TYPES.MemberExpression &&
+  node.callee.object.type === AST_NODE_TYPES.Identifier &&
   node.callee.object.name === object &&
-  node.callee.property?.type === 'Identifier' &&
+  node.callee.property.type === AST_NODE_TYPES.Identifier &&
   node.callee.property.name === method;

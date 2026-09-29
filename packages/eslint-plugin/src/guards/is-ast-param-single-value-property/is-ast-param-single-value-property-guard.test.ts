@@ -1,124 +1,41 @@
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
+import { ArrowFunctionExpressionStub } from '#gateway/npm/typescript-eslint__utils/arrow-function-expression/arrow-function-expression.stub';
 import { isAstParamSingleValuePropertyGuard } from './is-ast-param-single-value-property-guard';
 
 describe('isAstParamSingleValuePropertyGuard', () => {
   it('VALID: {funcNode with { value } as ObjectPattern} => returns true', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [
-        TsestreeStub({
-          type: 'ObjectPattern',
-          properties: [
-            TsestreeStub({
-              type: 'Property',
-              key: TsestreeStub({
-                type: 'Identifier',
-                name: 'value',
-              }),
-            }),
-          ],
-        }),
-      ],
-    });
+    const funcNode = ArrowFunctionExpressionStub({ code: 'const f = ({ value: v }) => {};' });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(true);
   });
 
   it('VALID: {funcNode with { value } in AssignmentPattern} => returns true', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [
-        TsestreeStub({
-          type: 'AssignmentPattern',
-          left: TsestreeStub({
-            type: 'ObjectPattern',
-            properties: [
-              TsestreeStub({
-                type: 'Property',
-                key: TsestreeStub({
-                  type: 'Identifier',
-                  name: 'value',
-                }),
-              }),
-            ],
-          }),
-        }),
-      ],
-    });
+    const funcNode = ArrowFunctionExpressionStub({ code: 'const f = ({ value: v } = 0) => {};' });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(true);
   });
 
   it('INVALID: {funcNode with { other } property} => returns false', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [
-        TsestreeStub({
-          type: 'ObjectPattern',
-          properties: [
-            TsestreeStub({
-              type: 'Property',
-              key: TsestreeStub({
-                type: 'Identifier',
-                name: 'other',
-              }),
-            }),
-          ],
-        }),
-      ],
-    });
+    const funcNode = ArrowFunctionExpressionStub({ code: 'const f = ({ other: v }) => {};' });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(false);
   });
 
   it('INVALID: {funcNode with multiple properties} => returns false', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [
-        TsestreeStub({
-          type: 'ObjectPattern',
-          properties: [
-            TsestreeStub({
-              type: 'Property',
-              key: TsestreeStub({
-                type: 'Identifier',
-                name: 'value',
-              }),
-            }),
-            TsestreeStub({
-              type: 'Property',
-              key: TsestreeStub({
-                type: 'Identifier',
-                name: 'other',
-              }),
-            }),
-          ],
-        }),
-      ],
+    const funcNode = ArrowFunctionExpressionStub({
+      code: 'const f = ({ value: v, other: v }) => {};',
     });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(false);
   });
 
   it('INVALID: {funcNode with non-ObjectPattern param} => returns false', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [
-        TsestreeStub({
-          type: 'Identifier',
-          name: 'value',
-        }),
-      ],
-    });
+    const funcNode = ArrowFunctionExpressionStub({ code: 'const f = (value) => {};' });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(false);
   });
 
   it('EMPTY: {funcNode with no params} => returns false', () => {
-    const funcNode = TsestreeStub({
-      type: 'ArrowFunctionExpression',
-      params: [],
-    });
+    const funcNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
 
     expect(isAstParamSingleValuePropertyGuard({ funcNode })).toBe(false);
   });

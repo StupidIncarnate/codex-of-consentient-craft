@@ -7,44 +7,51 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const checkUnboundTypePropertiesLayerBroker = ({
   node,
   ctx,
 }: {
-  node?: Tsestree;
-  ctx?: EslintContext;
+  node?:
+    TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+  ctx?: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
 
   if (!node || !ctx) return result;
 
-  for (const param of node.params ?? []) {
+  for (const param of node.params) {
     // Unwrap a defaulted param, e.g. `({ a }: { a: A } = {})` — the type lives on `.left`.
-    const patternNode = param.type === 'AssignmentPattern' ? param.left : param;
-    if (!patternNode || patternNode.type !== 'ObjectPattern') continue;
+    const patternNode = param.type === AST_NODE_TYPES.AssignmentPattern ? param.left : param;
+    if (patternNode.type !== AST_NODE_TYPES.ObjectPattern) continue;
 
-    const properties = patternNode.properties ?? [];
+    const { properties } = patternNode;
 
     // A rest element consumes every remaining declared property — nothing left to flag.
-    const hasRest = properties.some((property) => property.type === 'RestElement');
+    const hasRest = properties.some((property) => property.type === AST_NODE_TYPES.RestElement);
     if (hasRest) continue;
 
     const typeLiteral = patternNode.typeAnnotation?.typeAnnotation;
-    if (!typeLiteral || typeLiteral.type !== 'TSTypeLiteral') continue;
+    if (!typeLiteral || typeLiteral.type !== AST_NODE_TYPES.TSTypeLiteral) continue;
 
     const boundNames = new Set(
-      properties
-        .filter((property) => property.type === 'Property' && property.key?.type === 'Identifier')
-        .map((property) => String(property.key?.name)),
+      properties.flatMap((property) =>
+        property.type === AST_NODE_TYPES.Property && property.key.type === AST_NODE_TYPES.Identifier
+          ? [property.key.name]
+          : [],
+      ),
     );
 
-    for (const member of typeLiteral.members ?? []) {
-      if (member.type !== 'TSPropertySignature' || member.key?.type !== 'Identifier') continue;
+    for (const member of typeLiteral.members) {
+      if (
+        member.type !== AST_NODE_TYPES.TSPropertySignature ||
+        member.key.type !== AST_NODE_TYPES.Identifier
+      )
+        continue;
 
-      const propertyName = String(member.key.name);
+      const propertyName = member.key.name;
       if (boundNames.has(propertyName)) continue;
 
       ctx.report({

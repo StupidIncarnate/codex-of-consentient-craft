@@ -1,20 +1,18 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ImportDeclarationStub } from '#gateway/npm/typescript-eslint__utils/import-declaration/import-declaration.stub';
+import { ExportSpecifierStub } from '#gateway/npm/typescript-eslint__utils/export-specifier/export-specifier.stub';
+import { ExportNamedDeclarationStub } from '#gateway/npm/typescript-eslint__utils/export-named-declaration/export-named-declaration.stub';
 import { reportTestSupportLayerBroker } from './report-test-support-layer-broker';
 import { reportTestSupportLayerBrokerProxy } from './report-test-support-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('reportTestSupportLayerBroker', () => {
   describe('stub or proxy specifier', () => {
     it('VALID: {source ends .stub} => reports the specifier and returns true', () => {
       reportTestSupportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ImportDeclaration,
-        source: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: '@dungeonmaster/shared/contracts/quest/quest.stub',
-        }),
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({
+        code: 'import "@dungeonmaster/shared/contracts/quest/quest.stub";',
       });
 
       const result = reportTestSupportLayerBroker({ node, context, verb: 'imported' });
@@ -39,16 +37,10 @@ describe('reportTestSupportLayerBroker', () => {
     it('VALID: {relative source, QuestStub specifier} => reports the name and returns true', () => {
       reportTestSupportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const specifier = TsestreeStub({
-        type: TsestreeNodeType.ExportSpecifier,
-        local: TsestreeStub({ name: 'QuestStub' }),
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ExportNamedDeclaration,
-        source: TsestreeStub({ type: TsestreeNodeType.Literal, value: './quest/quest-contract' }),
-        specifiers: [specifier],
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const code = 'export { QuestStub } from "./quest/quest-contract";';
+      const specifier = ExportSpecifierStub({ code });
+      const node = ExportNamedDeclarationStub({ code });
 
       const result = reportTestSupportLayerBroker({ node, context, verb: 'exported' });
 
@@ -69,18 +61,8 @@ describe('reportTestSupportLayerBroker', () => {
     it('VALID: {npm package source, createProxy specifier} => returns false, no report', () => {
       reportTestSupportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ImportDeclaration,
-        source: TsestreeStub({ type: TsestreeNodeType.Literal, value: 'http-proxy' }),
-        specifiers: [
-          TsestreeStub({
-            type: TsestreeNodeType.ImportSpecifier,
-            imported: TsestreeStub({ name: 'createProxy' }),
-            local: TsestreeStub({ name: 'createProxy' }),
-          }),
-        ],
-      });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: 'import { createProxy } from "http-proxy";' });
 
       const result = reportTestSupportLayerBroker({ node, context, verb: 'imported' });
 
@@ -91,20 +73,9 @@ describe('reportTestSupportLayerBroker', () => {
     it('VALID: {workspace source, production names} => returns false, no report', () => {
       reportTestSupportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ImportDeclaration,
-        source: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: '@dungeonmaster/shared/contracts',
-        }),
-        specifiers: [
-          TsestreeStub({
-            type: TsestreeNodeType.ImportSpecifier,
-            imported: TsestreeStub({ name: 'questContract' }),
-            local: TsestreeStub({ name: 'questContract' }),
-          }),
-        ],
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({
+        code: 'import { questContract } from "@dungeonmaster/shared/contracts";',
       });
 
       const result = reportTestSupportLayerBroker({ node, context, verb: 'imported' });
@@ -116,8 +87,8 @@ describe('reportTestSupportLayerBroker', () => {
     it('EMPTY: {node without a source} => returns false, no report', () => {
       reportTestSupportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ExportNamedDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ExportNamedDeclarationStub({ code: 'export {  };' });
 
       const result = reportTestSupportLayerBroker({ node, context, verb: 'exported' });
 

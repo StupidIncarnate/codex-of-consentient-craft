@@ -1,134 +1,40 @@
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
+import { ObjectExpressionStub } from '#gateway/npm/typescript-eslint__utils/object-expression/object-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { isAstObjectContractParseSpreadGuard } from './is-ast-object-contract-parse-spread-guard';
 
 describe('isAstObjectContractParseSpreadGuard', () => {
   it('VALID: {ObjectExpression with ...contract.parse()} => returns true', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [
-        TsestreeStub({
-          type: 'SpreadElement',
-          argument: TsestreeStub({
-            type: 'CallExpression',
-            callee: TsestreeStub({
-              type: 'MemberExpression',
-              object: TsestreeStub({
-                type: 'Identifier',
-                name: 'userContract',
-              }),
-              property: TsestreeStub({
-                type: 'Identifier',
-                name: 'parse',
-              }),
-            }),
-          }),
-        }),
-      ],
-    });
+    const node = ObjectExpressionStub({ code: 'const o = { ...userContract.parse() };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(true);
   });
 
   it('VALID: {ObjectExpression with multiple properties including ...contract.parse()} => returns true', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [
-        TsestreeStub({
-          type: 'Property',
-          key: TsestreeStub({
-            type: 'Identifier',
-            name: 'foo',
-          }),
-        }),
-        TsestreeStub({
-          type: 'SpreadElement',
-          argument: TsestreeStub({
-            type: 'CallExpression',
-            callee: TsestreeStub({
-              type: 'MemberExpression',
-              object: TsestreeStub({
-                type: 'Identifier',
-                name: 'dataContract',
-              }),
-              property: TsestreeStub({
-                type: 'Identifier',
-                name: 'parse',
-              }),
-            }),
-          }),
-        }),
-      ],
-    });
+    const node = ObjectExpressionStub({ code: 'const o = { foo: v, ...dataContract.parse() };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(true);
   });
 
   it('INVALID: {ObjectExpression with ...nonContract.parse()} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [
-        TsestreeStub({
-          type: 'SpreadElement',
-          argument: TsestreeStub({
-            type: 'CallExpression',
-            callee: TsestreeStub({
-              type: 'MemberExpression',
-              object: TsestreeStub({
-                type: 'Identifier',
-                name: 'someObject',
-              }),
-              property: TsestreeStub({
-                type: 'Identifier',
-                name: 'parse',
-              }),
-            }),
-          }),
-        }),
-      ],
-    });
+    const node = ObjectExpressionStub({ code: 'const o = { ...someObject.parse() };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
   });
 
   it('INVALID: {ObjectExpression with spread but no contract.parse()} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [
-        TsestreeStub({
-          type: 'SpreadElement',
-          argument: TsestreeStub({
-            type: 'Identifier',
-            name: 'someVariable',
-          }),
-        }),
-      ],
-    });
+    const node = ObjectExpressionStub({ code: 'const o = { ...someVariable };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
   });
 
   it('INVALID: {ObjectExpression with no spread} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [
-        TsestreeStub({
-          type: 'Property',
-          key: TsestreeStub({
-            type: 'Identifier',
-            name: 'foo',
-          }),
-        }),
-      ],
-    });
+    const node = ObjectExpressionStub({ code: 'const o = { foo: v };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
   });
 
   it('INVALID: {non-ObjectExpression node} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'Identifier',
-      name: 'test',
-    });
+    const node = IdentifierStub({ code: 'test;' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
   });
@@ -138,19 +44,7 @@ describe('isAstObjectContractParseSpreadGuard', () => {
   });
 
   it('EMPTY: {ObjectExpression with no properties} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: [],
-    });
-
-    expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
-  });
-
-  it('EMPTY: {ObjectExpression with properties: undefined} => returns false', () => {
-    const node = TsestreeStub({
-      type: 'ObjectExpression',
-      properties: undefined,
-    });
+    const node = ObjectExpressionStub({ code: 'const o = {  };' });
 
     expect(isAstObjectContractParseSpreadGuard({ node })).toBe(false);
   });

@@ -11,18 +11,25 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstMethodCallGuard } from '../../guards/is-ast-method-call/is-ast-method-call-guard';
 
-export const astBrandPathTransformer = ({ node }: { node: Tsestree }): Identifier[] => {
+export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): Identifier[] => {
   const path: Identifier[] = [];
-  let current: Tsestree = node;
+  let current: TSESTree.Node = node;
   let { parent } = current;
 
   while (parent) {
-    if (parent.type === 'Property') {
+    if (parent.type === AST_NODE_TYPES.Property) {
       const { key } = parent;
-      const keyText = key?.type === 'Identifier' ? key.name : key?.value;
+      const keyText =
+        key.type === AST_NODE_TYPES.Identifier
+          ? key.name
+          : key.type === AST_NODE_TYPES.Literal
+            ? key.value
+            : undefined;
       if (typeof keyText === 'string') {
         path.unshift(identifierContract.parse(keyText));
       }
@@ -31,25 +38,31 @@ export const astBrandPathTransformer = ({ node }: { node: Tsestree }): Identifie
     const isKeyedCall =
       isAstMethodCallGuard({ node: parent, object: 'z', method: 'record' }) ||
       isAstMethodCallGuard({ node: parent, object: 'z', method: 'map' });
-    if (isKeyedCall && parent.arguments?.[0] === current) {
+    if (
+      isKeyedCall &&
+      (parent.type === AST_NODE_TYPES.CallExpression || parent.type === AST_NODE_TYPES.NewExpression
+        ? parent.arguments[0]
+        : undefined) === current
+    ) {
       path.unshift(identifierContract.parse('Key'));
     }
 
     const tupleCall = parent.parent ?? null;
     if (
-      parent.type === 'ArrayExpression' &&
+      parent.type === AST_NODE_TYPES.ArrayExpression &&
       tupleCall !== null &&
       isAstMethodCallGuard({ node: tupleCall, object: 'z', method: 'tuple' })
     ) {
-      const index = parent.elements?.indexOf(current) ?? -1;
+      const child = current;
+      const index = parent.elements.findIndex((element) => element === child);
       if (index >= 0) {
         path.unshift(identifierContract.parse(String(index)));
       }
     }
 
-    if (parent.type === 'VariableDeclarator') {
-      if (parent.id?.type === 'Identifier' && parent.id.name !== undefined) {
-        path.unshift(parent.id.name);
+    if (parent.type === AST_NODE_TYPES.VariableDeclarator) {
+      if (parent.id.type === AST_NODE_TYPES.Identifier) {
+        path.unshift(identifierContract.parse(parent.id.name));
       }
       return path;
     }

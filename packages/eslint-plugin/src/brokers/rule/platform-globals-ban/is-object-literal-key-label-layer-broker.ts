@@ -9,7 +9,8 @@
  * isObjectLiteralKeyLabelLayerBroker({ node });
  * // Returns true for the `stdout` key in `{stdout: 1}` (skip it as a reference)
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isObjectLiteralKeyLabelLayerBroker = ({ node }: { node: Tsestree }): boolean =>
-  node.parent?.type === 'Property' && node.parent.key === node;
+export const isObjectLiteralKeyLabelLayerBroker = ({ node }: { node: TSESTree.Node }): boolean =>
+  node.parent?.type === AST_NODE_TYPES.Property && node.parent.key === node;

@@ -9,20 +9,24 @@
  * // Returns 'string'
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { zodObjectBrandStatics } from '../../statics/zod-object-brand/zod-object-brand-statics';
 
-export const astZodRootMethodTransformer = ({ node }: { node: Tsestree }): Identifier | null => {
-  let current: Tsestree | null | undefined = node;
+export const astZodRootMethodTransformer = ({ node }: { node: TSESTree.Node }): string | null => {
+  let current: TSESTree.Node | null | undefined = node;
   let derived = false;
 
-  while (current?.type === 'CallExpression' && current.callee?.type === 'MemberExpression') {
-    const receiver: Tsestree | null | undefined = current.callee.object;
+  while (
+    current.type === AST_NODE_TYPES.CallExpression &&
+    current.callee.type === AST_NODE_TYPES.MemberExpression
+  ) {
+    const receiver: TSESTree.Node | null | undefined = current.callee.object;
     const { property } = current.callee;
-    const method = property?.type === 'Identifier' ? property.name : undefined;
+    const method = property.type === AST_NODE_TYPES.Identifier ? property.name : undefined;
 
-    if (receiver?.type === 'Identifier' && receiver.name === 'z') {
+    if (receiver.type === AST_NODE_TYPES.Identifier && receiver.name === 'z') {
       return derived || method === undefined ? identifierContract.parse('derive') : method;
     }
 

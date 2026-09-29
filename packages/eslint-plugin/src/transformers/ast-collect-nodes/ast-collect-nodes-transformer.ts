@@ -7,15 +7,15 @@
  * astCollectNodesTransformer({ node: declarator, type: 'SpreadElement' });
  * // Returns every `...x` spread inside the declarator
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astCollectNodesTransformer = ({
   node,
   type,
 }: {
-  node: Tsestree;
-  type: Tsestree['type'];
-}): Tsestree[] => {
+  node: TSESTree.Node;
+  type: TSESTree.Node['type'];
+}): TSESTree.Node[] => {
   const values: unknown[] = Object.entries(node)
     .filter(([key]) => key !== 'parent')
     .flatMap(([, value]) => (Array.isArray(value) ? value : [value]));
@@ -29,7 +29,7 @@ export const astCollectNodesTransformer = ({
     }
 
     // A value with a string `type` is a node: ESLint hands nothing else that shape.
-    const found = child as Tsestree;
+    const found = child as TSESTree.Node;
 
     return [
       ...(found.type === type ? [found] : []),

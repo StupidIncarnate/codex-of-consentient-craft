@@ -1,4 +1,5 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { isInsideGatewayLayerBrokerProxy } from './is-inside-gateway-layer-broker.proxy';
 import { isTypePositionLayerBrokerProxy } from './is-type-position-layer-broker.proxy';
 import { isObjectLiteralKeyLabelLayerBrokerProxy } from './is-object-literal-key-label-layer-broker.proxy';
@@ -15,7 +16,7 @@ import { enclosingFunctionBindingNamesLayerBrokerProxy } from './enclosing-funct
  * proxy — every child construction below is real-passthrough by default, so it never runs.
  */
 export const rulePlatformGlobalsBanBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => {
   isInsideGatewayLayerBrokerProxy();
   isTypePositionLayerBrokerProxy();
@@ -28,9 +29,6 @@ export const rulePlatformGlobalsBanBrokerProxy = (): {
   enclosingFunctionBindingNamesLayerBrokerProxy();
 
   return {
-    createContext: (): EslintContext => ({
-      filename: undefined,
-      report: jest.fn(),
-    }),
+    createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
   };
 };

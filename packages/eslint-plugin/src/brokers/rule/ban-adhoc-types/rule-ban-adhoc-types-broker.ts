@@ -11,49 +11,48 @@
  * // Registered with options: [{ checkModuleLevelShapes: true }] it also refuses
  * // `type CarveResult = { ok: true }` and `(): { camel: string } => …` at module level
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { projectFolderTypeFromFilePathTransformer } from '../../../transformers/project-folder-type-from-file-path/project-folder-type-from-file-path-transformer';
 import { folderConfigTransformer } from '../../../transformers/folder-config/folder-config-transformer';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isModuleLevelShapeGuard } from '../../../guards/is-module-level-shape/is-module-level-shape-guard';
 
-export const ruleBanAdhocTypesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban ad-hoc interface definitions and inline type assertions. Use shared contracts instead.',
-      },
-      messages: {
-        noAdhocInterface:
-          "Ad-hoc interface definitions are forbidden in {{folderType}}/ files. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
-        noAdhocShape:
-          "An object type in a module-level {{where}} is forbidden in {{folderType}}/ files: it leaves the function as data. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
-        noInlineTypeAssertion:
-          'Inline type assertions creating structural types (as {{"{"}}{"{"}}) are forbidden in {{folderType}}/ files. Use proper contracts from contracts/ folder.',
-      },
-      schema: [
-        {
-          type: 'object',
-          properties: { checkModuleLevelShapes: { type: 'boolean' } },
-          additionalProperties: false,
-        },
-      ],
+export const ruleBanAdhocTypesBroker = (): TSESLint.RuleModule<
+  'noAdhocInterface' | 'noAdhocShape' | 'noInlineTypeAssertion'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban ad-hoc interface definitions and inline type assertions. Use shared contracts instead.',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      noAdhocInterface:
+        "Ad-hoc interface definitions are forbidden in {{folderType}}/ files. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
+      noAdhocShape:
+        "An object type in a module-level {{where}} is forbidden in {{folderType}}/ files: it leaves the function as data. Define our types in contracts/ and import them. A library's types are imported through the gateway.",
+      noInlineTypeAssertion:
+        'Inline type assertions creating structural types (as {{"{"}}{"{"}}) are forbidden in {{folderType}}/ files. Use proper contracts from contracts/ folder.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: { checkModuleLevelShapes: { type: 'boolean' } },
+        additionalProperties: false,
+      },
+    ],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const option = ctx.options?.[0];
+    const [option] = ctx.options;
     const checkModuleLevelShapes =
       typeof option === 'object' &&
       option !== null &&
       'checkModuleLevelShapes' in option &&
       option.checkModuleLevelShapes === true;
-    const filename = String(ctx.filename ?? '');
+    const { filename } = ctx;
 
     // Get folder type to check config
     const folderType = projectFolderTypeFromFilePathTransformer({ filename });
@@ -74,7 +73,7 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
 
     const shapeListeners = reportShapes
       ? {
-          TSTypeAliasDeclaration: (node: Tsestree): void => {
+          TSTypeAliasDeclaration: (node: TSESTree.TSTypeAliasDeclaration): void => {
             if (isModuleLevelShapeGuard({ node, typeNode: node.typeAnnotation })) {
               ctx.report({
                 node,
@@ -83,8 +82,8 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
               });
             }
           },
-          VariableDeclarator: (node: Tsestree): void => {
-            if (isModuleLevelShapeGuard({ node, typeNode: node.id?.typeAnnotation })) {
+          VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+            if (isModuleLevelShapeGuard({ node, typeNode: node.id.typeAnnotation })) {
               ctx.report({
                 node,
                 messageId: 'noAdhocShape',
@@ -94,7 +93,7 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
           },
           // A function's return type only leaves it when the function itself is a module-level
           // declaration or a module-level `const f = …`; a callback passed to a call does not count.
-          FunctionDeclaration: (node: Tsestree): void => {
+          FunctionDeclaration: (node: TSESTree.FunctionDeclaration): void => {
             if (isModuleLevelShapeGuard({ node, typeNode: node.returnType })) {
               ctx.report({
                 node,
@@ -103,9 +102,9 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
               });
             }
           },
-          ArrowFunctionExpression: (node: Tsestree): void => {
+          ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
             if (
-              node.parent?.type === 'VariableDeclarator' &&
+              node.parent.type === AST_NODE_TYPES.VariableDeclarator &&
               isModuleLevelShapeGuard({ node, typeNode: node.returnType })
             ) {
               ctx.report({
@@ -115,9 +114,9 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
               });
             }
           },
-          FunctionExpression: (node: Tsestree): void => {
+          FunctionExpression: (node: TSESTree.FunctionExpression): void => {
             if (
-              node.parent?.type === 'VariableDeclarator' &&
+              node.parent.type === AST_NODE_TYPES.VariableDeclarator &&
               isModuleLevelShapeGuard({ node, typeNode: node.returnType })
             ) {
               ctx.report({
@@ -127,10 +126,8 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
               });
             }
           },
-          NewExpression: (node: Tsestree): void => {
-            if (
-              isModuleLevelShapeGuard({ node, typeNode: node.typeArguments ?? node.typeParameters })
-            ) {
+          NewExpression: (node: TSESTree.NewExpression): void => {
+            if (isModuleLevelShapeGuard({ node, typeNode: node.typeArguments })) {
               ctx.report({
                 node,
                 messageId: 'noAdhocShape',
@@ -138,10 +135,8 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
               });
             }
           },
-          CallExpression: (node: Tsestree): void => {
-            if (
-              isModuleLevelShapeGuard({ node, typeNode: node.typeArguments ?? node.typeParameters })
-            ) {
+          CallExpression: (node: TSESTree.CallExpression): void => {
+            if (isModuleLevelShapeGuard({ node, typeNode: node.typeArguments })) {
               ctx.report({
                 node,
                 messageId: 'noAdhocShape',
@@ -155,7 +150,7 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
     return {
       ...shapeListeners,
       // Ban ALL interface declarations (both top-level and nested)
-      TSInterfaceDeclaration: (node: Tsestree): void => {
+      TSInterfaceDeclaration: (node: TSESTree.TSInterfaceDeclaration): void => {
         ctx.report({
           node,
           messageId: 'noAdhocInterface',
@@ -166,27 +161,24 @@ export const ruleBanAdhocTypesBroker = (): EslintRule => ({
       },
 
       // Ban inline type assertions that create structural types
-      TSAsExpression: (node: Tsestree): void => {
+      TSAsExpression: (node: TSESTree.TSAsExpression): void => {
         const { typeAnnotation } = node;
-        if (!typeAnnotation) {
-          return;
-        }
 
         // Allow 'as const' assertions
-        if (typeAnnotation.type === 'TSTypeReference') {
+        if (typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
           const { typeName } = typeAnnotation;
-          if (typeName && typeName.type === 'Identifier' && typeName.name === 'const') {
+          if (typeName.type === AST_NODE_TYPES.Identifier && typeName.name === 'const') {
             return;
           }
         }
 
         // Allow 'as unknown' when part of 'as unknown as Type' pattern
-        if (typeAnnotation.type === 'TSUnknownKeyword') {
+        if (typeAnnotation.type === AST_NODE_TYPES.TSUnknownKeyword) {
           return;
         }
 
         // Check if this is an inline structural type (object literal type)
-        if (typeAnnotation.type === 'TSTypeLiteral') {
+        if (typeAnnotation.type === AST_NODE_TYPES.TSTypeLiteral) {
           ctx.report({
             node,
             messageId: 'noInlineTypeAssertion',

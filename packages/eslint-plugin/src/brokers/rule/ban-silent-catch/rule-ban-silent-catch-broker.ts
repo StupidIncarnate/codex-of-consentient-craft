@@ -5,58 +5,59 @@
  * const rule = ruleBanSilentCatchBroker();
  * // Returns ESLint rule that prevents .catch(() => undefined), .catch(() => {}), and similar patterns
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSilentBodyLayerBroker } from './is-silent-body-layer-broker';
 
-export const ruleBanSilentCatchBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban silent .catch() handlers that swallow errors without logging, re-throwing, or taking action.',
-      },
-      messages: {
-        banSilentCatch: 'Never silently consume errors. Always bubble them up.',
-      },
-      schema: [],
+export const ruleBanSilentCatchBroker = (): TSESLint.RuleModule<'banSilentCatch'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban silent .catch() handlers that swallow errors without logging, re-throwing, or taking action.',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      banSilentCatch: 'Never silently consume errors. Always bubble them up.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (!callee) return;
-
         // Must be .catch() — a MemberExpression with property name 'catch'
-        if (callee.type !== 'MemberExpression') return;
-        if (callee.property?.name !== 'catch') return;
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) return;
+        if (
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined) !== 'catch'
+        )
+          return;
 
         // Must have at least one argument
         const args = node.arguments;
 
-        if (!args || args.length === 0) return;
+        if (args.length === 0) return;
 
         const [handler] = args;
 
         if (!handler) return;
 
         // Handler must be a function expression or arrow function
-        if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
+        if (
+          handler.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+          handler.type !== AST_NODE_TYPES.FunctionExpression
+        ) {
           return;
         }
 
         // Check if the function body is silent
-        // body is a single node for arrow/function expressions (never an array at runtime)
-        const handlerBody = Array.isArray(handler.body) ? handler.body[0] : handler.body;
-
-        if (isSilentBodyLayerBroker({ body: handlerBody })) {
+        if (isSilentBodyLayerBroker({ body: handler.body })) {
           ctx.report({
             node,
             messageId: 'banSilentCatch',

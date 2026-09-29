@@ -1,25 +1,11 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { IdentifierStub as IdentifierNodeStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { isProcessCwdCallGuard } from './is-process-cwd-call-guard';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('isProcessCwdCallGuard', () => {
   describe('process.cwd() calls', () => {
     it('VALID: {node: process.cwd() CallExpression} => true', () => {
-      const callee = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'process' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'cwd' }),
-        }),
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-      });
+      const node = CallExpressionStub({ code: 'process.cwd();' });
 
       const result = isProcessCwdCallGuard({ node });
 
@@ -35,10 +21,7 @@ describe('isProcessCwdCallGuard', () => {
     });
 
     it('VALID: {node: Identifier} => false', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.Identifier,
-        name: IdentifierStub({ value: 'process' }),
-      });
+      const node = IdentifierNodeStub({ code: 'process;' });
 
       const result = isProcessCwdCallGuard({ node });
 
@@ -46,21 +29,7 @@ describe('isProcessCwdCallGuard', () => {
     });
 
     it('VALID: {node: process.env CallExpression} => false', () => {
-      const callee = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'process' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'env' }),
-        }),
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-      });
+      const node = CallExpressionStub({ code: 'process.env();' });
 
       const result = isProcessCwdCallGuard({ node });
 
@@ -68,21 +37,7 @@ describe('isProcessCwdCallGuard', () => {
     });
 
     it('VALID: {node: foo.cwd() CallExpression} => false', () => {
-      const callee = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'foo' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'cwd' }),
-        }),
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-      });
+      const node = CallExpressionStub({ code: 'foo.cwd();' });
 
       const result = isProcessCwdCallGuard({ node });
 
@@ -90,13 +45,7 @@ describe('isProcessCwdCallGuard', () => {
     });
 
     it('VALID: {node: bare cwd() CallExpression with Identifier callee} => false', () => {
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'cwd' }),
-        }),
-      });
+      const node = CallExpressionStub({ code: 'cwd();' });
 
       const result = isProcessCwdCallGuard({ node });
 

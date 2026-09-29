@@ -1,19 +1,13 @@
+import { TSTypeAnnotationStub } from '#gateway/npm/typescript-eslint__utils/ts-type-annotation/ts-type-annotation.stub';
+import { TSArrayTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-array-type/ts-array-type.stub';
+import { TSTypeReferenceStub } from '#gateway/npm/typescript-eslint__utils/ts-type-reference/ts-type-reference.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
 import { typeNameFromAnnotationTransformer } from './type-name-from-annotation-transformer';
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 
 describe('typeNameFromAnnotationTransformer', () => {
   describe('valid input', () => {
     it('VALID: {type: TSTypeAnnotation with TSTypeReference} => returns type name', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeAnnotation',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeReference',
-          typeName: TsestreeStub({
-            type: 'Identifier',
-            name: 'User',
-          }),
-        }),
-      });
+      const typeAnnotation = TSTypeAnnotationStub({ code: 'let x: User;' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
@@ -21,30 +15,15 @@ describe('typeNameFromAnnotationTransformer', () => {
     });
 
     it('VALID: {type: TSTypeReference with Identifier} => returns type name', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeReference',
-        typeName: TsestreeStub({
-          type: 'Identifier',
-          name: 'Tsestree',
-        }),
-      });
+      const typeAnnotation = TSTypeReferenceStub({ code: 'let x: Widget;' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
-      expect(result).toBe('Tsestree');
+      expect(result).toBe('Widget');
     });
 
     it('VALID: {type: TSArrayType} => returns element type name', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSArrayType',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeReference',
-          typeName: TsestreeStub({
-            type: 'Identifier',
-            name: 'User',
-          }),
-        }),
-      });
+      const typeAnnotation = TSArrayTypeStub({ code: 'let x: User[];' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
@@ -52,13 +31,7 @@ describe('typeNameFromAnnotationTransformer', () => {
     });
 
     it('VALID: {type: TSTypeReference with generic Array<T>} => returns Array', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeReference',
-        typeName: TsestreeStub({
-          type: 'Identifier',
-          name: 'Array',
-        }),
-      });
+      const typeAnnotation = TSTypeReferenceStub({ code: 'let x: Array;' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
@@ -79,38 +52,8 @@ describe('typeNameFromAnnotationTransformer', () => {
       expect(result).toBe(null);
     });
 
-    it('EDGE: {type: TSTypeReference without typeName} => returns null', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeReference',
-        typeName: null,
-      });
-
-      const result = typeNameFromAnnotationTransformer({ typeAnnotation });
-
-      expect(result).toBe(null);
-    });
-
     it('EDGE: {type: TSTypeReference with non-Identifier typeName} => returns null', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeReference',
-        typeName: TsestreeStub({
-          type: 'MemberExpression',
-        }),
-      });
-
-      const result = typeNameFromAnnotationTransformer({ typeAnnotation });
-
-      expect(result).toBe(null);
-    });
-
-    it('EDGE: {type: TSTypeReference with Identifier but no name} => returns null', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'TSTypeReference',
-        typeName: TsestreeStub({
-          type: 'Identifier',
-          name: undefined,
-        }),
-      });
+      const typeAnnotation = TSTypeReferenceStub({ code: 'let x: Namespace.User;' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 
@@ -118,9 +61,7 @@ describe('typeNameFromAnnotationTransformer', () => {
     });
 
     it('EDGE: {type: unknown node type} => returns null', () => {
-      const typeAnnotation = TsestreeStub({
-        type: 'CallExpression',
-      });
+      const typeAnnotation = CallExpressionStub({ code: 'f();' });
 
       const result = typeNameFromAnnotationTransformer({ typeAnnotation });
 

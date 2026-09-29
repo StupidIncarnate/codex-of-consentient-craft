@@ -10,9 +10,9 @@
  *
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint (this repo only, never shipped) to hold the standing "never hardcode on a package name" constraint — every such decision goes through `packageType`, resolved from the target repo's own disk, and every consumer handles a set.
  */
-import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+
 import { packageNameLiteralStatics } from '../../../statics/package-name-literal/package-name-literal-statics';
 import { bannedPackagePathNamesTransformer } from '../../../transformers/banned-package-path-names/banned-package-path-names-transformer';
 import { effectiveExpressionParentTransformer } from '../../../transformers/effective-expression-parent/effective-expression-parent-transformer';
@@ -20,46 +20,47 @@ import { isPackageNameLiteralAllowlistedGuard } from '../../../guards/is-package
 import { isPackageNameComparisonOperandGuard } from '../../../guards/is-package-name-comparison-operand/is-package-name-comparison-operand-guard';
 import { isMembershipTestUsageGuard } from '../../../guards/is-membership-test-usage/is-membership-test-usage-guard';
 
-export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban a frontend/backend package name from executable strings and from branch conditions. Resolve the package from its packageType instead, and handle a set of packages rather than one.',
-      },
-      messages: {
-        hardcodedPackagePath:
-          "Do not hardcode the package name '{{packageName}}' in an executable string. This system also runs in repos where that package has a different name, and where more than one package answers to the same role. Resolve the package from its `packageType` — `isPackageE2eEligibleGuard` / `architecturePackageE2eEligibleDetectBroker` for the frontend question — and handle a SET, never a singleton. In agent-facing prose, write a placeholder such as `<ui-package>`. Comments and JSDoc are exempt; this string is code.",
-        packageNameDiscriminator:
-          "Do not branch on the package name '{{packageName}}'. What a package IS is its `packageType`, detected from the target repo's own disk; its name is an accident of that repo. Compare on `packageType` (or on `isPackageE2eEligibleGuard`) and handle a SET of packages, never a singleton.",
-      },
-      schema: [],
+export const ruleNoHardcodedPackageNamesBroker = (): TSESLint.RuleModule<
+  'hardcodedPackagePath' | 'packageNameDiscriminator'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban a frontend/backend package name from executable strings and from branch conditions. Resolve the package from its packageType instead, and handle a set of packages rather than one.',
     },
-  }),
+    messages: {
+      hardcodedPackagePath:
+        "Do not hardcode the package name '{{packageName}}' in an executable string. This system also runs in repos where that package has a different name, and where more than one package answers to the same role. Resolve the package from its `packageType` — `isPackageE2eEligibleGuard` / `architecturePackageE2eEligibleDetectBroker` for the frontend question — and handle a SET, never a singleton. In agent-facing prose, write a placeholder such as `<ui-package>`. Comments and JSDoc are exempt; this string is code.",
+      packageNameDiscriminator:
+        "Do not branch on the package name '{{packageName}}'. What a package IS is its `packageType`, detected from the target repo's own disk; its name is an accident of that repo. Compare on `packageType` (or on `isPackageE2eEligibleGuard`) and handle a SET of packages, never a singleton.",
+    },
+    schema: [],
+  },
+  defaultOptions: [],
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
-    if (isPackageNameLiteralAllowlistedGuard({ filename: String(filename) })) {
+    if (isPackageNameLiteralAllowlistedGuard({ filename })) {
       return {};
     }
 
     // A collection of bare role names is a list until something tests membership against it, and
     // the test is usually written after the collection — `const UI = ['web'] … UI.includes(pkg)`.
     // So the verdict is held open until the whole file has been walked.
-    const roleElementsByBindingName = new Map<Identifier, Tsestree[]>();
-    const membershipBindingNames = new Set<Identifier>();
-    const membershipTestedElements: Tsestree[] = [];
+    const roleElementsByBindingName = new Map<string, TSESTree.Node[]>();
+    const membershipBindingNames = new Set<string>();
+    const membershipTestedElements: TSESTree.Node[] = [];
 
     return {
       // Both node kinds carry a string the parser produced from source. A comment produces neither,
       // which is the whole exemption.
-      'Literal, TemplateElement': (node: Tsestree): void => {
+      'Literal, TemplateElement': (node: TSESTree.Literal | TSESTree.TemplateElement): void => {
         const { parent } = node;
         const isRequireCallSource =
-          parent?.type === 'CallExpression' &&
-          parent.callee?.type === 'Identifier' &&
+          parent.type === AST_NODE_TYPES.CallExpression &&
+          parent.callee.type === AST_NODE_TYPES.Identifier &&
           parent.callee.name === 'require';
 
         // The literal's TEXT cannot tell a module specifier from the same string as data — an
@@ -67,14 +68,14 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
         // imports. The parent node is the one place the distinction exists, so the withhold happens
         // here, before the text ever reaches bannedPackagePathNamesTransformer.
         if (
-          parent?.type === 'ImportDeclaration' ||
-          parent?.type === 'ImportExpression' ||
+          parent.type === AST_NODE_TYPES.ImportDeclaration ||
+          parent.type === AST_NODE_TYPES.ImportExpression ||
           isRequireCallSource
         ) {
           return;
         }
 
-        const sourceText = ctx.sourceCode?.getText(node);
+        const sourceText = ctx.sourceCode.getText(node);
         const text = typeof sourceText === 'string' ? sourceText : '';
 
         for (const packageName of bannedPackagePathNamesTransformer({
@@ -105,9 +106,9 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
         }
       },
 
-      ArrayExpression: (node: Tsestree): void => {
-        const roleElements = (node.elements ?? []).flatMap((element) => {
-          if (element === null || element.type !== 'Literal') {
+      ArrayExpression: (node: TSESTree.ArrayExpression): void => {
+        const roleElements = node.elements.flatMap((element) => {
+          if (element === null || element.type !== AST_NODE_TYPES.Literal) {
             return [];
           }
           const { value } = element;
@@ -129,7 +130,12 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
         }
 
         const parent = effectiveExpressionParentTransformer({ node });
-        const bindingName = parent?.type === 'VariableDeclarator' ? parent.id?.name : undefined;
+        const bindingName =
+          parent?.type === AST_NODE_TYPES.VariableDeclarator
+            ? parent.id.type === AST_NODE_TYPES.Identifier
+              ? parent.id.name
+              : undefined
+            : undefined;
         if (bindingName === undefined) {
           return;
         }
@@ -140,8 +146,8 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
         ]);
       },
 
-      Identifier: (node: Tsestree): void => {
-        if (node.name !== undefined && isMembershipTestUsageGuard({ node })) {
+      Identifier: (node: TSESTree.Identifier): void => {
+        if (isMembershipTestUsageGuard({ node })) {
           membershipBindingNames.add(node.name);
         }
       },
@@ -158,7 +164,10 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
           ctx.report({
             node: element,
             messageId: 'packageNameDiscriminator',
-            data: { packageName: String(element.value) },
+            data: {
+              packageName:
+                'value' in element && typeof element.value === 'string' ? element.value : '',
+            },
           });
         }
       },

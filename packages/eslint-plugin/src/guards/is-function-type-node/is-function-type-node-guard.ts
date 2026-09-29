@@ -9,39 +9,43 @@
  * isFunctionTypeNodeGuard({ node: memberOfObjectTypeLiteral });
  * // Returns true for `send: (data: string) => void` and `stop(): void`, false for `count: number`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isFunctionTypeNodeGuard = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): boolean => {
   if (node === undefined || node === null) {
     return false;
   }
 
   if (
-    node.type === 'TSFunctionType' ||
-    node.type === 'TSMethodSignature' ||
-    node.type === 'TSCallSignatureDeclaration' ||
-    node.type === 'TSConstructSignatureDeclaration'
+    node.type === AST_NODE_TYPES.TSFunctionType ||
+    node.type === AST_NODE_TYPES.TSMethodSignature ||
+    node.type === AST_NODE_TYPES.TSCallSignatureDeclaration ||
+    node.type === AST_NODE_TYPES.TSConstructSignatureDeclaration
   ) {
     return true;
   }
 
-  if (node.type === 'TSPropertySignature' || node.type === 'TSTypeAnnotation') {
+  if (
+    node.type === AST_NODE_TYPES.TSPropertySignature ||
+    node.type === AST_NODE_TYPES.TSTypeAnnotation
+  ) {
     return isFunctionTypeNodeGuard({ node: node.typeAnnotation });
   }
 
-  if (node.type === 'TSUnionType') {
-    const members = node.types ?? [];
+  if (node.type === AST_NODE_TYPES.TSUnionType) {
+    const members = node.types;
 
     return (
       members.some((member) => isFunctionTypeNodeGuard({ node: member })) &&
       members.every(
         (member) =>
-          member.type === 'TSUndefinedKeyword' ||
-          member.type === 'TSNullKeyword' ||
+          member.type === AST_NODE_TYPES.TSUndefinedKeyword ||
+          member.type === AST_NODE_TYPES.TSNullKeyword ||
           isFunctionTypeNodeGuard({ node: member }),
       )
     );

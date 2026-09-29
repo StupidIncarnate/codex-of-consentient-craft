@@ -11,10 +11,7 @@
  * const rule = ruleEnforceImplementationColocationBroker();
  * // Returns ESLint rule that requires foo-broker.ts to have foo-broker.test.ts and foo-broker.proxy.ts in same directory
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
@@ -31,49 +28,58 @@ import { contractPathToStubPathTransformer } from '../../../transformers/contrac
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 import { testFilePatternStatics } from '../../../statics/test-file-pattern/test-file-pattern-statics';
 
-export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Enforce implementation files have colocated test and proxy files, and contract files have both test and stub files',
-      },
-      messages: {
-        missingTestFile:
-          'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
-        missingTestFileWithLayer:
-          'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory. Layer files (helpers decomposing complex parents) also need test files.',
-        missingProxyFile:
-          'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory.',
-        missingProxyFileWithLayer:
-          'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory. Layer files (helpers for complex parents) need their own proxy files if they have dependencies to mock.',
-        missingStubFile:
-          'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
-        invalidProxyFilename:
-          'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
-        missingIntegrationTestFile:
-          '{{fileType}} file must have a colocated integration test file. Create {{testFileName}} in the same directory. {{fileType}} files require integration tests, not unit tests.',
-        forbiddenUnitTestFile:
-          '{{fileType}} file must not have a unit test file. Found {{testFileName}}. {{fileType}} files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
-        forbiddenProxyFile:
-          '{{fileType}} file must not have a proxy file. Found {{proxyFileName}}. {{fileType}} files use integration tests and do not need proxy files.',
-      },
-      schema: [],
+export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule<
+  | 'missingTestFile'
+  | 'missingTestFileWithLayer'
+  | 'missingProxyFile'
+  | 'missingProxyFileWithLayer'
+  | 'missingStubFile'
+  | 'invalidProxyFilename'
+  | 'missingIntegrationTestFile'
+  | 'forbiddenUnitTestFile'
+  | 'forbiddenProxyFile'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Enforce implementation files have colocated test and proxy files, and contract files have both test and stub files',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      missingTestFile:
+        'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory.',
+      missingTestFileWithLayer:
+        'Implementation file must have a colocated test file. Create {{testFileName}} (or .integration.test.ts or .spec.ts variant) in the same directory. Layer files (helpers decomposing complex parents) also need test files.',
+      missingProxyFile:
+        'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory.',
+      missingProxyFileWithLayer:
+        'Testable file must have a colocated proxy file. Create {{proxyFileName}} in the same directory. Layer files (helpers for complex parents) need their own proxy files if they have dependencies to mock.',
+      missingStubFile:
+        'Contract file must have a colocated stub file. Create {{stubFileName}} in the same directory.',
+      invalidProxyFilename:
+        'Proxy file must follow naming pattern [baseName]-[folderType].proxy.ts. Expected: {{expectedFileName}}, but found: {{actualFileName}}',
+      missingIntegrationTestFile:
+        '{{fileType}} file must have a colocated integration test file. Create {{testFileName}} in the same directory. {{fileType}} files require integration tests, not unit tests.',
+      forbiddenUnitTestFile:
+        '{{fileType}} file must not have a unit test file. Found {{testFileName}}. {{fileType}} files require integration tests (.integration.test.ts), not unit tests (.test.ts).',
+      forbiddenProxyFile:
+        '{{fileType}} file must not have a proxy file. Found {{proxyFileName}}. {{fileType}} files use integration tests and do not need proxy files.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     let hasRegexLiteral = false;
     return {
       // Runs on every Literal node the walk reaches before `Program:exit` fires below,
       // so a regex anywhere in the file is seen before the statics test-requirement check runs.
-      Literal: (node: Tsestree): void => {
+      Literal: (node: TSESTree.Literal): void => {
         if (node.value instanceof RegExp) {
           hasRegexLiteral = true;
         }
       },
-      'Program:exit': (node: Tsestree): void => {
+      'Program:exit': (node: TSESTree.Program): void => {
         const { filename } = ctx;
 
         // Skip if filename is not provided

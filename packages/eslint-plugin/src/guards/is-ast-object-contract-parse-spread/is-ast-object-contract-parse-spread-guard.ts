@@ -8,17 +8,22 @@
  * }
  * // Returns true if any property is SpreadElement with contract.parse() argument
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
 
-export const isAstObjectContractParseSpreadGuard = ({ node }: { node?: Tsestree }): boolean => {
-  if (node === undefined || node.type !== 'ObjectExpression' || !node.properties) {
+export const isAstObjectContractParseSpreadGuard = ({
+  node,
+}: {
+  node?: TSESTree.Node;
+}): boolean => {
+  if (node === undefined || node.type !== AST_NODE_TYPES.ObjectExpression) {
     return false;
   }
 
   // Check if any property is a SpreadElement with contract.parse()
   return node.properties.some((prop) => {
-    if (prop.type === 'SpreadElement' && prop.argument) {
+    if (prop.type === AST_NODE_TYPES.SpreadElement) {
       return isAstContractParseCallGuard({ node: prop.argument });
     }
     return false;

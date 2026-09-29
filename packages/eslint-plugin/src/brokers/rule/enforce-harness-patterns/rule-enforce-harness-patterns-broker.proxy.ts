@@ -1,4 +1,5 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { validateHarnessConstructorSideEffectsLayerBrokerProxy } from './validate-harness-constructor-side-effects-layer-broker.proxy';
 
 /**
@@ -6,14 +7,11 @@ import { validateHarnessConstructorSideEffectsLayerBrokerProxy } from './validat
  * Provides mock setup for testing the rule.
  */
 export const ruleEnforceHarnessPatternsBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => {
   validateHarnessConstructorSideEffectsLayerBrokerProxy();
 
   return {
-    createContext: (): EslintContext => ({
-      filename: undefined,
-      report: jest.fn(),
-    }),
+    createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
   };
 };

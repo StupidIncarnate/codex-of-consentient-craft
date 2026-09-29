@@ -7,12 +7,18 @@
  * astBrandLiteralTransformer({ node: brandCallNode });
  * // Returns the Literal node for `'Quest'` in `.brand<'Quest'>()`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const astBrandLiteralTransformer = ({ node }: { node: Tsestree }): Tsestree | null => {
-  const typeArguments = node.typeArguments ?? node.typeParameters;
-  const [first] = typeArguments?.params ?? [];
-  const literal = first?.type === 'TSLiteralType' ? first.literal : undefined;
+export const astBrandLiteralTransformer = ({
+  node,
+}: {
+  node: TSESTree.CallExpression;
+}): TSESTree.Node | null => {
+  const [first] = node.typeArguments?.params ?? [];
+  const literal = first?.type === AST_NODE_TYPES.TSLiteralType ? first.literal : undefined;
 
-  return literal?.type === 'Literal' && typeof literal.value === 'string' ? literal : null;
+  return literal?.type === AST_NODE_TYPES.Literal && typeof literal.value === 'string'
+    ? literal
+    : null;
 };

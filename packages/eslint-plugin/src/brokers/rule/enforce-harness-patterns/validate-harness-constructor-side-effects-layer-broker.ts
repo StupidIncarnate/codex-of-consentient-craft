@@ -7,8 +7,8 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { harnessLifecycleStatics } from '../../../statics/harness-lifecycle/harness-lifecycle-statics';
 import { isAllowedHarnessMemberCallGuard } from '../../../guards/is-allowed-harness-member-call/is-allowed-harness-member-call-guard';
 
@@ -16,25 +16,20 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
   functionNode,
   context,
 }: {
-  functionNode: Tsestree;
-  context: EslintContext;
+  functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
   const { body } = functionNode;
 
-  if (!body) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
 
-  if (Array.isArray(body)) return result;
-
-  if (body.type !== 'BlockStatement') return result;
-
-  if (!body.body || !Array.isArray(body.body)) return result;
   const statements = body.body;
 
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
-    if (stmt && stmt.type === 'ReturnStatement') {
+    if (stmt && stmt.type === AST_NODE_TYPES.ReturnStatement) {
       returnStatementIndex = i;
       break;
     }
@@ -46,22 +41,17 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
     const statement = statements[i];
     if (!statement) continue;
 
-    if (statement.type === 'VariableDeclaration') {
-      const declarators = statement.declarations;
-      if (!declarators) continue;
-
-      for (const declarator of declarators) {
+    if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+      for (const declarator of statement.declarations) {
         const initNode = declarator.init;
         if (!initNode) continue;
 
-        if (initNode.type !== 'CallExpression') continue;
+        if (initNode.type !== AST_NODE_TYPES.CallExpression) continue;
 
         const { callee: declCallee } = initNode;
-        if (!declCallee) continue;
 
-        if (declCallee.type === 'Identifier') {
+        if (declCallee.type === AST_NODE_TYPES.Identifier) {
           const { name } = declCallee;
-          if (!name) continue;
 
           const isLifecycleHook = harnessLifecycleStatics.allowedHookSet.has(name);
           const isChildHarness = name.endsWith('Harness');
@@ -77,19 +67,15 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
           continue;
         }
 
-        if (declCallee.type === 'MemberExpression') {
+        if (declCallee.type === AST_NODE_TYPES.MemberExpression) {
           const { object, property } = declCallee;
-          if (
-            !isAllowedHarnessMemberCallGuard({
-              objectName: object?.name,
-              propertyName: property?.name,
-            })
-          ) {
-            const objectName = object?.name ?? 'unknown';
+          const objectName = 'name' in object ? object.name : undefined;
+          const propertyName = 'name' in property ? property.name : undefined;
+          if (!isAllowedHarnessMemberCallGuard({ objectName, propertyName })) {
             context.report({
               node: statement,
               messageId: 'harnessConstructorNoSideEffects',
-              data: { type: `${objectName}.${property?.name ?? 'method'}()` },
+              data: { type: `${objectName ?? 'unknown'}.${propertyName ?? 'method'}()` },
             });
           }
         }
@@ -97,12 +83,11 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
       continue;
     }
 
-    if (statement.type !== 'ExpressionStatement') continue;
+    if (statement.type !== AST_NODE_TYPES.ExpressionStatement) continue;
 
     const { expression } = statement;
-    if (!expression) continue;
 
-    if (expression.type === 'AssignmentExpression') {
+    if (expression.type === AST_NODE_TYPES.AssignmentExpression) {
       context.report({
         node: statement,
         messageId: 'harnessConstructorNoSideEffects',
@@ -111,12 +96,14 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
       continue;
     }
 
-    if (expression.type !== 'CallExpression') continue;
+    if (expression.type !== AST_NODE_TYPES.CallExpression) continue;
 
     const { callee } = expression;
-    if (!callee) continue;
 
-    if (callee.type === 'ArrowFunctionExpression' || callee.type === 'FunctionExpression') {
+    if (
+      callee.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+      callee.type === AST_NODE_TYPES.FunctionExpression
+    ) {
       context.report({
         node: statement,
         messageId: 'harnessConstructorNoSideEffects',
@@ -125,9 +112,8 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
       continue;
     }
 
-    if (callee.type === 'Identifier') {
+    if (callee.type === AST_NODE_TYPES.Identifier) {
       const { name } = callee;
-      if (!name) continue;
 
       const isLifecycleHook = harnessLifecycleStatics.allowedHookSet.has(name);
       const isChildHarness = name.endsWith('Harness');
@@ -143,16 +129,15 @@ export const validateHarnessConstructorSideEffectsLayerBroker = ({
       continue;
     }
 
-    if (callee.type === 'MemberExpression') {
+    if (callee.type === AST_NODE_TYPES.MemberExpression) {
       const { object, property } = callee;
-      if (
-        !isAllowedHarnessMemberCallGuard({ objectName: object?.name, propertyName: property?.name })
-      ) {
-        const objectName = object?.name ?? 'unknown';
+      const objectName = 'name' in object ? object.name : undefined;
+      const propertyName = 'name' in property ? property.name : undefined;
+      if (!isAllowedHarnessMemberCallGuard({ objectName, propertyName })) {
         context.report({
           node: statement,
           messageId: 'harnessConstructorNoSideEffects',
-          data: { type: `${objectName}.${property?.name ?? 'method'}()` },
+          data: { type: `${objectName ?? 'unknown'}.${propertyName ?? 'method'}()` },
         });
       }
     }

@@ -7,8 +7,8 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateReturnStatementLayerBroker } from './validate-return-statement-layer-broker';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 
@@ -16,73 +16,61 @@ export const validateProxyFunctionReturnLayerBroker = ({
   functionNode,
   context,
 }: {
-  functionNode: Tsestree;
-  context: EslintContext;
+  functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  const { body, returnType } = functionNode;
-
-  if (!body) return result;
+  const { returnType, body } = functionNode;
 
   // Check explicit return type annotation if present
   if (returnType) {
-    const { typeAnnotation } = returnType;
-    if (typeAnnotation) {
-      const typeAnnotationType = typeAnnotation.type;
+    const { type: typeAnnotationType } = returnType.typeAnnotation;
 
-      // Check if return type is void, primitive, or array
-      if (
-        typeAnnotationType === 'TSVoidKeyword' ||
-        typeAnnotationType === 'TSStringKeyword' ||
-        typeAnnotationType === 'TSNumberKeyword' ||
-        typeAnnotationType === 'TSBooleanKeyword' ||
-        typeAnnotationType === 'TSArrayType' ||
-        typeAnnotationType === 'TSTupleType'
-      ) {
-        context.report({
-          node: functionNode,
-          messageId: 'proxyMustReturnObject',
-        });
-        return result;
-      }
+    // Check if return type is void, primitive, or array
+    if (
+      typeAnnotationType === AST_NODE_TYPES.TSVoidKeyword ||
+      typeAnnotationType === AST_NODE_TYPES.TSStringKeyword ||
+      typeAnnotationType === AST_NODE_TYPES.TSNumberKeyword ||
+      typeAnnotationType === AST_NODE_TYPES.TSBooleanKeyword ||
+      typeAnnotationType === AST_NODE_TYPES.TSArrayType ||
+      typeAnnotationType === AST_NODE_TYPES.TSTupleType
+    ) {
+      context.report({
+        node: functionNode,
+        messageId: 'proxyMustReturnObject',
+      });
+      return result;
     }
   }
 
-  if (Array.isArray(body)) {
-    return result;
-  }
-
-  if (body.type === 'BlockStatement') {
+  if (body.type === AST_NODE_TYPES.BlockStatement) {
     // Block statement has statements in its body array
-    if (body.body && Array.isArray(body.body)) {
-      const statements = body.body;
-      let hasReturnStatement = false;
+    let hasReturnStatement = false;
 
-      for (const statement of statements) {
-        if (statement.type === 'ReturnStatement') {
-          hasReturnStatement = true;
-          validateReturnStatementLayerBroker({ statement, context, functionNode });
-        }
-      }
-
-      // If no return statement found in block, it's an implicit void return
-      if (!hasReturnStatement) {
-        context.report({
-          node: functionNode,
-          messageId: 'proxyMustReturnObject',
-        });
+    for (const statement of body.body) {
+      if (statement.type === AST_NODE_TYPES.ReturnStatement) {
+        hasReturnStatement = true;
+        validateReturnStatementLayerBroker({ statement, context, functionNode });
       }
     }
-  } else if (body.type === 'ObjectExpression') {
+
+    // If no return statement found in block, it's an implicit void return
+    if (!hasReturnStatement) {
+      context.report({
+        node: functionNode,
+        messageId: 'proxyMustReturnObject',
+      });
+    }
+  } else if (body.type === AST_NODE_TYPES.ObjectExpression) {
     // Arrow function with direct object return: () => ({ ... })
     validateObjectExpressionLayerBroker({ objectNode: body, context });
   } else if (
     // Direct return of primitives or arrays: () => 'string', () => 42, () => []
     // Check if it's returning non-object
-    body.type === 'Literal' ||
-    body.type === 'TemplateLiteral' ||
-    body.type === 'ArrayExpression' ||
-    body.type === 'Identifier'
+    body.type === AST_NODE_TYPES.Literal ||
+    body.type === AST_NODE_TYPES.TemplateLiteral ||
+    body.type === AST_NODE_TYPES.ArrayExpression ||
+    body.type === AST_NODE_TYPES.Identifier
   ) {
     context.report({
       node: functionNode,

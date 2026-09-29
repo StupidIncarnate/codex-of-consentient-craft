@@ -5,23 +5,21 @@
  * isReexportOnlyProgramGuard({ node: programNode });
  * // Returns true for `export * from './a'; export type { B } from './b';`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
-import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isReexportOnlyProgramGuard = ({ node }: { node?: Tsestree }): boolean => {
-  const body = node?.body;
-
-  if (!Array.isArray(body)) {
+export const isReexportOnlyProgramGuard = ({ node }: { node?: TSESTree.Program }): boolean => {
+  if (!node) {
     return false;
   }
 
-  return body.every((statement) => {
-    if (statement.type === tsestreeNodeTypeStatics.nodeTypes.ExportAllDeclaration) {
+  return node.body.every((statement) => {
+    if (statement.type === AST_NODE_TYPES.ExportAllDeclaration) {
       return true;
     }
 
     return (
-      statement.type === tsestreeNodeTypeStatics.nodeTypes.ExportNamedDeclaration &&
+      statement.type === AST_NODE_TYPES.ExportNamedDeclaration &&
       !statement.declaration &&
       Boolean(statement.source)
     );

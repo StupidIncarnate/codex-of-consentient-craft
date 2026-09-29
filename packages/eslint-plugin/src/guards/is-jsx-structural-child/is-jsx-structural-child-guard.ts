@@ -8,15 +8,15 @@
  * isJsxStructuralChildGuard({ child });
  * // Returns true for <Text/>, for {cond ? <A/> : null}, and false for {label} or raw text
  */
-import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isJsxStructuralChildGuard = ({ child }: { child?: Tsestree }): boolean => {
+export const isJsxStructuralChildGuard = ({ child }: { child?: TSESTree.Node }): boolean => {
   if (!child) {
     return false;
   }
 
-  const { JSXElement, JSXFragment, JSXExpressionContainer } = tsestreeNodeTypeStatics.nodeTypes;
+  const { JSXElement, JSXFragment, JSXExpressionContainer } = AST_NODE_TYPES;
 
   if (child.type === JSXElement || child.type === JSXFragment) {
     return true;
@@ -30,15 +30,20 @@ export const isJsxStructuralChildGuard = ({ child }: { child?: Tsestree }): bool
   // shapes below are how conditional and mapped markup reaches this position; anything else in
   // braces is a value being interpolated, which is a leaf.
   const { expression } = child;
-  if (!expression) {
-    return false;
-  }
 
   if (expression.type === JSXElement || expression.type === JSXFragment) {
     return true;
   }
 
-  const branches = [expression.consequent, expression.alternate, expression.right];
+  const branches = [
+    expression.type === AST_NODE_TYPES.ConditionalExpression ? expression.consequent : undefined,
+    expression.type === AST_NODE_TYPES.ConditionalExpression ? expression.alternate : undefined,
+    expression.type === AST_NODE_TYPES.AssignmentExpression ||
+    expression.type === AST_NODE_TYPES.BinaryExpression ||
+    expression.type === AST_NODE_TYPES.LogicalExpression
+      ? expression.right
+      : undefined,
+  ];
   return branches.some(
     (branch) =>
       !Array.isArray(branch) &&

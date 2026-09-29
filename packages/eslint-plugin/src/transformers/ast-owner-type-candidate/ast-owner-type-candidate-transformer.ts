@@ -8,20 +8,22 @@
  * astOwnerTypeCandidateTransformer({ typeNode: unionOfStringAndUndefined });
  * // Returns the `string` node of `string | undefined`; null for `Quest['id']`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astOwnerTypeCandidateTransformer = ({
   typeNode,
 }: {
-  typeNode: Tsestree;
-}): Tsestree | null => {
-  const members = typeNode.type === 'TSUnionType' ? (typeNode.types ?? []) : [typeNode];
+  typeNode: TSESTree.Node;
+}): TSESTree.Node | null => {
+  const members = typeNode.type === AST_NODE_TYPES.TSUnionType ? typeNode.types : [typeNode];
 
   return (
     members.find(
       (member) =>
-        member.type === 'TSStringKeyword' ||
-        (member.type === 'TSTypeReference' && member.typeName?.type === 'Identifier'),
+        member.type === AST_NODE_TYPES.TSStringKeyword ||
+        (member.type === AST_NODE_TYPES.TSTypeReference &&
+          member.typeName.type === AST_NODE_TYPES.Identifier),
     ) ?? null
   );
 };

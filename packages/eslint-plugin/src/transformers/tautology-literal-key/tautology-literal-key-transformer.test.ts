@@ -1,10 +1,12 @@
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
 import { tautologyLiteralKeyTransformer } from './tautology-literal-key-transformer';
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 
 describe('tautologyLiteralKeyTransformer', () => {
   describe('literal nodes', () => {
     it('VALID: {node: Literal(true)} => returns "true"', () => {
-      const node = TsestreeStub({ type: 'Literal', value: true });
+      const node = LiteralStub({ code: 'const l = true;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -12,7 +14,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Literal(false)} => returns "false"', () => {
-      const node = TsestreeStub({ type: 'Literal', value: false });
+      const node = LiteralStub({ code: 'const l = false;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -20,7 +22,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Literal(null)} => returns "null"', () => {
-      const node = TsestreeStub({ type: 'Literal', value: null });
+      const node = LiteralStub({ code: 'const l = null;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -28,7 +30,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Literal(1)} => returns "1"', () => {
-      const node = TsestreeStub({ type: 'Literal', value: 1 });
+      const node = LiteralStub({ code: 'const l = 1;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -36,7 +38,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Literal("foo")} => returns quoted string', () => {
-      const node = TsestreeStub({ type: 'Literal', value: 'foo' });
+      const node = LiteralStub({ code: 'const l = "foo";' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -46,7 +48,7 @@ describe('tautologyLiteralKeyTransformer', () => {
 
   describe('identifier nodes', () => {
     it('VALID: {node: Identifier(undefined)} => returns "undefined"', () => {
-      const node = TsestreeStub({ type: 'Identifier', name: 'undefined' });
+      const node = IdentifierStub({ code: 'undefined;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -54,7 +56,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Identifier(NaN)} => returns "NaN"', () => {
-      const node = TsestreeStub({ type: 'Identifier', name: 'NaN' });
+      const node = IdentifierStub({ code: 'NaN;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -64,7 +66,7 @@ describe('tautologyLiteralKeyTransformer', () => {
 
   describe('non-literal nodes', () => {
     it('VALID: {node: CallExpression} => returns null', () => {
-      const node = TsestreeStub({ type: 'CallExpression' });
+      const node = CallExpressionStub({ code: 'f();' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 
@@ -72,7 +74,7 @@ describe('tautologyLiteralKeyTransformer', () => {
     });
 
     it('VALID: {node: Identifier(result)} => returns null', () => {
-      const node = TsestreeStub({ type: 'Identifier', name: 'result' });
+      const node = IdentifierStub({ code: 'result;' });
 
       const result = tautologyLiteralKeyTransformer({ node });
 

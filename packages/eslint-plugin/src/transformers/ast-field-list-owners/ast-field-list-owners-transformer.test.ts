@@ -1,61 +1,11 @@
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { astFieldListOwnersTransformer } from './ast-field-list-owners-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-
-const localList = (): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.VariableDeclaration,
-    declarations: [
-      {
-        type: TsestreeNodeType.VariableDeclarator,
-        id: { type: TsestreeNodeType.Identifier, name: 'treeNodeFields' },
-      },
-    ],
-  });
-
-const ownerSpreading = ({
-  list,
-  member,
-}: {
-  list: string;
-  member: string;
-}): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.ExportNamedDeclaration,
-    declaration: {
-      type: TsestreeNodeType.VariableDeclaration,
-      declarations: [
-        {
-          type: TsestreeNodeType.VariableDeclarator,
-          id: { type: TsestreeNodeType.Identifier, name: 'treeNodeContract' },
-          init: {
-            type: TsestreeNodeType.CallExpression,
-            arguments: [
-              {
-                type: TsestreeNodeType.ObjectExpression,
-                properties: [
-                  {
-                    type: TsestreeNodeType.SpreadElement,
-                    argument: {
-                      type: TsestreeNodeType.MemberExpression,
-                      object: { type: TsestreeNodeType.Identifier, name: list },
-                      property: { type: TsestreeNodeType.Identifier, name: member },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
-    },
-  });
 
 describe('astFieldListOwnersTransformer', () => {
   describe('a local field list spread into an owner', () => {
     it('VALID: {...treeNodeFields.shape in treeNodeContract} => maps the list to its owner', () => {
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [localList(), ownerSpreading({ list: 'treeNodeFields', member: 'shape' })],
+      const program = ProgramStub({
+        code: 'const treeNodeFields;\nexport const treeNodeContract = f({ ...treeNodeFields.shape });',
       });
 
       const result = astFieldListOwnersTransformer({ program });
@@ -66,9 +16,8 @@ describe('astFieldListOwnersTransformer', () => {
 
   describe('a spread that is not a local field list', () => {
     it('EMPTY: {the spread names an imported const} => returns an empty map', () => {
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [localList(), ownerSpreading({ list: 'importedFields', member: 'shape' })],
+      const program = ProgramStub({
+        code: 'const treeNodeFields;\nexport const treeNodeContract = f({ ...importedFields.shape });',
       });
 
       const result = astFieldListOwnersTransformer({ program });
@@ -77,9 +26,8 @@ describe('astFieldListOwnersTransformer', () => {
     });
 
     it('EMPTY: {the spread reads a member other than shape} => returns an empty map', () => {
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [localList(), ownerSpreading({ list: 'treeNodeFields', member: 'options' })],
+      const program = ProgramStub({
+        code: 'const treeNodeFields;\nexport const treeNodeContract = f({ ...treeNodeFields.options });',
       });
 
       const result = astFieldListOwnersTransformer({ program });
@@ -88,24 +36,7 @@ describe('astFieldListOwnersTransformer', () => {
     });
 
     it('EMPTY: {no owner spreads anything} => returns an empty map', () => {
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          localList(),
-          {
-            type: TsestreeNodeType.ExportNamedDeclaration,
-            declaration: {
-              type: TsestreeNodeType.VariableDeclaration,
-              declarations: [
-                {
-                  type: TsestreeNodeType.VariableDeclarator,
-                  id: { type: TsestreeNodeType.Identifier, name: 'plainContract' },
-                },
-              ],
-            },
-          },
-        ],
-      });
+      const program = ProgramStub({ code: 'const treeNodeFields;\nexport const plainContract;' });
 
       const result = astFieldListOwnersTransformer({ program });
 

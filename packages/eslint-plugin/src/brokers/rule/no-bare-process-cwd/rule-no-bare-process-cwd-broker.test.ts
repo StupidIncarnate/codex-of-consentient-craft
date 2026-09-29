@@ -1,6 +1,5 @@
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleNoBareProcessCwdBroker } from './rule-no-bare-process-cwd-broker';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 
 const ruleTester = ruleTesterHarness();
 
@@ -120,20 +119,6 @@ ruleTester.run(
     ],
   },
 );
-
-describe('ruleNoBareProcessCwdBroker', () => {
-  it('EDGE: empty filename short-circuits, returns no listeners', () => {
-    const rule = ruleNoBareProcessCwdBroker();
-    const context = EslintContextStub({
-      filename: '' as never,
-      getFilename: ((): never => '' as never) as never,
-    });
-
-    const listeners = rule.create(context);
-
-    expect(listeners).toStrictEqual({});
-  });
-});
 
 ruleTester.run('no-bare-process-cwd (allowTestFiles: false)', ruleNoBareProcessCwdBroker(), {
   valid: [],

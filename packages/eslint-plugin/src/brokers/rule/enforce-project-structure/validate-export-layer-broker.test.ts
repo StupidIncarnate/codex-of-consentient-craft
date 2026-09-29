@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateExportLayerBroker } from './validate-export-layer-broker';
 import { validateExportLayerBrokerProxy } from './validate-export-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { CollectedExportStub } from '../../../contracts/collected-export/collected-export.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -11,8 +11,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: correct broker export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -36,8 +36,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: correct contract export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'userContract' }), isTypeOnly: false }),
@@ -58,8 +58,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: correct error export (PascalCase) => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
       const collectedExports = [
         CollectedExportStub({
@@ -84,8 +84,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: correct widget export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'ButtonWidget' }), isTypeOnly: false }),
@@ -106,8 +106,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: startup with correct PascalCase export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'StartApp' }), isTypeOnly: false }),
@@ -128,8 +128,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: startup with 0 exports => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
 
       validateExportLayerBroker({
@@ -147,8 +147,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: value export alongside type-only export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -173,8 +173,8 @@ describe('validateExportLayerBroker', () => {
     it('VALID: correct proxy export => does not report', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -200,8 +200,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: broker without Broker suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'userFetch' }), isTypeOnly: false }),
@@ -232,8 +232,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: contract without Contract suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'user' }), isTypeOnly: false }),
@@ -266,8 +266,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: PascalCase broker => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -301,8 +301,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: PascalCase contract => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'UserContract' }), isTypeOnly: false }),
@@ -333,8 +333,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: camelCase error class => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
       const collectedExports = [
         CollectedExportStub({
@@ -369,8 +369,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: camelCase widget => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'buttonWidget' }), isTypeOnly: false }),
@@ -403,8 +403,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: wrong export name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -433,8 +433,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: wrong widget name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'InputWidget' }), isTypeOnly: false }),
@@ -462,8 +462,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: Transformer suffix in brokers => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -497,8 +497,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: Broker suffix in transformers => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'transformers' });
       const collectedExports = [
         CollectedExportStub({
@@ -534,8 +534,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: PascalCase wrong-suffix wrong-name in brokers => reports suffix, case, and name mismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -574,8 +574,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: camelCase broker suffix in errors => reports suffix, case, and name mismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
       const collectedExports = [
         CollectedExportStub({
@@ -616,8 +616,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: 0 value exports in non-startup folder => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       validateExportLayerBroker({
@@ -640,8 +640,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: type-only export in contracts (no value export) => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'User' }), isTypeOnly: true }),
@@ -667,8 +667,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: type-only export in statics => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'statics' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'Config' }), isTypeOnly: true }),
@@ -694,8 +694,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: broker with type-only export => reports missingExpectedExport', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'Rule' }), isTypeOnly: true }),
@@ -723,8 +723,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: 2 value exports in brokers => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -758,8 +758,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: 2 class exports in errors => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
       const collectedExports = [
         CollectedExportStub({
@@ -798,8 +798,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: startup with 2 exports => reports multipleValueExports', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'StartApp' }), isTypeOnly: false }),
@@ -828,8 +828,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: camelCase startup export => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'startApp' }), isTypeOnly: false }),
@@ -860,8 +860,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: wrong startup name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'StartServer' }), isTypeOnly: false }),
@@ -889,8 +889,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: proxy missing Proxy suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
       const collectedExports = [
         CollectedExportStub({
@@ -924,8 +924,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: proxy with wrong name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'transformers' });
       const collectedExports = [
         CollectedExportStub({
@@ -956,8 +956,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: binding without Binding suffix => reports invalidExportSuffix and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
         CollectedExportStub({ name: IdentifierStub({ value: 'useQuest' }), isTypeOnly: false }),
@@ -988,8 +988,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: PascalCase binding => reports invalidExportCase and filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
         CollectedExportStub({
@@ -1023,8 +1023,8 @@ describe('validateExportLayerBroker', () => {
     it('INVALID: binding with wrong name => reports filenameMismatch', () => {
       validateExportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'bindings' });
       const collectedExports = [
         CollectedExportStub({

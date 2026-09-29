@@ -5,25 +5,27 @@
  * const init = checkResolveSchemaBindingLayerBroker({ identifierNode });
  * // Returns the `init` AST node of the matching Program-level VariableDeclarator, or undefined if not found.
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const checkResolveSchemaBindingLayerBroker = ({
   identifierNode,
 }: {
-  identifierNode?: Tsestree;
-}): Tsestree | undefined => {
-  if (!identifierNode || identifierNode.type !== 'Identifier' || !identifierNode.name) {
+  identifierNode?: TSESTree.Node;
+}): TSESTree.Node | undefined => {
+  if (
+    !identifierNode ||
+    identifierNode.type !== AST_NODE_TYPES.Identifier ||
+    !identifierNode.name
+  ) {
     return undefined;
   }
 
-  const identifierName = String(identifierNode.name);
+  const identifierName = identifierNode.name;
 
-  let scope: Tsestree | null | undefined = identifierNode.parent;
-  while (scope && scope.type !== 'BlockStatement' && scope.type !== 'Program') {
+  let scope: TSESTree.Node | null | undefined = identifierNode.parent;
+  while (scope.type !== AST_NODE_TYPES.BlockStatement && scope.type !== AST_NODE_TYPES.Program) {
     scope = scope.parent;
-  }
-  if (!scope) {
-    return undefined;
   }
 
   const bodyValue = scope.body;
@@ -35,20 +37,19 @@ export const checkResolveSchemaBindingLayerBroker = ({
     // Top-level `const x = …;` — VariableDeclaration directly in the body
     // OR top-level `export const x = …;` — wrapped in ExportNamedDeclaration
     // whose `declaration` is the VariableDeclaration.
-    const varDecl: Tsestree | undefined =
-      statement.type === 'VariableDeclaration'
+    const varDecl: TSESTree.Node | undefined =
+      statement.type === AST_NODE_TYPES.VariableDeclaration
         ? statement
-        : statement.type === 'ExportNamedDeclaration' &&
-            statement.declaration?.type === 'VariableDeclaration'
+        : statement.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+            statement.declaration?.type === AST_NODE_TYPES.VariableDeclaration
           ? statement.declaration
           : undefined;
     if (!varDecl) continue;
 
-    const declarations = varDecl.declarations ?? [];
+    const { declarations } = varDecl;
     for (const declarator of declarations) {
-      if (declarator.type !== 'VariableDeclarator') continue;
       const { id, init } = declarator;
-      if (id && id.type === 'Identifier' && id.name === identifierName && init) {
+      if (id.type === AST_NODE_TYPES.Identifier && id.name === identifierName && init) {
         return init;
       }
     }

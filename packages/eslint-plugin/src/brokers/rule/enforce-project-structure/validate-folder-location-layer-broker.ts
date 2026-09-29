@@ -5,9 +5,8 @@
  * const shouldContinue = validateFolderLocationLayerBroker({node, context, firstFolder, folderConfig, isLayerFile});
  * // Returns true if folder location is valid, false if validation failed (error reported)
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { forbiddenFolderNameContract } from '../../../contracts/forbidden-folder-name/forbidden-folder-name-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
@@ -22,8 +21,8 @@ export const validateFolderLocationLayerBroker = ({
   folderConfig,
   isLayerFile,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   isLayerFile: boolean;

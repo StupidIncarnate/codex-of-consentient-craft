@@ -1,4 +1,5 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { isTypeNameReferencedLayerBrokerProxy } from './is-type-name-referenced-layer-broker.proxy';
 import { checkAnyLeakReturnLayerBrokerProxy } from './check-any-leak-return-layer-broker.proxy';
 import { isJsonParseOrDynamicImportCallLayerBrokerProxy } from './is-json-parse-or-dynamic-import-call-layer-broker.proxy';
@@ -9,16 +10,13 @@ import { isJsonParseOrDynamicImportCallLayerBrokerProxy } from './is-json-parse-
  * this proxy — every child construction below is real-passthrough by default, so it never runs.
  */
 export const ruleGatewayReturnUnknownNotCallerTypeBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => {
   isTypeNameReferencedLayerBrokerProxy();
   checkAnyLeakReturnLayerBrokerProxy();
   isJsonParseOrDynamicImportCallLayerBrokerProxy();
 
   return {
-    createContext: (): EslintContext => ({
-      filename: undefined,
-      report: jest.fn(),
-    }),
+    createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
   };
 };

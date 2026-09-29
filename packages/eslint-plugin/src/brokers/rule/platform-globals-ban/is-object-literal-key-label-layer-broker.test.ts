@@ -1,19 +1,24 @@
+import { PropertyStub } from '#gateway/npm/typescript-eslint__utils/property/property.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { isObjectLiteralKeyLabelLayerBroker } from './is-object-literal-key-label-layer-broker';
 import { isObjectLiteralKeyLabelLayerBrokerProxy } from './is-object-literal-key-label-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
-// The true case (node IS the parent's key) needs `parent.key === node`, an object-identity check
-// that `tsestreeContract.parse` cannot preserve through a stub (every nested field gets re-parsed
-// into its own object) — a real ESLint-parsed AST never has this problem. That branch is covered by
-// rule-platform-globals-ban-broker's own RuleTester integration test instead, against real parsed
-// code.
 describe('isObjectLiteralKeyLabelLayerBroker', () => {
-  describe('not a key label', () => {
-    it('INVALID: {parent is not a Property} => returns false', () => {
+  describe('a key label', () => {
+    it('VALID: {node is the key of its Property} => returns true', () => {
       isObjectLiteralKeyLabelLayerBrokerProxy();
-      const node = TsestreeStub({
-        parent: TsestreeStub({ type: TsestreeNodeType.MemberExpression }),
-      });
+      const { key: node } = PropertyStub({ code: '({ stdout: 1 });' });
+
+      const result = isObjectLiteralKeyLabelLayerBroker({ node });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('not a key label', () => {
+    it('INVALID: {node is the value of its Property} => returns false', () => {
+      isObjectLiteralKeyLabelLayerBrokerProxy();
+      const { value: node } = PropertyStub({ code: '({ a: stdout });' });
 
       const result = isObjectLiteralKeyLabelLayerBroker({ node });
 
@@ -22,7 +27,7 @@ describe('isObjectLiteralKeyLabelLayerBroker', () => {
 
     it('EMPTY: {no parent} => returns false', () => {
       isObjectLiteralKeyLabelLayerBrokerProxy();
-      const node = TsestreeStub({ parent: null });
+      const node = ProgramStub({ code: '' });
 
       const result = isObjectLiteralKeyLabelLayerBroker({ node });
 

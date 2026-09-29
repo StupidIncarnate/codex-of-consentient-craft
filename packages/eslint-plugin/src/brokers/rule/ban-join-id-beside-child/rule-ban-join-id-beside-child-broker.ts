@@ -14,10 +14,8 @@
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isAstObjectSchemaGuard } from '../../../guards/is-ast-object-schema/is-ast-object-schema-guard';
 import { astPropertyKeyNameTransformer } from '../../../transformers/ast-property-key-name/ast-property-key-name-transformer';
@@ -28,24 +26,23 @@ import { propertyReusedIdOwnerTransformer } from '../../../transformers/property
 
 const CONTRACT_SUFFIX = 'Contract';
 
-export const ruleBanJoinIdBesideChildBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Ban an object contract that holds a child contract whole and also holds the child's id as a separate key",
-      },
-      messages: {
-        joinIdBesideChild:
-          '{{idKey}} copies {{childKey}}.id, and nothing checks that they match. Remove {{idKey}} and read {{childKey}}.id.',
-      },
-      schema: [],
+export const ruleBanJoinIdBesideChildBroker = (): TSESLint.RuleModule<'joinIdBesideChild'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Ban an object contract that holds a child contract whole and also holds the child's id as a separate key",
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      joinIdBesideChild:
+        '{{idKey}} copies {{childKey}}.id, and nothing checks that they match. Remove {{idKey}} and read {{childKey}}.id.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
     const baseName = filename.split('/').pop() ?? '';
 
     if (
@@ -57,22 +54,21 @@ export const ruleBanJoinIdBesideChildBroker = (): EslintRule => ({
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (!isAstObjectSchemaGuard({ node })) {
           return;
         }
-        const [shape] = node.arguments ?? [];
-        if (shape?.type !== 'ObjectExpression') {
+        const [shape] = node.arguments;
+        if (shape?.type !== AST_NODE_TYPES.ObjectExpression) {
           return;
         }
 
-        // A property's value is `unknown` on the Tsestree contract, so a property is read as source text.
-        const properties = (shape.properties ?? [])
-          .filter((property) => property.type === 'Property')
+        const properties = shape.properties
+          .filter((property) => property.type === AST_NODE_TYPES.Property)
           .map((property) => ({
             node: property,
             key: astPropertyKeyNameTransformer({ property }),
-            text: String(ctx.sourceCode?.getText(property)),
+            text: ctx.sourceCode.getText(property),
           }));
 
         // A key that holds a contract whole: a bare identifier, so not optional, nullable or defaulted.

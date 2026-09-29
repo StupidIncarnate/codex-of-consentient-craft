@@ -14,16 +14,14 @@
  * // JSX markup, and an import of `react` or `playwright` inside an ingredient declaration file —
  * // by path, or by calling `ingredient({...})` — and stays silent on the same code elsewhere.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { domHandleWatchlistStatics } from '../../../statics/dom-handle-watchlist/dom-handle-watchlist-statics';
 import { isIngredientDeclarationFileGuard } from '../../../guards/is-ingredient-declaration-file/is-ingredient-declaration-file-guard';
 import { isIngredientDeclarationCallGuard } from '../../../guards/is-ingredient-declaration-call/is-ingredient-declaration-call-guard';
 
-export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanDomHandlesInIngredientsBroker =
+  (): TSESLint.RuleModule<'domHandleInIngredient'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -36,104 +34,104 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    defaultOptions: [],
+    create: (context: unknown) => {
+      const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+      const { filename } = ctx;
 
-    const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
-      filename: String(filename),
-    });
-    let isKnownIngredientFileByCall = false;
-    const pendingReports: (() => void)[] = [];
+      const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
+        filename,
+      });
+      let isKnownIngredientFileByCall = false;
+      const pendingReports: (() => void)[] = [];
 
-    return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const sourceValue = node.source?.value;
-        if (typeof sourceValue !== 'string') {
-          return;
-        }
-        const isBannedSource = domHandleWatchlistStatics.bannedImportSources.some(
-          (source) => source === sourceValue,
-        );
-        if (isBannedSource) {
-          pendingReports.push(() => {
-            ctx.report({
-              node,
-              messageId: 'domHandleInIngredient',
-              data: { detail: `an import of \`${sourceValue}\`, a UI-driving package` },
-            });
-          });
-        }
-      },
-
-      'JSXElement, JSXFragment': (node: Tsestree): void => {
-        pendingReports.push(() => {
-          ctx.report({
-            node,
-            messageId: 'domHandleInIngredient',
-            data: { detail: 'JSX markup, which renders a screen' },
-          });
-        });
-      },
-
-      CallExpression: (node: Tsestree): void => {
-        if (isIngredientDeclarationCallGuard({ node })) {
-          isKnownIngredientFileByCall = true;
-        }
-
-        const { callee } = node;
-
-        if (callee?.type === 'Identifier' && callee.name !== undefined) {
-          const calleeName = callee.name;
-          if (domHandleWatchlistStatics.refCallNames.some((name) => name === calleeName)) {
+      return {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+          const sourceValue = node.source.value;
+          if (typeof sourceValue !== 'string') {
+            return;
+          }
+          const isBannedSource = domHandleWatchlistStatics.bannedImportSources.some(
+            (source) => source === sourceValue,
+          );
+          if (isBannedSource) {
             pendingReports.push(() => {
               ctx.report({
                 node,
                 messageId: 'domHandleInIngredient',
-                data: { detail: `a DOM ref (\`${String(calleeName)}(...)\`)` },
+                data: { detail: `an import of \`${sourceValue}\`, a UI-driving package` },
               });
             });
           }
-          return;
-        }
+        },
 
-        if (callee?.type !== 'MemberExpression') {
-          return;
-        }
-        const propertyName =
-          callee.property?.type === 'Identifier' ? callee.property.name : undefined;
-        if (propertyName === undefined) {
-          return;
-        }
-        if (domHandleWatchlistStatics.selectorMemberNames.some((name) => name === propertyName)) {
+        'JSXElement, JSXFragment': (node: TSESTree.JSXElement | TSESTree.JSXFragment): void => {
           pendingReports.push(() => {
             ctx.report({
               node,
               messageId: 'domHandleInIngredient',
-              data: { detail: `a DOM selector call (\`.${String(propertyName)}(...)\`)` },
+              data: { detail: 'JSX markup, which renders a screen' },
             });
           });
-          return;
-        }
-        if (domHandleWatchlistStatics.positionMemberNames.some((name) => name === propertyName)) {
-          pendingReports.push(() => {
-            ctx.report({
-              node,
-              messageId: 'domHandleInIngredient',
-              data: { detail: `a DOM position call (\`.${String(propertyName)}(...)\`)` },
-            });
-          });
-        }
-      },
+        },
 
-      'Program:exit': (): void => {
-        if (isKnownIngredientFileByPath || isKnownIngredientFileByCall) {
-          pendingReports.forEach((report) => {
-            report();
-          });
-        }
-      },
-    };
-  },
-});
+        CallExpression: (node: TSESTree.CallExpression): void => {
+          if (isIngredientDeclarationCallGuard({ node })) {
+            isKnownIngredientFileByCall = true;
+          }
+
+          const { callee } = node;
+
+          if (callee.type === AST_NODE_TYPES.Identifier) {
+            const calleeName = callee.name;
+            if (domHandleWatchlistStatics.refCallNames.some((name) => name === calleeName)) {
+              pendingReports.push(() => {
+                ctx.report({
+                  node,
+                  messageId: 'domHandleInIngredient',
+                  data: { detail: `a DOM ref (\`${calleeName}(...)\`)` },
+                });
+              });
+            }
+            return;
+          }
+
+          if (callee.type !== AST_NODE_TYPES.MemberExpression) {
+            return;
+          }
+          const propertyName =
+            callee.property.type === AST_NODE_TYPES.Identifier ? callee.property.name : undefined;
+          if (propertyName === undefined) {
+            return;
+          }
+          if (domHandleWatchlistStatics.selectorMemberNames.some((name) => name === propertyName)) {
+            pendingReports.push(() => {
+              ctx.report({
+                node,
+                messageId: 'domHandleInIngredient',
+                data: { detail: `a DOM selector call (\`.${propertyName}(...)\`)` },
+              });
+            });
+            return;
+          }
+          if (domHandleWatchlistStatics.positionMemberNames.some((name) => name === propertyName)) {
+            pendingReports.push(() => {
+              ctx.report({
+                node,
+                messageId: 'domHandleInIngredient',
+                data: { detail: `a DOM position call (\`.${propertyName}(...)\`)` },
+              });
+            });
+          }
+        },
+
+        'Program:exit': (): void => {
+          if (isKnownIngredientFileByPath || isKnownIngredientFileByCall) {
+            pendingReports.forEach((report) => {
+              report();
+            });
+          }
+        },
+      };
+    },
+  });

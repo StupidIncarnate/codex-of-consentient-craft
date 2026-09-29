@@ -26,8 +26,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import { gatewayImportsTargetTransformer } from '../../../transformers/gateway-imports-target/gateway-imports-target-transformer';
 import { packageNameFromSpecifierTransformer } from '../../../transformers/package-name-from-specifier/package-name-from-specifier-transformer';
@@ -40,8 +39,8 @@ export const validateGatewaySpecifierLayerBroker = ({
   filename,
   specifier,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
   specifier: ImportPath;
 }): boolean => {

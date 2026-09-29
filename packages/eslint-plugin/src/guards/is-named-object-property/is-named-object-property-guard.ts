@@ -9,13 +9,14 @@
  * isNamedObjectPropertyGuard({ property: commandPropertyNode, name: 'command' });
  * // Returns true when property is `command: ...` and not `[command]: ...`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isNamedObjectPropertyGuard = ({
   property,
   name,
 }: {
-  property?: Tsestree | undefined;
+  property?: TSESTree.Node | undefined;
   name?: string | undefined;
 }): boolean => {
   if (property === undefined || name === undefined) {
@@ -23,9 +24,9 @@ export const isNamedObjectPropertyGuard = ({
   }
 
   return (
-    property.type === 'Property' &&
+    property.type === AST_NODE_TYPES.Property &&
     !property.computed &&
-    property.key?.type === 'Identifier' &&
-    String(property.key.name) === name
+    property.key.type === AST_NODE_TYPES.Identifier &&
+    property.key.name === name
   );
 };

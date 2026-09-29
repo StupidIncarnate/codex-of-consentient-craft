@@ -1,16 +1,16 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
 import { barrelSingleHomeLayerBrokerProxy } from './barrel-single-home-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('barrelSingleHomeLayerBroker', () => {
   it('VALID: {reexport source stays inside the subpath} => reports nothing and returns true', () => {
     barrelSingleHomeLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
 
     const result = barrelSingleHomeLayerBroker({
       node,
@@ -31,8 +31,8 @@ describe('barrelSingleHomeLayerBroker', () => {
   it('VALID: {reexport source is a bare npm specifier} => reports nothing and returns true', () => {
     barrelSingleHomeLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
 
     const result = barrelSingleHomeLayerBroker({
       node,
@@ -50,8 +50,8 @@ describe('barrelSingleHomeLayerBroker', () => {
   it('INVALID: {reexport source climbs into a sibling subpath} => reports reexportOutsideOwnSubpath and returns false', () => {
     barrelSingleHomeLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
     const name = IdentifierStub({ value: 'isFsError' });
     const source = ImportPathStub({ value: '../fs/is-fs-error/is-fs-error' });
 
@@ -74,8 +74,8 @@ describe('barrelSingleHomeLayerBroker', () => {
   it('EMPTY: {no reexports} => reports nothing and returns true', () => {
     barrelSingleHomeLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
 
     const result = barrelSingleHomeLayerBroker({ node, context, fileName: 'fs.ts', reexports: [] });
 

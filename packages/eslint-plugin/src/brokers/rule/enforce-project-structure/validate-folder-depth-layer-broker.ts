@@ -5,8 +5,7 @@
  * const shouldContinue = validateFolderDepthLayerBroker({node, context, filename, firstFolder, folderConfig});
  * // Returns true if depth and folder names are valid, false if validation failed (error reported)
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
@@ -22,8 +21,8 @@ export const validateFolderDepthLayerBroker = ({
   firstFolder,
   folderConfig,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];

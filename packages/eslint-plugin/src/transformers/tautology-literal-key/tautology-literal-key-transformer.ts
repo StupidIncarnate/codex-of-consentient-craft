@@ -7,16 +7,20 @@
  *
  * WHEN-TO-USE: When comparing two AST nodes to detect identical literals in expect(X).toBe(X)
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const tautologyLiteralKeyTransformer = ({
   node,
 }: {
-  node: Tsestree;
+  node: TSESTree.Node;
 }): ReturnType<typeof JSON.stringify> | null => {
-  if (node.type !== 'Literal') {
-    if (node.type === 'Identifier' && (node.name === 'undefined' || node.name === 'NaN')) {
-      return String(node.name);
+  if (node.type !== AST_NODE_TYPES.Literal) {
+    if (
+      node.type === AST_NODE_TYPES.Identifier &&
+      (node.name === 'undefined' || node.name === 'NaN')
+    ) {
+      return node.name;
     }
     return null;
   }

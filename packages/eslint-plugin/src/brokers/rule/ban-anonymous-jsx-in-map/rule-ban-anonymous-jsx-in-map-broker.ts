@@ -9,36 +9,34 @@
  * const rule = ruleBanAnonymousJsxInMapBroker();
  * // Reports `items.map((i) => <Box><Text/></Box>)`, passes `items.map((i) => <RowWidget item={i} />)`
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { tsestreeNodeTypeStatics } from '../../../statics/tsestree-node-type/tsestree-node-type-statics';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { arrayRenderStatics } from '../../../statics/array-render/array-render-statics';
 import { isJsxStructuralChildGuard } from '../../../guards/is-jsx-structural-child/is-jsx-structural-child-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
-export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Forbid an anonymous JSX tree, or a variable declaration, inside a rendering array callback',
-      },
-      messages: {
-        anonymousJsxTree:
-          'This `.map` returns an anonymous JSX tree. Move it to its own widget and call that instead — `items.map((item) => <ThingLayerWidget item={item} />)`. A tree with no name cannot be tested, reused, or found by anyone reading the list.',
-        declarationInMapCallback:
-          '`{{kind}} {{name}}` is declared inside a rendering `.map`. Put the value inline on the prop, or compute it above the map — a row callback that needs its own variables is a widget that has not been extracted yet.',
-      },
-      schema: [],
+export const ruleBanAnonymousJsxInMapBroker = (): TSESLint.RuleModule<
+  'anonymousJsxTree' | 'declarationInMapCallback'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Forbid an anonymous JSX tree, or a variable declaration, inside a rendering array callback',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      anonymousJsxTree:
+        'This `.map` returns an anonymous JSX tree. Move it to its own widget and call that instead — `items.map((item) => <ThingLayerWidget item={item} />)`. A tree with no name cannot be tested, reused, or found by anyone reading the list.',
+      declarationInMapCallback:
+        '`{{kind}} {{name}}` is declared inside a rendering `.map`. Put the value inline on the prop, or compute it above the map — a row callback that needs its own variables is a widget that has not been extracted yet.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
       return {};
@@ -61,23 +59,27 @@ export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
       MemberExpression,
       ConditionalExpression,
       LogicalExpression,
-    } = tsestreeNodeTypeStatics.nodeTypes;
+    } = AST_NODE_TYPES;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        if (!callee || callee.type !== MemberExpression) {
+        if (callee.type !== MemberExpression) {
           return;
         }
-        const methodName = callee.property?.name;
+        const methodName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
         if (
           methodName === undefined ||
-          !arrayRenderStatics.renderingMethods.names.some((name) => name === String(methodName))
+          !arrayRenderStatics.renderingMethods.names.some((name) => name === methodName)
         ) {
           return;
         }
 
-        const callback = node.arguments?.[0];
+        const [callback] = node.arguments;
         if (
           !callback ||
           (callback.type !== ArrowFunctionExpression && callback.type !== FunctionExpression)
@@ -101,7 +103,15 @@ export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
         const candidates = results.flatMap((result) =>
           result
             ? result.type === ConditionalExpression || result.type === LogicalExpression
-              ? [result.consequent, result.alternate, result.right]
+              ? [
+                  result.type === AST_NODE_TYPES.ConditionalExpression
+                    ? result.consequent
+                    : undefined,
+                  result.type === AST_NODE_TYPES.ConditionalExpression
+                    ? result.alternate
+                    : undefined,
+                  result.type === AST_NODE_TYPES.LogicalExpression ? result.right : undefined,
+                ]
               : [result]
             : [],
         );
@@ -126,7 +136,7 @@ export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
           if (candidate.type !== JSXElement) {
             return;
           }
-          const hasStructure = (candidate.children ?? []).some((child) =>
+          const hasStructure = candidate.children.some((child) =>
             isJsxStructuralChildGuard({ child }),
           );
           if (hasStructure) {
@@ -142,8 +152,11 @@ export const ruleBanAnonymousJsxInMapBroker = (): EslintRule => ({
             node: statement,
             messageId: 'declarationInMapCallback',
             data: {
-              kind: statement.kind ?? 'const',
-              name: String(statement.declarations?.[0]?.id?.name ?? 'value'),
+              kind: statement.kind,
+              name:
+                (statement.declarations[0].id.type === AST_NODE_TYPES.Identifier
+                  ? statement.declarations[0].id.name
+                  : undefined) ?? 'value',
             },
           });
         });

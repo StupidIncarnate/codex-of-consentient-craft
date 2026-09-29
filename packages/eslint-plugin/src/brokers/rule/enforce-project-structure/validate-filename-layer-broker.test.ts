@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateFilenameLayerBroker } from './validate-filename-layer-broker';
 import { validateFilenameLayerBrokerProxy } from './validate-filename-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
@@ -10,8 +10,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: broker file with -broker.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -30,8 +30,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: contract file with -contract.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = validateFilenameLayerBroker({
@@ -50,8 +50,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: transformer file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'transformers' });
 
       const result = validateFilenameLayerBroker({
@@ -70,8 +70,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: guard file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'guards' });
 
       const result = validateFilenameLayerBroker({
@@ -90,8 +90,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: error file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
 
       const result = validateFilenameLayerBroker({
@@ -110,8 +110,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: widget file with .tsx => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
 
       const result = validateFilenameLayerBroker({
@@ -130,8 +130,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: flow file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'flows' });
 
       const result = validateFilenameLayerBroker({
@@ -150,8 +150,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: startup file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
 
       const result = validateFilenameLayerBroker({
@@ -172,8 +172,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: proxy file with .proxy.ts suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -192,8 +192,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: proxy file with .proxy.tsx suffix => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
 
       const result = validateFilenameLayerBroker({
@@ -214,8 +214,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: layer broker file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -235,8 +235,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: layer widget file => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
 
       const result = validateFilenameLayerBroker({
@@ -257,8 +257,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: broker missing -broker.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -281,8 +281,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: contract missing -contract.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = validateFilenameLayerBroker({
@@ -305,8 +305,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: transformer missing -transformer.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'transformers' });
 
       const result = validateFilenameLayerBroker({
@@ -329,8 +329,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: guard missing -guard.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'guards' });
 
       const result = validateFilenameLayerBroker({
@@ -353,8 +353,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: error missing -error.ts => reports invalidFileSuffix', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'errors' });
 
       const result = validateFilenameLayerBroker({
@@ -377,8 +377,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: widget missing -widget.tsx => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'widgets' });
 
       const result = validateFilenameLayerBroker({
@@ -401,8 +401,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: flow missing -flow.tsx => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'flows' });
 
       const result = validateFilenameLayerBroker({
@@ -425,8 +425,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: responder missing -responder.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFilenameLayerBroker({
@@ -451,8 +451,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: PascalCase filename in brokers => reports invalidFilenameCaseWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -475,8 +475,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: snake_case filename in brokers => reports invalidFilenameCaseWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -501,8 +501,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: responder with wrong suffix and non-kebab name => reports both suffix and case errors', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFilenameLayerBroker({
@@ -535,8 +535,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: broker with wrong suffix and PascalCase name => reports both suffix and case errors', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFilenameLayerBroker({
@@ -567,8 +567,8 @@ describe('validateFilenameLayerBroker', () => {
     it('INVALID: responder named -responder.tsx => reports only the suffix error', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFilenameLayerBroker({
@@ -594,8 +594,8 @@ describe('validateFilenameLayerBroker', () => {
     it('VALID: assets (empty exportSuffix and exportCase) => returns true', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'assets' });
 
       const result = validateFilenameLayerBroker({

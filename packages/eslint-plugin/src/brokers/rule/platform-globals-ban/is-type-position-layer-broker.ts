@@ -6,12 +6,15 @@
  * identifier and the type node that names it.
  *
  * USAGE:
- * isTypePositionLayerBroker({ node: TsestreeStub({ parent: TsestreeStub({ type: 'TSTypeReference' }) }) });
+ * isTypePositionLayerBroker({ node: typeNameOfTypeReferenceNode });
  * // Returns true
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isTypePositionLayerBroker = ({ node }: { node: Tsestree }): boolean => {
+export const isTypePositionLayerBroker = ({ node }: { node: TSESTree.Node }): boolean => {
   const parentType = node.parent?.type;
-  return parentType === 'TSTypeReference' || parentType === 'TSQualifiedName';
+  return (
+    parentType === AST_NODE_TYPES.TSTypeReference || parentType === AST_NODE_TYPES.TSQualifiedName
+  );
 };

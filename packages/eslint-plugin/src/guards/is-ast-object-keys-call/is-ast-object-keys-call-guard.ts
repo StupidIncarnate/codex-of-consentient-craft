@@ -7,29 +7,34 @@
  *
  * WHEN-TO-USE: When ESLint rules need to detect Object.keys() usage in expect() arguments
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstObjectKeysCallGuard = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): boolean => {
   if (node === undefined || node === null) {
     return false;
   }
 
-  if (node.type !== 'CallExpression') {
+  if (node.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 
   const { callee } = node;
-  if (callee?.type !== 'MemberExpression') {
+  if (callee.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
   }
 
-  if (callee.object?.type !== 'Identifier' || callee.object.name !== 'Object') {
+  if (callee.object.type !== AST_NODE_TYPES.Identifier || callee.object.name !== 'Object') {
     return false;
   }
 
-  return callee.property?.name === 'keys';
+  return (
+    (callee.property.type === AST_NODE_TYPES.Identifier ||
+      callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+    callee.property.name === 'keys'
+  );
 };

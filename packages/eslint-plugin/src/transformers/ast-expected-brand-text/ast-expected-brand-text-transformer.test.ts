@@ -1,33 +1,12 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 import { astExpectedBrandTextTransformer } from './ast-expected-brand-text-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-
-const brandUnder = ({
-  owner,
-  key,
-}: {
-  owner: string;
-  key: string;
-}): ReturnType<typeof TsestreeStub> => {
-  const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
-  const property = TsestreeStub({
-    type: TsestreeNodeType.Property,
-    key: TsestreeStub({ type: TsestreeNodeType.Identifier, name: key }),
-  });
-  const declarator = TsestreeStub({
-    type: TsestreeNodeType.VariableDeclarator,
-    id: TsestreeStub({ type: TsestreeNodeType.Identifier, name: owner }),
-  });
-  node.parent = property;
-  property.parent = declarator;
-  return node;
-};
 
 describe('astExpectedBrandTextTransformer', () => {
   describe('an owner with the field beneath it', () => {
     it("VALID: {id under questContract} => returns 'QuestId'", () => {
-      const node = brandUnder({ owner: 'questContract', key: 'id' });
+      const node = CallExpressionStub({ code: 'const questContract = { id: brand() };' });
 
       const result = astExpectedBrandTextTransformer({ node, fieldListOwners: new Map() });
 
@@ -35,7 +14,7 @@ describe('astExpectedBrandTextTransformer', () => {
     });
 
     it("VALID: {name under a field list} => the list's owner supplies the name", () => {
-      const node = brandUnder({ owner: 'treeNodeFields', key: 'name' });
+      const node = CallExpressionStub({ code: 'const treeNodeFields = { name: brand() };' });
       const fieldListOwners = new Map([
         [
           IdentifierStub({ value: 'treeNodeFields' }),
@@ -51,7 +30,7 @@ describe('astExpectedBrandTextTransformer', () => {
 
   describe('a node no const owns', () => {
     it('EMPTY: {node with no parent} => returns null', () => {
-      const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
+      const node = CallExpressionStub({ code: 'f();' });
 
       const result = astExpectedBrandTextTransformer({ node, fieldListOwners: new Map() });
 

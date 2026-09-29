@@ -19,38 +19,37 @@
  */
 import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
 import { dirname } from '#gateway/node/path';
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkSchemaBrandTextLayerBroker } from './check-schema-brand-text-layer-broker';
 import { buildGatewayTypeDeclarationIndexLayerBroker } from './build-gateway-type-declaration-index-layer-broker';
 
-export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          "Enforce BR C9 in the gateway: no bare z.custom<T>() with no check, a schema's .brand<'…'>() text must be #Gateway plus the type name it checks, and no two gateway modules export a same-named type.",
-      },
-      messages: {
-        bareCustomSchema:
-          'z.custom<{{typeName}}>() has no check function, so it accepts a missing field or any junk at runtime. Pass a check: z.custom<{{typeName}}>((value) => is{{typeName}}(value)).',
-        wrongBrandText:
-          'Brand text "{{brandText}}" does not match "{{expectedBrandText}}" — the brand is #Gateway plus the exact type name this schema checks, derived, not chosen.',
-        duplicateTypeName:
-          '"{{name}}" is also declared in {{otherFile}}. A type name must be unique across the four gateway packages, so one brand text (#Gateway{{name}}) always means one check.',
-      },
-      schema: [],
+export const ruleGatewaySchemaBrandBroker = (): TSESLint.RuleModule<
+  'bareCustomSchema' | 'wrongBrandText' | 'duplicateTypeName'
+> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        "Enforce BR C9 in the gateway: no bare z.custom<T>() with no check, a schema's .brand<'…'>() text must be #Gateway plus the type name it checks, and no two gateway modules export a same-named type.",
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      bareCustomSchema:
+        'z.custom<{{typeName}}>() has no check function, so it accepts a missing field or any junk at runtime. Pass a check: z.custom<{{typeName}}>((value) => is{{typeName}}(value)).',
+      wrongBrandText:
+        'Brand text "{{brandText}}" does not match "{{expectedBrandText}}" — the brand is #Gateway plus the exact type name this schema checks, derived, not chosen.',
+      duplicateTypeName:
+        '"{{name}}" is also declared in {{otherFile}}. A type name must be unique across the four gateway packages, so one brand text (#Gateway{{name}}) always means one check.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
@@ -66,31 +65,34 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
         const objectName =
-          callee?.type === 'MemberExpression' && callee.object?.type === 'Identifier'
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier
             ? callee.object.name
             : undefined;
         const propertyName =
-          callee?.type === 'MemberExpression' && callee.property?.type === 'Identifier'
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.property.type === AST_NODE_TYPES.Identifier
             ? callee.property.name
             : undefined;
 
         if (objectName === 'z' && propertyName === 'custom') {
-          const args = node.arguments ?? [];
+          const args = node.arguments;
           const hasCheckFunction = args.some(
             (arg) =>
-              arg?.type === 'ArrowFunctionExpression' ||
-              arg?.type === 'FunctionExpression' ||
-              arg?.type === 'Identifier',
+              arg.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+              arg.type === AST_NODE_TYPES.FunctionExpression ||
+              arg.type === AST_NODE_TYPES.Identifier,
           );
 
           if (!hasCheckFunction) {
-            const typeArgs = node.typeArguments ?? node.typeParameters;
-            const firstParam = typeArgs?.params?.[0];
+            const typeArgs = node.typeArguments;
+            const firstParam = typeArgs?.params[0];
             const typeName =
-              firstParam?.type === 'TSTypeReference' && firstParam.typeName?.type === 'Identifier'
+              firstParam?.type === AST_NODE_TYPES.TSTypeReference &&
+              firstParam.typeName.type === AST_NODE_TYPES.Identifier
                 ? firstParam.typeName.name
                 : 'T';
 
@@ -103,21 +105,17 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
         }
       },
 
-      ExportNamedDeclaration: (node: Tsestree): void => {
-        const declarationType = node.declaration?.type;
+      ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
+        const { declaration } = node;
 
         if (
-          declarationType !== 'TSInterfaceDeclaration' &&
-          declarationType !== 'TSTypeAliasDeclaration'
+          declaration?.type !== AST_NODE_TYPES.TSInterfaceDeclaration &&
+          declaration?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration
         ) {
           return;
         }
 
-        const name = node.declaration?.id?.name;
-
-        if (name === undefined) {
-          return;
-        }
+        const { name } = declaration.id;
 
         const workspaceRoot = workspaceRootFindBroker({
           startDir: filePathContract.parse(dirname(filename)),
@@ -130,14 +128,14 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
         const index = buildGatewayTypeDeclarationIndexLayerBroker({
           rootDir: workspaceRoot.rootDir,
         });
-        const declaringFiles = index.get(identifierContract.parse(String(name))) ?? [];
+        const declaringFiles = index.get(identifierContract.parse(name)) ?? [];
         const otherFile = declaringFiles.find((filePath) => filePath !== filename);
 
         if (otherFile !== undefined) {
           ctx.report({
             node,
             messageId: 'duplicateTypeName',
-            data: { name: String(name), otherFile },
+            data: { name, otherFile },
           });
         }
       },

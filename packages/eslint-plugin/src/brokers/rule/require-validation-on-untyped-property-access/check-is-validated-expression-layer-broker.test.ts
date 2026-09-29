@@ -1,19 +1,14 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { MemberExpressionStub } from '#gateway/npm/typescript-eslint__utils/member-expression/member-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { checkIsValidatedExpressionLayerBroker } from './check-is-validated-expression-layer-broker';
 import { checkIsValidatedExpressionLayerBrokerProxy } from './check-is-validated-expression-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('checkIsValidatedExpressionLayerBroker', () => {
   it('VALID: direct contract.parse(...) CallExpression returns true', () => {
     checkIsValidatedExpressionLayerBrokerProxy();
 
-    const node = TsestreeStub({
-      type: TsestreeNodeType.CallExpression,
-      callee: TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'userContract' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'parse' }),
-      }),
-    });
+    const node = CallExpressionStub({ code: 'userContract.parse();' });
 
     expect(checkIsValidatedExpressionLayerBroker({ node })).toBe(true);
   });
@@ -21,19 +16,7 @@ describe('checkIsValidatedExpressionLayerBroker', () => {
   it('VALID: member-expression chain rooted in contract.parse(...) returns true', () => {
     checkIsValidatedExpressionLayerBrokerProxy();
 
-    const parseCall = TsestreeStub({
-      type: TsestreeNodeType.CallExpression,
-      callee: TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'userContract' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'parse' }),
-      }),
-    });
-    const node = TsestreeStub({
-      type: TsestreeNodeType.MemberExpression,
-      object: parseCall,
-      property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'name' }),
-    });
+    const node = MemberExpressionStub({ code: 'userContract.parse().name;' });
 
     expect(checkIsValidatedExpressionLayerBroker({ node })).toBe(true);
   });
@@ -41,19 +24,7 @@ describe('checkIsValidatedExpressionLayerBroker', () => {
   it('VALID: safeParse(...).data chain returns true', () => {
     checkIsValidatedExpressionLayerBrokerProxy();
 
-    const safeParseCall = TsestreeStub({
-      type: TsestreeNodeType.CallExpression,
-      callee: TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'userContract' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'safeParse' }),
-      }),
-    });
-    const node = TsestreeStub({
-      type: TsestreeNodeType.MemberExpression,
-      object: safeParseCall,
-      property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'data' }),
-    });
+    const node = MemberExpressionStub({ code: 'userContract.safeParse().data;' });
 
     expect(checkIsValidatedExpressionLayerBroker({ node })).toBe(true);
   });
@@ -61,7 +32,7 @@ describe('checkIsValidatedExpressionLayerBroker', () => {
   it('INVALID: plain Identifier node returns false', () => {
     checkIsValidatedExpressionLayerBrokerProxy();
 
-    const node = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'someValue' });
+    const node = IdentifierStub({ code: 'someValue;' });
 
     expect(checkIsValidatedExpressionLayerBroker({ node })).toBe(false);
   });
@@ -69,10 +40,7 @@ describe('checkIsValidatedExpressionLayerBroker', () => {
   it('INVALID: unrelated CallExpression returns false', () => {
     checkIsValidatedExpressionLayerBrokerProxy();
 
-    const node = TsestreeStub({
-      type: TsestreeNodeType.CallExpression,
-      callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'doSomething' }),
-    });
+    const node = CallExpressionStub({ code: 'doSomething();' });
 
     expect(checkIsValidatedExpressionLayerBroker({ node })).toBe(false);
   });

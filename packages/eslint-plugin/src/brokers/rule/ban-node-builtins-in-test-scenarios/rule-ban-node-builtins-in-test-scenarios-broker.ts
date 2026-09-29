@@ -5,18 +5,15 @@
  * const rule = ruleBanNodeBuiltinsInTestScenariosBroker();
  * // Returns ESLint rule that prevents importing fs, path, os, crypto in spec/integration test files
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isInTestDirGuard } from '../../../guards/is-in-test-dir/is-in-test-dir-guard';
 import { harnessPatternsStatics } from '../../../statics/harness-patterns/harness-patterns-statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-export const ruleBanNodeBuiltinsInTestScenariosBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
+export const ruleBanNodeBuiltinsInTestScenariosBroker =
+  (): TSESLint.RuleModule<'noNodeBuiltins'> => ({
     meta: {
       type: 'problem',
       docs: {
@@ -29,50 +26,50 @@ export const ruleBanNodeBuiltinsInTestScenariosBroker = (): EslintRule => ({
       },
       schema: [],
     },
-  }),
-  create: (context: EslintContext) => {
-    const ctx = context;
-    return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const filename = ctx.filename ?? '';
+    defaultOptions: [],
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+      const ctx = context;
+      return {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+          const { filename } = ctx;
 
-        const isInTestDir = isInTestDirGuard({ filename });
+          const isInTestDir = isInTestDirGuard({ filename });
 
-        if (isInTestDir) {
-          return;
-        }
+          if (isInTestDir) {
+            return;
+          }
 
-        const isSpecFile = isSpecFileGuard({ filename });
-        const isIntegrationTestFile = isIntegrationTestFileGuard({
-          filePath: filename as FilePath,
-        });
+          const isSpecFile = isSpecFileGuard({ filename });
+          const isIntegrationTestFile = isIntegrationTestFileGuard({
+            filePath: filename as FilePath,
+          });
 
-        if (!isSpecFile && !isIntegrationTestFile) {
-          return;
-        }
+          if (!isSpecFile && !isIntegrationTestFile) {
+            return;
+          }
 
-        const importSource = node.source?.value;
+          const importSource = node.source.value;
 
-        if (typeof importSource !== 'string') {
-          return;
-        }
+          if (typeof importSource !== 'string') {
+            return;
+          }
 
-        const isBannedModule = harnessPatternsStatics.bannedNodeBuiltins.some(
-          (mod) => mod === importSource,
-        );
+          const isBannedModule = harnessPatternsStatics.bannedNodeBuiltins.some(
+            (mod) => mod === importSource,
+          );
 
-        if (!isBannedModule) {
-          return;
-        }
+          if (!isBannedModule) {
+            return;
+          }
 
-        ctx.report({
-          node,
-          messageId: 'noNodeBuiltins',
-          data: {
-            module: importSource,
-          },
-        });
-      },
-    };
-  },
-});
+          ctx.report({
+            node,
+            messageId: 'noNodeBuiltins',
+            data: {
+              module: importSource,
+            },
+          });
+        },
+      };
+    },
+  });

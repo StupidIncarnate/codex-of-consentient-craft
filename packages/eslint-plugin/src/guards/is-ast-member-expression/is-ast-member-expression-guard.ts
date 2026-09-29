@@ -8,10 +8,11 @@
  * }
  * // Returns true if node type is 'MemberExpression'
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstMemberExpressionGuard = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
-}): boolean => node !== null && node !== undefined && node.type === 'MemberExpression';
+  node?: TSESTree.Node | null | undefined;
+}): boolean => node !== null && node !== undefined && node.type === AST_NODE_TYPES.MemberExpression;

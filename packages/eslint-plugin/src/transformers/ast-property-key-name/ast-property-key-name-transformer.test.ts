@@ -1,12 +1,9 @@
+import { PropertyStub } from '#gateway/npm/typescript-eslint__utils/property/property.stub';
 import { astPropertyKeyNameTransformer } from './ast-property-key-name-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
 
 describe('astPropertyKeyNameTransformer', () => {
   it("VALID: {property keyed by identifier 'questId'} => returns 'questId'", () => {
-    const property = TsestreeStub({
-      type: TsestreeNodeType.Property,
-      key: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'questId' }),
-    });
+    const property = PropertyStub({ code: 'const o = { questId: v };' });
 
     const result = astPropertyKeyNameTransformer({ property });
 
@@ -14,11 +11,7 @@ describe('astPropertyKeyNameTransformer', () => {
   });
 
   it('EMPTY: {computed property} => returns null', () => {
-    const property = TsestreeStub({
-      type: TsestreeNodeType.Property,
-      computed: true,
-      key: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'questId' }),
-    });
+    const property = PropertyStub({ code: 'const o = { [questId]: v };' });
 
     const result = astPropertyKeyNameTransformer({ property });
 
@@ -26,10 +19,7 @@ describe('astPropertyKeyNameTransformer', () => {
   });
 
   it('EMPTY: {property keyed by a literal} => returns null', () => {
-    const property = TsestreeStub({
-      type: TsestreeNodeType.Property,
-      key: TsestreeStub({ type: TsestreeNodeType.Literal }),
-    });
+    const property = PropertyStub({ code: 'const o = { 0: v };' });
 
     const result = astPropertyKeyNameTransformer({ property });
 

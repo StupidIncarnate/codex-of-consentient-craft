@@ -7,33 +7,28 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
 export const validateAdapterMockSetupLayerBroker = ({
   functionNode,
   context,
 }: {
-  functionNode: Tsestree;
-  context: EslintContext;
+  functionNode: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
   const { body } = functionNode;
 
-  if (!body) return result;
+  if (body.type !== AST_NODE_TYPES.BlockStatement) return result;
 
-  if (Array.isArray(body)) return result;
-
-  if (body.type !== 'BlockStatement') return result;
-
-  if (!body.body || !Array.isArray(body.body)) return result;
   const statements = body.body;
 
   let returnStatementIndex = -1;
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
-    if (stmt && stmt.type === 'ReturnStatement') {
+    if (stmt && stmt.type === AST_NODE_TYPES.ReturnStatement) {
       returnStatementIndex = i;
       break;
     }
@@ -50,68 +45,49 @@ export const validateAdapterMockSetupLayerBroker = ({
     if (!statement) continue;
 
     // Check for ExpressionStatement or VariableDeclaration
-    if (statement.type === 'ExpressionStatement') {
+    if (statement.type === AST_NODE_TYPES.ExpressionStatement) {
       const { expression } = statement;
 
-      if (expression) {
-        // Check for CallExpression
-        if (expression.type === 'CallExpression') {
-          const { callee } = expression;
+      // Check for MemberExpression callee (jest.spyOn, mock.mockImplementation)
+      if (
+        expression.type === AST_NODE_TYPES.CallExpression &&
+        expression.callee.type === AST_NODE_TYPES.MemberExpression
+      ) {
+        const { object, property } = expression.callee;
+        const objectName = 'name' in object ? object.name : undefined;
+        const propertyName = 'name' in property ? property.name : undefined;
 
-          if (callee) {
-            // Check for MemberExpression (jest.spyOn, mock.mockImplementation)
-            if (callee.type === 'MemberExpression') {
-              const { object } = callee;
-              const { property } = callee;
+        // Check if calling jest.spyOn
+        if (objectName === 'jest' && propertyName === 'spyOn') {
+          hasJestMocking = true;
+        }
 
-              // Check if calling jest.spyOn
-              if (object?.name === 'jest' && property?.name === 'spyOn') {
-                hasJestMocking = true;
-              }
+        // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
+        const isMockMethod =
+          propertyName !== undefined &&
+          jestMockingStatics.nativeJestMockMethods.some((method) => method === propertyName);
 
-              // Check if calling mockImplementation, mockResolvedValue, mockRejectedValue, mockReturnValue
-              const isMockMethod =
-                property?.name &&
-                jestMockingStatics.nativeJestMockMethods.some((method) => method === property.name);
-
-              if (isMockMethod) {
-                hasMockSetup = true;
-              }
-            }
-          }
+        if (isMockMethod) {
+          hasMockSetup = true;
         }
       }
-    } else if (statement.type === 'VariableDeclaration') {
+    } else if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
       // Check for jest.mocked() or jest.spyOn() in variable declarations
-      const { declarations } = statement;
+      for (const declaration of statement.declarations) {
+        const { init } = declaration;
 
-      if (declarations) {
-        for (const declaration of declarations) {
-          if (declaration.type === 'VariableDeclarator') {
-            const { init } = declaration;
+        // Check for MemberExpression callee (jest.mocked, jest.spyOn)
+        if (
+          init?.type === AST_NODE_TYPES.CallExpression &&
+          init.callee.type === AST_NODE_TYPES.MemberExpression
+        ) {
+          const { object, property } = init.callee;
+          const objectName = 'name' in object ? object.name : undefined;
+          const propertyName = 'name' in property ? property.name : undefined;
 
-            if (init) {
-              // Check for CallExpression (jest.mocked(), jest.spyOn())
-              if (init.type === 'CallExpression') {
-                const { callee } = init;
-
-                if (callee) {
-                  // Check for MemberExpression (jest.mocked, jest.spyOn)
-                  if (callee.type === 'MemberExpression') {
-                    const { object } = callee;
-                    const { property } = callee;
-
-                    // Check if calling jest.mocked or jest.spyOn
-                    if (
-                      object?.name === 'jest' &&
-                      (property?.name === 'mocked' || property?.name === 'spyOn')
-                    ) {
-                      hasJestMocking = true;
-                    }
-                  }
-                }
-              }
-            }
+          // Check if calling jest.mocked or jest.spyOn
+          if (objectName === 'jest' && (propertyName === 'mocked' || propertyName === 'spyOn')) {
+            hasJestMocking = true;
           }
         }
       }

@@ -14,7 +14,8 @@
  * // Returns 'git' as ContentText, or undefined when the node is not statically resolvable this way
  */
 import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { objectPropertyValueTransformer } from '../../../transformers/object-property-value/object-property-value-transformer';
 import { findModuleConstInitLayerBroker } from './find-module-const-init-layer-broker';
 import { resolveImportedStaticsLayerBroker } from './resolve-imported-statics-layer-broker';
@@ -24,8 +25,8 @@ export const resolveStaticStringLayerBroker = ({
   moduleBody,
   filename,
 }: {
-  node: Tsestree | undefined;
-  moduleBody: readonly Tsestree[];
+  node: TSESTree.Node | undefined;
+  moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
 }): ContentText | undefined => {
   if (node === undefined) {
@@ -34,75 +35,64 @@ export const resolveStaticStringLayerBroker = ({
 
   // `as const`/`as Type` wraps the real expression one level down — a `const lsofStatics = {
   // command: 'lsof' } as const;`'s init is a TSAsExpression, not the ObjectExpression itself.
-  if (node.type === 'TSAsExpression') {
+  if (node.type === AST_NODE_TYPES.TSAsExpression) {
     return resolveStaticStringLayerBroker({
-      node: node.expression ?? undefined,
+      node: node.expression,
       moduleBody,
       filename,
     });
   }
 
-  if (node.type === 'Literal') {
+  if (node.type === AST_NODE_TYPES.Literal) {
     return typeof node.value === 'string' ? contentTextContract.parse(node.value) : undefined;
   }
 
-  if (node.type === 'TemplateLiteral') {
-    const [firstQuasi] = node.quasis ?? [];
-    const quasiValue = firstQuasi?.value;
-    const cooked =
-      quasiValue !== null && typeof quasiValue === 'object' && 'cooked' in quasiValue
-        ? quasiValue.cooked
-        : undefined;
-    const raw =
-      quasiValue !== null && typeof quasiValue === 'object' && 'raw' in quasiValue
-        ? quasiValue.raw
-        : undefined;
-    const text = typeof cooked === 'string' ? cooked : raw;
-    return typeof text === 'string' && text.length > 0
-      ? contentTextContract.parse(text)
-      : undefined;
+  if (node.type === AST_NODE_TYPES.TemplateLiteral) {
+    const [firstQuasi] = node.quasis;
+    const text = firstQuasi?.value.cooked;
+    return text !== undefined && text.length > 0 ? contentTextContract.parse(text) : undefined;
   }
 
-  if (node.type === 'Identifier' && node.name !== undefined) {
+  if (node.type === AST_NODE_TYPES.Identifier) {
     return resolveStaticStringLayerBroker({
-      node: findModuleConstInitLayerBroker({ name: String(node.name), moduleBody }),
+      node: findModuleConstInitLayerBroker({ name: node.name, moduleBody }),
       moduleBody,
       filename,
     });
   }
 
   if (
-    node.type === 'MemberExpression' &&
+    node.type === AST_NODE_TYPES.MemberExpression &&
     !node.computed &&
-    node.object?.type === 'Identifier' &&
-    node.property?.type === 'Identifier'
+    node.object.type === AST_NODE_TYPES.Identifier &&
+    node.property.type === AST_NODE_TYPES.Identifier
   ) {
     const rawObjectInit = findModuleConstInitLayerBroker({
-      name: String(node.object.name),
+      name: node.object.name,
       moduleBody,
     });
     if (rawObjectInit === undefined) {
       return filename === undefined
         ? undefined
         : resolveImportedStaticsLayerBroker({
-            objectName: String(node.object.name),
-            propertyName: String(node.property.name),
+            objectName: node.object.name,
+            propertyName: node.property.name,
             moduleBody,
             filename,
           });
     }
     // Unwrap a `... as const`/`... as Type` wrapper — the object literal sits one level down.
     const objectInit =
-      rawObjectInit.type === 'TSAsExpression'
-        ? (rawObjectInit.expression ?? undefined)
+      rawObjectInit.type === AST_NODE_TYPES.TSAsExpression
+        ? rawObjectInit.expression
         : rawObjectInit;
-    if (objectInit?.type !== 'ObjectExpression') {
+    if (objectInit.type !== AST_NODE_TYPES.ObjectExpression) {
       return undefined;
     }
     return resolveStaticStringLayerBroker({
       node: objectPropertyValueTransformer({
-        properties: objectInit.properties ?? [],
-        name: String(node.property.name),
+        properties: objectInit.properties,
+        name: node.property.name,
       }),
       moduleBody,
       filename,

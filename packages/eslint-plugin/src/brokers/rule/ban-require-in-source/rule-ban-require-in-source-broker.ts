@@ -9,34 +9,31 @@
  * `requireActual({ module: '...' })` from @dungeonmaster/testing/register-mock is allowed because
  * its callee identifier is `requireActual`, not `require`.
  */
-import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const ruleBanRequireInSourceBroker = (): EslintRule => ({
-  ...eslintRuleContract.parse({
-    meta: {
-      type: 'problem',
-      docs: {
-        description:
-          'Ban raw require(...) calls in source files. Use ES `import` for modules and `requireActual` for test mock setup.',
-      },
-      messages: {
-        noRequire:
-          'Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup.',
-      },
-      schema: [],
+export const ruleBanRequireInSourceBroker = (): TSESLint.RuleModule<'noRequire'> => ({
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Ban raw require(...) calls in source files. Use ES `import` for modules and `requireActual` for test mock setup.',
     },
-  }),
-  create: (context: EslintContext) => {
+    messages: {
+      noRequire:
+        'Raw require(...) is not allowed. Use ES `import` for modules, or `requireActual({ module: "..." })` from @dungeonmaster/testing/register-mock in test setup.',
+    },
+    schema: [],
+  },
+  defaultOptions: [],
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (callee?.type !== 'Identifier') {
+        if (callee.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 

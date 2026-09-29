@@ -10,40 +10,44 @@
  * // Returns true for `{ camel: string }` and `Promise<{ removed: boolean }>`, false for
  * // `{ stop: () => void }` and `Quest['id']`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFunctionTypeNodeGuard } from '../is-function-type-node/is-function-type-node-guard';
 
 export const hasDataObjectLiteralTypeGuard = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): boolean => {
   if (node === undefined || node === null) {
     return false;
   }
 
-  if (node.type === 'TSTypeLiteral') {
-    return (node.members ?? []).some((member) => !isFunctionTypeNodeGuard({ node: member }));
+  if (node.type === AST_NODE_TYPES.TSTypeLiteral) {
+    return node.members.some((member) => !isFunctionTypeNodeGuard({ node: member }));
   }
 
-  if (node.type === 'TSUnionType' || node.type === 'TSIntersectionType') {
-    return (node.types ?? []).some((member) => hasDataObjectLiteralTypeGuard({ node: member }));
+  if (node.type === AST_NODE_TYPES.TSUnionType || node.type === AST_NODE_TYPES.TSIntersectionType) {
+    return node.types.some((member) => hasDataObjectLiteralTypeGuard({ node: member }));
   }
 
-  if (node.type === 'TSArrayType') {
+  if (node.type === AST_NODE_TYPES.TSArrayType) {
     return hasDataObjectLiteralTypeGuard({ node: node.elementType });
   }
 
-  if (node.type === 'TSTypeAnnotation' || node.type === 'TSTypeOperator') {
+  if (
+    node.type === AST_NODE_TYPES.TSTypeAnnotation ||
+    node.type === AST_NODE_TYPES.TSTypeOperator
+  ) {
     return hasDataObjectLiteralTypeGuard({ node: node.typeAnnotation });
   }
 
-  if (node.type === 'TSTypeReference') {
-    return hasDataObjectLiteralTypeGuard({ node: node.typeArguments ?? node.typeParameters });
+  if (node.type === AST_NODE_TYPES.TSTypeReference) {
+    return hasDataObjectLiteralTypeGuard({ node: node.typeArguments });
   }
 
-  if (node.type === 'TSTypeParameterInstantiation') {
-    return (node.params ?? []).some((param) => hasDataObjectLiteralTypeGuard({ node: param }));
+  if (node.type === AST_NODE_TYPES.TSTypeParameterInstantiation) {
+    return node.params.some((param) => hasDataObjectLiteralTypeGuard({ node: param }));
   }
 
   return false;

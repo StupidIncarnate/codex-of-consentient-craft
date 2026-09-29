@@ -95,99 +95,152 @@ import { ruleBanTypeAliasesBroker } from '../../../brokers/rule/ban-type-aliases
 import { ruleBanTestSupportInProductionBroker } from '../../../brokers/rule/ban-test-support-in-production/rule-ban-test-support-in-production-broker';
 import { ruleBanJoinIdBesideChildBroker } from '../../../brokers/rule/ban-join-id-beside-child/rule-ban-join-id-beside-child-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
-import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
 export const EslintPluginCreateResponder = (): {
   readonly rules: {
-    readonly 'ban-adhoc-types': EslintRule;
-    readonly 'ban-primitives': EslintRule;
-    readonly 'enforce-contract-usage-in-tests': EslintRule;
-    readonly 'ban-jest-mock-in-tests': EslintRule;
-    readonly 'ban-jsx-outside-widgets-and-flows': EslintRule;
-    readonly 'require-zod-on-primitives': EslintRule;
-    readonly 'enforce-project-structure': EslintRule;
-    readonly 'enforce-import-dependencies': EslintRule;
-    readonly 'enforce-jest-mocked-usage': EslintRule;
-    readonly 'enforce-magic-arrays': EslintRule;
-    readonly 'enforce-object-destructuring-params': EslintRule;
-    readonly 'enforce-optional-guard-params': EslintRule;
-    readonly 'enforce-stub-patterns': EslintRule;
-    readonly 'enforce-stub-usage': EslintRule;
-    readonly 'enforce-proxy-child-creation': EslintRule;
-    readonly 'enforce-proxy-patterns': EslintRule;
-    readonly 'enforce-test-colocation': EslintRule;
-    readonly 'enforce-test-creation-of-proxy': EslintRule;
-    readonly 'enforce-test-proxy-imports': EslintRule;
-    readonly 'enforce-hydration-recipes-structure': EslintRule;
-    readonly 'enforce-implementation-colocation': EslintRule;
-    readonly 'forbid-non-exported-functions': EslintRule;
-    readonly 'forbid-type-reexport': EslintRule;
-    readonly 'jest-mocked-must-import': EslintRule;
-    readonly 'no-mutable-state-in-proxy-factory': EslintRule;
-    readonly 'require-contract-validation': EslintRule;
-    readonly 'no-multiple-property-assertions': EslintRule;
-    readonly 'forbid-todo-skip': EslintRule;
-    readonly 'enforce-regex-usage': EslintRule;
-    readonly 'enforce-file-metadata': EslintRule;
-    readonly 'enforce-folder-return-types': EslintRule;
-    readonly 'ban-fetch-in-proxies': EslintRule;
-    readonly 'ban-startup-branching': EslintRule;
-    readonly 'ban-jest-mock-in-proxies': EslintRule;
-    readonly 'enforce-harness-patterns': EslintRule;
-    readonly 'ban-node-builtins-in-test-scenarios': EslintRule;
-    readonly 'ban-inline-helpers-in-test-scenarios': EslintRule;
-    readonly 'ban-silent-catch': EslintRule;
-    readonly 'ban-wait-for-timeout': EslintRule;
-    readonly 'ban-page-route-in-e2e': EslintRule;
-    readonly 'enforce-e2e-base-import': EslintRule;
-    readonly 'ban-not-to-throw': EslintRule;
-    readonly 'ban-weak-existence-matchers': EslintRule;
-    readonly 'ban-typeof-assertions': EslintRule;
-    readonly 'enforce-test-name-prefix': EslintRule;
-    readonly 'ban-unanchored-to-match': EslintRule;
-    readonly 'enforce-testid-queries': EslintRule;
-    readonly 'ban-playwright-evaluate-for-styles': EslintRule;
-    readonly 'ban-playwright-extract-then-assert': EslintRule;
-    readonly 'ban-negated-matchers': EslintRule;
-    readonly 'ban-tautological-assertions': EslintRule;
-    readonly 'ban-object-keys-in-expect': EslintRule;
-    readonly 'ban-string-includes-in-expect': EslintRule;
-    readonly 'ban-weak-asymmetric-matchers': EslintRule;
-    readonly 'no-bare-process-cwd': EslintRule;
-    readonly 'ban-reflect-outside-guards': EslintRule;
-    readonly 'ban-require-in-source': EslintRule;
-    readonly 'ban-unknown-payload-in-discriminated-union': EslintRule;
-    readonly 'require-validation-on-untyped-property-access': EslintRule;
-    readonly 'enforce-proxy-param-binding': EslintRule;
-    readonly 'ban-flattened-contract-params': EslintRule;
-    readonly 'ban-anonymous-jsx-in-map': EslintRule;
-    readonly 'ban-dom-handles-in-ingredients': EslintRule;
-    readonly 'ban-nondeterminism-in-ingredients': EslintRule;
-    readonly 'raw-import-ban': EslintRule;
-    readonly 'platform-globals-ban': EslintRule;
-    readonly 'bin-program-spawn-ban': EslintRule;
-    readonly 'require-contract-parse': EslintRule;
-    readonly 'enforce-unique-contract-names': EslintRule;
-    readonly 'enforce-owner-field-reuse': EslintRule;
-    readonly 'gateway-import-boundary': EslintRule;
-    readonly 'gateway-colocation': EslintRule;
-    readonly 'gateway-layout': EslintRule;
-    readonly 'gateway-dependency-declared': EslintRule;
-    readonly 'gateway-return-unknown-not-caller-type': EslintRule;
-    readonly 'gateway-schema-brand': EslintRule;
-    readonly 'ban-gateway-export': EslintRule;
-    readonly 'enforce-gateway-restricted-to': EslintRule;
-    readonly 'enforce-gateway-config-names-exist': EslintRule;
-    readonly 'ban-workspace-export-mocks': EslintRule;
-    readonly 'ban-proxy-catch-all-defaults': EslintRule;
-    readonly 'ban-proxy-empty-called-with': EslintRule;
-    readonly 'ban-invented-failures': EslintRule;
-    readonly 'enforce-gateway-schema-fields': EslintRule;
-    readonly 'ban-contract-type-predicates': EslintRule;
-    readonly 'require-object-contract-brands': EslintRule;
-    readonly 'ban-type-aliases': EslintRule;
-    readonly 'ban-test-support-in-production': EslintRule;
-    readonly 'ban-join-id-beside-child': EslintRule;
+    readonly 'ban-adhoc-types': ReturnType<typeof ruleBanAdhocTypesBroker>;
+    readonly 'ban-primitives': ReturnType<typeof ruleBanPrimitivesBroker>;
+    readonly 'enforce-contract-usage-in-tests': ReturnType<
+      typeof ruleEnforceContractUsageInTestsBroker
+    >;
+    readonly 'ban-jest-mock-in-tests': ReturnType<typeof ruleBanJestMockInTestsBroker>;
+    readonly 'ban-jsx-outside-widgets-and-flows': ReturnType<
+      typeof ruleBanJsxOutsideWidgetsAndFlowsBroker
+    >;
+    readonly 'require-zod-on-primitives': ReturnType<typeof ruleRequireZodOnPrimitivesBroker>;
+    readonly 'enforce-project-structure': ReturnType<typeof ruleEnforceProjectStructureBroker>;
+    readonly 'enforce-import-dependencies': ReturnType<typeof ruleEnforceImportDependenciesBroker>;
+    readonly 'enforce-jest-mocked-usage': ReturnType<typeof ruleEnforceJestMockedUsageBroker>;
+    readonly 'enforce-magic-arrays': ReturnType<typeof ruleEnforceMagicArraysBroker>;
+    readonly 'enforce-object-destructuring-params': ReturnType<
+      typeof ruleEnforceObjectDestructuringParamsBroker
+    >;
+    readonly 'enforce-optional-guard-params': ReturnType<
+      typeof ruleEnforceOptionalGuardParamsBroker
+    >;
+    readonly 'enforce-stub-patterns': ReturnType<typeof ruleEnforceStubPatternsBroker>;
+    readonly 'enforce-stub-usage': ReturnType<typeof ruleEnforceStubUsageBroker>;
+    readonly 'enforce-proxy-child-creation': ReturnType<typeof ruleEnforceProxyChildCreationBroker>;
+    readonly 'enforce-proxy-patterns': ReturnType<typeof ruleEnforceProxyPatternsBroker>;
+    readonly 'enforce-test-colocation': ReturnType<typeof ruleEnforceTestColocationBroker>;
+    readonly 'enforce-test-creation-of-proxy': ReturnType<
+      typeof ruleEnforceTestCreationOfProxyBroker
+    >;
+    readonly 'enforce-test-proxy-imports': ReturnType<typeof ruleEnforceTestProxyImportsBroker>;
+    readonly 'enforce-hydration-recipes-structure': ReturnType<
+      typeof ruleEnforceHydrationRecipesStructureBroker
+    >;
+    readonly 'enforce-implementation-colocation': ReturnType<
+      typeof ruleEnforceImplementationColocationBroker
+    >;
+    readonly 'forbid-non-exported-functions': ReturnType<
+      typeof ruleForbidNonExportedFunctionsBroker
+    >;
+    readonly 'forbid-type-reexport': ReturnType<typeof ruleForbidTypeReexportBroker>;
+    readonly 'jest-mocked-must-import': ReturnType<typeof ruleJestMockedMustImportBroker>;
+    readonly 'no-mutable-state-in-proxy-factory': ReturnType<
+      typeof ruleNoMutableStateInProxyFactoryBroker
+    >;
+    readonly 'require-contract-validation': ReturnType<typeof ruleRequireContractValidationBroker>;
+    readonly 'no-multiple-property-assertions': ReturnType<
+      typeof ruleNoMultiplePropertyAssertionsBroker
+    >;
+    readonly 'forbid-todo-skip': ReturnType<typeof ruleForbidTodoSkipBroker>;
+    readonly 'enforce-regex-usage': ReturnType<typeof ruleEnforceRegexUsageBroker>;
+    readonly 'enforce-file-metadata': ReturnType<typeof ruleEnforceFileMetadataBroker>;
+    readonly 'enforce-folder-return-types': ReturnType<typeof ruleEnforceFolderReturnTypesBroker>;
+    readonly 'ban-fetch-in-proxies': ReturnType<typeof ruleBanFetchInProxiesBroker>;
+    readonly 'ban-startup-branching': ReturnType<typeof ruleBanStartupBranchingBroker>;
+    readonly 'ban-jest-mock-in-proxies': ReturnType<typeof ruleBanJestMockInProxiesBroker>;
+    readonly 'enforce-harness-patterns': ReturnType<typeof ruleEnforceHarnessPatternsBroker>;
+    readonly 'ban-node-builtins-in-test-scenarios': ReturnType<
+      typeof ruleBanNodeBuiltinsInTestScenariosBroker
+    >;
+    readonly 'ban-inline-helpers-in-test-scenarios': ReturnType<
+      typeof ruleBanInlineHelpersInTestScenariosBroker
+    >;
+    readonly 'ban-silent-catch': ReturnType<typeof ruleBanSilentCatchBroker>;
+    readonly 'ban-wait-for-timeout': ReturnType<typeof ruleBanWaitForTimeoutBroker>;
+    readonly 'ban-page-route-in-e2e': ReturnType<typeof ruleBanPageRouteInE2eBroker>;
+    readonly 'enforce-e2e-base-import': ReturnType<typeof ruleEnforceE2eBaseImportBroker>;
+    readonly 'ban-not-to-throw': ReturnType<typeof ruleBanNotToThrowBroker>;
+    readonly 'ban-weak-existence-matchers': ReturnType<typeof ruleBanWeakExistenceMatchersBroker>;
+    readonly 'ban-typeof-assertions': ReturnType<typeof ruleBanTypeofAssertionsBroker>;
+    readonly 'enforce-test-name-prefix': ReturnType<typeof ruleEnforceTestNamePrefixBroker>;
+    readonly 'ban-unanchored-to-match': ReturnType<typeof ruleBanUnanchoredToMatchBroker>;
+    readonly 'enforce-testid-queries': ReturnType<typeof ruleEnforceTestidQueriesBroker>;
+    readonly 'ban-playwright-evaluate-for-styles': ReturnType<
+      typeof ruleBanPlaywrightEvaluateForStylesBroker
+    >;
+    readonly 'ban-playwright-extract-then-assert': ReturnType<
+      typeof ruleBanPlaywrightExtractThenAssertBroker
+    >;
+    readonly 'ban-negated-matchers': ReturnType<typeof ruleBanNegatedMatchersBroker>;
+    readonly 'ban-tautological-assertions': ReturnType<typeof ruleBanTautologicalAssertionsBroker>;
+    readonly 'ban-object-keys-in-expect': ReturnType<typeof ruleBanObjectKeysInExpectBroker>;
+    readonly 'ban-string-includes-in-expect': ReturnType<
+      typeof ruleBanStringIncludesInExpectBroker
+    >;
+    readonly 'ban-weak-asymmetric-matchers': ReturnType<typeof ruleBanWeakAsymmetricMatchersBroker>;
+    readonly 'no-bare-process-cwd': ReturnType<typeof ruleNoBareProcessCwdBroker>;
+    readonly 'ban-reflect-outside-guards': ReturnType<typeof ruleBanReflectOutsideGuardsBroker>;
+    readonly 'ban-require-in-source': ReturnType<typeof ruleBanRequireInSourceBroker>;
+    readonly 'ban-unknown-payload-in-discriminated-union': ReturnType<
+      typeof ruleBanUnknownPayloadInDiscriminatedUnionBroker
+    >;
+    readonly 'require-validation-on-untyped-property-access': ReturnType<
+      typeof ruleRequireValidationOnUntypedPropertyAccessBroker
+    >;
+    readonly 'enforce-proxy-param-binding': ReturnType<typeof ruleEnforceProxyParamBindingBroker>;
+    readonly 'ban-flattened-contract-params': ReturnType<
+      typeof ruleBanFlattenedContractParamsBroker
+    >;
+    readonly 'ban-anonymous-jsx-in-map': ReturnType<typeof ruleBanAnonymousJsxInMapBroker>;
+    readonly 'ban-dom-handles-in-ingredients': ReturnType<
+      typeof ruleBanDomHandlesInIngredientsBroker
+    >;
+    readonly 'ban-nondeterminism-in-ingredients': ReturnType<
+      typeof ruleBanNondeterminismInIngredientsBroker
+    >;
+    readonly 'raw-import-ban': ReturnType<typeof ruleRawImportBanBroker>;
+    readonly 'platform-globals-ban': ReturnType<typeof rulePlatformGlobalsBanBroker>;
+    readonly 'bin-program-spawn-ban': ReturnType<typeof ruleBinProgramSpawnBanBroker>;
+    readonly 'require-contract-parse': ReturnType<typeof ruleRequireContractParseBroker>;
+    readonly 'enforce-unique-contract-names': ReturnType<
+      typeof ruleEnforceUniqueContractNamesBroker
+    >;
+    readonly 'enforce-owner-field-reuse': ReturnType<typeof ruleEnforceOwnerFieldReuseBroker>;
+    readonly 'gateway-import-boundary': ReturnType<typeof ruleGatewayImportBoundaryBroker>;
+    readonly 'gateway-colocation': ReturnType<typeof ruleGatewayColocationBroker>;
+    readonly 'gateway-layout': ReturnType<typeof ruleGatewayLayoutBroker>;
+    readonly 'gateway-dependency-declared': ReturnType<typeof ruleGatewayDependencyDeclaredBroker>;
+    readonly 'gateway-return-unknown-not-caller-type': ReturnType<
+      typeof ruleGatewayReturnUnknownNotCallerTypeBroker
+    >;
+    readonly 'gateway-schema-brand': ReturnType<typeof ruleGatewaySchemaBrandBroker>;
+    readonly 'ban-gateway-export': ReturnType<typeof ruleBanGatewayExportBroker>;
+    readonly 'enforce-gateway-restricted-to': ReturnType<
+      typeof ruleEnforceGatewayRestrictedToBroker
+    >;
+    readonly 'enforce-gateway-config-names-exist': ReturnType<
+      typeof ruleEnforceGatewayConfigNamesExistBroker
+    >;
+    readonly 'ban-workspace-export-mocks': ReturnType<typeof ruleBanWorkspaceExportMocksBroker>;
+    readonly 'ban-proxy-catch-all-defaults': ReturnType<typeof ruleBanProxyCatchAllDefaultsBroker>;
+    readonly 'ban-proxy-empty-called-with': ReturnType<typeof ruleBanProxyEmptyCalledWithBroker>;
+    readonly 'ban-invented-failures': ReturnType<typeof ruleBanInventedFailuresBroker>;
+    readonly 'enforce-gateway-schema-fields': ReturnType<
+      typeof ruleEnforceGatewaySchemaFieldsBroker
+    >;
+    readonly 'ban-contract-type-predicates': ReturnType<typeof ruleBanContractTypePredicatesBroker>;
+    readonly 'require-object-contract-brands': ReturnType<
+      typeof ruleRequireObjectContractBrandsBroker
+    >;
+    readonly 'ban-type-aliases': ReturnType<typeof ruleBanTypeAliasesBroker>;
+    readonly 'ban-test-support-in-production': ReturnType<
+      typeof ruleBanTestSupportInProductionBroker
+    >;
+    readonly 'ban-join-id-beside-child': ReturnType<typeof ruleBanJoinIdBesideChildBroker>;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
