@@ -11,11 +11,12 @@
  * WHEN-TO-USE: Called by Claude CLI as a SessionStart or SubagentStart hook for each registered snippet key
  */
 
+import { argv, exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookSessionSnippetFlow } from '../flows/hook-session-snippet/hook-session-snippet-flow';
 
-const [, , snippetKey] = process.argv;
+const [, , snippetKey] = argv;
 
 export const StartSessionSnippetHook = async ({
   snippetKeyArg,
@@ -26,17 +27,11 @@ export const StartSessionSnippetHook = async ({
 }): Promise<AdapterResult> => {
   const hookInput: unknown = JSON.parse(inputData);
   const result = await HookSessionSnippetFlow({ snippetKey: snippetKeyArg, hookInput });
-  process.stderr.write(result.stderr);
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stderr.write(result.stderr);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartSessionSnippetHook({ snippetKeyArg: snippetKey, inputData: inputBuffer.data }).catch(() =>
-    process.exit(1),
-  );
-});
+readStdinToEnd()
+  .then(async (inputData) => StartSessionSnippetHook({ snippetKeyArg: snippetKey, inputData }))
+  .catch(() => exit(1));

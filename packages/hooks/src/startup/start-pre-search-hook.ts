@@ -7,21 +7,18 @@
  * // Reads JSON from stdin, validates, blocks search tools with exit code 2
  */
 
+import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookPreSearchFlow } from '../flows/hook-pre-search/hook-pre-search-flow';
 
 export const StartPreSearchHook = ({ inputData }: { inputData: string }): AdapterResult => {
   const result = HookPreSearchFlow({ inputData });
-  process.stderr.write(result.stderr);
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stderr.write(result.stderr);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartPreSearchHook({ inputData: inputBuffer.data });
-});
+readStdinToEnd()
+  .then((inputData) => StartPreSearchHook({ inputData }))
+  .catch(() => exit(1));

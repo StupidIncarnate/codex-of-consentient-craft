@@ -9,6 +9,7 @@
  * WHEN-TO-USE: Registered by Claude Code as the SubagentStop hook command
  */
 
+import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookSubagentStopFlow } from '../flows/hook-subagent-stop/hook-subagent-stop-flow';
@@ -19,15 +20,11 @@ export const StartSubagentStopHook = async ({
   inputData: string;
 }): Promise<AdapterResult> => {
   const result = await HookSubagentStopFlow({ inputData });
-  process.stderr.write(result.stderr);
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stderr.write(result.stderr);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartSubagentStopHook({ inputData: inputBuffer.data }).catch(() => process.exit(1));
-});
+readStdinToEnd()
+  .then(async (inputData) => StartSubagentStopHook({ inputData }))
+  .catch(() => exit(1));

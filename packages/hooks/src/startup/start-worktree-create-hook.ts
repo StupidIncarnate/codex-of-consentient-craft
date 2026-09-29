@@ -9,21 +9,18 @@
  * // Writes the refusal to stderr and exits 2
  */
 
+import { exit, readStdinToEnd, stderr, stdout } from '#gateway/node/process';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { HookWorktreeCreateFlow } from '../flows/hook-worktree-create/hook-worktree-create-flow';
 
 export const StartWorktreeCreateHook = ({ inputData }: { inputData: string }): AdapterResult => {
   const result = HookWorktreeCreateFlow({ inputData });
-  process.stderr.write(result.stderr);
-  process.stdout.write(result.stdout);
-  process.exit(result.exitCode);
+  stderr.write(result.stderr);
+  stdout.write(result.stdout);
+  return exit(result.exitCode);
 };
 
-const inputBuffer = { data: '' };
-process.stdin.on('data', (chunk: Buffer) => {
-  inputBuffer.data += chunk.toString();
-});
-process.stdin.on('end', () => {
-  StartWorktreeCreateHook({ inputData: inputBuffer.data });
-});
+readStdinToEnd()
+  .then((inputData) => StartWorktreeCreateHook({ inputData }))
+  .catch(() => exit(1));
