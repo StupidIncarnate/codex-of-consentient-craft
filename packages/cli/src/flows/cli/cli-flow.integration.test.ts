@@ -340,7 +340,7 @@ describe('CliFlow', () => {
         '',
       ]);
       expect(machineLine).toMatch(
-        /^MACHINE: free \d+MB\/\d+MB mem, free disk \d+MB, \d+ cores, load [\d.]+\/[\d.]+\/[\d.]+, OOM kills \d+ \(last (?:-|\d{2}:\d{2}:\d{2})\)$/u,
+        /^MACHINE: free \d+MB\/\d+MB mem, free disk \d+MB, \d+ cores, load [\d.]+\/[\d.]+\/[\d.]+, OOM kills (?:\d+|unreadable)$/u,
       );
     });
 
