@@ -451,20 +451,22 @@ const makeLanguageService = (pkgDir, live = new Map()) => {
 // for each diagnostic the edit introduced restores the candidates inside the statement holding it,
 // until the file's diagnostics equal its baseline (code + line + message). Returns the accepted
 // candidates ([] if it cannot converge). Leaves the service showing the original text.
-const gateEdits = ({ service, live, file, text, cands, render }) => {
+const gateEdits = ({ service, live, file, text, cands, render, ignore }) => {
   const setText = (t) => live.set(file, { v: (live.get(file)?.v ?? 0) + 1, text: t });
   const diag = () =>
     [...service.getSyntacticDiagnostics(file), ...service.getSemanticDiagnostics(file)].map((d) => ({
       key: `${d.code}:${d.file ? d.file.getLineAndCharacterOfPosition(d.start).line : -1}:${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
       start: d.start ?? 0,
       end: (d.start ?? 0) + (d.length ?? 0),
+      code: d.code,
     }));
+  const fresh = (d) => !base.has(d.key) && !(ignore && ignore(d));
   const base = new Set(diag().map((d) => d.key));
   let accepted = [...cands];
   for (let guard = 0; guard < 60 && accepted.length; guard++) {
     const out = render(accepted);
     setText(out);
-    const added = diag().filter((d) => !base.has(d.key));
+    const added = diag().filter(fresh);
     if (!added.length) break;
     // Map a position in the edited text back to the original by replaying the edits' length deltas.
     const sorted = [...accepted].sort((a, b) => a.start - b.start);
@@ -488,7 +490,7 @@ const gateEdits = ({ service, live, file, text, cands, render }) => {
   }
   if (accepted.length) {
     setText(render(accepted));
-    if (diag().some((d) => !base.has(d.key))) accepted = [];
+    if (diag().some(fresh)) accepted = [];
   }
   setText(text);
   return accepted;

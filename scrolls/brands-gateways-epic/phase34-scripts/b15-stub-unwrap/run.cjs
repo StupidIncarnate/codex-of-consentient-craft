@@ -4,7 +4,11 @@
 // unwraps the type checker accepts, and drops the stub's import where no use is left.
 //
 //   node tmp/phase34/b15-stub-unwrap/run.cjs <pkg> --stubs=ExecutionStepStatusStub,ContentTextStub
-//        [--files=a.test.ts,...] [--sample-out=<dir>] [apply]
+//        [--files=a.test.ts,...] [--sample-out=<dir>] [--overlay-dir=<dir>] [apply]
+//
+// `--overlay-dir` lays a sample dir (repo-relative paths, e.g. b15-enum-brands-off's `--sample-out`) over the
+// tree before the gate runs, so an unwrap can be proved against a brand removal that is not written yet.
+// It never writes those files.
 //
 // Unwraps only a call whose single argument is `{ value: <string | number | no-substitution template
 // literal> }`; `XStub()` (the stub's default) and computed values are counted and left. Test files
@@ -30,6 +34,24 @@ if (!w || !stubs.size) {
 }
 const TEST_FILE = /\.(test|integration\.test|e2e|spec)\.tsx?$/u;
 const live = new Map();
+const overlayDir = opt('overlay-dir') ? path.resolve(ROOT, opt('overlay-dir')) : null;
+if (overlayDir) {
+  const load = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) load(p);
+      else {
+        const real = path.join(ROOT, path.relative(overlayDir, p));
+        const text = fs.readFileSync(p, 'utf8');
+        live.set(real, { v: 1, text });
+        // A package import can resolve through the node_modules symlink path instead of the real one.
+        const owner = lib.workspaceOf(real, lib.workspaces());
+        if (owner) live.set(path.join(ROOT, 'node_modules', owner.name, path.relative(owner.dir, real)), { v: 1, text });
+      }
+    }
+  };
+  load(overlayDir);
+}
 const { service, fileNames } = lib.makeLanguageService(w.dir, live);
 
 const stats = { files: 0, filesChanged: 0, unwrapped: 0, kept: 0, defaultCalls: 0, nonLiteral: 0, importsDropped: 0 };
@@ -86,7 +108,11 @@ for (const f of (onlyFiles ?? fileNames).filter((x) => TEST_FILE.test(x) && fs.e
     return lib.applyEdits(out, edits);
   };
   const render = (acc) => lib.applyEdits(text, acc);
-  const accepted = lib.gateEdits({ service, live, file: f, text, cands, render });
+  // The import is dropped after the gate, so a listed stub reported as unused (TS6133, or TS6192 on a whole
+  // import line) is not a diagnostic the unwrap added; positions are read from the unedited text, which agrees
+  // because imports precede every edit.
+  const ignore = (d) => (d.code === 6133 || d.code === 6192) && [...stubs].some((s) => text.slice(d.start, d.end).includes(s));
+  const accepted = lib.gateEdits({ service, live, file: f, text, cands, render, ignore });
   const kept = cands.filter((c) => !accepted.includes(c));
   stats.unwrapped += accepted.length;
   stats.kept += kept.length;
