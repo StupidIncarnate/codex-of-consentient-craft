@@ -9,7 +9,6 @@
 import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintIsPathIgnoredBrokerProxy = (): {
@@ -21,12 +20,10 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
   setLookupThrows: (params: { filePath: string; error: Error }) => void;
   getCheckedPathsFor: (params: { filePath: string }) => readonly unknown[][];
 } => {
-  cwdProxy();
-  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
-  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
-  // the real process.cwd(), so a test built on it never depends on where jest runs.
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
+  const cwd = cwdProxy();
+  // A fixed address, not the real process.cwd(), so a test never depends on where jest runs.
+  // Staged inside each setup method, so every test that reaches the no-cwd branch calls one.
+  const defaultCwd = '/default/cwd';
   const resolveHandle = registerMock({ fn: resolve });
 
   // This broker's own resolve call needs an explicit fallback. Restore
@@ -42,6 +39,7 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     // Callers that don't know filePath ahead of setup (e.g. a proxy composing this one before its
     // own test constructs a tool input) pass a predicate.
     setIgnored: ({ filePath, ignored }): void => {
+      cwd.setupCwd({ value: defaultCwd });
       eslint.isPathIgnoredReturns({ filePath, ignored });
     },
 
@@ -50,13 +48,15 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     // `cwd` actually resolves against, so a broker that stops calling cwd() on that branch fails
     // whatever test stages this.
     setIgnoredForDefaultCwd: ({ filePath, ignored }): void => {
-      const resolvedForDefaultCwd = `/default/cwd/resolved/${filePath}`;
-      resolveHandle.calledWith(['/default/cwd', filePath]).returns(resolvedForDefaultCwd);
+      cwd.setupCwd({ value: defaultCwd });
+      const resolvedForDefaultCwd = `${defaultCwd}/resolved/${filePath}`;
+      resolveHandle.calledWith([defaultCwd, filePath]).returns(resolvedForDefaultCwd);
       eslint.isPathIgnoredReturns({ filePath: resolvedForDefaultCwd, ignored });
     },
 
     // ESLint throws for a path outside its cwd; the broker's catch answers "not ignored".
     setLookupThrows: ({ filePath, error }): void => {
+      cwd.setupCwd({ value: defaultCwd });
       eslint.isPathIgnoredRejects({ filePath, error });
     },
 

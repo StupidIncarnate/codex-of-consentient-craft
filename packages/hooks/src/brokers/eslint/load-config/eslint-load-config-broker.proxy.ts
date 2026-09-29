@@ -12,7 +12,6 @@ import { resolve } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -24,12 +23,12 @@ export const eslintLoadConfigBrokerProxy = (): {
   getCalculatedFor: (params: { filePath: string }) => readonly unknown[][];
 } => {
   // Create child proxies
-  cwdProxy();
-  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
-  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
-  // the real process.cwd(), so this test's outcome never depends on where jest runs.
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns('/default/cwd');
+  const cwd = cwdProxy();
+  // A fixed address, not the real process.cwd(), so a test's outcome never depends on where jest
+  // runs. Staged inside each setup method, so every test that reaches the no-cwd branch calls one.
+  const stageDefaultCwd = (): void => {
+    cwd.setupCwd({ value: '/default/cwd' });
+  };
   const resolveHandle = registerMock({ fn: resolve });
   const existsProxy = existsSyncProxy();
   eslintFallbackPathsBrokerProxy();
@@ -52,20 +51,24 @@ export const eslintLoadConfigBrokerProxy = (): {
   // part of that call, so a test that needs two different configs stages two different paths.
   return {
     returnsConfig: ({ filePath, config }): void => {
+      stageDefaultCwd();
       eslint.calculateConfigForFileReturns({ filePath, config });
     },
 
     // ESLint answers null for a file its config ignores; the broker then walks its fallback paths
     // ('fallback.ts' under this proxy's last-segment `resolve`), each of which must be staged too.
     returnsNullConfig: ({ filePath }): void => {
+      stageDefaultCwd();
       eslint.calculateConfigForFileReturns({ filePath, config: null });
     },
 
     throwsOnConstruction: ({ cwd: constructionCwd, error }): void => {
+      stageDefaultCwd();
       eslint.constructionThrows({ cwd: constructionCwd, error });
     },
 
     throwsOnCalculate: ({ filePath, error }): void => {
+      stageDefaultCwd();
       eslint.calculateConfigForFileRejects({ filePath, error });
     },
 

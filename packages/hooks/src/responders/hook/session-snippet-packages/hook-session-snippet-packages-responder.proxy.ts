@@ -10,9 +10,7 @@
 
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { cwd } from '#gateway/node/process';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -34,9 +32,8 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
   }) => void;
   setupEmptyMonorepo: (params: { projectRoot: AbsoluteFilePath }) => void;
 } => {
-  cwdProxy();
+  const cwd = cwdProxy();
   const readdirProxy = readdirEntriesSyncProxy();
-  const cwdHandle = registerMock({ fn: cwd });
 
   return {
     setupEntries: ({
@@ -50,7 +47,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
         children?: { name: string; isDirectory: boolean }[];
       }[];
     }): void => {
-      cwdHandle.calledWith([]).returns(projectRoot);
+      cwd.setupCwd({ value: projectRoot });
       const packagesDir = packagesDirFor({ projectRoot });
       readdirProxy.returns({
         path: packagesDir,
@@ -74,7 +71,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
     },
 
     setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {
-      cwdHandle.calledWith([]).returns(projectRoot);
+      cwd.setupCwd({ value: projectRoot });
       // Make the responder's readdir throw so it falls back to the literal 'root' name.
       readdirProxy.throws({
         path: packagesDirFor({ projectRoot }),
