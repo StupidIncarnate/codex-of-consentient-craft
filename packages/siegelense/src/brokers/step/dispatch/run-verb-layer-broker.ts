@@ -146,21 +146,19 @@ export const runVerbLayerBroker = async ({
     });
   }
 
+  // `waitFor` is NOT pre-resolved: a zero-match count is exactly what it exists to wait out (a list
+  // rendered after a fetch), so resolving first would fail it at once with NO MATCH instead of
+  // polling until `timeoutMs`. `stepWaitForBroker` meets ambiguity through Playwright's strict locator
+  // instead and raises the same `StepAmbiguousError` this door would have.
   if (
     isTargetingStepGuard({ step }) &&
-    (step.step === 'waitFor' ||
-      step.step === 'click' ||
-      step.step === 'type' ||
-      step.step === 'paste')
+    (step.step === 'click' || step.step === 'type' || step.step === 'paste')
   ) {
-    // `waitFor` takes no `ref`: `ElementHandle.waitForElementState` has no `attached`/`detached`,
-    // which `locatorStateContract` carries, and a ref you already looked at is a poor subject for
-    // "wait until this exists" anyway.
     await stepTargetResolveBroker({
       session,
       target: step.target,
       within: step.within,
-      ref: step.step === 'waitFor' ? null : step.ref,
+      ref: step.ref,
     });
   }
 

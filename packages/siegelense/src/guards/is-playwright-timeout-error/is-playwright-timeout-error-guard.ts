@@ -1,10 +1,9 @@
 /**
  * PURPOSE: True when a rejection Playwright produced is its own `TimeoutError` — the wait ran out —
  * and false for every other failure it can raise from the same call. `until`'s `visible` and
- * `predicate` forms need this because they are the only waits in the package that do NOT pre-resolve
- * their target: `waitFor` goes through `stepTargetResolveBroker` first, so an ambiguous selector is
- * already an AMBIGUOUS error before its wait begins, while `until { visible }` hands the selector
- * straight to Playwright's strict locator. Without this guard both forms report every failure as a
+ * `predicate` forms need this because they hand their condition straight to Playwright without
+ * pre-resolving a target: `until { visible }` meets Playwright's strict locator directly, and a
+ * predicate's source can throw. Without this guard both forms report every failure as a
  * ceiling hit, so `RunStatus` answers `'timeout'` for a selector matching two elements and tells a
  * walker to wait longer for something already on the screen twice — and a `predicate` whose source
  * throws reads identically to one that is merely false.

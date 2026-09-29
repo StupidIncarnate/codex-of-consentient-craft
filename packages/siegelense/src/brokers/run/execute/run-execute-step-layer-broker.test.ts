@@ -298,6 +298,45 @@ describe('runExecuteStepLayerBroker', () => {
         timedOut: true,
       });
     });
+
+    it('ERROR: {waitFor on an absent target, timeoutMs 2000, clock advancing 1000ms per read} => the failure reading spans the wait: startedAtMs before dispatch, endedAtMs at the catch', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneWaitForHitsCeiling({
+        error: new Error('Timeout 2000ms exceeded'),
+      });
+      proxy.clockAdvancing({ startMs: FIXED_NOW_MS, stepMs: 1000 });
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub({ value: '[data-testid="NOPE"]' }),
+        state: LocatorStateStub({ value: 'visible' }),
+        timeoutMs: 2000,
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub({ value: 1 }),
+        shotPath: null,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
+      });
+
+      expect({
+        reading: outcome.reading.reading,
+        startedAtMs: outcome.reading.startedAtMs,
+        endedAtMs: outcome.reading.endedAtMs,
+        timedOut: outcome.timedOut,
+      }).toStrictEqual({
+        reading:
+          'visible [data-testid="NOPE"] never resolved in 2000ms: Error: Timeout 2000ms exceeded',
+        startedAtMs: FIXED_NOW_MS + 1000,
+        endedAtMs: FIXED_NOW_MS + 3000,
+        timedOut: true,
+      });
+    });
   });
 
   describe('an until that hits its ceiling — R9 end to end', () => {

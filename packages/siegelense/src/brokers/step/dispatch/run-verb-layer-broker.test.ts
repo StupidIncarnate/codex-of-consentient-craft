@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
@@ -67,7 +68,7 @@ describe('runVerbLayerBroker', () => {
       expect(callOrder()).toStrictEqual(['countMatches', 'pasteMatch']);
     });
 
-    it('VALID: {waitFor, one match} => calls countMatches before waitForMatch', async () => {
+    it('VALID: {waitFor, one match} => goes straight to waitForMatch with no countMatches pre-resolve', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'waitFor', target: SelectorStub() });
@@ -81,7 +82,29 @@ describe('runVerbLayerBroker', () => {
         recordBinding: NOOP,
       });
 
-      expect(callOrder()).toStrictEqual(['countMatches', 'waitForMatch']);
+      expect(callOrder()).toStrictEqual(['waitForMatch']);
+    });
+
+    it('VALID: {waitFor, target absent at start and appearing during the wait} => resolves with the reached state instead of failing NO MATCH', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithTargetAppearingLater();
+      const step = StepStub({
+        step: 'waitFor',
+        target: SelectorStub({ value: '[data-testid="QUEST_LIST"]' }),
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: StepIndexStub(),
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(result).toBe('[data-testid="QUEST_LIST"] reached state "visible"');
+      expect(callOrder()).toStrictEqual(['waitForMatch']);
     });
 
     it('VALID: {box, live ref} => resolves refState then calls boxRef', async () => {

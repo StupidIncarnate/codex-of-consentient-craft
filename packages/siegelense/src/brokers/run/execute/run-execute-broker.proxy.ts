@@ -42,6 +42,7 @@ import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.
 const bufferLineCountContract = z.number().int().nonnegative().brand<'BufferLineCount'>();
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const ONE_MATCH_COUNT = 1;
+const ZERO_MATCH_COUNT = 0;
 
 type BufferKind = 'console' | 'network' | 'websocket';
 
@@ -161,6 +162,7 @@ export const runExecuteBrokerProxy = (): {
     snapshotCountAtEachStep: () => readonly ReadingCount[];
   };
   failSnapshotCapture: (params: { error: Error }) => void;
+  clockAdvancing: (params: { startMs: number; stepMs: number }) => void;
 } => {
   // Satisfies enforce-proxy-child-creation for every broker/adapter run-execute-broker.ts imports.
   locationsRunPathsFindBrokerProxy();
@@ -236,6 +238,10 @@ export const runExecuteBrokerProxy = (): {
 
   return {
     evidencePath: (): AbsoluteFilePath => EVIDENCE_PATH,
+
+    clockAdvancing: ({ startMs, stepMs }: { startMs: number; stepMs: number }): void => {
+      stepLayerProxy.clockAdvancing({ startMs, stepMs });
+    },
 
     stagePaths: ({
       runId,
@@ -367,7 +373,9 @@ export const runExecuteBrokerProxy = (): {
         evidencePath: EVIDENCE_PATH,
         browser: {
           goto: gotoMock,
-          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ONE_MATCH_COUNT)),
+          // Zero matches for the whole wait: `waitFor` never pre-resolves, so this still reaches
+          // `waitForMatch` and ends as a ceiling hit rather than an immediate NO MATCH.
+          countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(ZERO_MATCH_COUNT)),
           waitForMatch: jest.fn().mockRejectedValue(error),
           capture: jest.fn().mockResolvedValue(undefined),
         },

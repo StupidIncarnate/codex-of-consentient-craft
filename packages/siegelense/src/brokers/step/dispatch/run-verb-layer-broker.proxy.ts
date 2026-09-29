@@ -52,6 +52,10 @@ export const runVerbLayerBrokerProxy = (): {
     session: BrowserSession;
     callOrder: () => readonly ContentText[];
   };
+  sessionWithTargetAppearingLater: () => {
+    lane: LaneSession;
+    callOrder: () => readonly ContentText[];
+  };
   sessionWithTwoMatches: () => { lane: LaneSession; session: BrowserSession };
   stagesSeedRecipe: (params: { result: unknown }) => {
     getSeedRunCallArgs: () => readonly unknown[];
@@ -153,6 +157,30 @@ export const runVerbLayerBrokerProxy = (): {
       return {
         lane: LaneSessionStub({ browser: session }),
         session,
+        callOrder: (): readonly ContentText[] => order,
+      };
+    },
+
+    // The target is absent when the step starts and appears during the wait: `countMatches`
+    // answers 0 (a pre-resolve would throw NO MATCH on it), while `waitForMatch` resolves once the
+    // element shows up.
+    sessionWithTargetAppearingLater: (): {
+      lane: LaneSession;
+      callOrder: () => readonly ContentText[];
+    } => {
+      const order: ContentText[] = [];
+      const session = BrowserSessionStub({
+        countMatches: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('countMatches'));
+          return Promise.resolve(matchCountContract.parse(0));
+        }),
+        waitForMatch: jest.fn().mockImplementation(async () => {
+          order.push(contentTextContract.parse('waitForMatch'));
+          return Promise.resolve();
+        }),
+      });
+      return {
+        lane: LaneSessionStub({ browser: session }),
         callOrder: (): readonly ContentText[] => order,
       };
     },

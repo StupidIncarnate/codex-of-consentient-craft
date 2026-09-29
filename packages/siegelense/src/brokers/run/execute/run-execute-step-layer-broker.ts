@@ -31,6 +31,9 @@
  * rides the same way, straight through unchanged: `runExecuteBroker` computes it once, before the
  * whole step loop, so every step's `until { console }`/`until { response }` scans from THIS RUN's
  * own window rather than a fresh `bufferLengths()` read at whatever moment that one step starts.
+ * The failure reading's `startedAtMs` is read before the step runs and its `endedAtMs` once the
+ * error is caught, so a failed step's reading — and a stopped run's `durationMs` — covers the time
+ * the step actually spent.
  *
  * It is also where a step's references are SUBSTITUTED, immediately inside the try. That
  * placement is the point: an unresolvable reference throws, and this is the one place a throw
@@ -99,6 +102,9 @@ export const runExecuteStepLayerBroker = async ({
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
+  // Stamped before the step runs, so a failure reading spans the wait that failed rather than a
+  // zero-width instant at catch time, which would make a stopped run's `durationMs` read 0.
+  const startedAtMs = epochMsContract.parse(Date.now());
 
   try {
     let resolvedStep = step;
@@ -231,7 +237,7 @@ export const runExecuteStepLayerBroker = async ({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),
       }),
-      startedAtMs: nowMs,
+      startedAtMs,
       endedAtMs: nowMs,
     });
 

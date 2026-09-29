@@ -8,7 +8,9 @@
  * `timeout` or `failed`, and it names the FIRST failure's location. Under `stopOn: 'error'` that
  * location is also where the batch halted, but under `stopOn: 'never'` the batch runs every
  * remaining step regardless — so `stoppedAt` names where the run WOULD have stopped, not where it
- * did. `index` and `shots` are always present, even empty, because "nothing happened" and "nobody
+ * did. `stopOn` records which of those two the batch ran under and `failedSteps` how many steps
+ * failed, so a reader can tell a halted run from one that pushed on; both are optional because a
+ * stored return written without them must still parse. `index` and `shots` are always present, even empty, because "nothing happened" and "nobody
  * looked" are different answers this shape must be able to tell apart.
  *
  * USAGE:
@@ -25,10 +27,12 @@ import { z } from 'zod';
 
 import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { runIdContract } from '../run-id/run-id-contract';
+import { readingCountContract } from '../reading-count/reading-count-contract';
 import { runIndexContract } from '../run-index/run-index-contract';
 import { runStatusContract } from '../run-status/run-status-contract';
 import { shotListingContract } from '../shot-listing/shot-listing-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
+import { stopOnContract } from '../stop-on/stop-on-contract';
 import { stoppedAtContract } from '../stopped-at/stopped-at-contract';
 
 export const runResultContract = z.object({
@@ -40,6 +44,8 @@ export const runResultContract = z.object({
   index: runIndexContract,
   shots: z.array(shotListingContract).readonly(),
   durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  stopOn: stopOnContract.optional(),
+  failedSteps: readingCountContract.optional(),
 });
 
 export type RunResult = z.infer<typeof runResultContract>;

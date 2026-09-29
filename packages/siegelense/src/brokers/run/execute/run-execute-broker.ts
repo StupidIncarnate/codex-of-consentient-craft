@@ -395,6 +395,8 @@ export const runExecuteBroker = async ({
     index,
     shots,
     ...(durationMs === undefined ? {} : { durationMs }),
+    stopOn,
+    failedSteps: readingCountContract.parse(stopCandidates.length),
   });
 
   await runReturnWriteBroker({ storedReturnPath: storedReturn, result });
