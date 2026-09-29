@@ -109,110 +109,85 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-Last updated 2026-09-28 evening, at the end of an operator session. Read this section, then the status tables
-further down. Git history holds every earlier handoff; this file keeps only what is current.
-
-### In flight (operator session 2026-09-28 night)
-
-Landed this session: master merge a62edf57d; GN5 be8178b0c; T05 node fetch 9420865e9, npm hono 63920bf1e, testing
-dcd5c0aad, node batch 2 4447e93e8 (T05 now scans 0 in web, testing apart from concession 13, and every `@gateway/*`);
-A18 `zod` wave 2 bd5242af3 (only siegelense left). Built since: npm, server, cli, siegelense, node, web, shared,
-eslint-plugin. Lockfile not yet refreshed for hydration-recipes' new `@dungeonmaster/npm` dependency.
-
-Active now (A18 hand batches run as one long-lived Sonnet agent per package, one plan batch at a time; the
-operator gates, commits, then messages the next batch; agent owners and queues in `tmp/op-agents.txt`; a package
-agent past about 300k tokens hands off to a fresh one; web batches commit in groups after a full web e2e run):
-web (B28); orchestrator (B03, a fresh agent);
-server (B03); siegelense (a fresh agent: the rest of S05, then S06 onward from `tmp/a18-siegelense-batches.md`, 33 hand batches after its scripted zod
-sweep 77318459e); GN11 (a `setTimeout` proxy in `@gateway/node`; siegelense and server stage timers by hand without it).
-
-A18 done so far: ward (all, 59fd060ff); hooks (all, B10 finished with this commit); cli (all); web B01 to B27;
-orchestrator B01 (8b28b66e4), B02; server B01, B02 (2597b4807); siegelense zod sweep, S01 to S04. Phase 2 is complete (A13
-7cb5ff272). Gateway units added this session, all built: GN5 to GN10 (stream/http/zlib; stdout/stderr recording
-proxies and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow` and `setupNowOnce`, fetch `getCallsFor`; unix
-socket fakes, `spawnDetached` by args, `rejectsOnce`, `kill` by tuple; `spawnPiped`; `runSyncWithInput`),
-`getPlatform`, `setupCwd`, `getStdin` (call-time: a `stdin` const opened a pipe at import), fetchWithStatus
-`statusText`, C2's `tsxCliPath` and `tsxLoaderUrl`, and `@gateway/bin` npm and git not-installed error proxies,
-`setupNotFound` and `diffFiles` `excludeDeleted`. `bin-program-spawn-ban` watches `spawnPiped` and
-`runSyncWithInput`. Decision: `calledWith([])`/`onceFor([])` is allowed on a function that takes no arguments
-(`randomUUID`, `now`); the ban is for functions that take arguments.
-
-Still open: C3 (web's vite config). Known approximation: `spawnPiped` exposes lines only, so cli's bin harnesses rebuild captured output line by line (a missing final newline gains one). Queued gateway gaps: GB4 (browser console and crypto proxies, a browser clock),
-`dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Lockfile refresh pending for
-hydration-recipes' `@dungeonmaster/npm` and `@gateway/npm`'s `tsx`. Not started: A18 for shared, tooling,
-hydration-recipes, mcp, eslint-plugin, session-forensics, config, hydration, testing (re-census first).
-
-Earlier notes from this session, kept for the record:
-
-- **Master merge, uncommitted.** `git merge --no-commit master` (33 commits, DEF-48 to DEF-159, mostly siegelense).
-  An agent is resolving 9 conflicted files in cli and siegelense. The next commit is the merge commit, so nothing
-  else commits until it lands.
-- **The whole tree was rebuilt up to siegelense.** A stopped `build:clean` had deleted every `dist`; `npm run build`
-  rebuilt every package before siegelense. siegelense, and whatever builds after it, need a build once the merge
-  resolves.
-- **GN5 is done and green (ward 1790645426620-551e), uncommitted**: `@gateway/node` `stream`, `http`, `zlib`. It
-  commits after the merge. `events/events.ts` still uses `export =` (the F33 shape); not yet a unit.
-- **Merge conflicts resolved and staged** (the merge agent also moved master's new install-finalize responder and
-  prune video listing onto the gateway). Waiting only on the fetch fix below; then the staged tree is the merge
-  commit.
-- **Done, green, uncommitted (commit after the merge):** T05 testing (1 proxy; 2 hits are concession 13), T05
-  `@gateway/npm` hono proxies (`setupListen`, `setupUpgrade`; server-init proxy moved), A18 `zod` sweep for web
-  (139 files) and testing (55). Web needs its e2e and a web build before its commit.
-- **Active:** T05 `@gateway/node` fetch proxies: its `setupUnreachable` opened a real socket and broke 8 siegelense
-  tests; being fixed. T05 `@gateway/node` batch 2 (`ensure-dir-sync`, `write-file-sync`, `question`). web and
-  `@gateway/{bin,browser}` scan 0.
-- **For siegelense's T05 sweep:** master brought `calledWith([])` in the prune and driver responder proxies and
-  several stub-field `as never` casts.
-- **Phase 3 and 4 scripts:** an Opus agent is writing them under `tmp/phase34/`, dry-run only (user's request).
+Last updated 2026-09-28 night, at the end of an operator session. The user asked the operator to launch no more
+agents and to leave this file ready for the next handoff. Read this section, then the status tables. Git history
+holds every earlier handoff.
 
 ### Where things stand
 
-- **Phase 2 (delete every adapter) has one package left: siegelense.** Every other package has no `src/adapters/`.
-  Siegelense still has 13 adapters: `child-process/spawn-detached`, `cli-package/bin-resolve`, `fetch/http-request`,
-  `fs/{close-fd,rm,stat,unlink,write-file}`, `net/{unix-request,unix-serve}`, `os/tmpdir`,
-  `process/{is-alive,kill-group}`, plus `packages/siegelense/adapters.ts`. Check with
-  `ls -d packages/*/src/adapters/*/*`.
-  - A chunk (SL-LAST) was stopped part-way at the end of the session. Its partial, red work is saved as
-    `tmp/agy/sl-last-partial.patch` (gitignored, in this worktree; `git apply` it to resume, or start fresh). The
-    tree itself was restored to the last commit. Its plan is `## Plan — SL-LAST` in the A13 item file.
-  - `lane-teardown-broker`'s test asserts kill-before-close order, which is why `fs/close-fd` stayed this long; keep
-    the order assertion when it moves.
-- **A18 (raw outside calls, duplicate deps) is under way.** Plan: `## Plan` in
-  `items/a18-raw-calls-and-dependency-cleanup.md` (about 2,000 files; mostly the `zod` import). Done: wave 0's R1,
-  C1, GN1 to GN4, GB1 to GB3; the scripted `zod` sweep for cli, config, hooks, hydration, mcp, session-forensics,
-  tooling. Not done: GN5 (`stream`, `http`, `zlib`), the `zod` sweep for the other packages, and the hand batches.
-- **Phase 5:** T04 (`ban-workspace-export-mocks`) is at 0 everywhere except 2 in siegelense. T05 (the three
-  catch-all rules) is at 0 in ward, cli, config, hooks, server, mcp, tooling, shared, hydration, session-forensics,
-  eslint-plugin and local-eslint; not yet swept in orchestrator, web, siegelense, testing, hydration-recipes and
-  `@gateway/*`. Both rules are still off in the shared config.
-- **Build and checks:** the last whole-repo build ran mid-session; several packages have newer source than `dist`.
-  A full `npm run ward`, `check:consumer` and `check:published` have not run since the morning of 2026-09-28.
-  Every commit since was gated by ward on its own package plus the packages that compose its proxies, and web's e2e
-  (131 files) passed at every web commit.
+- **Phase 2 is complete.** No package has an `adapters/` folder (A13 done, 7cb5ff272). F76 is done.
+- **A18 (raw outside calls) is about a third through its hand batches.** Every package's `zod` sweep is done.
+  - Hand batches done: ward (all), hooks (all), cli (all); web B01 to B27; orchestrator B01, B02; server B01, B02;
+    siegelense S01 to S04 (siegelense uses its own re-census, not the plan's section; see below).
+  - Hand batches left: web B28 onward (about 90; B28 green and uncommitted at the time of writing), orchestrator B03
+    onward (52), server B03 onward (8), siegelense S05 onward (29), and every batch for shared (16), testing (12,
+    re-census first), tooling (6), hydration-recipes (5), mcp (3), eslint-plugin (2), session-forensics (2),
+    config (1), hydration (1). Then the dependency removals at the end of the A18 plan.
+- **Gateway additions this session, all committed and built:** GN5 to GN10 (`stream`/`http`/`zlib`; stdout/stderr
+  recording proxies with `getWrites`/`getWrittenText` and `stdinIsTty`; `#gateway/node/Date` `now` with `setupNow`
+  and `setupNowOnce`; fetch `getCallsFor` and `statusText`; unix-socket request/serve fakes; `spawnDetached` staged
+  by args; `rejectsOnce` on the write proxies; `kill` staged by tuple with recorded ESRCH/EPERM/EINVAL; `spawnPiped`;
+  `runSyncWithInput`), `getPlatform`, `setupCwd`, `getStdin` (a call-time function: a `stdin` const opened a pipe at
+  import), C2's `tsxCliPath` and `tsxLoaderUrl` in `@gateway/npm`, and `@gateway/bin` npm and git not-installed
+  error proxies, `setupNotFound` and `diffFiles` `excludeDeleted`. `bin-program-spawn-ban` watches `spawnPiped` and
+  `runSyncWithInput`.
+- **Decisions made this session:** C2 is a resolver, not a concession. C4 is concession 9 (web's stylesheet imports
+  stay raw in `main.ts`). `calledWith([])`/`onceFor([])` is allowed on a function that takes no arguments
+  (`randomUUID`, `now`); the ban is for functions that take arguments. A `registerMock` on a pure passthrough
+  (`join`, `dirname`, `tmpdir`, `randomUUID`) is allowed; the ban is for wrappers with a real I/O body. A proxy that
+  records a void sink (stdout, stderr, exit) with a read-back is not a catch-all. Concession 13 (mock-staging's own
+  test and `ban-invented-failures`).
+- **Phase 5:** T05 scans 0 in web, testing (apart from concession 13) and all four `@gateway` packages, plus the
+  packages swept earlier; not yet swept: orchestrator, siegelense, hydration-recipes. T04: 2 hits in siegelense.
+  Both rule sets stay off in the shared config.
+- **Build and checks:** every package was built during the session as its source changed; `@gateway/node` needs a
+  build after GN11 lands. A full `npm run ward`, `check:consumer` and `check:published` have not run since the
+  morning of 2026-09-28. Every commit was gated by ward on its package plus the packages composing its proxies, and
+  web's full e2e (131 files) passed before every web commit group.
+
+### Agents still running when the operator stopped dispatching
+
+The user said: launch no more agents. These five were mid-task; the operator commits each one's result as it
+reports and gives none a next batch. If a result below still reads "running", check `git status` and the agent's
+last report; uncommitted work in that area is that agent's.
+
+| Agent | Work | State |
+|---|---|---|
+| web | B29, B30 (B28 green, uncommitted, needs a full web e2e before commit) | running |
+| orchestrator | B03, widened: `isSpawnedStdout` accessor in B02's stream-json proxy | running |
+| server | B03 plus `server-init-responder.proxy.ts` clock staging | running |
+| GN11 | `@gateway/node` `setTimeout` proxy; moves siegelense `instance-kill` and `step-hold` proxies onto it | running |
+| siegelense | finish S05 (`instance-start-broker.proxy.ts` raw fs staging); S05's other files are uncommitted | running |
+
+### How A18 was run (copy this)
+
+- One long-lived Sonnet agent per package, one plan batch (2 to 4 files) per message; the operator gates the
+  report, commits the batch's paths, updates this file in the same commit (rule 19), then messages the next batch.
+  Packages run side by side, never two agents in one package. An agent past about 300k tokens writes a HANDOFF and
+  a fresh agent takes over with it.
+- The prompt template is `scrolls/brands-gateways-epic/a18-operator/batch-agent-prompt.txt` (fill `{PKG}`,
+  `{BATCH}`, `{FILES}`). Batch file lists come from the A18 plan's "#### `<pkg>`" sections (`**<pkg>-B<n>**`
+  headings); `tmp/op-a18-batches.json` was a parsed copy.
+- siegelense's batches are its re-census, `scrolls/brands-gateways-epic/a18-operator/siegelense-batches.md`
+  (S01 to S33); re-run with `a18-siegelense-census.mjs` beside it. Re-census testing the same way before its batches.
+- Web batches change runtime code: gate each with lint, typecheck, unit, then commit groups of about three batches
+  after one full `npm run ward -- --only e2e -- packages/web` (about 6 minutes).
+- When a batch breaks a file outside it (a composer, a sibling batch's proxy), pull that file into the batch.
+- When a gateway proxy cannot say what a caller needs, the agent stops; the operator names a gateway unit (GN<n>)
+  and usually gives it to the same agent, then builds that gateway.
 
 ### First steps for the next operator
 
-1. Read "How to operate" above. Set the heartbeat cron (rule 2).
-2. `git status` should be clean apart from `tmp/`. Run `npm run build:clean`, then a full `npm run ward` with
-   `timeout: 600000` (it will background; wait on it), then `npm run check:consumer` and `npm run check:published`.
-   Fix every red (rule 4). Concession 8 (a source-only `./rule-tester.harness` export) has never been checked
-   against `check:published`.
-3. Finish Phase 2: siegelense's 13 adapters, in two or three Claude agents with disjoint lists (or apply the patch
-   first and have one agent finish it). Then A13 is done.
-4. Continue A18 in this order: GN5 in `@gateway/node`; the `zod` sweep for orchestrator, server, shared, ward, web,
-   eslint-plugin, hydration-recipes, siegelense and testing (script `tmp/a18-zod/rewrite.py <pkg> [apply]`, one
-   scripted agent per package or one over several small ones; concession 11); then the hand batches from the A18
-   plan, one agent per package, packages side by side; dependency removals last. Re-run the census for siegelense
-   and testing first, since the plan predates their last adapter chunks. With R1 in, `bin-program-spawn-ban` flags
-   18 spawns (ward 10, orchestrator 5, web 2, testing 1); its integration test relies on ward's
-   `bundle-statics.ts` keeping `buildCommand: 'npm'`, so move that fixture when A18 replaces the spawn.
-5. A19 after A18 (runs alone): `adapters` stops being a folder type and the caller-facing rules go on. F71
-   (concession 9) and F76 land there, and it decides how callers name the `Request`/`Response`/`AbortController`
-   types the gateway exports only as values.
-6. T04 and T05: finish the sweeps (scan one package at a time: `node tmp/t05-scan-pkgs.js <pkg>`; T04 with
-   `tmp/t04-scan.config.js`), then switch the rules on once a whole-repo scan reads 0. F72: T05's rules ignore
-   `registerSpyOn`.
-7. Then the open follow-ups (F10, F30, F63, F72, F75, F76; see the table) and Phases 3, 4 and 6.
+1. Read "How to operate". Set the heartbeat cron (rule 2) only if the user wants agents dispatched again.
+2. `git status`: commit or finish whatever the five agents above left (each area is named in the table).
+3. `npm run build:clean`, then a full `npm run ward` (`timeout: 600000`; wait on it), `npm run check:consumer`,
+   `npm run check:published`. Fix every red (rule 4). Refresh `package-lock.json` (`npm install --package-lock-only`)
+   for hydration-recipes' new `@dungeonmaster/npm` and `@gateway/npm`'s new `tsx` dependencies.
+4. Continue A18's hand batches as above, then its dependency removals. Then A19 (runs alone), T04 and T05 sweeps
+   and switch-on, the open follow-ups, and Phases 3, 4 and 6 using `phase34-scripts/`.
+5. Still open: C3 (web's vite config). Queued gateway gaps: GB4 (browser `console` and `crypto` proxies, a browser
+   clock), `dynamicImport` staging by module path (cli serve), a recorded ESLint failure stub. Known approximation:
+   `spawnPiped` exposes lines only, so cli's bin harnesses rebuild captured output line by line.
 
 ### Lessons worth keeping
 
@@ -232,6 +207,15 @@ Earlier notes from this session, kept for the record:
 - **Scan every diff** for `as never`, `as unknown as`, `calledWith([])`, `onceFor([])`, accept-all staging
   predicates, raw `'fs'`/`'path'`/`'os'`/`'process'` imports, and real `process.cwd()` or `homedir()` in tests.
 - **An eslint-plugin rule edit is live for every agent's lint at once**; keep rule edits correct before saving.
+- **A gateway export read at module load can open a handle.** `export const { stdin } = process` opened stdin in
+  every test importing the barrel. Export a call-time function instead.
+- **A recorded failure must not do real I/O at a caller's test time.** A stub that opens a socket to record a
+  refusal trips the I/O trap in every composing package; hold the recorded error as data, checked by the gateway's
+  own test against a real one.
+- **The A18 lint rules are off, so lint does not catch a missed raw import** (a web agent skipped
+  `react-router-dom`). Check each report's file list against the plan's reason for listing it.
+- **Stopping `build:clean` part-way deletes every `dist`**, and lint then fails for every agent (eslint loads
+  `shared` from `dist`). Let it finish, or run `npm run build` at once.
 
 ## Converting the next repo
 
@@ -590,4 +574,5 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-28 | 02:59: every Claude sub-agent died on the weekly limit and `agy` on its quota, leaving G-I-b, B17-1, G-S, G-L and web fetch half done. 09:03: the user reported the limit reset; all five were resumed with their context, and `agy` took G-BB-1c and G-T. |
 | 2026-09-28 | Wrap-up for the operator handoff: every agent committed (last: orchestrator 49dfcd262). `build:clean` passed. `check:consumer` 86 of 89 (three failures, fix agent dispatched). Full ward 1790618403822-2d41: lint, typecheck, unit and e2e green; integration red in shared's project-map test (it reads the real tree, whose adapters this session deleted) and `@gateway/npm`'s dependency test (`jest-mock` has no wrapper folder); fix agent dispatched. |
 | 2026-09-28 | Handoff: all agents committed; F56 fix-ups; consumer fix (jest base loads MSW from `dist`); shared project-map and `@gateway/npm` jest-mock integration reds fixed. `build:clean` green, full ward 1790620960022-58d3 green, `check:consumer` 87 of 89 (F59, F60 intermittent). Next: this file's top Handoff section. |
+| 2026-09-28 | Night (operator): master merged; Phase 2 finished (A13); A18 zod sweep everywhere; A18 hand batches ward, hooks, cli done, web to B27, orchestrator and server to B02, siegelense to S04; gateway units GN5 to GN10 and more; T05 swept in web, testing, `@gateway/*`; two web e2e races fixed; phase 3/4 scripts written; rule 19. User stopped new dispatch at the end. Next: START HERE. |
 | 2026-09-28 | Evening (new operator): Phase 2 finished in every package but siegelense's last chunk (A10, A14, A16, A17, A06, A12, A08 done); F35, F39, F40, F45, F47, F52, F58 to F62, F64 to F75 done; T04 and T05 swept most packages; S1 census command; A18 planned and started. User decisions: no mutation checks; scripts allowed and notated. Next: START HERE at the top. |

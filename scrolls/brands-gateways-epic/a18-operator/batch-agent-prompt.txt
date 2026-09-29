@@ -1,0 +1,23 @@
+You are an agent on the brands-and-gateways epic. Work from `/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot` (branch `gateway-pivot`). Never `cd` into a package.
+
+Read `scrolls/brands-gateways-epic/agent-brief.md` and follow it exactly: no build, no git add/commit/stash/branch/checkout/reset, no npm install, no forks, no sub-agents. Read the "Concessions" table and "Lessons worth keeping" in `scrolls/brands-gateways-epic/EPIC.md`.
+
+Your item: `scrolls/brands-gateways-epic/items/a18-raw-calls-and-dependency-cleanup.md` (raw outside calls that never had an adapter). Read its "Work", "Traps", "### Rule findings that shape the plan", "### Gateway gaps" and "### Replacement legend". Every wave-0 gateway addition (GN1 to GN5, GB1 to GB3, R1, C1) is done. C2, C3 and C4 are not: if a file needs one, stop on that file and report it.
+
+You work on ONE package, `{PKG}`, one batch at a time. The operator gates and commits each batch, then sends you the next by message. Do only the batch you were given.
+
+Your first batch: **{BATCH}** in that plan's "#### `{PKG}`" section. Its files, your whole scope:
+{FILES}
+
+Rules the operator checks on review:
+- Callers call `#gateway/*` exports; a gateway function is imported from its barrel (`#gateway/node/process`), its proxy or stub from its own file (`#gateway/node/process/<fn>/<fn>.proxy`).
+- A proxy that spied on a raw global or module now composes the gateway wrapper's own proxy, and stages by exact argument tuple or a predicate keyed on a value the test supplies. Banned: `calledWith([])`, `onceFor([])`, a predicate that only checks a type, `registerMock({ fn })` on a gateway wrapper with a real body (`run`, `streamLines`, `ensureDir`, a bin wrapper), `as never`, `as unknown as`, raw builtin imports, real `process.cwd()`/`homedir()` in tests, a hand-made `new Error` staged as a failure (use a recorded-failure stub).
+- If a gateway proxy cannot say what a caller needs, STOP on that file and report exactly what the gateway lacks. Do not mock around it.
+- A file outside the batch that must change (a composer of a proxy you changed, a test of a file you changed) is reported first; add it only if it is the batch file's own companion (`.test.ts`, `.proxy.ts`, `.stub.ts` beside it), and name it in CHANGED.
+- `bin-program-spawn-ban` (R1) flags a raw spawn of a program; a `git`/`npm`/`claude`/`lsof`/`kill`/`cp` spawn goes through `#gateway/bin/<program>`.
+
+Gate each batch: `npm run ward -- --only lint,typecheck,unit,integration -- <the batch files and every test beside them>` (timeout 600000, pipe through `tail -30`), then `--only unit` on every package whose proxies compose a proxy you changed (find them with `discover`). A `DISCOVERY MISMATCH` means narrow `--only`, not widen scope.
+
+End each batch with the brief's report sections (CHANGED, WARD, LEFT STANDING, DECISIONS, BUILD NEEDED).
+
+Gateway additions since the plan was written (all built): `stdoutProxy()`/`stderrProxy()` record every write (`getWrites()`, `getWrittenText()`); `stdinIsTty()` with `setupIsTty`; `getPlatform()` with `setupPlatform`; a clock, `now` from `#gateway/node/Date` with `nowProxy().setupNow({ ms })` (move `Date.now()` in a touched file onto it); `getCallsFor({ url })` on the node fetch proxies; `@gateway/bin` `NpmNotInstalledErrorProxy` and `runScriptProxy().setupNotFound`. `getExitCode`/`setExitCode`/`getEnv` have no staging; start a test that sets the exit code with `setExitCode(0)`. An error-class gateway proxy is empty and composed only for `enforce-proxy-child-creation`. Search with `discover`; edit with the Edit tool.
