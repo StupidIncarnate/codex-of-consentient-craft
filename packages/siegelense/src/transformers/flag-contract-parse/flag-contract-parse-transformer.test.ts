@@ -1,3 +1,5 @@
+import { z } from '#gateway/npm/zod';
+
 import { flagContractParseTransformer } from './flag-contract-parse-transformer';
 
 describe('flagContractParseTransformer', () => {
@@ -12,59 +14,60 @@ describe('flagContractParseTransformer', () => {
     });
   });
 
-  describe('a ZodError-shaped throw with one root-level issue', () => {
+  describe('a ZodError with one root-level issue', () => {
     it('INVALID: {parse throws it} => throws "flag: message", dropping the issue array structure', () => {
-      const zodIssueError = Object.assign(new Error('ignored'), {
-        issues: [
-          {
-            message: "Invalid enum value. Expected 'error' | 'never', received 'maybe'",
-            path: [],
-          },
-        ],
-      });
+      const zodError = new z.ZodError([
+        {
+          code: 'custom',
+          message: "Invalid enum value. Expected 'error' | 'never', received 'maybe'",
+          path: [],
+        },
+      ]);
 
       expect(() =>
         flagContractParseTransformer({
           flag: '--stop-on',
           parse: (): never => {
-            throw zodIssueError;
+            throw zodError;
           },
         }),
       ).toThrow(/^--stop-on: Invalid enum value\. Expected 'error' \| 'never', received 'maybe'$/u);
     });
   });
 
-  describe('a ZodError-shaped throw with a nested path', () => {
+  describe('a ZodError with a nested path', () => {
     it('INVALID: {parse throws an issue with path ["steps", 0]} => throws the path joined before the message', () => {
-      const zodIssueError = Object.assign(new Error('ignored'), {
-        issues: [{ message: "Unrecognized key(s) in object: 'bogus'", path: ['steps', 0] }],
-      });
+      const zodError = new z.ZodError([
+        {
+          code: 'custom',
+          message: "Unrecognized key(s) in object: 'bogus'",
+          path: ['steps', 0],
+        },
+      ]);
 
       expect(() =>
         flagContractParseTransformer({
           flag: '--steps',
           parse: (): never => {
-            throw zodIssueError;
+            throw zodError;
           },
         }),
       ).toThrow(/^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'$/u);
     });
   });
 
-  describe('a ZodError-shaped throw with more than one issue', () => {
+  describe('a ZodError with more than one issue', () => {
     it('INVALID: {parse throws two issues} => throws both, joined by "; ", losing neither', () => {
-      const zodIssueError = Object.assign(new Error('ignored'), {
-        issues: [
-          { message: 'received undefined', path: ['a'] },
-          { message: 'received undefined', path: ['b'] },
-        ],
-      });
+      const zodError = new z.ZodError([
+        { code: 'custom', message: 'received undefined', path: ['a'] },
+        { code: 'custom', message: 'received undefined', path: ['b'] },
+      ]);
 
       expect(() =>
         flagContractParseTransformer({
           flag: '--fields',
           parse: (): never => {
-            throw zodIssueError;
+            throw zodError;
           },
         }),
       ).toThrow(/^--fields: a: received undefined; b: received undefined$/u);

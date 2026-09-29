@@ -1,3 +1,4 @@
+import { z } from '#gateway/npm/zod';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { enumFlagParseTransformer } from './enum-flag-parse-transformer';
@@ -16,17 +17,16 @@ describe('enumFlagParseTransformer', () => {
     });
   });
 
-  describe('a ZodError-shaped throw for a value outside the enum', () => {
+  describe('a ZodError throw for a value outside the enum', () => {
     it('INVALID: {raw: "nope"} => throws naming the flag, every accepted option, and the exact text typed', () => {
-      const zodIssueError = Object.assign(new Error('ignored'), {
-        issues: [
-          {
-            message:
-              "Invalid enum value. Expected 'video' | 'shot' | 'transcript' | 'log', received 'nope'",
-            path: [],
-          },
-        ],
-      });
+      const zodIssueError = new z.ZodError([
+        {
+          code: 'custom',
+          message:
+            "Invalid enum value. Expected 'video' | 'shot' | 'transcript' | 'log', received 'nope'",
+          path: [],
+        },
+      ]);
 
       expect(() =>
         enumFlagParseTransformer({

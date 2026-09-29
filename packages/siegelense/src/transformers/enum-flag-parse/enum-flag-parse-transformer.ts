@@ -19,9 +19,8 @@
  * // Throws Error('--kind must be one of video, shot, transcript, log; got "nope"') when raw is 'nope'
  */
 
+import { z } from '#gateway/npm/zod';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-
-import { zodIssueErrorContract } from '../../contracts/zod-issue-error/zod-issue-error-contract';
 
 export const enumFlagParseTransformer = <T>({
   flag,
@@ -37,8 +36,7 @@ export const enumFlagParseTransformer = <T>({
   try {
     return parse(raw);
   } catch (error) {
-    const zodIssueParse = zodIssueErrorContract.safeParse(error);
-    if (!zodIssueParse.success) {
+    if (!(error instanceof z.ZodError)) {
       throw error;
     }
 

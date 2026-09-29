@@ -20,7 +20,7 @@
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { zodIssueErrorContract } from '../../contracts/zod-issue-error/zod-issue-error-contract';
+import { z } from '#gateway/npm/zod';
 
 export const numericFlagParseTransformer = <T>({
   flag,
@@ -36,8 +36,7 @@ export const numericFlagParseTransformer = <T>({
   try {
     return parse(Number(raw));
   } catch (error) {
-    const zodIssueParse = zodIssueErrorContract.safeParse(error);
-    if (!zodIssueParse.success) {
+    if (!(error instanceof z.ZodError)) {
       throw error;
     }
 
