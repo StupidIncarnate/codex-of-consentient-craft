@@ -8,6 +8,7 @@
  * proxy.fileMissing({ filePath });
  */
 
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const typescriptSourceFileGetMiddlewareProxy = (): {
@@ -21,12 +22,7 @@ export const typescriptSourceFileGetMiddlewareProxy = (): {
       readProxy.returns({ path: filePath, contents: content });
     },
     fileMissing: ({ filePath }: { filePath: string }): void => {
-      readProxy.throws({
-        path: filePath,
-        error: Object.assign(new Error(`ENOENT: no such file or directory, open '${filePath}'`), {
-          code: 'ENOENT',
-        }),
-      });
+      readProxy.throws({ path: filePath, error: FileMissingErrorStub({ path: filePath }) });
     },
   };
 };
