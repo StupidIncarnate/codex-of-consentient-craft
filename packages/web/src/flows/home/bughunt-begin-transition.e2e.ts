@@ -17,6 +17,14 @@ const IN_PROGRESS_TIMEOUT = 10_000;
 // A real riftcarver carve mirrors node_modules and runs a preflight typecheck against the fixture
 // worktree, which takes longer than the synchronous status-flip IN_PROGRESS_TIMEOUT budgets for.
 const CARVE_DRAIN_TIMEOUT = 30_000;
+// How long the fake ward holds riftcarver's preflight typecheck open. The carve is pending when
+// POST /start answers — the dispatcher has woken but not yet claimed it, and a pause landing in
+// that gap is honoured by the loop's post-scan isPlaying() check, so the carve never runs at all.
+// Pausing is therefore only safe once the carve's work item reads `in_progress`, and this hold is
+// what keeps that state on disk long enough for a poll to see it before the carve lands and the
+// relay routes on. It outlasts expect.poll's longest default interval (1s), so at least one poll
+// lands inside the window.
+const CARVE_TYPECHECK_HOLD_MS = 2_000;
 const HTTP_OK = 200;
 
 // A bug-hunt quest is born from `/dumpster-hunt` with its intake already on the ledger:
@@ -61,10 +69,11 @@ wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), t
 // so the loop wakes on the enqueue that happens inside it and would race a REAL carve against the
 // fixture repo underneath the assertions below. `POST /api/orchestration/dispatch/play` never
 // refuses, so nothing in this package can hold that queue shut for the duration of a test —
-// `beforeEach` only pauses a loop an EARLIER spec left running. Each test below pauses again, right
-// after its own start response lands: the earliest point guaranteed to run after the dispatcher
-// woke, ahead of its slower steps (a real `git worktree add` against the fixture repo). Same
-// pattern as quest-begin-transition.e2e.ts's own tests.
+// `beforeEach` only pauses a loop an EARLIER spec left running. Each test below pauses again once
+// the carve its own Start seeded reads `in_progress`: the dispatcher has committed to that run-step
+// by then, so the pause lets it finish and stops the relay routing past it. Pausing any earlier —
+// straight off the start response — can land before the loop's post-scan isPlaying() check, and
+// the carve the drains below wait on then never runs.
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
@@ -90,7 +99,9 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // fail with "queue is empty", which routes `unmet` into a spiritmender repair this spec never
     // mocks — queuing one green response here is what lets the real carve this Start's own play()
     // kicks off actually converge instead.
-    dispatch.queueScript({ script: [{ role: 'riftcarver', outcome: 'green' }] });
+    dispatch.queueScript({
+      script: [{ role: 'riftcarver', outcome: 'green', delayMs: CARVE_TYPECHECK_HOLD_MS }],
+    });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Begin Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -173,8 +184,23 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     expect(startResponse.status()).toBe(HTTP_OK);
 
-    // The response only lands after its own play() call has resolved server-side, so pausing here
-    // is the earliest point guaranteed to run AFTER the dispatcher woke, ahead of its slower steps.
+    // Pause once the carve is RUNNING — see the describe block's header for why the start response
+    // alone is too early.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return null;
+          }
+          const data = await response.json();
+          return data.quest.workItems
+            .filter((wi: { role: string }) => wi.role === 'riftcarver')
+            .map((wi: { status: string }) => wi.status);
+        },
+        { timeout: IN_PROGRESS_TIMEOUT },
+      )
+      .toStrictEqual(['in_progress']);
     await dispatchPauseHarness({ request }).pause();
 
     await expect(page.getByTestId('QUEST_APPROVED_MODAL_TITLE')).not.toBeVisible({
@@ -290,7 +316,9 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // Same reasoning as the sibling test's own comment: queue a green response for riftcarver's own
     // preflight typecheck before the first real Start below, or its fake-ward call finds an empty
     // queue and mints a spiritmender repair this spec never mocks.
-    dispatch.queueScript({ script: [{ role: 'riftcarver', outcome: 'green' }] });
+    dispatch.queueScript({
+      script: [{ role: 'riftcarver', outcome: 'green', delayMs: CARVE_TYPECHECK_HOLD_MS }],
+    });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Restart Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -340,8 +368,23 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const firstStart = await dispatch.startQuestViaStartRoute({ questId });
     expect(firstStart.status).toBe(HTTP_OK);
 
-    // Pause right after this response lands, same reasoning as the sibling test: the earliest point
-    // guaranteed to run after the dispatcher woke, before the rewind below races a real carve.
+    // Pause once the carve is RUNNING, same reasoning as the sibling test, before the rewind below
+    // races it.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return null;
+          }
+          const data = await response.json();
+          return data.quest.workItems
+            .filter((wi: { role: string }) => wi.role === 'riftcarver')
+            .map((wi: { status: string }) => wi.status);
+        },
+        { timeout: IN_PROGRESS_TIMEOUT },
+      )
+      .toStrictEqual(['in_progress']);
     await dispatchPauseHarness({ request }).pause();
 
     // The pause stops a FUTURE dispatch tick, not the carve this one already started — so drain it
@@ -406,8 +449,8 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // user to read — the honest surface is the quest carrying on into execution.
     expect(startResponse.status()).toBe(HTTP_OK);
 
-    // Same reasoning as this test's first start: pause the instant this response lands, ahead of
-    // the dispatcher's slower steps.
+    // No carve is left to wait for here — the first one already landed — so this pause only stops
+    // the relay dispatching further on, and lands as soon as the response does.
     await dispatchPauseHarness({ request }).pause();
 
     await expect(page.getByTestId('QUEST_APPROVED_MODAL_TITLE')).not.toBeVisible({

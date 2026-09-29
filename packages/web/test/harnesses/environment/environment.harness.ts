@@ -83,13 +83,25 @@ export const environmentHarness = ({
   // no e2e mock ever answers. A bare sibling repo gives the fixture something real to push to,
   // outside `guildPath` so `clearWorktrees`/`ensureFixtureRepo` (which only ever touch the guild
   // path itself) never disturb it across runs.
+  //
+  // Checked on EVERY setup, not only when the fixture repo is first made: the two directories are
+  // separate `/tmp` entries that outlive the run, so either can vanish without the other (an OS
+  // `/tmp` sweep, a hand `rm`). A fixture `.git` whose origin is gone fails every carve's push, and
+  // the spec reads that as a spiritmender repair it never asked for.
   const remotePath = `${guildPath}-origin.git`;
 
   const ensureRemote = (): void => {
     if (!fs.existsSync(remotePath)) {
       execFileSync('git', ['init', '--bare', '-b', 'main', remotePath], { stdio: 'ignore' });
     }
-    runGit(['remote', 'add', 'origin', remotePath]);
+    const remotes = execFileSync('git', ['remote'], { cwd: guildPath, encoding: 'utf8' }).split(
+      '\n',
+    );
+    runGit(
+      remotes.includes('origin')
+        ? ['remote', 'set-url', 'origin', remotePath]
+        : ['remote', 'add', 'origin', remotePath],
+    );
   };
 
   // The dispatcher's deterministic `carve` step (packages/orchestrator's stepHandlerRiftcarverBroker)
@@ -116,7 +128,6 @@ export const environmentHarness = ({
     }
 
     runGit(['init', '-b', 'main']);
-    ensureRemote();
 
     fs.writeFileSync(
       path.join(guildPath, '.dungeonmaster.json'),
@@ -202,6 +213,7 @@ export const environmentHarness = ({
     clearStaleJsonlForGuild();
     fs.mkdirSync(guildPath, { recursive: true });
     ensureFixtureRepo();
+    ensureRemote();
     clearWorktrees();
   };
 

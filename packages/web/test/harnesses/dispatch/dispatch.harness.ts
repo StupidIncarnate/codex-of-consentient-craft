@@ -115,6 +115,10 @@ export const dispatchHarness = ({
       // line, for a spec asserting those lines reach the execution panel. Ignored on `done` — an
       // agent outcome has no ward stdout to carry it.
       outputLines?: string[];
+      // A green/red step only: milliseconds the fake ward CLI holds before it answers, which is
+      // how long the deterministic step running it stays `in_progress`. A spec that has to pause
+      // the dispatcher WHILE that step runs buys the window with this. Ignored on `done`.
+      delayMs?: number;
     }[];
     agentLineDelayMs?: number;
   }) => void;
@@ -125,6 +129,7 @@ export const dispatchHarness = ({
       outcome: 'done' | 'green' | 'red';
       text?: string;
       outputLines?: string[];
+      delayMs?: number;
     }[];
     agentLineDelayMs?: number;
   }) => Promise<void>;
@@ -189,6 +194,7 @@ export const dispatchHarness = ({
       outcome: 'done' | 'green' | 'red';
       text?: string;
       outputLines?: string[];
+      delayMs?: number;
     }[];
     // Milliseconds the fake CLI waits between the stream lines it emits, which is what decides
     // how long its work item reads `in_progress`. At the 10 ms default a whole dispatch —
@@ -218,6 +224,7 @@ export const dispatchHarness = ({
             runId: `e2e-dispatch-ward-${nextUnique()}`,
             wardResultJson: { checks: [] },
             ...(step.outputLines === undefined ? {} : { outputLines: step.outputLines }),
+            ...(step.delayMs === undefined ? {} : { delayMs: step.delayMs }),
           }),
         });
       }
