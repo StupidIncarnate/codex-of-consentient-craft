@@ -18,7 +18,7 @@
  * // no test calls it directly
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join } from '#gateway/node/path';
 
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
@@ -28,6 +28,7 @@ import type {
   ContentTextStub,
   AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { pid } from '#gateway/node/process';
 
 type SessionId = ReturnType<typeof SessionIdStub>;
 type AgentId = ReturnType<typeof AgentIdStub>;
@@ -64,7 +65,7 @@ export const claudeTranscriptHarness = (): {
       const projectDir = absoluteFilePathContract.parse(
         join(
           locationsClaudeProjectsRootFindBroker(),
-          `${PROJECT_DIR_PREFIX}${String(process.pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+          `${PROJECT_DIR_PREFIX}${String(pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
         ),
       );
       mkdirSync(projectDir, { recursive: true });

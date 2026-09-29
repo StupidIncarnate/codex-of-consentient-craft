@@ -1,5 +1,6 @@
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
@@ -30,7 +31,7 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
 
   return {
     setupHomePath: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
       homedirHandle.calledWith([]).returns(homeDir);
       // Specific address (homeDir, dir name), never a bare `calledWith([])`: a bare zero-arg
       // stage would sit in the SAME order-dependent queue a not-yet-migrated sibling proxy's
@@ -40,10 +41,10 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
       joinHandle.calledWith([homeDir, locationsStatics.dungeonmasterHome.dir]).returns(homePath);
     },
     setHomeEnv: ({ value }: { value: string }): void => {
-      process.env.DUNGEONMASTER_HOME = value;
+      setEnv('DUNGEONMASTER_HOME', value);
     },
     clearHomeEnv: (): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      deleteEnv('DUNGEONMASTER_HOME');
     },
   };
 };

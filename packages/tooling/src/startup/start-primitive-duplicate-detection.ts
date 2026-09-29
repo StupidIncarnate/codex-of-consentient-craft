@@ -8,8 +8,9 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { PrimitiveDuplicateDetectionFlow } from '../flows/primitive-duplicate-detection/primitive-duplicate-detection-flow';
+import { argv } from '#gateway/node/process';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
 export const StartPrimitiveDuplicateDetection = async (): Promise<AdapterResult> =>
-  PrimitiveDuplicateDetectionFlow({ args: process.argv.slice(COMMAND_LINE_ARG_START_INDEX) });
+  PrimitiveDuplicateDetectionFlow({ args: argv.slice(COMMAND_LINE_ARG_START_INDEX) });

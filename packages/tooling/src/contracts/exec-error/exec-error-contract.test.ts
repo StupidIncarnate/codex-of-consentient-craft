@@ -1,6 +1,7 @@
 import { execErrorContract as _execErrorContract } from './exec-error-contract';
 import { ExecErrorStub } from './exec-error.stub';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
+import { Buffer } from '#gateway/node/buffer';
 
 describe('execErrorContract', () => {
   it('VALID: {status: 1, stdout: Buffer, stderr: Buffer} => creates exec error', () => {

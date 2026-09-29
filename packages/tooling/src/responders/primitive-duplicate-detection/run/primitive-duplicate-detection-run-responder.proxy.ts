@@ -6,7 +6,7 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { cwd } from '#gateway/node/process';
+import { cwd, stdout } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
 // Fixed so the no-`--cwd=`-arg path never depends on the real machine's directory — the
@@ -33,8 +33,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   // broker returns, so there is no address to key on, and the responder never reads write()'s
   // return value. The `[]` description suppresses the real stdout write; correctness comes from
   // each test asserting the captured calls via getStdoutOutput, not from this description.
-  const stdoutWrite = registerSpyOn({ object: process.stdout, method: 'write' });
-
+  const stdoutWrite = registerSpyOn({ object: stdout, method: 'write' });
   stdoutWrite.calledWith([]).returns(true);
 
   return {

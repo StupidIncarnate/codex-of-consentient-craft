@@ -1,4 +1,5 @@
 import { homedir } from '#gateway/node/os';
+import { deleteEnv, setEnv } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -18,10 +19,10 @@ export const locationsClaudeConfigDirFindBrokerProxy = (): {
 
   return {
     returns: ({ path }: { path: string }): void => {
-      process.env.CLAUDE_CONFIG_DIR = path;
+      setEnv('CLAUDE_CONFIG_DIR', path);
     },
     setupUnset: ({ homeDir }: { homeDir: FilePath }): void => {
-      Reflect.deleteProperty(process.env, 'CLAUDE_CONFIG_DIR');
+      deleteEnv('CLAUDE_CONFIG_DIR');
       homedirHandle.onceFor([]).returns(String(homeDir));
     },
   };

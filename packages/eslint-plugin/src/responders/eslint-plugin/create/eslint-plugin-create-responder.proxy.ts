@@ -1,17 +1,4 @@
-// Child proxies for enforce-proxy-child-creation, enforce-implementation-colocation,
-// enforce-proxy-patterns, and enforce-test-colocation transitively import adapter proxies
-// that call jest.mock('fs'). The eslint-plugin-jest npm package uses fs.readdirSync at load
-// time which breaks under the fs mock. Provide a minimal mock to prevent the crash.
-import _eslintPluginJest from 'eslint-plugin-jest';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
-
-registerModuleMock({
-  module: 'eslint-plugin-jest',
-  factory: () => ({
-    default: { rules: {}, configs: {} },
-  }),
-});
-
+import '#gateway/npm/eslint-plugin-jest/rules/rules.proxy';
 import { ruleBanAdhocTypesBrokerProxy } from '../../../brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker.proxy';
 import { ruleBanPrimitivesBrokerProxy } from '../../../brokers/rule/ban-primitives/rule-ban-primitives-broker.proxy';
 import { ruleEnforceContractUsageInTestsBrokerProxy } from '../../../brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker.proxy';

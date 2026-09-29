@@ -18,6 +18,7 @@ import {
 import { SessionForensicsFlow } from './session-forensics-flow';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';
 import { claudeTranscriptHarness } from '../../../test/harnesses/claude-transcript/claude-transcript.harness';
+import { chdir, cwd } from '#gateway/node/process';
 
 const USAGE_BLOCK_TEXT = [
   'usage: session-forensics <command> <target>',
@@ -107,12 +108,12 @@ describe('SessionForensicsFlow', () => {
         content: FileContentStub({ value: JSON.stringify({ flows: [flow] }) }),
       });
 
-      const originalCwd = process.cwd();
-      process.chdir(testbed.guildPath);
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
 
       const result = SessionForensicsFlow({ argv: ['coverage', questId] });
 
-      process.chdir(originalCwd);
+      chdir(originalCwd);
       testbed.cleanup();
 
       expect(String(result)).toBe(
@@ -181,12 +182,12 @@ describe('SessionForensicsFlow', () => {
         }),
       });
 
-      const originalCwd = process.cwd();
-      process.chdir(testbed.guildPath);
+      const originalCwd = cwd();
+      chdir(testbed.guildPath);
 
       const result = SessionForensicsFlow({ argv: ['quest', questId] });
 
-      process.chdir(originalCwd);
+      chdir(originalCwd);
       testbed.cleanup();
 
       expect(String(result)).toBe(

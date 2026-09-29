@@ -11,17 +11,18 @@
 import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { SessionForensicsFlow } from '../flows/session-forensics/session-forensics-flow';
+import { argv as processArgv, setExitCode, stderr, stdout } from '#gateway/node/process';
 
 const COMMAND_LINE_ARG_START_INDEX = 2;
 
 export const StartSessionForensics = (): AdapterResult => {
   try {
-    const argv = process.argv.slice(COMMAND_LINE_ARG_START_INDEX);
+    const argv = processArgv.slice(COMMAND_LINE_ARG_START_INDEX);
     const result = SessionForensicsFlow({ argv });
-    process.stdout.write(`${result}\n`);
+    stdout.write(`${result}\n`);
   } catch (error) {
-    process.stderr.write(`${String(error)}\n`);
-    process.exitCode = 1;
+    stderr.write(`${String(error)}\n`);
+    setExitCode(1);
   }
 
   return adapterResultContract.parse({ success: true });

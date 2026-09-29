@@ -2,6 +2,7 @@ import { execErrorContract } from './exec-error-contract';
 import type { ExecError } from './exec-error-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { ExitCodeStub } from '../exit-code/exit-code.stub';
+import { Buffer } from '#gateway/node/buffer';
 
 const errorMessageContract = execErrorContract.shape.message;
 const errorNameContract = execErrorContract.shape.name;

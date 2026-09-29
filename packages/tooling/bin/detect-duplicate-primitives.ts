@@ -9,9 +9,10 @@
  */
 
 import { StartPrimitiveDuplicateDetection } from '../src/startup/start-primitive-duplicate-detection';
+import { exit, stderr } from '#gateway/node/process';
 
 StartPrimitiveDuplicateDetection().catch((error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`Error: ${errorMessage}\n`);
-  process.exit(1);
+  stderr.write(`Error: ${errorMessage}\n`);
+  exit(1);
 });

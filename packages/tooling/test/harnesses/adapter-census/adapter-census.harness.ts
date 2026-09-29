@@ -8,8 +8,8 @@
  * const result = census.runCensus({ args: ['--cwd=/tmp/fixture', '--format=json'] });
  * expect(result.exitCode).toBe(0);
  */
-import * as path from 'path';
-import { execFileSync } from 'child_process';
+import * as path from '#gateway/node/path';
+import { execFileSync } from '#gateway/node/child_process';
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
@@ -20,11 +20,12 @@ import { ProcessOutputStub } from '../../../src/contracts/process-output/process
 import { FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error.stub';
+import { cwd } from '#gateway/node/process';
 
 type ExecError = ReturnType<typeof ExecErrorStub>;
 
-const PACKAGE_DIR = FilePathStub({ value: process.cwd() });
-const ENTRY_PATH = FilePathStub({ value: path.join(process.cwd(), 'bin', 'adapter-census.ts') });
+const PACKAGE_DIR = FilePathStub({ value: cwd() });
+const ENTRY_PATH = FilePathStub({ value: path.join(cwd(), 'bin', 'adapter-census.ts') });
 const MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
 const DEFAULT_EXIT_CODE = 1;
 const TIMEOUT_MS = CensusCountStub({ value: 300_000 });

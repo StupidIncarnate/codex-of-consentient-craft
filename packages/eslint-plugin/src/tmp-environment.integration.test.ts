@@ -1,6 +1,7 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { execSync } from 'child_process';
+import { existsSync, readFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
+import { execSync } from '#gateway/node/child_process';
+import { envSnapshot } from '#gateway/node/process';
 import {
   integrationEnvironmentCreateBroker,
   BaseNameStub,
@@ -83,9 +84,9 @@ console.log(greeting);`,
         }),
       });
 
-      const result = execSync(`npx tsx ${path.join(env.guildPath, 'hello.ts')}`, {
+      const result = execSync(`npx tsx ${join(env.guildPath, 'hello.ts')}`, {
         encoding: 'utf8',
-        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+        env: { ...envSnapshot(), FORCE_COLOR: '0', NO_COLOR: '1' },
       });
 
       expect(result.trim()).toBe('Hello from /tmp');
@@ -112,9 +113,9 @@ console.log(add(2, 3));`,
         }),
       });
 
-      const result = execSync(`npx tsx ${path.join(env.guildPath, 'main.ts')}`, {
+      const result = execSync(`npx tsx ${join(env.guildPath, 'main.ts')}`, {
         encoding: 'utf8',
-        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+        env: { ...envSnapshot(), FORCE_COLOR: '0', NO_COLOR: '1' },
       });
 
       expect(result.trim()).toBe('5');
@@ -135,8 +136,8 @@ console.log(add(2, 3));`,
       });
 
       // Read it back programmatically (simulating what a CLI tool would do)
-      const configPath = path.join(env.guildPath, 'config.json');
-      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const configPath = join(env.guildPath, 'config.json');
+      const configContent = readFileSync(configPath);
       const config = JSON.parse(configContent);
 
       expect(config).toStrictEqual({ name: 'test-app', version: '1.0.0' });
@@ -185,7 +186,7 @@ console.log(add(2, 3));`,
 
       const { guildPath } = env;
 
-      expect(fs.existsSync(guildPath)).toBe(true);
+      expect(existsSync(guildPath)).toBe(true);
 
       // No manual cleanup needed! jest.setup.js handles it automatically
       // This test documents that files exist during the test

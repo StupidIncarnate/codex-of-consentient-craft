@@ -6,8 +6,8 @@
  * const result = tooling.runStartup({ args: ['--pattern=**\/*.ts', '--cwd=/tmp/test'] });
  * expect(result.exitCode).toBe(0);
  */
-import * as path from 'path';
-import { execSync } from 'child_process';
+import * as path from '#gateway/node/path';
+import { execSync } from '#gateway/node/child_process';
 
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -16,6 +16,7 @@ import { CommandResultStub } from '../../../src/contracts/command-result/command
 import { ExitCodeStub } from '../../../src/contracts/exit-code/exit-code.stub';
 import { ProcessOutputStub } from '../../../src/contracts/process-output/process-output.stub';
 import type { ExecErrorStub } from '../../../src/contracts/exec-error/exec-error.stub';
+import { cwd } from '#gateway/node/process';
 
 type ExecError = ReturnType<typeof ExecErrorStub>;
 
@@ -25,7 +26,7 @@ type ExecError = ReturnType<typeof ExecErrorStub>;
 // nothing), so this points at the actual CLI entry point instead — the same file the built
 // `dist/bin/detect-duplicate-primitives.js` this replaced was compiled from.
 const ENTRY_PATH = FilePathStub({
-  value: path.join(process.cwd(), 'bin', 'detect-duplicate-primitives.ts'),
+  value: path.join(cwd(), 'bin', 'detect-duplicate-primitives.ts'),
 });
 
 const isExecError = (error: unknown): error is ExecError =>
@@ -49,7 +50,7 @@ export const toolingRunnerHarness = (): {
       const stdout = execSync(command, {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: process.cwd(),
+        cwd: cwd(),
       });
       return CommandResultStub({
         exitCode: ExitCodeStub({ value: 0 }),
