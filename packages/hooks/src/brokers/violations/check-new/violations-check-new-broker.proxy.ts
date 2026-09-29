@@ -6,8 +6,6 @@ import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/esl
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
-import { getEnv } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -18,9 +16,14 @@ export const violationsCheckNewBrokerProxy = (): {
   setLintIgnoredPaths: (params: { enabled: boolean }) => void;
 } => {
   cwdProxy();
-  getEnvProxy();
-  const getEnvHandle = registerMock({ fn: getEnv });
-  getEnvHandle.calledWith(['DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS']).returns(undefined);
+  const envProxy = getEnvProxy();
+  const lintIgnoredPathsName = 'DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS';
+  // Every setup method stages the current value: a later staging wins, so one method restaging
+  // undefined would undo an earlier setLintIgnoredPaths({ enabled: true }).
+  const state: { lintIgnoredPaths: string | undefined } = { lintIgnoredPaths: undefined };
+  const stageLintIgnoredPaths = (): void => {
+    envProxy.setupEnv({ name: lintIgnoredPathsName, value: state.lintIgnoredPaths });
+  };
 
   const contentChangesProxy = toolInputGetContentChangesBrokerProxy();
   hookConfigLoadBrokerProxy();
@@ -43,9 +46,8 @@ export const violationsCheckNewBrokerProxy = (): {
 
   return {
     setLintIgnoredPaths: ({ enabled }: { enabled: boolean }): void => {
-      getEnvHandle
-        .calledWith(['DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS'])
-        .returns(enabled ? 'true' : undefined);
+      state.lintIgnoredPaths = enabled ? 'true' : undefined;
+      stageLintIgnoredPaths();
     },
     // The filePath isn't known yet when this is called (the test constructs its toolInput
     // afterward), so match any file — this proxy's tests exercise the "ignored path"
@@ -57,12 +59,14 @@ export const violationsCheckNewBrokerProxy = (): {
       });
     },
     setupFileMissing: ({ filePath }: { filePath: FilePath }): void => {
+      stageLintIgnoredPaths();
       contentChangesProxy.setupReadFileNotFound({ filePath });
     },
     setupViolationCheck: ({
       hasViolations = false,
       filePath = FilePathStub({ value: '/test/file.ts' }),
     }: { hasViolations?: boolean; filePath?: FilePath } = {}): void => {
+      stageLintIgnoredPaths();
       // Setup content changes with actual content to avoid early returns in lint broker
       // For Edit tool: content contains 'old' which gets replaced with 'new' by the edit
       // This ensures old and new content are different. The filePath is the file the caller's
