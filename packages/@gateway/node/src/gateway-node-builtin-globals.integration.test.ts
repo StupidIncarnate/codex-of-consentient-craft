@@ -5,13 +5,12 @@
  * shared, type-only proxy-addressing helper (`PathMatcher` here) that has no real builtin or global
  * to be named after. ESLint's file-glob rules cannot make this check: it needs a maintained list of
  * real platform names to compare folders against, not a source file a selector can parse.
- * `nodeBuiltinModuleNamesForTest` duplicates `nodeBuiltinStatics.modules` (`@dungeonmaster/shared`) by
- * hand rather than importing it — `gateway-import-boundary` (active, in the gateway ESLint config
- * block) refuses ANY import of `@dungeonmaster/shared` from inside a gateway file, this test
- * included, since the gateway is the bottom layer and may not depend on a package built on top of it.
- * Keep this list in sync with `nodeBuiltinStatics.modules` by hand when a builtin is added there.
- * `nodeGlobalNamesForTest` is a SEPARATE maintained list this test owns outright (no shared statics
- * carries Node's globals at all, only its built-in modules) — extend it here when a gateway folder
+ * The built-in module names are Node's own `builtinModules`, read through this gateway's `module`
+ * subpath. A gateway file may import its own subpaths, and `gateway-import-boundary` (active, in the
+ * gateway ESLint config block) still refuses ANY import of `@dungeonmaster/shared` from inside one,
+ * this test included, since the gateway is the bottom layer.
+ * `nodeGlobalNamesForTest` is a SEPARATE maintained list this test owns outright (`builtinModules`
+ * carries no Node globals, only modules) — extend it here when a gateway folder
  * wraps a Node global not already listed, per the layout standard's rule that a global keeps its own
  * exact casing. `RESERVED_TEST_SUPPORT_FOLDER` is duplicated by hand from the same
  * `gatewayReservedFolderNamesStatics.folders.testSupport` (`eslint-plugin`) `gateway-browser-globals`
@@ -26,52 +25,14 @@
  */
 import { readdirSync } from 'fs';
 
+import { builtinModules } from './module/module';
+
 const SRC_DIR = __dirname;
 const SUBPATH_JOIN = '__';
 const RESERVED_TEST_SUPPORT_FOLDER = 'gateway-test-support';
 
-// Duplicated by hand from `nodeBuiltinStatics.modules` in `@dungeonmaster/shared` — see PURPOSE for
-// why this cannot be an import.
-const nodeBuiltinModuleNamesForTest = [
-  'assert',
-  'buffer',
-  'child_process',
-  'cluster',
-  'console',
-  'constants',
-  'crypto',
-  'dgram',
-  'dns',
-  'domain',
-  'events',
-  'fs',
-  'http',
-  'http2',
-  'https',
-  'module',
-  'net',
-  'os',
-  'path',
-  'perf_hooks',
-  'process',
-  'querystring',
-  'readline',
-  'repl',
-  'stream',
-  'string_decoder',
-  'timers',
-  'tls',
-  'tty',
-  'url',
-  'util',
-  'v8',
-  'vm',
-  'worker_threads',
-  'zlib',
-];
-
 // Node globals this gateway wraps that are NOT also built-in module names. Node's built-in modules
-// (fs, path, process, …) already come from the list above; this list is only the extra surface
+// (fs, path, process, …) already come from `builtinModules`; this list is only the extra surface
 // `globalThis` carries on top of that — add a name here when a new folder wraps one.
 const nodeGlobalNamesForTest = [
   'AbortController',
@@ -98,7 +59,7 @@ const readOwnSrcFolders = (): string[] =>
     .map((entry) => entry.name);
 
 const folderNamesABuiltinModule = ({ folderName }: { folderName: string }): boolean =>
-  nodeBuiltinModuleNamesForTest.some(
+  builtinModules.some(
     (moduleName) =>
       folderName === moduleName || folderName.startsWith(`${moduleName}${SUBPATH_JOIN}`),
   );

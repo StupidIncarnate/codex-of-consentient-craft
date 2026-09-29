@@ -58,6 +58,22 @@ describe('gatewayPathFromImportSourceTransformer', () => {
     expect(result).toBe('#gateway/npm/modelcontextprotocol__sdk__server__stdio');
   });
 
+  it('VALID: {importSource: "async_hooks"} => returns "#gateway/node/async_hooks", a builtin the old hand list lacked', () => {
+    const result = gatewayPathFromImportSourceTransformer({
+      importSource: ImportPathStub({ value: 'async_hooks' }),
+    });
+
+    expect(result).toBe('#gateway/node/async_hooks');
+  });
+
+  it('EDGE: {importSource: "node:test"} => keeps mapping to "#gateway/npm/test", since node:-only builtins are not in builtinModules', () => {
+    const result = gatewayPathFromImportSourceTransformer({
+      importSource: ImportPathStub({ value: 'node:test' }),
+    });
+
+    expect(result).toBe('#gateway/npm/test');
+  });
+
   it('VALID: {importSource: "react-dom/client"} => returns "#gateway/npm/react-dom__client"', () => {
     const result = gatewayPathFromImportSourceTransformer({
       importSource: ImportPathStub({ value: 'react-dom/client' }),
