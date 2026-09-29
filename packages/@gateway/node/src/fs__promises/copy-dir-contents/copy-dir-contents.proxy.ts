@@ -19,6 +19,13 @@ export const copyDirContentsProxy = (): {
   }) => void;
   rmCallsFor: ({ path }: { path: string }) => unknown;
   cpCallsFor: ({ source }: { source: string }) => unknown;
+  getCallsFor: ({
+    seam,
+    path,
+  }: {
+    seam: 'readdir' | 'cp' | 'rm';
+    path: string;
+  }) => readonly unknown[][];
 } => {
   const readdirHandle = registerMock({ fn: readdir });
   const entriesRecurseProxy = copyDirContentsEntriesRecurseProxy();
@@ -54,5 +61,9 @@ export const copyDirContentsProxy = (): {
     rmCallsFor: ({ path }: { path: string }): unknown => entriesRecurseProxy.rmCallsFor({ path }),
     cpCallsFor: ({ source }: { source: string }): unknown =>
       entriesRecurseProxy.cpCallsFor({ source }),
+    getCallsFor: ({ seam, path }): readonly unknown[][] =>
+      seam === 'readdir'
+        ? readdirHandle.callsMatching([path])
+        : entriesRecurseProxy.getCallsFor({ seam, path }),
   };
 };

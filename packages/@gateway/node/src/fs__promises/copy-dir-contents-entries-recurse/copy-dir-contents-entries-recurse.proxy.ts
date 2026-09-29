@@ -17,6 +17,7 @@ export const copyDirContentsEntriesRecurseProxy = (): {
   }) => void;
   cpCallsFor: ({ source }: { source: string }) => unknown;
   rmCallsFor: ({ path }: { path: string }) => unknown;
+  getCallsFor: ({ seam, path }: { seam: 'cp' | 'rm'; path: string }) => readonly unknown[][];
 } => {
   const cpHandle = registerMock({ fn: cp });
   const rmHandle = registerMock({ fn: rm });
@@ -50,5 +51,7 @@ export const copyDirContentsEntriesRecurseProxy = (): {
     },
     cpCallsFor: ({ source }: { source: string }): unknown => cpHandle.callsMatching([source]),
     rmCallsFor: ({ path }: { path: string }): unknown => rmHandle.callsMatching([path]),
+    getCallsFor: ({ seam, path }): readonly unknown[][] =>
+      seam === 'cp' ? cpHandle.callsMatching([path]) : rmHandle.callsMatching([path]),
   };
 };

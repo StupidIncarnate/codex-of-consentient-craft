@@ -18,6 +18,13 @@ export const writeFileAtomicProxy = (): {
     unlinkError: FsError;
   }) => void;
   unlinkCallsForTmp: ({ path }: { path: string }) => unknown;
+  getCallsFor: ({
+    seam,
+    path,
+  }: {
+    seam: 'mkdir' | 'writeFile' | 'rename' | 'unlink';
+    path: string;
+  }) => readonly unknown[][];
 } => {
   const mkdirHandle = registerMock({ fn: mkdir });
   const writeHandle = registerMock({ fn: writeFile });
@@ -77,5 +84,19 @@ export const writeFileAtomicProxy = (): {
     },
     unlinkCallsForTmp: ({ path }: { path: string }): unknown =>
       unlinkHandle.callsMatching([`${path}.tmp`]),
+    // `path` is the target path the wrapper was given; each seam is addressed by the argument the
+    // wrapper passes it (mkdir: the dirname, writeFile/rename/unlink: the `.tmp` sibling).
+    getCallsFor: ({ seam, path }): readonly unknown[][] => {
+      if (seam === 'mkdir') {
+        return mkdirHandle.callsMatching([dirname(path)]);
+      }
+      if (seam === 'writeFile') {
+        return writeHandle.callsMatching([`${path}.tmp`]);
+      }
+      if (seam === 'rename') {
+        return renameHandle.callsMatching([`${path}.tmp`, path]);
+      }
+      return unlinkHandle.callsMatching([`${path}.tmp`]);
+    },
   };
 };

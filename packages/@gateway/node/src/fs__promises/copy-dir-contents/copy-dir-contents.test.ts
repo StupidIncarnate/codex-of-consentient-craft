@@ -69,4 +69,23 @@ describe('copyDirContents', () => {
       ['/tmp/inst_1/x.json', '/tmp/dest-b/x.json', { recursive: true, force: true }],
     ]);
   });
+
+  it('VALID: {two calls, one excluded entry} => getCallsFor reads back the readdir and cp tuples in call order', async () => {
+    const proxy = copyDirContentsProxy();
+    proxy.succeeds({ from: '/tmp/inst_1', entries: ['x.json', '.snapshots'] });
+
+    await copyDirContents({ from: '/tmp/inst_1', to: '/tmp/dest-a', excludeNames: ['.snapshots'] });
+    await copyDirContents({ from: '/tmp/inst_1', to: '/tmp/dest-b', excludeNames: ['.snapshots'] });
+
+    expect(proxy.getCallsFor({ seam: 'readdir', path: '/tmp/inst_1' })).toStrictEqual([
+      ['/tmp/inst_1'],
+      ['/tmp/inst_1'],
+    ]);
+    expect(proxy.getCallsFor({ seam: 'cp', path: '/tmp/inst_1/x.json' })).toStrictEqual([
+      ['/tmp/inst_1/x.json', '/tmp/dest-a/x.json', { recursive: true, force: true }],
+      ['/tmp/inst_1/x.json', '/tmp/dest-b/x.json', { recursive: true, force: true }],
+    ]);
+    expect(proxy.getCallsFor({ seam: 'cp', path: '/tmp/inst_1/.snapshots' })).toStrictEqual([]);
+    expect(proxy.getCallsFor({ seam: 'rm', path: '/tmp/dest-a/x.json' })).toStrictEqual([]);
+  });
 });

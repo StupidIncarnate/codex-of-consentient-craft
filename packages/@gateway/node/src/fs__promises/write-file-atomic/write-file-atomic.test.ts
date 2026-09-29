@@ -60,4 +60,34 @@ describe('writeFileAtomic', () => {
       unlinkError,
     );
   });
+
+  it('VALID: {path, contents} => getCallsFor reads back the mkdir, writeFile and rename tuples', async () => {
+    const proxy = writeFileAtomicProxy();
+    proxy.succeeds({ path: '/repo/registry.json' });
+
+    await writeFileAtomic('/repo/registry.json', '{"instances":[]}');
+
+    expect(proxy.getCallsFor({ seam: 'mkdir', path: '/repo/registry.json' })).toStrictEqual([
+      ['/repo', { recursive: true }],
+    ]);
+    expect(proxy.getCallsFor({ seam: 'writeFile', path: '/repo/registry.json' })).toStrictEqual([
+      ['/repo/registry.json.tmp', '{"instances":[]}', 'utf8'],
+    ]);
+    expect(proxy.getCallsFor({ seam: 'rename', path: '/repo/registry.json' })).toStrictEqual([
+      ['/repo/registry.json.tmp', '/repo/registry.json'],
+    ]);
+    expect(proxy.getCallsFor({ seam: 'unlink', path: '/repo/registry.json' })).toStrictEqual([]);
+  });
+
+  it('ERROR: {rename rejects} => getCallsFor reads back the unlink tuple of the tmp cleanup', async () => {
+    const proxy = writeFileAtomicProxy();
+    const error = FsErrorStub({ code: 'EXDEV', path: '/repo/registry.json.tmp' });
+    proxy.renameRejects({ path: '/repo/registry.json', error });
+
+    await expect(writeFileAtomic('/repo/registry.json', '{}')).rejects.toBe(error);
+
+    expect(proxy.getCallsFor({ seam: 'unlink', path: '/repo/registry.json' })).toStrictEqual([
+      ['/repo/registry.json.tmp'],
+    ]);
+  });
 });
