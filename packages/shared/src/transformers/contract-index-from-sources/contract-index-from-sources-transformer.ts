@@ -19,6 +19,7 @@ import type { ContractIndexEntry } from '../../contracts/contract-index-entry/co
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
 import type { ContractParseSite } from '../../contracts/contract-parse-site/contract-parse-site-contract';
 import { packageNameContract } from '../../contracts/package-name/package-name-contract';
+import { isContractParseSourceFileGuard } from '../../guards/is-contract-parse-source-file/is-contract-parse-source-file-guard';
 import { isProductionSourceFileGuard } from '../../guards/is-production-source-file/is-production-source-file-guard';
 import { contractFileExportsReadLayerTransformer } from './contract-file-exports-read-layer-transformer';
 import { contractFileFindLayerTransformer } from './contract-file-find-layer-transformer';
@@ -52,7 +53,7 @@ export const contractIndexFromSourcesTransformer = ({
   const parsedFiles = sources
     .filter(
       (source) =>
-        isProductionSourceFileGuard({ relativePath: source.filePath.slice(rootPrefixLength) }) &&
+        isContractParseSourceFileGuard({ relativePath: source.filePath.slice(rootPrefixLength) }) &&
         (contractFiles.has(source.filePath) || source.text.includes('ontract')),
     )
     .map((source) => ({

@@ -138,6 +138,105 @@ describe('contractIndexFromSourcesTransformer', () => {
     });
   });
 
+  describe('harness parses', () => {
+    it('VALID: {a test/harnesses file parses the contract} => the parse site is the harness and the contract counts as parsed', () => {
+      const contractFile = AbsoluteFilePathStub({
+        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
+      });
+      const harnessFile = AbsoluteFilePathStub({
+        value: '/repo/packages/beta/test/harnesses/mock/mock.harness.ts',
+      });
+
+      const result = contractIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, betaPackage],
+        sources: [
+          { filePath: contractFile, text: ONE_CONTRACT_TEXT },
+          {
+            filePath: harnessFile,
+            text: ContentTextStub({
+              value:
+                "import { oneContract } from '@repo/alpha/contracts';\nexport const enqueue = (v: unknown) => oneContract.parse(v);",
+            }),
+          },
+          {
+            filePath: AbsoluteFilePathStub({ value: '/repo/packages/alpha/contracts.ts' }),
+            text: ContentTextStub({
+              value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
+            }),
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePath: contractFile,
+          packageName: '@repo/alpha',
+          isLayer: false,
+          exportedContractNames: ['oneContract'],
+          typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
+          parseSites: [{ filePath: harnessFile, line: 2 }],
+          nestedInFiles: [],
+          isParsed: true,
+        },
+      ]);
+    });
+
+    it('VALID: {a test, a stub and a proxy inside test/harnesses parse the contract} => the contract stays unparsed', () => {
+      const contractFile = AbsoluteFilePathStub({
+        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
+      });
+      const parseText = ContentTextStub({
+        value: "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');",
+      });
+
+      const result = contractIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, betaPackage],
+        sources: [
+          { filePath: contractFile, text: ONE_CONTRACT_TEXT },
+          {
+            filePath: AbsoluteFilePathStub({ value: '/repo/packages/alpha/contracts.ts' }),
+            text: ContentTextStub({
+              value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
+            }),
+          },
+          {
+            filePath: AbsoluteFilePathStub({
+              value: '/repo/packages/beta/test/harnesses/mock/mock.harness.test.ts',
+            }),
+            text: parseText,
+          },
+          {
+            filePath: AbsoluteFilePathStub({
+              value: '/repo/packages/beta/test/harnesses/mock/mock.stub.ts',
+            }),
+            text: parseText,
+          },
+          {
+            filePath: AbsoluteFilePathStub({
+              value: '/repo/packages/beta/test/harnesses/mock/mock.harness.proxy.ts',
+            }),
+            text: parseText,
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePath: contractFile,
+          packageName: '@repo/alpha',
+          isLayer: false,
+          exportedContractNames: ['oneContract'],
+          typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
+          parseSites: [],
+          nestedInFiles: [],
+          isParsed: false,
+        },
+      ]);
+    });
+  });
+
   describe('types-only contract files', () => {
     it('VALID: {a file exporting only call-signature and method-set types} => no contract names, every type exempt, not parsed', () => {
       const handleFile = AbsoluteFilePathStub({

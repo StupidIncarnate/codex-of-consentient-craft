@@ -20,7 +20,7 @@ import { contentTextContract } from '../../../contracts/content-text/content-tex
 import type { ContractIndexEntry } from '../../../contracts/contract-index-entry/contract-index-entry-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { packageNameContract } from '../../../contracts/package-name/package-name-contract';
-import { isProductionSourceFileGuard } from '../../../guards/is-production-source-file/is-production-source-file-guard';
+import { isContractParseSourceFileGuard } from '../../../guards/is-contract-parse-source-file/is-contract-parse-source-file-guard';
 import { contractIndexStatics } from '../../../statics/contract-index/contract-index-statics';
 import { contractIndexFromSourcesTransformer } from '../../../transformers/contract-index-from-sources/contract-index-from-sources-transformer';
 import { subfolderPathsListLayerBroker } from './subfolder-paths-list-layer-broker';
@@ -60,7 +60,7 @@ export const contractIndexBuildBroker = ({
     )
     .map((file) => absoluteFilePathContract.parse(file.path))
     .filter((filePath) =>
-      isProductionSourceFileGuard({ relativePath: filePath.slice(rootDir.length + 1) }),
+      isContractParseSourceFileGuard({ relativePath: filePath.slice(rootDir.length + 1) }),
     )
     .map((filePath) => ({
       filePath,
