@@ -28,7 +28,24 @@ describe('pixelChangeContract', () => {
     });
   });
 
+  describe('count-bearing readings', () => {
+    it.each(['0 px', '0.11% (1036 px)', '<0.01% (1 px)', '100.00% (921600 px)'])(
+      'VALID: {value: %s} => parses successfully',
+      (value) => {
+        const result = pixelChangeContract.parse(PixelChangeStub({ value }));
+
+        expect(result).toBe(value);
+      },
+    );
+  });
+
   describe('invalid readings', () => {
+    it('INVALID: {value: "0.11%"} => a share without its pixel count throws validation error', () => {
+      expect(() => {
+        pixelChangeContract.parse('0.11%');
+      }).toThrow(/Invalid/u);
+    });
+
     it('INVALID: {value: "38"} => a missing percent sign throws validation error', () => {
       expect(() => {
         pixelChangeContract.parse('38');

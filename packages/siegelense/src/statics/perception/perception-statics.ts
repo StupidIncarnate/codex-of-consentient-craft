@@ -26,7 +26,11 @@ export const perceptionStatics = {
     // siegelense-tooling.md line 704's own reading: "large, 30%+ | a navigation, a modal, a
     // collapse | almost certainly wrong" — this is quoted evidence, not a taste call.
     openThresholdPercent: 30,
-    percentSuffix: '%',
+    // Two decimals resolve a one-line text change (~0.1% of a 1280x720 frame); a share below the
+    // floor prints as `<0.01%` so a real change never rounds to 0.
+    shareDecimals: 2,
+    percentMultiplier: 100,
+    shareFloor: 0.01,
   },
   diff: {
     // pixelmatch's own default threshold for its YIQ luminance comparison.

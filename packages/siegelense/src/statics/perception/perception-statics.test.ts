@@ -9,7 +9,9 @@ describe('perceptionStatics', () => {
       },
       pixelChange: {
         openThresholdPercent: 30,
-        percentSuffix: '%',
+        shareDecimals: 2,
+        percentMultiplier: 100,
+        shareFloor: 0.01,
       },
       diff: {
         yiqThreshold: 0.1,
