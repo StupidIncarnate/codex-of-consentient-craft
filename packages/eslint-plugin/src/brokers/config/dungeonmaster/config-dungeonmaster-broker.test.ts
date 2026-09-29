@@ -190,7 +190,7 @@ describe('configDungeonmasterBroker', () => {
       expect(ruleEnforceOn['@dungeonmaster/ban-contract-type-predicates']).toBe('pre-edit');
     });
 
-    it('VALID: {} => typescript config contains ban-contract-type-predicates rule, off until flagged predicates migrate', () => {
+    it('VALID: {} => typescript config contains ban-contract-type-predicates rule at error', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript } = configDungeonmasterBroker();
@@ -199,7 +199,7 @@ describe('configDungeonmasterBroker', () => {
         typescript.rules?.[
           EslintRuleNameStub({ value: '@dungeonmaster/ban-contract-type-predicates' })
         ],
-      ).toBe('off');
+      ).toBe('error');
     });
 
     it('VALID: {} => ruleEnforceOn contains enforce-proxy-patterns as post-edit', () => {

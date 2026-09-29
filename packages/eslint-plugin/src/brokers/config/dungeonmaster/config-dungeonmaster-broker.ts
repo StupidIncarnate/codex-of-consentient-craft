@@ -175,10 +175,8 @@ export const configDungeonmasterBroker = ({
     // directly (not 'off'-then-scan): the whole-repo scan this item ran found nothing to migrate.
     '@dungeonmaster/enforce-gateway-schema-fields': 'error',
     // BR C3: a type predicate may narrow to a library type, never to one of our contract types or
-    // an indexed type off one — B17. Built and scanned over the whole repo; off until the flagged
-    // predicates it found (in eslint-plugin, orchestrator, siegelense, ward and web) are migrated
-    // to parse through their contract instead.
-    '@dungeonmaster/ban-contract-type-predicates': 'off',
+    // an indexed type off one — B17. The whole-repo scan reads 0 in every package.
+    '@dungeonmaster/ban-contract-type-predicates': 'error',
     // The three gateway config-key rules share ONE rule option — the `gatewayLintConfig` parameter
     // the CALLER read once from `.dungeonmaster.json`, so a rule itself never reads a file for it.
     '@dungeonmaster/ban-gateway-export': ['error', gatewayLintConfig],
@@ -187,9 +185,9 @@ export const configDungeonmasterBroker = ({
     // 'pre-edit'-eligible — it self-gates on dungeonmaster-config-contract.ts, the one file that owns
     // this shape, rather than reporting the same repo-wide check once per linted file.
     '@dungeonmaster/enforce-gateway-config-names-exist': ['error', gatewayLintConfig],
-    // T04 (scrolls/brands-gateways-epic/items/t04-workspace-export-mocks-ban.md): built and
-    // scanned over the whole repo; off until the callers the scan found are fixed per-package.
-    '@dungeonmaster/ban-workspace-export-mocks': ['off', { workspacePackageNames }],
+    // T04 (scrolls/brands-gateways-epic/items/t04-workspace-export-mocks-ban.md): the whole-repo
+    // scan reads 0 in every package.
+    '@dungeonmaster/ban-workspace-export-mocks': ['error', { workspacePackageNames }],
     // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
     // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
     '@dungeonmaster/raw-import-ban': 'error',

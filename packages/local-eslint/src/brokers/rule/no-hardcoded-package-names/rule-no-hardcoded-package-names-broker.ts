@@ -106,15 +106,17 @@ export const ruleNoHardcodedPackageNamesBroker = (): EslintRule => ({
       },
 
       ArrayExpression: (node: Tsestree): void => {
-        const roleElements = (node.elements ?? []).filter((element): element is Tsestree => {
+        const roleElements = (node.elements ?? []).flatMap((element) => {
           if (element === null || element.type !== 'Literal') {
-            return false;
+            return [];
           }
           const { value } = element;
           if (typeof value !== 'string') {
-            return false;
+            return [];
           }
-          return packageNameLiteralStatics.roleBearingPackageNames.some((name) => name === value);
+          return packageNameLiteralStatics.roleBearingPackageNames.some((name) => name === value)
+            ? [element]
+            : [];
         });
 
         if (roleElements.length === 0) {

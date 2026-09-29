@@ -24,10 +24,7 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
-import type {
-  ChatEntryGroup,
-  SingleGroup,
-} from '../../contracts/chat-entry-group/chat-entry-group-contract';
+import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
@@ -197,9 +194,9 @@ export const SubagentChainWidget = ({
       {expanded ? (
         <Box style={{ paddingLeft: 12 }}>
           {(() => {
-            const singleEntries = group.innerGroups
-              .filter((ig): ig is SingleGroup => ig.kind === 'single')
-              .map((ig) => ig.entry);
+            const singleEntries = group.innerGroups.flatMap((ig) =>
+              ig.kind === 'single' ? [ig.entry] : [],
+            );
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
             const tailStartIndex = Number(
