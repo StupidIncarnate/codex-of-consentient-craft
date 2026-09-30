@@ -10,7 +10,6 @@
  */
 import { opExtraContract } from '../../contracts/op-extra/op-extra-contract';
 import type { OpExtra } from '../../contracts/op-extra/op-extra-contract';
-import type { ExtraVerbName } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 
 export const opExtraTransformer = ({
@@ -19,6 +18,6 @@ export const opExtraTransformer = ({
   args,
 }: {
   ref: string;
-  verb: ExtraVerbName;
+  verb: string;
   args: FieldValues;
 }): OpExtra => opExtraContract.parse({ op: 'extra', ref, verb, args });

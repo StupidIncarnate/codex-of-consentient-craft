@@ -27,7 +27,6 @@ import { matchedSetContract } from '../../contracts/matched-set/matched-set-cont
 import type { Matched } from '../../contracts/matched-set/matched-set-contract';
 import type { Op } from '../../contracts/ingredient-handle/ingredient-handle-contract';
 import type { IngredientConfigData } from '../../contracts/ingredient-config/ingredient-config-contract';
-import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { matchedRefTransformer } from '../matched-ref/matched-ref-transformer';
 import { opSetTransformer } from '../op-set/op-set-transformer';
 import { opSetRawTransformer } from '../op-set-raw/op-set-raw-transformer';
@@ -71,7 +70,7 @@ export const matchedSetChainTransformer = <I>({
           ops: [
             opExtraTransformer({
               ref: matchedRef,
-              verb: extraVerbNameContract.parse(verb),
+              verb: verb,
               args: fieldValuesContract.parse(args),
             }),
           ],

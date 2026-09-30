@@ -36,7 +36,6 @@ import type {
   IngredientConfigData,
 } from '../../contracts/ingredient-config/ingredient-config-contract';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
-import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { opSetTransformer } from '../op-set/op-set-transformer';
 import { opSetRawTransformer } from '../op-set-raw/op-set-raw-transformer';
 import { opRemoveTransformer } from '../op-remove/op-remove-transformer';
@@ -72,7 +71,7 @@ export const rowHandleChainTransformer = <
       [
         opExtraTransformer({
           ref,
-          verb: extraVerbNameContract.parse(verb),
+          verb: verb,
           args: fieldValuesContract.parse(args),
         }),
       ] as unknown as Op,

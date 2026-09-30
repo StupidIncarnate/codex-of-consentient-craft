@@ -49,7 +49,6 @@ import { fieldValuesContract } from '../../contracts/field-values/field-values-c
 import type { FilterExpect } from '../../contracts/filter-expect/filter-expect-contract';
 import { callIndexContract } from '../../contracts/call-index/call-index-contract';
 import type { HydrationOp } from '../../contracts/hydration-op/hydration-op-contract';
-import { extraVerbNameContract } from '../../contracts/extra-verb-name/extra-verb-name-contract';
 import { rowRefTransformer } from '../row-ref/row-ref-transformer';
 import { opCreateTransformer } from '../op-create/op-create-transformer';
 import { opSetTransformer } from '../op-set/op-set-transformer';
@@ -137,7 +136,7 @@ export const collectionChainTransformer = <
           refs.map((ref) =>
             opExtraTransformer({
               ref,
-              verb: extraVerbNameContract.parse(verb),
+              verb: verb,
               args: fieldValuesContract.parse(args),
             }),
           ) as unknown as Op,
