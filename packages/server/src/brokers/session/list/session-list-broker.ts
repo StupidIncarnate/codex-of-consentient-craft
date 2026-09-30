@@ -19,8 +19,6 @@ import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { mtimeMsContract } from '../../../contracts/mtime-ms/mtime-ms-contract';
-import type { MtimeMs } from '../../../contracts/mtime-ms/mtime-ms-contract';
 import type { SessionSummary } from '../../../contracts/session-summary/session-summary-contract';
 
 export const sessionListBroker = async ({
@@ -31,11 +29,11 @@ export const sessionListBroker = async ({
   guildId: GuildId;
   getCache: (params: {
     sessionId: SessionId;
-    mtimeMs: MtimeMs;
+    mtimeMs: number;
   }) => { hit: true; summary: SessionSummary | undefined } | { hit: false };
   setCache: (params: {
     sessionId: SessionId;
-    mtimeMs: MtimeMs;
+    mtimeMs: number;
     summary: SessionSummary | undefined;
   }) => void;
 }): Promise<unknown[]> => {
@@ -123,7 +121,7 @@ export const sessionListBroker = async ({
 
   // Sort key for the home Sessions list: last-activity time (JSONL mtime), captured per
   // session below so the most-recently-active sessions sort to the top.
-  const mtimeBySessionId = new Map<SessionId, MtimeMs>();
+  const mtimeBySessionId = new Map<SessionId, number>();
 
   const diskResults = await Promise.all(
     dedupedFiles.map(async (filePath) => {
@@ -134,7 +132,7 @@ export const sessionListBroker = async ({
         const stats = await stat(filePath);
         const startedAt = isoTimestampContract.parse(new Date(stats.createdAtMs).toISOString());
 
-        const mtimeMs = mtimeMsContract.parse(stats.modifiedAtMs);
+        const mtimeMs = stats.modifiedAtMs;
         mtimeBySessionId.set(diskSessionId, mtimeMs);
         const cached = getCache({ sessionId: diskSessionId, mtimeMs });
         const diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer> =
