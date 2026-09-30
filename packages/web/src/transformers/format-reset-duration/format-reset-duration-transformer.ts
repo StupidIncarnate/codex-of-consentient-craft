@@ -8,10 +8,6 @@
  * Logic mirrors statusline-command.sh:54-62 (`fmt_duration` bash function).
  */
 
-import {
-  resetDurationLabelContract,
-  type ResetDurationLabel,
-} from '../../contracts/reset-duration-label/reset-duration-label-contract';
 
 const MINUTE_SECONDS = 60;
 const HOUR_SECONDS = 3600;
@@ -21,9 +17,9 @@ export const formatResetDurationTransformer = ({
   seconds,
 }: {
   seconds: number;
-}): ResetDurationLabel => {
+}): string => {
   if (seconds <= 0) {
-    return resetDurationLabelContract.parse('0m');
+    return '0m';
   }
 
   const days = Math.floor(seconds / DAY_SECONDS);
@@ -31,10 +27,10 @@ export const formatResetDurationTransformer = ({
   const minutes = Math.floor((seconds % HOUR_SECONDS) / MINUTE_SECONDS);
 
   if (days > 0) {
-    return resetDurationLabelContract.parse(`${String(days)}d${String(hours)}h`);
+    return `${String(days)}d${String(hours)}h`;
   }
   if (hours > 0) {
-    return resetDurationLabelContract.parse(`${String(hours)}h${String(minutes)}m`);
+    return `${String(hours)}h${String(minutes)}m`;
   }
-  return resetDurationLabelContract.parse(`${String(minutes)}m`);
+  return `${String(minutes)}m`;
 };

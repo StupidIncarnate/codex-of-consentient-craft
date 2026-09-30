@@ -8,8 +8,6 @@
  * Logic mirrors statusline-command.sh:88-97 (`bar` bash function with width=8 and rounded fill).
  */
 
-import { resetDurationLabelContract } from '../../contracts/reset-duration-label/reset-duration-label-contract';
-import type { ResetDurationLabel } from '../../contracts/reset-duration-label/reset-duration-label-contract';
 
 const BAR_WIDTH = 8;
 const FILLED_CHAR = '▰';
@@ -21,11 +19,9 @@ export const rateLimitBarTransformer = ({
   usedPercentage,
 }: {
   usedPercentage: number;
-}): ResetDurationLabel => {
+}): string => {
   const rawFilled = Math.floor((usedPercentage * BAR_WIDTH + ROUND_OFFSET) / PERCENT_MAX);
   const filled = Math.max(0, Math.min(BAR_WIDTH, rawFilled));
   const empty = BAR_WIDTH - filled;
-  return resetDurationLabelContract.parse(
-    `${FILLED_CHAR.repeat(filled)}${EMPTY_CHAR.repeat(empty)}`,
-  );
+  return `${FILLED_CHAR.repeat(filled)}${EMPTY_CHAR.repeat(empty)}`;
 };
