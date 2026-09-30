@@ -32,6 +32,6 @@ export const sessionNestedChainBrokerProxy = (): {
             .split('\n')
             .filter((line) => line.length > 0),
         )
-        .map((line) => streamJsonLineContract.parse(line)),
+        .map((line) => line),
   };
 };

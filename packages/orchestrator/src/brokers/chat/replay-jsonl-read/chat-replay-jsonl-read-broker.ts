@@ -13,7 +13,6 @@
 
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { setTimeout } from '#gateway/node/setTimeout';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 
@@ -26,7 +25,7 @@ export const chatReplayJsonlReadBroker = async ({
 }: {
   filePath: string;
   deadline?: number;
-}): Promise<StreamJsonLine[]> => {
+}): Promise<string[]> => {
   const effectiveDeadline = deadline ?? Date.now() + READ_RETRY_TOTAL_MS;
   try {
     return streamJsonLinesFromRawTransformer({ rawLines: await readNonEmptyLines(filePath) });

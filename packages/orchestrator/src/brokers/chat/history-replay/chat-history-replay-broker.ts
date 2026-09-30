@@ -34,7 +34,7 @@ import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -137,7 +137,7 @@ export const chatHistoryReplayBroker = async ({
 
   const subagentFiles: {
     agentId: ReturnType<typeof agentContract.shape.id.parse>;
-    lines: StreamJsonLine[];
+    lines: string[];
   }[] = [];
 
   try {
@@ -214,12 +214,12 @@ export const chatHistoryReplayBroker = async ({
   // candidates: when a tool_result lives in a sub-agent JSONL (container !== null), the child
   // sub-agent B's completion tool_result reveals that B was spawned by the container sub-agent A.
   // PASS 1c then resolves A's chain key and calls registerParentChain for B.
-  const allScanLines: StreamJsonLine[] = [
+  const allScanLines: string[] = [
     ...sessionLines,
     ...subagentFiles.flatMap((f) => f.lines),
   ];
   const scanSources: {
-    lines: StreamJsonLine[];
+    lines: string[];
     container: ReturnType<typeof agentContract.shape.id.parse> | null;
   }[] = [
     { lines: sessionLines, container: null },

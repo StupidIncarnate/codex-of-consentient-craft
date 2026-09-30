@@ -64,9 +64,7 @@ import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
@@ -91,7 +89,7 @@ export const fileTargetHarness = (): {
   }) => QuestOperations;
   readQuestByTitle: (params: { title: QuestTitle }) => Quest;
   questFolderExists: (params: { guildId: GuildId; questFolder: QuestFolder }) => boolean;
-  readAbsoluteFileLines: (params: { filePath: string }) => readonly StreamJsonLine[];
+  readAbsoluteFileLines: (params: { filePath: string }) => readonly string[];
   denyWrites: () => void;
   allowWrites: () => void;
 } => {
@@ -216,7 +214,7 @@ export const fileTargetHarness = (): {
       filePath,
     }: {
       filePath: string;
-    }): readonly StreamJsonLine[] => {
+    }): readonly string[] => {
       if (testbed === undefined) {
         throw new Error(
           'fileTargetHarness: readAbsoluteFileLines() called outside beforeEach/afterEach',
@@ -225,7 +223,7 @@ export const fileTargetHarness = (): {
       return readFileSync(filePath)
         .split('\n')
         .filter((line) => line.length > 0)
-        .map((line) => streamJsonLineContract.parse(line));
+        .map((line) => line);
     },
     denyWrites: (): void => {
       if (testbed === undefined) {

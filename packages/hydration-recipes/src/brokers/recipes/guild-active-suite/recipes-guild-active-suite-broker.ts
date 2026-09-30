@@ -23,13 +23,13 @@
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
-import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
+import { subagentFieldsContract, subagentFieldsShape } from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
+import { sessionFieldsShape } from '../../../contracts/session-fields/session-fields-contract';
 
 const { recipe } = recipesHydrationCreateBroker();
 
@@ -79,23 +79,17 @@ export const recipesGuildActiveSuiteBroker = recipe(
       ]),
       g[0].sessions.add(1, (s) => [
         s[0].set({
-          lines: [
-            streamJsonLineContract.parse(
-              '{"type":"user","message":{"role":"user","content":"What is the status of active development?"}}',
-            ),
-            streamJsonLineContract.parse(
-              '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Checking the active suite now."}]}}',
-            ),
-          ],
+          lines: sessionFieldsShape.shape.lines.parse([
+            '{"type":"user","message":{"role":"user","content":"What is the status of active development?"}}',
+            '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Checking the active suite now."}]}}',
+          ]),
         }),
         s[0].subagents.add(1, (a) => [
           a[0].set({
             taskPrompt: SUBAGENT_TASK_PROMPT,
-            lines: [
-              streamJsonLineContract.parse(
-                '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Sub-agent investigating the active suite."}]}}',
-              ),
-            ],
+            lines: subagentFieldsShape.shape.lines.parse([
+              '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Sub-agent investigating the active suite."}]}}',
+            ]),
           }),
           a[0].saveRecordAs({ name: 'subagent' }),
         ]),

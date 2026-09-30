@@ -16,7 +16,6 @@ import {
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
-import { StreamJsonLineStub } from '../stream-json-line/stream-json-line.stub';
 import { SystemInitStreamLineStub } from '../system-init-stream-line/system-init-stream-line.stub';
 
 type ClaudeQueueResponse = ReturnType<typeof ClaudeQueueResponseStub>;
@@ -26,7 +25,7 @@ const DEFAULT_SESSION_ID = SessionIdStub({
 });
 
 const toLine = (obj: object): ReturnType<typeof streamJsonLineContract.parse> =>
-  streamJsonLineContract.parse(JSON.stringify(obj));
+  JSON.stringify(obj);
 
 const initLine = toLine(SystemInitStreamLineStub({ session_id: DEFAULT_SESSION_ID }));
 
@@ -118,12 +117,12 @@ describe('claudeQueueResponseContract', () => {
     it('VALID: {minimal fields} => parses response with sessionId and lines', () => {
       const result = claudeQueueResponseContract.parse({
         sessionId: SessionIdStub(),
-        lines: [StreamJsonLineStub()],
+        lines: ['{"type":"init","session_id":"abc-123"}'],
       });
 
       expect(result).toStrictEqual({
         sessionId: SessionIdStub(),
-        lines: [StreamJsonLineStub()],
+        lines: ['{"type":"init","session_id":"abc-123"}'],
       });
     });
 

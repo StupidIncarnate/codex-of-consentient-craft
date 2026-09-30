@@ -4,12 +4,11 @@
  * USAGE: npm run ward -- --only unit -- packages/shared/src/transformers/stream-line-to-json-line
  */
 import { streamLineToJsonLineTransformer } from './stream-line-to-json-line-transformer';
-import type { StreamJsonLineStub } from '../../contracts/stream-json-line/stream-json-line.stub';
 import { SystemInitStreamLineStub } from '../../contracts/system-init-stream-line/system-init-stream-line.stub';
 import { AssistantTextStreamLineStub } from '../../contracts/assistant-stream-line/assistant-stream-line.stub';
 import { ResultStreamLineStub } from '../../contracts/result-stream-line/result-stream-line.stub';
 
-type StreamJsonLine = ReturnType<typeof StreamJsonLineStub>;
+type StreamJsonLine = string;
 
 describe('streamLineToJsonLineTransformer', () => {
   describe('system init lines', () => {

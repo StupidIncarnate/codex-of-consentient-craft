@@ -7,7 +7,6 @@
  * // Returns SessionFields
  */
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 
 import { sessionFieldsContract } from './session-fields-contract';
 import type { SessionFields } from './session-fields-contract';
@@ -16,6 +15,6 @@ export const SessionFieldsStub = ({ ...props }: StubArgument<SessionFields> = {}
   sessionFieldsContract.parse({
     sessionId: 'seed-session-1',
     cwd: '/tmp/session-fields-stub/guild-1',
-    lines: [StreamJsonLineStub()],
+    lines: ['{"type":"init","session_id":"abc-123"}'],
     ...props,
   });

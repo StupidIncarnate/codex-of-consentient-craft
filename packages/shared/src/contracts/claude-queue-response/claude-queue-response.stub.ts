@@ -14,8 +14,6 @@ import type { ToolUseBlockParam } from '../tool-use-block-param/tool-use-block-p
 import type { ToolResultBlockParam } from '../tool-result-block-param/tool-result-block-param-contract';
 import { ResultStreamLineStub } from '../result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '../session-id/session-id.stub';
-import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
-import type { StreamJsonLine } from '../stream-json-line/stream-json-line-contract';
 import { SystemInitStreamLineStub } from '../system-init-stream-line/system-init-stream-line.stub';
 
 import { claudeQueueResponseContract } from './claude-queue-response-contract';
@@ -41,7 +39,7 @@ const DEFAULT_USAGE = {
   output_tokens: 50 as OutputTokenCount,
 };
 
-const toLine = (obj: object): StreamJsonLine => streamJsonLineContract.parse(JSON.stringify(obj));
+const toLine = (obj: object): string => JSON.stringify(obj);
 
 const sessionOrDefault = ({
   value,
@@ -50,7 +48,7 @@ const sessionOrDefault = ({
 }): Session['id'] =>
   value === undefined ? DEFAULT_SESSION_ID : SessionIdStub({ value: String(value) });
 
-const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>
+const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): string =>
   toLine(SystemInitStreamLineStub({ session_id: sessionId }) as object);
 
 // `stop_reason: null` mirrors real Claude CLI streaming output — the field arrives as
@@ -60,7 +58,7 @@ const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>
 const textLine = ({
   text = 'Hello from Claude',
   usage = DEFAULT_USAGE,
-}: { text?: string; usage?: typeof DEFAULT_USAGE } = {}): StreamJsonLine =>
+}: { text?: string; usage?: typeof DEFAULT_USAGE } = {}): string =>
   toLine(
     AssistantTextStreamLineStub({
       message: {
@@ -76,7 +74,7 @@ const toolUseLine = ({
   id = 'toolu_e2e_00000000' as ToolUseId,
   name = 'Read',
   input = { file_path: '/test.ts' } as Record<PropertyKey, unknown>,
-}: { id?: ToolUseId; name?: string; input?: Record<PropertyKey, unknown> } = {}): StreamJsonLine =>
+}: { id?: ToolUseId; name?: string; input?: Record<PropertyKey, unknown> } = {}): string =>
   toLine(
     AssistantToolUseStreamLineStub({
       message: {
@@ -97,7 +95,7 @@ const toolUseLine = ({
 const toolResultLine = ({
   toolUseId = 'toolu_e2e_00000000' as ToolUseId,
   content = 'file contents' as ToolResultContent,
-} = {}): StreamJsonLine =>
+} = {}): string =>
   toLine(
     AssistantToolResultStreamLineStub({
       message: {
@@ -108,7 +106,7 @@ const toolResultLine = ({
     }) as object,
   );
 
-const resultLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>
+const resultLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): string =>
   toLine(ResultStreamLineStub({ session_id: sessionId }) as object);
 
 // ── Response stubs ─────────────────────────────────────────────────────────────

@@ -7,7 +7,6 @@
  * // Returns SubagentFields
  */
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 
 import { subagentFieldsContract } from './subagent-fields-contract';
 import type { SubagentFields } from './subagent-fields-contract';
@@ -20,7 +19,7 @@ export const SubagentFieldsStub = ({
     toolUseId: 'toolu_seed1',
     taskDescription: 'Seeded task 1',
     taskPrompt: 'Research the auth system and report back with file paths and purposes.',
-    lines: [StreamJsonLineStub()],
+    lines: ['{"type":"init","session_id":"abc-123"}'],
     completed: true,
     sessionId: 'seed-session-1',
     cwd: '/tmp/subagent-fields-stub/guild-1',

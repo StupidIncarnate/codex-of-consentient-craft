@@ -8,15 +8,13 @@
  * // Returns ['{"type":"system"}', '{"type":"assistant"}'] as StreamJsonLine[]
  */
 
-import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
-import type { StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
 export const streamJsonLinesFromRawTransformer = ({
   rawLines,
 }: {
   rawLines: readonly string[];
-}): StreamJsonLine[] =>
+}): string[] =>
   rawLines
     .map((rawLine) => rawLine.trim())
     .filter((trimmed) => trimmed.length > 0)
-    .map((trimmed) => streamJsonLineContract.parse(trimmed));
+    .map((trimmed) => trimmed);

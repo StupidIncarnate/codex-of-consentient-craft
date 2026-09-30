@@ -14,7 +14,6 @@ import type { ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/cl
 import type { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { StreamJsonLineStub } from '@dungeonmaster/shared/contracts/stream-json-line/stream-json-line.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-run-id.stub';
 
@@ -27,7 +26,7 @@ export const orchestrationJsonlHarness = (): {
   signalBackLine: (params: {
     signal: 'complete' | 'failed';
     summary?: string;
-  }) => ReturnType<typeof StreamJsonLineStub>;
+  }) => string;
   agentSuccessResponse: (params?: {
     sessionId?: ClaudeQueueResponse['sessionId'];
   }) => ClaudeQueueResponse;
@@ -47,9 +46,8 @@ export const orchestrationJsonlHarness = (): {
   }: {
     signal: 'complete' | 'failed';
     summary?: string;
-  }): ReturnType<typeof StreamJsonLineStub> =>
-    StreamJsonLineStub({
-      value: JSON.stringify({
+  }): string =>
+    JSON.stringify({
         type: 'assistant',
         message: {
           content: [
@@ -60,21 +58,18 @@ export const orchestrationJsonlHarness = (): {
             },
           ],
         },
-      }),
-    });
+      });
 
   const rawCliLine = ({
     line,
   }: {
     line: ResultStreamLine | SystemInitStreamLine;
-  }): ReturnType<typeof StreamJsonLineStub> =>
-    StreamJsonLineStub({
-      value: JSON.stringify(
+  }): string =>
+    JSON.stringify(
         line.type === 'result'
           ? resultStreamLineContract.parse(line)
           : systemInitStreamLineContract.parse(line),
-      ),
-    });
+      );
 
   const agentSuccessResponse = ({
     sessionId = SessionIdStub({ value: 'sess-integ-001' }),
