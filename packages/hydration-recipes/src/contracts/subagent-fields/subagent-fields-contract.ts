@@ -64,7 +64,7 @@ const subagentFieldsShape = z
         },
         { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
       )
-      .brand<'SubagentFieldsCwd'>(),
+      .brand<'SubagentFieldsShapeCwd'>(),
   })
   .brand<'SubagentFieldsShape'>();
 

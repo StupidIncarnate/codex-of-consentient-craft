@@ -30,24 +30,24 @@ const CONTENT_ITEM = z
 
 export const transcriptLineContract = z
   .object({
-    uuid: z.string().min(1).brand<'RecipeTranscriptLineUuid'>(),
-    timestamp: z.string().min(1).brand<'RecipeTranscriptLineTimestamp'>(),
+    uuid: z.string().min(1).brand<'TranscriptLineUuid'>(),
+    timestamp: z.string().min(1).brand<'TranscriptLineTimestamp'>(),
     message: z
       .object({
         content: z.union([
-          z.string().brand<'RecipeTranscriptLineMessageContent'>(),
+          z.string().brand<'TranscriptLineMessageContent'>(),
           z.array(CONTENT_ITEM),
         ]),
       })
-      .brand<'RecipeTranscriptLineMessage'>()
+      .brand<'TranscriptLineMessage'>()
       .loose(),
     toolUseResult: z
-      .object({ agentId: z.string().min(1).brand<'RecipeTranscriptLineToolUseResultAgentId'>() })
-      .brand<'RecipeTranscriptLineToolUseResult'>()
+      .object({ agentId: z.string().min(1).brand<'TranscriptLineToolUseResultAgentId'>() })
+      .brand<'TranscriptLineToolUseResult'>()
       .loose()
       .optional(),
   })
   .loose()
-  .brand<'RecipeTranscriptLine'>();
+  .brand<'TranscriptLine'>();
 
 export type RecipeTranscriptLine = z.infer<typeof transcriptLineContract>;
