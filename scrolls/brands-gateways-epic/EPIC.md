@@ -167,8 +167,19 @@ process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent w
 - 8a5ac0a37: SD12's 153 harness parameter retypes reversed; a harness takes raw input.
 - Full typecheck (`diag.cjs --full`; plain mode stops at syntax errors and under-reports): 1,796 errors after the
   scripts, 1,312 in 570 files after the repairs (`tmp/bigbang/logs/diag-r2.json`).
-- In flight: a script agent finishing moved-brand imports (TS2307/TS2305, about 380 errors); three read-only study
-  agents writing fix recipes to `tmp/bigbang/recipes/`. Then fixer rounds.
+- 8b046b3e5: `bigbang/fix-dangling.cjs` finished the rewrites of moved brands in their importers (1,312 to 931).
+  Study recipes: `bigbang/recipes/`.
+- 9cd766c94: root round, 8 agents on disjoint root files (931 to 314). Restored runtime behaviour W6's parses had
+  stripped: MCP tool `handler`s, testbed `cleanup`/`writeFile`, pending-clarification `processId`.
+- 6385429b2: leaf round, 42 sonnet batches (314 to 47). 35f968694: 71 branded record keys unbranded by script
+  (concession 25; to 34).
+- 10197748e: residue round, 9 opus batches, plus two input loosenings: **typecheck 0 in all 21 packages**
+  (`diag.cjs --full`, 2026-09-30 ~02:10). Fixer wall time for typecheck: about 2 hours.
+- Owed before W10: R2 and R7 must skip record keys, constraint-only contracts and function-holding objects
+  (concession 25), or they re-demand what was removed; the pre-edit hook enforces them on new edits today.
+  B0003 rewrote `require-contract-validation`'s path check as `startsWith('/' | './' | '../')`, a guess at the
+  deleted `filePathContract`: re-check it in the lint stage.
+- Next: ward typecheck + unit over the whole repo, then unit fixer rounds.
 
 **After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** The user will run the same
 migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
