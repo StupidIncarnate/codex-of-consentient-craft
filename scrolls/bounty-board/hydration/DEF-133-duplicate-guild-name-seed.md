@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
-| Package | orchestrator |
+| Status | ready |
+| Package | hydration |
 | Found | 2026-09-28, walkthrough case SL-079 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |
 
@@ -14,7 +14,9 @@ On `inst_8591259dc557490183ee35dc08634557` (booted with `--seed guild-empty`), `
 
 ## What should happen
 
-The user said (framework level): every generated field is unique per instance, as folders and slugs now are. The fix commit chose "names may repeat". Decide: keep repeating names, or make the recipe's generated name unique. If unique: find every generated field fed by the recipe counter that restarts at 1 each seed run (names, titles, others), and test by running each recipe in the catalog twice on one lane and asserting every generated field is unique.
+**Decided by the user, 2026-09-30: generated names are unique per instance.**
+
+The recipe framework (`packages/hydration`) numbers every generated display value across the whole instance, the way DEF-78 made folders and ids unique. A second `guild-empty` seed on one instance makes `Guild 2`, not a second `Guild 1`. Fix it once in the framework, not per recipe, since every recipe in every repo uses it. Find every generated field fed by the per-seed counter (names, titles and the like). Test by seeding each recipe in the catalog twice on one lane and asserting every generated name differs. The real app is unchanged: a person may still create two guilds with one name.
 
 ## Where to look
 

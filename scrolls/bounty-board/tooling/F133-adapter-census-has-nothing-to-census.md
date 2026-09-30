@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | tooling |
 | Found | post-merge connection check, 2026-09-30 |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |
@@ -16,7 +16,7 @@ Checked on master after 788165421 and a build: `discover` for `packages/*/src/ad
 
 ## What should happen
 
-The user must choose: retire the tool (startup, flow, bin entry and their tests), or give it a job that still exists.
+**Decided by the user, 2026-09-30: delete the tool.** Remove `start-adapter-census.ts`, `AdapterCensusFlow` and everything only it reaches, the `adapter-census` bin entry in `packages/tooling/package.json` and its `bin/` file, and their tests and proxies. Check with `discover` that nothing else imports what you remove, and that no doc or prompt still tells anyone to run it.
 
 ## Where to look
 

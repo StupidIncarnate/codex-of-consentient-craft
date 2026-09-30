@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough cases SL-171, SL-173 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |
@@ -20,7 +20,16 @@ The code now does this on purpose. `prune-asset-classify-transformer.ts:38-47` c
 
 ## What should happen
 
-The user's original rule: `--kind log` takes .log files only; run readings are removed only by a kind that names them, or by pruning the whole instance. The choice to make: add a separate `run` kind (and change `prune-asset-kind-contract.ts`), or accept that run readings are logs and fix the help so `--kind transcript` is not offered when it can match nothing.
+**Decided by the user, 2026-09-30:** the kinds become `video`, `shot`, `log` and `run`.
+
+| Kind | Removes |
+|---|---|
+| `video` | `video/*.webm`, unchanged |
+| `shot` | screenshots, unchanged |
+| `log` | `.log` files only |
+| `run` | a run's stored readings and transcript (`runs/run_N.json`, `runs/run_N.jsonl`) and the capture buffers `results` reads (`network.jsonl`, `console.jsonl`), always together, so `results` never reads a half-deleted run |
+
+`transcript` is removed from the kinds: it cannot be deleted apart from its readings without breaking `results`. Update `prune-asset-kind-contract.ts`, the classifier, `prune --help` and the siegelense docs. Every citation refusal (a `VERIFIED` line, an open issue, a `WALKED` line) still applies to the `run` kind. The purpose of the kinds is in `scrolls/seigelense/siegelense-tooling.md`, "Retention: assets outlive their instance, and something must prune them". Decide where `heartbeat.json` belongs while doing this; it is neither a log nor evidence `results` reads.
 
 ## Where to look
 

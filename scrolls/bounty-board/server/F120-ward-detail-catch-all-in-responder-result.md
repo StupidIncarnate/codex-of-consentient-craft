@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | server |
 | Found | big-bang server agent (b6047b634) |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |
@@ -16,7 +16,7 @@ Checked 2026-09-30: the file's comment at line 52 and the `.strict()` members ar
 
 ## What should happen
 
-The user must choose the recommended route (D2) or another: give ward detail a discriminator, or its own response path.
+**Decided by the user, 2026-09-30: the epic's recommended route, D2.** Ward detail responses get an envelope, `questWardDetailResponseDataContract = z.strictObject({ detail: wardDetailContract })`, like every other `*-response-data` member, and `wardDetailContract` leaves the union, so it is no longer the catch-all. The web broker `quest-ward-detail-broker.ts` returns `parsed.detail`, so `WardDetail` and its widgets keep their types. The body of `GET /api/quests/:questId/ward-results/:wardResultId` changes; both ends are in this repo. The batch plan is in `scrolls/brands-gateways-epic/items/f120-f129-bigbang-followups.md`, "F120".
 
 ## Where to look
 

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-189 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |
@@ -14,7 +14,13 @@ In this repo `.dungeonmaster-assets/siegelense-assets` points at `/home/brutus-h
 
 ## What should happen
 
-Decide which home the assets link follows in the dogfood repo. Either the link targets the home the npm script uses (`<repo>/.dungeonmaster/siegelense`), or the paths siegelense prints go through a link that matches the home in use. Decide with DEF-107 and DEF-111.
+**Decided by the user, 2026-09-30: link only when needed.**
+
+- When the home in use (`DUNGEONMASTER_HOME`) is inside the repo, siegelense prints the real path. It makes no link and emits no `linkPresent` flag, because the files are already readable. This covers this repo's `npm run siegelense` and `npm run prod`.
+- When the home is outside the repo (a consumer's `~/.dungeonmaster`), siegelense prints paths through `.dungeonmaster-assets/siegelense-assets`, as today.
+- When the link exists but points somewhere other than the home in use, siegelense says so once, in plain words, with the command to fix it.
+
+This settles DEF-107 items 2 and 5 (`linkPresent` reading as broken) too.
 
 ## Where to look
 

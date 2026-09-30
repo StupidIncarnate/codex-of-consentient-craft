@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | siegelense |
 | Found | 2026-09-28, walkthrough case SL-069 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, 2026-09-30 |
@@ -14,7 +14,15 @@
 
 ## What should happen
 
-Choose one. Either a run whose status is `failed` exits non-zero, or the help states plainly that exit 0 means "the batch was delivered" and names where the verdict is. Is exit 0 on a failed run intended? (Fix order 7 in the SL-069 group.) Held-back cases SL-083 to SL-087 wait on this, DEF-117, DEF-120 and DEF-135.
+**Decided by the user, 2026-09-30:** a run gets its own exit code.
+
+| Exit | Meaning |
+|---|---|
+| 0 | The run executed and every step passed. A step marked `expect: error` that errors counts as a pass |
+| 1 | siegelense refused or crashed: unknown instance id, bad `--steps`, unknown step. Unchanged |
+| 2 | The run executed, and a step failed or timed out (`status: failed` or `status: timeout`) |
+
+The `run` help and the walking and attacking docs state the three codes. Once this lands, re-run the held-back walkthrough cases SL-083 to SL-087; DEF-118 was the last thing they waited on.
 
 ## Where to look
 

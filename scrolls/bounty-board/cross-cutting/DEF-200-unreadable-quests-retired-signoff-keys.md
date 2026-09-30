@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | cross-cutting |
 | Found | 2026-09-30, live in the web quest list; earlier seen by the session-forensics exploration (SF coverage/quest) and walkthrough case MK-28 |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" rows "SF · coverage, quest" and "MK-28", and `scrolls/walkthrough/features/06-session-forensics.md`, "Known open items" item 2; 2026-09-30 |
@@ -31,14 +31,13 @@ Walkthrough case MK-28 also asked for a test that an old `quest.json` with `code
 
 ## What should happen
 
-The user chooses how to clear the three files, and the tools must stop hiding the failure.
+**Decided by the user, 2026-09-30:**
 
-Choice for the user:
-1. Strip the retired keys from the three quest files, or delete the quests if they are dead; and/or
-2. Make quest loading tolerate retired keys (drop them on read) instead of rejecting the whole flow.
+1. **Loading strips old keys.** Reading a quest file drops keys the quest format no longer defines (such as `codeweaverSignoff`, `flowriderSignoff`, `siegemasterSignoff` on flow nodes) instead of rejecting the whole file. This applies wherever a quest file is loaded: the server's quest list, the orchestrator, and `session-forensics`.
+2. **The three quest files are not edited.** Once (1) lands they load again on their own. `1dac5395` and `c8171a64` are abandoned; `b4c31633` is paused.
+3. **Not a decision, a bug to fix alongside:** `session-forensics coverage` and `quest` print blank, with no warning, when a quest's flows fail to parse (`quest-load-broker.ts` swallows the failure). Any parse failure that remains after (1) must be reported, not swallowed.
 
-Either way, session-forensics must say when flows failed to parse. It must not print a blank result.
-Add the MK-28 test: an old `quest.json` with `codeweaverSignoff` on an observable loads.
+Check that writing a quest never writes a stripped key back in, and add a test that loads a quest file carrying the three retired keys.
 
 ## Where to look
 

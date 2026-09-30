@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | hydration |
 | Found | R1-T hydration |
 | Moved from | `scrolls/brands-gateways-epic/EPIC.md` (Follow-up units), 2026-09-30 |
@@ -16,7 +16,10 @@ Also `hydration-recipes` `recipe-catalog-entry-contract.ts` has `inputs: zodSche
 
 ## What should happen
 
-The user must decide the value type (in W8): `z.json()`, the recipe record contracts, or a named exception. Then add the pattern `z.custom<unknown>()` to the `z.unknown` ban.
+**Decided by the user, 2026-09-30: give them real types and close the loophole.**
+
+1. Type `hydration-run-state-contract.ts`'s map values properly, with `z.json()` or the recipe record contracts, whichever matches the data actually stored. Do the same for `inputs: zodSchemaContract` in `recipe-catalog-entry-contract.ts` and `recipe-def-contract.ts` (hydration-recipes).
+2. Extend the `z.unknown` ban (the pre-edit hook, and the lint rule if one carries it) so `z.custom<unknown>()` and a bare `z.custom()` are caught too. Scan the repo for other uses and fix them in the same pass.
 
 ## Where to look
 

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | mcp |
 | Found | 2026-09-30, walkthrough cases IN-16, IN-17, IN-19 (confirmed by reading both files) |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "IN-16, IN-17", and `scrolls/walkthrough/features/08-init-prompts-and-mcp.md`, "Known open items" items 1 and 2; 2026-09-30 |
@@ -20,8 +20,9 @@ The new generator is one script for all four scenarios. Whether it still resolve
 
 ## What should happen
 
-The user decides whether init may overwrite an existing entry (it could clobber a hand-edited one). Options: rewrite an entry that matches a known old form;
-or always rewrite the `dungeonmaster` key. Then check that the new form resolves to this checkout in scenarios 1 and 2, and make the root `CLAUDE.md` table match.
+**Decided by the user, 2026-09-30: `init` always rewrites the `dungeonmaster` entry** in `.mcp.json`. It owns that key outright, as it owns its sections of `.claude/settings.json`. Other servers in the file are left alone.
+
+**This must land with the dogfood case, or this repo's MCP loses its quests.** The current generated form (`mcpServerStatics.resolveScript`, `require('@dungeonmaster/mcp')` with a global fallback) sets no `DUNGEONMASTER_HOME`, so the server falls back to `~/.dungeonmaster`. This repo's hand-shaped entry sets `DUNGEONMASTER_HOME="${DUNGEONMASTER_HOME:-$(pwd)/.dungeonmaster}"`, the same home `npm run prod` uses, which is how the MCP tools here see this repo's quests. So the generator must write that home in this checkout (and in its worktrees, scenario 2), and nowhere else. Then check scenarios 1 to 4 of the root `CLAUDE.md` "Four Resolution Scenarios" still resolve as written, and make that table match. Regenerate with the root `CLAUDE.md` "Regenerating `.claude/settings.json` Here" steps; never hand-edit `.mcp.json`.
 
 ## Where to look
 

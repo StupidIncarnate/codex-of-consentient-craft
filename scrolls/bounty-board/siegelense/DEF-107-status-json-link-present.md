@@ -19,7 +19,7 @@ The contract has about 35 users, orchestrator included. Today `linkPresent` appe
 
 ## What should happen
 
-Drop the boolean and emit a plain note only when the link is missing. The flag does not read as broken when the home is already inside the repo. Related: DEF-159 decides which home the link follows.
+Items 1, 3 and 4 are fixed (see History). Items 2 and 5, the `linkPresent` flag, follow the user's DEF-159 decision of 2026-09-30: when the home in use is inside the repo, print the real path and emit no `linkPresent` at all; when it is outside, print through the link and say so plainly only when the link is missing or points at another home. Build this together with DEF-159.
 
 ## Where to look
 

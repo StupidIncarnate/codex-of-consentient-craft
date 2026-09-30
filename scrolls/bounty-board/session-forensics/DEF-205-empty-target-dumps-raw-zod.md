@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Kind | defect |
-| Status | needs decision |
+| Status | ready |
 | Package | session-forensics |
 | Found | 2026-09-30, walkthrough exploration (code read) |
 | Moved from | `scrolls/walkthrough/LEDGER.md`, "Suspected defects from the exploration" row "SF · empty target", and `scrolls/walkthrough/features/06-session-forensics.md`, "Known open items" item 1; 2026-09-30 |
@@ -17,7 +17,7 @@ prints as a raw JSON array from `StartSessionForensics`'s top-level catch. A tes
 
 ## What should happen
 
-The user decides: keep the dump, or treat an empty target like a missing one and print the usage block. If changed, update the test at `:50-81`.
+**Decided by the user, 2026-09-30:** an empty-string target is treated exactly like a missing one. `session-forensics <command> ""` prints the usage text and exits 1. Update the test that pins the raw Zod error so it asserts the usage text instead.
 
 ## Where to look
 
