@@ -28,7 +28,6 @@ import { workPlanContract } from '../../contracts/work-plan/work-plan-contract';
 import { workPlanPayloadCodeweaverContract } from '../../contracts/work-plan-payload-codeweaver/work-plan-payload-codeweaver-contract';
 import { workPlanPayloadFlowriderContract } from '../../contracts/work-plan-payload-flowrider/work-plan-payload-flowrider-contract';
 import { workPlanPayloadSiegemasterContract } from '../../contracts/work-plan-payload-siegemaster/work-plan-payload-siegemaster-contract';
-import { workPlanValidationCheckContract } from '../../contracts/work-plan-validation-check/work-plan-validation-check-contract';
 import { workPlanValidationFailureContract } from '../../contracts/work-plan-validation-failure/work-plan-validation-failure-contract';
 import type { WorkPlanValidationFailure } from '../../contracts/work-plan-validation-failure/work-plan-validation-failure-contract';
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
@@ -80,7 +79,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.operationItemMismatch),
+          check: numbers.operationItemMismatch,
           message: `operationItemId '${String(parsedPlan.operationItemId)}' does not match this work item's own operation item '${
             workItemOperationItemId === undefined ? '(none)' : String(workItemOperationItemId)
           }'`,
@@ -98,7 +97,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.duplicatePieceId),
+          check: numbers.duplicatePieceId,
           message: `piece id '${String(piece.id)}' is used by two pieces in this plan — piece ids must be unique within the file`,
         }),
       );
@@ -112,7 +111,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.unknownStep),
+          check: numbers.unknownStep,
           message: `${String(piece.id)}: step '${String(piece.step)}' does not exist in the ${parsedPlan.family} step graph`,
         }),
       );
@@ -134,7 +133,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.unresolvedUnit),
+            check: numbers.unresolvedUnit,
             message: `${String(piece.id)}: ${field} names '${String(unitId)}', which is not a unit on flow '${String(unitId).split(':')[0]}'`,
           }),
         );
@@ -175,7 +174,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.outOfScopeAssignedUnit),
+            check: numbers.outOfScopeAssignedUnit,
             message: `${String(piece.id)}: assigned unit '${String(unitId)}' is not in scope for operation item '${String(parsedPlan.operationItemId)}'`,
           }),
         );
@@ -197,7 +196,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.duplicateUnitClaim),
+            check: numbers.duplicateUnitClaim,
             message: `${names} both claim unit '${String(unitId)}' in the same batch`,
           }),
         );
@@ -216,7 +215,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.unknownFlow),
+          check: numbers.unknownFlow,
           message: `flowId '${String(parsedPlan.flowId)}' does not resolve in quest.flows[]`,
         }),
       );
@@ -231,7 +230,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.unknownPackage),
+            check: numbers.unknownPackage,
             message: `packageName '${String(packageName)}' does not resolve in quest.packagesAffected[]`,
           }),
         );
@@ -256,7 +255,7 @@ export const workPlanValidateTransformer = ({
           failures.push(
             workPlanValidationFailureContract.parse({
               pieceId: piece.id,
-              check: workPlanValidationCheckContract.parse(numbers.fileOutsideOwnedPackage),
+              check: numbers.fileOutsideOwnedPackage,
               message: `${String(piece.id)}: payload.files[].path '${String(file.path)}' is outside the packages this operation item owns (${parsedPlan.packageNames.map((name) => String(name)).join(', ')})`,
             }),
           );
@@ -298,7 +297,7 @@ export const workPlanValidateTransformer = ({
           failures.push(
             workPlanValidationFailureContract.parse({
               pieceId: piece.id,
-              check: workPlanValidationCheckContract.parse(numbers.observableTargetMismatch),
+              check: numbers.observableTargetMismatch,
               message: `${String(piece.id)}: observableTarget for unit '${String(unit.unitId)}' does not resolve to the node or edge that unit actually hangs on`,
             }),
           );
@@ -328,7 +327,7 @@ export const workPlanValidateTransformer = ({
             failures.push(
               workPlanValidationFailureContract.parse({
                 pieceId: piece.id,
-                check: workPlanValidationCheckContract.parse(numbers.batchConcurrency),
+                check: numbers.batchConcurrency,
                 message: `batch ${batchIndex + 1} names ${browserPieces.length} browser-layer pieces at step '${stepValue}', over the maxConcurrent limit of ${maxConcurrent.limit}`,
               }),
             );
@@ -362,7 +361,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.duplicateOffMapFamily),
+            check: numbers.duplicateOffMapFamily,
             message: `offMapFamily '${payload.offMapFamily}' is allocated to more than one piece in this plan (${names})`,
           }),
         );
@@ -412,7 +411,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.duplicateFilePath),
+            check: numbers.duplicateFilePath,
             message: `${names} both name file path '${path}' in the same batch`,
           }),
         );
@@ -429,7 +428,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.batchMixedSteps),
+            check: numbers.batchMixedSteps,
             message: `batch ${batchIndex + 1} mixes steps ${stepsList} — every piece in one batch must name the same step`,
           }),
         );
@@ -448,7 +447,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.adversarialBaseline),
+          check: numbers.adversarialBaseline,
           message: `${String(piece.id)}: baselineFor '${String(piece.baselineFor)}' does not resolve to any piece in this plan`,
         }),
       );
@@ -458,7 +457,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.adversarialBaseline),
+          check: numbers.adversarialBaseline,
           message: `${String(piece.id)}: baselineFor '${String(piece.baselineFor)}' resolves to a piece in ${
             baselineBatchIndex === batchIndex ? 'the SAME' : 'a LATER'
           } batch, not an earlier one`,
@@ -477,7 +476,7 @@ export const workPlanValidateTransformer = ({
         failures.push(
           workPlanValidationFailureContract.parse({
             pieceId: piece.id,
-            check: workPlanValidationCheckContract.parse(numbers.plannerMarkUnresolvedUnit),
+            check: numbers.plannerMarkUnresolvedUnit,
             message: `plannerMarks[${markIndex}]: unit '${String(mark.unitId)}' is not a unit on this quest`,
           }),
         );
@@ -500,7 +499,7 @@ export const workPlanValidateTransformer = ({
       failures.push(
         workPlanValidationFailureContract.parse({
           pieceId: piece.id,
-          check: workPlanValidationCheckContract.parse(numbers.recipeNotRecorded),
+          check: numbers.recipeNotRecorded,
           message: `${String(piece.id)}: recipeId '${String(piece.recipeId)}' is not recorded on flow '${
             flow === undefined ? String(parsedPlan.flowId) : String(flow.id)
           }'`,
