@@ -18,7 +18,7 @@
  * // file), or 'skipped' (already has both, fails validation, or could not be safely read)
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
@@ -55,11 +55,9 @@ export const InstallCreateConfigResponder = async ({
         packageName: PACKAGE_NAME,
         success: true,
         action: 'skipped',
-        message: installMessageContract.parse(
-          isCorruptJson
+        message: (isCorruptJson
             ? '.dungeonmaster.json exists but is not valid JSON — left untouched'
-            : '.dungeonmaster.json exists but could not be read — left untouched',
-        ),
+            : '.dungeonmaster.json exists but could not be read — left untouched'),
         error: (error instanceof Error ? error.message : String(error)),
       });
     }
@@ -76,9 +74,7 @@ export const InstallCreateConfigResponder = async ({
           packageName: PACKAGE_NAME,
           success: true,
           action: 'skipped',
-          message: installMessageContract.parse(
-            '.dungeonmaster.json exists but failed config validation — left untouched',
-          ),
+          message: '.dungeonmaster.json exists but failed config validation — left untouched',
         });
       }
 
@@ -90,7 +86,7 @@ export const InstallCreateConfigResponder = async ({
           packageName: PACKAGE_NAME,
           success: true,
           action: 'skipped',
-          message: installMessageContract.parse('.dungeonmaster.json already exists'),
+          message: '.dungeonmaster.json already exists',
         });
       }
 
@@ -114,13 +110,11 @@ export const InstallCreateConfigResponder = async ({
         packageName: PACKAGE_NAME,
         success: true,
         action: 'merged',
-        message: installMessageContract.parse(
-          !hasDevServerE2e && !hasGateway
+        message: (!hasDevServerE2e && !hasGateway
             ? 'Added the devServer.e2e.processes placeholder and the gateway key to existing .dungeonmaster.json'
             : hasDevServerE2e
               ? 'Added the gateway key to existing .dungeonmaster.json'
-              : 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
-        ),
+              : 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json'),
       });
     }
   }
@@ -150,6 +144,6 @@ export const InstallCreateConfigResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Created .dungeonmaster.json'),
+    message: 'Created .dungeonmaster.json',
   });
 };

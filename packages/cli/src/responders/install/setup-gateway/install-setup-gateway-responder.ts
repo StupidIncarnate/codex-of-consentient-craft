@@ -12,7 +12,7 @@
  * // Scaffolds the gateway, wires every existing package into it, or reports what was already done
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
@@ -48,7 +48,7 @@ export const InstallSetupGatewayResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
-      message: installMessageContract.parse('No package.json found'),
+      message: 'No package.json found',
     });
   }
 
@@ -166,6 +166,6 @@ export const InstallSetupGatewayResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: anyChange ? 'created' : 'skipped',
-    message: installMessageContract.parse(messageParts.join('; ')),
+    message: messageParts.join('; '),
   });
 };

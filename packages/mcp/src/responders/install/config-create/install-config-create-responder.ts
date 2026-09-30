@@ -9,7 +9,7 @@
  * // Creates .mcp.json with dungeonmaster config, adds MCP permissions to .claude/settings.json
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
@@ -47,7 +47,7 @@ export const InstallConfigCreateResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('MCP config already exists, added permissions'),
+      message: 'MCP config already exists, added permissions',
     });
   }
 
@@ -69,9 +69,7 @@ export const InstallConfigCreateResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'merged',
-      message: installMessageContract.parse(
-        'Merged dungeonmaster into existing .mcp.json and added permissions',
-      ),
+      message: 'Merged dungeonmaster into existing .mcp.json and added permissions',
     });
   }
 
@@ -88,8 +86,6 @@ export const InstallConfigCreateResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse(
-      'Created .mcp.json with dungeonmaster config and added permissions',
-    ),
+    message: 'Created .mcp.json with dungeonmaster config and added permissions',
   });
 };

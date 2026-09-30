@@ -33,7 +33,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, writeFile, readFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, packageJsonContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
@@ -62,9 +62,7 @@ export const InstallRecipesScaffoldResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse(
-        `${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ already present; left untouched`,
-      ),
+      message: `${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ already present; left untouched`,
     });
   }
 
@@ -127,6 +125,6 @@ export const InstallRecipesScaffoldResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse(createdMessage),
+    message: createdMessage,
   });
 };

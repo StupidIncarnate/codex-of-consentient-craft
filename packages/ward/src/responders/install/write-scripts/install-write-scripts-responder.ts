@@ -7,7 +7,7 @@
  * // Merges missing ward scripts into package.json, or skips if all present / no package.json
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
@@ -30,7 +30,7 @@ export const InstallWriteScriptsResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
-      message: installMessageContract.parse('No package.json found'),
+      message: 'No package.json found',
     });
   }
 
@@ -42,7 +42,7 @@ export const InstallWriteScriptsResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
-      message: installMessageContract.parse('Invalid package.json'),
+      message: 'Invalid package.json',
     });
   }
 
@@ -57,7 +57,7 @@ export const InstallWriteScriptsResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('All ward scripts already present'),
+      message: 'All ward scripts already present',
     });
   }
 
@@ -75,6 +75,6 @@ export const InstallWriteScriptsResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Added ward scripts to package.json'),
+    message: 'Added ward scripts to package.json',
   });
 };

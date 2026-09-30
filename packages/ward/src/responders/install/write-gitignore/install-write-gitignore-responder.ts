@@ -9,7 +9,7 @@
  */
 
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
@@ -41,7 +41,7 @@ export const InstallWriteGitignoreResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('.gitignore already carries every ward entry'),
+      message: '.gitignore already carries every ward entry',
     });
   }
 
@@ -59,6 +59,6 @@ export const InstallWriteGitignoreResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action,
-    message: installMessageContract.parse(message),
+    message: message,
   });
 };

@@ -11,7 +11,7 @@
  * // present or the target has npm workspaces
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -41,9 +41,7 @@ export const InstallCreateJestResponder = async ({
         packageName: PACKAGE_NAME,
         success: true,
         action: 'skipped',
-        message: installMessageContract.parse(
-          'target project has npm workspaces (each package owns its own jest.config.js)',
-        ),
+        message: 'target project has npm workspaces (each package owns its own jest.config.js)',
       });
     }
   }
@@ -55,7 +53,7 @@ export const InstallCreateJestResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('jest.config.js already exists'),
+      message: 'jest.config.js already exists',
     });
   }
 
@@ -67,6 +65,6 @@ export const InstallCreateJestResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Created jest.config.js'),
+    message: 'Created jest.config.js',
   });
 };

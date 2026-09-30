@@ -15,7 +15,7 @@
  * // package are all in place
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { InstallLinkCreateResponder } from '../../responders/install/link-create/install-link-create-responder';
 import { InstallIgnoreWriteResponder } from '../../responders/install/ignore-write/install-ignore-write-responder';
 import { InstallRecipesScaffoldResponder } from '../../responders/install/recipes-scaffold/install-recipes-scaffold-responder';
@@ -46,8 +46,6 @@ export const InstallFlow = async ({
     packageName: PACKAGE_NAME,
     success,
     action,
-    message: installMessageContract.parse(
-      `${String(linkResult.message)}; ${String(ignoreResult.message)}; ${String(recipesResult.message)}`,
-    ),
+    message: `${String(linkResult.message)}; ${String(ignoreResult.message)}; ${String(recipesResult.message)}`,
   });
 };

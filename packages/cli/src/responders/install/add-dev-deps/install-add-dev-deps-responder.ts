@@ -6,7 +6,7 @@
  * // Adds devDependencies to package.json or skips if already present
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -31,7 +31,7 @@ export const InstallAddDevDepsResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
-      message: installMessageContract.parse('No package.json found'),
+      message: 'No package.json found',
     });
   }
 
@@ -43,7 +43,7 @@ export const InstallAddDevDepsResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'skipped',
-      message: installMessageContract.parse('Invalid package.json'),
+      message: 'Invalid package.json',
     });
   }
 
@@ -60,7 +60,7 @@ export const InstallAddDevDepsResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('All devDependencies already present'),
+      message: 'All devDependencies already present',
     });
   }
 
@@ -87,6 +87,6 @@ export const InstallAddDevDepsResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Added devDependencies to package.json'),
+    message: 'Added devDependencies to package.json',
   });
 };

@@ -13,7 +13,6 @@
 
 import { z } from '#gateway/npm/zod';
 import { installActionContract } from '../install-action/install-action-contract';
-import { installMessageContract } from '../install-message/install-message-contract';
 
 /**
  * Represents the result of an install operation
@@ -23,7 +22,7 @@ export const installResultContract = z.object({
   packageName: z.string().min(1).brand<'InstallResultPackageName'>(),
   success: z.boolean(),
   action: installActionContract,
-  message: installMessageContract.optional(),
+  message: z.string().min(1).brand<'InstallResultMessage'>().optional(),
   error: z.string().brand<'InstallResultError'>().optional(),
 });
 

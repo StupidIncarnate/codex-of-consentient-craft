@@ -40,7 +40,7 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readlink, symlink, unlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import { installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { installResultContract } from '@dungeonmaster/shared/contracts';
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -113,9 +113,7 @@ export const InstallLinkCreateResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'created',
-      message: installMessageContract.parse(
-        `Created ${LINK_RELATIVE_PATH} -> ${targetDir}${legacySuffix}`,
-      ),
+      message: `Created ${LINK_RELATIVE_PATH} -> ${targetDir}${legacySuffix}`,
     });
   }
 
@@ -126,9 +124,7 @@ export const InstallLinkCreateResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse(
-        `${LINK_RELATIVE_PATH} already points at ${targetDir}${legacySuffix}`,
-      ),
+      message: `${LINK_RELATIVE_PATH} already points at ${targetDir}${legacySuffix}`,
     });
   }
 
@@ -139,8 +135,6 @@ export const InstallLinkCreateResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse(
-      `Replaced ${LINK_RELATIVE_PATH} to point at ${targetDir}${legacySuffix}`,
-    ),
+    message: `Replaced ${LINK_RELATIVE_PATH} to point at ${targetDir}${legacySuffix}`,
   });
 };

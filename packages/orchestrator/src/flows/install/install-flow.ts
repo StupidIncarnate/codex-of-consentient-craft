@@ -10,7 +10,7 @@
  * // Returns install result for the orchestrator package after commands and scaffold are written
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { InstallCommandsCreateResponder } from '../../responders/install/commands-create/install-commands-create-responder';
 import { InstallRepoScaffoldResponder } from '../../responders/install/repo-scaffold/install-repo-scaffold-responder';
 
@@ -30,8 +30,6 @@ export const InstallFlow = async ({
     packageName: PACKAGE_NAME,
     success: commandsResult.success && scaffoldResult.success,
     action: created ? 'created' : 'skipped',
-    message: installMessageContract.parse(
-      `${String(commandsResult.message)}; ${String(scaffoldResult.message)}`,
-    ),
+    message: `${String(commandsResult.message)}; ${String(scaffoldResult.message)}`,
   });
 };

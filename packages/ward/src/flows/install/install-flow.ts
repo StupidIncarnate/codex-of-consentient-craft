@@ -7,7 +7,7 @@
  * // Adds .ward/ to .gitignore and ward scripts to package.json
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { InstallWriteGitignoreResponder } from '../../responders/install/write-gitignore/install-write-gitignore-responder';
 import { InstallWriteScriptsResponder } from '../../responders/install/write-scripts/install-write-scripts-responder';
 
@@ -31,8 +31,6 @@ export const InstallFlow = async ({
     packageName: PACKAGE_NAME,
     success,
     action: created ? 'created' : 'skipped',
-    message: installMessageContract.parse(
-      `${String(gitignoreResult.message)}; ${String(scriptsResult.message)}`,
-    ),
+    message: `${String(gitignoreResult.message)}; ${String(scriptsResult.message)}`,
   });
 };

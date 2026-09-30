@@ -9,7 +9,7 @@
  * // Returns InstallResult — action 'created'; the two command files are written to disk
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -37,8 +37,6 @@ export const InstallCommandsCreateResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse(
-      'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md',
-    ),
+    message: 'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md',
   });
 };

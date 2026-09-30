@@ -80,7 +80,6 @@ export * from './quest-type/quest-type-contract';
 
 // Install Contracts
 
-export * from './install-message/install-message-contract';
 
 export * from './install-action/install-action-contract';
 

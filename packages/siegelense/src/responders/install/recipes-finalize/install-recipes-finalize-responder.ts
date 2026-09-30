@@ -15,7 +15,7 @@
  * // npm run build and reports success, or the command to run by hand on failure
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 
 import { install, runBuild } from '#gateway/bin/npm';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
@@ -34,9 +34,7 @@ export const InstallRecipesFinalizeResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse(
-        'no freshly scaffolded packages/hydration-recipes/ this run',
-      ),
+      message: 'no freshly scaffolded packages/hydration-recipes/ this run',
     });
   }
 
@@ -49,11 +47,9 @@ export const InstallRecipesFinalizeResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'created',
-      message: installMessageContract.parse(
-        `npm install failed (exit ${String(installResult.exitCode)}): ` +
+      message: (`npm install failed (exit ${String(installResult.exitCode)}): ` +
           `${installResult.output} — run "npm install" at the repo root, then "${buildCommand}" ` +
-          'to finish setting it up',
-      ),
+          'to finish setting it up'),
     });
   }
 
@@ -66,10 +62,8 @@ export const InstallRecipesFinalizeResponder = async ({
       packageName: PACKAGE_NAME,
       success: false,
       action: 'created',
-      message: installMessageContract.parse(
-        `${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
-          `${buildResult.output} — run "${buildCommand}" to finish setting it up`,
-      ),
+      message: (`${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
+          `${buildResult.output} — run "${buildCommand}" to finish setting it up`),
     });
   }
 
@@ -77,8 +71,6 @@ export const InstallRecipesFinalizeResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse(
-      `${buildCommand} finished for packages/hydration-recipes/`,
-    ),
+    message: `${buildCommand} finished for packages/hydration-recipes/`,
   });
 };

@@ -13,7 +13,7 @@
  * // present, or target isn't e2e-eligible)
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 import { existsSync } from '#gateway/node/fs';
 import { join, dirname } from '#gateway/node/path';
@@ -40,9 +40,7 @@ export const InstallCreatePlaywrightResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse(
-        'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
-      ),
+      message: 'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
     });
   }
 
@@ -53,7 +51,7 @@ export const InstallCreatePlaywrightResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: installMessageContract.parse('playwright.config.ts already exists'),
+      message: 'playwright.config.ts already exists',
     });
   }
 
@@ -81,6 +79,6 @@ export const InstallCreatePlaywrightResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action: 'created',
-    message: installMessageContract.parse('Created playwright.config.ts'),
+    message: 'Created playwright.config.ts',
   });
 };
