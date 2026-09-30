@@ -8,7 +8,6 @@
 
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import { transcriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
-import { toolInputParamNameContract } from '../../contracts/tool-input-param-name/tool-input-param-name-contract';
 import {
   transcriptToolInvocationContract,
   type TranscriptToolInvocation,
@@ -44,7 +43,7 @@ export const transcriptToolInvocationsExtractTransformer = ({
         return [];
       }
 
-      const rawWorkItemId = item.input?.[toolInputParamNameContract.parse('workItemId')];
+      const rawWorkItemId = item.input?.['workItemId'];
       const workItemId =
         typeof rawWorkItemId === 'string' && rawWorkItemId.length > 0 ? rawWorkItemId : null;
 
