@@ -13,8 +13,6 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { userMessageContract } from '../../contracts/user-message/user-message-contract';
-import type { UserMessage } from '../../contracts/user-message/user-message-contract';
 
 export const pastedImageTokenSubstituteTransformer = ({
   message,
@@ -22,13 +20,11 @@ export const pastedImageTokenSubstituteTransformer = ({
 }: {
   message: string;
   imagePaths: readonly string[];
-}): UserMessage =>
-  userMessageContract.parse(
-    message.replace(
+}): string =>
+  message.replace(
       new RegExp(`(?<!!)${pastedImageStatics.placeholderPattern}`, 'gu'),
       (match: string, ordinal: string) => {
         const imagePath = imagePaths[Number(ordinal) - 1];
         return imagePath === undefined ? match : `![Pasted Image ${ordinal}](${imagePath})`;
       },
-    ),
-  );
+    );

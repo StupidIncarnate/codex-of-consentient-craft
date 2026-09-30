@@ -11,10 +11,9 @@
 import { z } from '#gateway/npm/zod';
 
 import { pastedImageUploadListContract } from '../pasted-image-upload-list/pasted-image-upload-list-contract';
-import { userMessageContract } from '../user-message/user-message-contract';
 
 export const messageBodyContract = z.object({
-  message: userMessageContract,
+  message: z.string().min(1).brand<'MessageBodyMessage'>(),
   images: pastedImageUploadListContract
     .optional()
     .describe(

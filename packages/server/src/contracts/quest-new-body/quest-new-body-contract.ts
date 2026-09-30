@@ -19,10 +19,9 @@ import { z } from '#gateway/npm/zod';
 import { questTypeContract } from '@dungeonmaster/shared/contracts';
 
 import { pastedImageUploadListContract } from '../pasted-image-upload-list/pasted-image-upload-list-contract';
-import { userMessageContract } from '../user-message/user-message-contract';
 
 export const questNewBodyContract = z.object({
-  message: userMessageContract,
+  message: z.string().min(1).brand<'QuestNewBodyMessage'>(),
   questType: questTypeContract
     .optional()
     .describe(

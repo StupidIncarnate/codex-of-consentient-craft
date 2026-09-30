@@ -23,8 +23,6 @@
  */
 
 
-import { userMessageContract } from '../../contracts/user-message/user-message-contract';
-import type { UserMessage } from '../../contracts/user-message/user-message-contract';
 import type { LocalImagePathMatch } from '../../contracts/local-image-path-match/local-image-path-match-contract';
 
 // The two characters immediately before an occurrence, mirroring
@@ -40,7 +38,7 @@ export const localImageTokenSubstituteTransformer = ({
   message: string;
   matches: readonly LocalImagePathMatch[];
   copiedPathByOrdinal: ReadonlyMap<number, string>;
-}): UserMessage => {
+}): string => {
   let rebuilt = '';
   let cursor = 0;
 
@@ -77,5 +75,5 @@ export const localImageTokenSubstituteTransformer = ({
     cursor = occurrenceEnd;
   }
 
-  return userMessageContract.parse(rebuilt + message.slice(cursor));
+  return (rebuilt + message.slice(cursor));
 };

@@ -24,8 +24,6 @@ import {
 } from '@dungeonmaster/shared/brokers';
 import type { PastedImageUpload, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
-import { userMessageContract } from '../../../contracts/user-message/user-message-contract';
-import type { UserMessage } from '../../../contracts/user-message/user-message-contract';
 import { localImageCopyBroker } from '../../local-image/copy/local-image-copy-broker';
 import { localImagePathsFindTransformer } from '../../../transformers/local-image-paths-find/local-image-paths-find-transformer';
 import { localImageTokenSubstituteTransformer } from '../../../transformers/local-image-token-substitute/local-image-token-substitute-transformer';
@@ -41,13 +39,13 @@ export const pastedImagePersistBroker = async ({
   questId: Quest['id'];
   message: string;
   images: readonly PastedImageUpload[];
-}): Promise<UserMessage> => {
+}): Promise<string> => {
   // Runs on the message AS POSTED, before any placeholder is rewritten — a freshly written
   // bitmap path must never become a scan candidate.
   const matches = localImagePathsFindTransformer({ message, startOrdinal: images.length + 1 });
 
   if (images.length === 0 && matches.length === 0) {
-    return userMessageContract.parse(message);
+    return message;
   }
 
   const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId });
