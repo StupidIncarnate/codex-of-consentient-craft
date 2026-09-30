@@ -129,71 +129,23 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:22, machine clock)
+### Now (updated at every event; last 2026-09-30 13:24, machine clock)
 
-**gateway-pivot is merged into master** (fast-forward; master had not moved since the 11:00 measurement). Last full ward
-before the merge, run 1790798496503-8a33: **1,013 s (16.9 minutes)**, every check green: lint 11,514 files (103 s),
-typecheck 11,480 (25 s), unit 4,176 (79 s), integration 230 (76 s), e2e 131 (331 s); exit 1 only on slow-lint flags
-(rule 21). The 2026-09-29 baseline was 1,113 s.
+**DONE: the epic's P0 and P1 work is on master** (788165421). Nothing is running.
 
-**Found after the merge:** `@gateway/npm` wraps `pngjs` and `pixelmatch` but never declared `@types/pngjs` or
-`@types/pixelmatch`. Every build passed only because Node's walk-up escaped the worktree and found a stray
-`@types/pngjs` in the main checkout's `node_modules` (master's old siegelense dependency). `npm install` on master
-pruned it, and the main checkout's `build:clean` then stopped at `@gateway/npm`, leaving master's checkout with no
-`dist` for a few minutes. Fix: both declared as `@gateway/npm` devDependencies (the types commit; gate
-1790799692879-f70a, integration 1790799711860-edca), master fast-forwarded, reinstalled and rebuilt.
+- Last full ward before the merge: run 1790798496503-8a33, **1,013 s (16.9 minutes)**, every check green (lint 11,514,
+  typecheck 11,480, unit 4,176, integration 230, e2e 131); exit 1 only on slow-lint flags (rule 21). Baseline
+  2026-09-29: 1,113 s.
+- `check:consumer` 174 of 174, `check:published` pass, `build:clean` pass (both checkouts).
+- Main checkout: `npm install`, `build:clean` and `dungeonmaster init` done (settings key order only; AGENTS.md carries
+  the new snippets). Master and gateway-pivot point at the same commit.
+- Found on the way: `@gateway/npm` never declared `@types/pngjs` and `@types/pixelmatch` (fixed, d29d84382).
 
-**Next:** `build:clean` in the main checkout and settings regeneration there (its hooks otherwise run the old rules);
-remove the `gp-merge-master` worktree and branch; then P2 work bundled with the user's defect swarm, P3 after.
+**Waiting on the user:** removing the `gp-merge-master` worktree (`worktrees/gateway-pivot/worktrees/gp-merge-master`)
+and branch, and emptying `tmp/deletions/` (rule 20: deletions need approval).
 
-**Final gate:** `build:clean` pass; `check:published` pass; `check:consumer` 174 of 174 (148 local, 26 global);
-full ward 1790796592908-a9ef had two integration reds, both fixed since (0d81eabc0, f6bcd0bd6). If this last full
-ward is green, master gets gateway-pivot.
-
-**Just landed:** hooks pre-edit integration fixed (the hooks-timeout commit): its `beforeAll` ran three cold hook processes serially (about 7 s each, 5.2 s of it loading `eslint.config.js`) against ward's 30 s limit; the warm-up now overlaps the smokes and the limits are explicit; green under load (1790797859346-97a3). Red 2 is fixed. Also: `get-testing-patterns` is 44,941 bytes, under the 50 KB cap (was 56,046; no rule dropped; the margin under 45 KB is thin, so the next addition needs matching cuts). Red 1 is fixed.
-
-**Final gate so far:** `build:clean` exit 0; `check:published` exit 0. Full ward 1790796592908-a9ef (1,087 s): lint 11,514,
-typecheck 11,480, unit 4,176 and e2e 131 green; integration 228 of 230. Red 1: `mcp-server-flow.integration.test.ts`
-"get-testing-patterns response under 50KB" (Z03-T's rewrite grew it; the cap stays). Red 2: hooks'
-`start-pre-edit-hook.integration.test.ts` timed out on every test in the last two full runs, the second with no agents
-running; it passes alone. A swarm running full wards would hit it every time, so it is fixed now, not tabled.
-
-**Every P0 and P1 is done.** Z10 landed (ccca61231): 489 files of comments now name live contracts or plain values
-(census 767 lines to 114; the rest name live private contracts).
-
-**MASTER IS MERGED INTO gateway-pivot.** Whole-tree ward on the merged tree, run 1790795085930-be73 (1,096 s): lint
-11,511, typecheck 11,477, unit 4,176, integration 230, e2e 131, all green (exit 1 only on slow-lint flags, rule 21).
-Merge commit b234bf3b5 (in `gp-merge-master`), then gateway-pivot merged into it cleanly (72f26a6f5), then
-gateway-pivot fast-forwarded to 72f26a6f5.
-
-**Left before master gets gateway-pivot:** Z10 (running); then the final gate: full `npm run ward`, `build:clean`,
-`check:consumer`, `check:published`; then merge into master, then `build:clean` and settings regeneration in the main
-checkout. The worktree `gp-merge-master` and its branch are removed after that.
-
-**Just landed:** merge r3 server and siegelense (gate 1790795010886-7542, integration 1790795063933-5150): master's `quest-start-body` on `#gateway/npm/zod` with a `QuestStartBodyPlay` leaf brand and its zod 4 message; the request-log harness on `#gateway/node/process`; siegelense's phantom `stderrProxy` gone. All round-3 reds are fixed. Also merge r3 web (gate 1790794958353-0e93): DEF-148's not-found flow and page on gateway imports, its test passes. Also merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
-
-**Whole-tree ward in W (run 1790794045495-a0d6, lint/typecheck/unit/integration, 770 s):** 11,503 of 11,511 lint files,
-typecheck red only in hydration-recipes' `toolUseId` (seen through server and web too), unit 4,174 of 4,176,
-integration 229 of 230. The integration red was hooks' `start-pre-edit-hook.integration.test.ts` timing out under load;
-it passes alone (1790794838115-80fc), so it goes into F106 (rule 21). Every red is in master's newer code; the three
-agents above own them all.
-
-**Earlier:** merge round 2 done (DEF-136/137 never-called assertions back via `StartOrchestratorProxy` read-backs, gate 1790793946535-3506, integration 1790794020410-55e7). **W typechecks at 0 errors in all 21 packages** (`diag.cjs --full`, `<W>/tmp/merge-master/diag-r3.json`;
-700 this morning). All eight merge fixers are done; the last, siegelense brokers A (gate 1790793873663-43da,
-integration 1790793856816-e8b0), kept DEF-110, DEF-144/145/157/158 and the instance-reset restart on gateway calls and
-restored the two dropped parse wraps. Every fixer's LOST-OURS and DEF CHECK is in its report; each DEF test named passed.
-
-**Round-2 list (after the fixers):** `StartOrchestratorProxy` gains `addGuild`/`updateGuild` call read-backs and the
-DEF-136/137 tests assert the orchestrator is never called for a relative path again (the fixer had to stage an error
-instead); master's new `server/src/flows/request-log/request-log-flow.ts` imports `hono` raw (use `#gateway/npm/hono`).
-P2 after the merge: the absolute-path check now sits in two local contracts (server `guildAbsolutePathInputContract`, web
-`guildCreateInputContract`) with one regex; give it one owner.
-
-**Next:** when the fixers report: `diag.cjs --full` on W to 0, then W's unit, lint and integration by package, a
-round for what is left, Z10 in W, merge gateway-pivot into W, the final gate (full ward, `build:clean`,
-`check:consumer`, `check:published`, e2e), then master.
-
-**P1 status:** F129, Z02-A, Z02-C/D, Z03 all done on gateway-pivot. Z02-B done in W. Z10 waits for W to be green.
+**Next (after the user's go):** P2 bundled with the defect swarm (the P2 row of "Merge to master" lists it, plus F130 to
+F132, the two-contract absolute-path check, F105's 5.2 s config load); then P3 and the rest of Phase 6.
 
 ### Merge to master (user, 2026-09-30 ~11:00) — THE CURRENT GOAL
 
@@ -1133,3 +1085,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-29 | Operator session (day): Phase 2 closed (A18, A19 switch-on, P3-0 gate); waves 3.1 to 3.4 done; 3.3's layout with explicit per-barrel keys (concession 22) and `ban-test-support-in-production` (concession 23); 4.0 decisions; R1, R2, R3, R4, R6, R8, R9, T10, T2, T1, L0, L1; L3 and L4 for hooks, server, mcp; L2 part 1 on branch `gp-l2-tsestree`; every SD script; B17 and B18 in most packages; T05 swept; disk-full incident fixed (F95 to F97); about 60 follow-ups closed. Next: START HERE "Handoff (2026-09-29, evening)". |
 | 2026-09-29 | Operator session (afternoon, 10:58 to 17:10): L2 merged; wave 3.5 done; T05, T06, T08, B18 done with their rules on; R5 built and on; the R1 queue went from 122 to about 31 (all waiting on W1, W3, B06 or testing's quiet wave); F56, F57, F72, the F100 shared half, F108 to F114, F117, F118 closed; R7 a to e built. The user tabled slow tests to Phase 6 (rule 21, Z08) and proposed running every Phase 4 script up front, then fixing file by file. Operator recommendation: do it on a worktree branch (rule W), applying the scripts in wave order with each script's leftovers file as the queue; keep gateway-pivot green and merge the branch when it is green. Next: START HERE "Handoff (2026-09-29, 17:10)". |
 | 2026-09-30 | Big-bang run (operator, 2026-09-29 18:40 to 2026-09-30 07:40): every Phase 4 script applied back to back and committed red (segments A to C, 18:48 to 01:08), then repairs, then fixer rounds (typecheck 1,796 to 0 by 02:10; unit, lint, integration, e2e green by 04:00), W8 `--responders`, W9, W10 (five brand rules on at error), concession 25, the scripts made portable for assayer, the final W10 reds fixed (7e8db9b9f), `npm run build`. Not run: the final full ward, `build:clean`, `check:consumer`, `check:published`. Next: START HERE "Handoff (2026-09-30, 07:40)". |
+| 2026-09-30 | Merge-to-master session (operator, 09:56 to 13:24): full ward, `build:clean`, `check:published`; plans for B16, F124, F120-F129, Z02, Z03, Z10; F124, F125, F121, F122, F123, F129 done; B16 S1-S4, E1-E2; the e2e flake; P1 docs Z02, Z03, Z10; master (DEF-102 to DEF-168) merged in by `resolve.cjs`, `plain-brand-residue.cjs` and eleven fixers (700 type errors to 0, whole tree green); `get-testing-patterns` under the 50 KB cap; the hooks pre-edit integration timeout; `@gateway/npm` @types; merged into master (788165421) with install, build and init there. Next: START HERE "Now". |
