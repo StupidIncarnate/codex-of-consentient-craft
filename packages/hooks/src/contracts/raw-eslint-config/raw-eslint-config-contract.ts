@@ -28,8 +28,13 @@ const rawEslintLanguageOptionsContract = z
   .brand<'RawEslintLanguageOptions'>()
   .loose();
 
-// A plugin object carries functions (rules, processors), so it is loose rather than z.json().
-const rawEslintPluginContract = z.object({}).brand<'RawEslintPlugin'>().loose();
+// `z.custom`, not an object schema: a parse hands back the SAME plugin object. ESLint compares
+// plugins by reference, so a copied `@` core plugin fails with "Cannot redefine plugin" once the
+// filtered config is passed back as `overrideConfig`.
+const rawEslintPluginContract = z.custom<object>(
+  (value) => typeof value === 'object' && value !== null,
+  { message: 'An ESLint plugin is an object' },
+);
 
 const rawEslintLanguageContract = z
   .object({

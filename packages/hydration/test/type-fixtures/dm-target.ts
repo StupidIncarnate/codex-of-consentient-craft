@@ -20,11 +20,11 @@ import type {
 import type { CopiesFor } from '../../src/contracts/hydration-routes/hydration-routes-contract';
 import type { Url } from '../../src/contracts/hydration-target/hydration-target-contract';
 
-const _homeDirectoryContract = z.string().brand<'HomeDirectory'>();
+const _dmTargetFieldsContract = z.object({ home: z.string().brand<'HomeDirectory'>() });
 
 /** Dungeonmaster's own state is JSON on disk, so its target is a HOME DIRECTORY. */
 export interface DmTarget {
-  home: z.infer<typeof _homeDirectoryContract>;
+  home: z.infer<typeof _dmTargetFieldsContract>['home'];
   /** Absent for a caller with no server. Only `write` routes can run then. */
   baseUrl?: Url;
 }
@@ -76,16 +76,28 @@ declare const walkQuestStatus: (args: {
   record: Record<string, unknown>;
 }) => unknown;
 
-// ------------------------------------------------- ids shared across more than one ingredient
+// ------------------------------------------------- leaves shared across more than one schema
+// Each brand sits on a field and every schema below reuses that field, so two schemas holding a
+// guild id hold the one 'GuildId' brand.
 
-const guildIdContract = z.string().brand<'GuildId'>();
-export const questIdContract = z.string().brand<'QuestId'>();
-const sessionIdContract = z.string().brand<'SessionId'>();
-const urlSlugContract = z.string().brand<'UrlSlug'>();
+const sharedFieldsContract = z.object({
+  guildId: z.string().brand<'GuildId'>(),
+  questId: z.string().brand<'QuestId'>(),
+  sessionId: z.string().brand<'SessionId'>(),
+  urlSlug: z.string().brand<'UrlSlug'>(),
+  guildName: z.string().brand<'GuildName'>(),
+  questTitle: z.string().brand<'QuestTitle'>(),
+  operationId: z.string().brand<'OperationId'>(),
+});
+
+const guildIdContract = sharedFieldsContract.shape.guildId;
+export const questIdContract = sharedFieldsContract.shape.questId;
+const sessionIdContract = sharedFieldsContract.shape.sessionId;
+const urlSlugContract = sharedFieldsContract.shape.urlSlug;
 
 // ------------------------------------------------- guild — an API-route ingredient
 
-const guildNameContract = z.string().brand<'GuildName'>();
+const guildNameContract = sharedFieldsContract.shape.guildName;
 
 export const guildFieldsContract = z.object({
   name: guildNameContract,
@@ -122,7 +134,7 @@ export const guildIngredient = dmIngredient({
 // ------------------------------------------------- quest — a WRITE-route ingredient, a transition,
 // and every existing-row route (`query`, `update`, `remove`) beyond the three that make a row.
 
-const questTitleContract = z.string().brand<'QuestTitle'>();
+const questTitleContract = sharedFieldsContract.shape.questTitle;
 
 export const questFieldsContract = z.object({
   title: questTitleContract,
@@ -175,7 +187,7 @@ export const questIngredient = dmIngredient({
 // ------------------------------------------------- operation — links to a quest AND a guild, the
 // ingredient the spec's own worked example calls `q[0].operations.filter(…).remove()` on.
 
-const operationIdContract = z.string().brand<'OperationId'>();
+const operationIdContract = sharedFieldsContract.shape.operationId;
 
 export const operationFieldsContract = z.object({
   role: z.enum(['riftcarver', 'codeweaver', 'ward', 'flowrider', 'siegemaster']),

@@ -2,8 +2,9 @@
  * PURPOSE: The half of the brand rules that needs another file to tell a new value from a reuse: a
  * `z.string()` or `z.number()` leaf in a contract that carries no brand gets `.brand<'Owner…Key'>()`,
  * unless the owner index says `enforce-owner-field-reuse` claims that key, in which case the key
- * reuses another owner's field and takes no brand of its own. A `z.record` key and a leaf inside a
- * `z.function` schema are not fields, so they take none either. It shares one matcher with that rule so
+ * reuses another owner's field and takes no brand of its own. A `z.record` key, a leaf inside a
+ * `z.function` schema and the value of a top-level `z.record` or `z.array` contract are not fields,
+ * so they take none either. It shares one matcher with that rule so
  * the two can never disagree about a key. Reach for this over `require-object-contract-brands`,
  * which grades only the file it lints and so cannot know `questId` is a reuse. Reads every workspace
  * package once per process, so it runs in ward's lint pass only and is registered `off` until the
@@ -25,6 +26,7 @@ import { isAstBrandExemptGuard } from '../../../guards/is-ast-brand-exempt/is-as
 import { isAstUnbrandedLeafGuard } from '../../../guards/is-ast-unbranded-leaf/is-ast-unbranded-leaf-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isInTestDirGuard } from '../../../guards/is-in-test-dir/is-in-test-dir-guard';
+import { astBrandPathTransformer } from '../../../transformers/ast-brand-path/ast-brand-path-transformer';
 import { astExpectedBrandTextTransformer } from '../../../transformers/ast-expected-brand-text/ast-expected-brand-text-transformer';
 import { astFieldListOwnersTransformer } from '../../../transformers/ast-field-list-owners/ast-field-list-owners-transformer';
 import { astLeafBrandAnchorTransformer } from '../../../transformers/ast-leaf-brand-anchor/ast-leaf-brand-anchor-transformer';
@@ -89,6 +91,13 @@ export const ruleRequireObjectContractBrandsIndexedBroker = (): TSESLint.RuleMod
       CallExpression: (node: TSESTree.CallExpression): void => {
         // A record key stays plain and a function schema's parts are not fields of the contract.
         if (isLayer || !isAstUnbrandedLeafGuard({ node }) || isAstBrandExemptGuard({ node })) {
+          return;
+        }
+
+        // A value of a top-level `z.record` or `z.array` contract has no key between it and its
+        // const, so it is not a field of an object contract and stays plain, as
+        // `require-object-contract-brands` demands of it.
+        if (astBrandPathTransformer({ node }).length <= 1) {
           return;
         }
 

@@ -274,6 +274,17 @@ ruleTester.run('require-object-contract-brands', ruleRequireObjectContractBrands
       filename: BROKER,
       errors: [{ messageId: 'brandElsewhere' }],
     },
+    // --- A top-level record or array contract's value has no field key, so it is not a field ---
+    {
+      code: "export const questContract = z.record(z.string(), z.string().brand<'QuestValue'>());",
+      filename: CONTRACT,
+      errors: [{ messageId: 'brandElsewhere' }],
+    },
+    {
+      code: "export const questContract = z.array(z.number().brand<'Quest'>());",
+      filename: CONTRACT,
+      errors: [{ messageId: 'brandElsewhere' }],
+    },
     // --- The one local id const is exempt only when unexported, named for its owner and used as `id` ---
     {
       code: "export const workItemId = z.string().brand<'WorkItemId'>();\nexport const workItemContract = z.object({ id: workItemId }).brand<'WorkItem'>();",

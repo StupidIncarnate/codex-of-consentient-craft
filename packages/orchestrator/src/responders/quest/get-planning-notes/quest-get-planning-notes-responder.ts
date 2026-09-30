@@ -17,10 +17,11 @@ export type QuestGetPlanningNotesResponderResult =
   | { readonly success: true; readonly data: PlanningNotes }
   | { readonly success: false; readonly error: string };
 
+// `unknown` until the quest contract parses it: a responder's input comes from outside the process.
 export const QuestGetPlanningNotesResponder = async ({
   questId,
 }: {
-  questId: string;
+  questId: unknown;
 }): Promise<QuestGetPlanningNotesResponderResult> => {
   try {
     const parsedQuestId = questContract.shape.id.parse(questId);

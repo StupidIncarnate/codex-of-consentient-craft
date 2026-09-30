@@ -5,17 +5,14 @@
  *
  * USAGE:
  * const options = tsconfigCompilerOptionsContract.parse({ module: 'node16', customConditions: ['source'] });
- * // Returns validated TsconfigCompilerOptions with branded keys and values
+ * // Returns validated TsconfigCompilerOptions; a top-level record's keys and values are not fields, so stay plain
  */
 
 import { z } from '#gateway/npm/zod';
 
 export const tsconfigCompilerOptionsContract = z.record(
   z.string(),
-  z.union([
-    z.string().brand<'TsconfigCompilerOptionsValue'>(),
-    z.array(z.string().brand<'TsconfigCompilerOptionsValue'>()),
-  ]),
+  z.union([z.string(), z.array(z.string())]),
 );
 
 export type TsconfigCompilerOptions = z.infer<typeof tsconfigCompilerOptionsContract>;

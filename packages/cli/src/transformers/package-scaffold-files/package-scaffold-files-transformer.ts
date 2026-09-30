@@ -139,7 +139,7 @@ export const packageScaffoldFilesTransformer = ({
       PLACEHOLDER_PAIRS.reduce((acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub), key),
       PLACEHOLDER_PAIRS.reduce(
         (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
-        String(value),
+        value,
       ),
     ]),
   );

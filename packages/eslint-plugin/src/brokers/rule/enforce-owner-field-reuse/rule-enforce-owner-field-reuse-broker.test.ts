@@ -76,6 +76,11 @@ ruleTester.run('enforce-owner-field-reuse', ruleEnforceOwnerFieldReuseBroker(), 
       filename: '/project/scripts/load.ts',
     },
     {
+      // errors/ may import nothing, so an error's parameter stays plain.
+      code: 'export class QuestNotFoundError extends Error { public constructor({ questId }: { questId: string }) { super(questId); } }',
+      filename: '/project/packages/alpha/src/errors/quest-not-found/quest-not-found-error.ts',
+    },
+    {
       code: 'export const load = ({ questId }: { questId: string }) => questId;',
       filename: '/project/packages/nowhere/src/brokers/thing/load/thing-load-broker.ts',
     },

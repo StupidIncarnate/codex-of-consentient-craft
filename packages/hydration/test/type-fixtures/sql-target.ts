@@ -20,8 +20,8 @@ import type {
 import type { CopiesFor } from '../../src/contracts/hydration-routes/hydration-routes-contract';
 import type { Url } from '../../src/contracts/hydration-target/hydration-target-contract';
 
-const _sqlQueryContract = z.string().brand<'SqlQuery'>();
-type SqlQuery = z.infer<typeof _sqlQueryContract>;
+const _sqlStatementContract = z.object({ sql: z.string().brand<'SqlQuery'>() });
+type SqlQuery = z.infer<typeof _sqlStatementContract>['sql'];
 interface SqlQueryResult {
   rows: Record<PropertyKey, unknown>[];
 }
@@ -65,9 +65,16 @@ declare const walkPostStatus: (args: {
 }) => unknown;
 
 // ------------------------------------------------- ids shared across more than one ingredient
+// Each brand sits on a field and every schema below reuses that field, so two schemas holding a
+// user id hold the one 'UserId' brand.
 
-const userIdContract = z.string().brand<'UserId'>();
-const postIdContract = z.string().brand<'PostId'>();
+const sharedIdsContract = z.object({
+  userId: z.string().brand<'UserId'>(),
+  postId: z.string().brand<'PostId'>(),
+});
+
+const userIdContract = sharedIdsContract.shape.userId;
+const postIdContract = sharedIdsContract.shape.postId;
 
 // ------------------------------------------------- user — a plain row, both routes
 

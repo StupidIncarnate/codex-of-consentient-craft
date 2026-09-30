@@ -6,7 +6,8 @@
  * Reach for this over `require-object-contract-brands`, which grades a key's own brand text: a key
  * this rule claims declares no brand of its own. Reads every workspace package once per process, so
  * it runs in ward's lint pass only and is registered `off` until the brand migration is done.
- * A test, proxy, stub or harness file is not graded, since a test takes its types from stubs.
+ * A test, proxy, stub or harness file is not graded, since a test takes its types from stubs. An
+ * error class's parameters are not graded either: errors/ may import nothing.
  *
  * USAGE:
  * const rule = ruleEnforceOwnerFieldReuseBroker();
@@ -74,6 +75,8 @@ export const ruleEnforceOwnerFieldReuseBroker = (): TSESLint.RuleModule<
       folderType: 'contracts',
       suffix: 'contract',
     });
+    // errors/ may import nothing, so `Owner['key']` is unreachable there and a parameter stays plain.
+    const isError = isFileInFolderTypeGuard({ filename, folderType: 'errors', suffix: 'error' });
     const programs: TSESTree.Program[] = [];
 
     return {
@@ -187,6 +190,9 @@ export const ruleEnforceOwnerFieldReuseBroker = (): TSESLint.RuleModule<
           | TSESTree.FunctionExpression
           | TSESTree.ArrowFunctionExpression,
       ): void => {
+        if (isError) {
+          return;
+        }
         for (const param of node.params) {
           for (const carrier of astParamTypedCarriersTransformer({ param })) {
             const name =

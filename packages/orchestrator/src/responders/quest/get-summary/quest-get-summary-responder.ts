@@ -22,9 +22,10 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetSummaryBroker } from '../../../brokers/quest/get-summary/quest-get-summary-broker';
 
+// `unknown` until the quest contract parses it: a responder's input comes from outside the process.
 export const QuestGetSummaryResponder = async ({
   questId,
 }: {
-  questId: string;
+  questId: unknown;
 }): Promise<QuestSummary> =>
   questGetSummaryBroker({ questId: questContract.shape.id.parse(questId) });

@@ -19,9 +19,10 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetProjectionBroker } from '../../../brokers/quest/get-projection/quest-get-projection-broker';
 
+// `unknown` until the quest contract parses it: a responder's input comes from outside the process.
 export const QuestGetProjectionResponder = async ({
   questId,
 }: {
-  questId: string;
+  questId: unknown;
 }): Promise<QuestProjection> =>
   questGetProjectionBroker({ questId: questContract.shape.id.parse(questId) });

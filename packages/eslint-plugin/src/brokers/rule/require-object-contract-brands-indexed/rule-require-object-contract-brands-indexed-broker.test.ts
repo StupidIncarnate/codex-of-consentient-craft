@@ -113,6 +113,19 @@ ruleTester.run(
         filename: CONTRACT,
       },
       {
+        // A top-level record contract's value has no field key, so it is not a field and stays plain.
+        code: 'export const thingContract = z.record(z.string(), z.string());',
+        filename: CONTRACT,
+      },
+      {
+        code: 'export const thingContract = z.record(z.string(), z.union([z.string(), z.array(z.string())]));',
+        filename: CONTRACT,
+      },
+      {
+        code: 'export const thingContract = z.array(z.number());',
+        filename: CONTRACT,
+      },
+      {
         code: 'export const thingContract = z.object({ title: z.string() }).brand<"Thing">();',
         filename: '/project/packages/alpha/src/contracts/thing/thing-contract.test.ts',
       },
