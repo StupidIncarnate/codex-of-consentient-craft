@@ -159,6 +159,20 @@ dropped side saved to `<W>/tmp/merge-master/lost-ours/`, then the adapter map, `
 leftovers in `<W>/tmp/merge-master/leftovers.json`. Then review agents per folder restore pivot-only edits, then
 diag fixer rounds.
 
+**Merge progress (13:00):** `resolve.cjs` resolved all 108 conflicted files (202 hunks: 58 import-union, 136 master's
+side, 8 mixed), kept the 9 DU deletions (master's diffs in `<W>/tmp/merge-master/du/`), rewrote 16 adapter calls
+(46 sites left, `adapter-kept.json`), ran `fix-dangling` (115 files) and the brand autofix. This checkout's `dist`
+folders are copied into W (master's moved to `<W>/tmp/old-master-dist/`). `diag.cjs --full` on W: 700 errors in 140
+files (siegelense 552, orchestrator 42, server 31, web 30, hydration-recipes 25, ward 12, shared 7, cli 1); 87 files
+have dropped pivot hunks in `<W>/tmp/merge-master/lost-ours/`. Next: `merge-master/plain-brand-residue.cjs` (agent
+active) rewrites master's uses of brands W1 made plain (about 250 errors), then hand batches per folder own each
+file's errors, lost-ours review and unmapped adapters.
+
+**P1 docs landed on gateway-pivot:** Z02-A (7d1cd2ad5, 30ab79298), Z02-C/D = F129 (6ab196341), Z03-A to C (9a626d6fe),
+Z03-D/E1 (fd897c4c1), Z03-E2/E3 (8dd3b96aa), Z03-E4/E5 (5520dbe3b), Z03-G (d445d9367), Z03-T1/T2 (b4a7f192c; T3 had
+nothing outside Z04's section). Left for the merged tree: Z02-B (the session snippet) and Z10 (USAGE sweep).
+Build needed before a live session sees the docs: shared and mcp, then an MCP reconnect (done at the final gate).
+
 **Merging master in.** At 11:00 master was 95 commits ahead (merge base to master: 420 files). `git merge-tree` shows
 119 conflicted files: siegelense 88, server 10, web 9, hydration-recipes 4, orchestrator 3, ward 3, cli 1, shared 1
 (list: `tmp/merge-tree.txt`). Master's side is mostly DEF-102 to DEF-168 fixes written against adapters and standalone
