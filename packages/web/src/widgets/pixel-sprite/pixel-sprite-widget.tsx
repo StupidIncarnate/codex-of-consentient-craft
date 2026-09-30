@@ -7,13 +7,12 @@
  */
 
 import type { PixelCoordinate } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
-import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
 
 export interface PixelSpriteWidgetProps {
   pixels: readonly PixelCoordinate[];
-  scale: PixelDimension;
-  width: PixelDimension;
-  height: PixelDimension;
+  scale: number;
+  width: number;
+  height: number;
   flip?: boolean;
 }
 
