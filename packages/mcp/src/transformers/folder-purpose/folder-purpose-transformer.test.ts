@@ -8,7 +8,7 @@ describe('folderPurposeTransformer', () => {
       });
 
       expect(purpose).toBe(
-        'Business logic orchestration. Compose adapters, guards, transformers to implement domain operations.',
+        'Business logic orchestration. Compose gateway wrappers, guards, transformers to implement domain operations.',
       );
     });
 
@@ -18,7 +18,7 @@ describe('folderPurposeTransformer', () => {
       });
 
       expect(purpose).toBe(
-        'Type definitions and validation schemas using Zod. All data structures must be defined here with branded types.',
+        'Type definitions and validation schemas for the data we define. Every object and every field in it is branded.',
       );
     });
 

@@ -5,8 +5,10 @@ Every line number below is from that log.
 
 Root cause behind almost all of it: an earlier script retyped **input** parameters from `string` to
 `Owner['field']` (and typed hand-built local accumulators as the branded type). The rules say returns are branded,
-inputs MAY be plain, harnesses and proxies take raw input. So the fix is nearly always (a): loosen the receiving
-parameter to `string`/`number`, and let the code that already parses inside (or the return) do the branding.
+a parameter an owner claims by name (`questId`) takes `Owner['field']` (R8, everywhere but `errors/`), every other
+parameter may be plain, and harnesses and proxies take raw input. So the fix is nearly always (a): loosen the
+receiving parameter to `string`/`number` when no owner claims its name, and let the code that already parses inside
+(or the return) do the branding. A claimed parameter keeps `Owner['field']` and the caller parses.
 
 ## ROOT FILES FIRST (one change each; the count is errors cleared elsewhere or in-file)
 
@@ -116,8 +118,9 @@ It needs the value import `adapterCensusContract` beside the type import. Clears
 `name-to-url-slug-transformer.ts`: `return guildContract.shape.urlSlug.parse(slug);` (see the table).
 
 ### D. Tests: plain literal into a plain-input proxy or harness
-Never wrap in a stub. After the root loosens the input, the test literal is correct. Use the owner's stub only where a
-test builds an OBJECT that goes into a branded object slot (a different cluster).
+Never wrap in a stub. After the root loosens the input, the test literal is correct. Where the input is an
+owner-claimed parameter (`Owner['field']`, R8), take the value from the owner's stub (`QuestStub().id`). Use the
+owner's stub for a test that builds an OBJECT that goes into a branded object slot (a different cluster).
 `is-quest-update-stale-guard.test.ts`: the ISO literals stay.
 
 ## Singles

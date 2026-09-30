@@ -43,8 +43,8 @@ Must export prop types as `[WidgetName]Props`:
 
 ```typescript
 export type UserCardWidgetProps = {
-    userId: UserId;
-    onUpdate?: ({userId}: { userId: UserId }) => void;
+    userId: User['id'];
+    onUpdate?: ({userId}: { userId: User['id'] }) => void;
 };
 
 export const UserCardWidget = ({userId, onUpdate}: UserCardWidgetProps): JSX.Element => {
@@ -93,7 +93,7 @@ export const AvatarLayerWidget = ({userId}: AvatarLayerWidgetProps) => {
 };
 
 // avatar-layer-widget.proxy.tsx (Layer has own proxy for different dependency)
-export const avatarLayerWidgetProxy = () => {
+export const AvatarLayerWidgetProxy = () => {
     const avatarBindingProxy = useAvatarDataBindingProxy();  // Different dependency
 
     return {
@@ -110,16 +110,14 @@ Widget proxies delegate to child binding proxies and provide UI-specific test he
 
 ```typescript
 // widgets/user-card/user-card-widget.proxy.tsx
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {screen} from '#gateway/npm/testing-library__react';
+import userEvent from '#gateway/npm/testing-library__user-event';
 import {useUserDataBindingProxy} from '../../bindings/use-user-data/use-user-data-binding.proxy';
 import {UserStub} from '../../contracts/user/user.stub';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
 
 type User = ReturnType<typeof UserStub>;
-type UserId = ReturnType<typeof UserIdStub>;
 
-export const userCardWidgetProxy = () => {
+export const UserCardWidgetProxy = () => {
     // Create child binding proxy (which creates entire chain and sets up all mocks)
     const bindingProxy = useUserDataBindingProxy();
 
@@ -127,7 +125,7 @@ export const userCardWidgetProxy = () => {
 
     return {
         // Delegate to binding proxy for data setup
-        setupUser: ({userId, user}: { userId: UserId; user: User }) => {
+        setupUser: ({userId, user}: { userId: User['id']; user: User }) => {
             bindingProxy.setupUser({userId, user});
         },
 
@@ -170,41 +168,38 @@ export const userCardWidgetProxy = () => {
 
 ```typescript
 // widgets/user-card/user-card-widget.test.tsx
-import {render, screen} from '@testing-library/react';
+import {screen} from '#gateway/npm/testing-library__react';
+import {mantineRenderMiddleware} from '@dungeonmaster/testing/middleware/mantine-render';
 import {UserCardWidget} from './user-card-widget';
-import {userCardWidgetProxy} from './user-card-widget.proxy';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
+import {UserCardWidgetProxy} from './user-card-widget.proxy';
 import {UserStub} from '../../contracts/user/user.stub';
-
-type UserId = ReturnType<typeof UserIdStub>;
-type User = ReturnType<typeof UserStub>;
 
 describe('UserCardWidget', () => {
     describe('with user data', () => {
         it('VALID: {userId} => renders user name', () => {
-            const proxy = userCardWidgetProxy();
-            const userId = UserIdStub({value: 'user-123'});
+            const proxy = UserCardWidgetProxy();
             const user = UserStub({
-                id: userId,
+                id: 'user-123',
                 name: 'John Doe',
                 email: 'john@example.com',
             });
+            const userId = user.id;
 
             proxy.setupUser({userId, user});
 
-            render(<UserCardWidget userId={userId} />);
+            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.getUserName()).toBe('John Doe');
         });
 
         it('VALID: {userId with edit permission} => shows edit button', async () => {
-            const proxy = userCardWidgetProxy();
-            const userId = UserIdStub({value: 'user-123'});
-            const user = UserStub({id: userId, name: 'John Doe'});
+            const proxy = UserCardWidgetProxy();
+            const user = UserStub({id: 'user-123', name: 'John Doe'});
+            const userId = user.id;
 
             proxy.setupUser({userId, user});
 
-            render(<UserCardWidget userId={userId} />);
+            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
 
             await proxy.triggerEdit();
 
@@ -214,12 +209,12 @@ describe('UserCardWidget', () => {
 
     describe('loading states', () => {
         it('VALID: {loading} => shows loading indicator', () => {
-            const proxy = userCardWidgetProxy();
-            const userId = UserIdStub({value: 'user-123'});
+            const proxy = UserCardWidgetProxy();
+            const userId = UserStub({id: 'user-123'}).id;
 
             proxy.setupLoadingState({userId});
 
-            render(<UserCardWidget userId={userId} />);
+            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.isLoading()).toBe(true);
         });
@@ -227,12 +222,12 @@ describe('UserCardWidget', () => {
 
     describe('error states', () => {
         it('ERROR: {user not found} => shows error message', () => {
-            const proxy = userCardWidgetProxy();
-            const userId = UserIdStub({value: 'nonexistent'});
+            const proxy = UserCardWidgetProxy();
+            const userId = UserStub({id: 'nonexistent'}).id;
 
             proxy.setupUserNotFound({userId});
 
-            render(<UserCardWidget userId={userId} />);
+            mantineRenderMiddleware({ui: <UserCardWidget userId={userId} />});
 
             expect(proxy.hasError()).toBe(true);
         });

@@ -129,6 +129,37 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
+### Now (updated at every event; last 2026-09-30 12:04, machine clock)
+
+| Running | Where |
+|---|---|
+| operator: second whole-tree ward, all five checks including e2e | merge worktree W |
+
+**Just landed:** merge r3 server and siegelense (gate 1790795010886-7542, integration 1790795063933-5150): master's `quest-start-body` on `#gateway/npm/zod` with a `QuestStartBodyPlay` leaf brand and its zod 4 message; the request-log harness on `#gateway/node/process`; siegelense's phantom `stderrProxy` gone. All round-3 reds are fixed. Also merge r3 web (gate 1790794958353-0e93): DEF-148's not-found flow and page on gateway imports, its test passes. Also merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
+
+**Whole-tree ward in W (run 1790794045495-a0d6, lint/typecheck/unit/integration, 770 s):** 11,503 of 11,511 lint files,
+typecheck red only in hydration-recipes' `toolUseId` (seen through server and web too), unit 4,174 of 4,176,
+integration 229 of 230. The integration red was hooks' `start-pre-edit-hook.integration.test.ts` timing out under load;
+it passes alone (1790794838115-80fc), so it goes into F106 (rule 21). Every red is in master's newer code; the three
+agents above own them all.
+
+**Earlier:** merge round 2 done (DEF-136/137 never-called assertions back via `StartOrchestratorProxy` read-backs, gate 1790793946535-3506, integration 1790794020410-55e7). **W typechecks at 0 errors in all 21 packages** (`diag.cjs --full`, `<W>/tmp/merge-master/diag-r3.json`;
+700 this morning). All eight merge fixers are done; the last, siegelense brokers A (gate 1790793873663-43da,
+integration 1790793856816-e8b0), kept DEF-110, DEF-144/145/157/158 and the instance-reset restart on gateway calls and
+restored the two dropped parse wraps. Every fixer's LOST-OURS and DEF CHECK is in its report; each DEF test named passed.
+
+**Round-2 list (after the fixers):** `StartOrchestratorProxy` gains `addGuild`/`updateGuild` call read-backs and the
+DEF-136/137 tests assert the orchestrator is never called for a relative path again (the fixer had to stage an error
+instead); master's new `server/src/flows/request-log/request-log-flow.ts` imports `hono` raw (use `#gateway/npm/hono`).
+P2 after the merge: the absolute-path check now sits in two local contracts (server `guildAbsolutePathInputContract`, web
+`guildCreateInputContract`) with one regex; give it one owner.
+
+**Next:** when the fixers report: `diag.cjs --full` on W to 0, then W's unit, lint and integration by package, a
+round for what is left, Z10 in W, merge gateway-pivot into W, the final gate (full ward, `build:clean`,
+`check:consumer`, `check:published`, e2e), then master.
+
+**P1 status:** F129, Z02-A, Z02-C/D, Z03 all done on gateway-pivot. Z02-B done in W. Z10 waits for W to be green.
+
 ### Merge to master (user, 2026-09-30 ~11:00) — THE CURRENT GOAL
 
 The user wants the epic on master so a defect swarm can work on it. **Master gets the merge only once every P0 and P1
@@ -138,8 +169,8 @@ Everything P2 and P3 is bundled with the user's defect list after the merge. No 
 | Rating | Meaning | Items |
 |---|---|---|
 | P0 | Blocks the merge | ~~F124~~ (done: the F124 commit; H2, H3, H5, H7, H8 and `ToolUseId` fallout; gate 1790790132889-a58b); ~~the `check:consumer` fixture~~ (done: the fixture broker returns a plain `string`, `check:consumer --mode=local` 148 of 148); merge master in (below); the final gate on the merged tree: full ward, `build:clean`, `check:consumer`, `check:published` |
-| P1 | Before the swarm starts | F129 texts (concession 29); Z02 and Z03 (`get-architecture`, `get-testing-patterns`, session snippets: every agent reads them); the stale JSDoc USAGE lines naming the deleted `filePathContract` (about 150 files, one scripted sweep); the `warpgate-queue-listing` e2e flake (failed in two full wards; agent active); ~~F122~~ (done: testing declares shared, lock file updated) |
-| P2 | Bundle with defects | Z09 (codeweaver prompts learn scripted work); B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
+| P1 | Before the swarm starts | F129 texts (concession 29, folded into Z02-C and Z02-D); Z02 and Z03 (plans in their items; operator accepts D1 to D5 and Z10-D1 as recommended; only Z02-B waits for the merge) (`get-architecture`, `get-testing-patterns`, session snippets: every agent reads them); the stale JSDoc USAGE lines naming deleted contracts (Z10, after the merge); ~~the `warpgate-queue-listing` e2e flake~~ (done: quest B is seeded `blocked` and never started, so the dispatcher's locked write no longer races the spec's unlocked `writeQuestFile`; 3 runs alone and 1 under load green); ~~F122~~ (done: testing declares shared, lock file updated) |
+| P2 | Bundle with defects | F130, F131, F132; Z09 (codeweaver prompts learn scripted work); B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
 | P3 | Backlog | F126, F127, F128, F115, F119, F30, R3 `checkModuleLevelShapes`; Z01, Z04, Z05, Z06, T09; old worktrees `gp-b01-zod4`, `gp-l2-tsestree`; emptying `tmp/deletions/` |
 
 **Quest package graph ignores devDependencies** (the F124 commit): F122's testing-to-shared dependency made the graph
@@ -150,6 +181,28 @@ now reads `dependencies` and `peerDependencies` only, like the build order (G02)
 **Adapter-to-gateway map** for master's side: `merge-master/adapter-map.json` (51 adapters, 48 high confidence;
 `process-request-log-adapter` and `key-read-layer-adapter` are new on master and need a broker each). Its README lists
 the behaviour changes to watch and the modify/delete conflicts.
+
+**Merge worktree (active):** `worktrees/gateway-pivot/worktrees/gp-merge-master` (create-worktree nested it under this
+checkout), branch `gp-merge-master` set to 9b7ed4e9f, then `git merge --no-commit master`: 108 content conflicts, 9 DU,
+2 UD, 125 added, 176 merged clean; master changed no `package.json`. Nothing there is staged or committed yet. First
+pass: `merge-master/resolve.cjs` (one opus agent): import-only hunks union, other hunks take master's side with the
+dropped side saved to `<W>/tmp/merge-master/lost-ours/`, then the adapter map, `fix-dangling`, the brand autofix;
+leftovers in `<W>/tmp/merge-master/leftovers.json`. Then review agents per folder restore pivot-only edits, then
+diag fixer rounds.
+
+**Merge progress (13:00):** `resolve.cjs` resolved all 108 conflicted files (202 hunks: 58 import-union, 136 master's
+side, 8 mixed), kept the 9 DU deletions (master's diffs in `<W>/tmp/merge-master/du/`), rewrote 16 adapter calls
+(46 sites left, `adapter-kept.json`), ran `fix-dangling` (115 files) and the brand autofix. This checkout's `dist`
+folders are copied into W (master's moved to `<W>/tmp/old-master-dist/`). `diag.cjs --full` on W: 700 errors in 140
+files (siegelense 552, orchestrator 42, server 31, web 30, hydration-recipes 25, ward 12, shared 7, cli 1); 87 files
+have dropped pivot hunks in `<W>/tmp/merge-master/lost-ours/`. Next: `merge-master/plain-brand-residue.cjs` (agent
+active) rewrites master's uses of brands W1 made plain (about 250 errors), then hand batches per folder own each
+file's errors, lost-ours review and unmapped adapters.
+
+**P1 docs landed on gateway-pivot:** Z02-A (7d1cd2ad5, 30ab79298), Z02-C/D = F129 (6ab196341), Z03-A to C (9a626d6fe),
+Z03-D/E1 (fd897c4c1), Z03-E2/E3 (8dd3b96aa), Z03-E4/E5 (5520dbe3b), Z03-G (d445d9367), Z03-T1/T2 (b4a7f192c; T3 had
+nothing outside Z04's section). Left for the merged tree: Z02-B (the session snippet) and Z10 (USAGE sweep).
+Build needed before a live session sees the docs: shared and mcp, then an MCP reconnect (done at the final gate).
 
 **Merging master in.** At 11:00 master was 95 commits ahead (merge base to master: 420 files). `git merge-tree` shows
 119 conflicted files: siegelense 88, server 10, web 9, hydration-recipes 4, orchestrator 3, ward 3, cli 1, shared 1
@@ -527,10 +580,10 @@ was planned. Add a row whenever execution forces another.
 | 21 | Brands doc and G25: a consumer's tests report type errors like its `tsc` does. | `packages/testing/ts-jest/published-options.js` keeps `diagnostics: false`; a consumer sees type errors from `tsc` and ward's typecheck, not from Jest. | ts-jest 29.4.0 outside `isolatedModules` rewrites every file's options to `commonjs`/`node10`, which ignores `package.json` `imports`, so every `#gateway/*` import fails TS2307 with diagnostics on; inside `isolatedModules` it reports no type errors at all (F10, 2026-09-29). |
 | 22 | Concession 1: each package's barrel key is the pattern `"./*": "./src/*/*.ts"`. | One explicit `exports` key per folder-type barrel the package has (`"./contracts": "./src/contracts/contracts.ts"`, `"./brokers"`, ...), each with the usual conditions. The single-star `./*.proxy` and `./*.stub` keys stay. | TypeScript generates an import specifier from an `exports` pattern by splitting the target at the first `*` only (`tryGetModuleNameFromExportsOrImports`, `typescript.js:50258-50284`), so a two-star target never matches and declaration emit falls back to a `node_modules/...` path: TS2742 in eleven `hydration-recipes` brokers after hydration's 3.3-S1. Proven by minimal repros and real-package copies under `tmp/ts2742/` (explicit keys 0 errors, two-star 11) and by hydration-recipes typecheck 1790688511642-87b6. Shared's importers passed only because each one also imports the barrel textually. (A first hand test read an out-of-date log and was briefly withdrawn.) |
 | 23 | Item B03 (3.3-R): extend `enforce-import-dependencies` to refuse stub and proxy imports outside test support; decision (b): the caller-facing proxy lives at `src/startup/start-<pkg>.proxy.ts` beside a startup entry. | A new rule, `ban-test-support-in-production` (pre-edit), refuses `.stub`/`.proxy` imports and `...Stub`/`...Proxy` names from workspace or relative modules in any non-test-support file, production barrels included; `packages/testing/src/index.ts` has a file-scoped `off` (testing publishes its stubs, decision (c)). `enforce-project-structure` accepts a re-export-only `src/startup/start-<pkg>.ts` as a caller-proxy anchor (config's `start-config.ts` re-exports `configResolveBroker`). | A check added inside an already-`error` rule goes live for every agent at once and cannot land off and be scanned first. A real `StartConfig` entry would need a flow and responder nothing calls. (3.3-R part a, 2026-09-29.) |
-| 25 | Brands doc B1: every object contract and every string and number field in it is branded. | Three kinds are not branded: (a) a contract used only as a generic constraint (`ItemWithId`, `HydrationTarget`); (b) a `z.record` key, unless the key is an owner's id, which then reuses that owner's field; (c) the function-valued part of an object: a contract holding functions is parsed for its data only, and the functions sit beside the parse (`{ ...contract.parse(data), handler }`). Parameters, harness inputs and local accumulators stay plain; returns are branded. | Found in the big-bang fixer stage (2026-09-30). (a) A branded constraint rejects every owner type passed to the generic (108 errors in two orchestrator transformers). (b) A branded key fails every lookup by a plain string (45 errors). (c) Zod drops fields a schema does not list, so W6's parses stripped `handler` from every MCP tool registration and `cleanup` from every testbed at runtime. |
+| 25 | Brands doc B1: every object contract and every string and number field in it is branded. | Three kinds are not branded: (a) a contract used only as a generic constraint (`ItemWithId`, `HydrationTarget`); (b) a `z.record` key, unless the key is an owner's id, which then reuses that owner's field; (c) the function-valued part of an object: a contract holding functions is parsed for its data only, and the functions sit beside the parse (`{ ...contract.parse(data), handler }`). Returns are branded. A parameter no owner claims by name (`processId`), a harness input and a local accumulator stay plain; a parameter named for an owner's field takes `Owner['field']` (concession 29). | Found in the big-bang fixer stage (2026-09-30). (a) A branded constraint rejects every owner type passed to the generic (108 errors in two orchestrator transformers). (b) A branded key fails every lookup by a plain string (45 errors). (c) Zod drops fields a schema does not list, so W6's parses stripped `handler` from every MCP tool registration and `cleanup` from every testbed at runtime. |
 | 26 | Rule F (concession 16): each wave gated green before the next; EPIC rule 18: gate every commit. | The big-bang run (user, 2026-09-29 evening): every Phase 4 script applied back to back on `gateway-pivot` with each run's output committed red, then fixer rounds by check type (typecheck, unit, lint, integration, e2e), then W8 `--responders`, W9 and W10 on a green tree. | Each file is touched once instead of once per wave, and the per-wave integration and e2e runs are paid once. Every script run is its own commit, so a bad script is still revertable alone. Record: "Big-bang run" above. |
 | 27 | Brands doc B1: every leaf in an object contract is branded. | A value of a top-level `z.record` or `z.array` contract takes no brand; only a record or array that is a FIELD of an object contract brands its values (owner + key). R7 skips a leaf with no key between it and its const, matching R2. | The brands doc: a value that is not a field of an object contract gets no brand. R7's fix had branded `DependencyMapValue` and friends and R2 then reported them (7e8db9b9f). |
-| 28 | B4 (R8 `enforce-owner-field-reuse`): a parameter that holds an owner's id is typed as that owner's field. | R8 does not grade parameters in `errors/` files. | `errors/` may import nothing, so R8's autofix broke the import rule in two error classes (7e8db9b9f). F129 covers the wider disagreement. |
+| 28 | B4 (R8 `enforce-owner-field-reuse`): a parameter that holds an owner's id is typed as that owner's field. | R8 does not grade parameters in `errors/` files. An owner-claimed parameter elsewhere takes `Owner['field']`. | `errors/` may import nothing, so R8's autofix broke the import rule in two error classes (7e8db9b9f). F129 covers the wider disagreement. |
 | 29 | Concession 25 and `bigbang/FIXER-BRIEF.md` decision 1: parameters stay plain; only returns are branded. | A parameter that holds an owner's id takes that owner's field type (`Quest['id']`), as R8 (`enforce-owner-field-reuse`) enforces everywhere but `errors/` (concession 28). Every other parameter may still take a raw `string`. The texts change to say so (F129). | The rule is one enforced place, and a consumer gets it through the plugin. The F129 planner measured 604 owner-id annotations already typed `Owner['field']` and no claimable plain one, so no code changes. |
 | 18 | EPIC rule 5: agents share one checkout. | Chunk L2 runs in its own worktree and branch, merged back when eslint-plugin and local-eslint are green. | `eslint.config.js` loads the rules from eslint-plugin's source, and L2's script leaves 226 type errors before the hand queue fixes them; in the shared checkout that breaks lint for every agent. |
 
@@ -961,12 +1014,16 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | T06 | [A proxy composes the proxy beside each wrapper it calls](items/t06-proxy-child-creation.md) | B03 | any | done (the switch-on commit) | The switch-on commit; `banWrapperMocks` is on, scan 0 in all 21 packages, lint all 1790726369173-d851. |
 | T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | done | 9844987fa; a comment at `web/test/harnesses/claude-mock/bin/claude:232` still names the deleted rule (Z06). |
 | T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | done (the T08-Z1 commit) | The T08-Z1 commit; concession 24. |
-| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo, moved to Phase 6 with Z03 | Blocks nothing. Do it with Z03, which rewrites the same `get-testing-patterns` tool. The catalog cannot list every proxy and stub (thousands; an MCP result over 50,000 characters spills to a file): scope it to `testing` and the gateway packages, or make it searchable. |
+| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo (P3, after the merge), moved to Phase 6 with Z03 | Blocks nothing. Do it with Z03, which rewrites the same `get-testing-patterns` tool. The catalog cannot list every proxy and stub (thousands; an MCP result over 50,000 characters spills to a file): scope it to `testing` and the gateway packages, or make it searchable. |
 | T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | done (the T10 commit) | The T10 commit; `ban-jsx-outside-widgets-and-flows` is at `error`, tagged `pre-edit`, gate 1790680759524-5312. |
 
 ### Phase 6 — docs and the finish line
 
 Do this phase last. Every code item above may still change the layout the docs describe.
+
+**Phase 6 status (2026-09-30):** not done. Z02 and Z03 are done (pulled forward as P1 for the defect swarm). Z10 is P1
+and runs in the merge worktree. Z09 is P2; Z01, Z04, Z05, Z06 and T09 are P3; Z08 and Z07 run last. All of those run after
+master has the merge.
 
 **Who runs it (user, 2026-09-30):** the operator hands the whole of Phase 6 (Z01 to Z06, with T09) to ONE opus agent.
 That agent may dispatch sub-agents of its own, overriding `agent-brief.md` rule 6 for this phase only. It uses them
@@ -976,13 +1033,14 @@ briefs, never forks. It still never builds or commits, and the operator's agent 
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo | |
-| Z02 | [`get-architecture` and the session snippets](items/z02-architecture-and-snippet-text.md) | every A, B, G, T item | Z01, Z03–Z06 | todo | |
-| Z03 | [`get-folder-detail` and `get-testing-patterns`](items/z03-folder-type-and-testing-docs.md) | every A, B, G, T item | Z01, Z02, Z04–Z06 | todo | `get-testing-patterns` calls `Reflect.set` sanctioned in proxies, but the pre-edit hook allows it only in guards and contracts. Make the doc and the rule agree. |
-| Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo | operator splits |
-| Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo | operator splits per subpath |
-| Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo | |
-| Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
+| Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo (P3, after the merge) | |
+| Z02 | [`get-architecture` and the session snippets](items/z02-architecture-and-snippet-text.md) | every A, B, G, T item | Z01, Z03–Z06 | done (P1) | Z02-A 7d1cd2ad5, 30ab79298; Z02-C/D (F129) 6ab196341; Z02-B (session snippet, `searchStrategy`) done in the merge worktree, lands with the merge. |
+| Z03 | [`get-folder-detail` and `get-testing-patterns`](items/z03-folder-type-and-testing-docs.md) | every A, B, G, T item | Z01, Z02, Z04–Z06 | done (P1) | Z03-A to C 9a626d6fe; D/E1 fd897c4c1; E2/E3 8dd3b96aa; E4/E5 5520dbe3b; G d445d9367; T1/T2 b4a7f192c; T3 had nothing outside Z04's section. The `Reflect.set` conflict is settled: statics proxies are empty (D2). |
+| Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo (P3, after the merge) | operator splits |
+| Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo (P3, after the merge) | operator splits per subpath |
+| Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo (P3, after the merge) | |
+| Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo (P2, after the merge) | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
+| Z10 | [USAGE comments naming deleted contracts](items/z10-usage-comment-sweep.md) | the master merge | — | todo (P1: runs in the merge worktree once it is green, before master) | Script `z10-scripts/usage-sweep.py` (dry run 573 lines in 450 files, 71 files to a hand queue); `usage-verify.py` fails on any changed non-comment line. |
 | Z08 | Slow tests: investigate every slow-file flag and load timeout recorded in F106 (and any found since), on a quiet machine | Z01–Z06 | before Z07 | todo | Tabled here by the user (2026-09-29): the refactor runs memory-heavy work in parallel, so slow tests are not chased before this. |
 | Z07 | [The finish line](items/z07-finish-line.md) | Z01–Z06, G27 | — | todo | runs alone |
 
@@ -1009,7 +1067,10 @@ Work that execution found and no item file owns. Each runs like an item.
 | F126 | `processId` / `chatProcessId` fields in server's response-data contracts carry their own owner+key brands, because `orchestrationProcessContract.shape.processId` is not exported from `@dungeonmaster/orchestrator`. Export it and reuse the owner field (B4). | big-bang R7 agent | open | |
 | F127 | Two departures from B11's keeper table in the R9 round (e7530699e): testing's `packageJson` renamed to `testGuildPackageJsonContract` instead of dropped (it keeps its required-field checks, and testing cannot depend on shared's), and the `commentBatch` rename landed on web (`commentBatchReplyContract`) instead of server. Confirm or reverse. | big-bang R9 agent | open | |
 | F128 | Big-bang leftovers files not yet worked: `b14-shape-contracts/out/leftovers.txt` (88 shapes), `b15-unknown-fields/out/leftovers.json` (W8 rows left: 9 refused by the error check, 3 gateway schemas, 2 unknown data), `b15-dead-reparse` kept sites (`tmp/bigbang/logs/w9-kept.tsv`). | big-bang run | open | |
-| F129 | `enforce-owner-field-reuse` (R8, on at error) flags a plain-`string` owner-id parameter everywhere but `errors/`, while concession 25 and FIXER-BRIEF decision 1 say parameters stay plain and returns are branded. The final agent settled only `errors/` (concession 28) and three responders typed `unknown`. Decide which one wins and make the other agree. | big-bang final agent | planned | The rule wins (concession 29); texts only. Plan in `items/f120-f129-bigbang-followups.md`, with F120 to F123 and F126 to F128. |
+| F129 | `enforce-owner-field-reuse` (R8, on at error) flags a plain-`string` owner-id parameter everywhere but `errors/`, while concession 25 and FIXER-BRIEF decision 1 say parameters stay plain and returns are branded. The final agent settled only `errors/` (concession 28) and three responders typed `unknown`. Decide which one wins and make the other agree. | big-bang final agent | done (the Z02-CD commit) | Texts agree with R8: brands doc rows, FIXER-BRIEF decision 1, two recipes, concessions 25 and 28. The snippet and get-architecture follow in Z02-A and Z02-B. |
+| F130 | Web e2e harness: `writeQuestFile` takes no quest lock, so any spec that starts a quest and then raw-rewrites `quest.json` races the dispatcher's locked write (the `warpgate-queue-listing` flake). Audit every such spec. | e2e flake fix | open (P2) | |
+| F131 | `dispatchHarness.startQuestViaStartRoute` (`packages/web/test/harnesses/dispatch/dispatch.harness.ts:338`) drops the HTTP status and returns `processId: "undefined"` on a non-200. Make it fail loudly. | e2e flake fix | open (P2) | |
+| F132 | `packages/server/src/responders/guild/get/guild-get-responder.proxy.ts` and `guild-add-responder.proxy.ts` pass `error: new Error(message)` into the orchestrator proxy, a hand-made failure T05 forbids; `ban-invented-failures` scans 0, so find out why it misses these and fix both. | Z03-E4 | open (P2) | |
 | F119 | R7 grades neither an unbranded leaf inside a `*-layer-contract.ts` file (the syntax rule skips layers; the layer half checks brand text only) nor a non-contract file importing a layer (`contractIndexBuildBroker`'s `nestedInFiles` records contract files only). No layer file exists yet; close both before C7's layers land. | R7 | open | |
 
 ## Blocked items

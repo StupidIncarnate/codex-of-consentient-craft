@@ -2,16 +2,16 @@
 
 ```
 brokers/
-  user/
-    fetch/
-      user-fetch-broker.ts
-      user-fetch-broker.proxy.ts       # Setup helper + global mocks
-      user-fetch-broker.test.ts
-  comment/
-    create-process/
-      comment-create-process-broker.ts
-      comment-create-process-broker.proxy.ts
-      comment-create-process-broker.test.ts
+  planned-work/
+    read/
+      planned-work-read-broker.ts
+      planned-work-read-broker.proxy.ts       # Composes the gateway wrapper proxies the broker calls
+      planned-work-read-broker.test.ts
+  quest/
+    advance/
+      quest-advance-broker.ts
+      quest-advance-broker.proxy.ts
+      quest-advance-broker.test.ts
 ```
 
 **WHAT BROKERS KNOW:**
@@ -41,18 +41,18 @@ Brokers contain business-specific knowledge:
 
 - **Same domain:** Use relative imports
   ```typescript
-  // In brokers/user/update/
-  import {userFetchBroker} from '../fetch/user-fetch-broker';
+  // In brokers/planned-work/write/
+  import {plannedWorkReadBroker} from '../read/planned-work-read-broker';
   ```
 - **Cross-domain:** Use explicit relative path
   ```typescript
-  // In brokers/comment/create-process/
-  import {notificationSendBroker} from '../../notification/send/notification-send-broker';
+  // In brokers/quest/advance/
+  import {plannedWorkReadBroker} from '../../planned-work/read/planned-work-read-broker';
   ```
 
 **TWO TYPES OF BROKERS:**
 
-- **Atomic:** Single operations (call one adapter, query one table, one focused task)
+- **Atomic:** Single operations (call one gateway wrapper, query one table, one focused task)
 - **Orchestration:** Coordinate multiple brokers for complex workflows
 
 **TRANSACTION BOUNDARIES:**
@@ -84,96 +84,120 @@ export const userCreateBroker = async ({userData}: { userData: UserCreateData })
 
 **EXAMPLES:**
 
+An outside package, type or value, is imported only through `#gateway/<kind>/<subpath>`. A parameter that holds
+another owner's id takes `Owner['id']`; every other parameter is plain.
+
 ```typescript
 /**
- * PURPOSE: Fetches a user by ID from the API
+ * PURPOSE: Reads one operation item's planned work off disk, or returns null when no plan exists
  *
  * USAGE:
- * await userFetchBroker({userId: 'f47ac10b-...'});
- * // Returns validated User object
+ * await plannedWorkReadBroker({questFolderPath: '/quests/add-auth', operationItemId});
+ * // Returns the parsed WorkPlan, or null
  */
-// brokers/user/fetch/user-fetch-broker.ts (Atomic)
-import {axiosGetAdapter} from '../../../adapters/axios/get/axios-get-adapter';
-import type {UserId, User} from '../../../contracts/user/user-contract';
-import type {Url} from '../../../contracts/url/url-contract';
+// brokers/planned-work/read/planned-work-read-broker.ts (Atomic)
+import type {OperationItem} from '@dungeonmaster/shared/contracts';
+import {readFileIfExists} from '#gateway/node/fs__promises';
+import {join} from '#gateway/node/path';
+import {workPlanContract} from '../../../contracts/work-plan/work-plan-contract';
+import type {WorkPlan} from '../../../contracts/work-plan/work-plan-contract';
 
-export const userFetchBroker = async ({userId}: { userId: UserId }): Promise<User> => {
-    const url = `/api/users/${userId}` as Url;
-    const response = await axiosGetAdapter({url});
-    return userContract.parse(response.data);
+export const plannedWorkReadBroker = async ({questFolderPath, operationItemId}: {
+    questFolderPath: string;
+    operationItemId: OperationItem['id'];
+}): Promise<WorkPlan | null> => {
+    const filePath = join(questFolderPath, 'planned-work', `${String(operationItemId)}.json`);
+    const contents = await readFileIfExists(filePath);
+    if (contents === null) {
+        return null;
+    }
+    return workPlanContract.parse(JSON.parse(contents));
 };
 
 /**
- * PURPOSE: Orchestrates comment creation with notification sending
+ * PURPOSE: Reads the plan for the quest's first pending operation item
  *
  * USAGE:
- * await commentCreateProcessBroker({content, postId, userId});
- * // Returns created Comment after sending notification
+ * await questAdvanceBroker({questFolderPath, quest});
+ * // Returns that item's WorkPlan, or null
+ *
+ * (simplified: the real broker of this name advances the operations ledger)
  */
-// brokers/comment/create-process/comment-create-process-broker.ts (Orchestration)
-import {commentCreateBroker} from '../create/comment-create-broker';
-import {notificationSendBroker} from '../../notification/send/notification-send-broker';
-import type {CommentContent, PostId, UserId, Comment} from '../../../contracts';
+// brokers/quest/advance/quest-advance-broker.ts (Orchestration)
+import {plannedWorkReadBroker} from '../../planned-work/read/planned-work-read-broker';
+import type {Quest} from '@dungeonmaster/shared/contracts';
+import type {WorkPlan} from '../../../contracts/work-plan/work-plan-contract';
 
-export const commentCreateProcessBroker = async ({
-                                                     content,
-                                                     postId,
-                                                     userId
-                                                 }: {
-    content: CommentContent;
-    postId: PostId;
-    userId: UserId;
-}): Promise<Comment> => {
-    const comment = await commentCreateBroker({content, postId, userId});
-    await notificationSendBroker({
-        userId,
-        type: 'new_comment',
-        data: {commentId: comment.id}
-    });
-    return comment;
+export const questAdvanceBroker = async ({questFolderPath, quest}: {
+    questFolderPath: string;
+    quest: Quest;
+}): Promise<WorkPlan | null> => {
+    const next = quest.operations.find((item) => item.status === 'pending');
+    if (next === undefined) {
+        return null;
+    }
+    return plannedWorkReadBroker({questFolderPath, operationItemId: next.id});
 };
 ```
 
 **PROXY PATTERN:**
 
-Broker proxies compose child adapter/broker proxies and provide semantic setup methods.
+A broker proxy composes the proxy of every gateway wrapper the broker calls and of every child broker, each imported
+from its own `.proxy` file (`#gateway/<kind>/<subpath>/<wrapper>/<wrapper>.proxy`), and provides semantic setup
+methods. A pass-through wrapper (`join` from `#gateway/node/path`) runs real and has no proxy.
 
 ```typescript
-// brokers/user/fetch/user-fetch-broker.proxy.ts
-import {axiosGetAdapterProxy} from '../../../adapters/axios/get/axios-get-adapter.proxy';
-import {registerMock} from '@dungeonmaster/testing/register-mock';
-import {UserStub} from '../../../contracts/user/user.stub';
-import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
+// brokers/planned-work/read/planned-work-read-broker.proxy.ts
+import type {OperationItem} from '@dungeonmaster/shared/contracts';
+import {readFileIfExistsProxy} from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type {WorkPlanStub} from '../../../contracts/work-plan/work-plan.stub';
 
-type User = ReturnType<typeof UserStub>;
-type UserId = ReturnType<typeof UserIdStub>;
+type WorkPlan = ReturnType<typeof WorkPlanStub>;
 
-export const userFetchBrokerProxy = () => {
-    // Compose child adapter proxy
-    const httpProxy = axiosGetAdapterProxy();
+const planPathFor = ({questFolderPath, operationItemId}: {
+    questFolderPath: string;
+    operationItemId: OperationItem['id'];
+}): string => `${questFolderPath}/planned-work/${String(operationItemId)}.json`;
 
-  // Mock globals via registerMock if broker uses them
-  const dateHandle = registerMock({fn: Date.now});
-  dateHandle.calledWith([]).returns(1609459200000); // no args to key on — the honest catch-all
+export const plannedWorkReadBrokerProxy = () => {
+    // Compose the wrapper proxy; it stages readFile by the exact path and encoding
+    const readFileProxy = readFileIfExistsProxy();
 
     return {
-        // Semantic setup method
-        setupUserFetch: ({userId, user}: { userId: UserId; user: User }) => {
-            httpProxy.returns({
-                url: UrlStub({value: `/api/users/${userId}`}),
-                data: user
+        // Semantic setup methods name the scenario, not the mock
+        setupPlanFound: ({questFolderPath, operationItemId, plan}: {
+            questFolderPath: string;
+            operationItemId: OperationItem['id'];
+            plan: WorkPlan;
+        }) => {
+            readFileProxy.returns({
+                path: planPathFor({questFolderPath, operationItemId}),
+                contents: JSON.stringify(plan)
             });
         },
 
-        setupUserNotFound: ({userId}: { userId: UserId }) => {
-            httpProxy.throws({
-                url: UrlStub({value: `/api/users/${userId}`}),
-                error: new Error('User not found')
-            });
+        setupPlanMissing: ({questFolderPath, operationItemId}: {
+            questFolderPath: string;
+            operationItemId: OperationItem['id'];
+        }) => {
+            readFileProxy.missing({path: planPathFor({questFolderPath, operationItemId})});
+        },
+
+        setupReadDenied: ({questFolderPath, operationItemId}: {
+            questFolderPath: string;
+            operationItemId: OperationItem['id'];
+        }) => {
+            readFileProxy.denied({path: planPathFor({questFolderPath, operationItemId})});
         }
     };
 };
 ```
+
+A failure comes from the wrapper proxy's named scenario (`missing`, `denied`), or a recorded-failure stub from the
+gateway (`FsErrorStub`). Never a hand-made `Error`.
+
+A global the broker reads (`Date.now`, `crypto.randomUUID`) is mocked in the proxy constructor through `registerMock`
+or `registerSpyOn`. A function that takes arguments is staged per call, by its arguments.
 
 **Empty Proxy Pattern:**
 
@@ -196,83 +220,61 @@ export const pureBrokerProxy = (): Record<PropertyKey, never> => ({});
 
 **Key principles:**
 
-- Delegate to child proxies (adapter/broker/state proxies)
-- Mock globals (Date.now, crypto.randomUUID) via registerMock or registerSpyOn in constructor if broker uses them
+- Delegate to child proxies (gateway wrapper, broker and state proxies)
+- Mock globals (Date.now, crypto.randomUUID) via registerMock or registerSpyOn in the constructor if the broker uses them
 - Export semantic methods that describe scenarios, not implementation details
 - Tests never call registerMock directly - only use proxy semantic methods
 
 **TEST EXAMPLE:**
 
 ```typescript
-// brokers/user/fetch/user-fetch-broker.test.ts
-import {userFetchBroker} from './user-fetch-broker';
-import {userFetchBrokerProxy} from './user-fetch-broker.proxy';
-import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
-import {UserStub} from '../../../contracts/user/user.stub';
+// brokers/planned-work/read/planned-work-read-broker.test.ts
+import {OperationItemIdStub} from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
+import {WorkPlanStub} from '../../../contracts/work-plan/work-plan.stub';
+import {plannedWorkReadBroker} from './planned-work-read-broker';
+import {plannedWorkReadBrokerProxy} from './planned-work-read-broker.proxy';
 
-type UserId = ReturnType<typeof UserIdStub>;
-type User = ReturnType<typeof UserStub>;
+describe('plannedWorkReadBroker', () => {
+    describe('a plan exists on disk', () => {
+        it('VALID: {questFolderPath, operationItemId} => returns the parsed WorkPlan', async () => {
+            const proxy = plannedWorkReadBrokerProxy();
+            const questFolderPath = '/quests/add-auth';
+            const operationItemId = OperationItemIdStub({value: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479'});
+            const plan = WorkPlanStub({operationItemId});
 
-describe('userFetchBroker', () => {
-    describe('successful fetch', () => {
-        it('VALID: {userId} => returns user', async () => {
-            const proxy = userFetchBrokerProxy();
-            const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
-            const user = UserStub({
-                id: userId,
-                name: 'John Doe',
-                email: 'john@example.com',
-            });
+            proxy.setupPlanFound({questFolderPath, operationItemId, plan});
 
-            proxy.setupUserFetch({userId, user});
+            const result = await plannedWorkReadBroker({questFolderPath, operationItemId});
 
-            const result = await userFetchBroker({userId});
-
-            expect(result).toStrictEqual({
-                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                name: 'John Doe',
-                email: 'john@example.com',
-            });
+            expect(result).toStrictEqual(plan);
         });
+    });
 
-        it('VALID: {different userId} => returns different user', async () => {
-            const proxy = userFetchBrokerProxy();
-            const userId = UserIdStub({value: '12345678-1234-1234-1234-123456789abc'});
-            const user = UserStub({
-                id: userId,
-                name: 'Jane Smith',
-                email: 'jane@example.com',
-            });
+    describe('no plan has been written', () => {
+        it('EMPTY: {no planned-work file} => returns null', async () => {
+            const proxy = plannedWorkReadBrokerProxy();
+            const questFolderPath = '/quests/no-plan-yet';
+            const operationItemId = OperationItemIdStub({value: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479'});
 
-            proxy.setupUserFetch({userId, user});
+            proxy.setupPlanMissing({questFolderPath, operationItemId});
 
-            const result = await userFetchBroker({userId});
+            const result = await plannedWorkReadBroker({questFolderPath, operationItemId});
 
-            expect(result).toStrictEqual({
-                id: '12345678-1234-1234-1234-123456789abc',
-                name: 'Jane Smith',
-                email: 'jane@example.com',
-            });
+            expect(result).toBe(null);
         });
     });
 
     describe('error cases', () => {
-        it('ERROR: {nonexistent userId} => throws user not found error', async () => {
-            const proxy = userFetchBrokerProxy();
-            const userId = UserIdStub({value: 'nonexistent-user-id'});
+        it('ERROR: {file exists but cannot be read} => throws the raw read error', async () => {
+            const proxy = plannedWorkReadBrokerProxy();
+            const questFolderPath = '/quests/read-fails';
+            const operationItemId = OperationItemIdStub({value: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479'});
 
-            proxy.setupUserNotFound({userId});
+            proxy.setupReadDenied({questFolderPath, operationItemId});
 
-            await expect(userFetchBroker({userId})).rejects.toThrow(/User not found/u);
-        });
-
-        it('ERROR: {network error} => throws connection error', async () => {
-            const proxy = userFetchBrokerProxy();
-            const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
-
-            proxy.setupNetworkError({userId});
-
-            await expect(userFetchBroker({userId})).rejects.toThrow(/Network error/u);
+            await expect(plannedWorkReadBroker({questFolderPath, operationItemId})).rejects.toThrow(
+                /^EACCES: op '\/quests\/read-fails\/planned-work\/c3d4e5f6-58cc-4372-a567-0e02b2c3d479\.json'$/u
+            );
         });
     });
 });

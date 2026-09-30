@@ -6,7 +6,7 @@ flows/
     user-flow.tsx        # Frontend: React Router
     user-flow.integration.test.ts
   api/
-    api-flow.ts          # Backend: Express Router
+    api-flow.ts          # Backend: Hono sub-app
     api-flow.integration.test.ts
   install/
     install-flow.ts      # Package: delegates to responder
@@ -38,47 +38,48 @@ no `.proxy.ts`, same as the root: flows never require one, so their layers don't
 
 **THREE TYPES OF FLOWS:**
 
-1. **Frontend flows**: React components using react-router-dom Route/Routes
-2. **Backend flows**: Express routers using express.Router
+1. **Frontend flows**: React components using react-router-dom Route/Routes, imported through `#gateway/npm/react-router-dom`
+2. **Backend flows**: Hono sub-apps
 3. **Package flows**: Entry point files that compose public API exports
 
 **KEY PRINCIPLE:**
 
 Flows are **routing/wiring only** - they map paths to responders but contain NO business logic.
 
+**OUTSIDE PACKAGES:**
+
+A flow imports an outside package, type or value, only through its gateway wrapper:
+`#gateway/npm/react-router-dom`, `#gateway/npm/hono`. A raw `react-router-dom` or `hono` import is refused.
+
 **FRONTEND PATTERN (React Router):**
 
 ```typescript
-export const UserFlow = () => (
-    <Route path = "/users" >
-        <Route index
-element = { < UserListResponder / >
-}
-/>
-< Route
-path = ":id"
-element = { < UserProfileResponder / >
-}
-/>
-< /Route>
-)
-;
+import { Route } from '#gateway/npm/react-router-dom';
+
+import { AppHomeResponder } from '../../responders/app/home/app-home-responder';
+
+export const HomeFlow = (): React.JSX.Element => <Route path="/" element={<AppHomeResponder />} />;
 ```
 
-**BACKEND PATTERN (Express Router):**
+**BACKEND PATTERN (Hono):**
 
 ```typescript
-const router = Router();
+import { Hono } from '#gateway/npm/hono';
 
-router.get('/users/:id', async (req, res, next) => {
-    try {
-        await UserGetResponder({req, res});
-    } catch (error) {
-        next(error);  // Always pass errors to Express error handler
-    }
-});
+import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
-export const UserFlow = router;
+export const HealthFlow = (): Hono => {
+  const app = new Hono();
+
+  app.get(apiRoutesStatics.health.check, (c) =>
+    c.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    }),
+  );
+
+  return app;
+};
 ```
 
 **TESTING (ESLint Enforced):**
@@ -86,45 +87,47 @@ export const UserFlow = router;
 Flows use `.integration.test.ts` (NOT `.test.ts`). This is enforced by ESLint rule
 `@dungeonmaster/enforce-implementation-colocation`.
 
-Flows do NOT use `.proxy.ts` files. Integration tests run real code through the full flow → responder → adapter chain.
+Flows do NOT use `.proxy.ts` files. Integration tests run real code through the full flow → responder → broker → gateway chain.
 
 **TEST EXAMPLE:**
 
 ```typescript
 // flows/install/install-flow.integration.test.ts
-import {installTestbedCreateBroker, BaseNameStub, RelativePathStub} from '@dungeonmaster/testing';
-import {FilePathStub} from '@dungeonmaster/shared/contracts';
-import {InstallFlow} from './install-flow';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { InstallFlow } from './install-flow';
 
 describe('InstallFlow', () => {
-    describe('delegation to responder', () => {
-        it('VALID: {context} => delegates to responder and returns install result', async () => {
-            const testbed = installTestbedCreateBroker({
-                baseName: BaseNameStub({value: 'flow-delegation'}),
-            });
+  describe('delegation to responder', () => {
+    it('VALID: {context: no existing config} => creates .dungeonmaster.json config', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'create-config',
+      });
 
-            const result = await InstallFlow({
-                context: {
-                    targetProjectRoot: FilePathStub({value: testbed.guildPath}),
-                    dungeonmasterRoot: FilePathStub({value: testbed.dungeonmasterPath}),
-                },
-            });
+      const result = await InstallFlow({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
 
-            const questContent = testbed.readFile({
-                relativePath: RelativePathStub({value: '.claude/commands/quest.md'}),
-            });
+      const configContent = testbed.readFile({
+        relativePath: '.dungeonmaster.json',
+      });
 
-            testbed.cleanup();
+      testbed.cleanup();
 
-            expect(result).toStrictEqual({
-                packageName: '@dungeonmaster/orchestrator',
-                success: true,
-                action: 'created',
-                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with chaoswhisperer-gap-minion.md',
-            });
-            expect(questContent).toMatch(/ChaosWhisperer/u);
-        });
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'created',
+        message: 'Created .dungeonmaster.json',
+      });
+      expect(configContent).toMatch(/"framework": "monorepo"/u);
     });
+  });
 });
 ```
 
@@ -132,84 +135,59 @@ describe('InstallFlow', () => {
 
 ```typescript
 /**
- * PURPOSE: Defines user-related routes mapping paths to responders
+ * PURPOSE: Composes child flows into a complete route tree with shared layout
  *
  * USAGE:
- * <UserFlow /> // In React app routing
- * // Renders user profile at /users/:id
+ * <AppFlow />
+ * // Renders Routes with AppLayoutResponder wrapping HomeFlow, QueueFlow, QuestChatFlow, and SessionViewFlow
  */
-// flows/user/user-flow.tsx (Frontend with React Router)
-import {Route} from 'react-router-dom';
-import {UserProfileResponder} from '../../responders/user/profile/user-profile-responder';
-import {UserListResponder} from '../../responders/user/list/user-list-responder';
+// flows/app/app-flow.tsx (Frontend with React Router)
+import { Route, Routes } from '#gateway/npm/react-router-dom';
 
-export const UserFlow = () => (
-    <Route path = "/users" >
-        <Route index
-element = { < UserListResponder / >
-}
-/>
-< Route
-path = ":id"
-element = { < UserProfileResponder / >
-}
-/>
-< /Route>
-)
-;
+import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';
+import { HomeFlow } from '../home/home-flow';
+import { QueueFlow } from '../queue/queue-flow';
 
-/**
- * PURPOSE: Defines API documentation routes mapping paths to responders
- *
- * USAGE:
- * <ApiFlow /> // In React app routing
- * // Renders API docs at /api/docs
- */
-// flows/api/api-flow.tsx (Frontend API routes)
-import {Route} from 'react-router-dom';
-import {ApiDocsResponder} from '../../responders/api/docs/api-docs-responder';
-
-export const ApiFlow = () => (
-    <Route path = "/api" >
-    <Route path = "docs"
-element = { < ApiDocsResponder / >
-}
-/>
-< /Route>
-)
-;
+export const AppFlow = (): React.JSX.Element => (
+  <Routes>
+    <Route element={<AppLayoutResponder />}>
+      {HomeFlow()}
+      {QueueFlow()}
+    </Route>
+  </Routes>
+);
 ```
 
 ```typescript
 /**
- * PURPOSE: Defines user API endpoints and maps them to responders
+ * PURPOSE: Creates a Hono sub-app with guild routes that delegate to guild responders
  *
  * USAGE:
- * app.use('/api', UserFlow); // In Express app
- * // Registers GET /api/users/:id endpoint
+ * const guildApp = GuildFlow();
+ * app.route('', guildApp);
+ * // Registers GET /api/guilds and GET /api/guilds/:guildId
  */
-// flows/user/user-flow.ts (Backend with Express)
-import {Router} from 'express';
-import {UserGetResponder} from '../../responders/user/get/user-get-responder';
-import {UserCreateResponder} from '../../responders/user/create/user-create-responder';
+// flows/guild/guild-flow.ts (Backend with Hono)
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
-const router = Router();
+import { GuildListResponder } from '../../responders/guild/list/guild-list-responder';
+import { GuildGetResponder } from '../../responders/guild/get/guild-get-responder';
+import { apiRoutesStatics } from '../../statics/api-routes/api-routes-statics';
 
-router.get('/users/:id', async (req, res, next) => {
-    try {
-        await UserGetResponder({req, res});
-    } catch (error) {
-        next(error);
-    }
-});
+export const GuildFlow = (): Hono => {
+  const app = new Hono();
 
-router.post('/users', async (req, res, next) => {
-    try {
-        await UserCreateResponder({req, res});
-    } catch (error) {
-        next(error);
-    }
-});
+  app.get(apiRoutesStatics.guilds.list, async (c) => {
+    const result = await GuildListResponder();
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
 
-export const UserFlow = router;
+  app.get(apiRoutesStatics.guilds.byId, async (c) => {
+    const result = await GuildGetResponder({ params: { guildId: c.req.param('guildId') } });
+    return c.json(result.data as object, result.status as ContentfulStatusCode);
+  });
+
+  return app;
+};
 ```

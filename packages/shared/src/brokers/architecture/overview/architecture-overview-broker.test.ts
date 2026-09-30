@@ -86,16 +86,6 @@ describe('architectureOverviewBroker', () => {
       );
     });
 
-    it('VALID: {} => keeps the npm-package call in the parent for adapter layers', () => {
-      architectureOverviewBrokerProxy();
-
-      const result = architectureOverviewBroker();
-
-      expect(result).toMatch(
-        /^\*\*In `adapters\/` only:\*\* the npm-package call stays in the parent\. Layers translate shapes the parent already fetched, so the adapter's proxy keeps mocking exactly one boundary\.$/mu,
-      );
-    });
-
     it('VALID: {} => includes layer file import rules', () => {
       architectureOverviewBrokerProxy();
 
@@ -236,7 +226,7 @@ describe('architectureOverviewBroker', () => {
       );
       expect(result).toMatch(/^export default class User \{\} {18}\/\/ ❌ default export$/mu);
       expect(result).toMatch(
-        /^Error classes are the one `export class` exception\. A default export is allowed only where a system genuinely REQUIRES one, never where it merely prefers one\. Types supporting the file's one export may sit beside it; a second broker may not\.$/mu,
+        /^Error classes are the one `export class` exception\. A default export is allowed only where a system genuinely REQUIRES one, never where it merely prefers one\. An object type that leaves a function is a contract in `contracts\/`\. A type used only inside one function body stays inline\.$/mu,
       );
     });
 
@@ -250,13 +240,87 @@ describe('architectureOverviewBroker', () => {
       );
     });
 
-    it('VALID: {} => states the ban-primitives asymmetry between inputs and returns', () => {
+    it('VALID: {} => names the two conventions no lint rule checks yet', () => {
       architectureOverviewBrokerProxy();
 
       const result = architectureOverviewBroker();
 
       expect(result).toMatch(
-        /^`ban-primitives` is asymmetric on purpose: an input MAY take a raw `string`, a return MUST be branded\.$/mu,
+        /^Nearly every rule below is enforced by ESLint, and a violation is a failed build, not a style note\. Two are conventions no rule checks yet: never parse one id into another brand, and an object type that leaves a function belongs in `contracts\/`\.$/mu,
+      );
+    });
+
+    it('VALID: {} => brands object contracts and lets an owner-id parameter take the owner field type', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^Every object contract, and every string and number field in it, is branded\. A loose parameter, return or local is plain: a scalar read from a loose source is returned plain, and a value that came from a contract keeps its brand\. A parameter holding another object's id takes that owner's field type \(`User\['id'\]`\), and `enforce-owner-field-reuse` checks it in every folder but `errors\/`\. Every other parameter may be a plain `string`\.$/mu,
+      );
+      expect(result).toMatch(
+        /^export const fetchUser = \(\{userId\}: \{userId: string\}\): Promise<User> => \{ \/\* … \*\/ \}; {2}\/\/ ❌ userId is an owner's id: type it User\['id'\]$/mu,
+      );
+    });
+
+    it('VALID: {} => teaches the id-reuse field and refuses re-parsing one id into another brand', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^questId: questContract\.shape\.id, {27}\/\/ ✅ the field reuses the owner's schema$/mu,
+      );
+      expect(result).toMatch(
+        /^const workItemId = workItemContract\.shape\.id\.parse\(questId\); {2}\/\/ ❌ one id parsed into another brand$/mu,
+      );
+    });
+
+    it('VALID: {} => states the return rule for void and { success: true }', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^\*\*Return what your calls told you\.\*\* `void` only when every call you discard returned `void`\. `\{ success: true \}` counts as `void`\. `enforce-folder-return-types` rejects a `void` return, or a return type that can hold one value only, when the function discards a call that returned something real\.$/mu,
+      );
+    });
+
+    it('VALID: {} => parses outside data through a contract and keeps a plain number map plain', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^const data = apiResponseContract\.parse\(JSON\.parse\(response\)\); {2}\/\/ ✅ a contract parses outside data$/mu,
+      );
+      expect(result).toMatch(/^const indexMap = new Map<ChatEntry, number>\(\); {2}\/\/ ✅$/mu);
+    });
+
+    it('VALID: {} => teaches the gateway as the only way to reach an outside package', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(/^## Outside Packages: the Gateway$/mu);
+      expect(result).toMatch(
+        /^An outside package is reached only through the gateway: `#gateway\/<folder>\/<subpath>`, where `<folder>` is `npm`, `node`, `browser` or `bin`\. Every folder type imports outside things through it, types included, and nothing imports a raw package\.$/mu,
+      );
+      expect(result).toMatch(
+        /^\| lib\/ \| brokers\/, or `#gateway` for an outside package \| An outside package is reached only through the gateway: `#gateway\/<folder>\/<subpath>` \|$/mu,
+      );
+      expect(result).toMatch(
+        /^- `brokers\/quest\/load\/quest-load-broker\.ts` ✅ name is the folder path$/mu,
+      );
+    });
+
+    it('VALID: {} => composes the gateway wrapper proxy in the proxy of the file that calls it', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^Mocks go at I\/O boundaries and nowhere else\. The proxy of the file that calls a gateway wrapper composes that wrapper's proxy, imported from its own file\. MSW answers HTTP and WebSocket\. A global mock covers non-determinism like `Date\.now`, and every broker, guard, transformer and widget runs real\. The `\.proxy\.ts` beside each file does that setup and exposes scenario methods rather than raw mocks\.$/mu,
       );
     });
 

@@ -2,8 +2,8 @@
 
 ```
 startup/
-  start-app.tsx                     # Frontend app bootstrap
-  start-app.integration.test.tsx
+  start-app.ts                      # Frontend app bootstrap
+  start-app.integration.test.ts
   start-server.ts                   # Backend server init
   start-server.integration.test.ts
   start-queue-worker.ts             # Queue processor bootstrap
@@ -16,10 +16,10 @@ startup/
 
 - **Folder depth: 0** - Startup files live at root of startup/ (no nesting)
 - **Wiring only** - Must NOT contain business logic, only initialization and wiring
-- **Restricted imports** - Can only import from `flows/`, `contracts/`, `statics/`, `errors/`, and npm packages. Importing from `brokers/`, `adapters/`, `responders/`, `transformers/`, `guards/`, `state/`, `bindings/`, `widgets/`, or `middleware/` is forbidden.
+- **Restricted imports** - Can only import from `flows/`, `contracts/`, `statics/` and `errors/`. Importing from `brokers/`, `responders/`, `transformers/`, `guards/`, `state/`, `bindings/`, `widgets/` or `middleware/` is forbidden. A startup file imports no outside package: a flow imports it through `#gateway/<folder>/<subpath>` (`#gateway/npm/hono`, `#gateway/node/path`), and the startup file calls the flow.
 - **No branching logic** - Zero `if`, `switch`, or ternary operators allowed in startup files. If there's a branch, the code belongs in a flow, responder, or broker.
 - **Static constants allowed** - `const PORT = 3000` is fine here
-- **Environment loading** - Load .env and configure environment here
+- **Environment loading** - Read environment values in a flow or broker through `getEnv` from `#gateway/node/process`, never `process.env`
 - **Queue/scheduler registration** - Wire up responders to queues/cron jobs
 
 **TESTING (ESLint Enforced):**
@@ -60,91 +60,61 @@ The thin entry files just call startup/ functions.
 
 ```typescript
 /**
- * PURPOSE: Initializes Express server with routes and error flow
+ * PURPOSE: Initializes the HTTP server by collecting domain route flows and delegating to ServerFlow
  *
  * USAGE:
- * await StartServer();
- * // Starts HTTP server on port 3000
+ * StartServer();
+ * // Starts HTTP server with the guild, quest and health endpoints
  */
 // startup/start-server.ts
-import express from 'express';
-import {userFlow} from '../flows/user/user-flow';
-import {authFlow} from '../flows/auth/auth-flow';
-import {errorTrackingFlow} from '../flows/error-tracking/error-tracking-flow';
+import { GuildFlow } from '../flows/guild/guild-flow';
+import { HealthFlow } from '../flows/health/health-flow';
+import { QuestFlow } from '../flows/quest/quest-flow';
+import { ServerFlow } from '../flows/server/server-flow';
 
-const PORT = 3000;
-
-export const StartServer = async (): Promise<void> => {
-    const app = express();
-
-    // Middleware
-    app.use(express.json());
-    app.use(errorTrackingFlow);
-
-    // Routes
-    app.use('/api/users', userFlow);
-    app.use('/api/auth', authFlow);
-
-    // Start server
-    app.listen(PORT);
+export const StartServer = ({
+  serveWebBundle = false,
+}: {
+  serveWebBundle?: boolean;
+} = {}): void => {
+  ServerFlow({
+    subApps: [GuildFlow(), QuestFlow(), HealthFlow()],
+    serveWebBundle,
+  });
 };
 ```
 
 ```typescript
 /**
- * PURPOSE: Initializes React app with router and providers
+ * PURPOSE: Initializes the web application by delegating to the app mount flow
  *
  * USAGE:
- * StartApp(); // Called from index.tsx
- * // Renders React app into #root element
+ * StartApp();
+ * // Mounts React app into #root DOM element
  */
-// startup/start-app.tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import {UserFlow} from '../flows/user/user-flow';
-import {HomeFlow} from '../flows/home/home-flow';
+// startup/start-app.ts
+import { AppMountFlow } from '../flows/app-mount/app-mount-flow';
 
 export const StartApp = (): void => {
-    const root = ReactDOM.createRoot(document.getElementById('root')!);
-
-    root.render(
-        <React.StrictMode>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<HomeFlow />} />
-                    <Route path="/users/*" element={<UserFlow />} />
-                </Routes>
-            </BrowserRouter>
-        </React.StrictMode>
-    );
+  AppMountFlow();
 };
 ```
 
 ```typescript
 /**
- * PURPOSE: Initializes queue worker that processes background jobs
+ * PURPOSE: Initializes the queue worker by delegating to one flow per queue
  *
  * USAGE:
- * await StartQueueWorker();
- * // Starts processing jobs from Redis queue
+ * StartQueueWorker();
+ * // Starts processing the email and report queues
  */
-// startup/start-queue-worker.ts
-import Queue from 'bull';
-import {emailQueueNameStatic} from '../statics/email-queue-name/email-queue-name-static';
-import {reportQueueNameStatic} from '../statics/report-queue-name/report-queue-name-static';
-import {emailProcessQueueFlow} from '../flows/email-process-queue/email-process-queue-flow';
-import {reportProcessQueueFlow} from '../flows/report-process-queue/report-process-queue-flow';
+// startup/start-queue-worker.ts (hypothetical: the flows hold the queue library, reached through #gateway/npm/<subpath>)
+import { emailProcessQueueFlow } from '../flows/email-process-queue/email-process-queue-flow';
+import { reportProcessQueueFlow } from '../flows/report-process-queue/report-process-queue-flow';
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-
-export const StartQueueWorker = async (): Promise<void> => {
-    const emailQueue = new Queue(emailQueueNameStatic, REDIS_URL);
-    const reportQueue = new Queue(reportQueueNameStatic, REDIS_URL);
-
-    // Register flows
-    emailQueue.process(emailProcessQueueFlow);
-    reportQueue.process(reportProcessQueueFlow);
+export const StartQueueWorker = (): void => {
+  emailProcessQueueFlow();
+  reportProcessQueueFlow();
 };
 ```
 
@@ -152,38 +122,38 @@ export const StartQueueWorker = async (): Promise<void> => {
 
 ```typescript
 // startup/start-install.integration.test.ts
-import {installTestbedCreateBroker, BaseNameStub, RelativePathStub} from '@dungeonmaster/testing';
-import {FilePathStub} from '@dungeonmaster/shared/contracts';
-import {StartInstall} from './start-install';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
+import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
+import { StartInstall } from './start-install';
 
 describe('StartInstall', () => {
-    describe('wiring to install flow', () => {
-        it('VALID: {context} => delegates to flow and returns install result with all files created', async () => {
-            const testbed = installTestbedCreateBroker({
-                baseName: BaseNameStub({value: 'startup-wiring'}),
-            });
+  describe('wiring to install flow', () => {
+    it('VALID: {context: no existing config} => delegates to flow and creates config', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: 'startup-delegate',
+      });
 
-            const result = await StartInstall({
-                context: {
-                    targetProjectRoot: FilePathStub({value: testbed.guildPath}),
-                    dungeonmasterRoot: FilePathStub({value: testbed.dungeonmasterPath}),
-                },
-            });
+      const result = await StartInstall({
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
+      });
 
-            const questContent = testbed.readFile({
-                relativePath: RelativePathStub({value: '.claude/commands/quest.md'}),
-            });
+      const configContent = testbed.readFile({
+        relativePath: '.dungeonmaster.json',
+      });
 
-            testbed.cleanup();
+      testbed.cleanup();
 
-            expect(result).toStrictEqual({
-                packageName: '@dungeonmaster/orchestrator',
-                success: true,
-                action: 'created',
-                message: 'Created .claude/commands/ with quest.md and quest:start.md, .claude/agents/ with chaoswhisperer-gap-minion.md',
-            });
-            expect(questContent).toMatch(/ChaosWhisperer/u);
-        });
+      expect({ success: result.success, action: result.action }).toStrictEqual({
+        success: true,
+        action: 'created',
+      });
+      expect(configContent).toMatch(/"framework": "monorepo"/u);
     });
+  });
 });
 ```

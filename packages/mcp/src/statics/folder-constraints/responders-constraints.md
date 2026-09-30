@@ -21,7 +21,7 @@ responders/
 **FOUR TYPES OF RESPONDERS:**
 
 1. **Frontend pages** - Name the widget a route renders. `.ts` only — no JSX
-2. **Backend controllers** - Accept `{req, res}`, call response methods
+2. **Backend controllers** - Accept `{params}` or `{body}` typed `unknown`, return `{status, data}` for the flow to send
 3. **Queue processors** - Process message queue jobs
 4. **Scheduled tasks** - Execute on cron/time triggers
 
@@ -63,56 +63,56 @@ Responders handle **ONLY** these four things:
 1. **Input validation/parsing** - Validate external inputs through contracts
 2. **Calling brokers** - Orchestrate business logic
 3. **Output formatting** - Transform data through transformers
-4. **HTTP status codes** - Set appropriate response codes
+4. **HTTP status codes** - Return the status code beside the data
 
 **NO business logic in responders!** All business logic goes in brokers/.
 
 **ERROR BOUNDARY:**
 
 Responders are the **only valid catch-and-transform site** in the architecture. Catch errors at this boundary and return
-appropriate HTTP status codes or error responses. All other layers (brokers, adapters) should let errors propagate up to
-responders.
+appropriate HTTP status codes or error responses. All other layers (brokers and gateway wrappers) should let errors propagate up
+to responders.
 
 ```typescript
 // ✅ CORRECT - Responder with proper responsibilities
-export const UserCreateResponder = async ({req, res}: {
-    req: Request;
-    res: Response;
-}): Promise<void> => {
-    // 1. Validation
-    const body: unknown = req.body;
-    const validated = userCreateContract.safeParse(body);
-    if (!validated.success) {
-        return res.status(400).json({error: validated.error});
-    }
+export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<ResponderResult> => {
+  // 1. Validation
+  const parsedBody = guildAddBodyContract.safeParse(body);
+  if (!parsedBody.success) {
+    return responderResultContract.parse({
+      status: httpStatusStatics.clientError.badRequest,
+      data: responderErrorDataContract.parse({ error: 'name and path are required strings' }),
+    });
+  }
 
-    // 2. Call broker (business logic)
-    const user = await userCreateBroker({userData: validated.data});
+  // 2. Call the owning package or broker (business logic)
+  const { name, path } = parsedBody.data;
+  const guild = await StartOrchestrator.addGuild({ name, path });
 
-    // 3. Transform output
-    const userDto = userToDtoTransformer({user});
-
-    // 4. HTTP status code
-    res.status(201).json(userDto);
+  // 3. Transform output through the contract, 4. HTTP status code
+  return responderResultContract.parse({
+    status: httpStatusStatics.success.created,
+    data: guildContract.parse(guild),
+  });
 };
 
 // ❌ WRONG - Business logic in responder
-export const UserCreateResponder = async ({req, res}) => {
-    const userData = userCreateContract.parse(req.body);
+export const UserCreateResponder = async ({ body }: { body: unknown }) => {
+  const userData = userCreateContract.parse(body);
 
-    // Business validation in responder!
-    if (userData.email.includes('@competitor.com')) {
-        return res.status(400).json({error: 'Competitor emails not allowed'});
-    }
+  // Business validation in responder!
+  if (userData.email.includes('@competitor.com')) {
+    return { status: 400, data: { error: 'Competitor emails not allowed' } };
+  }
 
-    // Multi-step orchestration in responder!
-    const user = await userCreateBroker({userData});
-    if (userData.plan === 'premium') {
-        await subscriptionCreateBroker({userId: user.id});
-        await emailSendBroker({to: user.email, template: 'premium-welcome'});
-    }
+  // Multi-step orchestration in responder!
+  const user = await userCreateBroker({ userData });
+  if (userData.plan === 'premium') {
+    await subscriptionCreateBroker({ userId: user.id });
+    await emailSendBroker({ to: user.email, template: 'premium-welcome' });
+  }
 
-    res.json(user);  // Also wrong - no transformation!
+  return { status: 200, data: user }; // Also wrong - no transformation!
 };
 ```
 
@@ -122,20 +122,23 @@ export const UserCreateResponder = async ({req, res}) => {
 
 ```typescript
 // ✅ CORRECT - Transform before sending
-export const UserGetResponder = async ({req, res}: {
-    req: Request;
-    res: Response;
-}): Promise<void> => {
-    const userId = req.params.id as UserId;
-    const user = await userFetchBroker({userId});
-    const userDto = userToDtoTransformer({user});  // Transform!
-    res.json(userDto);
+export const UserGetResponder = async ({ params }: { params: unknown }): Promise<ResponderResult> => {
+  const parsedParams = userIdParamsContract.safeParse(params);
+  if (!parsedParams.success) {
+    return responderResultContract.parse({
+      status: httpStatusStatics.clientError.badRequest,
+      data: responderErrorDataContract.parse({ error: 'userId is required' }),
+    });
+  }
+  const user = await userFetchBroker({ userId: parsedParams.data.userId });
+  const userDto = userToDtoTransformer({ user }); // Transform!
+  return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: userDto });
 };
 
 // ❌ WRONG - Returning raw entity
-export const UserGetResponder = async ({req, res}) => {
-    const user = await userFetchBroker({userId: req.params.id});
-    res.json(user);  // Exposes internal fields like passwordHash, timestamps!
+export const UserGetResponder = async ({ params }: { params: unknown }) => {
+  const user = await userFetchBroker({ userId: params.userId as User['id'] }); // a cast is not validation
+  return { status: 200, data: user }; // Exposes internal fields like passwordHash, timestamps!
 };
 ```
 
@@ -151,7 +154,7 @@ ALL inputs from external sources MUST use `unknown` type and validate through co
 
 **External sources requiring validation:**
 
-- HTTP: `req.body`, `req.params`, `req.query`
+- HTTP: request bodies, route params, query strings
 - React Router: `useParams()`, `useSearchParams()`
 - Browser storage: `localStorage`, `sessionStorage`
 - Files: `JSON.parse()` results, CSV rows
@@ -163,18 +166,20 @@ ALL inputs from external sources MUST use `unknown` type and validate through co
 
 ```typescript
 // Backend boundary (responder)
-export const UserCreateResponder = async ({req, res}: {
-    req: Request;
-    res: Response;
-}): Promise<void> => {
-    const body: unknown = req.body;  // Explicit unknown
-    const validated = userCreateContract.safeParse(body);
-    if (!validated.success) {
-        return res.status(400).json({error: validated.error});
-    }
-    // Use validated.data with full type safety
-    const user = await userCreateBroker({userData: validated.data});
-    res.json(user);
+export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<ResponderResult> => {
+  const parsedBody = guildAddBodyContract.safeParse(body);
+  if (!parsedBody.success) {
+    return responderResultContract.parse({
+      status: httpStatusStatics.clientError.badRequest,
+      data: responderErrorDataContract.parse({ error: 'name and path are required strings' }),
+    });
+  }
+  // Use parsedBody.data with full type safety
+  const guild = await StartOrchestrator.addGuild({ ...parsedBody.data });
+  return responderResultContract.parse({
+    status: httpStatusStatics.success.created,
+    data: guildContract.parse(guild),
+  });
 };
 
 // Frontend boundary (React Router) — the WIDGET validates, because the
@@ -183,15 +188,17 @@ export const UserCreateResponder = async ({req, res}: {
 //   export const UserProfileResponder = UserProfileWidget;
 
 // widgets/user-profile/user-profile-widget.tsx
+import { useParams } from '#gateway/npm/react-router-dom';
+
 export const UserProfileWidget = (): React.JSX.Element => {
-    const params = useParams();  // External source
-    const validated = userIdContract.safeParse(params.id);
-    if (!validated.success) {
-        return <ErrorWidget message="Invalid user ID" />;
-    }
-    // Use validated.data with full type safety
-    const userId = validated.data;
-    return <UserCardWidget userId={userId} />;
+  const params = useParams(); // External source
+  const validated = userContract.shape.id.safeParse(params.id);
+  if (!validated.success) {
+    return <ErrorWidget message="Invalid user ID" />;
+  }
+  // Use validated.data with full type safety
+  const userId = validated.data;
+  return <UserCardWidget userId={userId} />;
 };
 
 // CLI/Hook boundary
@@ -207,7 +214,7 @@ export const HookResponder = async ({input}: { input: unknown }): Promise<Result
 
 **Why critical:**
 
-- Without `unknown`, LLMs use `req.body` directly → injection vulnerabilities
+- Without `unknown`, LLMs use the request body directly → injection vulnerabilities
 - Without validation, external data bypasses type safety
 - `safeParse()` prevents throwing on invalid input (allows error handling)
 
@@ -216,68 +223,59 @@ export const HookResponder = async ({input}: { input: unknown }): Promise<Result
 Responders use `.test.ts` with `.proxy.ts` files. This is enforced by ESLint rule
 `@dungeonmaster/enforce-implementation-colocation`.
 
-Responders require `.proxy.ts` files (`requireProxy: true` in folder config). Mock only I/O boundaries (adapters) in
-proxy files — all business logic runs real in tests.
+Responders require `.proxy.ts` files (`requireProxy: true` in folder config). Mock only what the I/O trap or MSW catches,
+through the gateway wrapper's proxy, and compose the proxy another workspace package ships beside its API
+(`StartOrchestratorProxy`). Never `registerMock` a workspace package's export. All business logic runs real in tests.
 
 **EXAMPLES:**
 
 ```typescript
 /**
- * PURPOSE: Handles GET request for user by ID, returns user data as JSON
+ * PURPOSE: Handles guild retrieval requests by validating params and delegating to the orchestrator
  *
  * USAGE:
- * router.get('/users/:id', (req, res) => UserGetResponder({req, res}));
- * // Returns user JSON response
+ * const result = await GuildGetResponder({ params: { guildId: 'abc-123' } });
+ * // Returns { status: 200, data: guild } or { status: 400/500, data: { error } }
  */
-// responders/user/get/user-get-responder.ts (Backend HTTP)
-import {userFetchBroker} from '../../../brokers/user/fetch/user-fetch-broker';
-import {userToDtoTransformer} from '../../../transformers/user-to-dto/user-to-dto-transformer';
-import type {UserId} from '../../../contracts/user/user-contract';
-import type {Request, Response} from 'express';
+// responders/guild/get/guild-get-responder.ts (Backend HTTP)
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
+import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
+import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
+import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
-export const UserGetResponder = async ({req, res}: {
-    req: Request;
-    res: Response;
-}): Promise<void> => {
-    const userId = req.params.id as UserId;
-    const user = await userFetchBroker({userId});
-    const userDto = userToDtoTransformer({user});
-    res.json(userDto);
+export const GuildGetResponder = async ({ params }: { params: unknown }): Promise<ResponderResult> => {
+  const parsedParams = guildIdParamsContract.safeParse(params);
+  if (!parsedParams.success) {
+    return responderResultContract.parse({
+      status: httpStatusStatics.clientError.badRequest,
+      data: responderErrorDataContract.parse({ error: 'guildId is required' }),
+    });
+  }
+  const guild = await StartOrchestrator.getGuild({ guildId: parsedParams.data.guildId });
+  return responderResultContract.parse({
+    status: httpStatusStatics.success.ok,
+    data: guildContract.parse(guild),
+  });
 };
 
 /**
- * PURPOSE: Provides the user profile page as a route element
+ * PURPOSE: Provides the home page content as a route element
  *
  * USAGE:
- * <Route path="/users/:id" element={<UserProfileResponder />} />
- * // Renders user profile page at /users/:id
+ * <Route path="/" element={<AppHomeResponder />} />
+ * // Renders the home content with guild selection and session list
  */
-// responders/user/profile/user-profile-responder.ts (Frontend page)
-import {UserProfileWidget} from '../../../widgets/user-profile/user-profile-widget';
+// responders/app/home/app-home-responder.ts (Frontend page)
+import { HomeContentWidget } from '../../../widgets/home-content/home-content-widget';
 
-export const UserProfileResponder = UserProfileWidget;
+export const AppHomeResponder = HomeContentWidget;
 ```
 
-The widget behind it holds every hook and all the JSX:
-
-```typescript
-// widgets/user-profile/user-profile-widget.tsx
-import {useParams} from 'react-router-dom';
-import {useUserDataBinding} from '../../bindings/use-user-data/use-user-data-binding';
-import {UserCardWidget} from '../user-card/user-card-widget';
-import type {UserId} from '../../contracts/user/user-contract';
-
-export const UserProfileWidget = (): React.JSX.Element => {
-    const {id} = useParams<{ id: UserId }>();
-    const {data: user, loading, error} = useUserDataBinding({userId: id});
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
-    if (!user) return <div>User not found</div>;
-
-    return <UserCardWidget user={user} />;
-};
-```
+The widget behind a frontend page holds every hook and all the JSX. Its route-param read is a boundary, so it parses
+through the owner contract (see the boundary example above): `userContract.shape.id.safeParse(params.id)`.
 
 ```typescript
 /**
@@ -287,24 +285,13 @@ export const UserProfileWidget = (): React.JSX.Element => {
  * queue.process('email', EmailProcessQueueResponder);
  * // Processes each email job from queue
  */
-// responders/email/process-queue/email-process-queue-responder.ts (Queue processor)
-import {emailSendBroker} from '../../../brokers/email/send/email-send-broker';
-import type {EmailAddress, EmailSubject, EmailBody} from '../../../contracts';
+// responders/email/process-queue/email-process-queue-responder.ts (Queue processor, hypothetical domain)
+import { emailSendBroker } from '../../../brokers/email/send/email-send-broker';
+import { emailContract } from '../../../contracts/email/email-contract';
 
-export const EmailProcessQueueResponder = async ({job}: {
-    job: {
-        data: {
-            to: EmailAddress;
-            subject: EmailSubject;
-            body: EmailBody;
-        };
-    };
-}): Promise<void> => {
-    await emailSendBroker({
-        to: job.data.to,
-        subject: job.data.subject,
-        body: job.data.body
-    });
+export const EmailProcessQueueResponder = async ({ job }: { job: { data: unknown } }): Promise<void> => {
+  const email = emailContract.parse(job.data);
+  await emailSendBroker({ email });
 };
 
 /**
@@ -314,76 +301,61 @@ export const EmailProcessQueueResponder = async ({job}: {
  * cron.schedule('0 0 * * *', ReportGenerateScheduledResponder);
  * // Runs daily at midnight to generate and email report
  */
-// responders/report/generate-scheduled/report-generate-scheduled-responder.ts (Scheduled task)
-import {reportGenerateBroker} from '../../../brokers/report/generate/report-generate-broker';
-import {emailSendBroker} from '../../../brokers/email/send/email-send-broker';
-import type {ReportType} from '../../../contracts/report-type/report-type-contract';
+// responders/report/generate-scheduled/report-generate-scheduled-responder.ts (Scheduled task, hypothetical domain)
+import { reportGenerateBroker } from '../../../brokers/report/generate/report-generate-broker';
+import { emailSendBroker } from '../../../brokers/email/send/email-send-broker';
 
 export const ReportGenerateScheduledResponder = async (): Promise<void> => {
-    const report = await reportGenerateBroker({type: 'daily' as ReportType});
-    await emailSendBroker({
-        to: 'admin@example.com',
-        subject: 'Daily Report',
-        body: report
-    });
+  const report = await reportGenerateBroker({ type: 'daily' });
+  await emailSendBroker({ email: report.email });
 };
 ```
 
 **TEST EXAMPLE:**
 
 ```typescript
-// responders/user/create/user-create-responder.test.ts
-import {UserStub} from '../../../contracts/user/user.stub';
-import {UserIdStub} from '../../../contracts/user-id/user-id.stub';
-import {UserCreateResponderProxy} from './user-create-responder.proxy';
+// responders/guild/add/guild-add-responder.test.ts
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
+import { GuildAddResponderProxy } from './guild-add-responder.proxy';
 
-describe('UserCreateResponder', () => {
-    describe('successful creation', () => {
-        it('VALID: {name, email} => returns 201 with user', async () => {
-            const proxy = UserCreateResponderProxy();
-            const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
-            const user = UserStub({
-                id: userId,
-                name: 'John Doe',
-                email: 'john@example.com',
-            });
-            proxy.setupAddUser({user});
+describe('GuildAddResponder', () => {
+  describe('successful creation', () => {
+    it('VALID: {name, path} => returns 201 with guild', async () => {
+      const proxy = GuildAddResponderProxy();
+      const guild = GuildStub({ name: 'My Guild', path: '/projects/guild' });
+      proxy.setupAddGuild({ name: guild.name, path: guild.path, guild });
 
-            const result = await proxy.callResponder({body: {name: 'John Doe', email: 'john@example.com'}});
+      const result = await proxy.callResponder({ body: { name: 'My Guild', path: '/projects/guild' } });
 
-            expect(result).toStrictEqual({
-                status: 201,
-                data: {
-                    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    name: 'John Doe',
-                    email: 'john@example.com',
-                },
-            });
-        });
+      expect(result).toStrictEqual({
+        status: 201,
+        data: guild,
+      });
+    });
+  });
+
+  describe('validation errors', () => {
+    it('INVALID: {null body} => returns 400 with error', async () => {
+      const proxy = GuildAddResponderProxy();
+
+      const result = await proxy.callResponder({ body: null });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'Request body must be a JSON object' },
+      });
     });
 
-    describe('validation errors', () => {
-        it('INVALID: {invalid email} => returns 400 with error', async () => {
-            const proxy = UserCreateResponderProxy();
+    it('INVALID: {missing name and path} => returns 400 with error', async () => {
+      const proxy = GuildAddResponderProxy();
 
-            const result = await proxy.callResponder({body: {name: 'John Doe', email: 'invalid-email'}});
+      const result = await proxy.callResponder({ body: {} });
 
-            expect(result).toStrictEqual({
-                status: 400,
-                data: {error: expect.stringMatching(/Invalid email/u)},
-            });
-        });
-
-        it('INVALID: {missing name and email} => returns 400 with error', async () => {
-            const proxy = UserCreateResponderProxy();
-
-            const result = await proxy.callResponder({body: {}});
-
-            expect(result).toStrictEqual({
-                status: 400,
-                data: {error: expect.stringMatching(/required/iu)},
-            });
-        });
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'name and path are required strings' },
+      });
     });
+  });
 });
 ```

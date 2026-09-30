@@ -81,6 +81,7 @@ export const architectureFolderDetailBroker = ({
     sections.push('**Can import from:**\n');
     const importLines = config.allowedImports.map((imp) => `- \`${imp}\``).join('\n');
     sections.push(`${importLines}\n`);
+    sections.push('An outside package is imported only through `#gateway/<folder>/<subpath>`.\n');
   }
   sections.push('');
 
@@ -107,7 +108,7 @@ export const architectureFolderDetailBroker = ({
   }
 
   // The stub replaces the entry suffix rather than appending to it, so a `user-contract.ts` pairs
-  // with `user.stub.ts` — `ban-contract-in-tests` sends every test import here instead.
+  // with `user.stub.ts` — `enforce-contract-usage-in-tests` sends every test import here instead.
   if (config.requireStub) {
     sections.push(`- Stub: \`{name}.stub${extension}\`\n`);
   }
@@ -133,7 +134,9 @@ export const architectureFolderDetailBroker = ({
   }
 
   if (config.disallowAdhocTypes) {
-    sections.push('**Ad-hoc Types Forbidden:** All types must come from contracts\n');
+    sections.push(
+      "**Ad-hoc Types Forbidden:** Our own types come from contracts/, and a library's types from the library\n",
+    );
   }
   sections.push('');
 

@@ -57,7 +57,7 @@ export const useUserProfileBinding = ({userId}) => {
 Must return `{data, loading, error}` for async operations:
 
 ```typescript
-export const useUserDataBinding = ({userId}: { userId: UserId }): {
+export const useUserDataBinding = ({userId}: { userId: User['id'] }): {
     data: User | null;
     loading: boolean;
     error: Error | null;
@@ -85,11 +85,11 @@ Must start with `use` prefix (enforced by React rules of hooks):
  * // Returns {data: User | null, loading: boolean, error: Error | null}
  */
 // bindings/use-user-data/use-user-data-binding.ts
-import {useState, useEffect} from 'react';
+import {useState, useEffect} from '#gateway/npm/react';
 import {userFetchBroker} from '../../brokers/user/fetch/user-fetch-broker';
-import type {UserId, User} from '../../contracts/user/user-contract';
+import type {User} from '../../contracts/user/user-contract';
 
-export const useUserDataBinding = ({userId}: { userId: UserId }): {
+export const useUserDataBinding = ({userId}: { userId: User['id'] }): {
     data: User | null;
     loading: boolean;
     error: Error | null;
@@ -116,7 +116,7 @@ export const useUserDataBinding = ({userId}: { userId: UserId }): {
  * // Returns {data: User[], loading: boolean, error: Error | null}
  */
 // bindings/use-users-list/use-users-list-binding.ts
-import {useState, useEffect} from 'react';
+import {useState, useEffect} from '#gateway/npm/react';
 import {usersListBroker} from '../../brokers/users/list/users-list-broker';
 import type {User} from '../../contracts/user/user-contract';
 
@@ -148,28 +148,30 @@ Binding proxies delegate to broker proxies. The binding itself runs REAL.
 // bindings/use-user-data/use-user-data-binding.proxy.ts
 import {userFetchBrokerProxy} from '../../brokers/user/fetch/user-fetch-broker.proxy';
 import {UserStub} from '../../contracts/user/user.stub';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
 
 type User = ReturnType<typeof UserStub>;
-type UserId = ReturnType<typeof UserIdStub>;
 
 export const useUserDataBindingProxy = () => {
-    // Delegate to broker proxy (which sets up adapter mocks, globals, etc.)
+    // Delegate to broker proxy (which composes its gateway wrapper proxies, sets up globals, etc.)
     const brokerProxy = userFetchBrokerProxy();
 
     // NO mocking of binding - binding runs real!
 
     return {
         // Semantic setup - delegate to broker
-        setupUser: ({userId, user}: { userId: UserId; user: User }) => {
+        setupUser: ({userId, user}: { userId: User['id']; user: User }) => {
             brokerProxy.setupUserFetch({userId, user});
         },
 
-        setupUserNotFound: ({userId}: { userId: UserId }) => {
+        setupUserNotFound: ({userId}: { userId: User['id'] }) => {
             brokerProxy.setupUserNotFound({userId});
         },
 
-        setupLoadingState: ({userId}: { userId: UserId }) => {
+        setupNetworkError: ({userId}: { userId: User['id'] }) => {
+            brokerProxy.setupNetworkError({userId});
+        },
+
+        setupLoadingState: ({userId}: { userId: User['id'] }) => {
             // Can delay broker response to test loading state
             brokerProxy.setupUserFetch({
                 userId,
@@ -192,25 +194,21 @@ export const useUserDataBindingProxy = () => {
 
 ```typescript
 // bindings/use-user-data/use-user-data-binding.test.ts
-import {renderHook, waitFor} from '@testing-library/react';
+import {renderHook, waitFor} from '#gateway/npm/testing-library__react';
 import {useUserDataBinding} from './use-user-data-binding';
 import {useUserDataBindingProxy} from './use-user-data-binding.proxy';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
 import {UserStub} from '../../contracts/user/user.stub';
-
-type UserId = ReturnType<typeof UserIdStub>;
-type User = ReturnType<typeof UserStub>;
 
 describe('useUserDataBinding', () => {
     describe('successful fetch', () => {
         it('VALID: {userId} => returns user with loading states', async () => {
             const proxy = useUserDataBindingProxy();
-            const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
             const user = UserStub({
-                id: userId,
+                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                 name: 'John Doe',
                 email: 'john@example.com',
             });
+            const userId = user.id;
 
             proxy.setupUser({userId, user});
 
@@ -239,12 +237,12 @@ describe('useUserDataBinding', () => {
 
         it('VALID: {different userId} => returns different user', async () => {
             const proxy = useUserDataBindingProxy();
-            const userId = UserIdStub({value: '12345678-1234-1234-1234-123456789abc'});
             const user = UserStub({
-                id: userId,
+                id: '12345678-1234-1234-1234-123456789abc',
                 name: 'Jane Smith',
                 email: 'jane@example.com',
             });
+            const userId = user.id;
 
             proxy.setupUser({userId, user});
 
@@ -269,7 +267,7 @@ describe('useUserDataBinding', () => {
     describe('error cases', () => {
         it('ERROR: {nonexistent userId} => returns error state', async () => {
             const proxy = useUserDataBindingProxy();
-            const userId = UserIdStub({value: 'nonexistent-id'});
+            const userId = UserStub({id: 'nonexistent-id'}).id;
 
             proxy.setupUserNotFound({userId});
 
@@ -290,7 +288,7 @@ describe('useUserDataBinding', () => {
 
         it('ERROR: {network error} => returns error state', async () => {
             const proxy = useUserDataBindingProxy();
-            const userId = UserIdStub({value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'});
+            const userId = UserStub({id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'}).id;
 
             proxy.setupNetworkError({userId});
 

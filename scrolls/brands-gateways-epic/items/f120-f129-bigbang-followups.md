@@ -79,6 +79,13 @@ Not edited: the rule, its test, `errors/` exemption. BUILD NEEDED: `@dungeonmast
 
 The three texts agree; `npm run ward -- --only lint,typecheck,unit -- <batch 2 files>` exits 0.
 
+### Who runs each batch (planned 2026-09-30; the plans live in the Z02 and Z03 item files)
+
+- Batch 1 (EPIC.md, FIXER-BRIEF.md and the two recipes): Z02 batch Z02-D in `items/z02-architecture-and-snippet-text.md`. Docs only; neither Z02 nor Z03 owns a code file in it.
+- Batch 2: `packages/shared/src/brokers/architecture/overview/architecture-overview-broker.ts` and its test belong to Z02-A (the overview rewrite touches `:264` anyway); `packages/shared/src/statics/session-snippet/session-snippet-statics.ts` belongs to Z02-B and waits for the master merge (master edits that file). The snippet wording in this section is 26 bytes too long for the 2048-byte cap once Z02's gateway line joins it; Z02-B carries the shortened line. The snippet test has no `modifyingCodeGuidance` pin today, so Z02-B adds one.
+- Batch 3 (`scrolls/brands-types-tests-rules.md` rows 2328 and 2330): Z02-C.
+- Z03 owns none of F129's files.
+
 ## F126: server response-data `processId` and `chatProcessId` reuse the owner's field
 
 ### Current state

@@ -48,7 +48,7 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
       jestMockedOnlyNpmPackages:
         'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
       adapterProxyMustSetupMocks:
-        'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result.',
+        'A gateway wrapper proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result.',
       childProxyMustBeInConstructor:
         'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
       childProxyMustBeInsideFunction:
@@ -332,7 +332,7 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
           ) {
             validateProxyFunctionReturnLayerBroker({ functionNode: init, context: ctx });
 
-            // For I/O-boundary proxies (adapters/, and gateway wrappers under packages/{node,
+            // For I/O-boundary proxies (gateway wrappers under packages/@gateway/{node,
             // npm,browser,bin}/), check that mock setup happens in constructor
             const isAdapterProxy =
               isIoBoundaryProxyGuard({ ...(filename ? { filename } : {}) }) &&
