@@ -41,7 +41,6 @@
 
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import type { ImportedName } from '../../../contracts/imported-name/imported-name-contract';
 import {
   platformCrossingChainHopContract,
   type PlatformCrossingChainHop,
@@ -79,7 +78,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
 }: {
   filePath: string;
   content: string;
-  requestedNames: 'all' | readonly ImportedName[];
+  requestedNames: 'all' | readonly string[];
   pathHistory: readonly string[];
   chainLabels: readonly PlatformCrossingChainHop[];
   knownPackages: readonly ProjectFolder[];

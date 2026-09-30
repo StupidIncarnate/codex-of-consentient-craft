@@ -11,12 +11,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { importedNameContract } from '../imported-name/imported-name-contract';
 
 export const moduleDependencyContract = z.object({
   specifier: z.string().min(1).brand<'ModuleDependencySpecifier'>(),
   kind: z.enum(['named', 'star', 'opaque']),
-  importedNames: z.array(importedNameContract),
+  importedNames: z.array(z.string().min(1).brand<'ModuleDependencyImportedNames'>()),
 });
 
 export type ModuleDependency = z.infer<typeof moduleDependencyContract>;

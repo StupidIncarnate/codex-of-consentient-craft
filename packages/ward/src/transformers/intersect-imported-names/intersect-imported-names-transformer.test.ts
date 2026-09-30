@@ -1,10 +1,9 @@
 import { intersectImportedNamesTransformer } from './intersect-imported-names-transformer';
-import { ImportedNameStub } from '../../contracts/imported-name/imported-name.stub';
 
 describe('intersectImportedNamesTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {requestedNames: "all"} => returns every name unchanged', () => {
-      const names = [ImportedNameStub({ value: 'a' }), ImportedNameStub({ value: 'b' })];
+      const names = ['a', 'b'];
 
       const result = intersectImportedNamesTransformer({ names, requestedNames: 'all' });
 
@@ -12,11 +11,11 @@ describe('intersectImportedNamesTransformer', () => {
     });
 
     it('VALID: {requestedNames: specific list overlapping one name} => returns only the overlap', () => {
-      const names = [ImportedNameStub({ value: 'a' }), ImportedNameStub({ value: 'b' })];
+      const names = ['a', 'b'];
 
       const result = intersectImportedNamesTransformer({
         names,
-        requestedNames: [ImportedNameStub({ value: 'b' })],
+        requestedNames: ['b'],
       });
 
       expect(result).toStrictEqual(['b']);
@@ -25,11 +24,11 @@ describe('intersectImportedNamesTransformer', () => {
 
   describe('empty input', () => {
     it('EMPTY: {requestedNames: specific list with no overlap} => returns an empty array', () => {
-      const names = [ImportedNameStub({ value: 'a' })];
+      const names = ['a'];
 
       const result = intersectImportedNamesTransformer({
         names,
-        requestedNames: [ImportedNameStub({ value: 'z' })],
+        requestedNames: ['z'],
       });
 
       expect(result).toStrictEqual([]);

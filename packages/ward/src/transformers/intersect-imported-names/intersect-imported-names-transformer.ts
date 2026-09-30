@@ -9,13 +9,12 @@
  * // Returns: [ImportedNameStub()]
  */
 
-import type { ImportedName } from '../../contracts/imported-name/imported-name-contract';
 
 export const intersectImportedNamesTransformer = ({
   names,
   requestedNames,
 }: {
-  names: readonly ImportedName[];
-  requestedNames: 'all' | readonly ImportedName[];
-}): readonly ImportedName[] =>
+  names: readonly string[];
+  requestedNames: 'all' | readonly string[];
+}): readonly string[] =>
   requestedNames === 'all' ? names : names.filter((name) => requestedNames.includes(name));
