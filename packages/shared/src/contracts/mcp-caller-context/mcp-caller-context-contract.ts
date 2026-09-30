@@ -13,13 +13,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { agentIdContract } from '../agent-id/agent-id-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
+import { agentContract } from '../agent/agent-contract';
 
 export const mcpCallerContextContract = z.object({
   cwd: absoluteFilePathContract,
   sessionId: sessionIdContract,
-  agentId: agentIdContract.optional(),
+  agentId: agentContract.shape.id.optional(),
 });
 
 export type McpCallerContext = z.infer<typeof mcpCallerContextContract>;

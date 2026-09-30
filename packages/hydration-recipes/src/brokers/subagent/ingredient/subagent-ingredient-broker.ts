@@ -23,7 +23,7 @@
  *   s[0].subagents.add(1, (a) => [a[0].set({ lines: ['...'] })]),
  * ])]);
  */
-import { agentIdContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
@@ -48,7 +48,7 @@ export const subagentIngredientBroker = ingredient({
     { of: 'guild', as: 'cwd', from: 'path' },
   ],
   defaults: (index: number): Partial<SubagentFields> => ({
-    agentId: agentIdContract.parse(`seed-agent-${index + 1}`),
+    agentId: agentContract.shape.id.parse(`seed-agent-${index + 1}`),
     toolUseId: toolUseIdContract.parse(`toolu_seed${index + 1}`),
     taskDescription: taskDescriptionContract.parse(`Seeded task ${index + 1}`),
     completed: true,

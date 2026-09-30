@@ -13,7 +13,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { agentIdContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const turnGapContract = z
@@ -21,7 +21,7 @@ export const turnGapContract = z
     gapStartedAt: isoTimestampContract,
     elapsedMinutes: z.number().nonnegative(),
     gapSeconds: z.number().nonnegative(),
-    liveSubagentIds: z.array(agentIdContract).default([]),
+    liveSubagentIds: z.array(agentContract.shape.id).default([]),
   })
   .brand<'TurnGap'>();
 

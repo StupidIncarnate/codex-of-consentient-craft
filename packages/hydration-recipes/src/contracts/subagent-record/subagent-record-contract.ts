@@ -17,16 +17,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  absoluteFilePathContract,
-  agentIdContract,
-  lineCountContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, lineCountContract, agentContract } from '@dungeonmaster/shared/contracts';
 
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
 export const subagentRecordContract = z.object({
-  agentId: agentIdContract,
+  agentId: agentContract.shape.id,
   toolUseId: toolUseIdContract,
   filePath: absoluteFilePathContract,
   lineCount: lineCountContract,

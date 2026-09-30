@@ -13,7 +13,7 @@ import { existsSync, readdirEntriesSync, readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
-import { agentIdContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, agentContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../../../contracts/subagent-meta/subagent-meta-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -75,7 +75,7 @@ export const subagentRosterLoadBroker = ({
 
     return [
       subagentRosterRowContract.parse({
-        agentId: agentIdContract.parse(agentIdValue),
+        agentId: agentContract.shape.id.parse(agentIdValue),
         meta: metaResult.data,
         ...(timestamps.length > 0
           ? { startedAt: timestamps[0], endedAt: timestamps[timestamps.length - 1] }

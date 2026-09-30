@@ -21,7 +21,6 @@ import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolPromptContract } from '../../../contracts/task-agent-tool-prompt/task-agent-tool-prompt-contract';
@@ -29,7 +28,7 @@ import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
-import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Agent } from '@dungeonmaster/shared/contracts';
 
 export const scanSubagentsDirLayerBroker = async ({
   subagentsDir,
@@ -50,7 +49,7 @@ export const scanSubagentsDirLayerBroker = async ({
   activeQuestIdGetter: () => Quest['id'] | null;
   // Forwarded to each sub-agent tail so its emits carry the owning `workItemId`. Optional:
   // omitted by layer tests.
-  workItemIdForAgent?: (params: { agentId: AgentId }) => WorkItem['id'] | null;
+  workItemIdForAgent?: (params: { agentId: Agent['id'] }) => WorkItem['id'] | null;
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
@@ -58,7 +57,7 @@ export const scanSubagentsDirLayerBroker = async ({
     sessionId: SessionId;
     workItemId?: WorkItem['id'];
   }) => void;
-  subagentHandles: Map<AgentId, TailFileHandle>;
+  subagentHandles: Map<Agent['id'], TailFileHandle>;
 }): Promise<void> => {
   const tailArgs = {
     sessionFilePath,
@@ -73,7 +72,7 @@ export const scanSubagentsDirLayerBroker = async ({
 
   // Collect every candidate file not already tailed — idempotency against a re-invoked
   // poll tick, not a filter on which files are eligible.
-  const pendingPairing: { agentId: AgentId; fileName: FileName }[] = [];
+  const pendingPairing: { agentId: Agent['id']; fileName: FileName }[] = [];
   try {
     const files = readdirSync(subagentsDir);
     for (const file of files) {

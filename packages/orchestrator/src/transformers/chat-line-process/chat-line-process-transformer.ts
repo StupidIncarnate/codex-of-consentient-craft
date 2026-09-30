@@ -24,10 +24,8 @@
  * paths into server URLs.
  */
 
-import { chatEntryContract } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract, agentContract } from '@dungeonmaster/shared/contracts';
 
-import { agentIdContract } from '../../contracts/agent-id/agent-id-contract';
-import type { AgentId } from '../../contracts/agent-id/agent-id-contract';
 import { chatLineOutputContract } from '../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineOutput } from '../../contracts/chat-line-output/chat-line-output-contract';
 import type { ChatLineProcessor } from '../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -45,6 +43,7 @@ import { streamJsonToChatEntryTransformer } from '../stream-json-to-chat-entry/s
 import { taskPromptsFromContentTransformer } from '../task-prompts-from-content/task-prompts-from-content-transformer';
 import { taskToolUseIdsFromContentTransformer } from '../task-tool-use-ids-from-content/task-tool-use-ids-from-content-transformer';
 import { toolUseIdsFromContentTransformer } from '../tool-use-ids-from-content/tool-use-ids-from-content-transformer';
+import type { Agent } from '@dungeonmaster/shared/contracts';
 
 const NUMERIC_TASK_NOTIFICATION_KEYS = new Set(['totalTokens', 'toolUses', 'durationMs']);
 
@@ -54,13 +53,13 @@ export const chatLineProcessTransformer = ({
   serverBaseUrl?: string;
 } = {}): ChatLineProcessor => {
   // Forward map: toolUseId → realAgentId, populated as user tool_result lines are processed.
-  const agentIdMap = new Map<ToolUseId, AgentId>();
+  const agentIdMap = new Map<ToolUseId, Agent['id']>();
   // Reverse map: realAgentId → toolUseId, kept in sync so file-sourced sub-agent lines
   // (tagged with realAgentId) can resolve back to the Task toolUseId in O(1).
-  const reverseAgentIdMap = new Map<AgentId, ToolUseId>();
+  const reverseAgentIdMap = new Map<Agent['id'], ToolUseId>();
   // Parent-chain map: childChainKey (ToolUseId) → parentChainKey (AgentId, toolUseId-form).
   // Populated live when a nested tool_result is processed and by registerParentChain for replay.
-  const parentChainMap = new Map<ToolUseId, AgentId>();
+  const parentChainMap = new Map<ToolUseId, Agent['id']>();
 
   // Outstanding Task prompts: toolUseId → { prompt, containerChainKey }. A Task is "outstanding"
   // from the moment its assistant tool_use line is processed until its completion tool_result
@@ -71,7 +70,7 @@ export const chatLineProcessTransformer = ({
   // can also register the parent-chain link for nested grouping.
   const outstandingTasks = new Map<
     ToolUseId,
-    { prompt: TaskAgentToolPrompt; containerChainKey: AgentId | undefined }
+    { prompt: TaskAgentToolPrompt; containerChainKey: Agent['id'] | undefined }
   >();
 
   return {
@@ -79,7 +78,7 @@ export const chatLineProcessTransformer = ({
       agentId: realAgentId,
       prompt,
     }: {
-      agentId: AgentId;
+      agentId: Agent['id'];
       prompt: TaskAgentToolPrompt;
     }): boolean => {
       if (reverseAgentIdMap.has(realAgentId)) {
@@ -102,13 +101,13 @@ export const chatLineProcessTransformer = ({
     resolveToolUseIdForAgent: ({
       agentId: realAgentId,
     }: {
-      agentId: AgentId;
+      agentId: Agent['id'];
     }): ToolUseId | undefined => reverseAgentIdMap.get(realAgentId),
     registerAgentTranslation: ({
       agentId: realAgentId,
       toolUseId,
     }: {
-      agentId: AgentId;
+      agentId: Agent['id'];
       toolUseId: ToolUseId;
     }): void => {
       agentIdMap.set(toolUseId, realAgentId);
@@ -119,15 +118,15 @@ export const chatLineProcessTransformer = ({
       parentAgentId,
     }: {
       childToolUseId: ToolUseId;
-      parentAgentId: AgentId;
+      parentAgentId: Agent['id'];
     }): void => {
       parentChainMap.set(childToolUseId, parentAgentId);
     },
     resolveParentRealAgentId: ({
       agentId: realChild,
     }: {
-      agentId: AgentId;
-    }): AgentId | undefined => {
+      agentId: Agent['id'];
+    }): Agent['id'] | undefined => {
       const childChainKey = reverseAgentIdMap.get(realChild);
       if (childChainKey === undefined) return undefined;
       const parentChainKey = parentChainMap.get(childChainKey);
@@ -141,7 +140,7 @@ export const chatLineProcessTransformer = ({
     }: {
       parsed: unknown;
       source: ChatLineSource;
-      agentId?: AgentId;
+      agentId?: Agent['id'];
     }): ChatLineOutput[] => {
       // Validate the post-normalize line shape once. Mutations below operate on the
       // ORIGINAL `parsed` reference so downstream consumers (streamJsonToChatEntryTransformer
@@ -207,7 +206,7 @@ export const chatLineProcessTransformer = ({
         ) {
           const resultAgentId = toolUseResult.agentId;
           if (typeof resultAgentId === 'string') {
-            const parsedAgentId = agentIdContract.parse(resultAgentId);
+            const parsedAgentId = agentContract.shape.id.parse(resultAgentId);
             const toolUseIds = toolUseIdsFromContentTransformer({ entry: original });
             for (const toolUseId of toolUseIds) {
               // This Task has completed — drop it from the outstanding pool so a late-arriving
@@ -222,7 +221,7 @@ export const chatLineProcessTransformer = ({
               // record that the child sub-agent's chain key links to this sub-agent's chain
               // key so nested entries can be stamped with parentAgentId.
               if (typeof original.agentId === 'string' && String(original.agentId).length > 0) {
-                parentChainMap.set(toolUseId, agentIdContract.parse(String(original.agentId)));
+                parentChainMap.set(toolUseId, agentContract.shape.id.parse(String(original.agentId)));
               }
               outputs.push(
                 chatLineOutputContract.parse({
@@ -306,7 +305,7 @@ export const chatLineProcessTransformer = ({
         // pair can register the parent-chain link for nested grouping).
         const containerChainKey =
           typeof original.agentId === 'string' && String(original.agentId).length > 0
-            ? agentIdContract.parse(String(original.agentId))
+            ? agentContract.shape.id.parse(String(original.agentId))
             : undefined;
         for (const { toolUseId, prompt } of taskPromptsFromContentTransformer({
           entry: original,

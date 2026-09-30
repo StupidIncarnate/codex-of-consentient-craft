@@ -32,12 +32,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  absoluteFilePathContract,
-  agentIdContract,
-  sessionIdContract,
-  streamJsonLineContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionIdContract, streamJsonLineContract, agentContract } from '@dungeonmaster/shared/contracts';
 
 import { taskDescriptionContract } from '../task-description/task-description-contract';
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
@@ -47,7 +42,7 @@ const taskPromptContract = z.string().min(1).brand<'TaskPrompt'>();
 export type TaskPrompt = z.infer<typeof taskPromptContract>;
 
 const subagentFieldsShape = z.object({
-  agentId: agentIdContract,
+  agentId: agentContract.shape.id,
   toolUseId: toolUseIdContract,
   taskDescription: taskDescriptionContract,
   taskPrompt: taskPromptContract,

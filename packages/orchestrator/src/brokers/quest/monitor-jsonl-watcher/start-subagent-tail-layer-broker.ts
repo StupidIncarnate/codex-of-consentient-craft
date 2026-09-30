@@ -20,10 +20,9 @@ import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Agent } from '@dungeonmaster/shared/contracts';
 
 export const startSubagentTailLayerBroker = ({
   agentId,
@@ -36,7 +35,7 @@ export const startSubagentTailLayerBroker = ({
   emit,
   subagentHandles,
 }: {
-  agentId: AgentId;
+  agentId: Agent['id'];
   sessionFilePath: FilePath;
   // The parent session's UUID. Stamped on every emit as `sessionId`
   // so the web binding buckets each sub-agent's entries under the same key that
@@ -52,7 +51,7 @@ export const startSubagentTailLayerBroker = ({
   // emit as `workItemId` so the web routes the transcript to its own execution row rather
   // than the merged parent-session bucket. Optional: omitted by layer tests; returns null
   // when no active work item currently carries this agentId.
-  workItemIdForAgent?: (params: { agentId: AgentId }) => WorkItem['id'] | null;
+  workItemIdForAgent?: (params: { agentId: Agent['id'] }) => WorkItem['id'] | null;
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
@@ -60,7 +59,7 @@ export const startSubagentTailLayerBroker = ({
     sessionId: SessionId;
     workItemId?: WorkItem['id'];
   }) => void;
-  subagentHandles: Map<AgentId, TailFileHandle>;
+  subagentHandles: Map<Agent['id'], TailFileHandle>;
 }): void => {
   if (subagentHandles.has(agentId)) {
     return;

@@ -8,6 +8,7 @@
  * // On success: result.data.tool_input.file_path is present; unknown keys survive via passthrough
  */
 import { z } from '#gateway/npm/zod';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 export const folderDetailHookDataContract = z
   .object({
@@ -15,7 +16,7 @@ export const folderDetailHookDataContract = z
     tool_name: z.string().min(1).brand<'ToolName'>(),
     tool_input: z.object({ file_path: z.string().min(1).brand<'FilePath'>() }).loose(),
     transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
-    agent_id: z.string().min(1).brand<'AgentId'>().optional(),
+    agent_id: agentContract.shape.id.optional(),
   })
   .loose();
 

@@ -267,7 +267,6 @@ export * from './ward-queue-response/ward-queue-response-contract';
 export * from './ward-run-id/ward-run-id-contract';
 
 // Agent ID Contracts
-export * from './agent-id/agent-id-contract';
 export * from './mcp-caller-context/mcp-caller-context-contract';
 
 // Glob Pattern Contracts
@@ -560,3 +559,4 @@ export * from './owner-index-package/owner-index-package-contract';
 export * from './owner-index-match/owner-index-match-contract';
 export * from './owner-index-usage/owner-index-usage-contract';
 export * from './schema-object-entry/schema-object-entry-contract';
+export * from './agent/agent-contract';

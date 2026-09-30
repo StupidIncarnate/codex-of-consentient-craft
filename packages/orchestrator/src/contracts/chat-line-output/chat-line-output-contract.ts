@@ -8,8 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { chatEntryContract } from '@dungeonmaster/shared/contracts';
-import { agentIdContract } from '../agent-id/agent-id-contract';
+import { chatEntryContract, agentContract } from '@dungeonmaster/shared/contracts';
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
 const chatLineEntriesContract = z.object({
@@ -25,7 +24,7 @@ const chatLineEntriesContract = z.object({
 const chatLineAgentDetectedContract = z.object({
   type: z.literal('agent-detected'),
   toolUseId: toolUseIdContract,
-  agentId: agentIdContract,
+  agentId: agentContract.shape.id,
 });
 
 export const chatLineOutputContract = z.discriminatedUnion('type', [

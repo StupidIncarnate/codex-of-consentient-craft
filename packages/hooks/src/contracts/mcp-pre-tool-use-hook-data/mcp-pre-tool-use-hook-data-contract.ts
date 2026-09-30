@@ -10,11 +10,7 @@
  * // Returns McpPreToolUseHookData
  */
 import { z } from '#gateway/npm/zod';
-import {
-  absoluteFilePathContract,
-  agentIdContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionIdContract, agentContract } from '@dungeonmaster/shared/contracts';
 
 import { mcpToolInputContract } from '../mcp-tool-input/mcp-tool-input-contract';
 
@@ -24,7 +20,7 @@ export const mcpPreToolUseHookDataContract = z.object({
   hook_event_name: z.literal('PreToolUse'),
   tool_name: z.string().min(1).brand<'ToolName'>(),
   tool_input: mcpToolInputContract,
-  agent_id: agentIdContract.optional(),
+  agent_id: agentContract.shape.id.optional(),
 });
 
 export type McpPreToolUseHookData = z.infer<typeof mcpPreToolUseHookDataContract>;

@@ -15,7 +15,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { agentIdContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { transcriptRecordContentBlockContract } from '../transcript-record-content-block/transcript-record-content-block-contract';
 import { transcriptRecordUsageKeyContract } from '../transcript-record-usage-key/transcript-record-usage-key-contract';
@@ -43,7 +43,7 @@ export const transcriptRecordContract = z
     ]),
     timestamp: isoTimestampContract.optional(),
     isSidechain: z.boolean().optional(),
-    agentId: agentIdContract.optional(),
+    agentId: agentContract.shape.id.optional(),
     promptSource: z.string().brand<'TranscriptRecordPromptSource'>().optional(),
     message: transcriptRecordMessageContract.optional(),
     toolUseResult: z.unknown().optional(),

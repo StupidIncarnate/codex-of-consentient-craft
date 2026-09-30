@@ -25,11 +25,10 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, RepoRootCwd, SessionId, Agent } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -162,7 +161,7 @@ export const chatStreamProcessHandleBroker = ({
           // so the onEntries closure below doesn't reach back to `runtimeSessionId` (which
           // would trip no-loop-func).
           const sid: SessionId = runtimeSessionId;
-          const realAgentId: AgentId = output.agentId;
+          const realAgentId: Agent['id'] = output.agentId;
           const setup = chatSubagentTailBroker({
             sessionId: sid,
             cwd,

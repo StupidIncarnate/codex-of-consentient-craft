@@ -1,5 +1,5 @@
-import { agentIdContract } from './agent-id-contract';
-import type { AgentId } from './agent-id-contract';
+import type { Agent } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
-export const AgentIdStub = ({ value }: { value: string } = { value: 'agent-abc' }): AgentId =>
-  agentIdContract.parse(value);
+export const AgentIdStub = ({ value }: { value: string } = { value: 'agent-abc' }): Agent['id'] =>
+  agentContract.shape.id.parse(value);

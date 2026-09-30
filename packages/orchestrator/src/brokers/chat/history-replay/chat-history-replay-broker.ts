@@ -33,12 +33,7 @@ import { readdirSync } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  absoluteFilePathContract,
-  arrayIndexContract,
-  fileNameContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, arrayIndexContract, fileNameContract, filePathContract, agentContract } from '@dungeonmaster/shared/contracts';
 import type { ArrayIndex, ChatEntry, SessionId, StreamJsonLine, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -46,7 +41,6 @@ import {
 } from '@dungeonmaster/shared/transformers';
 
 import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
-import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -143,7 +137,7 @@ export const chatHistoryReplayBroker = async ({
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
 
   const subagentFiles: {
-    agentId: ReturnType<typeof agentIdContract.parse>;
+    agentId: ReturnType<typeof agentContract.shape.id.parse>;
     lines: StreamJsonLine[];
   }[] = [];
 
@@ -175,7 +169,7 @@ export const chatHistoryReplayBroker = async ({
   const taggedLines: {
     parsed: unknown;
     source: ChatLineSource;
-    agentId?: ReturnType<typeof agentIdContract.parse>;
+    agentId?: ReturnType<typeof agentContract.shape.id.parse>;
     timestamp: IsoTimestamp;
     index: ArrayIndex;
   }[] = [];
@@ -227,14 +221,14 @@ export const chatHistoryReplayBroker = async ({
   ];
   const scanSources: {
     lines: StreamJsonLine[];
-    container: ReturnType<typeof agentIdContract.parse> | null;
+    container: ReturnType<typeof agentContract.shape.id.parse> | null;
   }[] = [
     { lines: sessionLines, container: null },
     ...subagentFiles.map((f) => ({ lines: f.lines, container: f.agentId })),
   ];
   const childParentCandidates: {
     childToolUseId: ReturnType<typeof toolUseIdContract.parse>;
-    container: ReturnType<typeof agentIdContract.parse>;
+    container: ReturnType<typeof agentContract.shape.id.parse>;
   }[] = [];
 
   // PASS 1a: scan every user tool_result for `tool_use_result.agentId` paired with the content
@@ -269,7 +263,7 @@ export const chatHistoryReplayBroker = async ({
         const tuid = item.toolUseId;
         if (typeof tuid !== 'string' || tuid.length === 0) continue;
         processor.registerAgentTranslation({
-          agentId: agentIdContract.parse(realAgentIdRaw),
+          agentId: agentContract.shape.id.parse(realAgentIdRaw),
           toolUseId: toolUseIdContract.parse(tuid),
         });
         if (container !== null) {
@@ -349,7 +343,7 @@ export const chatHistoryReplayBroker = async ({
     if (parentChainKey === undefined) return;
     processor.registerParentChain({
       childToolUseId,
-      parentAgentId: agentIdContract.parse(String(parentChainKey)),
+      parentAgentId: agentContract.shape.id.parse(String(parentChainKey)),
     });
   });
 

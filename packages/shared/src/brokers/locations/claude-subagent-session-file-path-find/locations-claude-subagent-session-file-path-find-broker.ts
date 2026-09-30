@@ -18,7 +18,7 @@ import {
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { SessionId } from '../../../contracts/session-id/session-id-contract';
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
+import type { Agent } from '../../../contracts/agent/agent-contract';
 
 export const locationsClaudeSubagentSessionFilePathFindBroker = ({
   guildPath,
@@ -27,7 +27,7 @@ export const locationsClaudeSubagentSessionFilePathFindBroker = ({
 }: {
   guildPath: AbsoluteFilePath;
   sessionId: SessionId;
-  agentId: AgentId;
+  agentId: Agent['id'];
 }): AbsoluteFilePath => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
 

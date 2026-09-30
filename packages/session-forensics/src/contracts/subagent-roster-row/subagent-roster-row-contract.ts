@@ -13,14 +13,14 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { agentIdContract } from '@dungeonmaster/shared/contracts';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../subagent-meta/subagent-meta-contract';
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { transcriptRecordContract } from '../transcript-record/transcript-record-contract';
 
 export const subagentRosterRowContract = z
   .object({
-    agentId: agentIdContract,
+    agentId: agentContract.shape.id,
     meta: subagentMetaContract,
     startedAt: isoTimestampContract.optional(),
     endedAt: isoTimestampContract.optional(),

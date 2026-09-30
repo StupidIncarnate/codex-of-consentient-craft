@@ -10,19 +10,19 @@
  * // already in the set is never re-expanded, so a self- or back-edge terminates the walk.
  */
 
-import type { AgentId } from '../../contracts/agent-id/agent-id-contract';
+import type { Agent } from '@dungeonmaster/shared/contracts';
 
 export const subagentDescendantAgentIdsTransformer = ({
   childEdges,
   rootAgentId,
 }: {
-  childEdges: Map<AgentId, AgentId[]>;
-  rootAgentId: AgentId;
-}): Set<AgentId> => {
-  const descendants = new Set<AgentId>([rootAgentId]);
-  let frontier: AgentId[] = [rootAgentId];
+  childEdges: Map<Agent['id'], Agent['id'][]>;
+  rootAgentId: Agent['id'];
+}): Set<Agent['id']> => {
+  const descendants = new Set<Agent['id']>([rootAgentId]);
+  let frontier: Agent['id'][] = [rootAgentId];
   while (frontier.length > 0) {
-    const nextFrontier: AgentId[] = [];
+    const nextFrontier: Agent['id'][] = [];
     for (const agentId of frontier) {
       for (const child of childEdges.get(agentId) ?? []) {
         if (!descendants.has(child)) {

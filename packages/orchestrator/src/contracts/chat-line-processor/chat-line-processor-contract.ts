@@ -23,11 +23,11 @@
  * processor.processLine({ parsed, source: chatLineSourceContract.parse('session') });
  */
 
-import type { AgentId } from '../agent-id/agent-id-contract';
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';
 import type { ChatLineSource } from '../chat-line-source/chat-line-source-contract';
 import type { TaskAgentToolPrompt } from '../task-agent-tool-prompt/task-agent-tool-prompt-contract';
 import type { ToolUseId } from '../tool-use-id/tool-use-id-contract';
+import type { Agent } from '@dungeonmaster/shared/contracts';
 
 export interface ChatLineProcessor {
   processLine: ({
@@ -37,7 +37,7 @@ export interface ChatLineProcessor {
   }: {
     parsed: unknown;
     source: ChatLineSource;
-    agentId?: AgentId;
+    agentId?: Agent['id'];
   }) => ChatLineOutput[];
 
   // Look up the Task toolUseId associated with a "real" internal sub-agent agentId (as
@@ -45,7 +45,7 @@ export interface ChatLineProcessor {
   // Populated as the processor sees user tool_result lines. Used by replay + subagent-tail
   // paths to translate sub-agent lines (which only carry the real agentId) into the same
   // `parent_tool_use_id` wire shape that streaming emits natively.
-  resolveToolUseIdForAgent: ({ agentId }: { agentId: AgentId }) => ToolUseId | undefined;
+  resolveToolUseIdForAgent: ({ agentId }: { agentId: Agent['id'] }) => ToolUseId | undefined;
 
   // Pre-seed the realAgentId→toolUseId map before processing lines. Used by the replay
   // path which does a two-pass scan: first pass registers every translation it finds in
@@ -56,7 +56,7 @@ export interface ChatLineProcessor {
     agentId,
     toolUseId,
   }: {
-    agentId: AgentId;
+    agentId: Agent['id'];
     toolUseId: ToolUseId;
   }) => void;
 
@@ -69,7 +69,7 @@ export interface ChatLineProcessor {
     parentAgentId,
   }: {
     childToolUseId: ToolUseId;
-    parentAgentId: AgentId;
+    parentAgentId: Agent['id'];
   }) => void;
 
   // Given a sub-agent's REAL internal agentId, return its PARENT sub-agent's REAL internal
@@ -77,7 +77,7 @@ export interface ChatLineProcessor {
   // translation maps. Returns undefined for a top-level (depth-1) sub-agent or an unknown id.
   // The live watcher uses this to route a nested sub-agent's transcript to the nearest
   // ancestor work item.
-  resolveParentRealAgentId: ({ agentId }: { agentId: AgentId }) => AgentId | undefined;
+  resolveParentRealAgentId: ({ agentId }: { agentId: Agent['id'] }) => Agent['id'] | undefined;
 
   // Pair an in-flight sub-agent's real agentId to its spawning Task by byte-equal prompt match.
   // Claude CLI writes the Task's input.prompt verbatim as the sub-agent JSONL's first user-text
@@ -92,7 +92,7 @@ export interface ChatLineProcessor {
     agentId,
     prompt,
   }: {
-    agentId: AgentId;
+    agentId: Agent['id'];
     prompt: TaskAgentToolPrompt;
   }) => boolean;
 }
