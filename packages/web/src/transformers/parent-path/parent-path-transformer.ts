@@ -5,11 +5,9 @@
  * parentPathTransformer({path: '/home/user/projects'});
  * // Returns '/home/user' as GuildPath
  */
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
-export const parentPathTransformer = ({ path }: { path: GuildPath }): GuildPath => {
+export const parentPathTransformer = ({ path }: { path: string }): string => {
   const parent = path.replace(/\/[^/]+\/?$/u, '') || '/';
 
-  return guildPathContract.parse(parent);
+  return parent;
 };

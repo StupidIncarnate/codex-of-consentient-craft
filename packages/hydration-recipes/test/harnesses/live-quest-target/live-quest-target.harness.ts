@@ -59,7 +59,7 @@ import {
   questGetBroker,
   questModifyBroker,
 } from '@dungeonmaster/orchestrator/brokers';
-import { getQuestInputContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, guildNameContract, modifyQuestInputContract, operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -137,7 +137,7 @@ export const liveQuestTargetHarness = ({
             const fields = body as Record<PropertyKey, unknown>;
             const guild = await guildAddBroker({
               name: guildNameContract.parse(fields.name),
-              path: guildPathContract.parse(fields.path),
+              path: fields.path,
             });
             return { status: 201, body: guild };
           }

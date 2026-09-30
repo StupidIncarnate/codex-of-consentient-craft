@@ -1,11 +1,10 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-refusals' });
+const GUILD_PATH = '/tmp/dm-e2e-composer-paste-refusals';
 // Small enough that a canvas encode/decode round trip stays fast across the limit tests' 5-6
 // sequential pastes.
 const IMAGE_SIZE_PX = 20;

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -14,7 +13,7 @@ import {
   SEND_OBSERVABLE_ID,
 } from '../../../test/harnesses/comment-queue-send/comment-queue-send.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-queued-comment-batch' });
+const GUILD_PATH = '/tmp/dm-e2e-send-queued-comment-batch';
 const SEND_TIMEOUT = 15_000;
 // The queue bar's immediate-sibling-of-ACTION_BAR CSS pairing, expressed declaratively rather
 // than via a browser-evaluated conditional — proves DOM adjacency without a JS if/&&.

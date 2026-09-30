@@ -23,7 +23,7 @@ import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
-import type { GuildPath, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { QuestOutboxLineStub } from '../../../src/contracts/quest-outbox-line/quest-outbox-line.stub';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
@@ -41,11 +41,11 @@ const POLL_STEP_MS = TimeoutMsStub({ value: 20 });
 const QUIET_WINDOW_MS = TimeoutMsStub({ value: 300 });
 
 export const questOutboxHarness = (): {
-  begin: ({ name }: { name: BaseName }) => { homeDir: GuildPath; end: () => Promise<void> };
-  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: Quest['id'] }) => void;
-  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }) => readonly Quest['id'][];
-  outboxExists: ({ homeDir }: { homeDir: GuildPath }) => boolean;
-  removeOutbox: ({ homeDir }: { homeDir: GuildPath }) => void;
+  begin: ({ name }: { name: BaseName }) => { homeDir: string; end: () => Promise<void> };
+  appendQuestLine: ({ homeDir, questId }: { homeDir: string; questId: Quest['id'] }) => void;
+  readOutboxQuestIds: ({ homeDir }: { homeDir: string }) => readonly Quest['id'][];
+  outboxExists: ({ homeDir }: { homeDir: string }) => boolean;
+  removeOutbox: ({ homeDir }: { homeDir: string }) => void;
   listener: () => {
     callbacks: {
       onQuestChanged: (args: { questId: Quest['id'] }) => void;
@@ -63,7 +63,7 @@ export const questOutboxHarness = (): {
   }) => Promise<void>;
   awaitQuiet: () => Promise<void>;
 } => ({
-  begin: ({ name }: { name: BaseName }): { homeDir: GuildPath; end: () => Promise<void> } => {
+  begin: ({ name }: { name: BaseName }): { homeDir: string; end: () => Promise<void> } => {
     const testbed = installTestbedCreateBroker({ baseName: name });
     const homeDir = testbed.guildPath;
 
@@ -92,14 +92,14 @@ export const questOutboxHarness = (): {
 
   // The exact shape questOutboxAppendBroker writes on every quest persist — one JSON object per
   // line, newline-terminated.
-  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: Quest['id'] }): void => {
+  appendQuestLine: ({ homeDir, questId }: { homeDir: string; questId: Quest['id'] }): void => {
     const line = QuestOutboxLineStub({ questId, timestamp: new Date().toISOString() as never });
     fs.appendFileSync(path.join(homeDir, OUTBOX_FILENAME), `${JSON.stringify(line)}\n`);
   },
 
   // Each line goes back through the outbox-line stub, so a line the contract no longer accepts
   // fails here rather than comparing equal to an expectation as raw text.
-  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }): readonly Quest['id'][] => {
+  readOutboxQuestIds: ({ homeDir }: { homeDir: string }): readonly Quest['id'][] => {
     const raw = fs.readFileSync(path.join(homeDir, OUTBOX_FILENAME));
     return raw
       .split('\n')
@@ -111,10 +111,10 @@ export const questOutboxHarness = (): {
       );
   },
 
-  outboxExists: ({ homeDir }: { homeDir: GuildPath }): boolean =>
+  outboxExists: ({ homeDir }: { homeDir: string }): boolean =>
     fs.existsSync(path.join(homeDir, OUTBOX_FILENAME)),
 
-  removeOutbox: ({ homeDir }: { homeDir: GuildPath }): void => {
+  removeOutbox: ({ homeDir }: { homeDir: string }): void => {
     fs.rmSync(path.join(homeDir, OUTBOX_FILENAME), { force: true });
   },
 

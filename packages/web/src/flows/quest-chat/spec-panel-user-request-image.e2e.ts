@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -8,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-panel-user-request-image' });
+const GUILD_PATH = '/tmp/dm-e2e-spec-panel-user-request-image';
 const PANEL_TIMEOUT = 10_000;
 const SEED_WIDTH_PX = 16;
 const SEED_HEIGHT_PX = 16;

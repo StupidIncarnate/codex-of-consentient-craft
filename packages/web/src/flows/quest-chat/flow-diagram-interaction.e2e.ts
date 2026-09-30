@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -11,7 +10,7 @@ import {
   LARGE_FLOW_FIRST_NODE_LABEL,
 } from '../../../test/harnesses/flow-diagram/flow-diagram.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-flow-diagram-interaction' });
+const GUILD_PATH = '/tmp/dm-e2e-flow-diagram-interaction';
 const PANEL_TIMEOUT = 5_000;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });

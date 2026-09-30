@@ -1,9 +1,8 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-not-found' });
+const GUILD_PATH = '/tmp/dm-e2e-not-found';
 const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 

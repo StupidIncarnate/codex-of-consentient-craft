@@ -11,7 +11,6 @@
  * from `process.cwd()` (which the orchestrator sets to the guild path on each spawn), so a
  * leftover orchestration loop from a prior test cannot consume responses meant for another.
  */
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { Guild, ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 import {
   ensureDirSync,
@@ -150,7 +149,7 @@ export const claudeMockHarness = ({
   const clearAllScopes = (): void => {
     clearClaudeQueue({ queueDir: getRootQueueDir() });
     clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath }) });
-    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }) });
+    clearClaudeQueue({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }) });
   };
 
   return {
@@ -159,12 +158,12 @@ export const claudeMockHarness = ({
     // spawns.
     beforeEach: clearAllScopes,
     queueResponse: ({ response }: { response: ClaudeQueueResponse }): void => {
-      queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }), response });
+      queueClaudeResponse({ queueDir: getScopedQueueDir({ guildPath: spawnCwd }), response });
     },
     clearQueue: clearAllScopes,
     readInvocations: (): readonly ClaudeInvocation[] => {
       const invocationsPath = path.join(
-        getScopedQueueDir({ guildPath: GuildPathStub({ value: spawnCwd }) }),
+        getScopedQueueDir({ guildPath: spawnCwd }),
         INVOCATIONS_FILE,
       );
       if (!existsSync(invocationsPath)) {

@@ -11,7 +11,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
-import type { GuildPath, ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -72,12 +72,12 @@ type Quest = ReturnType<typeof QuestStub>;
 export const RecoverGuildLayerResponderProxy = (): {
   setupGuildWithQuests: (params: {
     guildId: Guild['id'];
-    guildPath: GuildPath;
+    guildPath: string;
     quests: Quest[];
   }) => void;
   setupGuildWithExistingProcess: (params: {
     guildId: Guild['id'];
-    guildPath: GuildPath;
+    guildPath: string;
     quests: Quest[];
     existingProcessQuestId: Quest['id'];
   }) => void;
@@ -177,7 +177,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       quests,
     }: {
       guildId: Guild['id'];
-      guildPath: GuildPath;
+      guildPath: string;
       quests: Quest[];
     }): void => {
       guildGetProxy.setupDirectGuild({ guild: GuildStub({ id: guildId, path: guildPath }) });
@@ -264,7 +264,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       existingProcessQuestId,
     }: {
       guildId: Guild['id'];
-      guildPath: GuildPath;
+      guildPath: string;
       quests: Quest[];
       existingProcessQuestId: Quest['id'];
     }): void => {

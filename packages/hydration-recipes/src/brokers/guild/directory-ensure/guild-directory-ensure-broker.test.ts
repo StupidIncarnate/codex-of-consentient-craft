@@ -1,7 +1,6 @@
 import { guildDirectoryEnsureBroker } from './guild-directory-ensure-broker';
 import { guildDirectoryEnsureBrokerProxy } from './guild-directory-ensure-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildDirectoryEnsureBroker', () => {
   describe('a path inside the target', () => {
@@ -12,7 +11,7 @@ describe('guildDirectoryEnsureBroker', () => {
 
       await guildDirectoryEnsureBroker({
         target,
-        path: GuildPathStub({ value: '/tmp/dm-home/guilds-under-test/guild-1' }),
+        path: '/tmp/dm-home/guilds-under-test/guild-1',
       });
 
       expect(proxy.pathsTouched()).toStrictEqual(['/tmp/dm-home/guilds-under-test/guild-1']);
@@ -26,7 +25,7 @@ describe('guildDirectoryEnsureBroker', () => {
 
       await guildDirectoryEnsureBroker({
         target,
-        path: GuildPathStub({ value: '/home/user/real-project' }),
+        path: '/home/user/real-project',
       });
 
       expect(proxy.pathsTouched()).toStrictEqual([]);
@@ -42,7 +41,7 @@ describe('guildDirectoryEnsureBroker', () => {
 
       await guildDirectoryEnsureBroker({
         target,
-        path: GuildPathStub({ value: '/tmp/dm-home-evil/guild-1' }),
+        path: '/tmp/dm-home-evil/guild-1',
       });
 
       expect(proxy.pathsTouched()).toStrictEqual([]);
@@ -56,7 +55,7 @@ describe('guildDirectoryEnsureBroker', () => {
 
       await guildDirectoryEnsureBroker({
         target,
-        path: GuildPathStub({ value: '/tmp/dm-home/../escaped-guild' }),
+        path: '/tmp/dm-home/../escaped-guild',
       });
 
       expect(proxy.pathsTouched()).toStrictEqual([]);

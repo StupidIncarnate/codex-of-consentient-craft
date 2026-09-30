@@ -31,7 +31,6 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { Base64ImageData, FileName, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { fileNameContract, pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -513,7 +512,7 @@ export const serverAppHarness = (): {
   }): ReturnType<typeof StartOrchestrator.addGuild> =>
     StartOrchestrator.addGuild({
       name: GuildNameStub({ value: name }),
-      path: GuildPathStub({ value: path }),
+      path: path,
     });
 
   const configureFakeClaudeCli = (): { claudeQueueDir: string; restore: () => void } => {

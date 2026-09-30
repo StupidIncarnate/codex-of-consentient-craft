@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -16,7 +15,7 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 // quests) and assert the CORRECT outcome: a quest that was never typed into opens its composer
 // EMPTY, and a quest whose draft was composed earlier restores exactly ITS OWN text and image,
 // unaffected by whatever was typed into a different quest's composer in between.
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-draft-quest-scoped' });
+const GUILD_PATH = '/tmp/dm-e2e-composer-draft-quest-scoped';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -20,7 +19,7 @@ import {
   COMMENT_BOX_SECOND_OBSERVABLE_ID,
 } from '../../../test/harnesses/comment-box/comment-box.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-comment-on-diagram-box' });
+const GUILD_PATH = '/tmp/dm-e2e-comment-on-diagram-box';
 const PANEL_TIMEOUT = 5_000;
 const REVIEW_FLOWS = 'review_flows';
 const APPROVED = 'approved';

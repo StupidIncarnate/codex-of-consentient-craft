@@ -1,6 +1,6 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
-import type { AddQuestInput, Guild, GuildListItem, GuildName, GuildPath, Session } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, GuildName, Session } from '@dungeonmaster/shared/contracts';
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -33,7 +33,7 @@ export const questMcpCreateBrokerProxy = (): {
   setupSuccessfulAdd: (params: { guildId: Guild['id']; questId?: QuestId }) => void;
   setupAddSuccessWithoutQuestId: (params: { guildId: Guild['id'] }) => void;
   setupAddFailure: (params: { guildId: Guild['id']; error: string }) => void;
-  getGuildAddCalls: () => readonly { name: GuildName; path: GuildPath }[];
+  getGuildAddCalls: () => readonly { name: GuildName; path: string }[];
   getLastQuestAddCall: () => {
     questType: AddQuestInput['questType'];
     sessionId: Session['id'] | undefined;
@@ -146,7 +146,7 @@ export const questMcpCreateBrokerProxy = (): {
       addQuestMock.calledWith([{ guildId }]).resolves(addResult);
     },
 
-    getGuildAddCalls: (): readonly { name: GuildName; path: GuildPath }[] =>
+    getGuildAddCalls: (): readonly { name: GuildName; path: string }[] =>
       addGuildMock.callsMatching([]).map((call) => {
         const [params] = call as [Parameters<typeof guildAddBroker>[0]];
         return { name: params.name, path: params.path };

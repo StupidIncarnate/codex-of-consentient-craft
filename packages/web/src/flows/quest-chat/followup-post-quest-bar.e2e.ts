@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +5,7 @@ import { followupHarness } from '../../../test/harnesses/followup/followup.harne
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-post-quest-bar' });
+const GUILD_PATH = '/tmp/dm-e2e-followup-post-quest-bar';
 
 // Derive every matrix from the SAME statics source the guards read (isFollowupChatableQuestStatusGuard
 // / isMergeableQuestStatusGuard) — never hand-maintain a parallel list. A status added later is

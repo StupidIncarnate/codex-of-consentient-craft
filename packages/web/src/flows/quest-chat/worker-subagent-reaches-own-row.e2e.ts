@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
@@ -12,7 +11,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-worker-subagent-reaches-own-row' });
+const GUILD_PATH = '/tmp/dm-e2e-worker-subagent-reaches-own-row';
 const PANEL_TIMEOUT = 10_000;
 const NO_CHAIN_TIMEOUT = 3_000;
 // quest-monitor-jsonl-watcher-broker's own subagents-dir re-scan is a 1s poll, plus whatever the

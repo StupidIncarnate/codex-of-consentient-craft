@@ -1,11 +1,10 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-inserts-thumbnail' });
+const GUILD_PATH = '/tmp/dm-e2e-composer-paste-inserts-thumbnail';
 
 // Restated rather than imported: an e2e scenario file measures the USER-FACING behaviour, so a drift
 // in pastedImageStatics.maxBytesPerImage/maxLongestEdgePx or chat-composer-statics.ts's toast copy

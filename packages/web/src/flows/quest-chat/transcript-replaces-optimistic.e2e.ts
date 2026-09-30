@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { z } from '#gateway/npm/zod';
 
@@ -13,7 +12,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 import { transcriptImagesHarness } from '../../../test/harnesses/transcript-images/transcript-images.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-transcript-replaces-optimistic' });
+const GUILD_PATH = '/tmp/dm-e2e-transcript-replaces-optimistic';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 // The delivery path this spec rides is `quest-driven-watchers` (packages/server/src/responders/

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -8,7 +7,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { warpgateHarness } from '../../../test/harnesses/warpgate/warpgate.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-warpgate-merge-button' });
+const GUILD_PATH = '/tmp/dm-e2e-warpgate-merge-button';
 const PANEL_TIMEOUT = 10_000;
 const MERGE_LABEL = 'Teleport with Booty (Merge)';
 const FOLLOWUP_LABEL = 'FOLLOW-UP';

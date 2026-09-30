@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { directoryBrowseBroker } from './directory-browse-broker';
 import { directoryBrowseBrokerProxy } from './directory-browse-broker.proxy';
@@ -7,7 +6,7 @@ describe('directoryBrowseBroker', () => {
   describe('with explicit path', () => {
     it('VALID: {path with directories} => returns directory entries sorted alphabetically', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = GuildPathStub({ value: '/home/user' });
+      const path = '/home/user';
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -29,7 +28,7 @@ describe('directoryBrowseBroker', () => {
 
     it('VALID: {path with files and directories} => returns only directories', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = GuildPathStub({ value: '/home/user' });
+      const path = '/home/user';
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -45,7 +44,7 @@ describe('directoryBrowseBroker', () => {
 
     it('VALID: {path with hidden directories} => hides directories starting with dot', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = GuildPathStub({ value: '/home/user' });
+      const path = '/home/user';
 
       proxy.setupDirectories({
         targetPath: '/home/user',
@@ -65,7 +64,7 @@ describe('directoryBrowseBroker', () => {
 
     it('EMPTY: {path with no entries} => returns empty array', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = GuildPathStub({ value: '/home/user/empty' });
+      const path = '/home/user/empty';
 
       proxy.setupEmpty({ targetPath: '/home/user/empty' });
 
@@ -95,7 +94,7 @@ describe('directoryBrowseBroker', () => {
   describe('error cases', () => {
     it('ERROR: {invalid path} => throws error from readdir', () => {
       const proxy = directoryBrowseBrokerProxy();
-      const path = GuildPathStub({ value: '/nonexistent' });
+      const path = '/nonexistent';
 
       proxy.setupThrows({
         targetPath: '/nonexistent',

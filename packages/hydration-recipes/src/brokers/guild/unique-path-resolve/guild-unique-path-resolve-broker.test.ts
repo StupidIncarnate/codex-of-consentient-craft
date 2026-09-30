@@ -1,7 +1,6 @@
 import { guildUniquePathResolveBroker } from './guild-unique-path-resolve-broker';
 import { guildUniquePathResolveBrokerProxy } from './guild-unique-path-resolve-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildUniquePathResolveBroker', () => {
   describe('the default fragment, free', () => {
@@ -12,7 +11,7 @@ describe('guildUniquePathResolveBroker', () => {
 
       const result = guildUniquePathResolveBroker({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
       });
 
       expect(result).toBe('guilds-under-test/guild-1');
@@ -28,7 +27,7 @@ describe('guildUniquePathResolveBroker', () => {
 
       const result = guildUniquePathResolveBroker({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
       });
 
       expect(result).toBe('guilds-under-test/guild-2');
@@ -47,7 +46,7 @@ describe('guildUniquePathResolveBroker', () => {
 
       const result = guildUniquePathResolveBroker({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
       });
 
       expect(result).toBe('guilds-under-test/guild-3');
@@ -62,7 +61,7 @@ describe('guildUniquePathResolveBroker', () => {
 
       const result = guildUniquePathResolveBroker({
         target,
-        path: GuildPathStub({ value: '/home/user/real-project' }),
+        path: '/home/user/real-project',
       });
 
       expect(result).toBe('/home/user/real-project');

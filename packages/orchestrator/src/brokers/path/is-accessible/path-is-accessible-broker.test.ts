@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { pathIsAccessibleBroker } from './path-is-accessible-broker';
 import { pathIsAccessibleBrokerProxy } from './path-is-accessible-broker.proxy';
@@ -7,7 +6,7 @@ describe('pathIsAccessibleBroker', () => {
   describe('accessible paths', () => {
     it('VALID: {path: "/home/user/project"} => returns true when path is accessible', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
-      const path = GuildPathStub({ value: '/home/user/project' });
+      const path = '/home/user/project';
 
       proxy.setupResult({ path, result: true });
 
@@ -20,7 +19,7 @@ describe('pathIsAccessibleBroker', () => {
   describe('inaccessible paths', () => {
     it('INVALID: {path: "/missing/project"} => returns false when path is not accessible', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
-      const path = GuildPathStub({ value: '/missing/project' });
+      const path = '/missing/project';
 
       proxy.setupResult({ path, result: false });
 
@@ -33,7 +32,7 @@ describe('pathIsAccessibleBroker', () => {
   describe('unreadable paths', () => {
     it('ERROR: {path: "/root/locked", EACCES} => returns false instead of rejecting', async () => {
       const proxy = pathIsAccessibleBrokerProxy();
-      const path = GuildPathStub({ value: '/root/locked' });
+      const path = '/root/locked';
 
       proxy.setupUnreadable({ path });
 

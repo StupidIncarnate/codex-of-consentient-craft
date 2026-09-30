@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -14,8 +13,8 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 // Two guild paths, because guildAddBroker rejects a second guild registered on a path that is
 // already taken — and the discriminating case below needs TWO quests alive at once, each recording
 // its own missing worktree, to tell "names THIS failure" apart from "names A failure".
-const GUILD_PATH_FIRST = GuildPathStub({ value: '/tmp/dm-e2e-followup-spawn-failure-a' });
-const GUILD_PATH_SECOND = GuildPathStub({ value: '/tmp/dm-e2e-followup-spawn-failure-b' });
+const GUILD_PATH_FIRST = '/tmp/dm-e2e-followup-spawn-failure-a';
+const GUILD_PATH_SECOND = '/tmp/dm-e2e-followup-spawn-failure-b';
 
 // Absolute, and deliberately never created. questCwdResolveBroker probes the recorded worktree for
 // accessibility and chatSpawnBroker refuses the spawn when the probe fails, which is the

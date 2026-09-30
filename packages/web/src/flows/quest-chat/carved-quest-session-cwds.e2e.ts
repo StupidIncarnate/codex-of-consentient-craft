@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
@@ -10,7 +9,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-carved-quest-session-cwds' });
+const GUILD_PATH = '/tmp/dm-e2e-carved-quest-session-cwds';
 const WORKTREE_NAME = 'carved-quest-session-cwds-quest';
 // Where `carveQuestWorktree` puts the worktree, and therefore the cwd every role after riftcarver
 // runs in. Claude CLI encodes its session-JSONL directory from that cwd, so this one path is the
@@ -63,7 +62,7 @@ const guildSessions = wireHarnessLifecycle({
   testObj: test,
 });
 const worktreeSessions = wireHarnessLifecycle({
-  harness: sessionHarness({ guildPath: GuildPathStub({ value: WORKTREE_PATH }) }),
+  harness: sessionHarness({ guildPath: WORKTREE_PATH }),
   testObj: test,
 });
 

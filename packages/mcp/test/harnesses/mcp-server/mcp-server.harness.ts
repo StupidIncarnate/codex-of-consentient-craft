@@ -7,7 +7,7 @@
  * const response = await client.sendRequest(JsonRpcRequestStub({ ... }));
  * await client.close();
  */
-import type { Guild, Quest, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { spawn } from '#gateway/node/child_process';
 import { clearTimeout } from '#gateway/node/clearTimeout';
 import { readFileSync } from '#gateway/node/fs';
@@ -44,7 +44,7 @@ const JSON_INDENT_SPACES = 2;
 
 interface McpClient {
   process: ReturnType<typeof spawn>;
-  dungeonmasterHome: GuildPath;
+  dungeonmasterHome: string;
   sendRequest: (request: JsonRpcRequest) => Promise<JsonRpcReply>;
   close: () => Promise<void>;
 }
@@ -61,13 +61,13 @@ export const mcpServerHarness = (): {
     response: JsonRpcReply;
   }) => ReturnType<typeof ListToolsResultSchema.parse>;
   seedQuest: (params: {
-    dungeonmasterHome: GuildPath;
+    dungeonmasterHome: string;
     guildId: Guild['id'];
     questFolder: Quest['folder'];
     quest: unknown;
   }) => Promise<void>;
   readQuestFile: (params: {
-    dungeonmasterHome: GuildPath;
+    dungeonmasterHome: string;
     guildId: Guild['id'];
     questFolder: Quest['folder'];
   }) => unknown;
@@ -254,7 +254,7 @@ export const mcpServerHarness = (): {
     questFolder,
     quest,
   }: {
-    dungeonmasterHome: GuildPath;
+    dungeonmasterHome: string;
     guildId: Guild['id'];
     questFolder: Quest['folder'];
     quest: unknown;
@@ -274,7 +274,7 @@ export const mcpServerHarness = (): {
     guildId,
     questFolder,
   }: {
-    dungeonmasterHome: GuildPath;
+    dungeonmasterHome: string;
     guildId: Guild['id'];
     questFolder: Quest['folder'];
   }): unknown => {

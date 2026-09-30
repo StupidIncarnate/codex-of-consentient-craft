@@ -1,6 +1,5 @@
 import { guildPathDeriveTransformer } from './guild-path-derive-transformer';
 import { DmTargetStub } from '../../contracts/dm-target/dm-target.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildPathDeriveTransformer', () => {
   describe('a relative fragment', () => {
@@ -9,7 +8,7 @@ describe('guildPathDeriveTransformer', () => {
 
       const result = guildPathDeriveTransformer({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
       });
 
       expect(result).toBe('/tmp/dm-home/guilds-under-test/guild-1');
@@ -20,11 +19,11 @@ describe('guildPathDeriveTransformer', () => {
 
       const first = guildPathDeriveTransformer({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
       });
       const second = guildPathDeriveTransformer({
         target,
-        path: GuildPathStub({ value: 'guilds-under-test/guild-2' }),
+        path: 'guilds-under-test/guild-2',
       });
 
       expect([first, second]).toStrictEqual([
@@ -40,7 +39,7 @@ describe('guildPathDeriveTransformer', () => {
 
       const result = guildPathDeriveTransformer({
         target,
-        path: GuildPathStub({ value: '/real/project' }),
+        path: '/real/project',
       });
 
       expect(result).toBe('/real/project');

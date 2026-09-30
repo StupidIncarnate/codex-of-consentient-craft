@@ -13,8 +13,6 @@
  * guildDefaultPathBumpTransformer({ path: guildPathContract.parse('/home/user/real-project'), by: 1 });
  * // Returns '/home/user/real-project' unchanged
  */
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 const DEFAULT_PATH_PATTERN = /^(guilds-under-test\/guild-)(\d+)$/u;
 
@@ -22,14 +20,14 @@ export const guildDefaultPathBumpTransformer = ({
   path,
   by,
 }: {
-  path: GuildPath;
+  path: string;
   by: number;
-}): GuildPath => {
+}): string => {
   const match = DEFAULT_PATH_PATTERN.exec(path);
   if (match === null) {
     return path;
   }
 
   const [, prefix, digits] = match;
-  return guildPathContract.parse(`${prefix ?? ''}${Number(digits) + by}`);
+  return `${prefix ?? ''}${Number(digits) + by}`;
 };

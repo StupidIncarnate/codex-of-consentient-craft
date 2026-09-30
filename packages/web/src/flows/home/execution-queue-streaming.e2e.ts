@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -8,7 +7,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-exec-queue-stream' });
+const GUILD_PATH = '/tmp/dm-e2e-exec-queue-stream';
 const QUEUE_TIMEOUT = 9_000;
 
 // Sentinel the overlap probe returns when either element is absent, so a missing bar fails the

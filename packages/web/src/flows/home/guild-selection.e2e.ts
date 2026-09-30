@@ -1,12 +1,11 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_A_PATH = GuildPathStub({ value: '/tmp/dm-e2e-guild-a' });
-const GUILD_B_PATH = GuildPathStub({ value: '/tmp/dm-e2e-guild-b' });
-const EMPTY_GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-empty' });
+const GUILD_A_PATH = '/tmp/dm-e2e-guild-a';
+const GUILD_B_PATH = '/tmp/dm-e2e-guild-b';
+const EMPTY_GUILD_PATH = '/tmp/dm-e2e-empty';
 
 const envA = environmentHarness({ guildPath: GUILD_A_PATH });
 wireHarnessLifecycle({ harness: envA, testObj: test });

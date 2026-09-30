@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -9,7 +8,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-summary-human-check' });
+const GUILD_PATH = '/tmp/dm-e2e-quest-summary-human-check';
 const PANEL_TIMEOUT = 10_000;
 const SUMMARY_REQUEST_TIMEOUT = 15_000;
 const VERDICT_REQUEST_TIMEOUT = 15_000;

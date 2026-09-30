@@ -1,11 +1,10 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-delete-and-overlay' });
+const GUILD_PATH = '/tmp/dm-e2e-composer-paste-delete-and-overlay';
 const IMAGE_SIZE_PX = 20;
 
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });

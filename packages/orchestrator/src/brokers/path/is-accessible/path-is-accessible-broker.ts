@@ -9,10 +9,9 @@
  * // Returns true if the path exists, false otherwise (never throws)
  */
 
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { pathExists } from '#gateway/node/fs__promises';
 
-export const pathIsAccessibleBroker = async ({ path }: { path?: GuildPath }): Promise<boolean> => {
+export const pathIsAccessibleBroker = async ({ path }: { path?: string }): Promise<boolean> => {
   if (!path) {
     return false;
   }

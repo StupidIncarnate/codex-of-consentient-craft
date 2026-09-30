@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +5,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { commentBoxHarness } from '../../../test/harnesses/comment-box/comment-box.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-comment-bubble-fill' });
+const GUILD_PATH = '/tmp/dm-e2e-comment-bubble-fill';
 const REVIEW_FLOWS = 'review_flows';
 // The seeded flow paints three FLOW_NODE cards and two FLOW_OBSERVABLE_NODE cards, so five boxes
 // carry a bubble. Every count assertion below is against this total: "one filled" only means

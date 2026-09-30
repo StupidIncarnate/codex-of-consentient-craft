@@ -26,7 +26,7 @@ import * as path from '#gateway/node/path';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { GuildPath, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import type { DispatchHoldStub } from '@dungeonmaster/shared/contracts/dispatch-hold/dispatch-hold.stub';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 
@@ -61,24 +61,24 @@ const POLL_TIMEOUT_MS = TimeoutMsStub({ value: 8000 });
 const QUIET_WINDOW_MS = TimeoutMsStub({ value: 500 });
 
 export const rateLimitsWatcherHarness = (): {
-  begin: ({ name }: { name: BaseName }) => { tempDir: GuildPath; end: () => Promise<void> };
-  writeSnapshot: (params: { tempDir: GuildPath; snapshot: RateLimitsSnapshot }) => Promise<void>;
-  writeRaw: (params: { tempDir: GuildPath; content: string }) => Promise<void>;
+  begin: ({ name }: { name: BaseName }) => { tempDir: string; end: () => Promise<void> };
+  writeSnapshot: (params: { tempDir: string; snapshot: RateLimitsSnapshot }) => Promise<void>;
+  writeRaw: (params: { tempDir: string; content: string }) => Promise<void>;
   seedLedger: (params: {
-    tempDir: GuildPath;
+    tempDir: string;
     fiveHour: number | null;
     sevenDay: number | null;
     hourAt: number;
     tokens: number;
   }) => Promise<void>;
   seedDispatch: (params: {
-    tempDir: GuildPath;
+    tempDir: string;
     mode: DispatchState['mode'];
     hold?: DispatchHold;
   }) => Promise<void>;
-  readDispatch: ({ tempDir }: { tempDir: GuildPath }) => PersistedDispatchState;
-  awaitHoldDetail: ({ tempDir, detail }: { tempDir: GuildPath; detail: string }) => Promise<void>;
-  awaitHoldCleared: ({ tempDir }: { tempDir: GuildPath }) => Promise<void>;
+  readDispatch: ({ tempDir }: { tempDir: string }) => PersistedDispatchState;
+  awaitHoldDetail: ({ tempDir, detail }: { tempDir: string; detail: string }) => Promise<void>;
+  awaitHoldCleared: ({ tempDir }: { tempDir: string }) => Promise<void>;
   awaitQuiet: () => Promise<void>;
   pollUntil: ({ condition }: { condition: () => boolean }) => Promise<void>;
   getStateSnapshot: () => RateLimitsSnapshot | null;
@@ -107,7 +107,7 @@ export const rateLimitsWatcherHarness = (): {
       tempDir,
       snapshot,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       snapshot: RateLimitsSnapshot;
     }): Promise<void> => {
       await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
@@ -117,7 +117,7 @@ export const rateLimitsWatcherHarness = (): {
       tempDir,
       content,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       content: string;
     }): Promise<void> => {
       await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), content);
@@ -134,7 +134,7 @@ export const rateLimitsWatcherHarness = (): {
       hourAt,
       tokens,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       fiveHour: number | null;
       sevenDay: number | null;
       hourAt: number;
@@ -158,7 +158,7 @@ export const rateLimitsWatcherHarness = (): {
       mode,
       hold,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       mode: DispatchState['mode'];
       hold?: DispatchHold;
     }): Promise<void> => {
@@ -175,7 +175,7 @@ export const rateLimitsWatcherHarness = (): {
     // Reads the file WITHOUT coalescing: an absent `hold` key comes back undefined and an
     // explicitly cleared one comes back null, which is the difference between "the guardrail never
     // wrote" and "the guardrail lifted the hold".
-    readDispatch: ({ tempDir }: { tempDir: GuildPath }): PersistedDispatchState => {
+    readDispatch: ({ tempDir }: { tempDir: string }): PersistedDispatchState => {
       const raw = fs.readFileSync(path.join(tempDir, DISPATCH_STATE_FILENAME));
       const parsed = JSON.parse(raw) as {
         mode: DispatchState['mode'];
@@ -293,7 +293,7 @@ export const rateLimitsWatcherHarness = (): {
   return {
     ...core,
 
-    begin: ({ name }: { name: BaseName }): { tempDir: GuildPath; end: () => Promise<void> } => {
+    begin: ({ name }: { name: BaseName }): { tempDir: string; end: () => Promise<void> } => {
       const testbed = installTestbedCreateBroker({ baseName: name });
       const tempDir = testbed.guildPath;
 
@@ -358,7 +358,7 @@ export const rateLimitsWatcherHarness = (): {
       tempDir,
       detail,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       detail: string;
     }): Promise<void> => {
       await core.pollUntil({
@@ -367,7 +367,7 @@ export const rateLimitsWatcherHarness = (): {
       await core.awaitQuiet();
     },
 
-    awaitHoldCleared: async ({ tempDir }: { tempDir: GuildPath }): Promise<void> => {
+    awaitHoldCleared: async ({ tempDir }: { tempDir: string }): Promise<void> => {
       await core.pollUntil({ condition: () => core.readDispatch({ tempDir }).hold === null });
       await core.awaitQuiet();
     },

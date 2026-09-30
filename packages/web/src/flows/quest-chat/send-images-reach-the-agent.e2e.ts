@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -13,7 +12,7 @@ import { composerPasteHarness } from '../../../test/harnesses/composer-paste/com
 import { composerSendHarness } from '../../../test/harnesses/composer-send/composer-send.harness';
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-images-reach-agent' });
+const GUILD_PATH = '/tmp/dm-e2e-send-images-reach-agent';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { DirectoryBrowseResponderProxy } from './directory-browse-responder.proxy';
 
@@ -16,7 +15,7 @@ describe('DirectoryBrowseResponder', () => {
       });
 
       const result = proxy.callResponder({
-        path: GuildPathStub({ value: '/home/user/projects' }),
+        path: '/home/user/projects',
       });
 
       expect(result).toStrictEqual([

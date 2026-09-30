@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +5,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { stickyHeaderHarness } from '../../../test/harnesses/sticky-header/sticky-header.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-sticky-chain-header-flush' });
+const GUILD_PATH = '/tmp/dm-e2e-sticky-chain-header-flush';
 
 // On the chat surface there is no execution row above it, so the chain is the outermost expandable
 // and pins at zero. The nested chain inside it clears that header.

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
@@ -21,7 +20,7 @@ import { questSpecReadonlyHarness } from '../../../test/harnesses/quest-spec-rea
 // popover, and flow-tab switching are already covered by other flows' suites (operations-approval-
 // gate.e2e.ts, quest-begin-transition.e2e.ts, guild-creation.e2e.ts, quest-delete-from-root.e2e.ts,
 // flow-diagram-interaction.e2e.ts) — this file only adds what nothing else covers.
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-panel-edit-mode-removed' });
+const GUILD_PATH = '/tmp/dm-e2e-spec-panel-edit-mode-removed';
 const PANEL_TIMEOUT = 10_000;
 const CLARIFY_TIMEOUT = 10_000;
 

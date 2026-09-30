@@ -8,6 +8,7 @@ import { recipesGuildEmptyBroker } from '../../recipes/guild-empty/recipes-guild
 import { recipesSessionSingleTurnBroker } from '../../recipes/session-single-turn/recipes-session-single-turn-broker';
 import { recipesSessionWithNestedChainBroker } from '../../recipes/session-with-nested-chain/recipes-session-with-nested-chain-broker';
 import type { SessionRecordStub } from '../../../contracts/session-record/session-record.stub';
+import { SessionWithNestedChainInputsStub } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 type SessionRecord = ReturnType<typeof SessionRecordStub>;
@@ -36,11 +37,11 @@ describe('dmRegistryBroker — composing recipes against one target (DEF-78, int
     const secondGuild = (secondGuildResult as Record<PropertyKey, unknown>)[GUILD_NAME] as Guild;
 
     const singleTurnResult = await run(
-      recipesSessionSingleTurnBroker({ guildPath: firstGuild.path }),
+      recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: firstGuild.path })),
       target,
     );
     const nestedChainResult = await run(
-      recipesSessionWithNestedChainBroker({ guildPath: firstGuild.path }),
+      recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: firstGuild.path })),
       target,
     );
     const singleTurnSession = (singleTurnResult as Record<PropertyKey, unknown>)[

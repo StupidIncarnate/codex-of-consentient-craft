@@ -28,7 +28,6 @@
  * // else the original path unchanged
  */
 import { existsSync } from '#gateway/node/fs';
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { guildDefaultPathBumpTransformer } from '../../../transformers/guild-default-path-bump/guild-default-path-bump-transformer';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
@@ -39,8 +38,8 @@ export const guildUniquePathResolveBroker = ({
   path,
 }: {
   target: DmTarget;
-  path: GuildPath;
-}): GuildPath => {
+  path: string;
+}): string => {
   const absolute = guildPathDeriveTransformer({ target, path });
 
   if (!existsSync(absolute)) {

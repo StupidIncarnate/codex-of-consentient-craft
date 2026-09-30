@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { orchestrationEnvironmentHarness } from '../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 
@@ -18,7 +17,7 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'My Test App' });
-      const path = GuildPathStub({ value: '/home/user/my-test-app' });
+      const path = '/home/user/my-test-app';
 
       const result = await GuildFlow.add({ name, path });
 
@@ -41,7 +40,7 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'Findable Guild' });
-      const path = GuildPathStub({ value: '/home/user/findable-guild' });
+      const path = '/home/user/findable-guild';
 
       const added = await GuildFlow.add({ name, path });
       const guildId = GuildIdStub({ value: added.id });
@@ -81,7 +80,7 @@ describe('GuildFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
       const name = GuildNameStub({ value: 'Listed Guild' });
-      const path = GuildPathStub({ value: '/home/user/listed-guild' });
+      const path = '/home/user/listed-guild';
 
       const added = await GuildFlow.add({ name, path });
 
@@ -111,11 +110,11 @@ describe('GuildFlow', () => {
 
       const first = await GuildFlow.add({
         name: GuildNameStub({ value: 'First Guild' }),
-        path: GuildPathStub({ value: '/home/user/first-guild' }),
+        path: '/home/user/first-guild',
       });
       const second = await GuildFlow.add({
         name: GuildNameStub({ value: 'Second Guild' }),
-        path: GuildPathStub({ value: '/home/user/second-guild' }),
+        path: '/home/user/second-guild',
       });
 
       const result = await GuildFlow.list();
@@ -153,7 +152,7 @@ describe('GuildFlow', () => {
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'Original Name' }),
-        path: GuildPathStub({ value: '/home/user/original-path' }),
+        path: '/home/user/original-path',
       });
       const guildId = GuildIdStub({ value: added.id });
       const newName = GuildNameStub({ value: 'Updated Name' });
@@ -180,10 +179,10 @@ describe('GuildFlow', () => {
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'Guild With Path' }),
-        path: GuildPathStub({ value: '/home/user/old-path' }),
+        path: '/home/user/old-path',
       });
       const guildId = GuildIdStub({ value: added.id });
-      const newPath = GuildPathStub({ value: '/home/user/new-path' });
+      const newPath = '/home/user/new-path';
 
       const result = await GuildFlow.update({ guildId, path: newPath });
 
@@ -207,7 +206,7 @@ describe('GuildFlow', () => {
 
       const added = await GuildFlow.add({
         name: GuildNameStub({ value: 'To Be Removed' }),
-        path: GuildPathStub({ value: '/home/user/to-be-removed' }),
+        path: '/home/user/to-be-removed',
       });
       const guildId = GuildIdStub({ value: added.id });
 
@@ -229,11 +228,11 @@ describe('GuildFlow', () => {
 
       const first = await GuildFlow.add({
         name: GuildNameStub({ value: 'First' }),
-        path: GuildPathStub({ value: '/home/user/first' }),
+        path: '/home/user/first',
       });
       const second = await GuildFlow.add({
         name: GuildNameStub({ value: 'Second' }),
-        path: GuildPathStub({ value: '/home/user/second' }),
+        path: '/home/user/second',
       });
 
       await GuildFlow.remove({ guildId: GuildIdStub({ value: first.id }) });
@@ -313,7 +312,7 @@ describe('GuildFlow', () => {
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const path = GuildPathStub({ value: '/home/user/duplicate-path' });
+      const path = '/home/user/duplicate-path';
 
       await GuildFlow.add({
         name: GuildNameStub({ value: 'First Guild' }),

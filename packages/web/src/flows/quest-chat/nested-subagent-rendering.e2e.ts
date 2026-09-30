@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
@@ -10,7 +9,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-nested-subagent-rendering' });
+const GUILD_PATH = '/tmp/dm-e2e-nested-subagent-rendering';
 const HTTP_OK = 200;
 const CHAIN_TIMEOUT = 10_000;
 

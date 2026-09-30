@@ -7,7 +7,7 @@
  * await OrchestrationStartupRecoveryResponder({guildItems});
  */
 
-import type { GuildPath, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -18,7 +18,7 @@ type Quest = ReturnType<typeof QuestStub>;
 export const OrchestrationStartupRecoveryResponderProxy = (): {
   setupGuildWithQuests: (params: {
     guildId: Guild['id'];
-    guildPath: GuildPath;
+    guildPath: string;
     quests: Quest[];
   }) => void;
   getRegisteredProcessIds: () => readonly ProcessId[];

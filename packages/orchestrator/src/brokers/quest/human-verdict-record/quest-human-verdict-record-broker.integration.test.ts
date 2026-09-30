@@ -5,7 +5,6 @@ import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observa
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -80,7 +79,7 @@ describe('questHumanVerdictRecordBroker (integration — real disk)', () => {
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Human Verdict Round Trip Guild' }),
-      path: GuildPathStub({ value: testbed.guildPath }),
+      path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({
       ...smoketestBlueprintsStatics.minimal,
@@ -133,7 +132,7 @@ describe('questHumanVerdictRecordBroker (integration — real disk)', () => {
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Human Verdict Replace Guild' }),
-      path: GuildPathStub({ value: testbed.guildPath }),
+      path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub({
       ...smoketestBlueprintsStatics.minimal,

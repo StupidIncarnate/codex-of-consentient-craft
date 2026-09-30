@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -24,7 +24,6 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub
 import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
@@ -123,11 +122,11 @@ export const orchestrationQuestHarness = (): {
   // sha as the quest's baseRef. `-c user.*`/`-c commit.gpgsign=false` scope identity + signing to
   // this one invocation so the test never depends on (or mutates) the developer's real git
   // config.
-  initGitRepoAndCommitBase: (params: { repoPath: GuildPath }) => Promise<{ baseRef: GitBaseRef }>;
+  initGitRepoAndCommitBase: (params: { repoPath: string }) => Promise<{ baseRef: GitBaseRef }>;
   // Writes each file under repoPath and commits them on top of the base commit, so
   // `git diff baseRef...HEAD --name-only` reports exactly these paths as changed.
   commitChangedFiles: (params: {
-    repoPath: GuildPath;
+    repoPath: string;
     files: readonly { relativePath: RepoRelativePath; content: string }[];
   }) => Promise<void>;
   // Raw file bytes of quest.json — for asserting a refused gate persisted NOTHING (byte-identical
@@ -265,7 +264,7 @@ export const orchestrationQuestHarness = (): {
   const initGitRepoAndCommitBase = async ({
     repoPath,
   }: {
-    repoPath: GuildPath;
+    repoPath: string;
   }): Promise<{ baseRef: GitBaseRef }> => {
     const cwd = String(repoPath);
     await runGit({ args: ['init'], cwd });
@@ -285,7 +284,7 @@ export const orchestrationQuestHarness = (): {
     repoPath,
     files,
   }: {
-    repoPath: GuildPath;
+    repoPath: string;
     files: readonly { relativePath: RepoRelativePath; content: string }[];
   }): Promise<void> => {
     const cwd = String(repoPath);
@@ -413,7 +412,7 @@ export const orchestrationQuestHarness = (): {
     }) => {
       const guild = await GuildAddResponder({
         name: GuildNameStub({ value: 'Integ Test Guild' }),
-        path: GuildPathStub({ value: testbed.guildPath }),
+        path: testbed.guildPath,
       });
 
       createdGuildIds.push(guild.id);

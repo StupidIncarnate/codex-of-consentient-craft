@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +5,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-pause-resume-matrix' });
+const GUILD_PATH = '/tmp/dm-e2e-pause-resume-matrix';
 const HTTP_OK = 200;
 
 // Derive iteration list from statics — NEVER hardcode. Per testing-patterns callout:

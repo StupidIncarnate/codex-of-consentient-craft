@@ -1,11 +1,10 @@
 import { guildDefaultPathBumpTransformer } from './guild-default-path-bump-transformer';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 describe('guildDefaultPathBumpTransformer', () => {
   describe('a default fragment', () => {
     it('VALID: {path: "guilds-under-test/guild-1", by: 1} => returns "guilds-under-test/guild-2"', () => {
       const result = guildDefaultPathBumpTransformer({
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1' }),
+        path: 'guilds-under-test/guild-1',
         by: 1,
       });
 
@@ -14,7 +13,7 @@ describe('guildDefaultPathBumpTransformer', () => {
 
     it('VALID: {path: "guilds-under-test/guild-9", by: 3} => returns "guilds-under-test/guild-12"', () => {
       const result = guildDefaultPathBumpTransformer({
-        path: GuildPathStub({ value: 'guilds-under-test/guild-9' }),
+        path: 'guilds-under-test/guild-9',
         by: 3,
       });
 
@@ -25,7 +24,7 @@ describe('guildDefaultPathBumpTransformer', () => {
   describe('a path not matching the default shape', () => {
     it('VALID: {path: "/home/user/real-project", by: 1} => returns it unchanged', () => {
       const result = guildDefaultPathBumpTransformer({
-        path: GuildPathStub({ value: '/home/user/real-project' }),
+        path: '/home/user/real-project',
         by: 1,
       });
 
@@ -34,7 +33,7 @@ describe('guildDefaultPathBumpTransformer', () => {
 
     it('VALID: {path: "guilds-under-test/guild-1-extra", by: 1} => returns it unchanged', () => {
       const result = guildDefaultPathBumpTransformer({
-        path: GuildPathStub({ value: 'guilds-under-test/guild-1-extra' }),
+        path: 'guilds-under-test/guild-1-extra',
         by: 1,
       });
 

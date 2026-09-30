@@ -8,11 +8,10 @@
  * isAbsoluteGuildPathGuard({ path: guildPathContract.parse('/tmp/guild-1') });
  * // Returns true
  */
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 const WINDOWS_DRIVE_PREFIX_PATTERN = /^[A-Za-z]:[/\\]/u;
 
-export const isAbsoluteGuildPathGuard = ({ path }: { path?: GuildPath }): boolean => {
+export const isAbsoluteGuildPathGuard = ({ path }: { path?: string }): boolean => {
   if (!path) {
     return false;
   }

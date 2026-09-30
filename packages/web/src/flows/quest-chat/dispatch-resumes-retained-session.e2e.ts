@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -8,7 +7,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-dispatch-resumes-retained-session' });
+const GUILD_PATH = '/tmp/dm-e2e-dispatch-resumes-retained-session';
 const PANEL_TIMEOUT = 10_000;
 const RELAY_TIMEOUT = 20_000;
 

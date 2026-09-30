@@ -10,9 +10,9 @@ import { readdirEntriesSync } from '#gateway/node/fs';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { directoryEntryContract } from '@dungeonmaster/shared/contracts';
-import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry } from '@dungeonmaster/shared/contracts';
 
-export const directoryBrowseBroker = ({ path }: { path?: GuildPath }): DirectoryEntry[] => {
+export const directoryBrowseBroker = ({ path }: { path?: string }): DirectoryEntry[] => {
   const targetPath = path ?? homedir();
 
   const entries = readdirEntriesSync(targetPath);

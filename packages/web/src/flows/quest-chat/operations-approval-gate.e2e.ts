@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -6,7 +5,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-operations-approval-gate' });
+const GUILD_PATH = '/tmp/dm-e2e-operations-approval-gate';
 const PANEL_TIMEOUT = 10_000;
 const MODAL_TIMEOUT = 5_000;
 const REQUEST_TIMEOUT = 5_000;

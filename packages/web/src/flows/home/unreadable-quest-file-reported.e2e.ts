@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -6,7 +5,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-unreadable-quest-report' });
+const GUILD_PATH = '/tmp/dm-e2e-unreadable-quest-report';
 const HTTP_OK = 200;
 const ROW_TIMEOUT = 10_000;
 // Every folder on disk must be represented by exactly one surface: two readable quest rows

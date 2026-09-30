@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -10,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-composer-paste-draft-reload' });
+const GUILD_PATH = '/tmp/dm-e2e-composer-paste-draft-reload';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;

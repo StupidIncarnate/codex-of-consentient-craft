@@ -11,8 +11,6 @@
  * guildPathDeriveTransformer({ target, path: guildPathContract.parse('guilds-under-test/guild-1') });
  * // Returns '<target.home>/guilds-under-test/guild-1' as GuildPath
  */
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { isAbsoluteGuildPathGuard } from '../../guards/is-absolute-guild-path/is-absolute-guild-path-guard';
 import type { DmTarget } from '../../contracts/dm-target/dm-target-contract';
@@ -22,6 +20,6 @@ export const guildPathDeriveTransformer = ({
   path,
 }: {
   target: DmTarget;
-  path: GuildPath;
-}): GuildPath =>
-  guildPathContract.parse(isAbsoluteGuildPathGuard({ path }) ? path : `${target.home}/${path}`);
+  path: string;
+}): string =>
+  (isAbsoluteGuildPathGuard({ path }) ? path : `${target.home}/${path}`);

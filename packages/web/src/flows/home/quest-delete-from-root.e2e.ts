@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
 import { randomUUID } from '#gateway/node/crypto';
@@ -9,7 +8,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { URL } from '#gateway/node/url';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-delete-from-root' });
+const GUILD_PATH = '/tmp/dm-e2e-quest-delete-from-root';
 const HTTP_OK = 200;
 const HTTP_BAD_REQUEST = 400;
 const NAV_TIMEOUT = 5_000;

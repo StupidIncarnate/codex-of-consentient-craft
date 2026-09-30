@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -9,7 +8,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-tab-bar' });
+const GUILD_PATH = '/tmp/dm-e2e-followup-tab-bar';
 const PANEL_TIMEOUT = 10_000;
 // A tavernkeeper turn ends on the spawned child's exit, which is a process lifecycle rather than a
 // render — measured at up to ~20s here — so the composer's return to SEND gets its own budget

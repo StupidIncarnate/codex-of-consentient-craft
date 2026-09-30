@@ -1,7 +1,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -53,7 +52,7 @@ describe('preStampInProgressLayerBroker (integration — real disk, real concurr
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Pre-Stamp Pause Race Guild' }),
-      path: GuildPathStub({ value: testbed.guildPath }),
+      path: testbed.guildPath,
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
     const { questId } = await questHydrateBroker({ blueprint, guildId: guild.id });

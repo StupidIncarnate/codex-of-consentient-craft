@@ -13,7 +13,7 @@ import { Link, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Center, Group, Text } from '#gateway/npm/mantine__core';
 
-import type { GuildName, GuildPath, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { GuildName, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
@@ -246,7 +246,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
         onClose={() => {
           setAddGuildModalOpened(false);
         }}
-        onSubmit={({ name, path }: { name: GuildName; path: GuildPath }) => {
+        onSubmit={({ name, path }: { name: GuildName; path: string }) => {
           guildCreateBroker({ name: String(name), path: String(path) })
             .then(async ({ id }) => {
               setAddGuildModalOpened(false);

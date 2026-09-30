@@ -1,4 +1,3 @@
-import { GuildPathStub } from '../../../contracts/guild-path/guild-path.stub';
 import { cwdResolveBroker } from './cwd-resolve-broker';
 import { cwdResolveBrokerProxy } from './cwd-resolve-broker.proxy';
 import { GuildRootNotFoundError } from '../../../errors/guild-root-not-found/guild-root-not-found-error';
@@ -88,7 +87,7 @@ describe('cwdResolveBroker', () => {
 
       proxy.setupGuildPathFoundInParent({
         startPath: '/dm/guilds/foo/quests/q1',
-        guildPath: GuildPathStub({ value: '/dm/guilds/foo' }),
+        guildPath: '/dm/guilds/foo',
       });
 
       const result = await cwdResolveBroker({ startPath, kind: 'guild-path' });

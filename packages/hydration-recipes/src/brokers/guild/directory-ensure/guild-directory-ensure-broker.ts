@@ -19,7 +19,6 @@
  */
 import { ensureDir } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -28,7 +27,7 @@ export const guildDirectoryEnsureBroker = async ({
   path,
 }: {
   target: DmTarget;
-  path: GuildPath;
+  path: string;
 }): Promise<void> => {
   const targetRoot = resolve(target.home);
   const guildDir = resolve(path);

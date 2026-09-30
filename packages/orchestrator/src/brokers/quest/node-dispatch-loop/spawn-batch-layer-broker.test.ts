@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -17,7 +16,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -60,7 +59,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ role: 'codeweaver' });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -85,7 +84,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ model: 'haiku' });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -110,7 +109,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -141,7 +140,7 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 4 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -163,7 +162,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -192,7 +191,7 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -219,7 +218,7 @@ describe('spawnBatchLayerBroker', () => {
       });
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });
@@ -246,7 +245,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });
@@ -272,7 +271,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 1 });
@@ -285,7 +284,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifyRejectsOnce({ error: new Error('quest.json locked') });
 
@@ -327,7 +326,7 @@ describe('spawnBatchLayerBroker', () => {
       const instruction = SpawnInstructionStub();
       proxy.setupQuestContext({
         questId: instruction.questId,
-        guildPath: GuildPathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
       });
       proxy.setupModifySucceeds({ times: 2 });
       proxy.setupSpawnEmitsSessionThenExits({ sessionId: SESSION_ID, exitCode: 0 });

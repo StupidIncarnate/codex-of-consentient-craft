@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
 import { randomUUID } from '#gateway/node/crypto';
@@ -8,7 +7,7 @@ import { sessionHarness } from '../../../test/harnesses/session/session.harness'
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-home-session-list-distinct-rows' });
+const GUILD_PATH = '/tmp/dm-e2e-home-session-list-distinct-rows';
 const HTTP_OK = 200;
 const NAV_TIMEOUT = 5_000;
 

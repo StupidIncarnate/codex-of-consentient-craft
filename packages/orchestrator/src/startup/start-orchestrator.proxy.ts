@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildName, GuildPath, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, GuildName, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -99,14 +99,14 @@ export const StartOrchestratorProxy = (): {
   listGuildsThrows: (params: { error: Error }) => void;
   getGuildReturns: (params: { guild: Guild }) => void;
   getGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
-  addGuildReturns: (params: { name: GuildName; path: GuildPath; guild: Guild }) => void;
-  addGuildThrows: (params: { name: GuildName; path: GuildPath; error: Error }) => void;
+  addGuildReturns: (params: { name: GuildName; path: string; guild: Guild }) => void;
+  addGuildThrows: (params: { name: GuildName; path: string; error: Error }) => void;
   updateGuildReturns: (params: { guildId: Guild['id']; guild: Guild }) => void;
   updateGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   removeGuildResolves: (params: { guildId: Guild['id'] }) => void;
   removeGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
-  browseDirectoriesReturns: (params: { path?: GuildPath; entries: DirectoryEntry[] }) => void;
-  browseDirectoriesThrows: (params: { path?: GuildPath; error: Error }) => void;
+  browseDirectoriesReturns: (params: { path?: string; entries: DirectoryEntry[] }) => void;
+  browseDirectoriesThrows: (params: { path?: string; error: Error }) => void;
   // Quest read methods — QuestFlow, via quest-*-broker.
   listQuestsReturns: (params: { guildId: Guild['id']; quests: QuestListItem[] }) => void;
   listQuestsThrows: (params: { guildId: Guild['id']; error: Error }) => void;
@@ -419,7 +419,7 @@ export const StartOrchestratorProxy = (): {
       guild,
     }: {
       name: GuildName;
-      path: GuildPath;
+      path: string;
       guild: Guild;
     }): void => {
       addGuildHandle.calledWith([{ name, path }]).resolves(guild);
@@ -430,7 +430,7 @@ export const StartOrchestratorProxy = (): {
       error,
     }: {
       name: GuildName;
-      path: GuildPath;
+      path: string;
       error: Error;
     }): void => {
       addGuildHandle.calledWith([{ name, path }]).rejects(error);
@@ -452,12 +452,12 @@ export const StartOrchestratorProxy = (): {
       path,
       entries,
     }: {
-      path?: GuildPath;
+      path?: string;
       entries: DirectoryEntry[];
     }): void => {
       browseDirectoriesHandle.calledWith(path === undefined ? [{}] : [{ path }]).returns(entries);
     },
-    browseDirectoriesThrows: ({ path, error }: { path?: GuildPath; error: Error }): void => {
+    browseDirectoriesThrows: ({ path, error }: { path?: string; error: Error }): void => {
       browseDirectoriesHandle.calledWith(path === undefined ? [{}] : [{ path }]).throws(error);
     },
     listQuestsReturns: ({

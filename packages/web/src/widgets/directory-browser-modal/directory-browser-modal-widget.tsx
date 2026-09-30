@@ -8,15 +8,14 @@
 
 import { Button, Group, Loader, Modal, NavLink, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { useDirectoryBrowserBinding } from '../../bindings/use-directory-browser/use-directory-browser-binding';
 
 export interface DirectoryBrowserModalWidgetProps {
   opened: boolean;
   onClose: () => void;
-  onSelect: (params: { path: GuildPath }) => void;
-  initialPath?: GuildPath;
+  onSelect: (params: { path: string }) => void;
+  initialPath?: string;
 }
 
 export const DirectoryBrowserModalWidget = ({

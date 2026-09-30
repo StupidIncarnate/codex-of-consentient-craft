@@ -8,7 +8,6 @@ import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-nod
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
@@ -1548,7 +1547,7 @@ describe('QuestFlow', () => {
       });
       // tempDir doubles as DUNGEONMASTER_HOME AND the repo root the cwd resolves to:
       // the guild gets path === repo root === testbed dir.
-      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      const repoRoot = testbed.guildPath;
       envHarness.setupHome({ tempDir: repoRoot });
       await envHarness.writeRepoRootMarker({ repoRoot });
       const cwd = envHarness.chdirInto({ dir: repoRoot });
@@ -1591,7 +1590,7 @@ describe('QuestFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'qf-mcp-reuse',
       });
-      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      const repoRoot = testbed.guildPath;
       envHarness.setupHome({ tempDir: repoRoot });
       await envHarness.writeRepoRootMarker({ repoRoot });
 
@@ -1635,7 +1634,7 @@ describe('QuestFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'qf-mcp-subfolder',
       });
-      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      const repoRoot = testbed.guildPath;
       envHarness.setupHome({ tempDir: repoRoot });
       // .dungeonmaster.json lives ONLY at the repo root, so cwdResolveBroker walking up from the
       // subfolder resolves to the repo root.
@@ -1647,7 +1646,7 @@ describe('QuestFlow', () => {
       });
 
       // Create a nested subfolder under the repo root and run create-quest from there.
-      const subfolder = GuildPathStub({ value: `${String(repoRoot)}/packages/some-pkg/src` });
+      const subfolder = `${String(repoRoot)}/packages/some-pkg/src`;
       const cwd = envHarness.makeAndChdir({ dir: subfolder });
 
       const result = await QuestFlow.mcpCreate({ userRequest });
@@ -1680,7 +1679,7 @@ describe('QuestFlow', () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'qf-mcp-fallback',
       });
-      const repoRoot = GuildPathStub({ value: testbed.guildPath });
+      const repoRoot = testbed.guildPath;
       // setupHome writes config.json but NO .dungeonmaster.json — and /tmp has none up the tree,
       // so cwdResolveBroker walks to filesystem root and throws ProjectRootNotFoundError, exercising
       // the literal-cwd fallback against the real resolver (not a mocked rejection).

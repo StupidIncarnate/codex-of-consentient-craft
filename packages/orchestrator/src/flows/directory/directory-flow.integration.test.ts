@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { homeDirectoryMarkerHarness } from '../../../test/harnesses/home-directory-marker/home-directory-marker.harness';
 import { DirectoryFlow } from './directory-flow';
@@ -16,7 +15,7 @@ describe('DirectoryFlow', () => {
         content: '',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -45,7 +44,7 @@ describe('DirectoryFlow', () => {
         content: '',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -74,7 +73,7 @@ describe('DirectoryFlow', () => {
         content: 'content',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -94,7 +93,7 @@ describe('DirectoryFlow', () => {
         baseName: 'dir-flow-empty',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -121,7 +120,7 @@ describe('DirectoryFlow', () => {
         content: '',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -160,7 +159,7 @@ describe('DirectoryFlow', () => {
         content: '',
       });
 
-      const result = DirectoryFlow({ path: GuildPathStub({ value: testbed.guildPath }) });
+      const result = DirectoryFlow({ path: testbed.guildPath });
 
       testbed.cleanup();
 
@@ -197,7 +196,7 @@ describe('DirectoryFlow', () => {
     it('ERROR: {path: nonexistent directory} => throws ENOENT error', () => {
       expect(() =>
         DirectoryFlow({
-          path: GuildPathStub({ value: '/nonexistent-path-that-does-not-exist-12345' }),
+          path: '/nonexistent-path-that-does-not-exist-12345',
         }),
       ).toThrow(/ENOENT/u);
     });

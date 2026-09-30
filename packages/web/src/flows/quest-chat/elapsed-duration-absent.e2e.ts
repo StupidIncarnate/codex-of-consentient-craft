@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
@@ -8,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { workItemStatusContract } from '@dungeonmaster/shared/contracts';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-elapsed-duration-absent' });
+const GUILD_PATH = '/tmp/dm-e2e-elapsed-duration-absent';
 const PANEL_TIMEOUT = 10_000;
 
 // Every scenario below freezes the browser's Date at this exact instant via page.clock, mirroring

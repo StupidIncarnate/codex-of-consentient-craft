@@ -89,7 +89,7 @@ const guildNameContract = z.string().brand<'GuildName'>();
 
 export const guildFieldsContract = z.object({
   name: guildNameContract,
-  path: z.string().brand<'GuildPath'>(),
+  path: z.string().brand<'GuildFieldsPath'>(),
 });
 export const guildRecordContract = z.object({
   id: guildIdContract,

@@ -9,13 +9,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { guildNameContract } from '../guild-name/guild-name-contract';
-import { guildPathContract } from '../guild-path/guild-path-contract';
 import { urlSlugContract } from '../url-slug/url-slug-contract';
 
 export const guildContract = z.object({
   id: z.uuid().brand<'GuildId'>(),
   name: guildNameContract,
-  path: guildPathContract,
+  path: z.string().min(1).brand<'GuildPath'>(),
   urlSlug: urlSlugContract.optional(),
   createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
 });

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -134,7 +133,7 @@ describe('StartOrchestrator', () => {
     });
 
     it('ERROR: {path: nonexistent} => browseDirectories delegates to DirectoryFlow and throws ENOENT', () => {
-      const path = GuildPathStub({ value: '/nonexistent/path/that/does/not/exist' });
+      const path = '/nonexistent/path/that/does/not/exist';
 
       expect(() => StartOrchestrator.browseDirectories({ path })).toThrow(/ENOENT|no such file/u);
     });

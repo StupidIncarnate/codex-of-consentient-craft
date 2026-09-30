@@ -7,7 +7,6 @@
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -33,7 +32,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('recoverable quest statuses', () => {
     it('VALID: {quest status: created} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-created' });
       const quest = QuestStub({ id: questId, folder: '001-created-quest', status: 'created' });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
@@ -50,7 +49,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: pending} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-pending' });
       const quest = QuestStub({ id: questId, folder: '001-pending-quest', status: 'pending' });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
@@ -67,7 +66,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: explore_flows} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-explore-flows' });
       const quest = QuestStub({
         id: questId,
@@ -88,7 +87,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: flows_approved} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-flows-approved' });
       const quest = QuestStub({
         id: questId,
@@ -109,7 +108,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: explore_observables} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-explore-obs' });
       const quest = QuestStub({
         id: questId,
@@ -130,7 +129,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: in_progress} => registers process for recovery', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-in-progress' });
       const quest = QuestStub({
         id: questId,
@@ -153,7 +152,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('non-recoverable quest statuses', () => {
     it('VALID: {quest status: review_flows} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-review-flows' });
       const quest = QuestStub({
         id: questId,
@@ -174,7 +173,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: review_observables} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-review-obs' });
       const quest = QuestStub({
         id: questId,
@@ -195,7 +194,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: approved} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-approved' });
       const quest = QuestStub({
         id: questId,
@@ -216,7 +215,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: complete} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-complete' });
       const quest = QuestStub({
         id: questId,
@@ -237,7 +236,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: abandoned} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-abandoned' });
       const quest = QuestStub({
         id: questId,
@@ -258,7 +257,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: blocked} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-blocked' });
       const quest = QuestStub({
         id: questId,
@@ -279,7 +278,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {quest status: paused} => does not register process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-paused' });
       const quest = QuestStub({
         id: questId,
@@ -302,7 +301,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('directory read errors', () => {
     it('VALID: {ENOENT error reading quest directory} => returns empty array without throwing', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 
       const proxy = RecoverGuildLayerResponderProxy();
@@ -316,7 +315,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('ERROR: {non-ENOENT error reading quest directory} => throws the original error', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
 
       const proxy = RecoverGuildLayerResponderProxy();
@@ -336,7 +335,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('existing process', () => {
     it('VALID: {recoverable quest with existing process} => does not register duplicate process', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-with-process' });
       const quest = QuestStub({
         id: questId,
@@ -365,7 +364,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('orphaned in_progress work items', () => {
     it('VALID: {quest with ward in_progress work item, no running process} => resets ward item to pending before launching loop', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-orphaned-ward' });
       const wardItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const wardWorkItem = WorkItemStub({
@@ -407,7 +406,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('orphaned agent work items with a retained session', () => {
     it('VALID: {in_progress codeweaver orphan WITH sessionId} => resets to pending KEEPING sessionId and gaining resume: true', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-orphaned-resume' });
       const orphanItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const sessionId = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
@@ -461,7 +460,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {in_progress codeweaver orphan WITHOUT sessionId} => resets to pending without the resume marker', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-orphaned-fresh' });
       const orphanItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const orphanWorkItem = WorkItemStub({
@@ -507,7 +506,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {in_progress quest with only a pending item, no running process} => does not re-reset the pending item', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-pending-item' });
       const pendingItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const pendingWorkItem = WorkItemStub({
@@ -543,7 +542,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('missing worktree', () => {
     it('ERROR: {recoverable quest whose recorded worktree is missing} => the quest is blocked with a reason naming the absolute path, no loop is launched for it, and it is absent from recoveredIds', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-missing-worktree' });
       const workItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const workItem = WorkItemStub({ id: workItemId, status: 'pending' });
@@ -584,7 +583,7 @@ describe('RecoverGuildLayerResponder', () => {
 
     it('VALID: {two recoverable quests, one with a missing worktree} => the other quest is still recovered', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const missingQuestId = QuestIdStub({ value: 'quest-missing-worktree-2' });
       const okQuestId = QuestIdStub({ value: 'quest-ok-2' });
       const worktreePath = '/repo/worktrees/missing-quest-2';
@@ -613,7 +612,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('drifted worktree branch', () => {
     it('VALID: {worktree present but left on another branch} => the quest branch is re-checked-out before the loop launches', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-drifted-branch' });
       const branchName = QuestBranchNameStub({ value: 'quest/drifted-branch-quest-drifted-b' });
       const worktreePath = '/repo/worktrees/drifted-branch-quest';
@@ -654,7 +653,7 @@ describe('RecoverGuildLayerResponder', () => {
     // line's `[recover-guild-layer-responder]` prefix is the one thing that differs between them.
     it('EDGE: {worktree drifted and the checkout back onto the quest branch fails} => the quest is still recovered, logging under this triggers own prefix', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-drifted-restore-fails' });
       const branchName = QuestBranchNameStub({ value: 'quest/drifted-restore-fails-d1e2f3a4' });
       const worktreePath = '/repo/worktrees/drifted-restore-fails-quest';
@@ -701,7 +700,7 @@ describe('RecoverGuildLayerResponder', () => {
   describe('legacy quest with no recorded worktreePath', () => {
     it('VALID: {quest with no recorded worktreePath} => recovered exactly as before, not blocked, no git command run', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-legacy-no-worktree' });
       const quest = QuestStub({
         id: questId,

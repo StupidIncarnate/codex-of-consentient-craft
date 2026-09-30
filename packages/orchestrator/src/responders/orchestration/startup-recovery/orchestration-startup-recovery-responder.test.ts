@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -12,7 +11,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
   describe('quest recovery', () => {
     it('VALID: {guild with in_progress quest} => registers process and returns quest id', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'active-quest' });
       const quest = QuestStub({ id: questId, folder: '001-active-quest', status: 'in_progress' });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
@@ -27,7 +26,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
 
     it('VALID: {guild with created quest} => recovers created quest', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'created-quest' });
       const quest = QuestStub({ id: questId, folder: '001-created-quest', status: 'created' });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });
@@ -42,7 +41,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
 
     it('VALID: {guild with complete quest} => skips non-recoverable quest', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const quest = QuestStub({
         id: QuestIdStub({ value: 'done-quest' }),
         folder: '001-done-quest',
@@ -80,7 +79,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
   describe('orchestration loop launch', () => {
     it('VALID: {recoverable quest} => registers process with abort-capable kill handle', async () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
-      const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
+      const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'progress-quest' });
       const quest = QuestStub({ id: questId, folder: '001-progress-quest', status: 'in_progress' });
       const guildItem = GuildListItemStub({ id: guildId, path: guildPath, valid: true });

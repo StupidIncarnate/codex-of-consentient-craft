@@ -12,15 +12,14 @@ import * as fs from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import type { GuildName, GuildPath, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildName, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
 
 interface QueueHarness {
-  initDirs: (params: { baseDir: GuildPath }) => {
+  initDirs: (params: { baseDir: string }) => {
     claudeQueueDir: string;
     wardQueueDir: string;
   };
@@ -44,7 +43,7 @@ const USAGE_LEDGER_FILENAME = 'usage-ledger.json';
 // assigns `HOME` once, before any worker forks), shared across every worker and every test file in
 // the run — an unthrottled walk here would pick up transcripts other tests' fake Claude CLIs already
 // wrote into it, not just spend time reading them.
-const seedHomeFiles = ({ homeDir }: { homeDir: GuildPath }): void => {
+const seedHomeFiles = ({ homeDir }: { homeDir: string }): void => {
   fs.mkdirSync(homeDir, { recursive: true });
   fs.writeFileSync(path.join(homeDir, GUILD_CONFIG_FILENAME), JSON.stringify({ guilds: [] }));
   fs.writeFileSync(
@@ -61,28 +60,28 @@ const seedHomeFiles = ({ homeDir }: { homeDir: GuildPath }): void => {
 export const orchestrationEnvironmentHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
-  setupHome: (params: { tempDir: GuildPath }) => {
+  setupHome: (params: { tempDir: string }) => {
     restore: () => void;
   };
-  seedHome: (params: { tempDir: GuildPath }) => Promise<void>;
-  writeRepoRootMarker: (params: { repoRoot: GuildPath }) => Promise<void>;
+  seedHome: (params: { tempDir: string }) => Promise<void>;
+  writeRepoRootMarker: (params: { repoRoot: string }) => Promise<void>;
   seedQuestRepoPackages: (params: {
-    repoRoot: GuildPath;
+    repoRoot: string;
     locations: readonly string[];
     sources?: readonly string[];
   }) => Promise<void>;
-  chdirInto: (params: { dir: GuildPath }) => { restore: () => void };
-  makeAndChdir: (params: { dir: GuildPath }) => { restore: () => void };
+  chdirInto: (params: { dir: string }) => { restore: () => void };
+  makeAndChdir: (params: { dir: string }) => { restore: () => void };
   readConfigGuilds: (params: {
-    tempDir: GuildPath;
-  }) => readonly { name: GuildName; path: GuildPath; guildId: Guild['id']; urlSlug: UrlSlug }[];
-  questsDirExists: (params: { tempDir: GuildPath; guildId: Guild['id'] }) => boolean;
-  questFilePersisted: (params: { tempDir: GuildPath; guildId: Guild['id']; questId: Quest['id'] }) => {
+    tempDir: string;
+  }) => readonly { name: GuildName; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[];
+  questsDirExists: (params: { tempDir: string; guildId: Guild['id'] }) => boolean;
+  questFilePersisted: (params: { tempDir: string; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
     questIdInFile: boolean;
   };
-  seedRepoRootGuild: (params: { tempDir: GuildPath }) => Promise<{ guildPath: GuildPath }>;
-  setup: (params: { tempDir: GuildPath; queueHarness: QueueHarness }) => {
+  seedRepoRootGuild: (params: { tempDir: string }) => Promise<{ guildPath: string }>;
+  setup: (params: { tempDir: string; queueHarness: QueueHarness }) => {
     claudeQueueDir: string;
     wardQueueDir: string;
     restore: () => void;
@@ -112,7 +111,7 @@ export const orchestrationEnvironmentHarness = (): {
         }
       }
     },
-    setupHome: ({ tempDir }: { tempDir: GuildPath }): { restore: () => void } => {
+    setupHome: ({ tempDir }: { tempDir: string }): { restore: () => void } => {
       const savedDungeonmasterHome = getEnv('DUNGEONMASTER_HOME');
       setEnv('DUNGEONMASTER_HOME', tempDir);
 
@@ -139,11 +138,11 @@ export const orchestrationEnvironmentHarness = (): {
     // Async because `ban-sync-seeding-methods` requires it of every `seed*` harness method. The
     // writes stay on the sync `seedHomeFiles` this shares with `setupHome`, which cannot itself
     // become async without changing every caller of the restore handle it returns inline.
-    seedHome: async ({ tempDir }: { tempDir: GuildPath }): Promise<void> => {
+    seedHome: async ({ tempDir }: { tempDir: string }): Promise<void> => {
       await Promise.resolve();
       seedHomeFiles({ homeDir: tempDir });
     },
-    writeRepoRootMarker: async ({ repoRoot }: { repoRoot: GuildPath }): Promise<void> => {
+    writeRepoRootMarker: async ({ repoRoot }: { repoRoot: string }): Promise<void> => {
       // Drop a `.dungeonmaster.json` at the repo root so cwdResolveBroker({ kind: 'repo-root' })
       // walking up from cwd() resolves to this directory.
       await ensureDir(repoRoot);
@@ -154,7 +153,7 @@ export const orchestrationEnvironmentHarness = (): {
       locations,
       sources = [],
     }: {
-      repoRoot: GuildPath;
+      repoRoot: string;
       locations: readonly string[];
       sources?: readonly string[];
     }): Promise<void> => {
@@ -180,7 +179,7 @@ export const orchestrationEnvironmentHarness = (): {
         }),
       );
     },
-    chdirInto: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
+    chdirInto: ({ dir }: { dir: string }): { restore: () => void } => {
       // questMcpCreateBroker reads cwd() verbatim via processCwdAdapter; chdir so the
       // real cwd walk-up anchors on this testbed dir, not the host repo.
       const savedCwd = cwd();
@@ -191,7 +190,7 @@ export const orchestrationEnvironmentHarness = (): {
         },
       };
     },
-    makeAndChdir: ({ dir }: { dir: GuildPath }): { restore: () => void } => {
+    makeAndChdir: ({ dir }: { dir: string }): { restore: () => void } => {
       // Create a nested subfolder (so create-quest can run from inside an ancestor guild) and
       // chdir into it; restore the original cwd afterwards.
       const savedCwd = cwd();
@@ -206,11 +205,11 @@ export const orchestrationEnvironmentHarness = (): {
     readConfigGuilds: ({
       tempDir,
     }: {
-      tempDir: GuildPath;
-    }): readonly { name: GuildName; path: GuildPath; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
+      tempDir: string;
+    }): readonly { name: GuildName; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
       const raw = fs.readFileSync(path.join(tempDir, 'config.json'));
       const parsed = JSON.parse(raw) as {
-        guilds: { name: GuildName; path: GuildPath; id: Guild['id']; urlSlug: UrlSlug }[];
+        guilds: { name: GuildName; path: string; id: Guild['id']; urlSlug: UrlSlug }[];
       };
       return parsed.guilds.map((guild) => ({
         name: guild.name,
@@ -219,14 +218,14 @@ export const orchestrationEnvironmentHarness = (): {
         urlSlug: guild.urlSlug,
       }));
     },
-    questsDirExists: ({ tempDir, guildId }: { tempDir: GuildPath; guildId: Guild['id'] }): boolean =>
+    questsDirExists: ({ tempDir, guildId }: { tempDir: string; guildId: Guild['id'] }): boolean =>
       fs.existsSync(path.join(tempDir, 'guilds', guildId, 'quests')),
     questFilePersisted: ({
       tempDir,
       guildId,
       questId,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       guildId: Guild['id'];
       questId: Quest['id'];
     }): { exists: boolean; questIdInFile: boolean } => {
@@ -240,13 +239,13 @@ export const orchestrationEnvironmentHarness = (): {
     seedRepoRootGuild: async ({
       tempDir,
     }: {
-      tempDir: GuildPath;
-    }): Promise<{ guildPath: GuildPath }> => {
+      tempDir: string;
+    }): Promise<{ guildPath: string }> => {
       // Drop a `.dungeonmaster.json` at the testbed dir so cwdResolveBroker({ kind: 'repo-root' })
       // walks up from the home AND from the registered guild.path to the SAME repo root —
       // that's the equality smoketestEnsureGuildBroker requires before returning a guildId.
       fs.writeFileSync(path.join(tempDir, '.dungeonmaster.json'), '{}');
-      const guildPath = guildPathContract.parse(tempDir);
+      const guildPath = tempDir;
       await guildAddBroker({
         name: GuildNameStub({ value: 'codex' }),
         path: guildPath,
@@ -258,7 +257,7 @@ export const orchestrationEnvironmentHarness = (): {
       tempDir,
       queueHarness,
     }: {
-      tempDir: GuildPath;
+      tempDir: string;
       queueHarness: QueueHarness;
     }): {
       claudeQueueDir: string;

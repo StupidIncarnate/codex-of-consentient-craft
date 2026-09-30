@@ -176,7 +176,6 @@ export * from './url-slug/url-slug-contract';
 
 export * from './guild-name/guild-name-contract';
 
-export * from './guild-path/guild-path-contract';
 
 export * from './guild/guild-contract';
 

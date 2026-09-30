@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
@@ -12,7 +11,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-bughunt-begin-transition' });
+const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 10_000;
 const RESPONSE_TIMEOUT = 5_000;

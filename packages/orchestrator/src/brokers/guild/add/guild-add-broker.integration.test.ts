@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { guildAddBroker } from './guild-add-broker';
@@ -26,7 +25,7 @@ describe('guildAddBroker â€” a supplied home confines every write (integration â
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Targeted Guild' }),
-      path: GuildPathStub({ value: targetTestbed.guildPath }),
+      path: targetTestbed.guildPath,
       home: targetTestbed.guildPath,
     });
 
@@ -77,7 +76,7 @@ describe('guildAddBroker â€” a supplied home confines every write (integration â
 
     const guild = await guildAddBroker({
       name: GuildNameStub({ value: 'Default Home Guild' }),
-      path: GuildPathStub({ value: otherTestbed.guildPath }),
+      path: otherTestbed.guildPath,
     });
 
     const registeredInEnvHome = envHarness.readConfigGuilds({ tempDir: envTestbed.guildPath });

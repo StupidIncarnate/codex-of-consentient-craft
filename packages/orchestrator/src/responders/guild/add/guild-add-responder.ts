@@ -6,7 +6,7 @@
  * // Returns the newly created Guild
  */
 
-import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { Guild, GuildName } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../brokers/guild/add/guild-add-broker';
 
@@ -15,5 +15,5 @@ export const GuildAddResponder = async ({
   path,
 }: {
   name: GuildName;
-  path: GuildPath;
+  path: string;
 }): Promise<Guild> => guildAddBroker({ name, path });

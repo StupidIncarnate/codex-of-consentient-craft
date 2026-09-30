@@ -1,9 +1,8 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-dispatch-pause-between-specs' });
+const GUILD_PATH = '/tmp/dm-e2e-dispatch-pause-between-specs';
 const HTTP_OK = 200;
 
 // The dispatcher is ONE in-memory singleton for the whole run — `workers: 1` and

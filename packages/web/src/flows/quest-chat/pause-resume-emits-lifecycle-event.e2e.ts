@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -10,7 +9,7 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { wsQuestLifecycleHarness } from '../../../test/harnesses/ws-quest-lifecycle/ws-quest-lifecycle.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-pause-resume-lifecycle' });
+const GUILD_PATH = '/tmp/dm-e2e-pause-resume-lifecycle';
 const PANEL_TIMEOUT = 10_000;
 const WIRE_TIMEOUT = 10_000;
 

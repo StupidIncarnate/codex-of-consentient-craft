@@ -7,11 +7,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
+import { guildNameContract } from '@dungeonmaster/shared/contracts';
 
 export const guildUpdateBodyContract = z.object({
   name: guildNameContract.optional(),
-  path: guildPathContract.optional(),
+  path: z.string().min(1).brand<'GuildUpdateBodyPath'>().optional(),
 });
 
 export type GuildUpdateBody = z.infer<typeof guildUpdateBodyContract>;

@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { now } from '#gateway/node/Date';
@@ -12,7 +11,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { rateLimitsHarness } from '../../../test/harnesses/rate-limits/rate-limits.harness';
 import { URL } from '#gateway/node/url';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-multi-widget-coexistence' });
+const GUILD_PATH = '/tmp/dm-e2e-multi-widget-coexistence';
 const WIDGET_TIMEOUT = 10_000;
 const QUEUE_TIMEOUT = 9_000;
 const BACKEND_WS_PATHNAME = '/ws';

@@ -8,25 +8,25 @@
 import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
-import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBroker } from '../../brokers/directory/browse/directory-browse-broker';
 import { parentPathTransformer } from '../../transformers/parent-path/parent-path-transformer';
 
 export const useDirectoryBrowserBinding = (): {
-  currentPath: GuildPath | null;
+  currentPath: string | null;
   entries: DirectoryEntry[];
   loading: boolean;
-  navigateTo: (params: { path: GuildPath }) => void;
+  navigateTo: (params: { path: string }) => void;
   goUp: () => void;
 } => {
-  const [currentPath, setCurrentPath] = useState<GuildPath | null>(null);
-  const [displayPath, setDisplayPath] = useState<GuildPath | null>(null);
+  const [currentPath, setCurrentPath] = useState<string | null>(null);
+  const [displayPath, setDisplayPath] = useState<string | null>(null);
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const initialResolved = useRef(false);
 
-  const browse = useCallback(async ({ path }: { path: GuildPath | null }): Promise<void> => {
+  const browse = useCallback(async ({ path }: { path: string | null }): Promise<void> => {
     setLoading(true);
 
     try {
@@ -52,7 +52,7 @@ export const useDirectoryBrowserBinding = (): {
     });
   }, [browse, currentPath]);
 
-  const navigateTo = useCallback(({ path }: { path: GuildPath }): void => {
+  const navigateTo = useCallback(({ path }: { path: string }): void => {
     setCurrentPath(path);
     setDisplayPath(path);
   }, []);

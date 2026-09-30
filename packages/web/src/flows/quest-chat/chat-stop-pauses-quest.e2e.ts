@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -13,7 +12,7 @@ import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/ass
 import { ResultStreamLineStub } from '@dungeonmaster/shared/contracts/result-stream-line/result-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-chat-stop-pauses-quest' });
+const GUILD_PATH = '/tmp/dm-e2e-chat-stop-pauses-quest';
 const HTTP_OK = 200;
 const PANEL_TIMEOUT = 10_000;
 const CHAT_TIMEOUT = 10_000;

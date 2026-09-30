@@ -1,5 +1,4 @@
 import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts/directory-entry/directory-entry.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
@@ -67,7 +66,7 @@ describe('useDirectoryBrowserBinding', () => {
         expect(currentState().loading).toBe(false);
       });
 
-      const targetPath = GuildPathStub({ value: '/home' });
+      const targetPath = '/home';
       const { navigateTo } = result.current;
 
       proxy.setupEntries({
@@ -105,7 +104,7 @@ describe('useDirectoryBrowserBinding', () => {
         expect(currentState().loading).toBe(false);
       });
 
-      const targetPath = GuildPathStub({ value: '/home/user' });
+      const targetPath = '/home/user';
 
       proxy.setupEntries({ entries: [] });
 

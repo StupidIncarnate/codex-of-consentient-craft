@@ -1,4 +1,3 @@
-import { GuildPathStub } from '../../../contracts/guild-path/guild-path.stub';
 import { guildPathWalkUpLayerBroker } from './guild-path-walk-up-layer-broker';
 import { guildPathWalkUpLayerBrokerProxy } from './guild-path-walk-up-layer-broker.proxy';
 import { GuildRootNotFoundError } from '../../../errors/guild-root-not-found/guild-root-not-found-error';
@@ -22,7 +21,7 @@ describe('guildPathWalkUpLayerBroker', () => {
 
       proxy.setupGuildFoundInParent({
         startPath: '/dm/guilds/foo/quests/q1',
-        guildPath: GuildPathStub({ value: '/dm/guilds/foo' }),
+        guildPath: '/dm/guilds/foo',
       });
 
       const result = await guildPathWalkUpLayerBroker({ startPath });

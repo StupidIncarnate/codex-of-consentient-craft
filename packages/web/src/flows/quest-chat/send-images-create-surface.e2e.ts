@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -7,7 +6,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { composerPasteHarness } from '../../../test/harnesses/composer-paste/composer-paste.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-send-images-create-surface' });
+const GUILD_PATH = '/tmp/dm-e2e-send-images-create-surface';
 const IMAGE_SIZE_PX = 20;
 const PANEL_TIMEOUT = 10_000;
 const HTTP_OK = 200;

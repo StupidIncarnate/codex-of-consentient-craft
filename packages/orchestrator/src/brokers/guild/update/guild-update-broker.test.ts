@@ -1,7 +1,6 @@
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
@@ -45,7 +44,7 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/old-path',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const newPath = GuildPathStub({ value: '/home/user/new-path' });
+      const newPath = '/home/user/new-path';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -72,7 +71,7 @@ describe('guildUpdateBroker', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
       });
       const newName = GuildNameStub({ value: 'New Name' });
-      const newPath = GuildPathStub({ value: '/home/user/new-path' });
+      const newPath = '/home/user/new-path';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -149,7 +148,7 @@ describe('guildUpdateBroker', () => {
         name: 'Second Guild',
         path: '/home/user/second',
       });
-      const duplicatePath = GuildPathStub({ value: '/home/user/taken-path' });
+      const duplicatePath = '/home/user/taken-path';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild1, guild2] }),
@@ -173,7 +172,7 @@ describe('guildUpdateBroker', () => {
         name: 'Second Guild',
         path: '/home/user/second',
       });
-      const duplicatePath = GuildPathStub({ value: '/home/user/taken-path' });
+      const duplicatePath = '/home/user/taken-path';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild1, guild2] }),
@@ -193,7 +192,7 @@ describe('guildUpdateBroker', () => {
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const samePath = GuildPathStub({ value: '/home/user/my-app' });
+      const samePath = '/home/user/my-app';
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [guild] }),

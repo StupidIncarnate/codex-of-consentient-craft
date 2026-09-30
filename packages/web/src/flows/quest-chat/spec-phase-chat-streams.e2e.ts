@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
@@ -8,7 +7,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-spec-phase-chat-streams' });
+const GUILD_PATH = '/tmp/dm-e2e-spec-phase-chat-streams';
 const PANEL_TIMEOUT = 10_000;
 const STREAM_TIMEOUT = 30_000;
 const ASSISTANT_TEXT = 'Let me pin the reproduction steps.';

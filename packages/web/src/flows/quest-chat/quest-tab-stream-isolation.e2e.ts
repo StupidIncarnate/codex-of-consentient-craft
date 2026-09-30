@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
@@ -12,7 +11,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-quest-tab-stream-isolation' });
+const GUILD_PATH = '/tmp/dm-e2e-quest-tab-stream-isolation';
 const PANEL_TIMEOUT = 10_000;
 const STREAM_TIMEOUT = 20_000;
 const SETTLE_TIMEOUT = 8_000;

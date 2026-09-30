@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { elapsedDurationHarness } from '../../../test/harnesses/elapsed-duration/elapsed-duration.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -8,7 +7,7 @@ import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { subagentDurationHarness } from '../../../test/harnesses/subagent-duration/subagent-duration.harness';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-subagent-duration-nested' });
+const GUILD_PATH = '/tmp/dm-e2e-subagent-duration-nested';
 const PANEL_TIMEOUT = 10_000;
 const TICK_MS = elapsedDisplayConfigStatics.refresh.tickMs;
 

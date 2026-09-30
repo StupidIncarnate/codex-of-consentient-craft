@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
@@ -12,7 +11,7 @@ import { navigationHarness } from '../../../test/harnesses/navigation/navigation
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-clarify-design-decisions' });
+const GUILD_PATH = '/tmp/dm-e2e-clarify-design-decisions';
 const CHAT_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 5_000;
 

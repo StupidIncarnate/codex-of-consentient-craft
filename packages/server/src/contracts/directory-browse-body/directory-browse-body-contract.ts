@@ -7,10 +7,9 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
 
 export const directoryBrowseBodyContract = z.object({
-  path: guildPathContract.optional(),
+  path: z.string().min(1).brand<'DirectoryBrowseBodyPath'>().optional(),
 });
 
 export type DirectoryBrowseBody = z.infer<typeof directoryBrowseBodyContract>;

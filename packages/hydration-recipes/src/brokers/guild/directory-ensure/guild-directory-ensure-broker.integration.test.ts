@@ -1,6 +1,5 @@
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { guildDirectoryEnsureBroker } from './guild-directory-ensure-broker';
 import { guildQueryRouteBroker } from '../query-route/guild-query-route-broker';
@@ -16,7 +15,7 @@ describe('guild directory ensure — the directory it creates lands inside the t
 
   it('VALID: {path inside the target} => a guild registered at that path reads back valid: true', async () => {
     const target = fileTarget.target();
-    const guildPath = GuildPathStub({ value: `${target.home}/guilds-under-test/guild-1` });
+    const guildPath = `${target.home}/guilds-under-test/guild-1`;
 
     await guildDirectoryEnsureBroker({ target, path: guildPath });
     const registered = await guildAddBroker({
@@ -40,7 +39,7 @@ describe('guild directory ensure — the directory it creates lands inside the t
 
   it('VALID: {no mkdir run first} => the same registration reads back valid: false', async () => {
     const target = fileTarget.target();
-    const guildPath = GuildPathStub({ value: `${target.home}/guilds-under-test/guild-1` });
+    const guildPath = `${target.home}/guilds-under-test/guild-1`;
 
     const registered = await guildAddBroker({
       name: GuildNameStub({ value: 'Guild 1' }),

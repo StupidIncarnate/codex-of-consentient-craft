@@ -14,10 +14,9 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionWithNestedChainInputsContract = z.object({
-  guildPath: guildPathContract,
+  guildPath: z.string().min(1).brand<'SessionWithNestedChainInputsGuildPath'>(),
 });
 
 export type SessionWithNestedChainInputs = z.infer<typeof sessionWithNestedChainInputsContract>;

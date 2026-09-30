@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -14,7 +13,7 @@ import {
   LIFECYCLE_WITHIN_WINDOW,
 } from '../../../test/harnesses/comment-queue-lifecycle/comment-queue-lifecycle.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-comment-queue-storage-lifecycle' });
+const GUILD_PATH = '/tmp/dm-e2e-comment-queue-storage-lifecycle';
 
 const FIRST_BOX_TEXT = 'the note left on the first box';
 const SECOND_BOX_TEXT = 'the note left on the second box';

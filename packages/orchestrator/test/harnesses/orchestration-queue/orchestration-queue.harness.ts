@@ -9,13 +9,12 @@
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import type { GuildPath } from '@dungeonmaster/shared/contracts';
 import { ArrayIndexStub } from '@dungeonmaster/shared/contracts/array-index/array-index.stub';
 
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
-  initDirs: (params: { baseDir: GuildPath }) => {
+  initDirs: (params: { baseDir: string }) => {
     claudeQueueDir: string;
     wardQueueDir: string;
   };
@@ -34,7 +33,7 @@ export const orchestrationQueueHarness = (): {
     initDirs: ({
       baseDir,
     }: {
-      baseDir: GuildPath;
+      baseDir: string;
     }): {
       claudeQueueDir: string;
       wardQueueDir: string;

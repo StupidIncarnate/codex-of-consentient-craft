@@ -6,6 +6,7 @@ import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesGuildMidExecutionBroker } from '../guild-mid-execution/recipes-guild-mid-execution-broker';
 import { recipesSessionSingleTurnBroker } from './recipes-session-single-turn-broker';
 import type { SessionRecordStub } from '../../../contracts/session-record/session-record.stub';
+import { SessionWithNestedChainInputsStub } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs.stub';
 
 type Guild = ReturnType<typeof GuildStub>;
 type SessionRecord = ReturnType<typeof SessionRecordStub>;
@@ -39,7 +40,7 @@ describe('recipesSessionSingleTurnBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesSessionSingleTurnBroker({ guildPath: guild.path }), target);
+      const result = await run(recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })), target);
 
       expect(Object.keys(result).sort()).toStrictEqual(['session']);
     });
@@ -49,7 +50,7 @@ describe('recipesSessionSingleTurnBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesSessionSingleTurnBroker({ guildPath: guild.path }), target);
+      const result = await run(recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })), target);
       const session = (result as Record<PropertyKey, unknown>)[SESSION_NAME] as SessionRecord;
 
       expect({ sessionId: session.sessionId, cwd: session.cwd }).toStrictEqual({

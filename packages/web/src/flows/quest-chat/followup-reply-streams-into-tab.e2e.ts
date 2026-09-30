@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -13,7 +12,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-reply-streams' });
+const GUILD_PATH = '/tmp/dm-e2e-followup-reply-streams';
 const PANEL_TIMEOUT = 10_000;
 // The window the FIRST streamed turn has to appear in. Generous because the tail attaches
 // asynchronously (work-item stamp → quest outbox → watcher reconcile → tail opened at `end`).

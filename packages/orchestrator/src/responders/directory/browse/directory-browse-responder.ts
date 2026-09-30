@@ -6,9 +6,9 @@
  * // Returns DirectoryEntry[] for the given path
  */
 
-import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { DirectoryEntry } from '@dungeonmaster/shared/contracts';
 
 import { directoryBrowseBroker } from '../../../brokers/directory/browse/directory-browse-broker';
 
-export const DirectoryBrowseResponder = ({ path }: { path?: GuildPath }): DirectoryEntry[] =>
+export const DirectoryBrowseResponder = ({ path }: { path?: string }): DirectoryEntry[] =>
   directoryBrowseBroker(path === undefined ? {} : { path });

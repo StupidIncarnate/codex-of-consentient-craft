@@ -26,8 +26,7 @@ import {
   reconcileWatchersResultContract,
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
-import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
@@ -48,7 +47,7 @@ export const ReconcileWatchersLayerResponder = async ({
   // the repo-root that's also the guild's path. In e2e tests the dev server's cwd
   // (packages/server) does NOT match the synthetic guildPath (/tmp/dm-e2e-…), so a
   // cwd-encoded path would point at a directory the test never seeds.
-  const guildPathByQuestId = new Map<Quest['id'], GuildPath>();
+  const guildPathByQuestId = new Map<Quest['id'], string>();
   const questsByGuild = await Promise.all(
     guilds
       .filter((guild) => guild.valid)
@@ -63,7 +62,7 @@ export const ReconcileWatchersLayerResponder = async ({
   const loadedQuests = questsByGuild.flat();
 
   const target = new Set<Session['id']>();
-  const projectDirBySessionId = new Map<Session['id'], GuildPath>();
+  const projectDirBySessionId = new Map<Session['id'], string>();
   // Which entries came from a quest's own `sessions` ledger rather than from the per-quest guess.
   // Tracked separately so "measured beats inferred" holds regardless of the order guilds are walked
   // in — see the comment at the assignment below.
@@ -87,7 +86,7 @@ export const ReconcileWatchersLayerResponder = async ({
     const questProjectDir =
       quest.worktreePath === undefined
         ? guildPathByQuestId.get(quest.id)
-        : guildPathContract.parse(quest.worktreePath);
+        : quest.worktreePath;
     for (const wi of quest.workItems) {
       if (wi.sessionId === undefined) continue;
       if (!isActiveWorkItemStatusGuard({ status: wi.status })) continue;
@@ -101,7 +100,7 @@ export const ReconcileWatchersLayerResponder = async ({
       const recordedCwd = questSessionCwdTransformer({ quest, sessionId: wi.sessionId });
       if (recordedCwd !== null) {
         if (!recordedProjectDirSessions.has(wi.sessionId)) {
-          projectDirBySessionId.set(wi.sessionId, guildPathContract.parse(recordedCwd));
+          projectDirBySessionId.set(wi.sessionId, recordedCwd);
           recordedProjectDirSessions.add(wi.sessionId);
         }
       } else if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {

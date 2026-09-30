@@ -6,7 +6,7 @@
  * // Returns the updated Guild object
  */
 
-import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { Guild, GuildName } from '@dungeonmaster/shared/contracts';
 
 import { guildUpdateBroker } from '../../../brokers/guild/update/guild-update-broker';
 
@@ -17,7 +17,7 @@ export const GuildUpdateResponder = async ({
 }: {
   guildId: Guild['id'];
   name?: GuildName;
-  path?: GuildPath;
+  path?: string;
 }): Promise<Guild> =>
   guildUpdateBroker({
     guildId,

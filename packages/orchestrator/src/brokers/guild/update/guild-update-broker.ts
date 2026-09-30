@@ -8,7 +8,7 @@
  */
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
-import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { Guild, GuildName } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
@@ -22,7 +22,7 @@ export const guildUpdateBroker = async ({
 }: {
   guildId: Guild['id'];
   name?: GuildName;
-  path?: GuildPath;
+  path?: string;
 }): Promise<Guild> => {
   const config = await guildConfigReadBroker();
 

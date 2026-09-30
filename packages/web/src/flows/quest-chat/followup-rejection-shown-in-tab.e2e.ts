@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -15,7 +14,7 @@ import { environmentHarness } from '../../../test/harnesses/environment/environm
 import { followupHarness } from '../../../test/harnesses/followup/followup.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-followup-rejection' });
+const GUILD_PATH = '/tmp/dm-e2e-followup-rejection';
 
 const HTTP_BAD_REQUEST = 400;
 const HTTP_OK = 200;

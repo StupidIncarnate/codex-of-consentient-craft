@@ -1,4 +1,3 @@
-import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
@@ -24,7 +23,7 @@ import {
   VIEW_COMMENTS_FLOW_BETA_NAME,
 } from '../../../test/harnesses/persisted-comments/persisted-comments.harness';
 
-const GUILD_PATH = GuildPathStub({ value: '/tmp/dm-e2e-view-persisted-comments' });
+const GUILD_PATH = '/tmp/dm-e2e-view-persisted-comments';
 const REVIEW_FLOWS = 'review_flows';
 const APPROVED = 'approved';
 
