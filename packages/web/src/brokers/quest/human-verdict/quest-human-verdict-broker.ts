@@ -9,7 +9,7 @@
  * // Returns { ok: true } on success, throws with the server's reason on refusal or failure
  */
 
-import type { ObservableId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, FlowObservable } from '@dungeonmaster/shared/contracts';
 
 import { fetchWithStatus } from '#gateway/browser/fetch';
 
@@ -23,7 +23,7 @@ export const questHumanVerdictBroker = async ({
   reason,
 }: {
   questId: Quest['id'];
-  unitId: ObservableId;
+  unitId: FlowObservable['id'];
   outcome: 'met' | 'not-met';
   reason: string;
 }): Promise<{ ok: true }> => {

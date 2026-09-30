@@ -18,7 +18,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gatew
 import { Group } from '#gateway/npm/mantine__core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '#gateway/npm/tabler__icons-react';
 
-import type { Flow, FlowNode, FlowObservable, ObservableId, PackageName, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
+import type { Flow, FlowNode, FlowObservable, PackageName, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
 import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
@@ -227,7 +227,7 @@ export const ReactFlowDiagramWidget = ({
     // filter, multiplied by every box the canvas draws, is exactly the nested-scan shape a Map
     // lookup replaces with a single O(comments) pass plus O(1) reads.
     const nodeCommentCounts = new Map<FlowNode['id'], CommentCount>();
-    const observableCommentCounts = new Map<FlowNode['id'], Map<ObservableId, CommentCount>>();
+    const observableCommentCounts = new Map<FlowNode['id'], Map<FlowObservable['id'], CommentCount>>();
     comments
       .filter((c) => c.flowId === laidOutFlow.id)
       .forEach((c) => {
@@ -240,7 +240,7 @@ export const ReactFlowDiagramWidget = ({
           return;
         }
         const perObservable =
-          observableCommentCounts.get(c.nodeId) ?? new Map<ObservableId, CommentCount>();
+          observableCommentCounts.get(c.nodeId) ?? new Map<FlowObservable['id'], CommentCount>();
         const priorCount = perObservable.get(c.observableId);
         perObservable.set(
           c.observableId,

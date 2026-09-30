@@ -31,7 +31,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeContract, flowEdgeIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { flowEdgeContract, flowEdgeIdContract, flowNodeContract, flowObservableContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
@@ -57,7 +57,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     id: qaChecklistItemContract.shape.id,
     flowId: flowContract.shape.id,
     nodeId: flowNodeContract.shape.id,
-    observableId: observableIdContract,
+    observableId: flowObservableContract.shape.id,
     observableType: flowObservableContract.shape.type,
     // Carried verbatim and allowed to be blank — a blank description is a spec hole the renderer
     // reports, never a reason to drop the unit and quietly shrink the definition of done.

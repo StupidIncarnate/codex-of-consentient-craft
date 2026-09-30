@@ -21,7 +21,7 @@ import {
   IconX,
 } from '#gateway/npm/tabler__icons-react';
 
-import type { ObservableId, Quest, FlowNode, Flow } from '@dungeonmaster/shared/contracts';
+import type { Quest, FlowNode, Flow, FlowObservable } from '@dungeonmaster/shared/contracts';
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
@@ -53,7 +53,7 @@ export interface CommentPopoverWidgetProps {
   questId: Quest['id'];
   flowId: Flow['id'];
   nodeId: FlowNode['id'];
-  observableId?: ObservableId;
+  observableId?: FlowObservable['id'];
 }
 
 export const CommentPopoverWidget = ({

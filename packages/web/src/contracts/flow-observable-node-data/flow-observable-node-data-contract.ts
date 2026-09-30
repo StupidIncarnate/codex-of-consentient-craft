@@ -11,13 +11,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { observableIdContract, outcomeTypeContract, questContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
+import { outcomeTypeContract, questContract, flowNodeContract, flowContract, flowObservableContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const flowObservableNodeDataContract = z.object({
-  observableId: observableIdContract,
+  observableId: flowObservableContract.shape.id,
   outcomeType: outcomeTypeContract,
   description: z.string().brand<'FlowObservableNodeDescription'>(),
   // Singular where the parent card's is plural, and painted on the same row as the type tag: a

@@ -53,13 +53,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 
 export const flowObservableContract = z.object({
-  id: observableIdContract,
+  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowObservableId'>(),
   type: outcomeTypeContract,
   description: z.string().brand<'OutcomeDescription'>(),
   package: packageNameContract.describe(

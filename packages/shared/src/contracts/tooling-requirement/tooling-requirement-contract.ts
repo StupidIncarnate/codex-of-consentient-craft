@@ -8,15 +8,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { observableIdContract } from '../observable-id/observable-id-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
+import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
 export const toolingRequirementContract = z.object({
   id: toolingRequirementIdContract,
   name: z.string().min(1).brand<'ToolingName'>(),
   packageName: z.string().min(1).brand<'NpmPackageName'>(),
   reason: z.string().brand<'ToolingReason'>(),
-  requiredByObservables: z.array(observableIdContract),
+  requiredByObservables: z.array(flowObservableContract.shape.id),
 });
 
 export type ToolingRequirement = z.infer<typeof toolingRequirementContract>;

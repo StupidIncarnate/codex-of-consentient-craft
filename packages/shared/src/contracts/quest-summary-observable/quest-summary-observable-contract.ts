@@ -35,7 +35,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
-import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
@@ -46,7 +45,7 @@ export const questSummaryObservableContract = z.object({
   id: qaChecklistItemContract.shape.id,
   flowId: flowContract.shape.id,
   nodeId: flowNodeContract.shape.id,
-  observableId: observableIdContract,
+  observableId: flowObservableContract.shape.id,
   addedBy: observableOriginContract.describe(
     'Who wrote this observable in. On `midQuestObservables`, never `spec` — that slice is scope drift, filtered to post-approval additions. On `humanChecks`, `spec` is a legitimate value — a spec-authored verifyByHuman observable is still a human check.',
   ),

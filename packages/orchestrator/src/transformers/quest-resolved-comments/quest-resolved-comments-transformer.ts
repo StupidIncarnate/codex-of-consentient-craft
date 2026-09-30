@@ -12,7 +12,7 @@
  * comment is cosmetically imperfect and functionally harmless, whereas an invariant that rejects
  * one would wedge a quest on a record the user owns and no agent is allowed to delete.
  */
-import type { Flow, ObservableId, QuestComment, FlowNode } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestComment, FlowNode, FlowObservable } from '@dungeonmaster/shared/contracts';
 
 export const questResolvedCommentsTransformer = ({
   comments,
@@ -21,12 +21,12 @@ export const questResolvedCommentsTransformer = ({
   comments: QuestComment[];
   flows: Flow[];
 }): QuestComment[] => {
-  const flowNodeObservables = new Map<Flow['id'], Map<FlowNode['id'], Set<ObservableId>>>();
+  const flowNodeObservables = new Map<Flow['id'], Map<FlowNode['id'], Set<FlowObservable['id']>>>();
 
   for (const flow of flows) {
-    const nodeObservables = new Map<FlowNode['id'], Set<ObservableId>>();
+    const nodeObservables = new Map<FlowNode['id'], Set<FlowObservable['id']>>();
     for (const node of flow.nodes) {
-      const observableIds = new Set<ObservableId>();
+      const observableIds = new Set<FlowObservable['id']>();
       for (const observable of node.observables) {
         observableIds.add(observable.id);
       }

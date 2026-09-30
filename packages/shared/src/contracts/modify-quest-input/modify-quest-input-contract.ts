@@ -44,7 +44,6 @@ import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
-import { observableIdContract } from '../observable-id/observable-id-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
@@ -112,7 +111,7 @@ const fullFlowObservable = flowObservableContract.extend({
 const deletableObservableContract = z.union([
   fullFlowObservable,
   fullFlowObservable.partial().required({ id: true }),
-  z.object({ id: observableIdContract, _delete: deleteMarker }),
+  z.object({ id: flowObservableContract.shape.id, _delete: deleteMarker }),
 ]);
 
 // `packages` arrives on this shape from flowNodeContract itself, so a tag written on a node

@@ -28,12 +28,12 @@ import { z } from '#gateway/npm/zod';
 
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
-import { observableIdContract } from '../observable-id/observable-id-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowContract } from '../flow/flow-contract';
+import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
 export const qaChecklistItemContract = z.object({
   id: z.string().min(1).regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u')).brand<'QaChecklistItemId'>(),
@@ -54,7 +54,7 @@ export const qaChecklistItemContract = z.object({
       'Where the value must actually be read from. For an observable this is derived from its outcome type, because the surface a flow is DRIVEN at and the surface an observable is CHECKED at are routinely different.',
     ),
   nodeId: flowNodeContract.shape.id.optional(),
-  observableId: observableIdContract.optional(),
+  observableId: flowObservableContract.shape.id.optional(),
   observableType: outcomeTypeContract.optional(),
   verifyByReading: z
     .boolean()
