@@ -36,7 +36,6 @@ export { TestbedConfigStub } from './contracts/testbed-config/testbed-config.stu
 export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
 export { FileContentStub } from './contracts/file-content/file-content.stub';
-export { RelativePathStub } from './contracts/relative-path/relative-path.stub';
 
 // Mock dispatch
 export { mockRegisterMiddleware as registerMock } from './middleware/mock-register/mock-register-middleware';

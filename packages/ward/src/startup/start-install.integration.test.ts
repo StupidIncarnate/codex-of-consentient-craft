@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { StartInstall } from './start-install';
@@ -11,7 +11,7 @@ describe('start-install integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
         }),
@@ -25,10 +25,10 @@ describe('start-install integration', () => {
       });
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();

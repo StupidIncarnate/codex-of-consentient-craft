@@ -24,7 +24,7 @@
 
 import { chdir, cwd, deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -58,7 +58,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     // capacityReadBroker reads registry/machine before profile — recreate that precondition so the
     // real reads this suite drives succeed before the spec check even runs.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'siegelense/.keep' }),
+      relativePath: 'siegelense/.keep',
       content: FileContentStub({ value: '' }),
     });
 
@@ -67,7 +67,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     // the OS tmp dir. Two processes (api + web) so 'stack' reflects three against 'api's two, the
     // same shape siegelense-profile-layer-flow.integration.test.ts configures.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      relativePath: '.dungeonmaster.json',
       content: FileContentStub({
         value: JSON.stringify(
           DungeonmasterConfigStub({

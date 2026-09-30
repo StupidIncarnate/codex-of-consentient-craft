@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { freshProjectHarness } from '../../../test/harnesses/fresh-project/fresh-project.harness';
@@ -18,7 +18,7 @@ describe('InstallFlow', () => {
       });
 
       const settingsContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
       });
 
       testbed.cleanup();

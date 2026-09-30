@@ -18,7 +18,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
@@ -66,7 +66,7 @@ describe('SiegelenseFlow', () => {
     // that same precondition, or machineReadBroker's real statfs read throws ENOENT on a directory
     // a real install would already have made.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'siegelense/.keep' }),
+      relativePath: 'siegelense/.keep',
       content: FileContentStub({ value: '' }),
     });
   });

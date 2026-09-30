@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
@@ -30,7 +30,7 @@ describe('StartInstall', () => {
       });
 
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();
@@ -59,7 +59,7 @@ describe('StartInstall', () => {
         baseName: 'playwright-e2e-happy',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({
             name: 'happy-path',
@@ -69,11 +69,11 @@ describe('StartInstall', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/marker.tsx' }),
+        relativePath: 'src/widgets/marker.tsx',
         content: FileContentStub({ value: 'export {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify({
             devServer: {
@@ -107,7 +107,7 @@ describe('StartInstall', () => {
       });
 
       const writtenContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        relativePath: 'playwright.config.ts',
       });
 
       // The child starts before the in-process typecheck, so the two overlap: the typecheck
@@ -164,7 +164,7 @@ describe('StartInstall', () => {
         baseName: 'playwright-e2e-placeholder',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({
             name: 'placeholder-path',
@@ -174,11 +174,11 @@ describe('StartInstall', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/marker.tsx' }),
+        relativePath: 'src/widgets/marker.tsx',
         content: FileContentStub({ value: 'export {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify({
             devServer: {
@@ -226,7 +226,7 @@ describe('StartInstall', () => {
         baseName: 'playwright-e2e-missing-config',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({
             name: 'missing-config-path',
@@ -236,11 +236,11 @@ describe('StartInstall', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/marker.tsx' }),
+        relativePath: 'src/widgets/marker.tsx',
         content: FileContentStub({ value: 'export {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({ value: JSON.stringify({ framework: 'monorepo' }) }),
       });
 
@@ -272,7 +272,7 @@ describe('StartInstall', () => {
         baseName: 'playwright-e2e-unresolvable-token',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({
             name: 'unresolvable-token-path',
@@ -282,11 +282,11 @@ describe('StartInstall', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/marker.tsx' }),
+        relativePath: 'src/widgets/marker.tsx',
         content: FileContentStub({ value: 'export {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify({
             devServer: {
@@ -333,7 +333,7 @@ describe('StartInstall', () => {
         baseName: 'playwright-e2e-bad-port-role',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({
             name: 'bad-port-role-path',
@@ -343,11 +343,11 @@ describe('StartInstall', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/marker.tsx' }),
+        relativePath: 'src/widgets/marker.tsx',
         content: FileContentStub({ value: 'export {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify({
             devServer: {

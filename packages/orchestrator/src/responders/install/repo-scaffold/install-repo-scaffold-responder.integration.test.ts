@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
@@ -20,13 +20,13 @@ describe('InstallRepoScaffoldResponder', () => {
       });
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
       const worktreesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'worktrees' }),
+        relativePath: 'worktrees',
       });
       const questPlansEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.quest-plans' }),
+        relativePath: '.quest-plans',
       });
 
       testbed.cleanup();
@@ -52,7 +52,7 @@ describe('InstallRepoScaffoldResponder', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
         content: FileContentStub({ value: 'node_modules/\nworktrees/\n' }),
       });
 
@@ -66,7 +66,7 @@ describe('InstallRepoScaffoldResponder', () => {
       });
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();
@@ -97,7 +97,7 @@ describe('InstallRepoScaffoldResponder', () => {
         }),
       });
       const afterFirstRun = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       const secondResult = await InstallRepoScaffoldResponder({
@@ -109,7 +109,7 @@ describe('InstallRepoScaffoldResponder', () => {
         }),
       });
       const afterSecondRun = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();
@@ -132,7 +132,7 @@ describe('InstallRepoScaffoldResponder', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
         content: FileContentStub({ value: 'node_modules/\n   worktrees/\n.quest-plans/\n' }),
       });
 
@@ -146,7 +146,7 @@ describe('InstallRepoScaffoldResponder', () => {
       });
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();

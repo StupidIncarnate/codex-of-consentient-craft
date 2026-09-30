@@ -11,7 +11,7 @@
  */
 import { ensureDirSync, symlinkSync } from '#gateway/node/fs';
 import { resolvePackageRoot } from '#gateway/node/module';
-import { FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { FileContentStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 
 export const scanFixtureHarness = (): {
@@ -46,7 +46,7 @@ export const scanFixtureHarness = (): {
 
     files.forEach((file) => {
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: file.path }),
+        relativePath: file.path,
         content: FileContentStub({ value: file.body }),
       });
     });

@@ -12,8 +12,6 @@
  * // Returns ['packages', 'packages/@gateway'] as branded RelativePath[]
  */
 
-import { relativePathContract } from '../../contracts/relative-path/relative-path-contract';
-import type { RelativePath } from '../../contracts/relative-path/relative-path-contract';
 import type { WorkspacePackageJson } from '../../contracts/workspace-package-json/workspace-package-json-contract';
 
 const SINGLE_LEVEL_GLOB_SUFFIX = '/*';
@@ -23,14 +21,14 @@ export const workspaceGlobBaseDirsTransformer = ({
   workspaces,
 }: {
   workspaces: WorkspacePackageJson['workspaces'];
-}): RelativePath[] => {
+}): string[] => {
   if (!Array.isArray(workspaces)) {
-    return [relativePathContract.parse(DEFAULT_PACKAGES_BASE_DIR)];
+    return [DEFAULT_PACKAGES_BASE_DIR];
   }
 
   const baseDirs = workspaces
     .filter((glob) => glob.endsWith(SINGLE_LEVEL_GLOB_SUFFIX))
-    .map((glob) => relativePathContract.parse(glob.slice(0, -SINGLE_LEVEL_GLOB_SUFFIX.length)));
+    .map((glob) => glob.slice(0, -SINGLE_LEVEL_GLOB_SUFFIX.length));
 
-  return baseDirs.length > 0 ? baseDirs : [relativePathContract.parse(DEFAULT_PACKAGES_BASE_DIR)];
+  return baseDirs.length > 0 ? baseDirs : [DEFAULT_PACKAGES_BASE_DIR];
 };

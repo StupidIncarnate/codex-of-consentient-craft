@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -19,7 +19,7 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
     });
 
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'tsconfig.json' }),
+      relativePath: 'tsconfig.json',
       content: FileContentStub({
         value: JSON.stringify({
           compilerOptions: {
@@ -33,7 +33,7 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
       }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'tsconfig.build.json' }),
+      relativePath: 'tsconfig.build.json',
       content: FileContentStub({
         value: JSON.stringify({
           compilerOptions: {
@@ -48,11 +48,11 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
       }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'outside.ts' }),
+      relativePath: 'outside.ts',
       content: FileContentStub({ value: 'export const outsideValue = 1;\n' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'src/a.ts' }),
+      relativePath: 'src/a.ts',
       content: FileContentStub({
         value:
           "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",
@@ -121,19 +121,19 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
       include: ['src/**/*.ts', 'outside.ts'],
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'tsconfig.json' }),
+      relativePath: 'tsconfig.json',
       content: FileContentStub({ value: cleanTsconfig }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'tsconfig.build.json' }),
+      relativePath: 'tsconfig.build.json',
       content: FileContentStub({ value: cleanTsconfig }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'outside.ts' }),
+      relativePath: 'outside.ts',
       content: FileContentStub({ value: 'export const outsideValue = 1;\n' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'src/a.ts' }),
+      relativePath: 'src/a.ts',
       content: FileContentStub({
         value:
           "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",

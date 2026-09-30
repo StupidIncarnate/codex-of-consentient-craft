@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 
 import { homeDirectoryMarkerHarness } from '../../../test/harnesses/home-directory-marker/home-directory-marker.harness';
@@ -12,7 +12,7 @@ describe('DirectoryFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'some-folder/.keep' }),
+        relativePath: 'some-folder/.keep',
         content: FileContentStub({ value: '' }),
       });
 
@@ -37,11 +37,11 @@ describe('DirectoryFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'visible-folder/.keep' }),
+        relativePath: 'visible-folder/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.hidden-folder/.keep' }),
+        relativePath: '.hidden-folder/.keep',
         content: FileContentStub({ value: '' }),
       });
 
@@ -66,11 +66,11 @@ describe('DirectoryFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'a-subfolder/.keep' }),
+        relativePath: 'a-subfolder/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'a-file.txt' }),
+        relativePath: 'a-file.txt',
         content: FileContentStub({ value: 'content' }),
       });
 
@@ -109,15 +109,15 @@ describe('DirectoryFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'gamma/.keep' }),
+        relativePath: 'gamma/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'alpha/.keep' }),
+        relativePath: 'alpha/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'beta/.keep' }),
+        relativePath: 'beta/.keep',
         content: FileContentStub({ value: '' }),
       });
 
@@ -140,23 +140,23 @@ describe('DirectoryFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'gamma/.keep' }),
+        relativePath: 'gamma/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'alpha/.keep' }),
+        relativePath: 'alpha/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'beta/.keep' }),
+        relativePath: 'beta/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.hidden/.keep' }),
+        relativePath: '.hidden/.keep',
         content: FileContentStub({ value: '' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'ignored.ts' }),
+        relativePath: 'ignored.ts',
         content: FileContentStub({ value: '' }),
       });
 

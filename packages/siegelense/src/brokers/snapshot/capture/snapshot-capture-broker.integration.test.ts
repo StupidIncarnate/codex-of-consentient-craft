@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
@@ -14,7 +14,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-capture-pair',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
@@ -82,7 +82,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-capture-payload',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
@@ -94,9 +94,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
       });
 
       const copied = testbed.readFile({
-        relativePath: RelativePathStub({
-          value: 'home/.siegelense-snapshots/1/guilds/g1/quest.json',
-        }),
+        relativePath: 'home/.siegelense-snapshots/1/guilds/g1/quest.json',
       });
 
       testbed.cleanup();
@@ -109,7 +107,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-capture-no-recursion',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
@@ -128,7 +126,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
       // The second payload is taken with the store already holding an index and payload 1, so this
       // is the copy that would recurse if the exclusion were not real.
       const secondPayloadEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'home/.siegelense-snapshots/2' }),
+        relativePath: 'home/.siegelense-snapshots/2',
       });
 
       testbed.cleanup();
@@ -141,7 +139,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-capture-mutation',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
@@ -152,7 +150,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         manual: false,
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"complete"}' }),
       });
       await snapshotCaptureBroker({
@@ -162,14 +160,10 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
       });
 
       const atStart = testbed.readFile({
-        relativePath: RelativePathStub({
-          value: 'home/.siegelense-snapshots/1/guilds/g1/quest.json',
-        }),
+        relativePath: 'home/.siegelense-snapshots/1/guilds/g1/quest.json',
       });
       const atEnd = testbed.readFile({
-        relativePath: RelativePathStub({
-          value: 'home/.siegelense-snapshots/2/guilds/g1/quest.json',
-        }),
+        relativePath: 'home/.siegelense-snapshots/2/guilds/g1/quest.json',
       });
 
       testbed.cleanup();
@@ -184,7 +178,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-resolve-hit',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
@@ -219,7 +213,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         baseName: 'snapshot-resolve-miss',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'home/guilds/g1/quest.json' }),
+        relativePath: 'home/guilds/g1/quest.json',
         content: FileContentStub({ value: '{"status":"created"}' }),
       });
       const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });

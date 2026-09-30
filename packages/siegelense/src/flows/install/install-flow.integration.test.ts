@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -33,21 +33,21 @@ describe('InstallFlow', () => {
       deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
+        relativePath: 'packages/hydration-recipes/src',
       });
       // Proves the PARENT dir the link lives nested inside is real, not just implied by the
       // link path string — listDir returns null when the directory is absent.
       const assetsDirEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-assets' }),
+        relativePath: '.dungeonmaster-assets',
       });
       // readdir follows a symlink to list the TARGET's contents, so this reads through the link
       // rather than the stored target string — null would mean a dangling link; an empty array
       // means it resolves to the real (freshly mkdir'd, so empty) siegelense root.
       const linkEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+        relativePath: '.dungeonmaster-assets/siegelense-assets',
       });
 
       testbed.cleanup();
@@ -96,16 +96,16 @@ describe('InstallFlow', () => {
       deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
+        relativePath: 'packages/hydration-recipes/src',
       });
       const assetsDirEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-assets' }),
+        relativePath: '.dungeonmaster-assets',
       });
       const linkEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+        relativePath: '.dungeonmaster-assets/siegelense-assets',
       });
 
       testbed.cleanup();
@@ -141,7 +141,7 @@ describe('InstallFlow', () => {
       // — the target need not exist, since a dangling legacy link is still a symlink and the
       // responder's readlink-based check never follows it.
       testbed.createSymlink({
-        relativePath: RelativePathStub({ value: '.siegelense' }),
+        relativePath: '.siegelense',
         targetPath: FilePathStub({ value: `${dungeonmasterHomePath}-pre-nesting-legacy` }),
       });
 
@@ -157,10 +157,10 @@ describe('InstallFlow', () => {
       // listDir follows a symlink to list its target's contents and returns null when the path
       // itself is gone — the legacy link no longer being there is exactly what this proves.
       const legacyLinkEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.siegelense' }),
+        relativePath: '.siegelense',
       });
       const nestedLinkEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.dungeonmaster-assets/siegelense-assets' }),
+        relativePath: '.dungeonmaster-assets/siegelense-assets',
       });
 
       testbed.cleanup();

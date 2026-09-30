@@ -5,7 +5,7 @@
  * back as TWO groups with their own numbers, never one blended row.
  */
 
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -51,7 +51,7 @@ describe('the profile sample-write path, against a real tree', () => {
     // repo's own file is being rewritten by other work, so the testbed gets its own, isolated
     // under the OS tmp dir. Nothing here boots anything, so the process's own command is never run.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      relativePath: '.dungeonmaster.json',
       content: FileContentStub({
         value: JSON.stringify(
           DungeonmasterConfigStub({

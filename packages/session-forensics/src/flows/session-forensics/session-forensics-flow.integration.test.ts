@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -95,9 +95,7 @@ describe('SessionForensicsFlow', () => {
       const flow = FlowStub({ id: 'bare-flow', flowType: 'runtime', nodes: [], edges: [] });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
-        }),
+        relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
         content: FileContentStub({ value: JSON.stringify({ flows: [flow] }) }),
       });
 
@@ -162,9 +160,7 @@ describe('SessionForensicsFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
-        }),
+        relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
         content: FileContentStub({
           value: JSON.stringify({
             userRequest: 'Add real-time notifications',

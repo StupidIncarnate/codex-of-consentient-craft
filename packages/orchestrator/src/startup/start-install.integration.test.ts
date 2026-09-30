@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../statics/slash-commands/slash-commands-statics';
 import { StartInstall } from './start-install';
@@ -18,19 +18,19 @@ describe('StartInstall', () => {
       });
 
       const createContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-create.md' }),
+        relativePath: '.claude/commands/dumpster-create.md',
       });
       const huntContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-hunt.md' }),
+        relativePath: '.claude/commands/dumpster-hunt.md',
       });
       const commandFiles = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.claude/commands' }),
+        relativePath: '.claude/commands',
       });
       const worktreesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'worktrees' }),
+        relativePath: 'worktrees',
       });
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();

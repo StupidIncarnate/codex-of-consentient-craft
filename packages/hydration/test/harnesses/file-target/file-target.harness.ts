@@ -23,7 +23,7 @@ import {
 } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
@@ -93,14 +93,14 @@ export const fileTargetHarness = (): FileTargetHarness => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.read: called before beforeEach ran');
       }
-      return testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) });
+      return testbed.readFile({ relativePath: relativePath });
     },
 
     readJson: ({ relativePath }: { relativePath: string }): unknown => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.readJson: called before beforeEach ran');
       }
-      const content = testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) });
+      const content = testbed.readFile({ relativePath: relativePath });
       return content === null ? null : (JSON.parse(content) as unknown);
     },
 

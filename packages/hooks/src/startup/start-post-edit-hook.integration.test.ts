@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
@@ -37,7 +37,7 @@ describe('post-edit-hook', () => {
     const warmupContent = `export const warm = ({ a }: { a: boolean }): boolean => a;\n`;
 
     warmupTestbed.writeFile({
-      relativePath: RelativePathStub({ value: 'example.info.ts' }),
+      relativePath: 'example.info.ts',
       content: FileContentStub({ value: warmupContent }),
     });
 
@@ -98,7 +98,7 @@ describe('post-edit-hook', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        relativePath: 'example.info.ts',
         content: FileContentStub({ value: fileContent }),
       });
 
@@ -136,7 +136,7 @@ describe('post-edit-hook', () => {
       const filePath = `${testbed.guildPath}/example.info.ts`;
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        relativePath: 'example.info.ts',
         content: FileContentStub({ value: initialContent }),
       });
 
@@ -151,7 +151,7 @@ describe('post-edit-hook', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'example.info.ts' }),
+        relativePath: 'example.info.ts',
         content: FileContentStub({ value: newContent }),
       });
 
@@ -220,7 +220,7 @@ return a&&b;
 
       // Write the file before running hook
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'multi.info.ts' }),
+        relativePath: 'multi.info.ts',
         content: FileContentStub({ value: fileContent }),
       });
 
@@ -229,7 +229,7 @@ return a&&b;
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'multi.info.ts' }),
+        relativePath: 'multi.info.ts',
       });
 
       testbed.cleanup();
@@ -280,7 +280,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
 
       // Write the file before running hook
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'example-broker.ts' }),
+        relativePath: 'example-broker.ts',
         content: FileContentStub({ value: fileContent }),
       });
 
@@ -289,7 +289,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
 
       // Read the file after hook runs
       const fileContentAfterHook = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'example-broker.ts' }),
+        relativePath: 'example-broker.ts',
       });
 
       testbed.cleanup();
@@ -343,7 +343,7 @@ function test(): void {
 
       // Actually write the file so hook can check it
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'README.md' }),
+        relativePath: 'README.md',
         content: FileContentStub({ value: fileContent }),
       });
 

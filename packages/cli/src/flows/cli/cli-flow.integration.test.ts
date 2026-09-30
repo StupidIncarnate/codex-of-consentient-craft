@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
@@ -42,7 +42,7 @@ describe('CliFlow', () => {
       });
 
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();
@@ -222,7 +222,7 @@ describe('CliFlow', () => {
         baseName: 'cli-flow-create-package',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
         }),
@@ -240,15 +240,13 @@ describe('CliFlow', () => {
 
       stdout.restore();
       const generatedPackageJson = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'packages/widgets/package.json' }),
+        relativePath: 'packages/widgets/package.json',
       });
       const generatedSeed = testbed.readFile({
-        relativePath: RelativePathStub({
-          value: 'packages/widgets/src/statics/widgets/widgets-statics.ts',
-        }),
+        relativePath: 'packages/widgets/src/statics/widgets/widgets-statics.ts',
       });
       const rootPackageJson = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();
@@ -277,7 +275,7 @@ describe('CliFlow', () => {
 
       stdout.restore();
       const packagesDir = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages' }),
+        relativePath: 'packages',
       });
 
       testbed.cleanup();

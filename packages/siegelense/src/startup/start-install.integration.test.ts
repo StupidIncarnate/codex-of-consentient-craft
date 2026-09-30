@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -67,13 +67,11 @@ describe('StartInstall', () => {
       // reads back null here — either way this fails loudly, unlike an existence check on
       // `.dungeonmaster-assets/siegelense-assets` alone.
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: '.dungeonmaster-assets/siegelense-assets/probe.txt',
-        }),
+        relativePath: '.dungeonmaster-assets/siegelense-assets/probe.txt',
         content: FileContentStub({ value: 'siegelense-link-resolves-here\n' }),
       });
       const readThroughRealPath = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dm-home/siegelense/probe.txt' }),
+        relativePath: '.dm-home/siegelense/probe.txt',
       });
 
       testbed.cleanup();
@@ -108,7 +106,7 @@ describe('StartInstall', () => {
       deleteEnv('DUNGEONMASTER_HOME');
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();
@@ -142,7 +140,7 @@ describe('StartInstall', () => {
       deleteEnv('DUNGEONMASTER_HOME');
 
       const recipesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src' }),
+        relativePath: 'packages/hydration-recipes/src',
       });
 
       testbed.cleanup();
@@ -173,7 +171,7 @@ describe('StartInstall', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src/marker.txt' }),
+        relativePath: 'packages/hydration-recipes/src/marker.txt',
         content: FileContentStub({ value: 'do not touch\n' }),
       });
 
@@ -187,7 +185,7 @@ describe('StartInstall', () => {
       deleteEnv('DUNGEONMASTER_HOME');
 
       const markerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'packages/hydration-recipes/src/marker.txt' }),
+        relativePath: 'packages/hydration-recipes/src/marker.txt',
       });
 
       testbed.cleanup();

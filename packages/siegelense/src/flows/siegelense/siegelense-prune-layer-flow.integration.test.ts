@@ -26,7 +26,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -147,7 +147,7 @@ describe('SiegelensePruneLayerFlow', () => {
   beforeAll(async () => {
     setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: REGISTRY_PATH }),
+      relativePath: REGISTRY_PATH,
       content: FileContentStub({
         value: JSON.stringify(
           RegistryStub({
@@ -227,56 +227,48 @@ describe('SiegelensePruneLayerFlow', () => {
     // it takes ONLY the named kind — the other three stay put with their original bytes.
     for (const kindInstanceId of [LOG_KIND_ID, SHOT_KIND_ID, TRANSCRIPT_KIND_ID, VIDEO_KIND_ID]) {
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `siegelense/unowned/instances/${kindInstanceId}/api-server.log`,
-        }),
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/api-server.log`,
         content: FileContentStub({ value: KIND_LOG_BODY }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `siegelense/unowned/instances/${kindInstanceId}/console.jsonl`,
-        }),
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/console.jsonl`,
         content: FileContentStub({ value: KIND_TRANSCRIPT_BODY }),
       });
       // The `run_1` directory itself is what makes `run_1` a real run id — no `run_1.jsonl` needed.
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1/step1.png`,
-        }),
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1/step1.png`,
         content: FileContentStub({ value: KIND_SHOT_BODY }),
       });
       // A bare `.webm` directly under `runs/` — the video path `cleanup`'s own fixed sweep never
       // exercises, since nothing else in this repo writes one yet.
       testbed.writeFile({
-        relativePath: RelativePathStub({
-          value: `siegelense/unowned/instances/${kindInstanceId}/runs/clip.webm`,
-        }),
+        relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/clip.webm`,
         content: FileContentStub({ value: KIND_VIDEO_BODY }),
       });
     }
 
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: SCOPE_TARGET_LOG_PATH }),
+      relativePath: SCOPE_TARGET_LOG_PATH,
       content: FileContentStub({ value: SCOPE_TARGET_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: SCOPE_NEIGHBOUR_LOG_PATH }),
+      relativePath: SCOPE_NEIGHBOUR_LOG_PATH,
       content: FileContentStub({ value: SCOPE_NEIGHBOUR_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: LIVE_LOG_PATH }),
+      relativePath: LIVE_LOG_PATH,
       content: FileContentStub({ value: LIVE_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: BOUNDARY_LOG_PATH }),
+      relativePath: BOUNDARY_LOG_PATH,
       content: FileContentStub({ value: BOUNDARY_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: NO_CONFIRM_LOG_PATH }),
+      relativePath: NO_CONFIRM_LOG_PATH,
       content: FileContentStub({ value: NO_CONFIRM_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: CONFIRM_LOG_PATH }),
+      relativePath: CONFIRM_LOG_PATH,
       content: FileContentStub({ value: CONFIRM_LOG_BODY }),
     });
 
@@ -284,7 +276,7 @@ describe('SiegelensePruneLayerFlow', () => {
     // video window, younger than the shared 7d default, so which one survives says which window
     // `prune --kind video` with no `--older-than` actually resolves to.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: VIDEO_DEFAULT_WINDOW_VIDEO_PATH }),
+      relativePath: VIDEO_DEFAULT_WINDOW_VIDEO_PATH,
       content: FileContentStub({ value: VIDEO_DEFAULT_WINDOW_BODY }),
     });
     const videoDefaultWindowAbsolutePath = AbsoluteFilePathStub({
@@ -298,15 +290,15 @@ describe('SiegelensePruneLayerFlow', () => {
     // The cited instance: a quest-owned tree with a real log, a real run (so the prelude has a run
     // id to cite), a real open quest carrying a WALKED note, and a real `.quest-plans/` prelude.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: CITED_LOG_PATH }),
+      relativePath: CITED_LOG_PATH,
       content: FileContentStub({ value: CITED_LOG_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: CITED_TRANSCRIPT_PATH }),
+      relativePath: CITED_TRANSCRIPT_PATH,
       content: FileContentStub({ value: CITED_TRANSCRIPT_BODY }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: CITED_QUEST_FILE_RELATIVE_PATH }),
+      relativePath: CITED_QUEST_FILE_RELATIVE_PATH,
       content: FileContentStub({
         value: JSON.stringify(
           QuestStub({
@@ -330,7 +322,7 @@ describe('SiegelensePruneLayerFlow', () => {
       }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: CITED_PRELUDE_RELATIVE_PATH }),
+      relativePath: CITED_PRELUDE_RELATIVE_PATH,
       content: FileContentStub({
         value: '# PATH 1\n  VERIFIED  run_1 · 2026-09-21 · prelude reached the entry\n',
       }),
@@ -395,7 +387,7 @@ describe('SiegelensePruneLayerFlow', () => {
       }),
     ]);
     videoDefaultWindowFileAfter = testbed.readFile({
-      relativePath: RelativePathStub({ value: VIDEO_DEFAULT_WINDOW_VIDEO_PATH }),
+      relativePath: VIDEO_DEFAULT_WINDOW_VIDEO_PATH,
     });
 
     // Stdout captures below run one at a time — spying `stdout.write` mid-flight is
@@ -466,7 +458,7 @@ describe('SiegelensePruneLayerFlow', () => {
     // (`0s`) has already taken the file, so reading current disk state from an `it()` would always
     // see the post-both-sweeps outcome regardless of which sweep it means to check.
     boundaryLogAfterTooYoungSweep = testbed.readFile({
-      relativePath: RelativePathStub({ value: BOUNDARY_LOG_PATH }),
+      relativePath: BOUNDARY_LOG_PATH,
     });
 
     const boundaryPastWindowSpy = registerSpyOn({ object: stdout, method: 'write' });
@@ -495,16 +487,16 @@ describe('SiegelensePruneLayerFlow', () => {
   describe('--kind filters to exactly that kind', () => {
     it('VALID: {kind: log} => removes the process log AND the capture buffer, since both classify as log, leaving shot and video on disk', () => {
       const logAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: LOG_KIND_LOG_PATH }),
+        relativePath: LOG_KIND_LOG_PATH,
       });
       const transcriptAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: LOG_KIND_TRANSCRIPT_PATH }),
+        relativePath: LOG_KIND_TRANSCRIPT_PATH,
       });
       const shotAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: LOG_KIND_SHOT_PATH }),
+        relativePath: LOG_KIND_SHOT_PATH,
       });
       const videoAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: LOG_KIND_VIDEO_PATH }),
+        relativePath: LOG_KIND_VIDEO_PATH,
       });
 
       expect(logKindResult).toBe(undefined);
@@ -518,16 +510,16 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {kind: shot} => removes only the shot asset, leaving log, transcript and video on disk', () => {
       const logAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: SHOT_KIND_LOG_PATH }),
+        relativePath: SHOT_KIND_LOG_PATH,
       });
       const transcriptAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: SHOT_KIND_TRANSCRIPT_PATH }),
+        relativePath: SHOT_KIND_TRANSCRIPT_PATH,
       });
       const shotAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: SHOT_KIND_SHOT_PATH }),
+        relativePath: SHOT_KIND_SHOT_PATH,
       });
       const videoAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: SHOT_KIND_VIDEO_PATH }),
+        relativePath: SHOT_KIND_VIDEO_PATH,
       });
 
       expect(shotKindResult).toBe(undefined);
@@ -539,16 +531,16 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {kind: transcript} => matches nothing today, since no Claude-style session transcript is tracked yet — the log, buffer, shot and video all survive', () => {
       const logAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_LOG_PATH }),
+        relativePath: TRANSCRIPT_KIND_LOG_PATH,
       });
       const transcriptAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_TRANSCRIPT_PATH }),
+        relativePath: TRANSCRIPT_KIND_TRANSCRIPT_PATH,
       });
       const shotAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_SHOT_PATH }),
+        relativePath: TRANSCRIPT_KIND_SHOT_PATH,
       });
       const videoAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_VIDEO_PATH }),
+        relativePath: TRANSCRIPT_KIND_VIDEO_PATH,
       });
 
       expect(transcriptKindResult).toBe(undefined);
@@ -560,16 +552,16 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {kind: video} => removes only the video asset, leaving log, shot and transcript on disk', () => {
       const logAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: VIDEO_KIND_LOG_PATH }),
+        relativePath: VIDEO_KIND_LOG_PATH,
       });
       const transcriptAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: VIDEO_KIND_TRANSCRIPT_PATH }),
+        relativePath: VIDEO_KIND_TRANSCRIPT_PATH,
       });
       const shotAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: VIDEO_KIND_SHOT_PATH }),
+        relativePath: VIDEO_KIND_SHOT_PATH,
       });
       const videoAfter = testbed.readFile({
-        relativePath: RelativePathStub({ value: VIDEO_KIND_VIDEO_PATH }),
+        relativePath: VIDEO_KIND_VIDEO_PATH,
       });
 
       expect(videoKindResult).toBe(undefined);
@@ -624,7 +616,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {the target sweep} => the target log is gone from disk', () => {
       const after = testbed.readFile({
-        relativePath: RelativePathStub({ value: SCOPE_TARGET_LOG_PATH }),
+        relativePath: SCOPE_TARGET_LOG_PATH,
       });
 
       expect(after).toBe(null);
@@ -632,7 +624,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {the target sweep} => the neighbouring instance still has its log, byte for byte', () => {
       const after = testbed.readFile({
-        relativePath: RelativePathStub({ value: SCOPE_NEIGHBOUR_LOG_PATH }),
+        relativePath: SCOPE_NEIGHBOUR_LOG_PATH,
       });
 
       expect(after).toBe(SCOPE_NEIGHBOUR_LOG_BODY);
@@ -655,7 +647,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
 
     it('VALID: {the live instance} => its log is untouched whatever the window said', () => {
-      const after = testbed.readFile({ relativePath: RelativePathStub({ value: LIVE_LOG_PATH }) });
+      const after = testbed.readFile({ relativePath: LIVE_LOG_PATH });
 
       expect(after).toBe(LIVE_LOG_BODY);
     });
@@ -680,7 +672,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
 
     it('VALID: {the cited instance} => its log is still on disk after the refusal', () => {
-      const after = testbed.readFile({ relativePath: RelativePathStub({ value: CITED_LOG_PATH }) });
+      const after = testbed.readFile({ relativePath: CITED_LOG_PATH });
 
       expect(after).toBe(CITED_LOG_BODY);
     });
@@ -700,7 +692,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
     it('VALID: {--older-than 0s, the same evidence} => selected and genuinely gone from disk', () => {
       const after = testbed.readFile({
-        relativePath: RelativePathStub({ value: BOUNDARY_LOG_PATH }),
+        relativePath: BOUNDARY_LOG_PATH,
       });
 
       expect(boundaryPastWindowAnswer).toStrictEqual({
@@ -732,11 +724,11 @@ describe('SiegelensePruneLayerFlow', () => {
         .map((call) => ContentTextStub({ value: String(call[0]) }));
 
       const after = testbed.readFile({
-        relativePath: RelativePathStub({ value: NO_CONFIRM_LOG_PATH }),
+        relativePath: NO_CONFIRM_LOG_PATH,
       });
       const registryAfter = RegistryStub(
         JSON.parse(
-          String(testbed.readFile({ relativePath: RelativePathStub({ value: REGISTRY_PATH }) })),
+          String(testbed.readFile({ relativePath: REGISTRY_PATH })),
         ) as never,
       );
       const rowAfter = registryAfter.instances.find(
@@ -760,7 +752,7 @@ describe('SiegelensePruneLayerFlow', () => {
       ).resolves.toBe(undefined);
 
       const after = testbed.readFile({
-        relativePath: RelativePathStub({ value: CONFIRM_LOG_PATH }),
+        relativePath: CONFIRM_LOG_PATH,
       });
 
       expect(after).toBe(null);

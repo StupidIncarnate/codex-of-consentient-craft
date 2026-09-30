@@ -62,7 +62,7 @@ import { chmodSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import type { AbsoluteFilePath, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -138,15 +138,13 @@ export const fileTargetHarness = (): {
           'fileTargetHarness: readQuestFileOperations() called outside beforeEach/afterEach',
         );
       }
-      const relativePath = RelativePathStub({
-        value: [
+      const relativePath = [
           dungeonmasterHomeStatics.paths.guildsDir,
           guildId,
           dungeonmasterHomeStatics.paths.questsDir,
           questFolder,
           dungeonmasterHomeStatics.paths.questFile,
-        ].join('/'),
-      });
+        ].join('/');
       const contents = testbed.readFile({ relativePath });
       const parsedJson = JSON.parse(String(contents)) as StubArgument<ReturnType<typeof QuestStub>>;
       const parsed = QuestStub(parsedJson);
@@ -160,29 +158,25 @@ export const fileTargetHarness = (): {
       }
       const guildIds =
         testbed.listDir({
-          relativePath: RelativePathStub({ value: dungeonmasterHomeStatics.paths.guildsDir }),
+          relativePath: dungeonmasterHomeStatics.paths.guildsDir,
         }) ?? [];
       for (const guildId of guildIds) {
         const questFolders =
           testbed.listDir({
-            relativePath: RelativePathStub({
-              value: [
+            relativePath: [
                 dungeonmasterHomeStatics.paths.guildsDir,
                 guildId,
                 dungeonmasterHomeStatics.paths.questsDir,
               ].join('/'),
-            }),
           }) ?? [];
         for (const questFolder of questFolders) {
-          const relativePath = RelativePathStub({
-            value: [
+          const relativePath = [
               dungeonmasterHomeStatics.paths.guildsDir,
               guildId,
               dungeonmasterHomeStatics.paths.questsDir,
               questFolder,
               dungeonmasterHomeStatics.paths.questFile,
-            ].join('/'),
-          });
+            ].join('/');
           const contents = testbed.readFile({ relativePath });
           if (contents === null) {
             continue;
@@ -210,14 +204,12 @@ export const fileTargetHarness = (): {
           'fileTargetHarness: questFolderExists() called outside beforeEach/afterEach',
         );
       }
-      const relativePath = RelativePathStub({
-        value: [
+      const relativePath = [
           dungeonmasterHomeStatics.paths.guildsDir,
           guildId,
           dungeonmasterHomeStatics.paths.questsDir,
           questFolder,
-        ].join('/'),
-      });
+        ].join('/');
       return testbed.listDir({ relativePath }) !== null;
     },
     readAbsoluteFileLines: ({

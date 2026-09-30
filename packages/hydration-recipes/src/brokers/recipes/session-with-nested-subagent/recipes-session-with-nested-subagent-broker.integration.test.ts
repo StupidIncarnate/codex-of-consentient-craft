@@ -1,7 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { laneApiHarness } from '../../../../test/harnesses/lane-api/lane-api.harness';
 import { transcriptHarness } from '../../../../test/harnesses/transcript/transcript.harness';
@@ -35,9 +35,9 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
     });
     const relativeDir = transcriptDir.slice(testbed.guildPath.length + 1);
 
-    const dirEntries = testbed.listDir({ relativePath: RelativePathStub({ value: relativeDir }) });
+    const dirEntries = testbed.listDir({ relativePath: relativeDir });
     const subagentEntries = testbed.listDir({
-      relativePath: RelativePathStub({ value: `${relativeDir}/${SESSION_ID}/subagents` }),
+      relativePath: `${relativeDir}/${SESSION_ID}/subagents`,
     });
     const mainCompletions = transcripts.completionAgentIdsIn({
       testbed,

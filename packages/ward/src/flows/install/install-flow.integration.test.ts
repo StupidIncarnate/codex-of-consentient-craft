@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { installScriptsStatics } from '../../statics/install-scripts/install-scripts-statics';
@@ -11,7 +11,7 @@ describe('InstallFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
         }),
@@ -25,10 +25,10 @@ describe('InstallFlow', () => {
       });
 
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();
@@ -57,13 +57,13 @@ describe('InstallFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
         content: FileContentStub({
           value: 'node_modules/\n.ward/\ntest-results/\n.ward-playwright-report*.json\n',
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({ name: 'proj', scripts: installScriptsStatics.scripts }, null, 2),
         }),

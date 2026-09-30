@@ -35,7 +35,6 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { findRepoRootLayerBroker } from './find-repo-root-layer-broker';
-import type { RelativePath } from '../../../contracts/relative-path/relative-path-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
@@ -100,7 +99,7 @@ export const installTestbedCreateBroker = ({
       relativePath,
       content,
     }: {
-      relativePath: RelativePath;
+      relativePath: string;
       content: FileContent;
     }): void => {
       const fullPath = join(projectPath, relativePath);
@@ -111,7 +110,7 @@ export const installTestbedCreateBroker = ({
       writeFileSync(fullPath, content);
     },
 
-    readFile: ({ relativePath }: { relativePath: RelativePath }): FileContent | null => {
+    readFile: ({ relativePath }: { relativePath: string }): FileContent | null => {
       const fullPath = join(projectPath, relativePath);
       if (!existsSync(fullPath)) {
         return null;
@@ -124,7 +123,7 @@ export const installTestbedCreateBroker = ({
       relativePath,
       targetPath,
     }: {
-      relativePath: RelativePath;
+      relativePath: string;
       targetPath: FilePath;
     }): void => {
       const fullPath = join(projectPath, relativePath);
@@ -135,7 +134,7 @@ export const installTestbedCreateBroker = ({
       symlinkSync({ target: targetPath, path: fullPath, type: 'dir' });
     },
 
-    listDir: ({ relativePath }: { relativePath: RelativePath }): readonly FileName[] | null => {
+    listDir: ({ relativePath }: { relativePath: string }): readonly FileName[] | null => {
       const fullPath = join(projectPath, relativePath);
       if (!existsSync(fullPath)) {
         return null;

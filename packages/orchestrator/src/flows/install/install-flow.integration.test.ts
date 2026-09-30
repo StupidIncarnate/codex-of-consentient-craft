@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../../statics/slash-commands/slash-commands-statics';
 import { InstallFlow } from './install-flow';
@@ -18,13 +18,13 @@ describe('InstallFlow', () => {
       });
 
       const createContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-create.md' }),
+        relativePath: '.claude/commands/dumpster-create.md',
       });
       const huntContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-hunt.md' }),
+        relativePath: '.claude/commands/dumpster-hunt.md',
       });
       const commandFiles = testbed.listDir({
-        relativePath: RelativePathStub({ value: '.claude/commands' }),
+        relativePath: '.claude/commands',
       });
 
       testbed.cleanup();
@@ -57,10 +57,10 @@ describe('InstallFlow', () => {
       });
 
       const worktreesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'worktrees' }),
+        relativePath: 'worktrees',
       });
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();
@@ -77,15 +77,15 @@ describe('InstallFlow', () => {
       // Written in reverse-alphabetical order so the listing below asserts sorted entries
       // rather than whatever order the filesystem hands readdir back.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'worktrees/quest-zap-cache-9f3c1a20/marker.txt' }),
+        relativePath: 'worktrees/quest-zap-cache-9f3c1a20/marker.txt',
         content: FileContentStub({ value: 'second quest checkout' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'worktrees/quest-add-auth-7bc217a1/marker.txt' }),
+        relativePath: 'worktrees/quest-add-auth-7bc217a1/marker.txt',
         content: FileContentStub({ value: 'quest checkout contents' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
         content: FileContentStub({ value: 'node_modules/\n.claude/worktrees\n' }),
       });
 
@@ -97,13 +97,13 @@ describe('InstallFlow', () => {
       });
 
       const worktreesEntries = testbed.listDir({
-        relativePath: RelativePathStub({ value: 'worktrees' }),
+        relativePath: 'worktrees',
       });
       const markerContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'worktrees/quest-add-auth-7bc217a1/marker.txt' }),
+        relativePath: 'worktrees/quest-add-auth-7bc217a1/marker.txt',
       });
       const gitignoreContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();
@@ -127,7 +127,7 @@ describe('InstallFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
         content: FileContentStub({ value: 'node_modules/' }),
       });
 
@@ -138,7 +138,7 @@ describe('InstallFlow', () => {
         },
       });
       const afterFirstRun = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       const secondResult = await InstallFlow({
@@ -148,7 +148,7 @@ describe('InstallFlow', () => {
         },
       });
       const afterSecondRun = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.gitignore' }),
+        relativePath: '.gitignore',
       });
 
       testbed.cleanup();

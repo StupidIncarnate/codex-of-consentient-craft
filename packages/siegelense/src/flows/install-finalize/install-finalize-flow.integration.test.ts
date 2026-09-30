@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -45,7 +45,7 @@ describe('InstallFinalizeFlow', () => {
       // The scaffold scopes its package off the root package.json's `name`, so the testbed names
       // it — otherwise the scope falls back to the testbed directory's randomised basename.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({ value: JSON.stringify({ name: 'acme-app' }) }),
       });
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;

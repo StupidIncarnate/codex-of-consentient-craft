@@ -30,7 +30,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -158,7 +158,7 @@ describe('SiegelenseStatusLayerFlow', () => {
     // -p's `siegelense/` at install time — recreate that precondition, matching
     // siegelense-capacity-layer-flow.integration.test.ts's own beforeAll.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'siegelense/.keep' }),
+      relativePath: 'siegelense/.keep',
       content: FileContentStub({ value: '' }),
     });
 
@@ -189,9 +189,7 @@ describe('SiegelenseStatusLayerFlow', () => {
     });
 
     testbed.writeFile({
-      relativePath: RelativePathStub({
-        value: `${locationsStatics.siegelense.dir}/${locationsStatics.siegelense.registry}`,
-      }),
+      relativePath: `${locationsStatics.siegelense.dir}/${locationsStatics.siegelense.registry}`,
       content: FileContentStub({ value: `${JSON.stringify(registry)}\n` }),
     });
   });

@@ -10,7 +10,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { architecturePackageInventoryBroker } from '@dungeonmaster/shared/brokers';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
@@ -23,21 +23,19 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     });
 
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      relativePath: '.dungeonmaster.json',
       content: FileContentStub({ value: '{}' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'packages/outer-only-pkg/src/index.ts' }),
+      relativePath: 'packages/outer-only-pkg/src/index.ts',
       content: FileContentStub({ value: 'export const outerOnly = true;' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'worktrees/siegelense-test/.dungeonmaster.json' }),
+      relativePath: 'worktrees/siegelense-test/.dungeonmaster.json',
       content: FileContentStub({ value: '{}' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({
-        value: 'worktrees/siegelense-test/packages/inner-pkg/src/brokers/foo/foo-broker.ts',
-      }),
+      relativePath: 'worktrees/siegelense-test/packages/inner-pkg/src/brokers/foo/foo-broker.ts',
       content: FileContentStub({ value: 'export const fooBroker = () => true;' }),
     });
 
@@ -79,11 +77,11 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
       baseName: 'caller-repo-root-plain',
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+      relativePath: '.dungeonmaster.json',
       content: FileContentStub({ value: '{}' }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'packages/only-pkg/src/index.ts' }),
+      relativePath: 'packages/only-pkg/src/index.ts',
       content: FileContentStub({ value: 'export const onlyPkg = true;' }),
     });
 

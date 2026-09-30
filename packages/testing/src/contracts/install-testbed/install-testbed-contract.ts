@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { RelativePath } from '../relative-path/relative-path-contract';
 import type { FileContent } from '../file-content/file-content-contract';
 import type { FilePath } from '../file-path/file-path-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
@@ -30,18 +29,18 @@ export type InstallTestbed = InstallTestbedData & {
     relativePath,
     content,
   }: {
-    relativePath: RelativePath;
+    relativePath: string;
     content: FileContent;
   }) => void;
-  readFile: ({ relativePath }: { relativePath: RelativePath }) => FileContent | null;
+  readFile: ({ relativePath }: { relativePath: string }) => FileContent | null;
   createSymlink: ({
     relativePath,
     targetPath,
   }: {
-    relativePath: RelativePath;
+    relativePath: string;
     targetPath: FilePath;
   }) => void;
-  listDir: ({ relativePath }: { relativePath: RelativePath }) => readonly FileName[] | null;
+  listDir: ({ relativePath }: { relativePath: string }) => readonly FileName[] | null;
   getClaudeSettings: () => ClaudeSettings | null;
   getMcpConfig: () => McpConfig | null;
   getDungeonmasterConfig: () => TestbedConfig | null;

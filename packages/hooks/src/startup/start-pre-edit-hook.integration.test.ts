@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import type { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
@@ -179,7 +179,7 @@ describe('pre-edit-lint', () => {
 
         // Create file with existing violations
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: `const bad: any = 'test';` }),
         });
 
@@ -335,7 +335,7 @@ export function dirty({ param }: { param: any }): any {
   return 'hello';
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -374,7 +374,7 @@ export function dirty({ param }: { param: any }): any {
         const initialContent = `const bad: any = 'test';
 export function oldFunc(): void {}`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -410,7 +410,7 @@ export function newFunc(): void {}`,
 
         const initialContent = `const message = 'hello';`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -444,7 +444,7 @@ export function newFunc(): void {}`,
 
         const initialContent = `function test(){return 'hello';}`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -520,7 +520,7 @@ console.log('test');`,
           const filePath = `${testbed.guildPath}/example.ts`;
 
           testbed.writeFile({
-            relativePath: RelativePathStub({ value: 'example.ts' }),
+            relativePath: 'example.ts',
             content: FileContentStub({ value: initialContent }),
           });
 
@@ -561,7 +561,7 @@ console.log('test');`,
         // File with existing violation
         const initialContent = `const bad: any = 'test';`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -640,7 +640,7 @@ export function test({ param }: { param: any }): void {}`,
   }
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -692,7 +692,7 @@ export class Calculator {
   }
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -744,7 +744,7 @@ export class Calculator {
   }
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -788,7 +788,7 @@ export class Calculator {
   return data;
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -843,7 +843,7 @@ export function processItems({ items }: { items: string[] }): string[] {
   return items.map((item: string) => processItem({ item }));
 }`;
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'example.ts' }),
+          relativePath: 'example.ts',
           content: FileContentStub({ value: initialContent }),
         });
 
@@ -1008,7 +1008,7 @@ export const handler: any = processData;`;
       const filePath = `${testbed.guildPath}/empty.ts`;
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'empty.ts' }),
+        relativePath: 'empty.ts',
         content: FileContentStub({ value: '' }),
       });
 

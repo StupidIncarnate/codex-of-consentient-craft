@@ -1,4 +1,4 @@
-import { RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { FileContentStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 
 /**
@@ -31,7 +31,7 @@ export const duplicateInstallFixtureHarness = (): {
   writeWorkspacesRoot: async ({ testbed }: { testbed: InstallTestbed }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'package.json' }),
+      relativePath: 'package.json',
       content: FileContentStub({
         value: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
       }),
@@ -51,14 +51,14 @@ export const duplicateInstallFixtureHarness = (): {
   }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: `packages/@gateway/${folder}/package.json` }),
+      relativePath: `packages/@gateway/${folder}/package.json`,
       content: FileContentStub({
         value: JSON.stringify({ name: `@dungeonmaster/${folder}`, dependencies, peerDependencies }),
       }),
     });
     // packageReadLayerBroker only registers a workspace package that has a src/ directory.
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: `packages/@gateway/${folder}/src/.gitkeep` }),
+      relativePath: `packages/@gateway/${folder}/src/.gitkeep`,
       content: FileContentStub({ value: '' }),
     });
   },
@@ -74,11 +74,11 @@ export const duplicateInstallFixtureHarness = (): {
   }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: `${relativePath}/package.json` }),
+      relativePath: `${relativePath}/package.json`,
       content: FileContentStub({ value: JSON.stringify({ name }) }),
     });
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: `${relativePath}/src/.gitkeep` }),
+      relativePath: `${relativePath}/src/.gitkeep`,
       content: FileContentStub({ value: '' }),
     });
   },
@@ -94,7 +94,7 @@ export const duplicateInstallFixtureHarness = (): {
   }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: `${relativeDir}/package.json` }),
+      relativePath: `${relativeDir}/package.json`,
       content: FileContentStub({ value: JSON.stringify({ version }) }),
     });
   },

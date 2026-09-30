@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 
@@ -24,7 +24,7 @@ describe('install-flow integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();
@@ -86,7 +86,7 @@ describe('install-flow integration', () => {
       );
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({ value: existingContent }),
       });
 
@@ -105,7 +105,7 @@ describe('install-flow integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();
@@ -119,7 +119,7 @@ describe('install-flow integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -154,7 +154,7 @@ describe('install-flow integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();
@@ -196,7 +196,7 @@ describe('install-flow integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({
           value: JSON.stringify({ framework: 'react', schema: 'zod' }, null, 2),
         }),
@@ -212,7 +212,7 @@ describe('install-flow integration', () => {
       expect(result.action).toBe('merged');
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();
@@ -251,7 +251,7 @@ describe('install-flow integration', () => {
       const existingContent = '{ not valid json';
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({ value: existingContent }),
       });
 
@@ -271,7 +271,7 @@ describe('install-flow integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();
@@ -286,7 +286,7 @@ describe('install-flow integration', () => {
       const existingContent = JSON.stringify({ framework: 'custom', schema: 'yup' }, null, 2);
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
         content: FileContentStub({ value: existingContent }),
       });
 
@@ -305,7 +305,7 @@ describe('install-flow integration', () => {
       });
 
       const configContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.dungeonmaster.json' }),
+        relativePath: '.dungeonmaster.json',
       });
 
       testbed.cleanup();

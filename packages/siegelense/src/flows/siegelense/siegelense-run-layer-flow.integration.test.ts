@@ -1,5 +1,5 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
@@ -58,7 +58,7 @@ describe('SiegelenseRunLayerFlow', () => {
       // the named file has to exist and be readable — otherwise the file-read refusal fires first
       // and this test would never reach the refusal it means to cover.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'steps/both-flags-batch.json' }),
+        relativePath: 'steps/both-flags-batch.json',
         content: FileContentStub({ value: ONE_STEP_BATCH }),
       });
       const stepsFilePath = `${testbed.guildPath}/steps/both-flags-batch.json`;
@@ -97,7 +97,7 @@ describe('SiegelenseRunLayerFlow', () => {
     it('ERROR: {--steps-file naming a real file, unknown instance} => reads the file for real, then rejects with InstanceUnknownError', async () => {
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'steps/unknown-instance-batch.json' }),
+        relativePath: 'steps/unknown-instance-batch.json',
         content: FileContentStub({ value: ONE_STEP_BATCH }),
       });
       const stepsFilePath = `${testbed.guildPath}/steps/unknown-instance-batch.json`;
@@ -143,7 +143,7 @@ describe('SiegelenseRunLayerFlow', () => {
         instances: [RegistryEntryStub({ id: knownInstanceId, socketPath: deadSocketPath })],
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'siegelense/registry.json' }),
+        relativePath: 'siegelense/registry.json',
         content: FileContentStub({ value: `${JSON.stringify(registry)}\n` }),
       });
     });

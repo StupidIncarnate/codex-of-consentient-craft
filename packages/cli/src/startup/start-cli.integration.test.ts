@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
 import { StartCli } from './start-cli';
@@ -29,7 +29,7 @@ describe('StartCli', () => {
       });
 
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
 
       testbed.cleanup();

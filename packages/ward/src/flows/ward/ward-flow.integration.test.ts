@@ -1,5 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardFlow } from './ward-flow';
@@ -38,7 +38,7 @@ describe('WardFlow', () => {
         baseName: 'ward-flow-detail-result',
       });
 
-      const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
+      const wardResultRelativePath = `.ward/run-${VALID_RUN_ID}.json`;
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
@@ -68,7 +68,7 @@ describe('WardFlow', () => {
         baseName: 'ward-flow-list-result',
       });
 
-      const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
+      const wardResultRelativePath = `.ward/run-${VALID_RUN_ID}.json`;
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
@@ -109,7 +109,7 @@ describe('WardFlow', () => {
         baseName: 'ward-flow-raw-result',
       });
 
-      const wardResultRelativePath = RelativePathStub({ value: `.ward/run-${VALID_RUN_ID}.json` });
+      const wardResultRelativePath = `.ward/run-${VALID_RUN_ID}.json`;
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,

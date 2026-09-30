@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { StartInstall } from './start-install';
 
@@ -24,7 +24,7 @@ describe('start-install integration', () => {
       });
 
       const settingsContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
       });
 
       testbed.cleanup();
@@ -236,7 +236,7 @@ describe('start-install integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
         content: FileContentStub({
           value: JSON.stringify({ tools: { Write: { enabled: true } } }, null, 2),
         }),
@@ -257,7 +257,7 @@ describe('start-install integration', () => {
       });
 
       const settingsContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
       });
 
       testbed.cleanup();
@@ -470,7 +470,7 @@ describe('start-install integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -494,7 +494,7 @@ describe('start-install integration', () => {
       });
 
       const settingsContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
       });
 
       testbed.cleanup();
@@ -715,7 +715,7 @@ describe('start-install integration', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -745,7 +745,7 @@ describe('start-install integration', () => {
       });
 
       const settingsContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/settings.json' }),
+        relativePath: '.claude/settings.json',
       });
 
       testbed.cleanup();
@@ -960,7 +960,7 @@ describe('start-install integration', () => {
         });
 
         testbed.writeFile({
-          relativePath: RelativePathStub({ value: 'CLAUDE.md' }),
+          relativePath: 'CLAUDE.md',
           content: FileContentStub({ value: '# Claude guidelines\n' }),
         });
 
@@ -974,18 +974,16 @@ describe('start-install integration', () => {
         expect(result.success).toBe(true);
 
         const hooksContent = testbed.readFile({
-          relativePath: RelativePathStub({ value: '.agents/hooks.json' }),
+          relativePath: '.agents/hooks.json',
         });
         const skillsContent = testbed.readFile({
-          relativePath: RelativePathStub({ value: '.agents/skills.json' }),
+          relativePath: '.agents/skills.json',
         });
         const rulesContent = testbed.readFile({
-          relativePath: RelativePathStub({
-            value: '.agents/plugins/dungeonmaster/rules/AGENTS.md',
-          }),
+          relativePath: '.agents/plugins/dungeonmaster/rules/AGENTS.md',
         });
         const agentsMdContent = testbed.readFile({
-          relativePath: RelativePathStub({ value: 'AGENTS.md' }),
+          relativePath: 'AGENTS.md',
         });
 
         testbed.cleanup();

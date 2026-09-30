@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, RelativePathStub, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
@@ -15,7 +15,7 @@ describe('InstallFlow', () => {
       // create-playwright now gates on e2e eligibility — give this testbed the widgets+react
       // signals so the happy path still creates a config, same as before that gate existed.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify(
             { name: 'test-project', version: '1.0.0', dependencies: { react: '18.2.0' } },
@@ -25,7 +25,7 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/placeholder.ts' }),
+        relativePath: 'src/widgets/placeholder.ts',
         content: FileContentStub({ value: 'export const Placeholder = {};\n' }),
       });
 
@@ -37,13 +37,13 @@ describe('InstallFlow', () => {
       });
 
       const packageJsonContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
       });
       const playwrightConfigContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        relativePath: 'playwright.config.ts',
       });
       const jestConfigContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+        relativePath: 'jest.config.js',
       });
 
       testbed.cleanup();
@@ -70,7 +70,7 @@ describe('InstallFlow', () => {
       // e2e-eligible (widgets+react) so the skip below is actually exercising "config already
       // exists", not the eligibility gate short-circuiting first with a different message.
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -85,19 +85,19 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'src/widgets/placeholder.ts' }),
+        relativePath: 'src/widgets/placeholder.ts',
         content: FileContentStub({ value: 'export const Placeholder = {};\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        relativePath: 'playwright.config.ts',
         content: FileContentStub({ value: '// existing user config\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'tsconfig.json' }),
+        relativePath: 'tsconfig.json',
         content: FileContentStub({ value: '{}\n' }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+        relativePath: 'jest.config.js',
         content: FileContentStub({ value: '// existing jest config\n' }),
       });
 
@@ -109,7 +109,7 @@ describe('InstallFlow', () => {
       });
 
       const playwrightConfigContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        relativePath: 'playwright.config.ts',
       });
 
       testbed.cleanup();
@@ -139,7 +139,7 @@ describe('InstallFlow', () => {
       });
 
       const playwrightConfigContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
+        relativePath: 'playwright.config.ts',
       });
 
       testbed.cleanup();
@@ -159,7 +159,7 @@ describe('InstallFlow', () => {
         baseName: 'flow-workspaces-root',
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify(
             { name: 'monorepo-root', version: '1.0.0', workspaces: ['packages/*'] },
@@ -177,7 +177,7 @@ describe('InstallFlow', () => {
       });
 
       const jestConfigContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: 'jest.config.js' }),
+        relativePath: 'jest.config.js',
       });
 
       testbed.cleanup();
@@ -200,7 +200,7 @@ describe('InstallFlow', () => {
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify(
             { name: '@acme/app', version: '1.0.0', workspaces: ['packages/*'] },
@@ -210,13 +210,13 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/pkg-a/package.json' }),
+        relativePath: 'packages/pkg-a/package.json',
         content: FileContentStub({
           value: JSON.stringify({ name: '@acme/pkg-a', version: '1.0.0' }, null, 2),
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/pkg-a/tsconfig.json' }),
+        relativePath: 'packages/pkg-a/tsconfig.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -229,7 +229,7 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/pkg-a/tsconfig.build.json' }),
+        relativePath: 'packages/pkg-a/tsconfig.build.json',
         content: FileContentStub({
           value: JSON.stringify(
             { extends: './tsconfig.json', compilerOptions: { outDir: './dist' } },
@@ -239,7 +239,7 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/pkg-b/package.json' }),
+        relativePath: 'packages/pkg-b/package.json',
         content: FileContentStub({
           value: JSON.stringify(
             {
@@ -253,7 +253,7 @@ describe('InstallFlow', () => {
         }),
       });
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'packages/pkg-b/tsconfig.json' }),
+        relativePath: 'packages/pkg-b/tsconfig.json',
         content: FileContentStub({
           value: JSON.stringify({ extends: '../../tsconfig.json' }, null, 2),
         }),
@@ -269,7 +269,7 @@ describe('InstallFlow', () => {
       expect(firstRun.action).toBe('created');
 
       const rootPackageJson = JSON.parse(
-        String(testbed.readFile({ relativePath: RelativePathStub({ value: 'package.json' }) })),
+        String(testbed.readFile({ relativePath: 'package.json' })),
       );
 
       expect(rootPackageJson).toStrictEqual({
@@ -282,7 +282,7 @@ describe('InstallFlow', () => {
       const npmPackageJson = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/@gateway/npm/package.json' }),
+            relativePath: 'packages/@gateway/npm/package.json',
           }),
         ),
       );
@@ -343,7 +343,7 @@ describe('InstallFlow', () => {
       });
       expect(
         testbed.readFile({
-          relativePath: RelativePathStub({ value: 'packages/@gateway/npm/src/index.d.ts' }),
+          relativePath: 'packages/@gateway/npm/src/index.d.ts',
         }),
       )
         .toBe(`// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no
@@ -356,9 +356,7 @@ export {};
       // @dungeonmaster/testing import, not a copied file, so no __mocks__ directory ships.
       expect(
         testbed.listDir({
-          relativePath: RelativePathStub({
-            value: 'packages/@gateway/node/src/fs__promises/copy-dir-contents-entries-recurse',
-          }),
+          relativePath: 'packages/@gateway/node/src/fs__promises/copy-dir-contents-entries-recurse',
         }),
       ).toStrictEqual([
         'copy-dir-contents-entries-recurse.proxy.ts',
@@ -367,12 +365,12 @@ export {};
       ]);
       expect(
         testbed.listDir({
-          relativePath: RelativePathStub({ value: 'packages/@gateway/browser/__mocks__' }),
+          relativePath: 'packages/@gateway/browser/__mocks__',
         }),
       ).toBe(null);
       expect(
         testbed.listDir({
-          relativePath: RelativePathStub({ value: 'packages/@gateway/bin/src' }),
+          relativePath: 'packages/@gateway/bin/src',
         }),
       ).toStrictEqual(['index.d.ts']);
 
@@ -382,7 +380,7 @@ export {};
       for (const folder of ['node', 'browser', 'bin']) {
         const packageJsonContent = String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: `packages/@gateway/${folder}/package.json` }),
+            relativePath: `packages/@gateway/${folder}/package.json`,
           }),
         );
 
@@ -390,7 +388,7 @@ export {};
       }
 
       const rootTsconfig = JSON.parse(
-        String(testbed.readFile({ relativePath: RelativePathStub({ value: 'tsconfig.json' }) })),
+        String(testbed.readFile({ relativePath: 'tsconfig.json' })),
       );
 
       expect(rootTsconfig).toStrictEqual({
@@ -408,7 +406,7 @@ export {};
       const pkgAPackageJson = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/pkg-a/package.json' }),
+            relativePath: 'packages/pkg-a/package.json',
           }),
         ),
       );
@@ -427,7 +425,7 @@ export {};
       const pkgATsconfig = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/pkg-a/tsconfig.json' }),
+            relativePath: 'packages/pkg-a/tsconfig.json',
           }),
         ),
       );
@@ -442,7 +440,7 @@ export {};
       const pkgATsconfigBuild = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/pkg-a/tsconfig.build.json' }),
+            relativePath: 'packages/pkg-a/tsconfig.build.json',
           }),
         ),
       );
@@ -458,7 +456,7 @@ export {};
       const pkgBPackageJson = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/pkg-b/package.json' }),
+            relativePath: 'packages/pkg-b/package.json',
           }),
         ),
       );
@@ -479,7 +477,7 @@ export {};
       // via `extends`. Only a tsconfig.build.json gets the gateway-dist condition.
       const pkgBTsconfigBefore = String(
         testbed.readFile({
-          relativePath: RelativePathStub({ value: 'packages/pkg-b/tsconfig.json' }),
+          relativePath: 'packages/pkg-b/tsconfig.json',
         }),
       );
 
@@ -488,17 +486,17 @@ export {};
       // Capture every gateway-touched file's exact bytes, then run again and assert none of them
       // changed even by a single byte.
       const filesToCompare = [
-        RelativePathStub({ value: 'package.json' }),
-        RelativePathStub({ value: 'tsconfig.json' }),
-        RelativePathStub({ value: 'packages/@gateway/npm/package.json' }),
-        RelativePathStub({ value: 'packages/@gateway/npm/tsconfig.json' }),
-        RelativePathStub({ value: 'packages/@gateway/npm/tsconfig.build.json' }),
-        RelativePathStub({ value: 'packages/@gateway/node/src/fs/fs.ts' }),
-        RelativePathStub({ value: 'packages/pkg-a/package.json' }),
-        RelativePathStub({ value: 'packages/pkg-a/tsconfig.json' }),
-        RelativePathStub({ value: 'packages/pkg-a/tsconfig.build.json' }),
-        RelativePathStub({ value: 'packages/pkg-b/package.json' }),
-        RelativePathStub({ value: 'packages/pkg-b/tsconfig.json' }),
+        'package.json',
+        'tsconfig.json',
+        'packages/@gateway/npm/package.json',
+        'packages/@gateway/npm/tsconfig.json',
+        'packages/@gateway/npm/tsconfig.build.json',
+        'packages/@gateway/node/src/fs/fs.ts',
+        'packages/pkg-a/package.json',
+        'packages/pkg-a/tsconfig.json',
+        'packages/pkg-a/tsconfig.build.json',
+        'packages/pkg-b/package.json',
+        'packages/pkg-b/tsconfig.json',
       ];
       const beforeSecondRun = filesToCompare.map((relativePath) =>
         String(testbed.readFile({ relativePath })),
@@ -527,7 +525,7 @@ export {};
       });
 
       testbed.writeFile({
-        relativePath: RelativePathStub({ value: 'package.json' }),
+        relativePath: 'package.json',
         content: FileContentStub({
           value: JSON.stringify({ name: 'my-app', version: '1.0.0' }, null, 2),
         }),
@@ -543,7 +541,7 @@ export {};
       const npmPackageJson = JSON.parse(
         String(
           testbed.readFile({
-            relativePath: RelativePathStub({ value: 'packages/@gateway/npm/package.json' }),
+            relativePath: 'packages/@gateway/npm/package.json',
           }),
         ),
       );

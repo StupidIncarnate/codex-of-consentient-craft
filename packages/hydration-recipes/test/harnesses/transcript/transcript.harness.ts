@@ -14,7 +14,6 @@
  */
 
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { RelativePathStub } from '@dungeonmaster/testing';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { transcriptLinesReadTransformer } from '../../../src/transformers/transcript-lines-read/transcript-lines-read-transformer';
@@ -46,7 +45,7 @@ export const transcriptHarness = (): {
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
       contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) }) ?? '',
+        value: testbed.readFile({ relativePath: relativePath }) ?? '',
       }),
     }).map((line) => line.uuid),
 
@@ -59,7 +58,7 @@ export const transcriptHarness = (): {
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
       contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) }) ?? '',
+        value: testbed.readFile({ relativePath: relativePath }) ?? '',
       }),
     }).map((line) => line.toolUseResult?.agentId ?? null),
 
@@ -72,7 +71,7 @@ export const transcriptHarness = (): {
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
       contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) }) ?? '',
+        value: testbed.readFile({ relativePath: relativePath }) ?? '',
       }),
     }).flatMap((line): readonly unknown[] =>
       typeof line.message.content === 'string'
@@ -87,5 +86,5 @@ export const transcriptHarness = (): {
     testbed: ReturnType<typeof installTestbedCreateBroker>;
     relativePath: string;
   }): ReturnType<ReturnType<typeof installTestbedCreateBroker>['readFile']> =>
-    testbed.readFile({ relativePath: RelativePathStub({ value: relativePath }) }),
+    testbed.readFile({ relativePath: relativePath }),
 });
