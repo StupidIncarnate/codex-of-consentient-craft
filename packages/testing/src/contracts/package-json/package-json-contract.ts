@@ -13,9 +13,9 @@ export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>(),
     version: z.string().brand<'PackageJsonVersion'>(),
-    scripts: z.record(z.string().brand<'PackageJsonScriptsKey'>(), z.string().brand<'PackageJsonScripts'>()),
+    scripts: z.record(z.string(), z.string().brand<'PackageJsonScripts'>()),
     devDependencies: z
-      .record(z.string().brand<'PackageJsonDevDependenciesKey'>(), z.string().brand<'PackageJsonDevDependencies'>())
+      .record(z.string(), z.string().brand<'PackageJsonDevDependencies'>())
       .optional(),
     eslintConfig: z.json().optional(),
     jest: z.json().optional(),

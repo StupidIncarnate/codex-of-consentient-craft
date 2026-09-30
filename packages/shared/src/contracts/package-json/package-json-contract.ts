@@ -15,14 +15,14 @@ export const packageJsonContract = z
     description: z.string().brand<'PackageJsonDescription'>().optional(),
     bin: z
       .union([
-        z.record(z.string().brand<'PackageJsonBinKey'>(), z.string().brand<'PackageJsonBin'>()),
+        z.record(z.string(), z.string().brand<'PackageJsonBin'>()),
         z.string().brand<'PackageJsonBin'>(),
       ])
       .optional(),
     dependencies: z
-      .record(z.string().brand<'PackageJsonDependenciesKey'>(), z.string().brand<'PackageJsonDependencies'>())
+      .record(z.string(), z.string().brand<'PackageJsonDependencies'>())
       .optional(),
-    exports: z.record(z.string().brand<'PackageJsonExportsKey'>(), z.json()).optional(),
+    exports: z.record(z.string(), z.json()).optional(),
   })
   .loose().brand<'PackageJson'>();
 

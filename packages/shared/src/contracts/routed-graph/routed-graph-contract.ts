@@ -20,7 +20,7 @@ const routedGraphNodeContract = z.object({
   // DELIBERATELY a bare branded string and NOT the four outcome words. Rule 5 exists to catch
   // `pass:` / `green:` / `rework:`. Narrow this to the union and the bad key is refused before
   // the check runs, so rule 5 could only ever fire on a fixture — never on a real graph.
-  routes: z.record(z.string().brand<'RoutedGraphNodeRoutesKey'>(), z.string().min(1).brand<'RoutedGraphNodeRoutes'>()),
+  routes: z.record(z.string(), z.string().min(1).brand<'RoutedGraphNodeRoutes'>()),
   maxVisits: z.number().int().positive().brand<'RoutedGraphNodeMaxVisits'>().optional(),
   prompt: z.string().brand<'RoutedGraphNodePrompt'>().optional(),
   handler: z.string().brand<'RoutedGraphNodeHandler'>().optional(),
@@ -31,7 +31,7 @@ const routedGraphNodeContract = z.object({
 export const routedGraphContract = z.object({
   graphName: z.string().min(1).brand<'RoutedGraphGraphName'>(),
   entry: z.string().min(1).brand<'RoutedGraphEntry'>(),
-  nodes: z.record(z.string().min(1).brand<'RoutedGraphNodesKey'>(), routedGraphNodeContract),
+  nodes: z.record(z.string().min(1), routedGraphNodeContract),
 }).brand<'RoutedGraph'>();
 
 export type RoutedGraph = z.infer<typeof routedGraphContract>;

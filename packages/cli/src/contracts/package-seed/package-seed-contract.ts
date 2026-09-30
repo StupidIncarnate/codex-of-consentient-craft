@@ -35,7 +35,7 @@ export const packageSeedContract = z.object({
   // workspace package) — see package-scaffold-files-transformer.ts's merge.
   devDependencies: dependencyMapContract,
   bin: dependencyMapContract,
-  compilerOptions: z.record(z.string().brand<'PackageSeedCompilerOptionsKey'>(), z.json()),
+  compilerOptions: z.record(z.string(), z.json()),
   extraInclude: z.array(z.string().brand<'PackageSeedExtraInclude'>()),
   buildRootDir: z.string().brand<'PackageSeedBuildRootDir'>().nullable(),
   jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),

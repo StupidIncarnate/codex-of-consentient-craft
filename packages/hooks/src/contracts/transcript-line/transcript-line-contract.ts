@@ -12,7 +12,7 @@ const transcriptContentItemContract = z
   .object({
     type: z.string().brand<'TranscriptContentItemType'>(),
     name: z.string().min(1).brand<'TranscriptContentItemName'>().optional(),
-    input: z.record(z.string().brand<'TranscriptContentItemInputKey'>(), z.unknown()).optional(),
+    input: z.record(z.string(), z.unknown()).optional(),
   }).brand<'TranscriptContentItem'>()
   .loose();
 

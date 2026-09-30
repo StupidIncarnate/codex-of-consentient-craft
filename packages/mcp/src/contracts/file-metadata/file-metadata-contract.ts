@@ -11,7 +11,7 @@ import { grepHitContract } from '../grep-hit/grep-hit-contract';
 const signatureParameterContract = z.object({
   name: z.string().brand<'SignatureParameterName'>(),
   type: z.union([
-    z.record(z.string().brand<'SignatureParameterTypeKey'>(), z.string().brand<'SignatureParameterType'>()),
+    z.record(z.string(), z.string().brand<'SignatureParameterType'>()),
     z.string().brand<'SignatureParameterType'>(),
   ]),
 }).brand<'SignatureParameter'>();
@@ -29,7 +29,7 @@ export const fileMetadataContract = z.object({
   purpose: z.string().brand<'FileMetadataPurpose'>().optional(),
   signature: functionSignatureContract.optional(),
   usage: z.string().brand<'FileMetadataUsage'>().optional(),
-  metadata: z.record(z.string().brand<'FileMetadataMetadataKey'>(), z.json()).optional(),
+  metadata: z.record(z.string(), z.json()).optional(),
   relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
   hits: z.array(grepHitContract).optional(),
 }).brand<'FileMetadata'>();

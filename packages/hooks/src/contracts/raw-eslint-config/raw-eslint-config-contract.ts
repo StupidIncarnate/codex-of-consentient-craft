@@ -21,7 +21,7 @@ const rawEslintLanguageOptionsContract = z
   .loose();
 
 export const rawEslintConfigContract = z.object({
-  rules: z.record(z.string().brand<'RawEslintConfigRulesKey'>(), z.unknown()).optional(),
+  rules: z.record(z.string(), z.unknown()).optional(),
   language: z.unknown().optional(),
   plugins: z.unknown().optional(),
   languageOptions: rawEslintLanguageOptionsContract.optional(),

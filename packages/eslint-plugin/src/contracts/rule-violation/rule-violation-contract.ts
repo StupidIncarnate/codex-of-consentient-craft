@@ -26,7 +26,7 @@ export const ruleViolationContract = z
     node: z.unknown(),
     message: z.string().min(1).brand<'RuleViolationMessage'>(),
     messageId: z.string().brand<'RuleViolationMessageId'>().optional(),
-    data: z.record(z.string().brand<'RuleViolationDataKey'>(), z.unknown()).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
   })
   .loose().brand<'RuleViolation'>();
 

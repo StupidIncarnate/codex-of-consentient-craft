@@ -18,11 +18,11 @@ export const storageReadingContract = z
   .object({
     origin: z.string().brand<'StorageReadingOrigin'>(),
     local: z.record(
-      z.string().brand<'StorageReadingLocalKey'>(),
+      z.string(),
       z.string().brand<'StorageReadingLocal'>().nullable(),
     ),
     session: z.record(
-      z.string().brand<'StorageReadingSessionKey'>(),
+      z.string(),
       z.string().brand<'StorageReadingSession'>().nullable(),
     ),
   })

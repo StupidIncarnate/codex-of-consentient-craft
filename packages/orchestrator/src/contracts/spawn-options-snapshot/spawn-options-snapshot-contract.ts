@@ -14,7 +14,7 @@ export const spawnOptionsSnapshotContract = z
   .object({
     cwd: z.string().brand<'SpawnOptionsSnapshotCwd'>().optional(),
     env: z
-      .record(z.string().brand<'SpawnOptionsSnapshotEnvKey'>(), z.string().brand<'SpawnOptionsSnapshotEnv'>())
+      .record(z.string(), z.string().brand<'SpawnOptionsSnapshotEnv'>())
       .optional(),
     stdio: z.array(z.string().brand<'SpawnOptionsSnapshotStdio'>()).optional(),
   })

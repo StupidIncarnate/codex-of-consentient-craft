@@ -36,7 +36,7 @@ export const dungeonmasterConfigContract = z
       .object({
         overrides: z
           .record(
-            z.string().brand<'DungeonmasterConfigArchitectureOverridesKey'>(),
+            z.string(),
             z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }).brand<'DungeonmasterConfigArchitectureOverrides'>(),
           )
           .optional(),

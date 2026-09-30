@@ -11,7 +11,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const packageJsonRawContract = z.record(
-  z.string().brand<'PackageJsonRawKey'>(),
+  z.string(),
   z.json(),
 );
 

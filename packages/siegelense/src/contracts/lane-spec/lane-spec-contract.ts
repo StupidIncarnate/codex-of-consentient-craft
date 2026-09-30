@@ -33,7 +33,7 @@ export const laneSpecContract = z
     processes: z.array(laneProcessContract).readonly(),
     browser: z.boolean(),
     bootTimeoutMs: z.number().int().min(0).brand<'LaneSpecBootTimeoutMs'>(),
-    env: z.record(z.string().brand<'LaneSpecEnvKey'>(), z.string().brand<'LaneSpecEnv'>()),
+    env: z.record(z.string(), z.string().brand<'LaneSpecEnv'>()),
   })
   .refine((spec) => spec.processes.length > 0, {
     message: 'a lane spec must declare at least one process',

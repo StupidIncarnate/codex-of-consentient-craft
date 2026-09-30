@@ -29,7 +29,7 @@ export const devServerE2eProcessContract = z.object({
   // caller's shell — the orchestrator's own siege lanes set no such vars. Values take the same
   // placeholder tokens as `command`; a relative value resolves against the repo root.
   env: z
-    .record(z.string().brand<'DevServerE2eProcessEnvKey'>(), z.string().brand<'DevServerE2eProcessEnv'>())
+    .record(z.string(), z.string().brand<'DevServerE2eProcessEnv'>())
     .optional(),
 }).brand<'DevServerE2eProcess'>();
 

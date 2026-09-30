@@ -33,7 +33,7 @@ const eslintPassContract = z
     // run: 3573ms on that file against 2-13ms on the other 39. Split out so nothing ranks on it.
     parse: eslintTimeContract.optional(),
     // One entry per rule that ran. This plus `fix` is the file's OWN cost, with no program build.
-    rules: z.record(z.string().brand<'EslintPassRulesKey'>(), eslintTimeContract).optional(),
+    rules: z.record(z.string(), eslintTimeContract).optional(),
     fix: eslintTimeContract.optional(),
     total: z.number().brand<'EslintPassTotal'>().optional().catch(undefined),
   }).brand<'EslintPass'>()

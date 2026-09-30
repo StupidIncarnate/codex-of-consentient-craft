@@ -32,10 +32,10 @@ export const gatewayConsumerPackageJsonContract = z
   .object({
     name: z.string().min(1).brand<'GatewayConsumerPackageJsonName'>(),
     imports: z
-      .record(z.string().brand<'GatewayConsumerPackageJsonImportsKey'>(), gatewayImportsTargetContract)
+      .record(z.string(), gatewayImportsTargetContract)
       .optional(),
-    dependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDependenciesKey'>(), z.string().brand<'GatewayConsumerPackageJsonDependencies'>()).optional(),
-    devDependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDevDependenciesKey'>(), z.string().brand<'GatewayConsumerPackageJsonDevDependencies'>()).optional(),
+    dependencies: z.record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDependencies'>()).optional(),
+    devDependencies: z.record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDevDependencies'>()).optional(),
   })
   .loose().brand<'GatewayConsumerPackageJson'>();
 

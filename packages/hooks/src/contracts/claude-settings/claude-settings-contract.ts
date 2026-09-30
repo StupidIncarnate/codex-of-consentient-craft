@@ -89,7 +89,7 @@ const permissionsConfigContract = z
 
 const envValueContract = z.string().brand<'EnvValue'>();
 
-const envConfigContract = z.record(z.string().brand<'EnvConfigKey'>(), envValueContract);
+const envConfigContract = z.record(z.string(), envValueContract);
 
 // Plain strings, not enums: Claude Code owns these values and adds new ones. Init writes its own
 // default only when the consumer's file carries none, and reads neither, so a value newer than this

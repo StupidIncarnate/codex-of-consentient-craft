@@ -17,7 +17,7 @@ const routePointContract = z.object({
 }).brand<'RoutePoint'>();
 
 export const flowEdgeRouteMapContract = z
-  .record(z.string().brand<'FlowEdgeRouteMapKey'>(), z.array(routePointContract))
+  .record(z.string(), z.array(routePointContract))
   .brand<'FlowEdgeRouteMap'>();
 
 export type FlowEdgeRouteMap = z.infer<typeof flowEdgeRouteMapContract>;

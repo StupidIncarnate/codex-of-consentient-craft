@@ -63,15 +63,15 @@ export const workspacePackageJsonContract = z
     workspaces: z
       .union([
         z.array(z.string().brand<'WorkspacePackageJsonWorkspaces'>()),
-        z.record(z.string().brand<'WorkspacePackageJsonWorkspacesKey'>(), z.json()),
+        z.record(z.string(), z.json()),
       ])
       .optional(),
     exports: z
-      .record(z.string().brand<'WorkspacePackageJsonExportsKey'>(), workspacePackageExportValueContract)
+      .record(z.string(), workspacePackageExportValueContract)
       .optional(),
     imports: z
       .record(
-        z.string().brand<'WorkspacePackageJsonImportsKey'>(),
+        z.string(),
         z.union([z.string().brand<'WorkspacePackageJsonImports'>(), workspacePackageImportConditionsContract]),
       )
       .optional(),

@@ -89,7 +89,7 @@ const questWorkPiece = z.object({
   recipeId: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'QuestWorkPieceRecipeId'>().nullable(),
   baselineFor: pieceIdContract.nullable(),
   contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-  payload: z.record(z.string().brand<'QuestWorkPiecePayloadKey'>(), z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
 }).brand<'QuestWorkPiece'>();
 
 // A seed with no proving run is a path no walk may be sent down — an unproven recipe does not fail

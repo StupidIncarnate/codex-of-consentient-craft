@@ -32,7 +32,7 @@ export const laneProcessContract = z.object({
   portRole: portRoleContract.nullable(),
   readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
   logFileName: z.string().brand<'LaneProcessLogFileName'>(),
-  env: z.record(z.string().brand<'LaneProcessEnvKey'>(), z.string().brand<'LaneProcessEnv'>()),
+  env: z.record(z.string(), z.string().brand<'LaneProcessEnv'>()),
 }).brand<'LaneProcess'>();
 
 export type LaneProcess = z.infer<typeof laneProcessContract>;

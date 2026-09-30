@@ -13,7 +13,7 @@ import { z } from '#gateway/npm/zod';
 export const claudeSpawnCommandContract = z
   .object({
     args: z.array(z.string().brand<'ClaudeSpawnCommandArgs'>()),
-    env: z.record(z.string().brand<'ClaudeSpawnCommandEnvKey'>(), z.string().brand<'ClaudeSpawnCommandEnv'>()),
+    env: z.record(z.string(), z.string().brand<'ClaudeSpawnCommandEnv'>()),
   })
   .brand<'ClaudeSpawnCommand'>();
 

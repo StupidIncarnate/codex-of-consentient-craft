@@ -14,7 +14,7 @@ import { z } from '#gateway/npm/zod';
 export const testbedConfigContract = z
   .object({
     questFolder: z.string().brand<'TestbedConfigQuestFolder'>(),
-    wardCommands: z.record(z.string().brand<'TestbedConfigWardCommandsKey'>(), z.json()),
+    wardCommands: z.record(z.string(), z.json()),
   })
   .loose().brand<'TestbedConfig'>();
 

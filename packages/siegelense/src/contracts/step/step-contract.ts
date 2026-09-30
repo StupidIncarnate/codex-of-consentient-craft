@@ -188,7 +188,7 @@ export const stepContract = z
         // Its own object, never flattened onto the step — a recipe input named `as`, `step` or
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).
-        params: z.record(z.string().min(1).brand<'StepParamsKey'>(), z.json()).nullable().default(null),
+        params: z.record(z.string().min(1), z.json()).nullable().default(null),
         as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
@@ -251,7 +251,7 @@ export const stepContract = z
         path: z.string().brand<'StepPath'>(),
         body: z.json().optional(),
         headers: z
-          .record(z.string().brand<'StepHeadersKey'>(), z.string().brand<'StepHeaders'>())
+          .record(z.string(), z.string().brand<'StepHeaders'>())
           .optional(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(

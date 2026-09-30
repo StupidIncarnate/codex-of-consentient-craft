@@ -9,7 +9,7 @@ import { z } from '#gateway/npm/zod';
 
 
 export const partialEslintConfigContract = z.object({
-  rules: z.record(z.string().brand<'PartialEslintConfigRulesKey'>(), z.json()).optional(),
+  rules: z.record(z.string(), z.json()).optional(),
 }).brand<'PartialEslintConfig'>();
 
 export type PartialEslintConfig = z.infer<typeof partialEslintConfigContract>;
