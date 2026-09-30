@@ -528,7 +528,6 @@ export * from './operation-plan-piece-id/operation-plan-piece-id-contract';
 
 export * from './operation-plan-piece/operation-plan-piece-contract';
 
-export * from './operation-plan-id/operation-plan-id-contract';
 
 export * from './operation-plan/operation-plan-contract';
 

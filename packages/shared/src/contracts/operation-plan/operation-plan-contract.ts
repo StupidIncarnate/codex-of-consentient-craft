@@ -17,13 +17,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { operationPlanIdContract } from '../operation-plan-id/operation-plan-id-contract';
 import { operationPlanPieceContract } from '../operation-plan-piece/operation-plan-piece-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 
 export const operationPlanContract = z.object({
-  id: operationPlanIdContract.describe(
+  id: operationPlanId.describe(
     'Identity for this plan. The operator reads a plan back by this id after the planner ' +
       'sub-agent that wrote it has returned, without holding the plan body in its own context.',
   ),
