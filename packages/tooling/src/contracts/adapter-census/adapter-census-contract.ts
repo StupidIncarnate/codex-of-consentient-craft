@@ -9,18 +9,17 @@
  */
 import { z } from '#gateway/npm/zod';
 import { packageCensusContract } from '../package-census/package-census-contract';
-import { censusCountContract } from '../census-count/census-count-contract';
 
 export const adapterCensusContract = z.object({
   scope: z.string().min(1).brand<'CensusScope'>().nullable(),
   packages: z.array(packageCensusContract),
   totals: z.object({
-    adapters: censusCountContract,
-    passThrough: censusCountContract,
-    logic: censusCountContract,
-    productionCallers: censusCountContract,
-    composingProxies: censusCountContract,
-    catchAllProxies: censusCountContract,
+    adapters: z.number().int().min(0).brand<'AdapterCensusTotalsAdapters'>(),
+    passThrough: z.number().int().min(0).brand<'AdapterCensusTotalsPassThrough'>(),
+    logic: z.number().int().min(0).brand<'AdapterCensusTotalsLogic'>(),
+    productionCallers: z.number().int().min(0).brand<'AdapterCensusTotalsProductionCallers'>(),
+    composingProxies: z.number().int().min(0).brand<'AdapterCensusTotalsComposingProxies'>(),
+    catchAllProxies: z.number().int().min(0).brand<'AdapterCensusTotalsCatchAllProxies'>(),
   }),
 });
 

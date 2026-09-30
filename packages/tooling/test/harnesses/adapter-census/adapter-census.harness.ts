@@ -12,7 +12,6 @@ import * as path from '#gateway/node/path';
 import { execFileSync } from '#gateway/node/child_process';
 
 
-import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 import { cwd } from '#gateway/node/process';
 
@@ -31,7 +30,7 @@ interface ExecError {
 const PACKAGE_DIR = cwd();
 const ENTRY_PATH = path.join(cwd(), 'bin', 'adapter-census.ts');
 const MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
-const TIMEOUT_MS = CensusCountStub({ value: 300_000 });
+const TIMEOUT_MS = 300_000;
 
 const isExecError = (error: unknown): error is ExecError =>
   typeof error === 'object' &&
@@ -42,7 +41,7 @@ const isExecError = (error: unknown): error is ExecError =>
 export const adapterCensusHarness = (): {
   runCensus: (params: { args: readonly string[] }) => RunResult;
   installFixture: (params: { testbed: InstallTestbed }) => void;
-  timeoutMs: ReturnType<typeof CensusCountStub>;
+  timeoutMs: number;
 } => {
   const runCensus = ({ args }: { args: readonly string[] }): RunResult => {
     try {
