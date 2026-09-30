@@ -89,12 +89,12 @@ export const fileScannerBrokerProxy = (): {
     matches,
   }: {
     root: PathSegment;
-    pattern: GlobPattern;
-    ignore: readonly GlobPattern[];
+    pattern: string;
+    ignore: readonly string[];
     matches: readonly PathSegment[];
   }): void => {
     globGateway.returns({
-      pattern: globPatternContract.parse(`${root}/${pattern}`),
+      pattern: `${root}/${pattern}`,
       options: { cwd: root, ignore },
       matches: [...matches],
     });
@@ -110,8 +110,8 @@ export const fileScannerBrokerProxy = (): {
     matches,
   }: {
     root: PathSegment;
-    pattern: GlobPattern;
-    ignore: readonly GlobPattern[];
+    pattern: string;
+    ignore: readonly string[];
     matches: readonly PathSegment[];
   }): void => {
     stageScan({ root, pattern, ignore, matches });

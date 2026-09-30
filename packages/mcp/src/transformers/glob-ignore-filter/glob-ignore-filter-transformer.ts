@@ -13,8 +13,6 @@
  * // Returns patterns without the tmp rule
  */
 
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 
 const PATH_SEPARATOR = '/';
 const WILDCARD_PATTERN = /[*?[\]]/u;
@@ -23,9 +21,9 @@ export const globIgnoreFilterTransformer = ({
   patterns,
   glob,
 }: {
-  patterns: readonly GlobPattern[];
-  glob: GlobPattern;
-}): readonly GlobPattern[] => {
+  patterns: readonly string[];
+  glob: string;
+}): readonly string[] => {
   const globSegments = new Set(
     String(glob)
       .split(PATH_SEPARATOR)
@@ -48,5 +46,5 @@ export const globIgnoreFilterTransformer = ({
       // reopen a `tests/tmp` rule it never mentioned.
       return !ruleSegments.every((segment) => globSegments.has(segment));
     })
-    .map((rule) => globPatternContract.parse(rule));
+    .map((rule) => rule);
 };

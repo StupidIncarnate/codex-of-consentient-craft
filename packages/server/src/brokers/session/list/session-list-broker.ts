@@ -6,12 +6,7 @@
  * // Returns session entries sorted most-recently-active-first (by JSONL mtime) with optional quest correlation
  */
 
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  globPatternContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileContentsContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
@@ -59,7 +54,7 @@ export const sessionListBroker = async ({
   );
 
   const directFiles = (
-    await glob(globPatternContract.parse('*.jsonl'), {
+    await glob('*.jsonl', {
       cwd: claudeProjectDir,
       nodir: false,
       ignore: globIgnoreStatics.defaults,
@@ -107,7 +102,7 @@ export const sessionListBroker = async ({
   const crossProjectFileLists = await Promise.all(
     crossProjectSessionIds.map(async (sessionId) =>
       (
-        await glob(globPatternContract.parse(`*/${sessionId}.jsonl`), {
+        await glob(`*/${sessionId}.jsonl`, {
           cwd: crossProjectRoot,
           nodir: false,
           ignore: globIgnoreStatics.defaults,

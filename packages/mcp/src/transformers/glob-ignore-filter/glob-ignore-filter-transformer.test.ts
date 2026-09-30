@@ -14,10 +14,10 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -28,9 +28,9 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -41,9 +41,9 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -54,8 +54,8 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -66,9 +66,9 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.git/**',
     ]);
   });
 
@@ -79,10 +79,10 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -95,7 +95,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: GlobPatternStub({ value: 'tmp/**/*' }),
     });
 
-    expect(result).toStrictEqual([GlobPatternStub({ value: '**/node_modules/**' })]);
+    expect(result).toStrictEqual(['**/node_modules/**']);
   });
 
   it('EDGE: {glob: unscoped, cwd under /tmp} => keeps the tmp rule (the cwd is not part of the glob)', () => {
@@ -110,8 +110,8 @@ describe('globIgnoreFilterTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/tmp/**' }),
+      '**/node_modules/**',
+      '**/tmp/**',
     ]);
   });
 
@@ -121,7 +121,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: GlobPatternStub({ value: 'packages/web/src/coverage-report/**' }),
     });
 
-    expect(result).toStrictEqual([GlobPatternStub({ value: '**/coverage/**' })]);
+    expect(result).toStrictEqual(['**/coverage/**']);
   });
 
   it('EDGE: {rule: "**/*.log", glob: any} => keeps a wildcard-only rule (no directory to target)', () => {
@@ -130,7 +130,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: GlobPatternStub({ value: 'packages/**' }),
     });
 
-    expect(result).toStrictEqual([GlobPatternStub({ value: '**/*.log' })]);
+    expect(result).toStrictEqual(['**/*.log']);
   });
 
   it('EDGE: {rule: "tests/tmp/**", glob: "tests/..."} => keeps the rule until every segment is targeted', () => {
@@ -139,7 +139,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: GlobPatternStub({ value: 'tests/**' }),
     });
 
-    expect(result).toStrictEqual([GlobPatternStub({ value: 'tests/tmp/**' })]);
+    expect(result).toStrictEqual(['tests/tmp/**']);
   });
 
   it('VALID: {rule: "tests/tmp/**", glob: "tests/tmp/..."} => removes the rule when every segment is targeted', () => {

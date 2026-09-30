@@ -1,7 +1,6 @@
 import { discoverIgnoreInitBroker } from './discover-ignore-init-broker';
 import { discoverIgnoreInitBrokerProxy } from './discover-ignore-init-broker.proxy';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('discoverIgnoreInitBroker', () => {
   it('VALID: {.gitignore with dist and worktrees} => merges gitignore over the static rules, deduped', async () => {
@@ -14,12 +13,12 @@ describe('discoverIgnoreInitBroker', () => {
     const result = await discoverIgnoreInitBroker();
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
-      GlobPatternStub({ value: '**/dist' }),
-      GlobPatternStub({ value: '**/worktrees/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
+      '**/dist',
+      '**/worktrees/**',
     ]);
   });
 
@@ -31,10 +30,10 @@ describe('discoverIgnoreInitBroker', () => {
     const result = await discoverIgnoreInitBroker();
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 
@@ -48,10 +47,10 @@ describe('discoverIgnoreInitBroker', () => {
     const result = await discoverIgnoreInitBroker();
 
     expect(result).toStrictEqual([
-      GlobPatternStub({ value: '**/node_modules/**' }),
-      GlobPatternStub({ value: '**/dist/**' }),
-      GlobPatternStub({ value: '**/build/**' }),
-      GlobPatternStub({ value: '**/.git/**' }),
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
     ]);
   });
 });

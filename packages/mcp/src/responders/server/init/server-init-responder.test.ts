@@ -1,7 +1,6 @@
 import { ServerInitResponderProxy } from './server-init-responder.proxy';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('ServerInitResponder', () => {
   describe('successful initialization', () => {
@@ -23,13 +22,13 @@ describe('ServerInitResponder', () => {
       await proxy.callResponder();
 
       expect(discoverIgnoreState.get()).toStrictEqual([
-        GlobPatternStub({ value: '**/node_modules/**' }),
-        GlobPatternStub({ value: '**/dist/**' }),
-        GlobPatternStub({ value: '**/build/**' }),
-        GlobPatternStub({ value: '**/.git/**' }),
-        GlobPatternStub({ value: '**/tmp' }),
-        GlobPatternStub({ value: '**/tmp/**' }),
-        GlobPatternStub({ value: '**/worktrees/**' }),
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.git/**',
+        '**/tmp',
+        '**/tmp/**',
+        '**/worktrees/**',
       ]);
     });
 
@@ -41,10 +40,10 @@ describe('ServerInitResponder', () => {
       await proxy.callResponder();
 
       expect(discoverIgnoreState.get()).toStrictEqual([
-        GlobPatternStub({ value: '**/node_modules/**' }),
-        GlobPatternStub({ value: '**/dist/**' }),
-        GlobPatternStub({ value: '**/build/**' }),
-        GlobPatternStub({ value: '**/.git/**' }),
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.git/**',
       ]);
     });
   });

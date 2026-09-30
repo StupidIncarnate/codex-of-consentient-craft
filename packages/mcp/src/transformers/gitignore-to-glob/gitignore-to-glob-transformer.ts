@@ -13,20 +13,19 @@
  * // Returns ['**\/dist', '**\/dist\/**', '**\/worktrees\/**']
  */
 
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, GlobPattern } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 const COMMENT_PREFIX = '#';
 const NEGATION_PREFIX = '!';
 const PATH_SEPARATOR = '/';
 const WILDCARD_PATTERN = /[*?[\]]/u;
-const NO_PATTERNS: readonly GlobPattern[] = [];
+const NO_PATTERNS: readonly string[] = [];
 
 export const gitignoreToGlobTransformer = ({
   contents,
 }: {
   contents: FileContents;
-}): readonly GlobPattern[] =>
+}): readonly string[] =>
   String(contents)
     .split('\n')
     .flatMap((rawLine) => {
@@ -51,12 +50,12 @@ export const gitignoreToGlobTransformer = ({
       const base = isAnchored || core.includes(PATH_SEPARATOR) ? core : `**/${core}`;
 
       if (isDirectoryOnly) {
-        return [globPatternContract.parse(`${base}/**`)];
+        return [`${base}/**`];
       }
 
       // A bare name matches a file OR a directory in git, and glob needs one pattern for each.
       // A line that already carries a wildcard is passed through exactly as its author wrote it.
       return WILDCARD_PATTERN.test(core)
-        ? [globPatternContract.parse(base)]
-        : [globPatternContract.parse(base), globPatternContract.parse(`${base}/**`)];
+        ? [base]
+        : [base, `${base}/**`];
     });

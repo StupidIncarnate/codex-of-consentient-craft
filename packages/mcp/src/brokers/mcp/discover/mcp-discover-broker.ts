@@ -91,7 +91,7 @@ export const mcpDiscoverBroker = async ({
   if (fileResults.length === 0 && validated.glob) {
     const cwdPath = rootPath ?? pathSegmentContract.parse(cwd());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
-    const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
+    const pattern = `${cwdPath}/${globSuffix}`;
 
     // The probes below must see the same tree the scan just saw, or the hint explains an absence
     // the caller never had — so they resolve the ignore list exactly as fileScannerBroker does.

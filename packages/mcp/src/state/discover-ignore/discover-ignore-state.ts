@@ -10,25 +10,23 @@
  * // Returns the merged list once init has run, the static rules before that
  */
 
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
-const STATIC_PATTERNS: readonly GlobPattern[] = fileDiscoveryStatics.globIgnorePatterns.map(
-  (pattern) => globPatternContract.parse(pattern),
+const STATIC_PATTERNS: readonly string[] = fileDiscoveryStatics.globIgnorePatterns.map(
+  (pattern) => pattern,
 );
 
 // Empty reads as "init has not run", which is sound because the only writer —
 // discoverIgnoreInitBroker — always returns the static rules at minimum, so a legitimately empty
 // ignore list is not a state this can be in.
-const currentPatterns: GlobPattern[] = [];
+const currentPatterns: string[] = [];
 
 export const discoverIgnoreState = {
-  set: ({ patterns }: { patterns: readonly GlobPattern[] }): void => {
+  set: ({ patterns }: { patterns: readonly string[] }): void => {
     currentPatterns.splice(0, currentPatterns.length, ...patterns);
   },
 
-  get: (): readonly GlobPattern[] =>
+  get: (): readonly string[] =>
     currentPatterns.length === 0 ? STATIC_PATTERNS : [...currentPatterns],
 
   clear: (): void => {

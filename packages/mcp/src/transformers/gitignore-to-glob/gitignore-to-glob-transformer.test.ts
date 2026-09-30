@@ -48,11 +48,11 @@ describe('gitignoreToGlobTransformer', () => {
       });
 
       expect(result).toStrictEqual([
-        GlobPatternStub({ value: '**/dist' }),
-        GlobPatternStub({ value: '**/dist/**' }),
-        GlobPatternStub({ value: '**/tmp' }),
-        GlobPatternStub({ value: '**/tmp/**' }),
-        GlobPatternStub({ value: '**/worktrees/**' }),
+        '**/dist',
+        '**/dist/**',
+        '**/tmp',
+        '**/tmp/**',
+        '**/worktrees/**',
       ]);
     });
 

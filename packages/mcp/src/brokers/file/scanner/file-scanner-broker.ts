@@ -59,7 +59,7 @@ export const fileScannerBroker = async ({
   // 1. Resolve glob pattern and scan from the resolved root + shared package
   const cwdPath = rootPath ?? pathSegmentContract.parse(cwd());
   const globSuffix = globResolveTransformer({ ...(glob && { glob }) });
-  const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
+  const pattern = `${cwdPath}/${globSuffix}`;
 
   // The escape hatch is applied to the CALLER'S glob, not `pattern` — that one carries the cwd,
   // and a repo living under a directory an ignore rule names would disable that rule for every
@@ -83,7 +83,7 @@ export const fileScannerBroker = async ({
   const sharedFilePaths: PathSegment[] = [];
   const sharedBasePathStr = sharedPath ? pathSegmentContract.parse(sharedPath) : null;
   if (sharedBasePathStr !== null) {
-    const sharedPattern = globPatternContract.parse(`${sharedBasePathStr}/${globSuffix}`);
+    const sharedPattern = `${sharedBasePathStr}/${globSuffix}`;
     const foundSharedFiles = (
       await globFind(sharedPattern, { cwd: sharedBasePathStr, ignore })
     ).map((foundPath) => pathSegmentContract.parse(foundPath));

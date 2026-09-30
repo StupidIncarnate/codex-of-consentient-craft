@@ -1,12 +1,11 @@
 import { globResolveTransformer } from './glob-resolve-transformer';
 import { DiscoverInputStub } from '../../contracts/discover-input/discover-input.stub';
-import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('globResolveTransformer', () => {
   it('VALID: no glob => defaults to **/*', () => {
     const result = globResolveTransformer({});
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: '**/*' }));
+    expect(result).toStrictEqual('**/*');
   });
 
   it('VALID: glob with file extension => used as-is', () => {
@@ -14,7 +13,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: '**/*.sql' }));
+    expect(result).toStrictEqual('**/*.sql');
   });
 
   it('VALID: glob with specific filename => used as-is', () => {
@@ -22,7 +21,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: '**/package.json' }));
+    expect(result).toStrictEqual('**/package.json');
   });
 
   it('VALID: directory-like glob => appends /**/*', () => {
@@ -30,7 +29,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: 'packages/mcp/src/**/*' }));
+    expect(result).toStrictEqual('packages/mcp/src/**/*');
   });
 
   it('VALID: glob with wildcard but no extension => used as-is', () => {
@@ -38,7 +37,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: 'packages/hooks/src/guards/**' }));
+    expect(result).toStrictEqual('packages/hooks/src/guards/**');
   });
 
   it('VALID: glob with **/* suffix => used as-is', () => {
@@ -47,7 +46,7 @@ describe('globResolveTransformer', () => {
     const result = globResolveTransformer({ glob: glob! });
 
     expect(result).toStrictEqual(
-      GlobPatternStub({ value: 'packages/shared/src/contracts/quest-id/**/*' }),
+      'packages/shared/src/contracts/quest-id/**/*',
     );
   });
 
@@ -56,7 +55,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: 'packages/mcp/src/**/*.{ts,json}' }));
+    expect(result).toStrictEqual('packages/mcp/src/**/*.{ts,json}');
   });
 
   it('VALID: glob with ts extension => used as-is', () => {
@@ -64,12 +63,12 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: '**/*.ts' }));
+    expect(result).toStrictEqual('**/*.ts');
   });
 
   it('EDGE: empty string glob => defaults to **/*', () => {
     const result = globResolveTransformer({ glob: '' as never });
 
-    expect(result).toStrictEqual(GlobPatternStub({ value: '**/*' }));
+    expect(result).toStrictEqual('**/*');
   });
 });

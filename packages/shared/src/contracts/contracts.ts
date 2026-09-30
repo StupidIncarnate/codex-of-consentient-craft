@@ -291,7 +291,6 @@ export * from './agent-id/agent-id-contract';
 export * from './mcp-caller-context/mcp-caller-context-contract';
 
 // Glob Pattern Contracts
-export * from './glob-pattern/glob-pattern-contract';
 
 // Item With Id Contracts
 export * from './item-with-id/item-with-id-contract';

@@ -19,7 +19,6 @@
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { globPatternContract } from '@dungeonmaster/shared/contracts';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
@@ -104,7 +103,7 @@ export const mcpDiscoverBrokerProxy = (): {
       // distinguishing it from the scan's own call (nodir: true).
       fileScannerProxy.setupFiles({ files: [], pattern });
       globGateway.returnsMatchingTail({
-        pattern: globPatternContract.parse(`${scanRoot}/${pattern}`),
+        pattern: `${scanRoot}/${pattern}`,
         options: { nodir: false },
         matches: [...directoryPaths],
       });

@@ -19,8 +19,7 @@
  * // Returns the deduped union, or just the static rules when the repo keeps no .gitignore
  */
 
-import { fileContentsContract, globPatternContract } from '@dungeonmaster/shared/contracts';
-import type { GlobPattern } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-glob/gitignore-to-glob-transformer';
@@ -33,9 +32,9 @@ import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-g
 // same startup responder.
 const GITIGNORE_FILENAME = '.gitignore';
 
-export const discoverIgnoreInitBroker = async (): Promise<readonly GlobPattern[]> => {
+export const discoverIgnoreInitBroker = async (): Promise<readonly string[]> => {
   const staticPatterns = fileDiscoveryStatics.globIgnorePatterns.map((pattern) =>
-    globPatternContract.parse(pattern),
+    pattern,
   );
 
   const contents = await readFileIfExists(GITIGNORE_FILENAME);

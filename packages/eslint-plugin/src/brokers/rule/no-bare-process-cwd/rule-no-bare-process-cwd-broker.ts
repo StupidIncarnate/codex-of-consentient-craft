@@ -7,7 +7,7 @@
  *
  * WHEN-TO-USE: When registering ESLint rules to prevent cwd-as-target bugs (wrong cwd at spawn time, install scripts run from sub-package, hook payload trusted blindly, etc.)
  */
-import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isProcessCwdCallGuard } from '../../../guards/is-process-cwd-call/is-process-cwd-call-guard';
 import { isHarnessOrProxyFileGuard } from '../../../guards/is-harness-or-proxy-file/is-harness-or-proxy-file-guard';
@@ -58,8 +58,8 @@ export const ruleNoBareProcessCwdBroker = (): TSESLint.RuleModule<'bareProcessCw
     const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       cwd?: PathSegment;
       options?: {
-        allowedFiles?: readonly GlobPattern[];
-        allowedFolders?: readonly GlobPattern[];
+        allowedFiles?: readonly string[];
+        allowedFolders?: readonly string[];
         allowTestFiles?: boolean;
       }[];
     };
