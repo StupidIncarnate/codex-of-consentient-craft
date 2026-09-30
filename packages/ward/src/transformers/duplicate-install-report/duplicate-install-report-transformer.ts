@@ -12,8 +12,6 @@
  */
 
 import type { DuplicateInstallViolation } from '../../contracts/duplicate-install-violation/duplicate-install-violation-contract';
-import { duplicateInstallDisplayTextContract } from '../../contracts/duplicate-install-display-text/duplicate-install-display-text-contract';
-import type { DuplicateInstallDisplayText } from '../../contracts/duplicate-install-display-text/duplicate-install-display-text-contract';
 import { duplicateInstallViolationDisplayTransformer } from '../duplicate-install-violation-display/duplicate-install-violation-display-transformer';
 
 const CLEAN_RUN_MESSAGE =
@@ -24,16 +22,14 @@ export const duplicateInstallReportTransformer = ({
   violations,
 }: {
   violations: readonly DuplicateInstallViolation[];
-}): DuplicateInstallDisplayText => {
+}): string => {
   if (violations.length === 0) {
-    return duplicateInstallDisplayTextContract.parse(CLEAN_RUN_MESSAGE);
+    return CLEAN_RUN_MESSAGE;
   }
 
   const blocks = violations.map((violation) =>
     duplicateInstallViolationDisplayTransformer({ violation }),
   );
 
-  return duplicateInstallDisplayTextContract.parse(
-    `duplicate-install: FAIL — ${violations.length} package(s) with more than one install\n\n${blocks.join('\n\n')}`,
-  );
+  return `duplicate-install: FAIL — ${violations.length} package(s) with more than one install\n\n${blocks.join('\n\n')}`;
 };

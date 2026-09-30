@@ -13,8 +13,6 @@
  */
 
 import type { DuplicateInstallViolation } from '../../contracts/duplicate-install-violation/duplicate-install-violation-contract';
-import { duplicateInstallDisplayTextContract } from '../../contracts/duplicate-install-display-text/duplicate-install-display-text-contract';
-import type { DuplicateInstallDisplayText } from '../../contracts/duplicate-install-display-text/duplicate-install-display-text-contract';
 
 const FIX_LINE = 'Run `npm dedupe`, then align version ranges if a duplicate remains.';
 
@@ -22,13 +20,11 @@ export const duplicateInstallViolationDisplayTransformer = ({
   violation,
 }: {
   violation: DuplicateInstallViolation;
-}): DuplicateInstallDisplayText => {
+}): string => {
   const headerLine = `${violation.packageName} installed at ${violation.locations.length} locations:`;
   const locationLines = violation.locations.map(
     (location) => `  ${location.location} (${location.version})`,
   );
 
-  return duplicateInstallDisplayTextContract.parse(
-    [headerLine, ...locationLines, FIX_LINE].join('\n'),
-  );
+  return [headerLine, ...locationLines, FIX_LINE].join('\n');
 };
