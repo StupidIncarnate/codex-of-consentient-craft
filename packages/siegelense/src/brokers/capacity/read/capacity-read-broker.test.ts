@@ -1,6 +1,5 @@
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
-import { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -44,7 +43,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -95,7 +94,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 3 }),
+        poolSize: 3,
       });
 
       expect(answer).toStrictEqual({
@@ -145,7 +144,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -211,7 +210,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -272,7 +271,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -337,7 +336,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -402,7 +401,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -539,7 +538,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 5 }),
+        poolSize: 5,
       });
 
       expect(answer).toStrictEqual({
@@ -582,7 +581,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 99_999 }),
+        poolSize: 99_999,
       });
 
       expect(answer).toStrictEqual({
@@ -634,7 +633,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({
@@ -685,7 +684,7 @@ describe('capacityReadBroker', () => {
 
       const answer = await capacityReadBroker({
         specName: 'api',
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(answer).toStrictEqual({

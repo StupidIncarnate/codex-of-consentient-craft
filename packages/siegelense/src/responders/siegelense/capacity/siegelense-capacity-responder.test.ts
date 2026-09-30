@@ -1,7 +1,6 @@
 import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
 import { CapacityMeasuredStub } from '../../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
-import { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { capacityAnswerRenderTransformer } from '../../../transformers/capacity-answer-render/capacity-answer-render-transformer';
 
@@ -66,7 +65,7 @@ describe('SiegelenseCapacityResponder', () => {
     it('VALID: {specName, poolSize: 3} => passes both through to the broker and writes human summary', async () => {
       const proxy = SiegelenseCapacityResponderProxy();
       const specName = 'dungeonmaster-api';
-      const poolSize = ProfilePoolSizeStub({ value: 3 });
+      const poolSize = 3;
       const answer = CapacityAnswerStub({
         suggested: 1,
         ceiling: 3,

@@ -15,12 +15,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 
 export const capacityArgsContract = z
   .object({
     specName: z.string().min(1).brand<'CapacityArgsSpecName'>(),
-    poolSize: profilePoolSizeContract.nullable(),
+    poolSize: z.number().int().positive().brand<'CapacityArgsPoolSize'>().nullable(),
     isJson: z.boolean().default(false),
   })
   .strict();

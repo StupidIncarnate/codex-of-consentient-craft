@@ -35,8 +35,6 @@
 import { capacityAnswerContract } from '../../../contracts/capacity-answer/capacity-answer-contract';
 import type { CapacityAnswer } from '../../../contracts/capacity-answer/capacity-answer-contract';
 import { capacityMeasuredContract } from '../../../contracts/capacity-measured/capacity-measured-contract';
-import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { isStaleReservationRegistryEntryGuard } from '../../../guards/is-stale-reservation-registry-entry/is-stale-reservation-registry-entry-guard';
@@ -55,13 +53,13 @@ export const capacityReadBroker = async ({
   poolSize,
 }: {
   specName: string;
-  poolSize: ProfilePoolSize | null;
+  poolSize: number | null;
 }): Promise<CapacityAnswer> => {
   // The pool a caller has not named is the largest one policy allows, so the group read is the most
   // CONTENDED the profile holds. Spec lines 1504-1507: a peak measured solo is optimistic for a pool
   // of three, and computing against the optimistic figure is the expensive mistake.
   const resolvedPoolSize =
-    poolSize ?? profilePoolSizeContract.parse(capacityStatics.policy.ceiling);
+    poolSize ?? capacityStatics.policy.ceiling;
 
   const registry = await registryReadBroker();
   const machine = await machineReadBroker();

@@ -24,7 +24,6 @@
 
 import { capacityProfileContract } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
-import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { SpecProfile } from '../../contracts/spec-profile/spec-profile-contract';
 
 export const capacitySampleSelectTransformer = ({
@@ -32,7 +31,7 @@ export const capacitySampleSelectTransformer = ({
   poolSize,
 }: {
   profile: SpecProfile;
-  poolSize: ProfilePoolSize;
+  poolSize: number;
 }): CapacityProfile | null => {
   const ascending = [...profile.samples].sort((left, right) => left.poolSize - right.poolSize);
   const atOrBelow = ascending.filter((sample) => sample.poolSize <= poolSize);

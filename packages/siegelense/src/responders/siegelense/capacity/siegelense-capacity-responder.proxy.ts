@@ -15,10 +15,9 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read-broker';
 import { capacityReadBrokerProxy } from '../../../brokers/capacity/read/capacity-read-broker.proxy';
 import type { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
-import type { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
 
 type CapacityAnswer = ReturnType<typeof CapacityAnswerStub>;
-type ProfilePoolSize = ReturnType<typeof ProfilePoolSizeStub>;
+type ProfilePoolSize = number;
 type SpecName = string;
 
 export const SiegelenseCapacityResponderProxy = (): {

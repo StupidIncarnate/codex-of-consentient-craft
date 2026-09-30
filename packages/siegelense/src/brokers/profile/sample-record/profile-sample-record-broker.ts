@@ -32,7 +32,6 @@ import { stderr } from '#gateway/node/process';
 
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
-import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { profileObservationMergeTransformer } from '../../../transformers/profile-observation-merge/profile-observation-merge-transformer';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
@@ -65,7 +64,7 @@ export const profileSampleRecordBroker = async ({
   const runningCount = registry.instances.filter(
     (entry) => entry.state === 'alive' && entry.bootedAtMs !== null,
   ).length;
-  const poolSize = profilePoolSizeContract.parse(Math.max(runningCount, SOLO_POOL_SIZE));
+  const poolSize = Math.max(runningCount, SOLO_POOL_SIZE);
 
   const { samplesDir } = locationsProfileDirsFindBroker({ specHash });
   const recordPath = join(samplesDir, `${instanceId}${profileStatics.extensions.record}`);

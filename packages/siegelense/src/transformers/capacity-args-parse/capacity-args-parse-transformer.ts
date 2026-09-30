@@ -15,7 +15,6 @@
 
 import { capacityArgsContract } from '../../contracts/capacity-args/capacity-args-contract';
 import type { CapacityArgs } from '../../contracts/capacity-args/capacity-args-contract';
-import { profilePoolSizeContract } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
@@ -85,7 +84,7 @@ export const capacityArgsParseTransformer = ({
           flag: POOL_FLAG,
           raw: rawPoolSize,
           accepts: 'a whole number of 1 or more',
-          parse: (value) => profilePoolSizeContract.parse(value),
+          parse: (value) => value,
         });
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);

@@ -21,7 +21,6 @@
 
 import { profileObservationContract } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../contracts/profile-observation/profile-observation-contract';
-import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { SpecHash } from '../../contracts/spec-hash/spec-hash-contract';
 import { profileStatics } from '../../statics/profile/profile-statics';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
@@ -37,7 +36,7 @@ export const profileObservationMergeTransformer = ({
   observation: ProfileObservation | null;
   instanceId: SiegeInstance['id'];
   specHash: SpecHash;
-  poolSize: ProfilePoolSize;
+  poolSize: number;
   rssMB: number;
   beatAtMs: number;
 }): ProfileObservation => {

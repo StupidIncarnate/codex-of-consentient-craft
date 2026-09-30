@@ -39,7 +39,6 @@
 import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
-import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
 const CLAUSE_SEPARATOR = '; ';
@@ -61,7 +60,7 @@ export const capacityWhyRenderTransformer = ({
   freeMemMB: number;
   siegeInstances: number;
   reservedInstances: number;
-  requestedPoolSize: ProfilePoolSize | null;
+  requestedPoolSize: number | null;
   cores: number;
   loadAvg1: CapacityMeasured['loadAvg1'];
 }): string => {

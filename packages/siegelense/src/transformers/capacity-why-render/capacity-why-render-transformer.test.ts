@@ -1,7 +1,6 @@
 import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
 import { CapacitySuggestionStub } from '../../contracts/capacity-suggestion/capacity-suggestion.stub';
-import { ProfilePoolSizeStub } from '../../contracts/profile-pool-size/profile-pool-size.stub';
 
 import { capacityWhyRenderTransformer } from './capacity-why-render-transformer';
 
@@ -156,7 +155,7 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: 5320,
         siegeInstances: 0,
         reservedInstances: 0,
-        requestedPoolSize: ProfilePoolSizeStub({ value: 5 }),
+        requestedPoolSize: 5,
         cores: SOME_CORES,
         loadAvg1: SOME_LOAD1,
       });
@@ -184,7 +183,7 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: 5320,
         siegeInstances: 1,
         reservedInstances: 0,
-        requestedPoolSize: ProfilePoolSizeStub({ value: 1 }),
+        requestedPoolSize: 1,
         cores: SOME_CORES,
         loadAvg1: SOME_LOAD1,
       });
@@ -209,7 +208,7 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: 5320,
         siegeInstances: 1,
         reservedInstances: 0,
-        requestedPoolSize: ProfilePoolSizeStub({ value: 99_999 }),
+        requestedPoolSize: 99_999,
         cores: SOME_CORES,
         loadAvg1: SOME_LOAD1,
       });

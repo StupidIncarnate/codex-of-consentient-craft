@@ -1,4 +1,3 @@
-import { ProfilePoolSizeStub } from '../../contracts/profile-pool-size/profile-pool-size.stub';
 import { SpecProfileStub } from '../../contracts/spec-profile/spec-profile.stub';
 
 import { capacitySampleSelectTransformer } from './capacity-sample-select-transformer';
@@ -16,7 +15,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(result).toStrictEqual({
@@ -39,7 +38,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 3 }),
+        poolSize: 3,
       });
 
       expect(result).toStrictEqual({
@@ -61,7 +60,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 2 }),
+        poolSize: 2,
       });
 
       expect(result).toStrictEqual({
@@ -83,7 +82,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 9 }),
+        poolSize: 9,
       });
 
       expect(result).toStrictEqual({
@@ -106,7 +105,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 2 }),
+        poolSize: 2,
       });
 
       expect(result).toStrictEqual({
@@ -127,7 +126,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 1 }),
+        poolSize: 1,
       });
 
       expect(result).toStrictEqual({
@@ -146,7 +145,7 @@ describe('capacitySampleSelectTransformer', () => {
 
       const result = capacitySampleSelectTransformer({
         profile,
-        poolSize: ProfilePoolSizeStub({ value: 3 }),
+        poolSize: 3,
       });
 
       expect(result).toBe(null);

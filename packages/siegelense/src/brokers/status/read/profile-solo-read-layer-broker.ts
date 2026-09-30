@@ -20,7 +20,6 @@
 
 import { stderr } from '#gateway/node/process';
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
-import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import { capacitySampleSelectTransformer } from '../../../transformers/capacity-sample-select/capacity-sample-select-transformer';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 
@@ -44,6 +43,6 @@ export const profileSoloReadLayerBroker = async ({
 
   return capacitySampleSelectTransformer({
     profile,
-    poolSize: profilePoolSizeContract.parse(SOLO_POOL_SIZE),
+    poolSize: SOLO_POOL_SIZE,
   });
 };
