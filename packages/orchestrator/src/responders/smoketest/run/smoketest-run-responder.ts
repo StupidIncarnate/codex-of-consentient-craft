@@ -8,12 +8,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  questSourceContract,
-  smoketestRunIdContract,
-  urlSlugContract,
-} from '@dungeonmaster/shared/contracts';
-import type { FilePath, SmoketestCaseResult, SmoketestRunId, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import { questSourceContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import type { FilePath, SmoketestCaseResult, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import {
@@ -27,6 +23,8 @@ import { smoketestEnsureGuildBroker } from '../../../brokers/smoketest/ensure-gu
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
 import { EnqueueBundledSuiteLayerResponder } from './enqueue-bundled-suite-layer-responder';
 import { EnqueueOrchestrationScenarioLayerResponder } from './enqueue-orchestration-scenario-layer-responder';
+import type { ActiveSmoketestRun } from '../../../contracts/active-smoketest-run/active-smoketest-run-contract';
+import { activeSmoketestRunContract } from '../../../contracts/active-smoketest-run/active-smoketest-run-contract';
 
 export const SmoketestRunResponder = async ({
   suite,
@@ -35,7 +33,7 @@ export const SmoketestRunResponder = async ({
   suite: SmoketestSuite;
   startPath: FilePath;
 }): Promise<{
-  runId: SmoketestRunId;
+  runId: ActiveSmoketestRun['runId'];
   enqueued: readonly { questId: Quest['id']; guildSlug: UrlSlug }[];
   results: readonly SmoketestCaseResult[];
 }> => {
@@ -46,7 +44,7 @@ export const SmoketestRunResponder = async ({
     );
   }
 
-  const runId = smoketestRunIdContract.parse(randomUUID());
+  const runId = activeSmoketestRunContract.shape.runId.parse(randomUUID());
   smoketestRunState.start({ runId, suite });
 
   try {

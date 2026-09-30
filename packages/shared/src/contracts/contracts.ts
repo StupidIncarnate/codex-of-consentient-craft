@@ -402,7 +402,6 @@ export * from './smoketest-suite/smoketest-suite-contract';
 export * from './smoketest-case-result/smoketest-case-result-contract';
 
 // Smoketest Run ID Contracts
-export * from './smoketest-run-id/smoketest-run-id-contract';
 
 // Quest Queue Entry Contracts
 export * from './quest-queue-entry/quest-queue-entry-contract';

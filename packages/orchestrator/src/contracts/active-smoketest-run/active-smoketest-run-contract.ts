@@ -8,12 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { smoketestRunIdContract, smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
+import { smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const activeSmoketestRunContract = z.object({
-  runId: smoketestRunIdContract,
+  runId: z.uuid().brand<'ActiveSmoketestRunRunId'>(),
   suite: smoketestSuiteContract,
   startedAt: isoTimestampContract,
 });
