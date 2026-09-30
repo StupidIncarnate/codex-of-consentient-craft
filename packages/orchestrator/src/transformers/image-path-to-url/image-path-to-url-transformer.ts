@@ -11,8 +11,6 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { chatEntryContentContract } from '../../contracts/chat-entry-content/chat-entry-content-contract';
-import type { ChatEntryContent } from '../../contracts/chat-entry-content/chat-entry-content-contract';
 
 export const imagePathToUrlTransformer = ({
   content,
@@ -20,11 +18,9 @@ export const imagePathToUrlTransformer = ({
 }: {
   content: string;
   serverBaseUrl: string;
-}): ChatEntryContent =>
-  chatEntryContentContract.parse(
-    content.replace(
+}): string =>
+  content.replace(
       new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
       (_match: string, ordinal: string, target: string) =>
         `![Pasted Image ${ordinal}](${serverBaseUrl}${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`,
-    ),
-  );
+    );
