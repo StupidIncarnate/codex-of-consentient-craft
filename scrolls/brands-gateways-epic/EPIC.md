@@ -129,7 +129,7 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:35)
+### Now (updated at every event; last 2026-09-30 12:02, machine clock)
 
 | Running (3, in merge worktree W, sonnet) | Owns |
 |---|---|
