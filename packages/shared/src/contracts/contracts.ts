@@ -536,7 +536,6 @@ export * from './rate-limits-snapshot/rate-limits-snapshot-contract';
 export * from './rate-limits-history-line/rate-limits-history-line-contract';
 
 // Work Item Floor Ordering Contracts (shared by the web floor view and the orchestrator dispatcher)
-export * from './topological-depth/topological-depth-contract';
 export * from './quest-section/quest-section-contract';
 
 // Operation Plan Contracts (planner sub-agent output — read back off the quest by the

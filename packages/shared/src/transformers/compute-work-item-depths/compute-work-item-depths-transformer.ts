@@ -8,8 +8,6 @@
 
 import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
-import type { TopologicalDepth } from '../../contracts/topological-depth/topological-depth-contract';
-import { topologicalDepthContract } from '../../contracts/topological-depth/topological-depth-contract';
 
 export const computeWorkItemDepthsTransformer = ({
   items,
@@ -17,9 +15,9 @@ export const computeWorkItemDepthsTransformer = ({
 }: {
   items: WorkItem[];
   itemMap: Map<WorkItem['id'], WorkItem>;
-}): Map<WorkItem['id'], TopologicalDepth> => {
+}): Map<WorkItem['id'], number> => {
   const itemIds = new Set(items.map((i) => i.id));
-  const depths = new Map<WorkItem['id'], TopologicalDepth>();
+  const depths = new Map<WorkItem['id'], number>();
   // Ids currently on the DFS stack — a dep that points back into this set is a back-edge (cycle).
   const visiting = new Set<WorkItem['id']>();
 
@@ -60,7 +58,7 @@ export const computeWorkItemDepthsTransformer = ({
         if (candidate > depth) depth = candidate;
       }
 
-      depths.set(id, topologicalDepthContract.parse(depth));
+      depths.set(id, depth);
       visiting.delete(id);
       stack.pop();
     }
