@@ -1,12 +1,11 @@
 import { ScanReportStub } from './scan-report.stub';
-import { ScanRuleNameStub } from '../scan-rule-name/scan-rule-name.stub';
 import { ScanPackageResultStub } from '../scan-package-result/scan-package-result.stub';
 import { scanReportContract } from './scan-report-contract';
 
 describe('scanReportContract', () => {
   describe('valid input', () => {
     it('VALID: {rule, no packages} => returns the empty report', () => {
-      const result = ScanReportStub({ rule: ScanRuleNameStub({ value: 'no-console' }) });
+      const result = ScanReportStub({ rule: 'no-console' });
 
       expect(result).toStrictEqual({ rule: 'no-console', packages: [] });
     });

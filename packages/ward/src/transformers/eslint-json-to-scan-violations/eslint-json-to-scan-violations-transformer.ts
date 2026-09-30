@@ -10,7 +10,6 @@
 
 
 import { eslintJsonReportContract } from '../../contracts/eslint-json-report/eslint-json-report-contract';
-import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
 import {
   scanViolationContract,
   type ScanViolation,
@@ -25,7 +24,7 @@ export const eslintJsonToScanViolationsTransformer = ({
   rootPath,
 }: {
   jsonOutput: string;
-  rule: ScanRuleName;
+  rule: string;
   rootPath: string;
 }): ScanViolation[] => {
   const slice = extractJsonArrayTransformer({ output: jsonOutput });

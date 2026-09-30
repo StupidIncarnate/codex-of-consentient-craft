@@ -1,5 +1,4 @@
 
-import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanConfigWriteBroker } from './scan-config-write-broker';
 import { scanConfigWriteBrokerProxy } from './scan-config-write-broker.proxy';
 
@@ -9,7 +8,7 @@ describe('scanConfigWriteBroker', () => {
     proxy.setupTempDir({ directory: '/tmp/ward-scan-x1y2z3' });
 
     const result = scanConfigWriteBroker({
-      rule: ScanRuleNameStub({ value: 'no-console' }),
+      rule: 'no-console',
       rootPath: '/repo',
     });
 

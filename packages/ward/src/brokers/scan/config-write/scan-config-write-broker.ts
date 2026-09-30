@@ -15,7 +15,6 @@ import {
   scanConfigFileContract,
   type ScanConfigFile,
 } from '../../../contracts/scan-config-file/scan-config-file-contract';
-import type { ScanRuleName } from '../../../contracts/scan-rule-name/scan-rule-name-contract';
 import { scanStatics } from '../../../statics/scan/scan-statics';
 import { scanEslintConfigSourceTransformer } from '../../../transformers/scan-eslint-config-source/scan-eslint-config-source-transformer';
 import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
@@ -24,7 +23,7 @@ export const scanConfigWriteBroker = ({
   rule,
   rootPath,
 }: {
-  rule: ScanRuleName;
+  rule: string;
   rootPath: string;
 }): ScanConfigFile => {
   const directory = mkdtempSync(

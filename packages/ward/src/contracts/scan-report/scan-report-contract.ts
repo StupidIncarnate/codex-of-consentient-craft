@@ -11,10 +11,9 @@
 import { z } from '#gateway/npm/zod';
 
 import { scanPackageResultContract } from '../scan-package-result/scan-package-result-contract';
-import { scanRuleNameContract } from '../scan-rule-name/scan-rule-name-contract';
 
 export const scanReportContract = z.object({
-  rule: scanRuleNameContract,
+  rule: z.string().min(1).regex(/^\S+$/u).brand<'ScanReportRule'>(),
   packages: z.array(scanPackageResultContract),
 });
 

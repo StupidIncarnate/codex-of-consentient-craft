@@ -24,7 +24,6 @@ import {
   scanPackageResultContract,
   type ScanPackageResult,
 } from '../../../contracts/scan-package-result/scan-package-result-contract';
-import type { ScanRuleName } from '../../../contracts/scan-rule-name/scan-rule-name-contract';
 import { scanStatics } from '../../../statics/scan/scan-statics';
 import { eslintJsonToScanViolationsTransformer } from '../../../transformers/eslint-json-to-scan-violations/eslint-json-to-scan-violations-transformer';
 import { scanViolationsToBatchesTransformer } from '../../../transformers/scan-violations-to-batches/scan-violations-to-batches-transformer';
@@ -41,7 +40,7 @@ export const scanPackageBroker = async ({
 }: {
   projectFolder: ProjectFolder;
   rootPath: string;
-  rule: ScanRuleName;
+  rule: string;
   targets: string[];
   configFile: ScanConfigFile;
 }): Promise<ScanPackageResult> => {

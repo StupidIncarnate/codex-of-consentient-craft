@@ -18,14 +18,13 @@
  */
 
 
-import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
 import { scanStatics } from '../../statics/scan/scan-statics';
 
 export const scanEslintConfigSourceTransformer = ({
   rule,
   rootConfigPath,
 }: {
-  rule: ScanRuleName;
+  rule: string;
   rootConfigPath: string;
 }): string =>
   [

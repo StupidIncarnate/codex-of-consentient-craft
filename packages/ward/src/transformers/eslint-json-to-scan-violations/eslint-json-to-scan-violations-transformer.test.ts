@@ -1,9 +1,8 @@
 
-import { ScanRuleNameStub } from '../../contracts/scan-rule-name/scan-rule-name.stub';
 import { eslintJsonToScanViolationsTransformer } from './eslint-json-to-scan-violations-transformer';
 
 const rootPath = '/repo';
-const rule = ScanRuleNameStub({ value: '@dungeonmaster/ban-workspace-export-mocks' });
+const rule = '@dungeonmaster/ban-workspace-export-mocks';
 
 describe('eslintJsonToScanViolationsTransformer', () => {
   describe('valid input', () => {

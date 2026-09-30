@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { scanFixtureHarness } from '../../../../test/harnesses/scan-fixture/scan-fixture.harness';
 import { ScanConfigStub } from '../../../contracts/scan-config/scan-config.stub';
-import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanRunBroker } from './scan-run-broker';
 
 // The unit tests stage the eslint child, so they cannot prove the `--rule` flag turns on a rule the
@@ -18,7 +17,7 @@ describe('scanRunBroker (integration)', () => {
     await harness.writeWorkspace({ testbed });
 
     const result = await scanRunBroker({
-      config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'no-debugger' }) }),
+      config: ScanConfigStub({ rule: 'no-debugger' }),
       rootPath: testbed.guildPath,
     });
 
@@ -63,7 +62,7 @@ describe('scanRunBroker (integration)', () => {
 
     const result = await scanRunBroker({
       config: ScanConfigStub({
-        rule: ScanRuleNameStub({ value: 'no-debugger' }),
+        rule: 'no-debugger',
         paths: ['packages/app/src/b.js'],
       }),
       rootPath: testbed.guildPath,
@@ -98,7 +97,7 @@ describe('scanRunBroker (integration)', () => {
     await harness.writeWorkspace({ testbed });
 
     const result = await scanRunBroker({
-      config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'fixture/no-forbidden' }) }),
+      config: ScanConfigStub({ rule: 'fixture/no-forbidden' }),
       rootPath: testbed.guildPath,
     });
 
@@ -129,7 +128,7 @@ describe('scanRunBroker (integration)', () => {
     await harness.writeWorkspace({ testbed });
 
     const outcome = await scanRunBroker({
-      config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'absent/no-such-rule' }) }),
+      config: ScanConfigStub({ rule: 'absent/no-such-rule' }),
       rootPath: testbed.guildPath,
     }).catch((error: unknown) =>
       String(error)
@@ -153,7 +152,7 @@ describe('scanRunBroker (integration)', () => {
     await harness.writeWorkspace({ testbed });
 
     const outcome = await scanRunBroker({
-      config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'no-such-rule-anywhere' }) }),
+      config: ScanConfigStub({ rule: 'no-such-rule-anywhere' }),
       rootPath: testbed.guildPath,
     }).catch((error: unknown) => String(error).split('\n')[0]);
 

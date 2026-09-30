@@ -10,10 +10,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { scanRuleNameContract } from '../scan-rule-name/scan-rule-name-contract';
 
 export const scanConfigContract = z.object({
-  rule: scanRuleNameContract,
+  rule: z.string().min(1).regex(/^\S+$/u).brand<'ScanConfigRule'>(),
   paths: z.array(z.string().brand<'ScanConfigPaths'>()),
 });
 

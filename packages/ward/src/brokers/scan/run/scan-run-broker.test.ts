@@ -1,12 +1,11 @@
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ScanConfigStub } from '../../../contracts/scan-config/scan-config.stub';
-import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanRunBroker } from './scan-run-broker';
 import { scanRunBrokerProxy } from './scan-run-broker.proxy';
 
 const rootPath = '/project';
-const rule = ScanRuleNameStub({ value: '@dungeonmaster/ban-workspace-export-mocks' });
+const rule = '@dungeonmaster/ban-workspace-export-mocks';
 const ward = ProjectFolderStub({ name: '@dungeonmaster/ward', path: '/project/packages/ward' });
 const shared = ProjectFolderStub({
   name: '@dungeonmaster/shared',

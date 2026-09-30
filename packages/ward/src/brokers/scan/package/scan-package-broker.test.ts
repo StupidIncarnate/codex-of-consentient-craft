@@ -1,7 +1,6 @@
 
 import { ScanConfigFileStub } from '../../../contracts/scan-config-file/scan-config-file.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
-import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanPackageBroker } from './scan-package-broker';
 import { scanPackageBrokerProxy } from './scan-package-broker.proxy';
 
@@ -10,7 +9,7 @@ const projectFolder = ProjectFolderStub({
   name: '@dungeonmaster/ward',
   path: '/repo/packages/ward',
 });
-const rule = ScanRuleNameStub({ value: '@dungeonmaster/ban-workspace-export-mocks' });
+const rule = '@dungeonmaster/ban-workspace-export-mocks';
 const configFile = ScanConfigFileStub();
 
 describe('scanPackageBroker', () => {
