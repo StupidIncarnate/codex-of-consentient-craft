@@ -12,8 +12,6 @@
  * // Returns 'git diff'
  */
 
-import { toolDisplayLabelContract } from '../../contracts/tool-display-label/tool-display-label-contract';
-import type { ToolDisplayLabel } from '../../contracts/tool-display-label/tool-display-label-contract';
 import { toolDisplayLabelStatics } from '../../statics/tool-display-label/tool-display-label-statics';
 import { formatToolInputTransformer } from '../format-tool-input/format-tool-input-transformer';
 
@@ -28,7 +26,7 @@ export const toolDisplayLabelTransformer = ({
 }: {
   toolName: string;
   toolInput: string;
-}): ToolDisplayLabel => {
+}): string => {
   const formatted = formatToolInputTransformer({ toolName, toolInput });
 
   if (toolName === toolDisplayLabelStatics.skillToolName) {
@@ -40,7 +38,7 @@ export const toolDisplayLabelTransformer = ({
         ? toolDisplayLabelStatics.unknownSkillLabel
         : String(skillField.value);
 
-    return toolDisplayLabelContract.parse(`${toolDisplayLabelStatics.skillToolName}: ${skillName}`);
+    return `${toolDisplayLabelStatics.skillToolName}: ${skillName}`;
   }
 
   if (toolName === toolDisplayLabelStatics.bashToolName) {
@@ -62,13 +60,13 @@ export const toolDisplayLabelTransformer = ({
     const words = afterEnv.slice(0, Math.min(wordCount, toolDisplayLabelStatics.maxCommandWords));
 
     if (words.length > 0) {
-      return toolDisplayLabelContract.parse(words.join(' '));
+      return words.join(' ');
     }
 
-    return toolDisplayLabelContract.parse(toolDisplayLabelStatics.bashToolName);
+    return toolDisplayLabelStatics.bashToolName;
   }
 
   const withoutMcpPrefix = toolName.replace(MCP_PREFIX, '');
 
-  return toolDisplayLabelContract.parse(withoutMcpPrefix === '' ? toolName : withoutMcpPrefix);
+  return (withoutMcpPrefix === '' ? toolName : withoutMcpPrefix);
 };
