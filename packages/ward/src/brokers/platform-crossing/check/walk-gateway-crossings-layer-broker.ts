@@ -49,10 +49,6 @@ import {
   type PlatformCrossingChainHop,
 } from '../../../contracts/platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
 import type { TypescriptModuleShape } from '../../../contracts/typescript-module-shape/typescript-module-shape-contract';
-import {
-  platformCrossingWalkMemoKeyContract,
-  type PlatformCrossingWalkMemoKey,
-} from '../../../contracts/platform-crossing-walk-memo-key/platform-crossing-walk-memo-key-contract';
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
 import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-package/specifier-matches-package-guard';
 import { gatewaySpecifierCanonicalizeTransformer } from '../../../transformers/gateway-specifier-canonicalize/gateway-specifier-canonicalize-transformer';
@@ -65,7 +61,7 @@ import {
 } from './resolve-specifier-cached-layer-broker';
 
 export type WalkGatewayCrossingsMemo = Map<
-  PlatformCrossingWalkMemoKey,
+  string,
   Promise<readonly PlatformCrossingChainHop[][]>
 >;
 export type ModuleShapeCache = Map<FilePath, TypescriptModuleShape>;
@@ -149,9 +145,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
           }
 
           const namesKey = [...new Set(relevantNames)].sort().join('\u0001');
-          const memoKey = platformCrossingWalkMemoKeyContract.parse(
-            `${resolved.filePath}\u0000${namesKey}`,
-          );
+          const memoKey = `${resolved.filePath}\u0000${namesKey}`;
           const cachedWalk = memo.get(memoKey);
           const childChainsPromise =
             cachedWalk ??
@@ -193,9 +187,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
         }
 
         if (dependency.kind === 'opaque') {
-          const memoKey = platformCrossingWalkMemoKeyContract.parse(
-            `${resolved.filePath}\u0000all`,
-          );
+          const memoKey = `${resolved.filePath}\u0000all`;
           const cachedWalk = memo.get(memoKey);
           const childChainsPromise =
             cachedWalk ??
@@ -246,9 +238,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
           childRequestedNames === 'all'
             ? 'all'
             : [...new Set(childRequestedNames)].sort().join('\u0001');
-        const memoKey = platformCrossingWalkMemoKeyContract.parse(
-          `${resolved.filePath}\u0000${namesKey}`,
-        );
+        const memoKey = `${resolved.filePath}\u0000${namesKey}`;
         const cachedWalk = memo.get(memoKey);
         const childChainsPromise =
           cachedWalk ??
