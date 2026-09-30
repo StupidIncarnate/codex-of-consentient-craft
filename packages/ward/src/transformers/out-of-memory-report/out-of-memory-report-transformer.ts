@@ -12,8 +12,6 @@
  * // Returns '  ward  exit 134  V8 heap limit — the check printed ...'
  */
 
-import { outOfMemoryReportContract } from '../../contracts/out-of-memory-report/out-of-memory-report-contract';
-import type { OutOfMemoryReport } from '../../contracts/out-of-memory-report/out-of-memory-report-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import type { RawOutput } from '../../contracts/raw-output/raw-output-contract';
 import { outOfMemoryStatics } from '../../statics/out-of-memory/out-of-memory-statics';
@@ -24,7 +22,7 @@ export const outOfMemoryReportTransformer = ({
 }: {
   projectFolder: ProjectFolder;
   rawOutput: RawOutput;
-}): OutOfMemoryReport => {
+}): string => {
   const signal = rawOutput.signal ?? '';
   const died = signal === '' ? `exit ${String(rawOutput.exitCode)}` : signal;
 
@@ -40,5 +38,5 @@ export const outOfMemoryReportTransformer = ({
     : outOfMemoryStatics.reason.killed;
   const reason = printedBanner ? outOfMemoryStatics.reason.heapLimit : bannerOrSignal;
 
-  return outOfMemoryReportContract.parse(`  ${String(projectFolder.name)}  ${died}  ${reason}`);
+  return `  ${String(projectFolder.name)}  ${died}  ${reason}`;
 };
