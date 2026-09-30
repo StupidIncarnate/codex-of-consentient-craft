@@ -1,4 +1,3 @@
-import { BlockedReasonStub } from '@dungeonmaster/shared/contracts/blocked-reason/blocked-reason.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -672,9 +671,7 @@ describe('QuestHandleSignalBackResponder', () => {
     it('VALID: {ward item, blockedReason present} => the item still completes, carrying the reason as errorMessage', async () => {
       const proxy = QuestHandleSignalBackResponderProxy();
       const itemId = QuestWorkItemIdStub({ value: ITEM_ID });
-      const blockedReason = BlockedReasonStub({
-        value: 'git commit is denied in this dispatched session',
-      });
+      const blockedReason = 'git commit is denied in this dispatched session';
       const quest = QuestStub({
         operations: [
           OperationItemStub({

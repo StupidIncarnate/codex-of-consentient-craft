@@ -22,7 +22,6 @@ export * from './relative-file-path/relative-file-path-contract';
 // Module Path Contracts
 
 // Error Message Contracts
-export * from './blocked-reason/blocked-reason-contract';
 
 // Extracted Metadata Contracts
 export * from './extracted-metadata/extracted-metadata-contract';
