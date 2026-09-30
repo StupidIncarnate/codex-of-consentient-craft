@@ -13,13 +13,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { bucketStartKeyContract } from '../bucket-start-key/bucket-start-key-contract';
 import { usageBucketContract } from '../usage-bucket/usage-bucket-contract';
 
 export const usageLedgerContract = z.object({
   // Keyed by the bucket's start time in epoch MILLISECONDS, as a string because JSON object keys
   // are strings. Buckets older than the seven-day window are dropped on every write.
-  buckets: z.record(bucketStartKeyContract, usageBucketContract),
+  buckets: z.record(z.string().brand<'UsageLedgerBuckets'>(), usageBucketContract),
   // One entry per transcript file already counted, keyed by absolute path. A file is re-read only
   // when its size or mtime moved, which is what keeps a 600 MB tree to a few MB of reads per scan.
   cursors: z.record(
