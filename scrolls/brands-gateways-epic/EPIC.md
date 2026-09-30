@@ -129,13 +129,14 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:54, machine clock)
+### Now (updated at every event; last 2026-09-30 12:55, machine clock)
 
 | Running | Where |
 |---|---|
-| trim `get-testing-patterns` under the 50 KB MCP cap (opus) | mcp testing-patterns broker |
 | hooks `start-pre-edit-hook.integration.test.ts` times out in full runs (opus) | hooks integration, maybe `eslint.config.js` load (F105) |
 | operator: `check:consumer` | background |
+
+**Just landed:** `get-testing-patterns` is 44,941 bytes, under the 50 KB cap (was 56,046; no rule dropped; the margin under 45 KB is thin, so the next addition needs matching cuts). Red 1 is fixed.
 
 **Final gate so far:** `build:clean` exit 0; `check:published` exit 0. Full ward 1790796592908-a9ef (1,087 s): lint 11,514,
 typecheck 11,480, unit 4,176 and e2e 131 green; integration 228 of 230. Red 1: `mcp-server-flow.integration.test.ts`
