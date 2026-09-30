@@ -7,29 +7,27 @@
  */
 
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
-import type { TailStartIndex } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
 
 export const computeGroupTailIndexTransformer = ({
   groups,
 }: {
   groups: ChatEntryGroup[];
-}): TailStartIndex => {
+}): number => {
   if (groups.length === 0) {
-    return tailStartIndexContract.parse(0);
+    return 0;
   }
 
   for (let i = groups.length - 1; i >= 0; i--) {
     const group = groups[i];
     if (group === undefined) continue;
     if (group.kind === 'subagent-chain') {
-      return tailStartIndexContract.parse(i);
+      return i;
     }
     if (isMessageAnchorEntryGuard({ entry: group.entry })) {
-      return tailStartIndexContract.parse(i);
+      return i;
     }
   }
 
-  return tailStartIndexContract.parse(groups.length - 1);
+  return (groups.length - 1);
 };

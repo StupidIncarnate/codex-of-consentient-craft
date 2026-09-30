@@ -9,13 +9,11 @@
 import { Box, Text } from '#gateway/npm/mantine__core';
 
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
-import type { TailStartIndex } from '../../contracts/tail-start-index/tail-start-index-contract';
 import type { ToggleTestId } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface ShowEarlierToggleWidgetProps {
-  hiddenCount: TailStartIndex;
+  hiddenCount: number;
   expanded: boolean;
   onToggle: () => void;
   testId: ToggleTestId;
@@ -32,7 +30,7 @@ export const ShowEarlierToggleWidget = ({
   // chain) render this row ABOVE the entries it reveals — so the row itself never moves, and the
   // whole job is stopping the auto-scroll from throwing the reader to the end of what just opened.
   const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
-  const numericCount = Number(tailStartIndexContract.parse(hiddenCount));
+  const numericCount = Number(hiddenCount);
   const noun = numericCount === 1 ? 'entry' : 'entries';
   const label = expanded
     ? `▾ Hide ${String(numericCount)} earlier ${noun}`

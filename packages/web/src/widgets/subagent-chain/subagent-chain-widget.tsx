@@ -27,7 +27,6 @@ import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -229,7 +228,7 @@ export const SubagentChainWidget = ({
               wouldHideCount > 0 ? (
                 <ShowEarlierToggleWidget
                   key="show-earlier-toggle"
-                  hiddenCount={tailStartIndexContract.parse(wouldHideCount)}
+                  hiddenCount={wouldHideCount}
                   expanded={showAllEarlier}
                   onToggle={(): void => {
                     setReaderToggled(!showAllEarlier);

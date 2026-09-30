@@ -7,17 +7,15 @@
  */
 
 import type { MergedChatItem } from '../../contracts/merged-chat-item/merged-chat-item-contract';
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
-import type { TailStartIndex } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
 
 export const computeMergedItemTailIndexTransformer = ({
   items,
 }: {
   items: MergedChatItem[];
-}): TailStartIndex => {
+}): number => {
   if (items.length === 0) {
-    return tailStartIndexContract.parse(0);
+    return 0;
   }
 
   for (let i = items.length - 1; i >= 0; i--) {
@@ -25,9 +23,9 @@ export const computeMergedItemTailIndexTransformer = ({
     if (item === undefined) continue;
     if (item.kind !== 'entry') continue;
     if (isMessageAnchorEntryGuard({ entry: item.entry })) {
-      return tailStartIndexContract.parse(i);
+      return i;
     }
   }
 
-  return tailStartIndexContract.parse(items.length - 1);
+  return (items.length - 1);
 };

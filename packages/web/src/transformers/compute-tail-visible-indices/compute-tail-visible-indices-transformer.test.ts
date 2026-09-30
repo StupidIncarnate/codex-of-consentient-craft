@@ -1,4 +1,3 @@
-import { TailStartIndexStub } from '../../contracts/tail-start-index/tail-start-index.stub';
 import { computeTailVisibleIndicesTransformer } from './compute-tail-visible-indices-transformer';
 
 describe('computeTailVisibleIndicesTransformer', () => {
@@ -14,7 +13,7 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [false],
         isSubagentChainFlags: [false],
       }),
-    ).toStrictEqual([TailStartIndexStub({ value: 0 })]);
+    ).toStrictEqual([0]);
   });
 
   it('VALID: {anchor text + 3 tool pairs} => returns [0, 3] (anchor + last)', () => {
@@ -23,7 +22,7 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [true, false, false, false],
         isSubagentChainFlags: [false, false, false, false],
       }),
-    ).toStrictEqual([TailStartIndexStub({ value: 0 }), TailStartIndexStub({ value: 3 })]);
+    ).toStrictEqual([0, 3]);
   });
 
   it('VALID: {3 tool pairs, no anchor} => returns [2] (last only)', () => {
@@ -32,7 +31,7 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [false, false, false],
         isSubagentChainFlags: [false, false, false],
       }),
-    ).toStrictEqual([TailStartIndexStub({ value: 2 })]);
+    ).toStrictEqual([2]);
   });
 
   it('VALID: {tools + anchor + 2 chains} => returns [anchorIdx, chainA, chainB] (anchor + both chains visible)', () => {
@@ -42,9 +41,9 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isSubagentChainFlags: [false, false, false, true, true],
       }),
     ).toStrictEqual([
-      TailStartIndexStub({ value: 2 }),
-      TailStartIndexStub({ value: 3 }),
-      TailStartIndexStub({ value: 4 }),
+      2,
+      3,
+      4,
     ]);
   });
 
@@ -54,7 +53,7 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [true, false, true],
         isSubagentChainFlags: [true, false, true],
       }),
-    ).toStrictEqual([TailStartIndexStub({ value: 0 }), TailStartIndexStub({ value: 2 })]);
+    ).toStrictEqual([0, 2]);
   });
 
   it('VALID: {message anchor is last unit} => returns [lastIndex] (single visible)', () => {
@@ -63,6 +62,6 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [false, false, true],
         isSubagentChainFlags: [false, false, false],
       }),
-    ).toStrictEqual([TailStartIndexStub({ value: 2 })]);
+    ).toStrictEqual([2]);
   });
 });

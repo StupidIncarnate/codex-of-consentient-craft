@@ -9,8 +9,6 @@
  * // Returns [1, 2, 3] — message anchor + both chains visible, tool hidden.
  */
 
-import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
-import type { TailStartIndex } from '../../contracts/tail-start-index/tail-start-index-contract';
 
 export const computeTailVisibleIndicesTransformer = ({
   isAnchorFlags,
@@ -18,7 +16,7 @@ export const computeTailVisibleIndicesTransformer = ({
 }: {
   isAnchorFlags: boolean[];
   isSubagentChainFlags: boolean[];
-}): TailStartIndex[] => {
+}): number[] => {
   const { length } = isAnchorFlags;
   if (length === 0) return [];
 
@@ -33,12 +31,12 @@ export const computeTailVisibleIndicesTransformer = ({
   }
 
   const lastIndex = length - 1;
-  const indices: TailStartIndex[] = [];
+  const indices: number[] = [];
   for (let i = 0; i < length; i++) {
     const isPostAnchorChain =
       isSubagentChainFlags[i] === true && (messageAnchorIndex < 0 || i > messageAnchorIndex);
     if (i === messageAnchorIndex || isPostAnchorChain || i === lastIndex) {
-      indices.push(tailStartIndexContract.parse(i));
+      indices.push(i);
     }
   }
 
