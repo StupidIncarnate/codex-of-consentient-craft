@@ -18,7 +18,6 @@
 
 import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
-import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
 import { roleToConfigIndexTransformer } from '../role-to-config-index/role-to-config-index-transformer';
 
 const WARD_FLOOR_NAME = 'FLOOR BOSS';
@@ -27,7 +26,7 @@ export const wardAwareConfigIndexTransformer = ({
   workItem,
 }: {
   workItem: WorkItem;
-}): ConfigIndex =>
+}): number =>
   roleToConfigIndexTransformer({
     role: workItem.role,
     ...(workItem.role === 'ward' ? { floorName: WARD_FLOOR_NAME } : {}),

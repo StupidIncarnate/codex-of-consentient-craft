@@ -11,8 +11,6 @@
  * // Returns: ConfigIndex of the FLOOR BOSS (wardPosition 'last') entry, not the MINI BOSS entry
  */
 
-import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
-import { configIndexContract } from '../../contracts/config-index/config-index-contract';
 import type { WorkItemRole } from '../../contracts/work-item-role/work-item-role-contract';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 
@@ -22,7 +20,7 @@ export const roleToConfigIndexTransformer = ({
 }: {
   role: WorkItemRole;
   floorName?: string;
-}): ConfigIndex => {
+}): number => {
   const index =
     floorName === undefined
       ? executionFloorConfigStatics.floors.findIndex((f) => f.role === role)
@@ -30,7 +28,5 @@ export const roleToConfigIndexTransformer = ({
           (f) => f.role === role && f.name === floorName,
         );
 
-  return configIndexContract.parse(
-    index === -1 ? executionFloorConfigStatics.floors.length : index,
-  );
+  return (index === -1 ? executionFloorConfigStatics.floors.length : index);
 };
