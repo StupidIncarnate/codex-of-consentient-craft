@@ -217,7 +217,6 @@ export * from './session-list-item/session-list-item-contract';
 // CSS & Display Contracts
 export * from './hex-color/hex-color-contract';
 
-export * from './css-pixels/css-pixels-contract';
 
 export * from './line-count/line-count-contract';
 

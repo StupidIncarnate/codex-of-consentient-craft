@@ -11,7 +11,6 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { CssPixels } from '@dungeonmaster/shared/contracts';
 import type { ToolResultPart } from '../../contracts/tool-result-part/tool-result-part-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { markdownTypographyStatics } from '../../statics/markdown-typography/markdown-typography-statics';
@@ -22,7 +21,7 @@ const LABEL_FONT_WEIGHT = 600;
 export interface ToolResultPartLayerWidgetProps {
   part: ToolResultPart;
   color: (typeof emberDepthsThemeStatics.colors)[keyof typeof emberDepthsThemeStatics.colors];
-  fontSize: CssPixels;
+  fontSize: number;
 }
 
 export const ToolResultPartLayerWidget = ({

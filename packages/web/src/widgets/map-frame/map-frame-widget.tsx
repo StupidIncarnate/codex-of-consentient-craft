@@ -8,20 +8,18 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { CssPixels } from '@dungeonmaster/shared/contracts';
 
-import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 
-const defaultMaxWidth = cssPixelsContract.parse(mapFrameStatics.defaultMaxWidth);
-const defaultPadding = cssPixelsContract.parse(mapFrameStatics.defaultPadding);
+const defaultMaxWidth = mapFrameStatics.defaultMaxWidth;
+const defaultPadding = mapFrameStatics.defaultPadding;
 
 export interface MapFrameWidgetProps {
   children: React.ReactNode;
-  maxWidth?: CssPixels;
-  padding?: CssPixels;
+  maxWidth?: number;
+  padding?: number;
 }
 
 export const MapFrameWidget = ({

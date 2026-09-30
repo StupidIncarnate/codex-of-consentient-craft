@@ -10,7 +10,6 @@
  * // Returns 77 — one band under the header pinned at 0 that this one stacks beneath
  */
 
-import type { CssPixels } from '@dungeonmaster/shared/contracts';
 
 import type { StickyZIndex } from '../../contracts/sticky-z-index/sticky-z-index-contract';
 import { stickyZIndexContract } from '../../contracts/sticky-z-index/sticky-z-index-contract';
@@ -19,7 +18,7 @@ import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-s
 export const stickyHeaderZIndexTransformer = ({
   stickyTop,
 }: {
-  stickyTop: CssPixels;
+  stickyTop: number;
 }): StickyZIndex =>
   stickyZIndexContract.parse(
     Math.max(stickyHeaderStatics.zIndexFloor, stickyHeaderStatics.zIndexBase - Number(stickyTop)),
