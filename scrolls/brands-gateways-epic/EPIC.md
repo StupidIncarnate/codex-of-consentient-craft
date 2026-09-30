@@ -129,11 +129,19 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:28, machine clock)
+### Now (updated at every event; last 2026-09-30 12:48, machine clock)
 
 | Running | Where |
 |---|---|
-| operator: final gate: `build:clean`, full `npm run ward`, `check:consumer`, `check:published` | gateway-pivot checkout |
+| trim `get-testing-patterns` under the 50 KB MCP cap (opus) | mcp testing-patterns broker |
+| hooks `start-pre-edit-hook.integration.test.ts` times out in full runs (opus) | hooks integration, maybe `eslint.config.js` load (F105) |
+| operator: `check:consumer` | background |
+
+**Final gate so far:** `build:clean` exit 0; `check:published` exit 0. Full ward 1790796592908-a9ef (1,087 s): lint 11,514,
+typecheck 11,480, unit 4,176 and e2e 131 green; integration 228 of 230. Red 1: `mcp-server-flow.integration.test.ts`
+"get-testing-patterns response under 50KB" (Z03-T's rewrite grew it; the cap stays). Red 2: hooks'
+`start-pre-edit-hook.integration.test.ts` timed out on every test in the last two full runs, the second with no agents
+running; it passes alone. A swarm running full wards would hit it every time, so it is fixed now, not tabled.
 
 **Every P0 and P1 is done.** Z10 landed (ccca61231): 489 files of comments now name live contracts or plain values
 (census 767 lines to 114; the rest name live private contracts).
