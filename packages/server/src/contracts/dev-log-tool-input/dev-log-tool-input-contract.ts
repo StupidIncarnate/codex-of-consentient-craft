@@ -7,6 +7,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const devLogToolInputContract = z
   .object({
@@ -17,8 +18,8 @@ export const devLogToolInputContract = z
     subject: z.string().min(1).brand<'DevLogToolInputSubject'>().optional(),
     taskId: z.string().min(1).brand<'DevLogToolInputTaskId'>().optional(),
     status: z.string().min(1).brand<'DevLogToolInputStatus'>().optional(),
-    questId: z.string().min(1).brand<'DevLogToolInputQuestId'>().optional(),
-    guildId: z.string().min(1).brand<'DevLogToolInputGuildId'>().optional(),
+    questId: questContract.shape.id.optional(),
+    guildId: guildContract.shape.id.optional(),
   })
   .loose()
   .brand<'DevLogToolInput'>();

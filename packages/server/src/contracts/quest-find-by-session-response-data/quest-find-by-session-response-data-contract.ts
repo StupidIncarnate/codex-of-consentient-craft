@@ -7,9 +7,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const questFindBySessionResponseDataContract = z.strictObject({
-  questId: z.string().brand<'QuestFindBySessionResponseDataQuestId'>(),
+  questId: questContract.shape.id,
 }).brand<'QuestFindBySessionResponseData'>();
 
 export type QuestFindBySessionResponseData = z.infer<typeof questFindBySessionResponseDataContract>;

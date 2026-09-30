@@ -9,12 +9,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, wardResultContract } from '@dungeonmaster/shared/contracts';
 
 export const questWardDetailParamsContract = z
   .object({
     questId: questContract.shape.id,
-    wardResultId: z.uuid().brand<'QuestWardDetailParamsWardResultId'>(),
+    wardResultId: wardResultContract.shape.id,
   })
   .brand<'QuestWardDetailParams'>();
 

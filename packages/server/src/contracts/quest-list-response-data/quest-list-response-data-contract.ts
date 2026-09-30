@@ -7,13 +7,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questListItemContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import { questListItemContract, relativeFilePathContract, questContract } from '@dungeonmaster/shared/contracts';
 
 export const questListResponseDataContract = z.strictObject({
   quests: z.array(questListItemContract),
   skipped: z.array(
     z.strictObject({
-      questFolder: z.string().brand<'QuestListResponseDataSkippedQuestFolder'>(),
+      questFolder: questContract.shape.folder,
       questFilePath: z.union([
         z.string().brand<'QuestListResponseDataSkippedQuestFilePath'>(),
         relativeFilePathContract,

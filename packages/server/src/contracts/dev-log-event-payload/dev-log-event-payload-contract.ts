@@ -20,13 +20,14 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const devLogEventPayloadContract = z
   .object({
     chatProcessId: z.string().min(1).brand<'DevLogEventPayloadChatProcessId'>().nullish(),
     processId: z.string().min(1).brand<'DevLogEventPayloadProcessId'>().nullish(),
-    questId: z.string().min(1).brand<'DevLogEventPayloadQuestId'>().nullish(),
-    sessionId: z.string().min(1).brand<'DevLogEventPayloadSessionId'>().nullish(),
+    questId: questContract.shape.id.nullish(),
+    sessionId: sessionContract.shape.id.nullish(),
     phase: z.string().min(1).brand<'DevLogEventPayloadPhase'>().nullish(),
     slotIndex: z.number().int().nonnegative().brand<'DevLogEventPayloadSlotIndex'>().nullish(),
     role: z.string().min(1).brand<'DevLogEventPayloadRole'>().nullish(),

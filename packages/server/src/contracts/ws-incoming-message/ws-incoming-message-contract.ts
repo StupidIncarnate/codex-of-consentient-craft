@@ -7,7 +7,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, guildContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract, sessionContract, wardResultContract } from '@dungeonmaster/shared/contracts';
 
 export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   z
@@ -22,7 +22,7 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
     .object({
       type: z.literal('ward-detail-request'),
       questId: questContract.shape.id,
-      wardResultId: z.string().min(1).brand<'WsIncomingMessageWardResultId'>(),
+      wardResultId: wardResultContract.shape.id,
     })
     .brand<'WsIncomingMessage'>(),
   z
