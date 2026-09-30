@@ -8,12 +8,8 @@
 
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import {
-  streamTextContract,
-  type StreamText,
-} from '../../contracts/stream-text/stream-text-contract';
 
-export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): StreamText | null => {
+export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): string | null => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return null;
@@ -28,7 +24,7 @@ export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): St
     return null;
   }
 
-  const result = content.reduce<StreamText | null>((acc, rawItem) => {
+  const result = content.reduce<string | null>((acc, rawItem) => {
     const itemParse = normalizedStreamLineContentItemContract.safeParse(rawItem);
     if (!itemParse.success) return acc;
     const item = itemParse.data;
@@ -36,7 +32,7 @@ export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): St
       return acc;
     }
     const current = acc === null ? '' : acc;
-    return streamTextContract.parse(current + String(item.text));
+    return (current + String(item.text));
   }, null);
 
   return result;

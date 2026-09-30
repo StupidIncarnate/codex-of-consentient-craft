@@ -27,7 +27,6 @@ import { stderr } from '#gateway/node/process';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessIdPrefix } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
-import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import { chatStreamProcessHandleBroker } from '../../chat/stream-process-handle/chat-stream-process-handle-broker';
 import { agentSpawnUnifiedBroker } from '../spawn-unified/agent-spawn-unified-broker';
 import { composeKillLayerBroker } from './compose-kill-layer-broker';
@@ -71,7 +70,7 @@ export const agentLaunchBroker = ({
     entries: ChatEntry[];
     sessionId: Session['id'] | undefined;
   }) => void;
-  onText: (params: { chatProcessId: ProcessId; text: StreamText }) => void;
+  onText: (params: { chatProcessId: ProcessId; text: string }) => void;
   onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
   onSessionId: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
   onComplete: (params: {

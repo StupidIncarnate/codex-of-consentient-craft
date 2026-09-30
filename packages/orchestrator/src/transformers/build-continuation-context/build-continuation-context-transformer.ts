@@ -6,7 +6,6 @@
  * // Returns ContinuationContext with continuation point and trimmed agent output, or null if both are empty
  */
 
-import type { StreamText } from '../../contracts/stream-text/stream-text-contract';
 
 const OUTPUT_TAIL_LINE_COUNT = 50;
 
@@ -15,7 +14,7 @@ export const buildContinuationContextTransformer = ({
   capturedOutput,
 }: {
   continuationPoint?: string;
-  capturedOutput: readonly StreamText[];
+  capturedOutput: readonly string[];
 }): string | null => {
   const outputTail = capturedOutput.slice(-OUTPUT_TAIL_LINE_COUNT);
 

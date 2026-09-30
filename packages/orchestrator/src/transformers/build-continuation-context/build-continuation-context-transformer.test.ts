@@ -1,12 +1,11 @@
-import { StreamTextStub } from '../../contracts/stream-text/stream-text.stub';
 import { buildContinuationContextTransformer } from './build-continuation-context-transformer';
 
 describe('buildContinuationContextTransformer', () => {
   describe('both continuationPoint and capturedOutput', () => {
     it('VALID: {continuationPoint and capturedOutput with lines} => returns combined context with output tail', () => {
       const capturedOutput = [
-        StreamTextStub({ value: 'Created file utils.ts' }),
-        StreamTextStub({ value: 'Writing test cases' }),
+        'Created file utils.ts',
+        'Writing test cases',
       ];
 
       const result = buildContinuationContextTransformer({
@@ -34,8 +33,8 @@ describe('buildContinuationContextTransformer', () => {
   describe('only capturedOutput', () => {
     it('VALID: {no continuationPoint, capturedOutput with lines} => returns output section only', () => {
       const capturedOutput = [
-        StreamTextStub({ value: 'Line one' }),
-        StreamTextStub({ value: 'Line two' }),
+        'Line one',
+        'Line two',
       ];
 
       const result = buildContinuationContextTransformer({
@@ -59,7 +58,7 @@ describe('buildContinuationContextTransformer', () => {
   describe('output tail trimming', () => {
     it('EDGE: {capturedOutput exceeds 50 lines} => returns only last 50 lines', () => {
       const lines = Array.from({ length: 60 }, (_, index) =>
-        StreamTextStub({ value: `Line ${String(index + 1)}` }),
+        `Line ${String(index + 1)}`,
       );
 
       const result = buildContinuationContextTransformer({
@@ -73,7 +72,7 @@ describe('buildContinuationContextTransformer', () => {
 
     it('EDGE: {capturedOutput exactly 50 lines} => returns all 50 lines', () => {
       const lines = Array.from({ length: 50 }, (_, index) =>
-        StreamTextStub({ value: `Line ${String(index + 1)}` }),
+        `Line ${String(index + 1)}`,
       );
 
       const result = buildContinuationContextTransformer({

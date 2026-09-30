@@ -32,10 +32,6 @@ import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
-import {
-  streamTextContract,
-  type StreamText,
-} from '../../../contracts/stream-text/stream-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
@@ -61,7 +57,7 @@ export const chatStreamProcessHandleBroker = ({
   // Required — every agent emits text and may signal-back; the harness invariant is uniform
   // observation across roles. Callers with no consumer wire a no-op explicitly so the lack
   // of consumption is acknowledged at the call site, not silenced by an optional default.
-  onText: (params: { chatProcessId: ProcessId; text: StreamText }) => void;
+  onText: (params: { chatProcessId: ProcessId; text: string }) => void;
   onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
 }): {
   onLine: (params: { rawLine: string }) => void;
@@ -110,7 +106,7 @@ export const chatStreamProcessHandleBroker = ({
         // Plain-text lines are still text — fire onText so the same accumulator that captures
         // Claude assistant text also captures ward stdout. Signals only emerge from JSON tool_use
         // lines, so onSignal does not fire on the fallback path.
-        onText({ chatProcessId, text: streamTextContract.parse(rawLine) });
+        onText({ chatProcessId, text: rawLine });
         return;
       }
 
