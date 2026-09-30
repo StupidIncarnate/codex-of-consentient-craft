@@ -1,6 +1,5 @@
 import { mockCallContract } from './mock-call-contract';
 import { MockCallStub } from './mock-call.stub';
-import { ModuleNameStub } from '../module-name/module-name.stub';
 import { FactoryFunctionTextStub } from '../factory-function-text/factory-function-text.stub';
 import { SourceFileNameStub } from '../source-file-name/source-file-name.stub';
 
@@ -8,7 +7,7 @@ describe('mockCallContract', () => {
   describe('valid mock calls', () => {
     it('VALID: {moduleName, factory: null, sourceFile} => parses without factory', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -26,7 +25,7 @@ describe('mockCallContract', () => {
 
     it('VALID: {moduleName, factory, sourceFile} => parses with factory', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs' }),
+        moduleName: 'fs',
         factory: FactoryFunctionTextStub({ value: '() => ({ readFile: jest.fn() })' }),
         sourceFile: SourceFileNameStub({ value: 'adapter.proxy.ts' }),
       });
@@ -44,7 +43,7 @@ describe('mockCallContract', () => {
 
     it('VALID: {scoped module name} => parses scoped package', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@testing-library/react' }),
+        moduleName: '@testing-library/react',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'widget.proxy.tsx' }),
       });
@@ -62,7 +61,7 @@ describe('mockCallContract', () => {
 
     it('VALID: {objectIdentifierNames: [name]} => parses a property-access mock request', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
         objectIdentifierNames: ['orchestrationEventsState'],

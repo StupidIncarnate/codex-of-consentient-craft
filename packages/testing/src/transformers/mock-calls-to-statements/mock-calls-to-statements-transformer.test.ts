@@ -1,14 +1,13 @@
 import * as ts from '#gateway/npm/typescript';
 import { mockCallsToStatementsTransformer } from './mock-calls-to-statements-transformer';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
-import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
 import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
 
 describe('mockCallsToStatementsTransformer', () => {
   describe('valid mock calls conversion', () => {
     it('VALID: {mockCall without factory} => returns jest.mock statement', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs' }),
+        moduleName: 'fs',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -30,7 +29,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {mockCall with factory} => returns jest.mock with factory statement', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: '() => ({ get: jest.fn() })',
         sourceFile: SourceFileNameStub({ value: 'adapter.proxy.ts' }),
       });
@@ -54,7 +53,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with nested property access} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs' }),
+        moduleName: 'fs',
         factory: '() => ({ readFile: jest.fn().mockResolvedValue("content") })',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -78,7 +77,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with spread assignment} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'config' }),
+        moduleName: 'config',
         factory: '() => ({ ...actualConfig, override: true })',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -102,7 +101,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with arrow function parameters} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'api' }),
+        moduleName: 'api',
         factory: '() => ({ fetch: (url) => ({ json: () => ({}) }) })',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -126,7 +125,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with shorthand property} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'module' }),
+        moduleName: 'module',
         factory: '() => ({ myFunc })',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -150,7 +149,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with parenthesized expression} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'math' }),
+        moduleName: 'math',
         factory: '() => (({ add: jest.fn() }))',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -174,7 +173,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {factory with numeric literal} => clones correctly', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'constants' }),
+        moduleName: 'constants',
         factory: '() => ({ value: 42 })',
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
       });
@@ -199,12 +198,12 @@ describe('mockCallsToStatementsTransformer', () => {
     it('VALID: {multiple mock calls} => returns multiple statements', () => {
       const mockCalls = [
         MockCallStub({
-          moduleName: ModuleNameStub({ value: 'fs' }),
+          moduleName: 'fs',
           factory: null,
           sourceFile: SourceFileNameStub({ value: 'test1.proxy.ts' }),
         }),
         MockCallStub({
-          moduleName: ModuleNameStub({ value: 'path' }),
+          moduleName: 'path',
           factory: null,
           sourceFile: SourceFileNameStub({ value: 'test2.proxy.ts' }),
         }),
@@ -229,7 +228,7 @@ describe('mockCallsToStatementsTransformer', () => {
   describe('selective factory mock generation', () => {
     it('VALID: {mockCall with identifierNames} => returns jest.mock with selective factory', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        moduleName: 'fs/promises',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
         identifierNames: ['readFile'],
@@ -254,7 +253,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {mockCall for process module} => uses Object.assign and Object.create instead of spread', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'process' }),
+        moduleName: 'process',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
         identifierNames: ['kill'],
@@ -279,7 +278,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {mockCall with multiple identifierNames} => returns factory with all identifiers', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs/promises' }),
+        moduleName: 'fs/promises',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
         identifierNames: [
@@ -309,7 +308,7 @@ describe('mockCallsToStatementsTransformer', () => {
   describe('property-access (objectIdentifierNames) auto-mock generation', () => {
     it('VALID: {mockCall with objectIdentifierNames} => auto-mocks every method of the named object, not the whole module', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
         identifierNames: [],
@@ -335,7 +334,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {mockCall with both identifierNames and objectIdentifierNames} => generates a flat property for one and a nested auto-mock for the other', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'x.proxy.ts' }),
         identifierNames: ['questListBroker'],
@@ -361,7 +360,7 @@ describe('mockCallsToStatementsTransformer', () => {
 
     it('VALID: {mockCall with both arrays empty, no factory} => returns a bare jest.mock() call (whole-module automock)', () => {
       const mockCall = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'y.proxy.ts' }),
         identifierNames: [],

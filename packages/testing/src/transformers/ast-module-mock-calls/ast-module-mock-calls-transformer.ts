@@ -8,11 +8,9 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
 import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
 import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
 export const astModuleMockCallsTransformer = ({
   sourceFile,
@@ -38,13 +36,13 @@ export const astModuleMockCallsTransformer = ({
     ) {
       const [firstArg] = node.arguments;
       if (firstArg && ts.isObjectLiteralExpression(firstArg)) {
-        let moduleProp: ModuleName | null = null;
+        let moduleProp: string | null = null;
         let factoryProp: ReturnType<typeof factoryFunctionTextContract.parse> | null = null;
 
         for (const prop of firstArg.properties) {
           if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {
             if (prop.name.text === 'module' && ts.isStringLiteral(prop.initializer)) {
-              moduleProp = moduleNameContract.parse(prop.initializer.text);
+              moduleProp = prop.initializer.text;
             }
             if (prop.name.text === 'factory') {
               factoryProp = factoryFunctionTextContract.parse(

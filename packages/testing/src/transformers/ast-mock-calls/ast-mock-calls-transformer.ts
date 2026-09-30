@@ -8,12 +8,10 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
 import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
 import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
 export const astMockCallsTransformer = ({
   sourceFile,
@@ -52,7 +50,7 @@ export const astMockCallsTransformer = ({
       ) {
         const [firstArg, secondArg] = node.arguments;
         if (firstArg && ts.isStringLiteral(firstArg)) {
-          const moduleName = moduleNameContract.parse(firstArg.text);
+          const moduleName = firstArg.text;
           const factoryText = secondArg
             ? factoryFunctionTextContract.parse(secondArg.getText(tsSourceFile))
             : null;
@@ -72,7 +70,7 @@ export const astMockCallsTransformer = ({
   // Build two maps for registerMock resolution:
   // importModuleMap: identifier -> module name (for all import types)
   // namedExportMap: identifier -> original export name (for named imports only, enables selective mocking)
-  const importModuleMap = new Map<string, ModuleName>();
+  const importModuleMap = new Map<string, string>();
   const namedExportMap = new Map<string, string>();
 
   for (const statement of tsSourceFile.statements) {
@@ -85,7 +83,7 @@ export const astMockCallsTransformer = ({
       continue;
     }
 
-    const moduleName = moduleNameContract.parse(moduleSpecifier.text);
+    const moduleName = moduleSpecifier.text;
     const { importClause } = statement;
     if (!importClause || importClause.isTypeOnly) {
       continue;
@@ -165,7 +163,7 @@ export const astMockCallsTransformer = ({
                 );
                 mockCalls.push(
                   mockCallContract.parse({
-                    moduleName: moduleNameContract.parse(resolvedModule),
+                    moduleName: resolvedModule,
                     factory: null,
                     sourceFile: parsedSourceFile,
                     identifierNames,
@@ -188,7 +186,7 @@ export const astMockCallsTransformer = ({
               });
               mockCalls.push(
                 mockCallContract.parse({
-                  moduleName: moduleNameContract.parse(resolvedModule),
+                  moduleName: resolvedModule,
                   factory: null,
                   sourceFile: parsedSourceFile,
                   identifierNames,

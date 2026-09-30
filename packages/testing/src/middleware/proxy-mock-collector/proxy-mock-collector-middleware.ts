@@ -23,11 +23,11 @@ import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyReexportNamesResolveMiddleware } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware';
 import { dirname, resolve } from '#gateway/node/path';
-import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type * as ts from '#gateway/npm/typescript';
 import type { ProxyMockQueueEntry } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
 import { proxyMockQueueEntryContract } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
+import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 
 export const proxyMockCollectorMiddleware = ({
   proxyFilePath,
@@ -74,10 +74,10 @@ export const proxyMockCollectorMiddleware = ({
       }
       const sourceDir = dirname(entry.filePath);
       const absoluteModuleName = resolve(sourceDir, mock.moduleName);
-      return { ...mock, moduleName: moduleNameContract.parse(absoluteModuleName) };
+      return { ...mock, moduleName: absoluteModuleName };
     });
 
-    mockCalls.push(...resolvedMocks);
+    mockCalls.push(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(...resolvedMocks))));
 
     const edges = astProxyImportsTransformer({ sourceFile });
     for (const edge of edges) {

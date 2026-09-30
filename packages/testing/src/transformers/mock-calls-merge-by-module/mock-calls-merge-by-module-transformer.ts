@@ -35,20 +35,18 @@
  */
 
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
 import { isFullAutoMockCallGuard } from '../../guards/is-full-auto-mock-call/is-full-auto-mock-call-guard';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
 export const mockCallsMergeByModuleTransformer = ({
   mockCalls,
 }: {
   mockCalls: MockCall[];
 }): MockCall[] => {
-  const mocksByModuleKey = new Map<ModuleName, MockCall>();
+  const mocksByModuleKey = new Map<string, MockCall>();
 
   for (const mock of mockCalls) {
-    const moduleKey = moduleNameContract.parse(mock.moduleName.replace(/^node:/u, ''));
+    const moduleKey = mock.moduleName.replace(/^node:/u, '');
     const existing = mocksByModuleKey.get(moduleKey);
 
     if (!existing) {

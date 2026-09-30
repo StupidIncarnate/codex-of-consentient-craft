@@ -1,6 +1,5 @@
 import { mockCallsMergeByModuleTransformer } from './mock-calls-merge-by-module-transformer';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
-import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
 import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
 import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
 
@@ -8,11 +7,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('two specifiers for the same Node builtin', () => {
     it('VALID: {"fs" mocking readFile, "node:fs" mocking writeFile} => merges into one record naming both identifiers', () => {
       const bareMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'fs' }),
+        moduleName: 'fs',
         identifierNames: ['readFile'],
       });
       const prefixedMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'node:fs' }),
+        moduleName: 'node:fs',
         identifierNames: ['writeFile'],
       });
 
@@ -20,7 +19,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          moduleName: ModuleNameStub({ value: 'fs' }),
+          moduleName: 'fs',
           factory: null,
           sourceFile: bareMock.sourceFile,
           identifierNames: [
@@ -36,11 +35,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('the process cwd/kill collision', () => {
     it('VALID: {"process" mocking cwd, "node:process" mocking kill} => merges into one record mocking both', () => {
       const cwdMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'process' }),
+        moduleName: 'process',
         identifierNames: ['cwd'],
       });
       const killMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'node:process' }),
+        moduleName: 'node:process',
         identifierNames: ['kill'],
       });
 
@@ -48,7 +47,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
 
       expect(result).toStrictEqual([
         {
-          moduleName: ModuleNameStub({ value: 'process' }),
+          moduleName: 'process',
           factory: null,
           sourceFile: cwdMock.sourceFile,
           identifierNames: [
@@ -64,11 +63,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('an explicit factory arriving after identifier-based mocks', () => {
     it('VALID: {identifier mock then factory mock, same module} => the factory wins', () => {
       const identifierMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         identifierNames: ['get'],
       });
       const factoryMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
       });
 
@@ -83,11 +82,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('a factory that already won', () => {
     it('VALID: {factory mock then identifier mock, same module} => the factory stays and the later identifier is dropped', () => {
       const factoryMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
       });
       const identifierMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         identifierNames: ['get'],
       });
 
@@ -101,8 +100,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
 
   describe('unrelated modules', () => {
     it('VALID: {"fs" mock, "path" mock} => stays as two separate records', () => {
-      const fsMock = MockCallStub({ moduleName: ModuleNameStub({ value: 'fs' }) });
-      const pathMock = MockCallStub({ moduleName: ModuleNameStub({ value: 'path' }) });
+      const fsMock = MockCallStub({ moduleName: 'fs' });
+      const pathMock = MockCallStub({ moduleName: 'path' });
 
       const result = mockCallsMergeByModuleTransformer({ mockCalls: [fsMock, pathMock] });
 
@@ -121,13 +120,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('two full auto-mock requests for the same module (empty+empty)', () => {
     it('VALID: {two bare registerModuleMock requests, same module} => stays a single full auto-mock record', () => {
       const firstMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'first.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const secondMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'second.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: [],
@@ -142,13 +141,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('a full auto-mock merging with a selective mock (empty+names)', () => {
     it('VALID: {bare registerModuleMock request (full-auto) then bare-export mock (named), same module} => merges into one full auto-mock record, dropping the selective name', () => {
       const fullAutoMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const bareExportMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
         identifierNames: ['questListBroker'],
       });
@@ -162,12 +161,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
 
     it('VALID: {bare-export mock (named) then bare registerModuleMock request (full-auto), same module} => merges into one full auto-mock record regardless of arrival order', () => {
       const bareExportMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
         identifierNames: ['questListBroker'],
       });
       const fullAutoMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: [],
@@ -192,11 +191,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('two selective mocks for the same module (names+names)', () => {
     it('VALID: {bare-export mock naming "a", bare-export mock naming "b" and "a", same module} => unions identifierNames without duplicating "a"', () => {
       const firstMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: ['questListBroker'],
       });
       const secondMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: [
           'questOutboxWatchBroker',
           'questListBroker',
@@ -223,12 +222,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('two property-access mocks for the same module (objectNames+objectNames)', () => {
     it('VALID: {property-access mock naming StartOrchestrator, property-access mock naming orchestrationEventsState, same module} => unions objectIdentifierNames, keeping identifierNames empty', () => {
       const firstMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: [],
         objectIdentifierNames: ['StartOrchestrator'],
       });
       const secondMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: [],
         objectIdentifierNames: ['orchestrationEventsState'],
       });
@@ -253,12 +252,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('a property-access mock merging with a bare-export mock (objectNames+names)', () => {
     it('VALID: {property-access mock naming StartOrchestrator, bare-export mock naming questListBroker, same module} => keeps both arrays populated separately', () => {
       const propertyAccessMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: [],
         objectIdentifierNames: ['StartOrchestrator'],
       });
       const bareExportMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         identifierNames: ['questListBroker'],
         objectIdentifierNames: [],
       });
@@ -282,13 +281,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('a full auto-mock absorbing a property-access mock (empty+objectNames)', () => {
     it('VALID: {bare registerModuleMock request (full-auto) then property-access mock, same module} => merges into one full auto-mock record, dropping the object name', () => {
       const fullAutoMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const propertyAccessMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        moduleName: '@dungeonmaster/orchestrator',
         sourceFile: SourceFileNameStub({ value: 'start-orchestrator.proxy.ts' }),
         identifierNames: [],
         objectIdentifierNames: ['StartOrchestrator'],
@@ -305,12 +304,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
   describe('factory precedence over a full auto-mock request (factory+empty)', () => {
     it('VALID: {full-auto request then factory mock, same module} => the factory wins', () => {
       const fullAutoMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const factoryMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
       });
 
@@ -323,11 +322,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
 
     it('VALID: {factory mock then full-auto request, same module} => the factory stays and the auto-mock request is dropped', () => {
       const factoryMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         factory: FactoryFunctionTextStub({ value: '() => ({ get: jest.fn() })' }),
       });
       const fullAutoMock = MockCallStub({
-        moduleName: ModuleNameStub({ value: 'axios' }),
+        moduleName: 'axios',
         identifierNames: [],
         objectIdentifierNames: [],
       });
