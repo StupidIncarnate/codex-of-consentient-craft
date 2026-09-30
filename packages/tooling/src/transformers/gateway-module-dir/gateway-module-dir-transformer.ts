@@ -7,17 +7,13 @@
  * gatewayModuleDirTransformer({ specifier: '@mantine/core' });
  * // Returns 'mantine__core' as a branded GatewayModuleDir
  */
-import { gatewayModuleDirContract } from '../../contracts/gateway-module-dir/gateway-module-dir-contract';
-import type { GatewayModuleDir } from '../../contracts/gateway-module-dir/gateway-module-dir-contract';
 
 export const gatewayModuleDirTransformer = ({
   specifier,
 }: {
   specifier: string;
-}): GatewayModuleDir =>
-  gatewayModuleDirContract.parse(
-    specifier
+}): string =>
+  specifier
       .replace(/^node:/u, '')
       .replace(/^@/u, '')
-      .replaceAll('/', '__'),
-  );
+      .replaceAll('/', '__');

@@ -8,13 +8,12 @@
  * // Returns: GatewayImplementation
  */
 import { z } from '#gateway/npm/zod';
-import { gatewayModuleDirContract } from '../gateway-module-dir/gateway-module-dir-contract';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
 
 export const gatewayImplementationContract = z.object({
   importPath: z.string().min(1).brand<'GatewayImplementationImportPath'>(),
   name: z.string().min(1).brand<'GatewayImplementationName'>(),
-  moduleDir: gatewayModuleDirContract,
+  moduleDir: z.string().min(1).brand<'GatewayImplementationModuleDir'>(),
   outsideCalls: z.array(outsideCallContract),
 });
 
