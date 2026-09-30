@@ -117,7 +117,6 @@ export * from './comment-batch-entry/comment-batch-entry-contract';
 
 export * from './flow-node/flow-node-contract';
 
-export * from './flow-edge-ref/flow-edge-ref-contract';
 
 
 export * from './flow-edge/flow-edge-contract';

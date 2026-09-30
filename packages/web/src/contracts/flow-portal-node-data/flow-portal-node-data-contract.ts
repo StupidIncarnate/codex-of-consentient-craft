@@ -11,10 +11,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeRefContract } from '@dungeonmaster/shared/contracts';
 
 export const flowPortalNodeDataContract = z.object({
-  reference: flowEdgeRefContract,
+  reference: z.string().min(1).brand<'FlowPortalNodeDataReference'>(),
   label: z.string().min(1).brand<'FlowPortalNodeLabel'>(),
 });
 
