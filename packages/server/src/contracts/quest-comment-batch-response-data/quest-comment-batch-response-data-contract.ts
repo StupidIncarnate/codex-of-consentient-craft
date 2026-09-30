@@ -13,7 +13,7 @@ import { commentBatchResponseContract } from '../comment-batch-response/comment-
 export const questCommentBatchResponseDataContract = z.union([
   z
     .strictObject({ error: z.string(), staleAnchors: z.array(commentStaleAnchorContract) })
-    .brand<'QuestCommentBatchResponseData1'>(),
+    .brand<'QuestCommentBatchResponseData'>(),
   commentBatchResponseContract,
 ]);
 

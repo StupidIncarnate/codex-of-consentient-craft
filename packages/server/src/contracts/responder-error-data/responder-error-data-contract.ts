@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const responderErrorDataContract = z
-  .strictObject({ error: z.string().brand<'ResponderErrorMessage'>() })
+  .strictObject({ error: z.string().brand<'ResponderErrorDataError'>() })
   .brand<'ResponderErrorData'>();
 
 export type ResponderErrorData = z.infer<typeof responderErrorDataContract>;

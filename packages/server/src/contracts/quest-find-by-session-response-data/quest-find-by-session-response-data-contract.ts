@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const questFindBySessionResponseDataContract = z.strictObject({
-  questId: z.string().brand<'QuestId'>(),
-});
+  questId: z.string().brand<'QuestFindBySessionResponseDataQuestId'>(),
+}).brand<'QuestFindBySessionResponseData'>();
 
 export type QuestFindBySessionResponseData = z.infer<typeof questFindBySessionResponseDataContract>;
