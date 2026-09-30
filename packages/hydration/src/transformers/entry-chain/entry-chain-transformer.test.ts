@@ -8,7 +8,6 @@ import {
   operationIngredient,
 } from '../../../test/type-fixtures/dm-target';
 import { fromSavedRefTransformer } from '../from-saved-ref/from-saved-ref-transformer';
-import { FieldNameStub } from '../../contracts/field-name/field-name.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
 
 type HydrationOp = ReturnType<typeof HydrationOpStub>;
@@ -72,7 +71,7 @@ describe('entryChainTransformer', () => {
         all.set({
           userRequest: fromSavedRefTransformer({
             name: 'origin',
-            field: FieldNameStub({ value: 'sessionId' }),
+            field: 'sessionId',
           }),
         }),
         q[0].set({

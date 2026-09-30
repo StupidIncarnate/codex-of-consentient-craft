@@ -10,12 +10,11 @@
  * // Returns a SavedRef
  */
 import { z } from '#gateway/npm/zod';
-import { fieldNameContract } from '../field-name/field-name-contract';
 
 export const savedRefContract = z.object({
   __savedRef: z.literal(true),
   name: z.string().min(1).brand<'SavedRefName'>(),
-  field: fieldNameContract.optional(),
+  field: z.string().min(1).brand<'SavedRefField'>().optional(),
 });
 
 export type SavedRef = z.infer<typeof savedRefContract>;

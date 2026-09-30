@@ -20,7 +20,6 @@ import {
   sessionIngredient,
   nestedChainArgsContract,
 } from '../dm-target';
-import { FieldNameStub } from '../../../src/contracts/field-name/field-name.stub';
 
 const dm = entryChainTransformer({
   registry: {
@@ -47,7 +46,7 @@ export const everyChainable = dm.guilds.add(1, (g) => [
       // fromSaved — a cross-link to a row the tree cannot reach directly
       userRequest: fromSavedRefTransformer({
         name: 'origin',
-        field: FieldNameStub({ value: 'sessionId' }),
+        field: 'sessionId',
       }),
     }),
     // set, walking a transition field

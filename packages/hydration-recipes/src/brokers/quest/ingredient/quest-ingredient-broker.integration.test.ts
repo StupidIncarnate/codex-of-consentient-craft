@@ -1,5 +1,4 @@
 import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
-import { FieldNameStub } from '@dungeonmaster/hydration/contracts/field-name/field-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -13,7 +12,7 @@ const { recipe } = recipesHydrationCreateBroker();
 const RENAMED_TITLE = QuestFieldsStub({ title: 'Renamed through the update route' }).title;
 const CROSS_PLAN_WORK_ITEM_CREATED_AT = WorkItemAttachArgsStub().createdAt;
 const NEW_OPERATION_SAVED_NAME = 'newOperation';
-const OPERATION_ID_FIELD = FieldNameStub({ value: 'id' });
+const OPERATION_ID_FIELD = 'id';
 
 // Real disk, real `questModifyBroker`, real `questGetBroker` — no adapter or child broker is
 // mocked. `quest-reach-route-broker.test.ts` beside this one proves the routing logic against a

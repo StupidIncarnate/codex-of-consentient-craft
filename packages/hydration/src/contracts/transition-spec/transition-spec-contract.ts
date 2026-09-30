@@ -23,7 +23,6 @@
  * // Returns { field: FieldName, to: unknown[], reach: ReachFn<unknown, unknown> }
  */
 import { z } from '#gateway/npm/zod';
-import { fieldNameContract } from '../field-name/field-name-contract';
 
 /**
  * What runs to get a row from its current value to the asked-for one.
@@ -46,7 +45,7 @@ const reachFnContract = z.custom<ReachFn<unknown, unknown>>(
 );
 
 export const transitionSpecContract = z.object({
-  field: fieldNameContract,
+  field: z.string().min(1).brand<'TransitionSpecField'>(),
   to: z.array(z.unknown()).min(1),
   reach: reachFnContract,
 });

@@ -1,11 +1,10 @@
 import { fromSavedRefTransformer } from './from-saved-ref-transformer';
-import { FieldNameStub } from '../../contracts/field-name/field-name.stub';
 
 describe('fromSavedRefTransformer', () => {
   it('VALID: {name: origin, field: sessionId} => returns the saved ref with both keys', () => {
     const result = fromSavedRefTransformer({
       name: 'origin',
-      field: FieldNameStub({ value: 'sessionId' }),
+      field: 'sessionId',
     });
 
     expect(result).toStrictEqual({ __savedRef: true, name: 'origin', field: 'sessionId' });

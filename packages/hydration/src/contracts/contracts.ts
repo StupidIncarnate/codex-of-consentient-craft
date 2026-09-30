@@ -12,7 +12,6 @@ export * from './copies-target/copies-target-contract';
 
 export * from './extra-verb-name/extra-verb-name-contract';
 
-export * from './field-name/field-name-contract';
 
 export * from './field-values/field-values-contract';
 

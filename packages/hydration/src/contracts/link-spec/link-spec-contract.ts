@@ -17,12 +17,11 @@
  * // Returns { of: IngredientName, as: FieldName, from?: FieldName }
  */
 import { z } from '#gateway/npm/zod';
-import { fieldNameContract } from '../field-name/field-name-contract';
 
 export const linkSpecContract = z.object({
   of: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'LinkSpecOf'>(),
-  as: fieldNameContract,
-  from: fieldNameContract.optional(),
+  as: z.string().min(1).brand<'LinkSpecAs'>(),
+  from: z.string().min(1).brand<'LinkSpecFrom'>().optional(),
 });
 
 export type LinkSpec = z.infer<typeof linkSpecContract>;

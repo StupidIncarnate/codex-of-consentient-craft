@@ -18,7 +18,6 @@
  */
 import { z } from '#gateway/npm/zod';
 import { rowRefContract } from '../row-ref/row-ref-contract';
-import { fieldNameContract } from '../field-name/field-name-contract';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
 export const opSetContract = z.object({
@@ -27,7 +26,7 @@ export const opSetContract = z.object({
   written: fieldValuesContract,
   transition: z
     .object({
-      field: fieldNameContract,
+      field: z.string().min(1).brand<'OpSetTransitionField'>(),
       to: z.unknown(),
     })
     .optional(),

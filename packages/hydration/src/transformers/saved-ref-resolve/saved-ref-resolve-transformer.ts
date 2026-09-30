@@ -12,7 +12,6 @@
  * });
  * // Returns 's1'
  */
-import type { FieldName } from '../../contracts/field-name/field-name-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { SavedRef } from '../../contracts/saved-ref/saved-ref-contract';
 
@@ -22,7 +21,7 @@ export const savedRefResolveTransformer = ({
 }: {
   ref: SavedRef;
   saved: Map<string, unknown>;
-}): FieldValues[FieldName] => {
+}): FieldValues[string] => {
   const record = saved.get(ref.name);
 
   if (ref.field === undefined) {
