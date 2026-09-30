@@ -17,7 +17,7 @@ export const userToolResultStreamLineContract = z.object({
     content: z.array(
       z.discriminatedUnion('type', [toolResultBlockParamContract, textBlockParamContract]),
     ),
-  }),
+  }).brand<'UserToolResultStreamLineMessage'>(),
   // Claude CLI emits `toolUseResult` in three distinct shapes:
   //   • Object form for Task / sub-agent completion lines: `{ agentId, status, ... }` —
   //     carries the real internal sub-agent id we read for chain correlation.
@@ -30,9 +30,9 @@ export const userToolResultStreamLineContract = z.object({
   // object branch first — string and array values do not carry the field.
   toolUseResult: z
     .union([
-      z.object({ agentId: z.string().brand<'AgentIdCorrelation'>().optional() }).loose(),
+      z.object({ agentId: z.string().brand<'UserToolResultStreamLineToolUseResultAgentId'>().optional() }).brand<'UserToolResultStreamLineToolUseResult'>().loose(),
       z.array(z.unknown()),
-      z.string().brand<'ToolUseResultErrorMessage'>(),
+      z.string().brand<'UserToolResultStreamLineToolUseResult'>(),
     ])
     .optional(),
 }).brand<'UserToolResultStreamLine'>();

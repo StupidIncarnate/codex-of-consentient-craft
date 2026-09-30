@@ -16,10 +16,10 @@ import { toolReferenceBlockParamContract } from '../tool-reference-block-param/t
 
 export const toolResultBlockParamContract = z.object({
   type: z.literal('tool_result'),
-  tool_use_id: z.string().min(1).brand<'ToolUseId'>(),
+  tool_use_id: z.string().min(1).brand<'ToolResultBlockParamToolUseId'>(),
   content: z
     .union([
-      z.string().brand<'ToolResultContent'>(),
+      z.string().brand<'ToolResultBlockParamContent'>(),
       z.array(
         z.discriminatedUnion('type', [
           textBlockParamContract,

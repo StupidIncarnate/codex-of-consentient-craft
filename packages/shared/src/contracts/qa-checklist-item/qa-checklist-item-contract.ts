@@ -41,14 +41,14 @@ export const qaChecklistItemContract = z.object({
   label: z
     .string()
     .min(1)
-    .brand<'QaChecklistLabel'>()
+    .brand<'QaChecklistItemLabel'>()
     .describe(
       'The verbatim text of the thing to confirm — an observable description exactly as the spec words it, a terminal node label, a branch description, or an off-map probe. Never a paraphrase.',
     ),
   checkSurface: z
     .string()
     .min(1)
-    .brand<'QaCheckSurface'>()
+    .brand<'QaChecklistItemCheckSurface'>()
     .describe(
       'Where the value must actually be read from. For an observable this is derived from its outcome type, because the surface a flow is DRIVEN at and the surface an observable is CHECKED at are routinely different.',
     ),

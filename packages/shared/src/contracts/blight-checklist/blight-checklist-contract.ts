@@ -26,7 +26,7 @@ export const blightChecklistContract = z.object({
   baseRef: z
     .string()
     .min(1)
-    .brand<'GitBaseRef'>()
+    .brand<'BlightChecklistBaseRef'>()
     .describe('The commit this checklist enumerates the diff from — quest.baseRef.'),
   items: z
     .array(blightChecklistItemContract)

@@ -39,7 +39,7 @@ export const packageGraphEntryContract = z.object({
     .number()
     .int()
     .nonnegative()
-    .brand<'PackageDepth'>()
+    .brand<'PackageGraphEntryDepth'>()
     .describe(
       'Layer in the topological order, 0 being a leaf that depends on nothing in the workspace. Stored so a dependencies-first ordering is a plain numeric sort rather than a re-walk of the graph.',
     ),

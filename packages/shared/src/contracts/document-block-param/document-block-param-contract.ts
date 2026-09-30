@@ -13,29 +13,29 @@ import { imageBlockParamContract } from '../image-block-param/image-block-param-
 
 const base64PdfSourceContract = z.object({
   type: z.literal('base64'),
-  media_type: z.literal('application/pdf').brand<'PdfMediaType'>(),
-  data: z.string().brand<'Base64Data'>(),
-});
+  media_type: z.literal('application/pdf'),
+  data: z.string().brand<'Base64PdfSourceData'>(),
+}).brand<'Base64PdfSource'>();
 
 const plainTextSourceContract = z.object({
   type: z.literal('text'),
-  media_type: z.literal('text/plain').brand<'PlainTextMediaType'>(),
-  data: z.string().brand<'PlainTextData'>(),
-});
+  media_type: z.literal('text/plain'),
+  data: z.string().brand<'PlainTextSourceData'>(),
+}).brand<'PlainTextSource'>();
 
 const urlPdfSourceContract = z.object({
   type: z.literal('url'),
-  url: z.string().brand<'DocumentUrl'>(),
-});
+  url: z.string().brand<'UrlPdfSourceUrl'>(),
+}).brand<'UrlPdfSource'>();
 
 const contentBlockSourceContract = z.object({
   type: z.literal('content'),
   content: z.union([
-    z.string().brand<'DocumentContent'>(),
+    z.string().brand<'ContentBlockSourceContent'>(),
     z.array(textBlockParamContract),
     z.array(imageBlockParamContract),
   ]),
-});
+}).brand<'ContentBlockSource'>();
 
 export const documentBlockParamContract = z.object({
   type: z.literal('document'),
@@ -45,8 +45,8 @@ export const documentBlockParamContract = z.object({
     urlPdfSourceContract,
     contentBlockSourceContract,
   ]),
-  title: z.string().brand<'DocumentTitle'>().nullable().optional(),
-  context: z.string().brand<'DocumentContext'>().nullable().optional(),
+  title: z.string().brand<'DocumentBlockParamTitle'>().nullable().optional(),
+  context: z.string().brand<'DocumentBlockParamContext'>().nullable().optional(),
 }).brand<'DocumentBlockParam'>();
 
 export type DocumentBlockParam = z.infer<typeof documentBlockParamContract>;

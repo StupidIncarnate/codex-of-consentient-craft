@@ -12,8 +12,8 @@ import { textBlockParamContract } from '../text-block-param/text-block-param-con
 
 export const searchResultBlockParamContract = z.object({
   type: z.literal('search_result'),
-  source: z.string().brand<'SearchResultSource'>(),
-  title: z.string().brand<'SearchResultTitle'>(),
+  source: z.string().brand<'SearchResultBlockParamSource'>(),
+  title: z.string().brand<'SearchResultBlockParamTitle'>(),
   content: z.array(textBlockParamContract),
 }).brand<'SearchResultBlockParam'>();
 

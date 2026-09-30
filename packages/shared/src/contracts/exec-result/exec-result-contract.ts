@@ -10,8 +10,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const execResultContract = z.object({
-  stdout: z.string().brand<'Stdout'>(),
-  stderr: z.string().brand<'Stderr'>(),
+  stdout: z.string().brand<'ExecResultStdout'>(),
+  stderr: z.string().brand<'ExecResultStderr'>(),
   exitCode: z.number().int().brand<'ExecResultExitCode'>(),
 }).brand<'ExecResult'>();
 

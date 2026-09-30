@@ -10,14 +10,14 @@ import { z } from '#gateway/npm/zod';
 
 const base64ImageSourceContract = z.object({
   type: z.literal('base64'),
-  media_type: z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']).brand<'MediaType'>(),
-  data: z.string().brand<'Base64Data'>(),
-});
+  media_type: z.enum(['image/jpeg', 'image/png', 'image/gif', 'image/webp']),
+  data: z.string().brand<'Base64ImageSourceData'>(),
+}).brand<'Base64ImageSource'>();
 
 const urlImageSourceContract = z.object({
   type: z.literal('url'),
-  url: z.string().brand<'ImageUrl'>(),
-});
+  url: z.string().brand<'UrlImageSourceUrl'>(),
+}).brand<'UrlImageSource'>();
 
 export const imageBlockParamContract = z.object({
   type: z.literal('image'),

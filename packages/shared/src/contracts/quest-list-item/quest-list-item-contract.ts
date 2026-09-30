@@ -14,13 +14,13 @@ import { sessionContract } from '../session/session-contract';
 
 export const questListItemContract = z.object({
   id: questContract.shape.id,
-  folder: z.string().min(1).brand<'QuestFolder'>(),
+  folder: z.string().min(1).brand<'QuestListItemFolder'>(),
   title: z.string().min(1).brand<'QuestListItemTitle'>(),
   status: questStatusContract,
   createdAt: z.iso.datetime().brand<'QuestListItemCreatedAt'>(),
-  stepProgress: z.string().brand<'StepProgress'>().optional(),
+  stepProgress: z.string().brand<'QuestListItemStepProgress'>().optional(),
   activeSessionId: sessionContract.shape.id.optional(),
-  userRequest: z.string().brand<'UserRequest'>().optional(),
+  userRequest: z.string().brand<'QuestListItemUserRequest'>().optional(),
 }).brand<'QuestListItem'>();
 
 export type QuestListItem = z.infer<typeof questListItemContract>;

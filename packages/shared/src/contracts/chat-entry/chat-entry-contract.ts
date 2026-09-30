@@ -17,11 +17,11 @@
 import { z } from '#gateway/npm/zod';
 
 const chatUsageContract = z.object({
-  inputTokens: z.number().int().nonnegative().brand<'InputTokens'>(),
-  outputTokens: z.number().int().nonnegative().brand<'OutputTokens'>(),
-  cacheCreationInputTokens: z.number().int().nonnegative().brand<'CacheCreationInputTokens'>(),
-  cacheReadInputTokens: z.number().int().nonnegative().brand<'CacheReadInputTokens'>(),
-});
+  inputTokens: z.number().int().nonnegative().brand<'ChatUsageInputTokens'>(),
+  outputTokens: z.number().int().nonnegative().brand<'ChatUsageOutputTokens'>(),
+  cacheCreationInputTokens: z.number().int().nonnegative().brand<'ChatUsageCacheCreationInputTokens'>(),
+  cacheReadInputTokens: z.number().int().nonnegative().brand<'ChatUsageCacheReadInputTokens'>(),
+}).brand<'ChatUsage'>();
 
 export type ChatUsage = z.infer<typeof chatUsageContract>;
 
@@ -43,19 +43,19 @@ export type IsoTimestamp = z.infer<typeof timestampContract>;
 
 const userEntryContract = z.object({
   role: z.literal('user'),
-  content: z.string().min(1).brand<'UserContent'>(),
+  content: z.string().min(1).brand<'UserEntryContent'>(),
   isInjectedPrompt: z.boolean().optional(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'UserEntry'>();
 
 const assistantTextEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('text'),
-  content: z.string().brand<'AssistantContent'>(),
+  content: z.string().brand<'AssistantTextEntryContent'>(),
   model: modelContract,
   usage: chatUsageContract.optional(),
   source: sourceContract,
@@ -63,14 +63,14 @@ const assistantTextEntryContract = z.object({
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'AssistantTextEntry'>();
 
 const assistantToolUseEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('tool_use'),
-  toolUseId: z.string().min(1).brand<'ToolUseId'>().optional(),
+  toolUseId: z.string().min(1).brand<'AssistantToolUseEntryToolUseId'>().optional(),
   toolName: z.string().min(1).brand<'AssistantToolUseEntryToolName'>(),
-  toolInput: z.string().brand<'ToolInput'>(),
+  toolInput: z.string().brand<'AssistantToolUseEntryToolInput'>(),
   model: modelContract,
   usage: chatUsageContract.optional(),
   source: sourceContract,
@@ -78,25 +78,25 @@ const assistantToolUseEntryContract = z.object({
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'AssistantToolUseEntry'>();
 
 const assistantThinkingEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('thinking'),
-  content: z.string().brand<'ThinkingContent'>(),
+  content: z.string().brand<'AssistantThinkingEntryContent'>(),
   model: modelContract,
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'AssistantThinkingEntry'>();
 
 const assistantToolResultEntryContract = z.object({
   role: z.literal('assistant'),
   type: z.literal('tool_result'),
   toolName: z.string().min(1).brand<'AssistantToolResultEntryToolName'>(),
-  content: z.string().brand<'ToolResultContent'>(),
+  content: z.string().brand<'AssistantToolResultEntryContent'>(),
   isError: z.boolean().optional(),
   // Claude CLI reports a BLOCKING sub-agent call's own elapsed time here, from the completion
   // line's `toolUseResult.totalDurationMs`. An ASYNC launch reports nothing here — its result
@@ -109,35 +109,35 @@ const assistantToolResultEntryContract = z.object({
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'AssistantToolResultEntry'>();
 
 const taskNotificationEntryContract = z.object({
   role: z.literal('system'),
   type: z.literal('task_notification'),
-  taskId: z.string().min(1).brand<'TaskId'>(),
-  status: z.string().min(1).brand<'TaskStatus'>(),
-  summary: z.string().brand<'TaskSummary'>().optional(),
-  result: z.string().brand<'TaskResult'>().optional(),
-  totalTokens: z.number().int().nonnegative().brand<'TotalTokens'>().optional(),
-  toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
+  taskId: z.string().min(1).brand<'TaskNotificationEntryTaskId'>(),
+  status: z.string().min(1).brand<'TaskNotificationEntryStatus'>(),
+  summary: z.string().brand<'TaskNotificationEntrySummary'>().optional(),
+  result: z.string().brand<'TaskNotificationEntryResult'>().optional(),
+  totalTokens: z.number().int().nonnegative().brand<'TaskNotificationEntryTotalTokens'>().optional(),
+  toolUses: z.number().int().nonnegative().brand<'TaskNotificationEntryToolUses'>().optional(),
   durationMs: z.number().int().nonnegative().brand<'TaskNotificationEntryDurationMs'>().optional(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'TaskNotificationEntry'>();
 
 const systemErrorEntryContract = z.object({
   role: z.literal('system'),
   type: z.literal('error'),
-  content: z.string().min(1).brand<'ErrorContent'>(),
+  content: z.string().min(1).brand<'SystemErrorEntryContent'>(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,
   uuid: uuidContract,
   timestamp: timestampContract,
-});
+}).brand<'SystemErrorEntry'>();
 
 export const chatEntryContract = z.union([
   userEntryContract,

@@ -10,8 +10,8 @@ import { z } from '#gateway/npm/zod';
 
 export const thinkingBlockParamContract = z.object({
   type: z.literal('thinking'),
-  thinking: z.string().brand<'ThinkingContent'>(),
-  signature: z.string().brand<'ThinkingSignature'>().optional(),
+  thinking: z.string().brand<'ThinkingBlockParamThinking'>(),
+  signature: z.string().brand<'ThinkingBlockParamSignature'>().optional(),
 }).brand<'ThinkingBlockParam'>();
 
 export type ThinkingBlockParam = z.infer<typeof thinkingBlockParamContract>;

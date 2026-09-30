@@ -26,8 +26,8 @@ import { flowContract } from '../flow/flow-contract';
 
 export const qaChecklistContract = z.object({
   flowId: flowContract.shape.id,
-  flowName: z.string().min(1).brand<'FlowName'>(),
-  entryPoint: z.string().min(1).brand<'FlowEntryPoint'>(),
+  flowName: z.string().min(1).brand<'QaChecklistFlowName'>(),
+  entryPoint: z.string().min(1).brand<'QaChecklistEntryPoint'>(),
   paths: z
     .array(qaWalkPathContract)
     .default([])

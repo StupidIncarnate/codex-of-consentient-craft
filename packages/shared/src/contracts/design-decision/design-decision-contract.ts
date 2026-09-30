@@ -12,8 +12,8 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const designDecisionContract = z.object({
   id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'DesignDecisionId'>(),
-  title: z.string().min(1).brand<'DecisionTitle'>(),
-  rationale: z.string().brand<'DecisionRationale'>(),
+  title: z.string().min(1).brand<'DesignDecisionTitle'>(),
+  rationale: z.string().brand<'DesignDecisionRationale'>(),
   relatedNodeIds: z.array(flowNodeContract.shape.id),
 }).brand<'DesignDecision'>();
 

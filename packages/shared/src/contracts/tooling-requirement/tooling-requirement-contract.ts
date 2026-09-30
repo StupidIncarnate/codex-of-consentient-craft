@@ -12,9 +12,9 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 
 export const toolingRequirementContract = z.object({
   id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'ToolingRequirementId'>(),
-  name: z.string().min(1).brand<'ToolingName'>(),
-  packageName: z.string().min(1).brand<'NpmPackageName'>(),
-  reason: z.string().brand<'ToolingReason'>(),
+  name: z.string().min(1).brand<'ToolingRequirementName'>(),
+  packageName: z.string().min(1).brand<'ToolingRequirementPackageName'>(),
+  reason: z.string().brand<'ToolingRequirementReason'>(),
   requiredByObservables: z.array(flowObservableContract.shape.id),
 }).brand<'ToolingRequirement'>();
 

@@ -72,14 +72,14 @@ const serverStampedTimestamp = z.iso
 
 const questBlightLedgerEntryForUpsertContract = questBlightLedgerEntryContract.extend({
   createdAt: serverStampedTimestamp,
-});
+}).brand<'QuestBlightLedgerEntryForUpsert'>();
 
 // `questNoteContract.workItemId` widened to `.nullish()` for the ONE kind a person's browser click
 // writes with no work item behind it (`human-verdict` — see that contract's own header). This
 // refinement is what keeps every OTHER kind an execution agent writes through modify-quest still
 // owing a reader "who wrote this" — the widening at the base contract must not loosen this path too.
 const questNoteForUpsertContract = questNoteContract
-  .extend({ at: serverStampedTimestamp })
+  .extend({ at: serverStampedTimestamp }).brand<'QuestNoteForUpsert'>()
   .superRefine((value, ctx) => {
     const hasNoWorkItemId = value.workItemId === undefined || value.workItemId === null;
 
@@ -92,7 +92,7 @@ const questNoteForUpsertContract = questNoteContract
     }
   });
 
-const operationPlanForUpsertContract = operationPlanContract.extend({ at: serverStampedTimestamp });
+const operationPlanForUpsertContract = operationPlanContract.extend({ at: serverStampedTimestamp }).brand<'OperationPlanForUpsert'>();
 
 const fullFlowObservable = flowObservableContract.extend({
   package: z.string().min(1).brand<'FullFlowObservablePackage'>()
@@ -101,11 +101,11 @@ const fullFlowObservable = flowObservableContract.extend({
       'The package this observable is read in. Omit it when the owning node tags exactly one package — the save resolves it from the node. On a node tagging more than one there is nothing to inherit and the omission is refused, so state which side of the seam this one sits on.',
     ),
   _delete: z.boolean().optional(),
-});
+}).brand<'FullFlowObservable'>();
 const deletableObservableContract = z.union([
   fullFlowObservable,
   fullFlowObservable.partial().required({ id: true }),
-  z.object({ id: flowObservableContract.shape.id, _delete: deleteMarker }),
+  z.object({ id: flowObservableContract.shape.id, _delete: deleteMarker }).brand<'DeletableObservable'>(),
 ]);
 
 // `packages` arrives on this shape from flowNodeContract itself, so a tag written on a node
@@ -116,20 +116,20 @@ const deletableObservableContract = z.union([
 const fullFlowNode = flowNodeContract.extend({
   observables: z.array(deletableObservableContract).optional(),
   _delete: z.boolean().optional(),
-});
+}).brand<'FullFlowNode'>();
 const deletableNodeContract = z.union([
   fullFlowNode,
   fullFlowNode.partial().required({ id: true }),
-  z.object({ id: flowNodeContract.shape.id, _delete: deleteMarker }),
+  z.object({ id: flowNodeContract.shape.id, _delete: deleteMarker }).brand<'DeletableNode'>(),
 ]);
 
 const fullFlowEdge = flowEdgeContract.extend({
   _delete: z.boolean().optional(),
-});
+}).brand<'FullFlowEdge'>();
 const deletableEdgeContract = z.union([
   fullFlowEdge,
   fullFlowEdge.partial().required({ id: true }),
-  z.object({ id: flowEdgeContract.shape.id, _delete: deleteMarker }),
+  z.object({ id: flowEdgeContract.shape.id, _delete: deleteMarker }).brand<'DeletableEdge'>(),
 ]);
 
 const fullFlow = flowContract.extend({
@@ -137,26 +137,26 @@ const fullFlow = flowContract.extend({
   edges: z.array(deletableEdgeContract).optional(),
   offMapSignoffs: z.array(flowOffMapSignoffContract).optional(),
   _delete: z.boolean().optional(),
-});
+}).brand<'FullFlow'>();
 const deletableFlowContract = z.union([
   fullFlow,
   fullFlow.partial().required({ id: true }),
-  z.object({ id: flowContract.shape.id, _delete: deleteMarker }),
+  z.object({ id: flowContract.shape.id, _delete: deleteMarker }).brand<'DeletableFlow'>(),
 ]);
 
-const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() });
-const fullOperationItem = operationItemContract.extend({ _delete: z.boolean().optional() });
+const fullDesignDecision = designDecisionContract.extend({ _delete: z.boolean().optional() }).brand<'FullDesignDecision'>();
+const fullOperationItem = operationItemContract.extend({ _delete: z.boolean().optional() }).brand<'FullOperationItem'>();
 const fullToolingRequirement = toolingRequirementContract.extend({
   _delete: z.boolean().optional(),
-});
+}).brand<'FullToolingRequirement'>();
 const fullQuestContractEntry = questContractEntryContract.extend({
   _delete: z.boolean().optional(),
-});
+}).brand<'FullQuestContractEntry'>();
 // This field exists even though agents rarely write comments directly: the comment-batch route's
 // own server-side write persists queued comments by going through this contract. The MCP layer
 // (not this contract) is what blocks agent writes, by stripping `comments` from the modify-quest
 // payload before validation. Removing this field would break the route's own persist.
-const fullQuestComment = questCommentContract.extend({ _delete: z.boolean().optional() });
+const fullQuestComment = questCommentContract.extend({ _delete: z.boolean().optional() }).brand<'FullQuestComment'>();
 
 export const modifyQuestInputContract = z
   .object({
@@ -166,7 +166,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullDesignDecision,
           fullDesignDecision.partial().required({ id: true }),
-          z.object({ id: designDecisionContract.shape.id, _delete: deleteMarker }),
+          z.object({ id: designDecisionContract.shape.id, _delete: deleteMarker }).brand<'ModifyQuestInputDesignDecisions'>(),
         ]),
       )
       .describe(
@@ -178,7 +178,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullOperationItem,
           fullOperationItem.partial().required({ id: true }),
-          z.object({ id: operationItemContract.shape.id, _delete: deleteMarker }),
+          z.object({ id: operationItemContract.shape.id, _delete: deleteMarker }).brand<'ModifyQuestInputOperations'>(),
         ]),
       )
       .describe(
@@ -190,7 +190,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullToolingRequirement,
           fullToolingRequirement.partial().required({ id: true }),
-          z.object({ id: toolingRequirementContract.shape.id, _delete: deleteMarker }),
+          z.object({ id: toolingRequirementContract.shape.id, _delete: deleteMarker }).brand<'ModifyQuestInputToolingRequirements'>(),
         ]),
       )
       .describe(
@@ -202,7 +202,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullQuestContractEntry,
           fullQuestContractEntry.partial().required({ id: true }),
-          z.object({ id: questContractEntryContract.shape.id, _delete: deleteMarker }),
+          z.object({ id: questContractEntryContract.shape.id, _delete: deleteMarker }).brand<'ModifyQuestInputContracts'>(),
         ]),
       )
       .describe(
@@ -226,7 +226,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullQuestComment,
           fullQuestComment.partial().required({ id: true }),
-          z.object({ id: questCommentContract.shape.id, _delete: deleteMarker }),
+          z.object({ id: questCommentContract.shape.id, _delete: deleteMarker }).brand<'ModifyQuestInputComments'>(),
         ]),
       )
       .describe(
@@ -270,7 +270,7 @@ export const modifyQuestInputContract = z
           )
           .optional(),
       })
-      .partial()
+      .partial().brand<'ModifyQuestInputPlanningNotes'>()
       .describe(
         'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and the planner sub-agent plans to merge into quest.planningNotes.',
       )

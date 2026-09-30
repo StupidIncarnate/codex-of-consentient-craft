@@ -21,7 +21,7 @@ export const importEdgeContract = z.object({
   consumerPackage: z.string().brand<'ImportEdgeConsumerPackage'>(),
   sourcePackage: z.string().brand<'ImportEdgeSourcePackage'>(),
   barrel: z.string().brand<'ImportEdgeBarrel'>(),
-  importCount: z.number().int().min(1).brand<'ImportCount'>(),
+  importCount: z.number().int().min(1).brand<'ImportEdgeImportCount'>(),
 }).brand<'ImportEdge'>();
 
 export type ImportEdge = z.infer<typeof importEdgeContract>;

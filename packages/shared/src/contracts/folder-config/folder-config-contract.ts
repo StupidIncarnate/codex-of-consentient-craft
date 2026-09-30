@@ -10,13 +10,13 @@ import { z } from '#gateway/npm/zod';
 
 export const folderConfigContract = z.object({
   fileSuffix: z.union([
-    z.string().brand<'FileSuffix'>(),
-    z.array(z.string().brand<'FileSuffix'>()).readonly(),
+    z.string().brand<'FolderConfigFileSuffix'>(),
+    z.array(z.string().brand<'FolderConfigFileSuffix'>()).readonly(),
   ]),
-  exportSuffix: z.union([z.string().brand<'ExportSuffix'>(), z.literal('')]),
+  exportSuffix: z.union([z.string().brand<'FolderConfigExportSuffix'>(), z.literal('')]),
   exportCase: z.union([z.enum(['camelCase', 'PascalCase']), z.literal('')]),
-  folderDepth: z.number().int().min(0).brand<'FolderDepth'>(),
-  folderPattern: z.string().brand<'FolderPattern'>(),
+  folderDepth: z.number().int().min(0).brand<'FolderConfigFolderDepth'>(),
+  folderPattern: z.string().brand<'FolderConfigFolderPattern'>(),
   allowedImports: z.array(z.string().brand<'FolderConfigAllowedImports'>()).readonly(),
   disallowAdhocTypes: z.boolean(),
   requireProxy: z.boolean(),
@@ -26,9 +26,9 @@ export const folderConfigContract = z.object({
   testType: z.enum(['unit', 'integration', 'none']),
   requireStub: z.boolean(),
   meta: z.object({
-    purpose: z.string().brand<'FolderPurpose'>(),
-    whenToUse: z.string().brand<'FolderWhenToUse'>(),
-  }),
+    purpose: z.string().brand<'FolderConfigMetaPurpose'>(),
+    whenToUse: z.string().brand<'FolderConfigMetaWhenToUse'>(),
+  }).brand<'FolderConfigMeta'>(),
 }).brand<'FolderConfig'>();
 
 export type FolderConfig = z.infer<typeof folderConfigContract>;

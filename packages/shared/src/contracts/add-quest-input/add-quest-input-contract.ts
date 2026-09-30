@@ -17,7 +17,7 @@ export const addQuestInputContract = z
       .string()
       .min(1)
       .describe('The original user request that initiated this quest')
-      .brand<'UserRequest'>(),
+      .brand<'AddQuestInputUserRequest'>(),
     questSource: questSourceContract
       .optional()
       .describe(

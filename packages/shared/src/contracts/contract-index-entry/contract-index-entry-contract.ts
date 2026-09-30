@@ -23,7 +23,7 @@ export const contractIndexEntryContract = z.object({
       typeName: z.string().brand<'ContractIndexEntryTypeExportsTypeName'>(),
       isSchemaInferred: z.boolean(),
       isExempt: z.boolean(),
-    }),
+    }).brand<'ContractIndexEntryTypeExports'>(),
   ),
   parseSites: z.array(contractParseSiteContract),
   nestedInFiles: z.array(absoluteFilePathContract),

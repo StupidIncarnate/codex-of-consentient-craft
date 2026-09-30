@@ -42,14 +42,14 @@ export const questBlightLedgerEntryContract = z.object({
   evidence: z
     .string()
     .min(1)
-    .brand<'BlightEvidence'>()
+    .brand<'QuestBlightLedgerEntryEvidence'>()
     .describe(
       'The concrete thing observed, or — for gap/recorded/routed — the specific reason. Never an adjective: "looks fine", "confirmed", "as expected" are the report grading itself.',
     ),
   brokenWouldShow: z
     .string()
     .min(1)
-    .brand<'BlightBrokenWouldShow'>()
+    .brand<'QuestBlightLedgerEntryBrokenWouldShow'>()
     .optional()
     .describe(
       'The specific different value a broken system would have produced. Absent means the measurement was not shown to be falsifiable.',
@@ -57,12 +57,12 @@ export const questBlightLedgerEntryContract = z.object({
   observedBy: z
     .string()
     .min(1)
-    .brand<'BlightObservedBy'>()
+    .brand<'QuestBlightLedgerEntryObservedBy'>()
     .describe('Who produced this — the operator itself, or the minion lens that reported it.'),
   owner: z
     .string()
     .min(1)
-    .brand<'BlightDeferralOwner'>()
+    .brand<'QuestBlightLedgerEntryOwner'>()
     .optional()
     .describe(
       'Required in practice for `recorded`: the named owner a defect was handed to. "Noted for later" with no owner is not a disposition.',

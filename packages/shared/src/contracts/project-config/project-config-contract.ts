@@ -14,7 +14,7 @@ export const projectConfigContract = z.object({
   dungeonmaster: z
     .object({
       port: networkPortContract.optional(),
-    })
+    }).brand<'ProjectConfigDungeonmaster'>()
     .optional(),
 }).brand<'ProjectConfig'>();
 

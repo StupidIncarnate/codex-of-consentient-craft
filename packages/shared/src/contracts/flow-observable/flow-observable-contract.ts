@@ -59,11 +59,11 @@ import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 export const flowObservableContract = z.object({
   id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowObservableId'>(),
   type: outcomeTypeContract,
-  description: z.string().brand<'OutcomeDescription'>(),
+  description: z.string().brand<'FlowObservableDescription'>(),
   package: z.string().min(1).brand<'FlowObservablePackage'>().describe(
     "The one package this observable is read in, drawn from the owning node's tags. Singular where the node's is plural: a node spans a seam, an individual observable sits on one side of it, and the union of a node's observables' packages is what proves both sides were asserted.",
   ),
-  designRef: z.string().brand<'DesignRef'>().optional(),
+  designRef: z.string().brand<'FlowObservableDesignRef'>().optional(),
   verifyByReading: z
     .boolean()
     .optional()

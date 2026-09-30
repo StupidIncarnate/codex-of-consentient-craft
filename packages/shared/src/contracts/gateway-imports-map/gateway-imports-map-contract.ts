@@ -11,7 +11,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const gatewayImportsMapContract = z.record(
-  z.string().brand<'GatewayImportsKey'>(),
+  z.string().brand<'GatewayImportsMapKey'>(),
   z.string().brand<'GatewayImportsValue'>(),
 );
 

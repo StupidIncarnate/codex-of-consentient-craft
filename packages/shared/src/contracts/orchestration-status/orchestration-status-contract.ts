@@ -24,8 +24,8 @@ export const orchestrationStatusContract = z.object({
     'complete',
     'failed',
   ]),
-  completed: z.number().int().nonnegative().brand<'CompletedCount'>(),
-  total: z.number().int().nonnegative().brand<'TotalCount'>(),
+  completed: z.number().int().nonnegative().brand<'OrchestrationStatusCompleted'>(),
+  total: z.number().int().nonnegative().brand<'OrchestrationStatusTotal'>(),
   currentStep: z.string().brand<'OrchestrationStatusCurrentStep'>().optional(),
   slots: z.array(orchestrationSlotContract),
 }).brand<'OrchestrationStatus'>();

@@ -131,7 +131,6 @@ export const questNoteContract = z.object({
     ),
   outcome: z
     .enum(['met', 'not-met'])
-    .brand<'QuestNoteVerdictOutcome'>()
     .optional()
     .describe(
       "A person's outcome on the `verifyByHuman` criterion named by `unitId`. Present on a " +

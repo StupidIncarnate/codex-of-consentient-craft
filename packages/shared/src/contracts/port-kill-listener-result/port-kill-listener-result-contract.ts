@@ -12,7 +12,7 @@ import { z } from '#gateway/npm/zod';
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 
 export const portKillListenerResultContract = z.object({
-  pid: z.number().int().positive().brand<'PortListenerPid'>(),
+  pid: z.number().int().positive().brand<'PortKillListenerResultPid'>(),
   exitCode: exitCodeContract,
   output: z.string().brand<'PortKillListenerResultOutput'>(),
 }).brand<'PortKillListenerResult'>();

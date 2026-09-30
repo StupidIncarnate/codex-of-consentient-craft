@@ -37,9 +37,9 @@ export const workItemContract = z.object({
   // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
   // OWN output type, and a bare number can never satisfy a branded type; putting the brand last
   // keeps the literal checked against plain `number` while the branded type still flows through.
-  attempt: z.number().int().nonnegative().default(0).brand<'Attempt'>(),
-  maxAttempts: z.number().int().positive().default(1).brand<'MaxAttempts'>(),
-  retryCount: z.number().int().nonnegative().default(0).brand<'FailCount'>(),
+  attempt: z.number().int().nonnegative().default(0).brand<'WorkItemAttempt'>(),
+  maxAttempts: z.number().int().positive().default(1).brand<'WorkItemMaxAttempts'>(),
+  retryCount: z.number().int().nonnegative().default(0).brand<'WorkItemRetryCount'>(),
   lastWardRunId: z.string().brand<'WorkItemLastWardRunId'>().optional(),
   createdAt: z.iso.datetime().brand<'WorkItemCreatedAt'>(),
   // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
@@ -51,7 +51,7 @@ export const workItemContract = z.object({
   startRef: z
     .string()
     .min(1)
-    .brand<'GitBaseRef'>()
+    .brand<'WorkItemStartRef'>()
     .optional()
     .describe(
       "The quest worktree's HEAD sha at the moment this work item was FIRST served its prompt. `<startRef>..HEAD` is the range `get-blight-checklist`'s `since-ref` scope rebuilds its checklist over, and it is the only range that measures what THIS item produced: every minion commits its own work as it goes, so at signal time the tree is clean (a working-tree reading is empty by construction), HEAD~1 sees one piece, and a plan-scoped reading sees one round. Written ONCE and never rewritten — a resumed or re-served session keeps its ORIGINAL start, because re-stamping after a crash would shrink the reviewed range to whatever landed afterwards. Deliberately `.optional()` with NO default, so a work item that never resolved a worktree, a hydrated quest, and every item seeded before this field simply carry none, and that scope reports null for them rather than measuring something they could never satisfy.",
@@ -60,7 +60,7 @@ export const workItemContract = z.object({
   // whole quest.json parse.
   completedAt: z.iso.datetime().brand<'WorkItemCompletedAt'>().nullish(),
   errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
-  summary: z.string().brand<'SignalSummary'>().optional(),
+  summary: z.string().brand<'WorkItemSummary'>().optional(),
   insertedBy: workItemId.optional(),
   resume: z
     .boolean()
@@ -103,7 +103,7 @@ export const workItemContract = z.object({
   // amendment cannot rewrite what a session already ran against. A reader of a known key (e.g.
   // `'instance'`) re-parses it through the exported `workItemPayloadKeyContract` to index this
   // branded Record — see that contract's own header.
-  payload: z.record(z.string().brand<'WorkItemPayload'>(), z.unknown()).optional(),
+  payload: z.record(z.string().brand<'WorkItemPayloadKey'>(), z.unknown()).optional(),
   // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
   // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
   // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and
@@ -113,12 +113,12 @@ export const workItemContract = z.object({
   // `shared` is the base package and may not depend on anything above it, the same reason every
   // package keeps its own local `isoTimestampContract` instead of importing one.
   declaredWord: z.enum(['done', 'unmet', 'empty', 'wall']).optional(),
-  declaredReason: z.string().min(1).brand<'OutcomeReason'>().optional(),
+  declaredReason: z.string().min(1).brand<'WorkItemDeclaredReason'>().optional(),
   // Set by `quest-work`'s `request` payload — the step this work item is blocked on, and why.
   // `nextActionTransformer` takes this as its `request` argument for the identical reason
   // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
   requestedStep: z.string().min(1).brand<'WorkItemRequestedStep'>().optional(),
-  requestedReason: z.string().min(1).brand<'RequestReason'>().optional(),
+  requestedReason: z.string().min(1).brand<'WorkItemRequestedReason'>().optional(),
   // Copied off the minting step's config (`agentFlowStatics.<family>.steps.<step>.needsLane`) by
   // `questRouteScopeBroker` at mint time. `true` means the ROUTER starts a siegelense instance
   // before this item dispatches and kills it when the item records — the session never owns that

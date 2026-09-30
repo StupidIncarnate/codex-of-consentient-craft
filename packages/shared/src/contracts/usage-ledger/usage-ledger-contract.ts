@@ -18,15 +18,15 @@ import { usageBucketContract } from '../usage-bucket/usage-bucket-contract';
 export const usageLedgerContract = z.object({
   // Keyed by the bucket's start time in epoch MILLISECONDS, as a string because JSON object keys
   // are strings. Buckets older than the seven-day window are dropped on every write.
-  buckets: z.record(z.string().brand<'UsageLedgerBuckets'>(), usageBucketContract),
+  buckets: z.record(z.string().brand<'UsageLedgerBucketsKey'>(), usageBucketContract),
   // One entry per transcript file already counted, keyed by absolute path. A file is re-read only
   // when its size or mtime moved, which is what keeps a 600 MB tree to a few MB of reads per scan.
   cursors: z.record(
     absoluteFilePathContract,
     z.object({
       mtimeMs: z.number().min(0).brand<'UsageLedgerCursorsMtimeMs'>(),
-      size: z.number().int().min(0).brand<'ByteSize'>(),
-    }),
+      size: z.number().int().min(0).brand<'UsageLedgerCursorsSize'>(),
+    }).brand<'UsageLedgerCursors'>(),
   ),
   // Learned, never configured. A 429 names the window it refused, and the weighted total standing
   // at that moment IS that window's ceiling — so the percentage has a real denominator without the
@@ -37,7 +37,7 @@ export const usageLedgerContract = z.object({
   ceilings: z.object({
     fiveHour: z.number().min(0).brand<'UsageLedgerCeilingsFiveHour'>().nullable(),
     sevenDay: z.number().min(0).brand<'UsageLedgerCeilingsSevenDay'>().nullable(),
-  }),
+  }).brand<'UsageLedgerCeilings'>(),
   updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
 }).brand<'UsageLedger'>();
 

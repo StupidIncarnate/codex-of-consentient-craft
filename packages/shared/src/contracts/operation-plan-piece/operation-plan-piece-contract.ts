@@ -54,7 +54,7 @@ export const operationPlanPieceContract = z.object({
         'path with neither aware of the other.',
     ),
   folderTypes: z
-    .array(z.string().min(1).brand<'OperationPlanPieceFolderType'>())
+    .array(z.string().min(1).brand<'OperationPlanPieceFolderTypes'>())
     .default([])
     .describe(
       'The repo folder type(s) touched by files above — brokers, contracts, adapters, widgets, and ' +
@@ -63,7 +63,7 @@ export const operationPlanPieceContract = z.object({
         'is cross-cutting.',
     ),
   unitIds: z
-    .array(z.string().min(1).brand<'OperationPlanPieceUnitId'>())
+    .array(z.string().min(1).brand<'OperationPlanPieceUnitIds'>())
     .default([])
     .describe(
       'Verification-checklist unit ids this piece settles once done — QaChecklistItemId values from ' +

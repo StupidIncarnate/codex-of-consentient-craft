@@ -16,9 +16,9 @@ import { relativeFilePathContract } from '../relative-file-path/relative-file-pa
 
 
 export const skippedQuestFileContract = z.object({
-  questFolder: z.string().min(1).brand<'QuestFolder'>(),
+  questFolder: z.string().min(1).brand<'SkippedQuestFileQuestFolder'>(),
   questFilePath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'SkippedQuestFileQuestFilePath'>(),
-  reason: z.string().min(1).brand<'SkipReason'>(),
+  reason: z.string().min(1).brand<'SkippedQuestFileReason'>(),
 }).brand<'SkippedQuestFile'>();
 
 export type SkippedQuestFile = z.infer<typeof skippedQuestFileContract>;

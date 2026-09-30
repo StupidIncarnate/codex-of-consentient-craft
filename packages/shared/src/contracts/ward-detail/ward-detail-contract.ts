@@ -22,34 +22,34 @@ import { z } from '#gateway/npm/zod';
 
 const errorEntry = z
   .object({
-    filePath: z.string().brand<'WardDetailErrorFilePath'>().optional(),
-    message: z.string().brand<'WardDetailErrorMessage'>().optional(),
-    line: z.number().brand<'WardDetailErrorLine'>().optional(),
-    rule: z.string().brand<'WardDetailErrorRule'>().optional(),
-  })
+    filePath: z.string().brand<'ErrorEntryFilePath'>().optional(),
+    message: z.string().brand<'ErrorEntryMessage'>().optional(),
+    line: z.number().brand<'ErrorEntryLine'>().optional(),
+    rule: z.string().brand<'ErrorEntryRule'>().optional(),
+  }).brand<'ErrorEntry'>()
   .loose();
 
 const testFailure = z
   .object({
-    suitePath: z.string().brand<'WardDetailSuitePath'>().optional(),
-    testName: z.string().brand<'WardDetailTestName'>().optional(),
-    message: z.string().brand<'WardDetailTestFailureMessage'>().optional(),
-  })
+    suitePath: z.string().brand<'TestFailureSuitePath'>().optional(),
+    testName: z.string().brand<'TestFailureTestName'>().optional(),
+    message: z.string().brand<'TestFailureMessage'>().optional(),
+  }).brand<'TestFailure'>()
   .loose();
 
 const projectFolder = z
   .object({
-    name: z.string().brand<'WardDetailProjectName'>().optional(),
-    path: z.string().brand<'WardDetailProjectPath'>().optional(),
-  })
+    name: z.string().brand<'ProjectFolderName'>().optional(),
+    path: z.string().brand<'ProjectFolderPath'>().optional(),
+  }).brand<'ProjectFolder'>()
   .loose();
 
 const rawOutput = z
   .object({
-    stdout: z.string().brand<'WardDetailRawStdout'>().optional(),
-    stderr: z.string().brand<'WardDetailRawStderr'>().optional(),
-    exitCode: z.number().brand<'WardDetailRawExitCode'>().optional(),
-  })
+    stdout: z.string().brand<'RawOutputStdout'>().optional(),
+    stderr: z.string().brand<'RawOutputStderr'>().optional(),
+    exitCode: z.number().brand<'RawOutputExitCode'>().optional(),
+  }).brand<'RawOutput'>()
   .loose();
 
 const projectResult = z
@@ -59,20 +59,20 @@ const projectResult = z
     errors: z.array(errorEntry).optional(),
     testFailures: z.array(testFailure).optional(),
     rawOutput: rawOutput.optional(),
-    filesCount: z.number().brand<'WardDetailFilesCount'>().optional(),
-    discoveredCount: z.number().brand<'WardDetailDiscoveredCount'>().optional(),
-    onlyDiscovered: z.array(z.string().brand<'WardDetailOnlyDiscovered'>()).optional(),
-    onlyProcessed: z.array(z.string().brand<'WardDetailOnlyProcessed'>()).optional(),
-  })
+    filesCount: z.number().brand<'ProjectResultFilesCount'>().optional(),
+    discoveredCount: z.number().brand<'ProjectResultDiscoveredCount'>().optional(),
+    onlyDiscovered: z.array(z.string().brand<'ProjectResultOnlyDiscovered'>()).optional(),
+    onlyProcessed: z.array(z.string().brand<'ProjectResultOnlyProcessed'>()).optional(),
+  }).brand<'ProjectResult'>()
   .loose();
 
 const checkResult = z
   .object({
-    checkType: z.string().brand<'WardDetailCheckType'>().optional(),
+    checkType: z.string().brand<'CheckResultCheckType'>().optional(),
     status: z.enum(['pass', 'fail', 'skip']).optional(),
     discoveryMismatch: z.boolean().optional(),
     projectResults: z.array(projectResult).optional(),
-  })
+  }).brand<'CheckResult'>()
   .loose();
 
 export const wardDetailContract = z

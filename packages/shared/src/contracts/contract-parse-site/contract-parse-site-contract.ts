@@ -14,7 +14,7 @@ import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-pa
 
 export const contractParseSiteContract = z.object({
   filePath: absoluteFilePathContract,
-  line: z.number().int().min(1).brand<'ParseSiteLine'>(),
+  line: z.number().int().min(1).brand<'ContractParseSiteLine'>(),
 }).brand<'ContractParseSite'>();
 
 export type ContractParseSite = z.infer<typeof contractParseSiteContract>;

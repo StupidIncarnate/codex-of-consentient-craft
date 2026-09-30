@@ -71,14 +71,14 @@ export const questSummaryDebtContract = z
     evidence: z
       .string()
       .min(1)
-      .brand<'MarkEvidence'>()
+      .brand<'QuestSummaryDebtEvidence'>()
       .describe(
         'What the recording session had. On `cant-meet`, why confirmation was out of reach for this layer. On `unmet`, what is left and what that session already learned.',
       ),
     toSettle: z
       .string()
       .min(1)
-      .brand<'ToSettleInstruction'>()
+      .brand<'QuestSummaryDebtToSettle'>()
       .optional()
       .describe(
         'The action that WOULD settle this unit — an instruction, never a question. Required on `cant-meet`; refused on `unmet`, which has a successor rather than a handover.',

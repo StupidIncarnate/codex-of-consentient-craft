@@ -29,7 +29,7 @@ import { flowContract } from '../flow/flow-contract';
 export const operationItemContract = z.object({
   id: z.uuid().brand<'OperationItemId'>(),
   role: workItemRoleContract,
-  text: z.string().min(1).brand<'OperationText'>().describe('Prose description of the operation.'),
+  text: z.string().min(1).brand<'OperationItemText'>().describe('Prose description of the operation.'),
   status: z.enum(['pending', 'in_progress', 'complete']),
   locked: z
     .boolean()

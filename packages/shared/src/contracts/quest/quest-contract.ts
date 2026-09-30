@@ -85,8 +85,8 @@ export const questContract = z.object({
     .describe(
       'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
     ),
-  userRequest: z.string().min(1).brand<'UserRequest'>(),
-  abandonReason: z.string().brand<'AbandonReason'>().optional(),
+  userRequest: z.string().min(1).brand<'QuestUserRequest'>(),
+  abandonReason: z.string().brand<'QuestAbandonReason'>().optional(),
   pausedAtStatus: questStatusContract
     .nullable()
     .optional()
@@ -96,7 +96,7 @@ export const questContract = z.object({
   baseRef: z
     .string()
     .min(1)
-    .brand<'GitBaseRef'>()
+    .brand<'QuestBaseRef'>()
     .optional()
     .describe(
       "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so a whole-quest review scope remains stable as the base branch moves ahead with other work.",
@@ -156,7 +156,7 @@ export const questContract = z.object({
         .describe(
           "Planner sub-agent outputs, one per plan/work/review pass, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected pass's plan stays for audit alongside the pass that superseded it.",
         ),
-    })
+    }).brand<'QuestPlanningNotes'>()
     .default({
       blightLedger: [],
       questNotes: [],

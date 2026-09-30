@@ -13,11 +13,11 @@ import { sessionContract } from '../session/session-contract';
 
 export const sessionListItemContract = z.object({
   sessionId: sessionContract.shape.id,
-  summary: z.string().brand<'SessionSummary'>().optional(),
+  summary: z.string().brand<'SessionListItemSummary'>().optional(),
   startedAt: z.iso.datetime().brand<'SessionListItemStartedAt'>(),
   questId: questContract.shape.id.optional(),
   questTitle: z.string().brand<'SessionListItemQuestTitle'>().optional(),
-  questStatus: z.string().brand<'QuestStatus'>().optional(),
+  questStatus: z.string().brand<'SessionListItemQuestStatus'>().optional(),
 }).brand<'SessionListItem'>();
 
 export type SessionListItem = z.infer<typeof sessionListItemContract>;

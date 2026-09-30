@@ -97,7 +97,7 @@ const questProjectionStepContract = z
         'Copied straight off `WorkItem.mintedBy` — the back-edge badge reads this without re-deriving it.',
       ),
   })
-  .strict();
+  .strict().brand<'QuestProjectionStep'>();
 
 const questProjectionScopeContract = z
   .object({
@@ -112,7 +112,7 @@ const questProjectionScopeContract = z
         'Every `actual` row, in `quest.workItems` array order, followed by the `planned` tail.',
       ),
   })
-  .strict();
+  .strict().brand<'QuestProjectionScope'>();
 
 export const questProjectionContract = z
   .object({

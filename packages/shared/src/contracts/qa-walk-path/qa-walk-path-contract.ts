@@ -31,7 +31,7 @@ export const qaWalkPathContract = z.object({
       'Nodes in drive order, entry first. The last entry is the terminal this path ends at.',
     ),
   branchLabels: z
-    .array(z.string().min(1).brand<'QaBranchLabel'>())
+    .array(z.string().min(1).brand<'QaWalkPathBranchLabels'>())
     .default([])
     .describe(
       'The labelled decision branches taken along this path, in order — each one a condition the walker must FORCE for real rather than happen upon.',

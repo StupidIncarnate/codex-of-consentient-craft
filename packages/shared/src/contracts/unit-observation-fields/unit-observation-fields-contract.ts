@@ -29,7 +29,7 @@ export const unitObservationFieldsContract = z.object({
   evidence: z
     .string()
     .min(1)
-    .brand<'MarkEvidence'>()
+    .brand<'UnitObservationFieldsEvidence'>()
     .describe(
       'What settles this mark. met: a test file:line and the wrong value that turns it red, or ' +
         'the value measured off the running system. cant-meet: why this layer cannot reach it. ' +
@@ -38,7 +38,7 @@ export const unitObservationFieldsContract = z.object({
   toSettle: z
     .string()
     .min(1)
-    .brand<'ToSettleInstruction'>()
+    .brand<'UnitObservationFieldsToSettle'>()
     .optional()
     .describe(
       'The action that WOULD settle this unit. Required when mark is cant-meet; refused otherwise ' +

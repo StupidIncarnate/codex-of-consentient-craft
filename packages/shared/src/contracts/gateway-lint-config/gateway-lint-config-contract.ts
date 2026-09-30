@@ -27,23 +27,23 @@ export const gatewayLintConfigContract = z.object({
     .array(
       z.object({
         // Written in FULL — the exact `#gateway/...` text a caller's own import uses.
-        subpath: z.string().min(1).brand<'GatewaySubpath'>(),
-        name: z.string().min(1).brand<'GatewayExportName'>(),
-        use: z.string().min(1).brand<'GatewayExportName'>(),
-        reason: z.string().min(1).brand<'GatewayBanReason'>(),
-      }),
+        subpath: z.string().min(1).brand<'GatewayLintConfigBannedExportsSubpath'>(),
+        name: z.string().min(1).brand<'GatewayLintConfigBannedExportsName'>(),
+        use: z.string().min(1).brand<'GatewayLintConfigBannedExportsUse'>(),
+        reason: z.string().min(1).brand<'GatewayLintConfigBannedExportsReason'>(),
+      }).brand<'GatewayLintConfigBannedExports'>(),
     )
     .optional(),
   restrictedTo: z
     .array(
       z.object({
-        subpath: z.string().min(1).brand<'GatewaySubpath'>(),
+        subpath: z.string().min(1).brand<'GatewayLintConfigRestrictedToSubpath'>(),
         // Omitted means the whole subpath is restricted; set means only this one export is.
-        name: z.string().min(1).brand<'GatewayExportName'>().optional(),
+        name: z.string().min(1).brand<'GatewayLintConfigRestrictedToName'>().optional(),
         // Whole workspace packages (`packages/*`), never a folder inside one.
         packages: z.array(z.string().brand<'GatewayLintConfigRestrictedToPackages'>()).min(1),
-        reason: z.string().min(1).brand<'GatewayRestrictReason'>(),
-      }),
+        reason: z.string().min(1).brand<'GatewayLintConfigRestrictedToReason'>(),
+      }).brand<'GatewayLintConfigRestrictedTo'>(),
     )
     .optional(),
 }).brand<'GatewayLintConfig'>();

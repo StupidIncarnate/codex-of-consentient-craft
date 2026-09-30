@@ -17,14 +17,14 @@ import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 const widgetNodeFields = z.object({
-  widgetName: z.string().brand<'WidgetNodeFieldsWidgetName'>(),
+  widgetName: z.string().brand<'WidgetNodeWidgetName'>(),
   filePath: absoluteFilePathContract,
-  bindingsAttached: z.array(z.string().brand<'WidgetNodeFieldsBindingsAttached'>()),
+  bindingsAttached: z.array(z.string().brand<'WidgetNodeBindingsAttached'>()),
 });
 
 type WidgetNodeSelf = z.infer<typeof widgetNodeFields> & {
   children: WidgetNodeSelf[];
-};
+} & z.$brand<'WidgetNode'>;
 
 // A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type

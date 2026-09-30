@@ -20,13 +20,13 @@ export const assistantStreamLineContract = z.object({
     content: z.array(assistantContentBlockParamContract),
     usage: z
       .object({
-        input_tokens: z.number().brand<'InputTokenCount'>(),
-        output_tokens: z.number().brand<'OutputTokenCount'>(),
-      })
+        input_tokens: z.number().brand<'AssistantStreamLineMessageUsageInputTokens'>(),
+        output_tokens: z.number().brand<'AssistantStreamLineMessageUsageOutputTokens'>(),
+      }).brand<'AssistantStreamLineMessageUsage'>()
       .optional(),
-    stop_reason: z.string().brand<'StopReason'>().nullish(),
-    model: z.string().brand<'ModelName'>().nullish(),
-  }),
+    stop_reason: z.string().brand<'AssistantStreamLineMessageStopReason'>().nullish(),
+    model: z.string().brand<'AssistantStreamLineMessageModel'>().nullish(),
+  }).brand<'AssistantStreamLineMessage'>(),
 }).brand<'AssistantStreamLine'>();
 
 export type AssistantStreamLine = z.infer<typeof assistantStreamLineContract>;

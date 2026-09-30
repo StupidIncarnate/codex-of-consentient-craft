@@ -45,7 +45,7 @@ export const blightChecklistItemContract = z.object({
   label: z
     .string()
     .min(1)
-    .brand<'BlightChecklistLabel'>()
+    .brand<'BlightChecklistItemLabel'>()
     .describe(
       'The human-readable statement of what this unit asserts, e.g. "craft — comment-queue-state.ts\'s logic matches its signature".',
     ),

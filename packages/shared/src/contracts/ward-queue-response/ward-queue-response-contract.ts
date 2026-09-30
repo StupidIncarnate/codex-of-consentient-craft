@@ -14,7 +14,7 @@ export const wardQueueResponseContract = z.object({
   exitCode: exitCodeContract.optional(),
   runId: wardQueueResponseRunId.optional(),
   wardResultJson: z.unknown().optional(),
-  outputLines: z.array(z.string().brand<'WardOutputLine'>()).optional(),
+  outputLines: z.array(z.string().brand<'WardQueueResponseOutputLines'>()).optional(),
   delayMs: z.number().int().min(0).brand<'WardQueueResponseDelayMs'>().optional(),
 }).brand<'WardQueueResponse'>();
 

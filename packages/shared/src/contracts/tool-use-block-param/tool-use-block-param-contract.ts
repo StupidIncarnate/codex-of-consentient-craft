@@ -10,7 +10,7 @@ import { z } from '#gateway/npm/zod';
 
 export const toolUseBlockParamContract = z.object({
   type: z.literal('tool_use'),
-  id: z.string().min(1).brand<'ToolUseId'>(),
+  id: z.string().min(1).brand<'ToolUseBlockParamId'>(),
   name: z.string().brand<'ToolUseBlockParamName'>(),
   input: z.unknown(),
 }).brand<'ToolUseBlockParam'>();
