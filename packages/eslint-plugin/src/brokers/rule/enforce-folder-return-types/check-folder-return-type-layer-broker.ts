@@ -114,11 +114,10 @@ export const checkFolderReturnTypeLayerBroker = ({
     }
   }
 
-  // Loose-return checks; carve-out for I/O boundary files (*-contract.ts, *-adapter.ts).
-  // Contracts are not in function-exporting folders so they're already exempt; adapters are
-  // exempt by suffix here so they can return raw external shapes.
+  // Loose-return checks; carve-out for I/O boundary files (*-contract.ts).
+  // Contracts are not in function-exporting folders so they're already exempt.
   const { filename } = ctx;
-  const isIoBoundaryFile = filename.endsWith('-contract.ts') || filename.endsWith('-adapter.ts');
+  const isIoBoundaryFile = filename.endsWith('-contract.ts');
 
   if (!isIoBoundaryFile) {
     if (typeAnnotation.type === AST_NODE_TYPES.TSUnknownKeyword) {

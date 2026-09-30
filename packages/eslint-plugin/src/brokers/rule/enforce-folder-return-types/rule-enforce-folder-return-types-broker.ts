@@ -40,11 +40,11 @@ export const ruleEnforceFolderReturnTypesBroker = (): TSESLint.RuleModule<
       folderDisguisedVoidReturn:
         'This return type can only ever hold one value, which says nothing more than void would — and this function discards a call that returned something real. Return that value instead.',
       folderUnknownReturn:
-        'Functions in {{folderType}}/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary)',
+        'Functions in {{folderType}}/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts may return unknown at the I/O boundary)',
       folderObjectReturn:
-        'Functions in {{folderType}}/ must not return object — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return object at the I/O boundary)',
+        'Functions in {{folderType}}/ must not return object — return a specific shape or branded type (only *-contract.ts may return object at the I/O boundary)',
       folderRecordUnknownReturn:
-        'Functions in {{folderType}}/ must not return Record<string, unknown> or Record<PropertyKey, unknown> — return a specific shape or branded type (only *-contract.ts and *-adapter.ts may return loose Record at the I/O boundary)',
+        'Functions in {{folderType}}/ must not return Record<string, unknown> or Record<PropertyKey, unknown> — return a specific shape or branded type (only *-contract.ts may return loose Record at the I/O boundary)',
       guardMustReturnBoolean: 'Guard functions must return boolean or type predicate (x is T)',
     },
     schema: [],

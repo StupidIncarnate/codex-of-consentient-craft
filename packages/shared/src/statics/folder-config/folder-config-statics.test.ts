@@ -159,7 +159,7 @@ describe('folderConfigStatics', () => {
         requireStub: false,
         meta: {
           purpose:
-            'Request/response transformation layer. Authentication, logging, validation pipelines.',
+            'Combines two or more gateway wrappers into one infrastructure concern, such as a render wrapper or a package.json read.',
           whenToUse: 'Combine gateway wrappers for infrastructure',
         },
       },
