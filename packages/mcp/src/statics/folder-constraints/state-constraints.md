@@ -2,17 +2,17 @@
 
 ```
 state/
-  user-cache/
-    user-cache-state.ts
-    user-cache-state.proxy.ts    # Jest spies + cleanup
-    user-cache-state.test.ts
+  quest-execution-queue/
+    quest-execution-queue-state.ts
+    quest-execution-queue-state.proxy.ts    # clears the state, exposes semantic reads
+    quest-execution-queue-state.test.ts
   app-config/
     app-config-state.ts
     app-config-state.proxy.ts
     app-config-state.test.ts
   db-pool/
     db-pool-state.ts
-    db-pool-state.proxy.ts       # Mocks external connection
+    db-pool-state.proxy.ts       # composes the gateway wrapper's proxy
     db-pool-state.test.ts
 ```
 
@@ -28,16 +28,18 @@ State MUST export as **objects with methods/properties** (NOT individual functio
 
 ```typescript
 // ✅ CORRECT: Object with methods
-export const userCacheState = {
-    get: ({id}: { id: UserId }) => cache.get(id),
-    set: ({id, user}: { id: UserId; user: User }) => cache.set(id, user),
-    clear: () => cache.clear()
-} as const;
+export const questExecutionQueueState = {
+    getActive: (): QuestQueueEntry | undefined => state.entries[0],
+    removeByQuestId: ({questId}: { questId: Quest['id'] }): number => { /* ... */ },
+    clear: (): void => { state.entries = []; }
+};
 
 // ❌ WRONG: Individual functions
-export const getUserCache = ({id}: { id: UserId }) => cache.get(id);
-export const setUserCache = ({id, user}: { id: UserId; user: User }) => cache.set(id, user);
+export const getActiveQuestQueueEntry = (): QuestQueueEntry | undefined => state.entries[0];
+export const removeQuestQueueEntry = ({questId}: { questId: Quest['id'] }): number => { /* ... */ };
 ```
+
+A parameter that holds another object's id takes that owner's field type: `Quest['id']`, never a standalone id type.
 
 **CONFIGURATION PATTERN:**
 
@@ -45,80 +47,81 @@ Use `satisfies` to validate types while preserving literal inference:
 
 ```typescript
 export const appConfigState = {
-    apiUrl: urlContract.parse(process.env.API_URL),
+    apiUrl: 'https://api.example.com',
     features: {
-        enableBeta: process.env.ENABLE_BETA === 'true'
+        enableBeta: false
     }
 } satisfies {
-    apiUrl: Url;
+    apiUrl: string;
     features: Record<string, boolean>;
 };
 ```
+
+A value read from the environment comes through `getEnv` from `#gateway/node/process`, never `process.env`.
 
 **EXAMPLES:**
 
 ```typescript
 /**
- * PURPOSE: In-memory cache for storing and retrieving user objects by ID
+ * PURPOSE: In-memory cross-guild FIFO queue of quests awaiting execution — one runner picks the head, runs it, dequeues on terminal
  *
  * USAGE:
- * userCacheState.set({id: userId, user});
- * userCacheState.get({id: userId});
- * // Returns User object from cache or undefined
+ * questExecutionQueueState.enqueue({ entry });
+ * questExecutionQueueState.getActive();
+ * // Returns the head QuestQueueEntry or undefined
  */
-// state/user-cache/user-cache-state.ts
-import type {User, UserId} from '../../contracts/user/user-contract';
+// state/quest-execution-queue/quest-execution-queue-state.ts
+import type { Quest, QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
-const cache = new Map<UserId, User>();
+const state: {
+  entries: QuestQueueEntry[];
+} = {
+  entries: [],
+};
 
-export const userCacheState = {
-    get: ({id}: { id: UserId }): User | undefined => {
-        return cache.get(id);
-    },
+export const questExecutionQueueState = {
+  enqueue: ({ entry }: { entry: QuestQueueEntry }): void => {
+    state.entries.push(entry);
+  },
 
-    set: ({id, user}: { id: UserId; user: User }): void => {
-        cache.set(id, user);
-    },
+  getActive: (): QuestQueueEntry | undefined => state.entries[0],
 
-    delete: ({id}: { id: UserId }): boolean => {
-        return cache.delete(id);
-    },
+  getAll: (): readonly QuestQueueEntry[] => state.entries.slice(),
 
-    clear: (): void => {
-        cache.clear();
-    },
+  removeByQuestId: ({ questId }: { questId: Quest['id'] }): number => {
+    const before = state.entries.length;
+    state.entries = state.entries.filter((entry) => entry.questId !== questId);
+    return before - state.entries.length;
+  },
 
-    size: (): number => {
-        return cache.size;
-    }
-} as const;
+  clear: (): void => {
+    state.entries = [];
+  },
+};
 ```
 
 ```typescript
 /**
- * PURPOSE: Application configuration loaded from environment variables
+ * PURPOSE: Application configuration constants
  *
  * USAGE:
- * appConfigState.apiUrl; // Returns validated Url
+ * appConfigState.apiUrl; // Returns the API base URL
  * appConfigState.features.enableBeta; // Returns boolean
  */
 // state/app-config/app-config-state.ts
-import {urlContract} from '../../contracts/url/url-contract';
-import type {Url} from '../../contracts/url/url-contract';
-
 export const appConfigState = {
-    apiUrl: urlContract.parse(process.env.API_URL || 'https://api.example.com'),
-    port: Number(process.env.PORT) || 3000,
+    apiUrl: 'https://api.example.com',
+    port: 3000,
     features: {
-        enableBeta: process.env.ENABLE_BETA === 'true',
-        enableAnalytics: process.env.ENABLE_ANALYTICS === 'true'
+        enableBeta: false,
+        enableAnalytics: false
     },
     limits: {
         maxRequestsPerMinute: 100,
         maxUploadSize: 10485760 // 10MB
     }
 } satisfies {
-    apiUrl: Url;
+    apiUrl: string;
     port: number;
     features: Record<string, boolean>;
     limits: Record<string, number>;
@@ -134,23 +137,21 @@ export const appConfigState = {
  * const client = await dbPoolState.getClient(); // Get client
  * await dbPoolState.close(); // Cleanup
  */
-// state/db-pool/db-pool-state.ts
-import {Pool} from 'pg';
-import type {PoolClient} from 'pg';
+// state/db-pool/db-pool-state.ts (hypothetical: no `pg` wrapper exists yet; the shape is the real one for any outside package)
+import { Pool } from '#gateway/npm/pg';
+import type { PoolClient } from '#gateway/npm/pg';
+import { DbPoolNotInitializedError } from '../../errors/db-pool-not-initialized/db-pool-not-initialized-error';
 
 let pool: Pool | null = null;
 
 export const dbPoolState = {
     init: async (): Promise<void> => {
-        pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            max: 20
-        });
+        pool = new Pool({ max: 20 });
     },
 
     getClient: async (): Promise<PoolClient> => {
         if (!pool) {
-            throw new Error('Pool not initialized');
+            throw new DbPoolNotInitializedError();
         }
         return await pool.connect();
     },
@@ -166,78 +167,54 @@ export const dbPoolState = {
 
 **PROXY PATTERN:**
 
-State proxies spy on methods and clear state in constructor.
+State proxies clear the state in the constructor and expose semantic setup and reads. The state itself runs REAL.
 
 ```typescript
-// state/user-cache/user-cache-state.proxy.ts
-import {userCacheState} from './user-cache-state';
-import {registerMock} from '@dungeonmaster/testing/register-mock';
-import {UserStub} from '../../contracts/user/user.stub';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
+// state/quest-execution-queue/quest-execution-queue-state.proxy.ts
+import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
-type User = ReturnType<typeof UserStub>;
-type UserId = ReturnType<typeof UserIdStub>;
+import { questExecutionQueueState } from './quest-execution-queue-state';
 
-export const userCacheStateProxy = () => {
-    // Clear state in constructor (runs when proxy is created)
-    userCacheState.clear();
+type QueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
-    // Spy on methods to verify calls via registerMock
-    const getHandle = registerMock({fn: userCacheState.get});
-    const setHandle = registerMock({fn: userCacheState.set});
-    const deleteHandle = registerMock({fn: userCacheState.delete});
-
-    return {
-        // Semantic setup for pre-cached data
-        setupCachedUser: ({userId, user}: { userId: UserId; user: User }) => {
-            userCacheState.set({id: userId, user});
-        },
-
-        setupEmptyCache: () => {
-            userCacheState.clear(); // Already called in constructor, but semantic
-        },
-
-        // Verification helpers using callsMatching (a fresh snapshot on every call, not a live array)
-        verifyCacheHit: () => {
-            expect(getHandle.callsMatching([]).length > 0).toBe(true);
-        },
-
-        verifyCacheMiss: () => {
-            expect(getHandle.callsMatching([])).toStrictEqual([[]]);
-        },
-
-        verifySet: ({userId}: { userId: UserId }) => {
-            expect(setHandle.callsMatching([])[0]).toStrictEqual([{id: userId, user: expect.anything()}]);
-        }
-    };
-};
+export const questExecutionQueueStateProxy = (): {
+  setupEmpty: () => void;
+  getAllEntries: () => readonly QueueEntry[];
+} => ({
+  setupEmpty: (): void => {
+    questExecutionQueueState.clear();
+  },
+  getAllEntries: (): readonly QueueEntry[] => questExecutionQueueState.getAll(),
+});
 ```
 
 **External System State (DB, Redis):**
 
-For state that wraps external systems, use registerMock:
+A state that wraps an outside package imports it through the gateway wrapper, and its proxy composes that wrapper's
+proxy, imported from its own `.proxy` file. The wrapper's proxy names each scenario; a test never builds a failure by hand:
 
 ```typescript
-// state/db-pool/db-pool-state.proxy.ts
-import {Pool} from 'pg';
-import {registerMock} from '@dungeonmaster/testing/register-mock';
+// state/db-pool/db-pool-state.proxy.ts (hypothetical wrapper, same shape as `readFileIfExistsProxy`)
+import { poolProxy } from '#gateway/npm/pg/pool/pool.proxy';
 
 export const dbPoolStateProxy = () => {
-    const poolHandle = registerMock({fn: Pool});
-    const mockConnect = registerMock({fn: Pool.prototype.connect});
-    const mockEnd = registerMock({fn: Pool.prototype.end});
+    const pool = poolProxy();
 
     return {
         setupConnection: () => {
-            mockConnect.onceFor([]).resolves({/* mock client */});
+            pool.connects();
         },
 
-        setupConnectionError: () => {
-            mockConnect.onceFor([]).rejects(new Error('Connection failed'));
+        setupConnectionRefused: () => {
+            pool.connectRefused();
         }
     };
 };
 ```
+
+For a live wrapper proxy, read
+`#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy`: its `returns`, `missing` and `denied`
+scenarios are what a proxy composes. A pass-through wrapper (`path`) runs real and has no proxy.
 
 **Additional Mock APIs (import all from `@dungeonmaster/testing/register-mock`):**
 
@@ -253,82 +230,41 @@ export const dbPoolStateProxy = () => {
 **Key principles:**
 
 - Clear state in constructor for test isolation
-- Spy on state methods to verify calls (not mock them)
-- State object runs REAL - we only clear and spy
-- For external systems (DB, Redis), mock the npm package at adapter layer
+- State object runs REAL - the proxy only clears and reads
+- For external systems (DB, Redis), compose the gateway wrapper's proxy, imported from its own file
 
 **TEST EXAMPLE:**
 
 ```typescript
-// state/user-cache/user-cache-state.test.ts
-import {userCacheState} from './user-cache-state';
-import {userCacheStateProxy} from './user-cache-state.proxy';
-import {UserIdStub} from '../../contracts/user-id/user-id.stub';
-import {UserStub} from '../../contracts/user/user.stub';
+// state/quest-execution-queue/quest-execution-queue-state.test.ts
+import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts/quest-queue-entry/quest-queue-entry.stub';
 
-type UserId = ReturnType<typeof UserIdStub>;
-type User = ReturnType<typeof UserStub>;
+import { questExecutionQueueState } from './quest-execution-queue-state';
+import { questExecutionQueueStateProxy } from './quest-execution-queue-state.proxy';
 
-describe('userCacheState', () => {
-  describe('cache operations', () => {
-    it('VALID: {set then get} => returns cached user', () => {
-      const proxy = userCacheStateProxy();
-      const userId = UserIdStub({value: 'user-123'});
-      const user = UserStub({id: userId, name: 'John Doe'});
+describe('questExecutionQueueState', () => {
+  describe('enqueue / getActive / getAll', () => {
+    it('VALID: {enqueue 3 entries} => getActive returns head, getAll returns FIFO order', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
+      const a = QuestQueueEntryStub({ questId: 'q-a' });
+      const b = QuestQueueEntryStub({ questId: 'q-b' });
+      const c = QuestQueueEntryStub({ questId: 'q-c' });
 
-      userCacheState.set({id: userId, user});
-      const result = userCacheState.get({id: userId});
+      questExecutionQueueState.enqueue({ entry: a });
+      questExecutionQueueState.enqueue({ entry: b });
+      questExecutionQueueState.enqueue({ entry: c });
 
-      expect(result).toStrictEqual({
-        id: 'user-123',
-        name: 'John Doe',
-        email: 'john@example.com',
-      });
+      expect(questExecutionQueueState.getActive()).toStrictEqual(a);
+      expect(questExecutionQueueState.getAll()).toStrictEqual([a, b, c]);
     });
 
-    it('EMPTY: {get without set} => returns undefined', () => {
-      const proxy = userCacheStateProxy();
-      const userId = UserIdStub({value: 'nonexistent'});
+    it('EMPTY: {no entries} => getActive returns undefined, getAll returns empty array', () => {
+      const proxy = questExecutionQueueStateProxy();
+      proxy.setupEmpty();
 
-      const result = userCacheState.get({id: userId});
-
-      expect(result).toBe(undefined);
-    });
-
-    it('VALID: {delete existing} => returns true and removes from cache', () => {
-      const proxy = userCacheStateProxy();
-      const userId = UserIdStub({value: 'user-456'});
-      const user = UserStub({id: userId});
-
-      userCacheState.set({id: userId, user});
-      const deleted = userCacheState.delete({id: userId});
-      const result = userCacheState.get({id: userId});
-
-      expect(deleted).toBe(true);
-      expect(result).toBe(undefined);
-    });
-  });
-
-  describe('cache size', () => {
-    it('VALID: {empty cache} => size returns 0', () => {
-      const proxy = userCacheStateProxy();
-
-      const result = userCacheState.size();
-
-      expect(result).toBe(0);
-    });
-
-    it('VALID: {two items} => size returns 2', () => {
-      const proxy = userCacheStateProxy();
-      const user1 = UserStub({id: UserIdStub({value: 'user-1'})});
-      const user2 = UserStub({id: UserIdStub({value: 'user-2'})});
-
-      userCacheState.set({id: user1.id, user: user1});
-      userCacheState.set({id: user2.id, user: user2});
-
-      const result = userCacheState.size();
-
-      expect(result).toBe(2);
+      expect(questExecutionQueueState.getActive()).toBe(undefined);
+      expect(questExecutionQueueState.getAll()).toStrictEqual([]);
     });
   });
 });
