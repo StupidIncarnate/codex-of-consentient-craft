@@ -13,6 +13,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questPauseResponseDataContract } from '../../../contracts/quest-pause-response-data/quest-pause-response-data-contract';
 
 export const QuestPauseResponder = async ({
   params,
@@ -23,14 +25,14 @@ export const QuestPauseResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -39,7 +41,7 @@ export const QuestPauseResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -52,22 +54,22 @@ export const QuestPauseResponder = async ({
       ).filter((status) => questStatusMetadataStatics.statuses[status].isPauseable);
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: {
+        data: responderErrorDataContract.parse({
           error: `Quest must be in a pauseable status (${pauseableStatuses.join(', ')}) to pause`,
-        },
+        }),
       });
     }
 
     const result = await StartOrchestrator.pauseQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: result,
+      data: questPauseResponseDataContract.parse(result),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to pause quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

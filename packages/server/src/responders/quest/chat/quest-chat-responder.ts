@@ -24,6 +24,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questChatResponseDataContract } from '../../../contracts/quest-chat-response-data/quest-chat-response-data-contract';
 
 export const QuestChatResponder = async ({
   params,
@@ -36,7 +38,7 @@ export const QuestChatResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -44,7 +46,7 @@ export const QuestChatResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -52,7 +54,7 @@ export const QuestChatResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -69,12 +71,12 @@ export const QuestChatResponder = async ({
       if (imagesError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: { error: imagesError },
+          data: responderErrorDataContract.parse({ error: imagesError }),
         });
       }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'message is required' },
+        data: responderErrorDataContract.parse({ error: 'message is required' }),
       });
     }
     const { message, images } = parsedBody.data;
@@ -129,13 +131,13 @@ export const QuestChatResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { chatProcessId },
+      data: questChatResponseDataContract.parse({ chatProcessId }),
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to start quest chat';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: errorMessage },
+      data: responderErrorDataContract.parse({ error: errorMessage }),
     });
   }
 };

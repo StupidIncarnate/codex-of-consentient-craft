@@ -15,6 +15,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questClarifyResponseDataContract } from '../../../contracts/quest-clarify-response-data/quest-clarify-response-data-contract';
 
 type ClarifyAdapterParams = Parameters<typeof StartOrchestrator.clarifyAnswer>[0];
 
@@ -29,7 +31,7 @@ export const QuestClarifyResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -37,7 +39,7 @@ export const QuestClarifyResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -45,7 +47,7 @@ export const QuestClarifyResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -58,12 +60,12 @@ export const QuestClarifyResponder = async ({
       if (answersError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: { error: 'answers array is required and must not be empty' },
+          data: responderErrorDataContract.parse({ error: 'answers array is required and must not be empty' }),
         });
       }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questions array is required' },
+        data: responderErrorDataContract.parse({ error: 'questions array is required' }),
       });
     }
     const { answers, questions } = parsedBody.data;
@@ -78,7 +80,7 @@ export const QuestClarifyResponder = async ({
     if (!resolvedSessionId) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.notFound,
-        data: { error: 'No active chat session found for quest' },
+        data: responderErrorDataContract.parse({ error: 'No active chat session found for quest' }),
       });
     }
 
@@ -94,14 +96,14 @@ export const QuestClarifyResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { chatProcessId },
+      data: questClarifyResponseDataContract.parse({ chatProcessId }),
     });
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to process clarification answers';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: errorMessage },
+      data: responderErrorDataContract.parse({ error: errorMessage }),
     });
   }
 };

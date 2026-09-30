@@ -14,6 +14,7 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { toolingSmoketestRunBodyContract } from '../../../contracts/tooling-smoketest-run-body/tooling-smoketest-run-body-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 
 export const ToolingSmoketestRunResponder = async ({
   body,
@@ -45,7 +46,7 @@ export const ToolingSmoketestRunResponder = async ({
       : httpStatusStatics.serverError.internal;
     return responderResultContract.parse({
       status,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

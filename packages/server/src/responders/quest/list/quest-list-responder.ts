@@ -17,6 +17,8 @@ import { guildIdQueryContract } from '../../../contracts/guild-id-query/guild-id
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questListResponseDataContract } from '../../../contracts/quest-list-response-data/quest-list-response-data-contract';
 
 export const QuestListResponder = async ({
   query,
@@ -27,27 +29,27 @@ export const QuestListResponder = async ({
     if (typeof query !== 'object' || query === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid query' },
+        data: responderErrorDataContract.parse({ error: 'Invalid query' }),
       });
     }
     const parsedQuery = guildIdQueryContract.safeParse(query);
     if (!parsedQuery.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId query parameter is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId query parameter is required' }),
       });
     }
     const { guildId } = parsedQuery.data;
     const { quests, skipped } = await StartOrchestrator.listQuestsWithSkips({ guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { quests, skipped },
+      data: questListResponseDataContract.parse({ quests, skipped }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to list quests';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

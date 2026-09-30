@@ -8,12 +8,13 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { modifyQuestInputContract, modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
 
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 
 export const QuestModifyResponder = async ({
   params,
@@ -26,14 +27,14 @@ export const QuestModifyResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -41,7 +42,7 @@ export const QuestModifyResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -51,7 +52,7 @@ export const QuestModifyResponder = async ({
     if (!parsedInput.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: parsedInput.error.issues[0]?.message ?? 'Invalid modify-quest input' },
+        data: responderErrorDataContract.parse({ error: parsedInput.error.issues[0]?.message ?? 'Invalid modify-quest input' }),
       });
     }
 
@@ -59,12 +60,12 @@ export const QuestModifyResponder = async ({
       questId,
       input: parsedInput.data,
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: result });
+    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: modifyQuestResultContract.parse(result) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to modify quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

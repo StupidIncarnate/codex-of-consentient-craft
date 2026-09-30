@@ -12,6 +12,8 @@ import { sessionIdParamsContract } from '../../../contracts/session-id-params/se
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questFindBySessionResponseDataContract } from '../../../contracts/quest-find-by-session-response-data/quest-find-by-session-response-data-contract';
 
 export const QuestFindBySessionResponder = async ({
   params,
@@ -22,14 +24,14 @@ export const QuestFindBySessionResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = sessionIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'sessionId is required' },
+        data: responderErrorDataContract.parse({ error: 'sessionId is required' }),
       });
     }
     const { sessionId } = parsedParams.data;
@@ -37,18 +39,18 @@ export const QuestFindBySessionResponder = async ({
     if (questId === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.notFound,
-        data: { error: 'No quest found for session' },
+        data: responderErrorDataContract.parse({ error: 'No quest found for session' }),
       });
     }
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { questId },
+      data: questFindBySessionResponseDataContract.parse({ questId }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to find quest by session';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

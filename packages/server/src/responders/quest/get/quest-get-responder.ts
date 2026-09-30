@@ -13,6 +13,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { getQuestResultContract } from '@dungeonmaster/shared/contracts';
 
 export const QuestGetResponder = async ({
   params,
@@ -25,14 +27,14 @@ export const QuestGetResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -51,15 +53,15 @@ export const QuestGetResponder = async ({
     if (!quest.success || quest.quest === undefined) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.notFound,
-        data: { error: quest.error ?? 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: quest.error ?? 'Quest not found' }),
       });
     }
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: quest });
+    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: getQuestResultContract.parse(quest) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

@@ -21,6 +21,8 @@ import { questRiftcarverDetailParamsContract } from '../../../contracts/quest-ri
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questRiftcarverDetailResponseDataContract } from '../../../contracts/quest-riftcarver-detail-response-data/quest-riftcarver-detail-response-data-contract';
 
 export const QuestRiftcarverDetailResponder = async ({
   params,
@@ -31,7 +33,7 @@ export const QuestRiftcarverDetailResponder = async ({
   if (!parsedParams.success) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: { error: 'questId and riftcarverResultId are required' },
+      data: responderErrorDataContract.parse({ error: 'questId and riftcarverResultId are required' }),
     });
   }
 
@@ -47,13 +49,13 @@ export const QuestRiftcarverDetailResponder = async ({
     const contents = await readFile(logFilePath);
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { log: contents },
+      data: questRiftcarverDetailResponseDataContract.parse({ log: contents }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Riftcarver detail not available';
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.notFound,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

@@ -16,6 +16,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questMergeResponseDataContract } from '../../../contracts/quest-merge-response-data/quest-merge-response-data-contract';
 
 export const QuestMergeResponder = async ({
   params,
@@ -26,14 +28,14 @@ export const QuestMergeResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -42,7 +44,7 @@ export const QuestMergeResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -53,20 +55,20 @@ export const QuestMergeResponder = async ({
     if (!isMergeableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest must be blocked or complete to merge' },
+        data: responderErrorDataContract.parse({ error: 'Quest must be blocked or complete to merge' }),
       });
     }
 
     const { merging } = await StartOrchestrator.mergeQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { merging },
+      data: questMergeResponseDataContract.parse({ merging }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to start merge';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

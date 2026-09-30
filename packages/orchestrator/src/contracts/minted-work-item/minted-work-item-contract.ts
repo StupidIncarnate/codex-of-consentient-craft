@@ -40,7 +40,7 @@ export const mintedWorkItemContract = z
     assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
     pieceId: pieceIdContract.optional(),
     payload: z
-      .record(z.string(), z.unknown())
+      .record(z.string(), z.json())
       .optional()
       .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
     mintedBy: workItemContract.shape.id

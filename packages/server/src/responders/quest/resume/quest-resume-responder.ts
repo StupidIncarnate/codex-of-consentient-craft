@@ -34,6 +34,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questResumeResponseDataContract } from '../../../contracts/quest-resume-response-data/quest-resume-response-data-contract';
 
 export const QuestResumeResponder = async ({
   params,
@@ -44,14 +46,14 @@ export const QuestResumeResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -60,7 +62,7 @@ export const QuestResumeResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -68,9 +70,9 @@ export const QuestResumeResponder = async ({
     if (!isQuestResumableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: {
+        data: responderErrorDataContract.parse({
           error: 'Quest must be in a resumable status (paused or blocked) to resume',
-        },
+        }),
       });
     }
 
@@ -101,13 +103,13 @@ export const QuestResumeResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { ...result, dispatch },
+      data: questResumeResponseDataContract.parse({ ...result, dispatch }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to resume quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

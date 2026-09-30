@@ -13,6 +13,8 @@ import { questUserAddBodyContract } from '../../../contracts/quest-user-add-body
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { addQuestResultContract } from '@dungeonmaster/shared/contracts';
 
 export const QuestUserAddResponder = async ({
   body,
@@ -23,7 +25,7 @@ export const QuestUserAddResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -40,25 +42,25 @@ export const QuestUserAddResponder = async ({
       if (titleError !== undefined || userRequestError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: { error: 'title and userRequest are required strings' },
+          data: responderErrorDataContract.parse({ error: 'title and userRequest are required strings' }),
         });
       }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId is required' }),
       });
     }
     const { title, userRequest, guildId } = parsedBody.data;
     const result = await StartOrchestrator.addQuest({ title, userRequest, guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.created,
-      data: result,
+      data: addQuestResultContract.parse(result),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to add quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

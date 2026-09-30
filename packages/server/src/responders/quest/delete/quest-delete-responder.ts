@@ -18,6 +18,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questDeleteResponseDataContract } from '../../../contracts/quest-delete-response-data/quest-delete-response-data-contract';
 
 const QUEST_DELETE_REJECTED_ERROR =
   'Quest must be in a terminal, paused, or pre-execution status to delete. Pause or abandon the quest first.';
@@ -33,14 +35,14 @@ export const QuestDeleteResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -48,14 +50,14 @@ export const QuestDeleteResponder = async ({
     if (typeof query !== 'object' || query === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid query' },
+        data: responderErrorDataContract.parse({ error: 'Invalid query' }),
       });
     }
     const parsedQuery = guildIdQueryContract.safeParse(query);
     if (!parsedQuery.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId query parameter is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId query parameter is required' }),
       });
     }
     const { guildId } = parsedQuery.data;
@@ -64,7 +66,7 @@ export const QuestDeleteResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -77,20 +79,20 @@ export const QuestDeleteResponder = async ({
     if (!isDeletable) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: QUEST_DELETE_REJECTED_ERROR },
+        data: responderErrorDataContract.parse({ error: QUEST_DELETE_REJECTED_ERROR }),
       });
     }
 
     const result = await StartOrchestrator.deleteQuest({ questId, guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: result,
+      data: questDeleteResponseDataContract.parse(result),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to delete quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

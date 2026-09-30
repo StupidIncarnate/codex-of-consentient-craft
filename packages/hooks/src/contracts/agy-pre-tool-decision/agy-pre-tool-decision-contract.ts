@@ -12,7 +12,7 @@ export const agyPreToolDecisionContract = z
   .object({
     decision: z.enum(['allow', 'deny', 'ask']),
     reason: z.string().brand<'AgyPreToolDecisionReason'>().optional(),
-    overwrite: z.record(z.string(), z.unknown()).optional(),
+    overwrite: z.record(z.string(), z.json()).optional(),
   })
   .brand<'AgyPreToolDecision'>();
 

@@ -17,6 +17,8 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { commentBatchStaleAnchorsTransformer } from '../../../transformers/comment-batch-stale-anchors/comment-batch-stale-anchors-transformer';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questCommentBatchResponseDataContract } from '../../../contracts/quest-comment-batch-response-data/quest-comment-batch-response-data-contract';
 
 export const QuestCommentBatchResponder = async ({
   params,
@@ -29,7 +31,7 @@ export const QuestCommentBatchResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -37,7 +39,7 @@ export const QuestCommentBatchResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -45,7 +47,7 @@ export const QuestCommentBatchResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -59,11 +61,11 @@ export const QuestCommentBatchResponder = async ({
       );
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: {
+        data: responderErrorDataContract.parse({
           error: isArrayLevelFailure
             ? 'comments array is required and must not be empty'
             : 'Each comment must carry a valid flowId, nodeId and text',
-        },
+        }),
       });
     }
     const { comments } = parsedBody.data;
@@ -78,7 +80,7 @@ export const QuestCommentBatchResponder = async ({
     if (!resolvedSessionId) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.notFound,
-        data: { error: 'No active chat session found for quest' },
+        data: responderErrorDataContract.parse({ error: 'No active chat session found for quest' }),
       });
     }
 
@@ -90,7 +92,7 @@ export const QuestCommentBatchResponder = async ({
     if (staleAnchors.length > 0) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.conflict,
-        data: { error: 'Comment anchor no longer exists on the quest', staleAnchors },
+        data: questCommentBatchResponseDataContract.parse({ error: 'Comment anchor no longer exists on the quest', staleAnchors }),
       });
     }
 
@@ -108,7 +110,7 @@ export const QuestCommentBatchResponder = async ({
       // `deliveredMessage` is the markdown the agent actually received. The browser renders it as
       // the user's own chat entry; Claude's --resume stream never echoes the prompt, so without
       // this the sent batch is invisible until a reload replays the session from disk.
-      data: commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message }),
+      data: questCommentBatchResponseDataContract.parse(commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message })),
     });
   } catch (error: unknown) {
     // Persist gates delivery: the orchestrator flow throws when the quest write fails, so a 500
@@ -117,7 +119,7 @@ export const QuestCommentBatchResponder = async ({
     const errorMessage = error instanceof Error ? error.message : 'Failed to process comment batch';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: errorMessage },
+      data: responderErrorDataContract.parse({ error: errorMessage }),
     });
   }
 };

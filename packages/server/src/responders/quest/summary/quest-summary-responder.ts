@@ -16,6 +16,8 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questSummaryContract } from '@dungeonmaster/shared/contracts';
 
 export const QuestSummaryResponder = async ({
   params,
@@ -26,7 +28,7 @@ export const QuestSummaryResponder = async ({
   if (!parsedParams.success) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: { error: 'questId is required' },
+      data: responderErrorDataContract.parse({ error: 'questId is required' }),
     });
   }
 
@@ -34,7 +36,7 @@ export const QuestSummaryResponder = async ({
     const summary = await StartOrchestrator.getQuestSummary({
       questId: parsedParams.data.questId,
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: summary });
+    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: questSummaryContract.parse(summary) });
   } catch (error: unknown) {
     // Every other failure (an unreadable or invalid quest file, a permission error) is a server
     // fault, not a missing quest.
@@ -43,7 +45,7 @@ export const QuestSummaryResponder = async ({
       status: isQuestGone
         ? httpStatusStatics.clientError.notFound
         : httpStatusStatics.serverError.internal,
-      data: { error: errorFormatReasonTransformer({ error }) },
+      data: responderErrorDataContract.parse({ error: errorFormatReasonTransformer({ error }) }),
     });
   }
 };

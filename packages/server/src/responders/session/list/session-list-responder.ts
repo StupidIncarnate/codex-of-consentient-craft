@@ -12,6 +12,7 @@ import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 
 export const SessionListResponder = async ({
   params,
@@ -22,7 +23,7 @@ export const SessionListResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -30,7 +31,7 @@ export const SessionListResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId is required' }),
       });
     }
     const { guildId } = parsedParams.data;
@@ -51,7 +52,7 @@ export const SessionListResponder = async ({
       status: isNotFound
         ? httpStatusStatics.clientError.notFound
         : httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

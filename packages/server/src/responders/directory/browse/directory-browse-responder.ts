@@ -11,6 +11,8 @@ import { directoryBrowseBodyContract } from '../../../contracts/directory-browse
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { directoryBrowseResponseDataContract } from '../../../contracts/directory-browse-response-data/directory-browse-response-data-contract';
 
 export const DirectoryBrowseResponder = ({ body }: { body: unknown }): ResponderResult => {
   try {
@@ -21,12 +23,12 @@ export const DirectoryBrowseResponder = ({ body }: { body: unknown }): Responder
     const path = parsedBody?.success ? parsedBody.data.path : undefined;
 
     const entries = StartOrchestrator.browseDirectories(path === undefined ? {} : { path });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: entries });
+    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: directoryBrowseResponseDataContract.parse(entries) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to browse directories';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

@@ -18,6 +18,8 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questHumanVerdictResponseDataContract } from '../../../contracts/quest-human-verdict-response-data/quest-human-verdict-response-data-contract';
 
 export const QuestHumanVerdictResponder = async ({
   params,
@@ -36,7 +38,7 @@ export const QuestHumanVerdictResponder = async ({
   if (!parsed.success) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: { error: 'Invalid human-verdict input' },
+      data: responderErrorDataContract.parse({ error: 'Invalid human-verdict input' }),
     });
   }
 
@@ -46,12 +48,12 @@ export const QuestHumanVerdictResponder = async ({
     await questHumanVerdictRecordBroker({ questId, unitId, outcome, reason });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { ok: true },
+      data: questHumanVerdictResponseDataContract.parse({ ok: true }),
     });
   } catch (error: unknown) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: { error: errorFormatReasonTransformer({ error }) },
+      data: responderErrorDataContract.parse({ error: errorFormatReasonTransformer({ error }) }),
     });
   }
 };

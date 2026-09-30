@@ -11,19 +11,21 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { rateLimitsGetResponseDataContract } from '../../../contracts/rate-limits-get-response-data/rate-limits-get-response-data-contract';
 
 export const RateLimitsGetResponder = async (): Promise<ResponderResult> => {
   try {
     const snapshot = await StartOrchestrator.getRateLimits();
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { snapshot },
+      data: rateLimitsGetResponseDataContract.parse({ snapshot }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to read rate limits';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

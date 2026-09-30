@@ -122,7 +122,7 @@ const questWorkPiece = z
       .nullable(),
     baselineFor: pieceIdContract.nullable(),
     contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-    payload: z.record(z.string(), z.unknown()),
+    payload: z.record(z.string(), z.json()),
   })
   .brand<'QuestWorkPiece'>();
 

@@ -27,6 +27,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questStartResponseDataContract } from '../../../contracts/quest-start-response-data/quest-start-response-data-contract';
 
 export const QuestStartResponder = async ({
   params,
@@ -37,14 +39,14 @@ export const QuestStartResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -53,7 +55,7 @@ export const QuestStartResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -61,9 +63,9 @@ export const QuestStartResponder = async ({
     if (!isStartableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: {
+        data: responderErrorDataContract.parse({
           error: 'Quest must be in a startable status (approved) to start execution',
-        },
+        }),
       });
     }
 
@@ -79,13 +81,13 @@ export const QuestStartResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { processId, dispatch },
+      data: questStartResponseDataContract.parse({ processId, dispatch }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to start quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

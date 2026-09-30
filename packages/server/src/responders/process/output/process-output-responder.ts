@@ -10,20 +10,21 @@ import { processIdParamsContract } from '../../../contracts/process-id-params/pr
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 
 export const ProcessOutputResponder = ({ params }: { params: unknown }): ResponderResult => {
   try {
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = processIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'processId is required' },
+        data: responderErrorDataContract.parse({ error: 'processId is required' }),
       });
     }
 
@@ -35,7 +36,7 @@ export const ProcessOutputResponder = ({ params }: { params: unknown }): Respond
     const message = error instanceof Error ? error.message : 'Failed to get process output';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

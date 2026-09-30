@@ -12,6 +12,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questAbandonResponseDataContract } from '../../../contracts/quest-abandon-response-data/quest-abandon-response-data-contract';
 
 export const QuestAbandonResponder = async ({
   params,
@@ -22,14 +24,14 @@ export const QuestAbandonResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
     const parsedParams = questIdParamsContract.safeParse(params);
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -38,7 +40,7 @@ export const QuestAbandonResponder = async ({
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest not found' },
+        data: responderErrorDataContract.parse({ error: 'Quest not found' }),
       });
     }
 
@@ -46,22 +48,22 @@ export const QuestAbandonResponder = async ({
     if (!isAbandonableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: {
+        data: responderErrorDataContract.parse({
           error: 'Quest is already in a terminal status and cannot be abandoned',
-        },
+        }),
       });
     }
 
     const result = await StartOrchestrator.abandonQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: result,
+      data: questAbandonResponseDataContract.parse(result),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to abandon quest';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

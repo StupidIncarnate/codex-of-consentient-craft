@@ -21,6 +21,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questFollowupResponseDataContract } from '../../../contracts/quest-followup-response-data/quest-followup-response-data-contract';
 
 export const QuestFollowupResponder = async ({
   params,
@@ -33,7 +35,7 @@ export const QuestFollowupResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -41,7 +43,7 @@ export const QuestFollowupResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -49,7 +51,7 @@ export const QuestFollowupResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -66,12 +68,12 @@ export const QuestFollowupResponder = async ({
       if (imagesError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: { error: imagesError },
+          data: responderErrorDataContract.parse({ error: imagesError }),
         });
       }
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'message is required' },
+        data: responderErrorDataContract.parse({ error: 'message is required' }),
       });
     }
     const { message, images } = parsedBody.data;
@@ -85,7 +87,7 @@ export const QuestFollowupResponder = async ({
     if (!isFollowupChatableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Quest must be blocked, complete or merged for follow-up' },
+        data: responderErrorDataContract.parse({ error: 'Quest must be blocked, complete or merged for follow-up' }),
       });
     }
 
@@ -111,13 +113,13 @@ export const QuestFollowupResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { chatProcessId },
+      data: questFollowupResponseDataContract.parse({ chatProcessId }),
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to start follow-up chat';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: errorMessage },
+      data: responderErrorDataContract.parse({ error: errorMessage }),
     });
   }
 };

@@ -18,6 +18,7 @@ import { questWardDetailParamsContract } from '../../../contracts/quest-ward-det
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
 
 export const QuestWardDetailResponder = async ({
   params,
@@ -28,7 +29,7 @@ export const QuestWardDetailResponder = async ({
   if (!parsedParams.success) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: { error: 'questId and wardResultId are required' },
+      data: responderErrorDataContract.parse({ error: 'questId and wardResultId are required' }),
     });
   }
 
@@ -47,7 +48,7 @@ export const QuestWardDetailResponder = async ({
     const message = error instanceof Error ? error.message : 'Ward detail not available';
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.notFound,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

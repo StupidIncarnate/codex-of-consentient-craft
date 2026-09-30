@@ -13,6 +13,8 @@ import { signalBackInputContract } from '../../../contracts/signal-back-input/si
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questSignalBackResponseDataContract } from '../../../contracts/quest-signal-back-response-data/quest-signal-back-response-data-contract';
 
 export const QuestSignalBackResponder = async ({
   params,
@@ -31,7 +33,7 @@ export const QuestSignalBackResponder = async ({
     if (!parsed.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid signal-back input' },
+        data: responderErrorDataContract.parse({ error: 'Invalid signal-back input' }),
       });
     }
 
@@ -47,13 +49,13 @@ export const QuestSignalBackResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { ok: true },
+      data: questSignalBackResponseDataContract.parse({ ok: true }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to signal back';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

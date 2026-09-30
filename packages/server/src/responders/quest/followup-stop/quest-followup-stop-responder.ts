@@ -21,6 +21,8 @@ import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { questFollowupStopResponseDataContract } from '../../../contracts/quest-followup-stop-response-data/quest-followup-stop-response-data-contract';
 
 export const QuestFollowupStopResponder = async ({
   params,
@@ -31,7 +33,7 @@ export const QuestFollowupStopResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -39,7 +41,7 @@ export const QuestFollowupStopResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'questId is required' },
+        data: responderErrorDataContract.parse({ error: 'questId is required' }),
       });
     }
     const { questId } = parsedParams.data;
@@ -51,14 +53,14 @@ export const QuestFollowupStopResponder = async ({
     // would render a red error entry in the transcript for a button that did its job.
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { stopped },
+      data: questFollowupStopResponseDataContract.parse({ stopped }),
     });
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to stop the follow-up chat';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: errorMessage },
+      data: responderErrorDataContract.parse({ error: errorMessage }),
     });
   }
 };

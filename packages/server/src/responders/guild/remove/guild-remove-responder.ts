@@ -11,6 +11,8 @@ import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { guildRemoveResponseDataContract } from '../../../contracts/guild-remove-response-data/guild-remove-response-data-contract';
 
 export const GuildRemoveResponder = async ({
   params,
@@ -21,7 +23,7 @@ export const GuildRemoveResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -29,20 +31,20 @@ export const GuildRemoveResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId is required' }),
       });
     }
     const { guildId } = parsedParams.data;
     await StartOrchestrator.removeGuild({ guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { success: true },
+      data: guildRemoveResponseDataContract.parse({ success: true }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to remove guild';
     return responderResultContract.parse({
       status: httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };

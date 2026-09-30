@@ -23,7 +23,7 @@ export const toolRegistrationContract = z
   .object({
     name: z.string().brand<'ToolRegistrationName'>(),
     description: z.string().brand<'ToolRegistrationDescription'>(),
-    inputSchema: z.record(z.string(), z.unknown()),
+    inputSchema: z.record(z.string(), z.json()),
   })
   .brand<'ToolRegistration'>();
 

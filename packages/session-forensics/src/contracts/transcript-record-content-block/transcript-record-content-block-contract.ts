@@ -18,7 +18,7 @@ export const transcriptRecordContentBlockContract = z
     text: z.string().brand<'TranscriptRecordContentBlockText'>().optional(),
     thinking: z.string().brand<'TranscriptRecordContentBlockThinking'>().optional(),
     name: z.string().brand<'TranscriptRecordContentBlockName'>().optional(),
-    input: z.record(z.string(), z.unknown()).optional(),
+    input: z.record(z.string(), z.json()).optional(),
   })
   .brand<'TranscriptRecordContentBlock'>();
 

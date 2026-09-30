@@ -13,6 +13,8 @@ import { guildUpdateBodyContract } from '../../../contracts/guild-update-body/gu
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const GuildUpdateResponder = async ({
   params,
@@ -25,7 +27,7 @@ export const GuildUpdateResponder = async ({
     if (typeof params !== 'object' || params === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Invalid params' },
+        data: responderErrorDataContract.parse({ error: 'Invalid params' }),
       });
     }
 
@@ -33,7 +35,7 @@ export const GuildUpdateResponder = async ({
     if (!parsedParams.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'guildId is required' },
+        data: responderErrorDataContract.parse({ error: 'guildId is required' }),
       });
     }
     const { guildId } = parsedParams.data;
@@ -41,7 +43,7 @@ export const GuildUpdateResponder = async ({
     if (typeof body !== 'object' || body === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: { error: 'Request body must be a JSON object' },
+        data: responderErrorDataContract.parse({ error: 'Request body must be a JSON object' }),
       });
     }
 
@@ -54,7 +56,7 @@ export const GuildUpdateResponder = async ({
       ...(name !== undefined && { name }),
       ...(path !== undefined && { path }),
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guild });
+    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guildContract.parse(guild) });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update guild';
     const isConflict = message.startsWith('A guild with path');
@@ -62,7 +64,7 @@ export const GuildUpdateResponder = async ({
       status: isConflict
         ? httpStatusStatics.clientError.conflict
         : httpStatusStatics.serverError.internal,
-      data: { error: message },
+      data: responderErrorDataContract.parse({ error: message }),
     });
   }
 };
