@@ -129,20 +129,21 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:20)
+### Now (updated at every event; last 2026-09-30 12:30)
 
-| Running (5, all in merge worktree W) | Owns |
+| Running (4, all in merge worktree W) | Owns |
 |---|---|
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
 | merge fix: siegelense brokers B (opus) | every other siegelense broker folder |
 | merge fix: siegelense contracts (opus) | `contracts/`, `test/harnesses/`; the validating brands moved into owner fields |
 | merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
-| merge fix: web (sonnet) | `mantineRenderAdapter`, widget conflicts |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
 fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Just landed:** merge fix server and cli, done in W (gate 1790793390158-d902, integration 1790793425470-44df): guild
+**Just landed:** merge fix web, done in W (gate 1790793460396-72df; web typecheck 1,282 files clean):
+`mantineRenderMiddleware` everywhere, plain button labels restored, a web-local `guildCreateInputContract` keeps
+DEF-136's absolute-path check; DEF-136, DEF-128 and DEF-137 tests pass. Also: merge fix server and cli, done in W (gate 1790793390158-d902, integration 1790793425470-44df): guild
 add/update and quest-start call `StartOrchestrator`; new `processRequestLogBroker` replaces master's request-log adapter
 (moved to `<W>/tmp/deletions/merge-server/`); a new `guildAbsolutePathInputContract` keeps DEF-136/137's absolute-path
 400; DEF-78's 409, the web-port fallback and `play: false` pass. Also: merge fix orchestrator and hydration-recipes, done in W (gate 1790793276388-e48e, integration 1790793260092-f220; exit 1 only on two slow-lint flags, rule 21): DEF-133's slug parameter stays `Guild['name']` and `guild-add-broker` parses at its boundary; `urlSlugContract`'s check moved into `guildContract.shape.urlSlug`; `pathExists` with a false-on-throw keeps master's path check; reach-route uses `dmHttpRequestBroker`; DEF-133 and DEF-71 tests pass. Also: merge fix ward and shared, done in W (gate 1790793024213-b2c8): `setupUnitCompanionTestMissing` restored in the single-package layer proxy, DEF-161's crash tests on `WardRunResultStub` and passing; shared needed nothing; DEF-168 was only logged on master, so there is no fix to check. Ward needs a build before DEF-161 is live. Earlier: `plain-brand-residue.cjs` (the script commit): W's type errors 700 to 330 ("Cannot find name" 381 to
@@ -151,6 +152,8 @@ add/update and quest-start call `StartOrchestrator`; new `processRequestLogBroke
 **Round-2 list (after the fixers):** `StartOrchestratorProxy` gains `addGuild`/`updateGuild` call read-backs and the
 DEF-136/137 tests assert the orchestrator is never called for a relative path again (the fixer had to stage an error
 instead); master's new `server/src/flows/request-log/request-log-flow.ts` imports `hono` raw (use `#gateway/npm/hono`).
+P2 after the merge: the absolute-path check now sits in two local contracts (server `guildAbsolutePathInputContract`, web
+`guildCreateInputContract`) with one regex; give it one owner.
 
 **Next:** when the fixers report: `diag.cjs --full` on W to 0, then W's unit, lint and integration by package, a
 round for what is left, Z10 in W, merge gateway-pivot into W, the final gate (full ward, `build:clean`,
