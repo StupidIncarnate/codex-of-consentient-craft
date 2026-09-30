@@ -31,5 +31,5 @@ export const ClarifyAnswerFlow = async ({
 
   const message = answers.map((a) => `${a.header}: ${a.label}`).join('\n');
 
-  return clarifyAnswerResultContract.parse(ChatStartResponder({ guildId, message, sessionId }));
+  return clarifyAnswerResultContract.parse(await ChatStartResponder({ guildId, message, sessionId }));
 };
