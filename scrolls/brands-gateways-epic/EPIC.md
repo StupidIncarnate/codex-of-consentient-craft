@@ -129,13 +129,14 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:02, machine clock)
+### Now (updated at every event; last 2026-09-30 12:03, machine clock)
 
-| Running (3, in merge worktree W, sonnet) | Owns |
+| Running (2, in merge worktree W, sonnet) | Owns |
 |---|---|
-| merge r3: hydration-recipes | master's nested-subagent recipes mint plain `toolUseId` (use `toolUseContract.shape.id`); `operation-remove-route` test lint and one unit red |
 | merge r3: server and siegelense | master's `quest-start-body` contract on `#gateway/npm/zod` and branded, its zod 4 message; request-log harness off the `process` global; siegelense phantom `stderrProxy` |
 | merge r3: web | master's DEF-148 not-found flow and page on gateway imports |
+
+**Just landed:** merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
 
 **Whole-tree ward in W (run 1790794045495-a0d6, lint/typecheck/unit/integration, 770 s):** 11,503 of 11,511 lint files,
 typecheck red only in hydration-recipes' `toolUseId` (seen through server and web too), unit 4,174 of 4,176,
