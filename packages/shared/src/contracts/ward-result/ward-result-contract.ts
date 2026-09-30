@@ -16,6 +16,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { wardQueueResponseContract } from '../ward-queue-response/ward-queue-response-contract';
 
 const LEGACY_COMMITTED = 'changed';
 
@@ -23,7 +24,7 @@ export const wardResultContract = z.object({
   id: z.uuid().brand<'WardResultId'>(),
   createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   exitCode: z.number().int().brand<'ExitCode'>(),
-  runId: z.string().brand<'WardRunId'>().optional(),
+  runId: wardQueueResponseContract.shape.runId.optional(),
   wardMode: z
     .preprocess(
       (value) => (value === LEGACY_COMMITTED ? 'committed' : value),

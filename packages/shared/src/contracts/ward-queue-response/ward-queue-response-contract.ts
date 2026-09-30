@@ -10,11 +10,10 @@ import { z } from '#gateway/npm/zod';
 
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';
-import { wardRunIdContract } from '../ward-run-id/ward-run-id-contract';
 
 export const wardQueueResponseContract = z.object({
   exitCode: exitCodeContract.optional(),
-  runId: wardRunIdContract.optional(),
+  runId: wardQueueResponseRunId.optional(),
   wardResultJson: z.unknown().optional(),
   outputLines: z.array(z.string().brand<'WardOutputLine'>()).optional(),
   delayMs: timeoutMsContract.optional(),

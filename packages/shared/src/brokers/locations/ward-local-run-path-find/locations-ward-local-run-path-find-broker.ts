@@ -15,14 +15,14 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { WardRunId } from '../../../contracts/ward-run-id/ward-run-id-contract';
+import type { WardQueueResponse } from '../../../contracts/ward-queue-response/ward-queue-response-contract';
 
 export const locationsWardLocalRunPathFindBroker = ({
   rootPath,
   runId,
 }: {
   rootPath: AbsoluteFilePath;
-  runId: WardRunId;
+  runId: WardQueueResponse['runId'];
 }): AbsoluteFilePath => {
   const joined = join(rootPath, locationsStatics.repoRoot.wardLocalDir, `run-${runId}.json`);
 
