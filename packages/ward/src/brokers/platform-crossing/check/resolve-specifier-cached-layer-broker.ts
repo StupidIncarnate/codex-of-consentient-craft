@@ -20,14 +20,10 @@ import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { ModuleSpecifier } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import {
-  platformCrossingResolveCacheKeyContract,
-  type PlatformCrossingResolveCacheKey,
-} from '../../../contracts/platform-crossing-resolve-cache-key/platform-crossing-resolve-cache-key-contract';
 import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 
 export type ResolveSpecifierCache = Map<
-  PlatformCrossingResolveCacheKey,
+  string,
   Promise<{ filePath: FilePath; content: FileContents } | undefined>
 >;
 
@@ -42,9 +38,7 @@ export const resolveSpecifierCachedLayerBroker = async ({
   knownPackages: readonly ProjectFolder[];
   resolveCache: ResolveSpecifierCache;
 }): Promise<{ filePath: FilePath; content: FileContents } | undefined> => {
-  const cacheKey = platformCrossingResolveCacheKeyContract.parse(
-    `${containingFilePath}\u0000${specifier}`,
-  );
+  const cacheKey = `${containingFilePath}\u0000${specifier}`;
   const cached = resolveCache.get(cacheKey);
   if (cached !== undefined) {
     return cached;
