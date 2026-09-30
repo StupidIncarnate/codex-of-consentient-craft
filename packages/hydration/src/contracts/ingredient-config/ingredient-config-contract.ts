@@ -67,7 +67,7 @@ const extraApplyFnContract = z.custom<ExtraApplyFn<unknown>>(
 const extraContract = z.object({
   args: zodSchemaContract,
   apply: extraApplyFnContract,
-});
+}).brand<'Extra'>();
 
 export const ingredientConfigContract = z
   .object({

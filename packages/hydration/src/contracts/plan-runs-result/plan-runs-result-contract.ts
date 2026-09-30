@@ -13,8 +13,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const planRunsResultContract = z.discriminatedUnion('serverless', [
-  z.object({ serverless: z.literal(true) }),
-  z.object({ serverless: z.literal(false), needsServerFor: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'PlanRunsResultNeedsServerFor'>() }),
+  z.object({ serverless: z.literal(true) }).brand<'PlanRunsResult'>(),
+  z.object({ serverless: z.literal(false), needsServerFor: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'PlanRunsResultNeedsServerFor'>() }).brand<'PlanRunsResult'>(),
 ]);
 
 export type PlanRunsResult = z.infer<typeof planRunsResultContract>;

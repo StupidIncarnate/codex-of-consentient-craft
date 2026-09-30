@@ -34,7 +34,7 @@ import type { OpExtra } from '../op-extra/op-extra-contract';
 
 const baseOpFilterContract = z.object({
   op: z.literal('filter'),
-  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'BaseOpFilterIngredient'>(),
+  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'OpFilterIngredient'>(),
   scope: rowRefContract.optional(),
   where: fieldValuesContract,
   expect: filterExpectContract,
@@ -49,7 +49,7 @@ const baseOpFilterContract = z.object({
  */
 type OpFilterSelf = z.infer<typeof baseOpFilterContract> & {
   ops: readonly (OpCreate | OpSet | OpRemove | OpSaveRecord | OpExtra | OpFilterSelf)[];
-};
+} & z.$brand<'OpFilter'>;
 
 // A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type

@@ -28,7 +28,7 @@ export const opSetContract = z.object({
     .object({
       field: z.string().min(1).brand<'OpSetTransitionField'>(),
       to: z.unknown(),
-    })
+    }).brand<'OpSetTransition'>()
     .optional(),
 }).brand<'OpSet'>();
 
