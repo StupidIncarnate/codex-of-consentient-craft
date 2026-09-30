@@ -11,7 +11,6 @@
  */
 
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
-import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 
 const mockFnIdentifierNamesContract = mockCallContract.pick({
   identifierNames: true,
@@ -23,9 +22,9 @@ export const mockFnIdentifierNamesTransformer = ({
   isPropertyAccess,
   rootIdentifier,
 }: {
-  exportName: IdentifierName | undefined;
+  exportName: string | undefined;
   isPropertyAccess: boolean;
-  rootIdentifier: IdentifierName;
+  rootIdentifier: string;
 }): ReturnType<typeof mockFnIdentifierNamesContract.parse> =>
   mockFnIdentifierNamesContract.parse({
     identifierNames: exportName && !isPropertyAccess ? [exportName] : [],

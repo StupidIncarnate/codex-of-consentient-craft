@@ -13,12 +13,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { identifierNameContract } from '../identifier-name/identifier-name-contract';
 
 export const proxyImportEdgeContract = z.object({
   kind: z.enum(['import', 'reexport']),
   importPath: z.string().brand<'ProxyImportEdgeImportPath'>(),
-  names: z.array(identifierNameContract).nullable(),
+  names: z.array(z.string().min(1).brand<'ProxyImportEdgeNames'>()).nullable(),
 });
 
 export type ProxyImportEdge = z.infer<typeof proxyImportEdgeContract>;

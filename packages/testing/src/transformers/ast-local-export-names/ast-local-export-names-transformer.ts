@@ -10,16 +10,14 @@
  */
 
 import * as ts from '#gateway/npm/typescript';
-import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
-import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 
 export const astLocalExportNamesTransformer = ({
   sourceFile,
 }: {
   sourceFile: ts.SourceFile;
-}): IdentifierName[] => {
+}): string[] => {
   const tsSourceFile = sourceFile as unknown as ts.SourceFile;
-  const names: IdentifierName[] = [];
+  const names: string[] = [];
 
   for (const statement of tsSourceFile.statements) {
     const hasExportModifier = (
@@ -29,7 +27,7 @@ export const astLocalExportNamesTransformer = ({
     if (hasExportModifier && ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
         if (ts.isIdentifier(declaration.name)) {
-          names.push(identifierNameContract.parse(declaration.name.text));
+          names.push(declaration.name.text);
         }
       }
     }
@@ -39,7 +37,7 @@ export const astLocalExportNamesTransformer = ({
       (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) &&
       statement.name
     ) {
-      names.push(identifierNameContract.parse(statement.name.text));
+      names.push(statement.name.text);
     }
 
     if (
@@ -49,7 +47,7 @@ export const astLocalExportNamesTransformer = ({
       ts.isNamedExports(statement.exportClause)
     ) {
       for (const element of statement.exportClause.elements) {
-        names.push(identifierNameContract.parse(element.name.text));
+        names.push(element.name.text);
       }
     }
   }

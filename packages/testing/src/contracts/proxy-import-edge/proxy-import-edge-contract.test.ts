@@ -1,6 +1,5 @@
 import { proxyImportEdgeContract } from './proxy-import-edge-contract';
 import { ProxyImportEdgeStub } from './proxy-import-edge.stub';
-import { IdentifierNameStub } from '../identifier-name/identifier-name.stub';
 
 describe('proxyImportEdgeContract', () => {
   describe('valid edges', () => {
@@ -24,7 +23,7 @@ describe('proxyImportEdgeContract', () => {
       const edge = ProxyImportEdgeStub({
         kind: 'reexport',
         importPath: './barrel-target.proxy',
-        names: [IdentifierNameStub({ value: 'pathJoinAdapterProxy' })],
+        names: ['pathJoinAdapterProxy'],
       });
 
       const result = proxyImportEdgeContract.parse(edge);

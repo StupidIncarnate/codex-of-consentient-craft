@@ -9,11 +9,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { identifierNameContract } from '../identifier-name/identifier-name-contract';
 
 export const proxyMockQueueEntryContract = z.object({
   filePath: z.string().brand<'ProxyMockQueueEntryFilePath'>(),
-  requestedNames: z.array(identifierNameContract).nullable(),
+  requestedNames: z.array(z.string().min(1).brand<'ProxyMockQueueEntryRequestedNames'>()).nullable(),
 });
 
 export type ProxyMockQueueEntry = z.infer<typeof proxyMockQueueEntryContract>;

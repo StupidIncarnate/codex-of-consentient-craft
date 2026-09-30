@@ -24,7 +24,6 @@ import { importPathResolverMiddleware } from '../import-path-resolver/import-pat
 import { proxyReexportNamesResolveMiddleware } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware';
 import { dirname, resolve } from '#gateway/node/path';
 import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
-import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type * as ts from '#gateway/npm/typescript';
 import type { ProxyMockQueueEntry } from '../../contracts/proxy-mock-queue-entry/proxy-mock-queue-entry-contract';
@@ -37,7 +36,7 @@ export const proxyMockCollectorMiddleware = ({
 }: {
   proxyFilePath: string;
   program: ts.Program | undefined;
-  requestedNames?: IdentifierName[] | null;
+  requestedNames?: string[] | null;
 }): MockCall[] => {
   const visitedKeys = new Set();
   const mockCalls: MockCall[] = [];
@@ -115,7 +114,7 @@ export const proxyMockCollectorMiddleware = ({
         continue;
       }
 
-      const overlap = edge.names.filter((name) => entry.requestedNames?.includes(name));
+      const overlap = edge.names.filter((name) => entry.requestedNames?.includes(proxyMockQueueEntryContract.shape.requestedNames.parse(proxyMockQueueEntryContract.shape.requestedNames.parse(proxyMockQueueEntryContract.shape.requestedNames.parse(name)))));
       if (overlap.length > 0) {
         filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }));
       }

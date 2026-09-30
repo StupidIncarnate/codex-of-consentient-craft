@@ -9,11 +9,9 @@
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
-import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
 import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
 import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
-import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
@@ -74,8 +72,8 @@ export const astMockCallsTransformer = ({
   // Build two maps for registerMock resolution:
   // importModuleMap: identifier -> module name (for all import types)
   // namedExportMap: identifier -> original export name (for named imports only, enables selective mocking)
-  const importModuleMap = new Map<IdentifierName, ModuleName>();
-  const namedExportMap = new Map<IdentifierName, IdentifierName>();
+  const importModuleMap = new Map<string, ModuleName>();
+  const namedExportMap = new Map<string, string>();
 
   for (const statement of tsSourceFile.statements) {
     if (!ts.isImportDeclaration(statement)) {
@@ -94,7 +92,7 @@ export const astMockCallsTransformer = ({
     }
 
     if (importClause.name) {
-      importModuleMap.set(identifierNameContract.parse(importClause.name.text), moduleName);
+      importModuleMap.set(importClause.name.text, moduleName);
     }
 
     const { namedBindings } = importClause;
@@ -103,16 +101,14 @@ export const astMockCallsTransformer = ({
     }
 
     if (ts.isNamespaceImport(namedBindings)) {
-      importModuleMap.set(identifierNameContract.parse(namedBindings.name.text), moduleName);
+      importModuleMap.set(namedBindings.name.text, moduleName);
       continue;
     }
 
     for (const element of namedBindings.elements) {
       if (!element.isTypeOnly) {
-        const localName = identifierNameContract.parse(element.name.text);
-        const exportName = identifierNameContract.parse(
-          element.propertyName ? element.propertyName.text : element.name.text,
-        );
+        const localName = element.name.text;
+        const exportName = (element.propertyName ? element.propertyName.text : element.name.text);
         importModuleMap.set(localName, moduleName);
         namedExportMap.set(localName, exportName);
       }
@@ -144,11 +140,11 @@ export const astMockCallsTransformer = ({
             prop.name.text === 'fn'
           ) {
             // Resolve root identifier. For property access (Obj.method), walk to the leftmost identifier.
-            let rootIdentifier: IdentifierName | null = null;
+            let rootIdentifier: string | null = null;
             let isPropertyAccess = false;
 
             if (ts.isIdentifier(prop.initializer)) {
-              rootIdentifier = identifierNameContract.parse(prop.initializer.text);
+              rootIdentifier = prop.initializer.text;
             } else if (ts.isPropertyAccessExpression(prop.initializer)) {
               isPropertyAccess = true;
               let current: ts.Expression = prop.initializer;
@@ -156,7 +152,7 @@ export const astMockCallsTransformer = ({
                 current = current.expression;
               }
               if (ts.isIdentifier(current)) {
-                rootIdentifier = identifierNameContract.parse(current.text);
+                rootIdentifier = current.text;
               }
             }
 
@@ -181,7 +177,7 @@ export const astMockCallsTransformer = ({
           }
 
           if (ts.isShorthandPropertyAssignment(prop) && prop.name.text === 'fn') {
-            const shorthandIdentifier = identifierNameContract.parse(prop.name.text);
+            const shorthandIdentifier = prop.name.text;
             const resolvedModule = importModuleMap.get(shorthandIdentifier);
             const exportName = namedExportMap.get(shorthandIdentifier);
             if (resolvedModule) {

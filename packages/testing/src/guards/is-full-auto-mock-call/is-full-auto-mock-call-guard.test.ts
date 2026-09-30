@@ -1,6 +1,5 @@
 import { isFullAutoMockCallGuard } from './is-full-auto-mock-call-guard';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
 
 describe('isFullAutoMockCallGuard', () => {
@@ -18,7 +17,7 @@ describe('isFullAutoMockCallGuard', () => {
     it('INVALID: {identifierNames: [name]} => returns false', () => {
       const mock = MockCallStub({
         factory: null,
-        identifierNames: [IdentifierNameStub({ value: 'join' })],
+        identifierNames: ['join'],
         objectIdentifierNames: [],
       });
 
@@ -31,7 +30,7 @@ describe('isFullAutoMockCallGuard', () => {
       const mock = MockCallStub({
         factory: null,
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+        objectIdentifierNames: ['StartOrchestrator'],
       });
 
       const result = isFullAutoMockCallGuard({ mock });

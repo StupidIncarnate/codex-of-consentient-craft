@@ -3,7 +3,6 @@ import { mockCallsToStatementsTransformer } from './mock-calls-to-statements-tra
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
 import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
 import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 
 describe('mockCallsToStatementsTransformer', () => {
   describe('valid mock calls conversion', () => {
@@ -233,7 +232,7 @@ describe('mockCallsToStatementsTransformer', () => {
         moduleName: ModuleNameStub({ value: 'fs/promises' }),
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
-        identifierNames: [IdentifierNameStub({ value: 'readFile' })],
+        identifierNames: ['readFile'],
       });
 
       const nodeFactory = ts.factory;
@@ -258,7 +257,7 @@ describe('mockCallsToStatementsTransformer', () => {
         moduleName: ModuleNameStub({ value: 'process' }),
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
-        identifierNames: [IdentifierNameStub({ value: 'kill' })],
+        identifierNames: ['kill'],
       });
 
       const nodeFactory = ts.factory;
@@ -284,8 +283,8 @@ describe('mockCallsToStatementsTransformer', () => {
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
         identifierNames: [
-          IdentifierNameStub({ value: 'readFile' }),
-          IdentifierNameStub({ value: 'writeFile' }),
+          'readFile',
+          'writeFile',
         ],
       });
 
@@ -314,7 +313,7 @@ describe('mockCallsToStatementsTransformer', () => {
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'orchestrationEventsState' })],
+        objectIdentifierNames: ['orchestrationEventsState'],
       });
 
       const nodeFactory = ts.factory;
@@ -339,8 +338,8 @@ describe('mockCallsToStatementsTransformer', () => {
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'x.proxy.ts' }),
-        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+        identifierNames: ['questListBroker'],
+        objectIdentifierNames: ['StartOrchestrator'],
       });
 
       const nodeFactory = ts.factory;

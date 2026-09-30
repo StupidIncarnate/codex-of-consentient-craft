@@ -1,6 +1,5 @@
 import { proxyMockCollectorMiddleware } from './proxy-mock-collector-middleware';
 import { proxyMockCollectorMiddlewareProxy } from './proxy-mock-collector-middleware.proxy';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
 const NoProgramSourceFileStub = (): ReturnType<typeof ProgramStub> =>
@@ -62,7 +61,7 @@ describe('proxyMockCollectorMiddleware', () => {
       });
       proxy.setupFilesOnDisk({ filePaths: [pathJoinProxyPath, osHomedirProxyPath] });
 
-      const requestedNames = [IdentifierNameStub({ value: 'pathJoinAdapterProxy' })];
+      const requestedNames = ['pathJoinAdapterProxy'];
 
       const result = proxyMockCollectorMiddleware({
         proxyFilePath: barrelPath,

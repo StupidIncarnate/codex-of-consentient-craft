@@ -3,7 +3,6 @@ import { MockCallStub } from './mock-call.stub';
 import { ModuleNameStub } from '../module-name/module-name.stub';
 import { FactoryFunctionTextStub } from '../factory-function-text/factory-function-text.stub';
 import { SourceFileNameStub } from '../source-file-name/source-file-name.stub';
-import { IdentifierNameStub } from '../identifier-name/identifier-name.stub';
 
 describe('mockCallContract', () => {
   describe('valid mock calls', () => {
@@ -66,7 +65,7 @@ describe('mockCallContract', () => {
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         factory: null,
         sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
-        objectIdentifierNames: [IdentifierNameStub({ value: 'orchestrationEventsState' })],
+        objectIdentifierNames: ['orchestrationEventsState'],
       });
 
       const result = mockCallContract.parse(mockCall);

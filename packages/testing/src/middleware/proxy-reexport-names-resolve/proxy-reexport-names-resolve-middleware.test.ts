@@ -1,6 +1,5 @@
 import { proxyReexportNamesResolveMiddleware } from './proxy-reexport-names-resolve-middleware';
 import { proxyReexportNamesResolveMiddlewareProxy } from './proxy-reexport-names-resolve-middleware.proxy';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { ProgramStub } from '#gateway/npm/typescript/program/program.stub';
 
 const NoProgramSourceFileStub = (): ReturnType<typeof ProgramStub> =>
@@ -15,7 +14,7 @@ describe('proxyReexportNamesResolveMiddleware', () => {
         filePath,
         content: 'export const pathJoinAdapterProxy = () => ({});',
       });
-      const requestedName = IdentifierNameStub({ value: 'pathJoinAdapterProxy' });
+      const requestedName = 'pathJoinAdapterProxy';
 
       const result = proxyReexportNamesResolveMiddleware({
         filePath,
@@ -40,8 +39,8 @@ describe('proxyReexportNamesResolveMiddleware', () => {
       proxy.setupFileContains({ filePath: targetAPath, content: 'export const nameA = 1;' });
       proxy.setupFileContains({ filePath: targetBPath, content: 'export const nameB = 2;' });
       proxy.setupFilesOnDisk({ filePaths: [targetAPath, targetBPath] });
-      const nameA = IdentifierNameStub({ value: 'nameA' });
-      const nameB = IdentifierNameStub({ value: 'nameB' });
+      const nameA = 'nameA';
+      const nameB = 'nameB';
 
       const result = proxyReexportNamesResolveMiddleware({
         filePath: barrelPath,
@@ -65,7 +64,7 @@ describe('proxyReexportNamesResolveMiddleware', () => {
         content: 'export const onlyThis = 1;\nexport const somethingElse = 2;',
       });
       proxy.setupFilesOnDisk({ filePaths: [targetPath] });
-      const requestedName = IdentifierNameStub({ value: 'somethingElse' });
+      const requestedName = 'somethingElse';
 
       const result = proxyReexportNamesResolveMiddleware({
         filePath: barrelPath,
@@ -88,7 +87,7 @@ describe('proxyReexportNamesResolveMiddleware', () => {
       });
       proxy.setupFileContains({ filePath: targetPath, content: 'export const nameA = 1;' });
       proxy.setupFilesOnDisk({ filePaths: [targetPath] });
-      const requestedName = IdentifierNameStub({ value: 'neverDefined' });
+      const requestedName = 'neverDefined';
 
       const result = proxyReexportNamesResolveMiddleware({
         filePath: barrelPath,

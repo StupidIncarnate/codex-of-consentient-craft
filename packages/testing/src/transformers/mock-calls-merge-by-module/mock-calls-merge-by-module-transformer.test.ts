@@ -1,7 +1,6 @@
 import { mockCallsMergeByModuleTransformer } from './mock-calls-merge-by-module-transformer';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
 import { ModuleNameStub } from '../../contracts/module-name/module-name.stub';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
 import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
 
@@ -10,11 +9,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {"fs" mocking readFile, "node:fs" mocking writeFile} => merges into one record naming both identifiers', () => {
       const bareMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'fs' }),
-        identifierNames: [IdentifierNameStub({ value: 'readFile' })],
+        identifierNames: ['readFile'],
       });
       const prefixedMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'node:fs' }),
-        identifierNames: [IdentifierNameStub({ value: 'writeFile' })],
+        identifierNames: ['writeFile'],
       });
 
       const result = mockCallsMergeByModuleTransformer({ mockCalls: [bareMock, prefixedMock] });
@@ -25,8 +24,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
           factory: null,
           sourceFile: bareMock.sourceFile,
           identifierNames: [
-            IdentifierNameStub({ value: 'readFile' }),
-            IdentifierNameStub({ value: 'writeFile' }),
+            'readFile',
+            'writeFile',
           ],
           objectIdentifierNames: [],
         },
@@ -38,11 +37,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {"process" mocking cwd, "node:process" mocking kill} => merges into one record mocking both', () => {
       const cwdMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'process' }),
-        identifierNames: [IdentifierNameStub({ value: 'cwd' })],
+        identifierNames: ['cwd'],
       });
       const killMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'node:process' }),
-        identifierNames: [IdentifierNameStub({ value: 'kill' })],
+        identifierNames: ['kill'],
       });
 
       const result = mockCallsMergeByModuleTransformer({ mockCalls: [cwdMock, killMock] });
@@ -53,8 +52,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
           factory: null,
           sourceFile: cwdMock.sourceFile,
           identifierNames: [
-            IdentifierNameStub({ value: 'cwd' }),
-            IdentifierNameStub({ value: 'kill' }),
+            'cwd',
+            'kill',
           ],
           objectIdentifierNames: [],
         },
@@ -66,7 +65,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {identifier mock then factory mock, same module} => the factory wins', () => {
       const identifierMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'axios' }),
-        identifierNames: [IdentifierNameStub({ value: 'get' })],
+        identifierNames: ['get'],
       });
       const factoryMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'axios' }),
@@ -89,7 +88,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       });
       const identifierMock = MockCallStub({
         moduleName: ModuleNameStub({ value: 'axios' }),
-        identifierNames: [IdentifierNameStub({ value: 'get' })],
+        identifierNames: ['get'],
       });
 
       const result = mockCallsMergeByModuleTransformer({
@@ -151,7 +150,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       const bareExportMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
-        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
+        identifierNames: ['questListBroker'],
       });
 
       const result = mockCallsMergeByModuleTransformer({
@@ -165,7 +164,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       const bareExportMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
-        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
+        identifierNames: ['questListBroker'],
       });
       const fullAutoMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
@@ -194,13 +193,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {bare-export mock naming "a", bare-export mock naming "b" and "a", same module} => unions identifierNames without duplicating "a"', () => {
       const firstMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
-        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
+        identifierNames: ['questListBroker'],
       });
       const secondMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         identifierNames: [
-          IdentifierNameStub({ value: 'questOutboxWatchBroker' }),
-          IdentifierNameStub({ value: 'questListBroker' }),
+          'questOutboxWatchBroker',
+          'questListBroker',
         ],
       });
 
@@ -212,8 +211,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
           factory: null,
           sourceFile: firstMock.sourceFile,
           identifierNames: [
-            IdentifierNameStub({ value: 'questListBroker' }),
-            IdentifierNameStub({ value: 'questOutboxWatchBroker' }),
+            'questListBroker',
+            'questOutboxWatchBroker',
           ],
           objectIdentifierNames: [],
         },
@@ -226,12 +225,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
       const firstMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+        objectIdentifierNames: ['StartOrchestrator'],
       });
       const secondMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'orchestrationEventsState' })],
+        objectIdentifierNames: ['orchestrationEventsState'],
       });
 
       const result = mockCallsMergeByModuleTransformer({ mockCalls: [firstMock, secondMock] });
@@ -243,8 +242,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
           sourceFile: firstMock.sourceFile,
           identifierNames: [],
           objectIdentifierNames: [
-            IdentifierNameStub({ value: 'StartOrchestrator' }),
-            IdentifierNameStub({ value: 'orchestrationEventsState' }),
+            'StartOrchestrator',
+            'orchestrationEventsState',
           ],
         },
       ]);
@@ -256,11 +255,11 @@ describe('mockCallsMergeByModuleTransformer', () => {
       const propertyAccessMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+        objectIdentifierNames: ['StartOrchestrator'],
       });
       const bareExportMock = MockCallStub({
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
-        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
+        identifierNames: ['questListBroker'],
         objectIdentifierNames: [],
       });
 
@@ -273,8 +272,8 @@ describe('mockCallsMergeByModuleTransformer', () => {
           moduleName: propertyAccessMock.moduleName,
           factory: null,
           sourceFile: propertyAccessMock.sourceFile,
-          identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
-          objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+          identifierNames: ['questListBroker'],
+          objectIdentifierNames: ['StartOrchestrator'],
         },
       ]);
     });
@@ -292,7 +291,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
         moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
         sourceFile: SourceFileNameStub({ value: 'start-orchestrator.proxy.ts' }),
         identifierNames: [],
-        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+        objectIdentifierNames: ['StartOrchestrator'],
       });
 
       const result = mockCallsMergeByModuleTransformer({

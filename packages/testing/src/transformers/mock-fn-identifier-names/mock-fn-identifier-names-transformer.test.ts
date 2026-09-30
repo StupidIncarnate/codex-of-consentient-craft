@@ -1,13 +1,12 @@
 import { mockFnIdentifierNamesTransformer } from './mock-fn-identifier-names-transformer';
-import { IdentifierNameStub } from '../../contracts/identifier-name/identifier-name.stub';
 
 describe('mockFnIdentifierNamesTransformer', () => {
   describe('bare named import', () => {
     it('VALID: {exportName: "join", isPropertyAccess: false} => returns identifierNames: [join], objectIdentifierNames: []', () => {
       const result = mockFnIdentifierNamesTransformer({
-        exportName: IdentifierNameStub({ value: 'join' }),
+        exportName: 'join',
         isPropertyAccess: false,
-        rootIdentifier: IdentifierNameStub({ value: 'join' }),
+        rootIdentifier: 'join',
       });
 
       expect(result).toStrictEqual({ identifierNames: ['join'], objectIdentifierNames: [] });
@@ -17,9 +16,9 @@ describe('mockFnIdentifierNamesTransformer', () => {
   describe('property access', () => {
     it('VALID: {exportName: "StartOrchestrator", isPropertyAccess: true} => returns identifierNames: [], objectIdentifierNames: [StartOrchestrator]', () => {
       const result = mockFnIdentifierNamesTransformer({
-        exportName: IdentifierNameStub({ value: 'StartOrchestrator' }),
+        exportName: 'StartOrchestrator',
         isPropertyAccess: true,
-        rootIdentifier: IdentifierNameStub({ value: 'StartOrchestrator' }),
+        rootIdentifier: 'StartOrchestrator',
       });
 
       expect(result).toStrictEqual({
@@ -32,7 +31,7 @@ describe('mockFnIdentifierNamesTransformer', () => {
       const result = mockFnIdentifierNamesTransformer({
         exportName: undefined,
         isPropertyAccess: true,
-        rootIdentifier: IdentifierNameStub({ value: 'defaultImportedNamespace' }),
+        rootIdentifier: 'defaultImportedNamespace',
       });
 
       expect(result).toStrictEqual({
@@ -47,7 +46,7 @@ describe('mockFnIdentifierNamesTransformer', () => {
       const result = mockFnIdentifierNamesTransformer({
         exportName: undefined,
         isPropertyAccess: false,
-        rootIdentifier: IdentifierNameStub({ value: 'somethingUnresolved' }),
+        rootIdentifier: 'somethingUnresolved',
       });
 
       expect(result).toStrictEqual({ identifierNames: [], objectIdentifierNames: [] });

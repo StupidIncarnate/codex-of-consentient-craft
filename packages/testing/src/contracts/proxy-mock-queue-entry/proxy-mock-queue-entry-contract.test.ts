@@ -1,6 +1,5 @@
 import { proxyMockQueueEntryContract } from './proxy-mock-queue-entry-contract';
 import { ProxyMockQueueEntryStub } from './proxy-mock-queue-entry.stub';
-import { IdentifierNameStub } from '../identifier-name/identifier-name.stub';
 
 describe('proxyMockQueueEntryContract', () => {
   describe('valid entries', () => {
@@ -21,7 +20,7 @@ describe('proxyMockQueueEntryContract', () => {
     it('VALID: {requestedNames: [name]} => parses a name-constrained entry', () => {
       const entry = ProxyMockQueueEntryStub({
         filePath: '/repo/packages/shared/src/a.proxy.ts',
-        requestedNames: [IdentifierNameStub({ value: 'pathJoinAdapterProxy' })],
+        requestedNames: ['pathJoinAdapterProxy'],
       });
 
       const result = proxyMockQueueEntryContract.parse(entry);
