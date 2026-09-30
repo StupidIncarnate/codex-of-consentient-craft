@@ -14,9 +14,7 @@
  * // Returns { listen, resetHandlers, close, assertNoUnhandledRequests } for use in jest hooks
  */
 
-import { unhandledRequestMessageContract } from '../../../contracts/unhandled-request-message/unhandled-request-message-contract';
 import type { EndpointMockLifecycle } from '../../../contracts/endpoint-mock-lifecycle/endpoint-mock-lifecycle-contract';
-import type { UnhandledRequestMessage } from '../../../contracts/unhandled-request-message/unhandled-request-message-contract';
 import { ws } from '#gateway/npm/msw';
 import { mswServerState } from '../../../state/msw-server/msw-server-state';
 import { isRealIoTestFileGuard } from '../../../guards/is-real-io-test-file/is-real-io-test-file-guard';
@@ -44,14 +42,14 @@ export const EndpointMockSetupResponder = ({
   }
 
   const server = mswServerState.get();
-  const unhandled: UnhandledRequestMessage[] = [];
+  const unhandled: string[] = [];
 
   // `*` matches every URL. Passed to `resetHandlers()` (never `use()`) both here and below, so a
   // per-test `resetHandlers()` call — which replaces the WHOLE handler list, discarding anything
   // `use()` added — always re-applies it rather than leaving the next test's WebSocket connections
   // to fall through to `handlers.length === 0` and connect for real.
   const catchAllWsHandler = ws.link('*').addEventListener('connection', ({ client }) => {
-    unhandled.push(unhandledRequestMessageContract.parse(`WS ${client.url.toString()}`));
+    unhandled.push(`WS ${client.url.toString()}`);
     // `close()` alone is enough: the interceptor only auto-dispatches 'open' when the client
     // socket is STILL `CONNECTING` once every "connection" listener has run, so closing here (via
     // `WebSocketClientConnectionProtocol`'s own public `close`, no `.socket` reach-through needed)
@@ -64,7 +62,7 @@ export const EndpointMockSetupResponder = ({
       server.resetHandlers(catchAllWsHandler);
       server.listen({
         onUnhandledRequest: (request, print): void => {
-          unhandled.push(unhandledRequestMessageContract.parse(`${request.method} ${request.url}`));
+          unhandled.push(`${request.method} ${request.url}`);
           // `print.error()` is what makes MSW reject the caller's own `fetch()` — recording it
           // above is what lets `assertNoUnhandledRequests` still fail the test when the caller's
           // own code catches that rejection.
