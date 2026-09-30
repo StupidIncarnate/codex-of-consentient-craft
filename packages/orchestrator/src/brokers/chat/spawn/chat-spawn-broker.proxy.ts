@@ -2,11 +2,10 @@ import { randomUUID } from '#gateway/node/crypto';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
 import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
@@ -32,7 +31,7 @@ const CREATED_QUEST_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 // Legacy (no-worktreePath) quests resolve their cwd from the guild's repo root. The actual
 // value is opaque to every scenario below except the ones that assert on it directly.
-const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/user/my-guild' });
+const DEFAULT_REPO_ROOT = '/home/user/my-guild';
 
 // chatSpawnBroker's `--add-dir` grant (chat-spawn-broker.ts) resolves the quest's images
 // directory through the real locations chain (locationsGuildPathFindBroker ->
@@ -99,11 +98,11 @@ export const chatSpawnBrokerProxy = (): {
   setupResumeWithRepoRoot: (params: {
     questId: Quest['id'];
     sessionId: Session['id'];
-    repoRoot: RepoRootCwd;
+    repoRoot: string;
   }) => void;
   getSpawnedOptions: () => unknown;
   getSpawnedArgs: () => unknown;
-  getSpawnedCwd: () => RepoRootCwd | undefined;
+  getSpawnedCwd: () => string | undefined;
   // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
   // seed the post-exit main-session-tail home dir the launcher's onComplete starts. The
   // responder no longer touches chatMainSessionTailBroker directly — the launcher owns it.
@@ -287,7 +286,7 @@ export const chatSpawnBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       sessionId: Session['id'];
-      repoRoot: RepoRootCwd;
+      repoRoot: string;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
       const quest = QuestStub({ id: questId, folder: questId, workItems: [chaosItem] });
@@ -300,7 +299,7 @@ export const chatSpawnBrokerProxy = (): {
 
     getSpawnedArgs: (): unknown => launchProxy.getSpawnedArgs(),
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): string | undefined => launchProxy.getSpawnedCwd(),
 
     setupMainTailHomeDir: launchProxy.setupMainTailHomeDir,
 

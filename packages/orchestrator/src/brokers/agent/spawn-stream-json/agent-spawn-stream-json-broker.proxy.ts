@@ -5,8 +5,7 @@ import { join } from '#gateway/node/path';
 import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapshot.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
-import type { ExitCode, RepoRootCwd } from '@dungeonmaster/shared/contracts';
-import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
+import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -40,7 +39,7 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   getAllSpawnedArgs: () => readonly unknown[];
   getSpawnedOptions: () => unknown;
-  getSpawnedCwd: () => RepoRootCwd | undefined;
+  getSpawnedCwd: () => string | undefined;
   getSpawnedStdinMode: () => unknown;
   getSpawnedStderrMode: () => unknown;
   getSpawnedEnvValue: (params: { name: string }) => unknown;
@@ -138,9 +137,9 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
 
     getSpawnedOptions: (): unknown => lastSpawnCall()?.[2],
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => {
+    getSpawnedCwd: (): string | undefined => {
       const { cwd } = lastSpawnOptions();
-      return cwd === undefined ? undefined : repoRootCwdContract.parse(cwd);
+      return cwd === undefined ? undefined : cwd;
     },
 
     getSpawnedStdinMode: (): unknown => lastSpawnOptions().stdio?.[0],

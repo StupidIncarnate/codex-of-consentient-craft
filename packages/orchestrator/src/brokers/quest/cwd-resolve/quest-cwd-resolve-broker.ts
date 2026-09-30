@@ -22,7 +22,7 @@
  * written from, and probing would turn a readable transcript into a `missing-worktree` throw.
  */
 
-import { getQuestInputContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, Session } from '@dungeonmaster/shared/contracts';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -55,7 +55,7 @@ export const questCwdResolveBroker = async ({
     if (recordedCwd !== null) {
       return questCwdResolutionContract.parse({
         kind: 'session',
-        cwd: repoRootCwdContract.parse(recordedCwd),
+        cwd: recordedCwd,
       });
     }
   }
@@ -72,7 +72,7 @@ export const questCwdResolveBroker = async ({
   if (isAccessible) {
     return questCwdResolutionContract.parse({
       kind: 'worktree',
-      cwd: repoRootCwdContract.parse(quest.worktreePath),
+      cwd: quest.worktreePath,
     });
   }
 

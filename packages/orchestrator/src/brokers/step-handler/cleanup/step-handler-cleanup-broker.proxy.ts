@@ -19,7 +19,6 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import type { ExitCode, Quest } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import type { CleanupCliAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
@@ -62,7 +61,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
   };
   stageCleanupSpawn();
   const stageRepoRoot = ({ questId }: { questId: Quest['id'] }): void => {
-    repoRootMock.calledWith([{ questId }]).resolves(RepoRootCwdStub({ value: '/repo' }));
+    repoRootMock.calledWith([{ questId }]).resolves('/repo');
   };
 
   return {

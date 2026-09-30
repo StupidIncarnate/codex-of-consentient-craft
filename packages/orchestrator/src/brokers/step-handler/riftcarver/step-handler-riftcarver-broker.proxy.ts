@@ -29,7 +29,6 @@ import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import { baseBranchNameContract, exitCodeContract, questBranchNameContract, riftcarverResultContract, type ExitCode, type Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
@@ -106,7 +105,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const getProxy = questGetBrokerProxy();
   const updateProxy = questOperationsUpdateBrokerProxy();
   const repoRootProxy = questRepoRootBrokerProxy();
-  repoRootProxy.setupRepoRoot({ repoRoot: RepoRootCwdStub({ value: REPO_ROOT }) });
+  repoRootProxy.setupRepoRoot({ repoRoot: REPO_ROOT });
 
   const worktreePath = WORKTREE_PATH;
   const riftcarverResultId = riftcarverResultContract.shape.id.parse(FIXED_RIFTCARVER_RESULT_UUID);

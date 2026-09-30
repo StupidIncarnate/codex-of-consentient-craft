@@ -1,4 +1,4 @@
-import { type GuildConfig, repoRootCwdContract, type RepoRootCwd } from '@dungeonmaster/shared/contracts';
+import { type GuildConfig } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -27,8 +27,8 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       questsDirPath: string;
       questDirEntries: DirEntrySync[];
     }[];
-    homeRepoRoot?: RepoRootCwd;
-    guildRepoRoots?: readonly (RepoRootCwd | null)[];
+    homeRepoRoot?: string;
+    guildRepoRoots?: readonly (string | null)[];
   }) => void;
   setupReturnsGuildId: (params: { guildId: GuildId }) => void;
   setupPassthrough: () => void;
@@ -46,7 +46,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
     repoRoot,
   }: {
     startPath: string;
-    repoRoot: RepoRootCwd | null;
+    repoRoot: string | null;
   }): void => {
     if (repoRoot === null) {
       cwdProxy.setupRepoRootNotFound({ startPath });
@@ -90,8 +90,8 @@ export const smoketestEnsureGuildBrokerProxy = (): {
         questsDirPath: string;
         questDirEntries: DirEntrySync[];
       }[];
-      homeRepoRoot?: RepoRootCwd;
-      guildRepoRoots?: readonly (RepoRootCwd | null)[];
+      homeRepoRoot?: string;
+      guildRepoRoots?: readonly (string | null)[];
     }): void => {
       // dungeonmasterHomeFindBroker() is called an extra, EARLIER time here — directly by this
       // broker itself — on top of the calls guildConfigReadBroker and guildListBroker each make
@@ -112,10 +112,10 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       // matches. Tests that need a different layout pass `homeRepoRoot` + per-guild
       // `guildRepoRoots` (null entries simulate the walk finding no `.dungeonmaster.json` for that
       // guild). A repo root is an ancestor-or-self of the start path it answers for.
-      const homeAnchor = homeRepoRoot ?? repoRootCwdContract.parse('/');
+      const homeAnchor = homeRepoRoot ?? '/';
       const perGuild =
         guildRepoRoots ??
-        (config.guilds.map(() => repoRootCwdContract.parse('/')) as readonly RepoRootCwd[]);
+        (config.guilds.map(() => '/') as readonly string[]);
 
       stageRepoRoot({ startPath: String(homePath), repoRoot: homeAnchor });
 

@@ -1,12 +1,11 @@
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questRepoRootBrokerProxy } from '../repo-root/quest-repo-root-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
-type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
+type RepoRootCwd = string;
 
 export const questCwdResolveBrokerProxy = (): {
   setupWorktreePresent: (params: { quest: Quest }) => void;

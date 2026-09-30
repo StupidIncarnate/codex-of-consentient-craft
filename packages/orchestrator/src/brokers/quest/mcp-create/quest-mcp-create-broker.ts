@@ -21,8 +21,8 @@ import {
   nameToUrlSlugTransformer,
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
-import type { AddQuestInput, Guild, GuildListItem, QuestType, RepoRootCwd, UrlSlug, Quest, Session } from '@dungeonmaster/shared/contracts';
-import { addQuestInputContract, repoRootCwdContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, QuestType, UrlSlug, Quest, Session } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 
 import { guildCoversRepoRootGuard } from '../../../guards/guild-covers-repo-root/guild-covers-repo-root-guard';
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
@@ -48,7 +48,7 @@ export const questMcpCreateBroker = async ({
   // Fall back to the literal cwd as the repo root when .dungeonmaster.json is absent
   // (cwdResolveBroker rejects with ProjectRootNotFoundError) so quest creation still
   // succeeds in a repo that has not been through full dungeonmaster init.
-  let repoRoot: RepoRootCwd = repoRootCwdContract.parse(currentWorkingDirectory);
+  let repoRoot: string = currentWorkingDirectory;
   try {
     repoRoot = await cwdResolveBroker({
       startPath: currentWorkingDirectory,

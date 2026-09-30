@@ -1,6 +1,5 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { questRepoRootBroker } from './quest-repo-root-broker';
 import { questRepoRootBrokerProxy } from './quest-repo-root-broker.proxy';
@@ -9,7 +8,7 @@ describe('questRepoRootBroker', () => {
   it('VALID: {cwdResolveBroker resolves} => returns the resolved repo root', async () => {
     const proxy = questRepoRootBrokerProxy();
     const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-    const repoRoot = RepoRootCwdStub({ value: '/home/testuser' });
+    const repoRoot = '/home/testuser';
     proxy.setupQuestFound({ quest });
     proxy.setupResolveSuccess({ repoRoot });
 
@@ -26,7 +25,7 @@ describe('questRepoRootBroker', () => {
 
     const result = await questRepoRootBroker({ questId: QuestIdStub({ value: quest.id }) });
 
-    expect(result).toBe(RepoRootCwdStub({ value: String(proxy.getGuildPath()) }));
+    expect(result).toBe(String(proxy.getGuildPath()));
   });
 
   // A guild directory that carries no `.dungeonmaster.json` of its own (never carved a worktree,
@@ -45,11 +44,11 @@ describe('questRepoRootBroker', () => {
     const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
     proxy.setupQuestFound({ quest });
     const guildPath = proxy.getGuildPath();
-    const escapedAncestor = RepoRootCwdStub({ value: '/' });
+    const escapedAncestor = '/';
     proxy.setupResolveSuccess({ repoRoot: escapedAncestor });
 
     const result = await questRepoRootBroker({ questId: QuestIdStub({ value: quest.id }) });
 
-    expect(result).toBe(RepoRootCwdStub({ value: String(guildPath) }));
+    expect(result).toBe(String(guildPath));
   });
 });

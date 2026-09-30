@@ -1,4 +1,3 @@
-import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
@@ -37,7 +36,7 @@ export const agentLaunchBrokerProxy = (): {
   getSpawnedOptions: () => unknown;
   setupMainTailHomeDir: (params: MainTailHomeDirParams) => void;
   setupMainTailLines: (params: { path: string; lines: readonly string[] }) => void;
-  getSpawnedCwd: () => RepoRootCwd | undefined;
+  getSpawnedCwd: () => string | undefined;
 } => {
   const spawnProxy = agentSpawnUnifiedBrokerProxy();
   // The handle-broker proxy mocks `claudeLineNormalizeBroker`, `crypto.randomUUID`,
@@ -99,6 +98,6 @@ export const agentLaunchBrokerProxy = (): {
     },
     // Delegates to the underlying spawn proxy so callers (e.g. chatSpawnBrokerProxy tests)
     // can verify that the resolved cwd was forwarded to the launcher's spawn call.
-    getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): string | undefined => spawnProxy.getSpawnedCwd(),
   };
 };

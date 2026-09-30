@@ -1,7 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import {
   registerMock,
@@ -14,7 +13,7 @@ import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-que
 import { questRepoRootBroker } from './quest-repo-root-broker';
 
 type Quest = ReturnType<typeof QuestStub>;
-type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
+type RepoRootCwd = string;
 type FilePath = string;
 
 const GUILD_PATH = '/home/testuser/my-guild';

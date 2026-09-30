@@ -25,7 +25,7 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, RepoRootCwd, Agent, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, Agent, Session } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
@@ -51,7 +51,7 @@ export const chatStreamProcessHandleBroker = ({
   onSignal,
 }: {
   chatProcessId: ProcessId;
-  cwd: RepoRootCwd;
+  cwd: string;
   sessionId?: Session['id'];
   onEntries: (params: {
     chatProcessId: ProcessId;

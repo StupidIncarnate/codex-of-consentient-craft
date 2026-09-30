@@ -8,12 +8,11 @@
  */
 
 import { callerRepoRootResolveBroker } from '../../../brokers/caller-repo-root/resolve/caller-repo-root-resolve-broker';
-import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import type { CallerRepoRootSource } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 
 export const ResolveCallerRepoRootLayerResponder = async ({
   meta,
 }: {
   meta: Record<string, unknown> | undefined;
-}): Promise<{ repoRoot: RepoRootCwd; source: CallerRepoRootSource; configFound: boolean }> =>
+}): Promise<{ repoRoot: string; source: CallerRepoRootSource; configFound: boolean }> =>
   callerRepoRootResolveBroker({ meta });

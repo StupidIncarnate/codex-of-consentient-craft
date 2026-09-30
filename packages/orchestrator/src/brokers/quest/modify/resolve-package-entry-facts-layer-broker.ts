@@ -20,7 +20,7 @@
 
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 import { packageJsonContract } from '@dungeonmaster/shared/contracts';
-import type { PackageType, RepoRootCwd, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import type { PackageType, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirSync } from '#gateway/node/fs';
 import { pathExists, readFileIfExists } from '#gateway/node/fs__promises';
@@ -31,7 +31,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   projectRoot,
 }: {
   entries: QuestPackageEntry[];
-  projectRoot: RepoRootCwd;
+  projectRoot: string;
 }): Promise<{
   existingLocations: Set<unknown>;
   dependentsByPackage: Map<unknown, unknown[]>;

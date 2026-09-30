@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -659,7 +658,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-no-worktree' });
       const questId = QuestIdStub({ value: 'quest-no-worktree' });
-      const resolvedRepoRoot = RepoRootCwdStub({ value: '/home/testuser' });
+      const resolvedRepoRoot = '/home/testuser';
 
       proxy.setupResumeWithRepoRoot({ questId, sessionId, repoRoot: resolvedRepoRoot });
 

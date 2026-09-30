@@ -4,7 +4,6 @@ import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branc
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
@@ -358,7 +357,7 @@ describe('OrchestrationResumeResponder', () => {
     it('VALID: {worktree present but left on another branch} => the quest branch is re-checked-out before the loop launches', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-drifted' });
       const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-drifted-a1b2c3d4' });
-      const worktreeCwd = RepoRootCwdStub({ value: '/repo/worktrees/resume-worktree-drifted' });
+      const worktreeCwd = '/repo/worktrees/resume-worktree-drifted';
       const quest = QuestStub({
         id: questId,
         status: 'paused',
@@ -390,7 +389,7 @@ describe('OrchestrationResumeResponder', () => {
     it('VALID: {worktree present and already on the quest branch} => resume proceeds and the loop launches', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-on-branch' });
       const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-on-branch-a1b2c3d4' });
-      const worktreeCwd = RepoRootCwdStub({ value: '/repo/worktrees/resume-worktree-on-branch' });
+      const worktreeCwd = '/repo/worktrees/resume-worktree-on-branch';
       const quest = QuestStub({
         id: questId,
         status: 'paused',
@@ -418,9 +417,7 @@ describe('OrchestrationResumeResponder', () => {
       const branchName = QuestBranchNameStub({
         value: 'quest/resume-worktree-restore-fails-a1b2c3d4',
       });
-      const worktreeCwd = RepoRootCwdStub({
-        value: '/repo/worktrees/resume-worktree-restore-fails',
-      });
+      const worktreeCwd = '/repo/worktrees/resume-worktree-restore-fails';
       const quest = QuestStub({
         id: questId,
         status: 'paused',

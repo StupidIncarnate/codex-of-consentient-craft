@@ -66,14 +66,7 @@ import {
   blightConcernContract,
   repoRelativePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  BlightChecklist,
-  Quest,
-  QuestBlightLedgerEntry,
-  QuestPackageEntry,
-  RepoRelativePath,
-  RepoRootCwd,
-} from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, Quest, QuestBlightLedgerEntry, QuestPackageEntry, RepoRelativePath } from '@dungeonmaster/shared/contracts';
 
 import { blightConcernGatingStatics } from '../../statics/blight-concern-gating/blight-concern-gating-statics';
 
@@ -108,7 +101,7 @@ export const blightChecklistBuildTransformer = ({
   changedFiles: readonly RepoRelativePath[];
   ledger?: readonly QuestBlightLedgerEntry[];
   packagesAffected?: readonly QuestPackageEntry[];
-  projectRoot?: RepoRootCwd;
+  projectRoot?: string;
   baseRef: NonNullable<Quest['baseRef']>;
 }): BlightChecklist => {
   const selfPairedFiles: RepoRelativePath[] = [];

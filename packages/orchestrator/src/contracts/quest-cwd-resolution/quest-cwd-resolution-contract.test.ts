@@ -1,4 +1,3 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { questCwdResolutionContract } from './quest-cwd-resolution-contract';
 import { QuestCwdResolutionStub } from './quest-cwd-resolution.stub';
@@ -6,7 +5,7 @@ import { QuestCwdResolutionStub } from './quest-cwd-resolution.stub';
 describe('questCwdResolutionContract', () => {
   describe('session variant', () => {
     it('VALID: {kind: session, cwd} => parses successfully', () => {
-      const cwd = RepoRootCwdStub({ value: '/repo' });
+      const cwd = '/repo';
 
       const result = questCwdResolutionContract.parse({ kind: 'session', cwd });
 
@@ -28,7 +27,7 @@ describe('questCwdResolutionContract', () => {
 
   describe('worktree variant', () => {
     it('VALID: {kind: worktree, cwd} => parses successfully', () => {
-      const cwd = RepoRootCwdStub({ value: '/repo/worktrees/quest-1' });
+      const cwd = '/repo/worktrees/quest-1';
 
       const result = questCwdResolutionContract.parse({ kind: 'worktree', cwd });
 
@@ -50,7 +49,7 @@ describe('questCwdResolutionContract', () => {
 
   describe('repo-root variant', () => {
     it('VALID: {kind: repo-root, cwd} => parses successfully', () => {
-      const cwd = RepoRootCwdStub({ value: '/repo/root' });
+      const cwd = '/repo/root';
 
       const result = questCwdResolutionContract.parse({ kind: 'repo-root', cwd });
 
@@ -109,12 +108,12 @@ describe('questCwdResolutionContract', () => {
 
       expect(result).toStrictEqual({
         kind: 'repo-root',
-        cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
+        cwd: '/test/repo/root',
       });
     });
 
     it('VALID: {kind: worktree override} => builds the worktree variant', () => {
-      const cwd = RepoRootCwdStub({ value: '/repo/worktrees/quest-1' });
+      const cwd = '/repo/worktrees/quest-1';
 
       const result = questCwdResolutionContract.parse(
         QuestCwdResolutionStub({ kind: 'worktree', cwd }),

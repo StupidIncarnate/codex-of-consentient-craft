@@ -1,12 +1,11 @@
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { resolvePackageEntryFactsLayerBroker } from './resolve-package-entry-facts-layer-broker';
 import { resolvePackageEntryFactsLayerBrokerProxy } from './resolve-package-entry-facts-layer-broker.proxy';
 
 // A repo that is deliberately NOT the one these tests run inside: every absolute address the setups
 // describe hangs off it, so an implementation anchored on the process cwd reaches none of them.
-const PROJECT_ROOT = RepoRootCwdStub({ value: '/home/testuser/projects/assayer' });
+const PROJECT_ROOT = '/home/testuser/projects/assayer';
 
 describe('resolvePackageEntryFactsLayerBroker', () => {
   describe('existingLocations', () => {

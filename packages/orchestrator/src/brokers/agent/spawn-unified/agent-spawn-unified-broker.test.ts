@@ -1,5 +1,4 @@
 import { setImmediate } from '#gateway/node/setImmediate';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
@@ -50,7 +49,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -84,7 +83,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onError,
@@ -111,7 +110,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -136,7 +135,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -164,7 +163,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -190,7 +189,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const { sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -220,7 +219,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -248,7 +247,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       const { kill, sessionId$ } = agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -277,7 +276,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         model: 'sonnet',
         onLine,
         onComplete,
@@ -303,7 +302,7 @@ describe('agentSpawnUnifiedBroker', () => {
 
       agentSpawnUnifiedBroker({
         prompt: PromptTextStub(),
-        cwd: RepoRootCwdStub({ value: '/test' }),
+        cwd: '/test',
         resumeSessionId,
         model: 'opus',
         onLine,

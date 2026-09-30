@@ -6,7 +6,7 @@
  * // Returns true when guild.path === repoRoot or repoRoot is a descendant of guild.path
  */
 
-import type { Guild, RepoRootCwd } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { stripTrailingSlashTransformer } from '../../transformers/strip-trailing-slash/strip-trailing-slash-transformer';
 
@@ -15,7 +15,7 @@ export const guildCoversRepoRootGuard = ({
   repoRoot,
 }: {
   guild?: Guild;
-  repoRoot?: RepoRootCwd;
+  repoRoot?: string;
 }): boolean => {
   if (!guild || !repoRoot) {
     return false;

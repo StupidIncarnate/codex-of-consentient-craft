@@ -1,5 +1,4 @@
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { setImmediate } from '#gateway/node/setImmediate';
 
@@ -34,7 +33,7 @@ describe('startMainTailLayerBroker', () => {
 
       const stop = startMainTailLayerBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor: chatLineProcessTransformer(),
         chatProcessId: ProcessIdStub({ value: 'proc-tail-test' }),
         onEntries,

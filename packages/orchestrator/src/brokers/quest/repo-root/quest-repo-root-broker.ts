@@ -15,8 +15,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
-import type { RepoRootCwd, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -25,7 +24,7 @@ export const questRepoRootBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<RepoRootCwd> => {
+}): Promise<string> => {
   const { guildId } = await questFindQuestPathBroker({ questId });
   const guild = await guildGetBroker({ guildId });
   const startPath = guild.path;
@@ -42,8 +41,8 @@ export const questRepoRootBroker = async ({
       guildPathValue === resolvedRepoRootValue ||
       guildPathValue.startsWith(`${resolvedRepoRootValue}/`);
 
-    return resolvedOwnsGuildPath ? resolved : repoRootCwdContract.parse(guild.path);
+    return resolvedOwnsGuildPath ? resolved : guild.path;
   } catch {
-    return repoRootCwdContract.parse(guild.path);
+    return guild.path;
   }
 };

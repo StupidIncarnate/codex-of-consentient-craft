@@ -1,7 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { questCwdResolveBroker } from './quest-cwd-resolve-broker';
@@ -21,7 +20,7 @@ describe('questCwdResolveBroker', () => {
 
     expect(result).toStrictEqual({
       kind: 'worktree',
-      cwd: RepoRootCwdStub({ value: '/repo/worktrees/add-auth' }),
+      cwd: '/repo/worktrees/add-auth',
     });
   });
 
@@ -45,7 +44,7 @@ describe('questCwdResolveBroker', () => {
   it('VALID: {quest has no worktreePath} => falls back to the repo root that owns the quest guild', async () => {
     const proxy = questCwdResolveBrokerProxy();
     const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
-    const repoRoot = RepoRootCwdStub({ value: '/home/testuser' });
+    const repoRoot = '/home/testuser';
     proxy.setupLegacyQuest({ quest, repoRoot });
 
     const result = await questCwdResolveBroker({ questId: QuestIdStub({ value: quest.id }) });
@@ -73,7 +72,7 @@ describe('questCwdResolveBroker', () => {
       sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
     });
 
-    expect(result).toStrictEqual({ kind: 'session', cwd: RepoRootCwdStub({ value: '/repo' }) });
+    expect(result).toStrictEqual({ kind: 'session', cwd: '/repo' });
   });
 
   it('VALID: {recorded row AND a worktreePath} => returns the row, not the worktree', async () => {
@@ -97,7 +96,7 @@ describe('questCwdResolveBroker', () => {
       sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
     });
 
-    expect(result).toStrictEqual({ kind: 'session', cwd: RepoRootCwdStub({ value: '/repo' }) });
+    expect(result).toStrictEqual({ kind: 'session', cwd: '/repo' });
   });
 
   it('VALID: {recorded row, worktree directory missing from disk} => returns the row rather than missing-worktree', async () => {
@@ -123,7 +122,7 @@ describe('questCwdResolveBroker', () => {
 
     expect(result).toStrictEqual({
       kind: 'session',
-      cwd: RepoRootCwdStub({ value: '/repo/worktrees/add-auth' }),
+      cwd: '/repo/worktrees/add-auth',
     });
   });
 
@@ -150,7 +149,7 @@ describe('questCwdResolveBroker', () => {
 
     expect(result).toStrictEqual({
       kind: 'worktree',
-      cwd: RepoRootCwdStub({ value: '/repo/worktrees/add-auth' }),
+      cwd: '/repo/worktrees/add-auth',
     });
   });
 

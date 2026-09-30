@@ -20,7 +20,6 @@
  * compose), addressed by the EXACT [questPath, quest.json] tuple.
  */
 
-import { repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { join } from '#gateway/node/path';
@@ -42,8 +41,8 @@ registerModuleMock({ module: '../../quest/operations-update/quest-operations-upd
 type Quest = ReturnType<typeof QuestStub>;
 type FilePathValue = string;
 
-const WORKTREE_CWD = repoRootCwdContract.parse('/home/testuser/worktrees/quest-abc12345');
-const REPO_ROOT_CWD = repoRootCwdContract.parse('/home/testuser/my-guild');
+const WORKTREE_CWD = '/home/testuser/worktrees/quest-abc12345';
+const REPO_ROOT_CWD = '/home/testuser/my-guild';
 
 export const agentPromptGetBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => { questFolderPath: FilePathValue };

@@ -30,7 +30,6 @@ import { join } from '#gateway/node/path';
 import type { ExitCode, FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -122,7 +121,7 @@ export const stepHandlerWardBrokerProxy = (): {
     cwdMock.calledWith([{ questId }]).resolves(
       QuestCwdResolutionStub({
         kind: 'worktree',
-        cwd: RepoRootCwdStub({ value: DEFAULT_WORKTREE_PATH }),
+        cwd: DEFAULT_WORKTREE_PATH,
       }),
     );
     findQuestPathMock

@@ -1,6 +1,5 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
@@ -48,7 +47,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -96,7 +95,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor: {
           ...chatLineProcessTransformer(),
           processLine: (params: (typeof calls)[number]): [] => {
@@ -137,7 +136,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor,
         chatProcessId,
         onEntries: () => {},
@@ -166,7 +165,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -196,7 +195,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor: {
           ...chatLineProcessTransformer(),
           processLine: () => [
@@ -232,7 +231,7 @@ describe('chatMainSessionTailBroker', () => {
 
       const stop = chatMainSessionTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor,
         chatProcessId,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -265,7 +264,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         processor: chatLineProcessTransformer(),
         chatProcessId: ProcessIdStub({ value: 'proc-main-repo-root' }),
         onEntries: () => {},
@@ -289,7 +288,7 @@ describe('chatMainSessionTailBroker', () => {
 
       chatMainSessionTailBroker({
         sessionId: SessionIdStub({ value: 'session-in-worktree' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project/worktrees/quest-c8171a64' }),
+        cwd: '/home/user/my-project/worktrees/quest-c8171a64',
         processor: chatLineProcessTransformer(),
         chatProcessId: ProcessIdStub({ value: 'proc-main-worktree' }),
         onEntries: () => {},

@@ -19,7 +19,7 @@
  * });
  */
 
-import type { ChatEntry, ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ExitCode, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
@@ -63,7 +63,7 @@ export const agentLaunchBroker = ({
   processIdPrefix: ProcessIdPrefix;
 
   prompt: PromptText;
-  cwd: RepoRootCwd;
+  cwd: string;
   model: ClaudeModel;
   resumeSessionId?: Session['id'];
   disableToolSearch?: boolean;

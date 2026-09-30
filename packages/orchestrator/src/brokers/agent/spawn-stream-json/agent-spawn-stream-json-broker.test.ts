@@ -1,7 +1,6 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { setImmediate } from '#gateway/node/setImmediate';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
@@ -19,7 +18,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       const result = agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         model: 'sonnet',
       });
 
@@ -45,7 +44,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
         model: 'opus',
       });
@@ -74,7 +73,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
         model: 'sonnet',
         addDir,
@@ -103,7 +102,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         model: 'sonnet',
       });
 
@@ -129,7 +128,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         model: 'haiku',
       });
 
@@ -173,7 +172,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         model: 'haiku',
         disableToolSearch: true,
       });
@@ -199,7 +198,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),
-        cwd: RepoRootCwdStub({ value: '/repo' }),
+        cwd: '/repo',
         model: 'sonnet',
       });
 

@@ -15,7 +15,6 @@
  * // Returns ContentText, e.g. "[project-root: /repo — resolved from the caller's own working directory]"
  */
 
-import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 
 import type { CallerRepoRootSource } from '../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 
@@ -24,7 +23,7 @@ export const callerRepoRootBannerTransformer = ({
   source,
   configFound,
 }: {
-  repoRoot: RepoRootCwd;
+  repoRoot: string;
   source: CallerRepoRootSource;
   configFound: boolean;
 }): string => {

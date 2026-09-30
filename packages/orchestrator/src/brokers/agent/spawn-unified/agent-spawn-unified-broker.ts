@@ -13,7 +13,7 @@
 
 import { lineReader } from '#gateway/node/readline';
 import { stderr } from '#gateway/node/process';
-import type { ExitCode, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, Session } from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -37,7 +37,7 @@ export const agentSpawnUnifiedBroker = ({
   addDir,
 }: {
   prompt: PromptText;
-  cwd: RepoRootCwd;
+  cwd: string;
   resumeSessionId?: Session['id'];
   model: ClaudeModel;
   disableToolSearch?: boolean;

@@ -2,7 +2,6 @@ import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/ass
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
@@ -57,7 +56,7 @@ describe('agentLaunchBroker', () => {
         questWorkItemId: QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'pathseeker prompt' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries,
         onText: () => {},
@@ -100,7 +99,7 @@ describe('agentLaunchBroker', () => {
         }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},
@@ -138,7 +137,7 @@ describe('agentLaunchBroker', () => {
         questWorkItemId,
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},
@@ -183,7 +182,7 @@ describe('agentLaunchBroker', () => {
         }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},
@@ -215,7 +214,7 @@ describe('agentLaunchBroker', () => {
         }),
         processIdPrefix: 'chat',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},
@@ -239,7 +238,7 @@ describe('agentLaunchBroker', () => {
         }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},
@@ -281,7 +280,7 @@ describe('agentLaunchBroker', () => {
         questWorkItemId: QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d487' }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/testuser/my-project' }),
+        cwd: '/home/testuser/my-project',
         model: ClaudeModelStub(),
         resumeSessionId: SessionIdStub({ value: 'session-post-exit' }),
         onEntries,
@@ -331,7 +330,7 @@ describe('agentLaunchBroker', () => {
         }),
         processIdPrefix: 'proc',
         prompt: PromptTextStub({ value: 'p' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         model: ClaudeModelStub(),
         onEntries: () => {},
         onText: () => {},

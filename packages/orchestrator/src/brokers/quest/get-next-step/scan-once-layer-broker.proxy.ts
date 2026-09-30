@@ -1,4 +1,3 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { GuildListItem, QuestBranchName } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
@@ -29,7 +28,7 @@ registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 type Quest = ReturnType<typeof QuestStub>;
 type AbsoluteFilePath = string;
-type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
+type RepoRootCwd = string;
 
 export const scanOnceLayerBrokerProxy = (): {
   setupGuildsAndQuests: (params: {
@@ -119,7 +118,7 @@ export const scanOnceLayerBrokerProxy = (): {
   // routed halt stopping the scan dead.
   const routeScopeProxy = questRouteScopeBrokerProxy();
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
-  const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
+  const defaultRepoRoot = '/test/repo/root';
 
   return {
     // Every quest handed to the scan resolves to the repo-root branch by default — the shape

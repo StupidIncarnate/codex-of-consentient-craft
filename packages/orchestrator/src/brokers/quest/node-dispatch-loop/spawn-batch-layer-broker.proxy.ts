@@ -1,6 +1,5 @@
 import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import {
   registerMock,
   registerModuleMock,
@@ -61,7 +60,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       cwdMock
         .calledWith([{ questId }])
         .resolves(
-          QuestCwdResolutionStub({ kind: 'repo-root', cwd: RepoRootCwdStub({ value: guildPath }) }),
+          QuestCwdResolutionStub({ kind: 'repo-root', cwd: guildPath }),
         );
     },
 
@@ -75,7 +74,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
+          cwd: worktreePath,
         }),
       );
     },

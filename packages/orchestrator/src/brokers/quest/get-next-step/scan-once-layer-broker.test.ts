@@ -6,7 +6,6 @@ import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branc
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
@@ -741,7 +740,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktree({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/quest with spaces-a1b2c3d4' }),
+        worktreeCwd: '/repo/worktrees/quest with spaces-a1b2c3d4',
       });
       const clear = jest.fn();
       const setActive = jest.fn();
@@ -780,7 +779,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktree({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/quest-worktree-agent-a1b2c3d4' }),
+        worktreeCwd: '/repo/worktrees/quest-worktree-agent-a1b2c3d4',
       });
       const clear = jest.fn();
       const setActive = jest.fn();
@@ -841,7 +840,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktreeDrifted({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/scan-drift-restore-a1b2c3d4' }),
+        worktreeCwd: '/repo/worktrees/scan-drift-restore-a1b2c3d4',
         branchName,
         currentBranchName: 'main',
       });
@@ -912,7 +911,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktreeOnBranch({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/scan-on-branch-b2c3d4e5' }),
+        worktreeCwd: '/repo/worktrees/scan-on-branch-b2c3d4e5',
         branchName,
       });
       const clear = jest.fn();
@@ -973,7 +972,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktreeDrifted({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: longWorktreeValue }),
+        worktreeCwd: longWorktreeValue,
         branchName,
         currentBranchName: 'main',
       });
@@ -1018,7 +1017,7 @@ describe('scanOnceLayerBroker', () => {
       });
       proxy.setupQuestWorktreeRestoreFails({
         quest,
-        worktreeCwd: RepoRootCwdStub({ value: '/repo/worktrees/scan-restore-fails-d4e5f6a7' }),
+        worktreeCwd: '/repo/worktrees/scan-restore-fails-d4e5f6a7',
         branchName,
         currentBranchName: 'main',
         output,

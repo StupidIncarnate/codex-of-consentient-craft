@@ -22,7 +22,6 @@ import { join, resolve } from '#gateway/node/path';
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -46,7 +45,7 @@ type ModifyResult = Awaited<ReturnType<typeof questModifyBroker>>;
 // The repo every quest in this file targets. Package entry locations are repo-relative to it, so a
 // test staging one on disk names `${PROJECT_ROOT}/<location>` — the address the broker really
 // probes.
-const PROJECT_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
+const PROJECT_ROOT = '/home/testuser/my-guild';
 
 // Auto-mock so all callers get the mocked version globally
 registerModuleMock({ module: './quest-modify-broker' });
@@ -65,7 +64,7 @@ export const questModifyBrokerProxy = (): {
   setupResolves: (params: { input: ModifyInput; result: ModifyResult }) => void;
   setupContractSourceResolvesOnce: (params: { source: string }) => void;
   setupPackageLocationResolves: (params: { location: string }) => void;
-  getProjectRoot: () => ReturnType<typeof RepoRootCwdStub>;
+  getProjectRoot: () => string;
   setupAssertionIds: (params: {
     ids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
@@ -213,7 +212,7 @@ export const questModifyBrokerProxy = (): {
       fsAccessProxy.present({ path: location });
     },
 
-    getProjectRoot: (): ReturnType<typeof RepoRootCwdStub> => PROJECT_ROOT,
+    getProjectRoot: (): string => PROJECT_ROOT,
 
     setupAssertionIds: ({
       ids,

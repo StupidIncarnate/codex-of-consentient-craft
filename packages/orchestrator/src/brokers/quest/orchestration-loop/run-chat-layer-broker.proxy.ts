@@ -1,6 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { questContract, type RepoRootCwd, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
+import { questContract, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -16,7 +15,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 // Legacy (no-worktreePath) quests resolve their cwd from the guild's repo root. The actual
 // value is opaque to every scenario below except the one that asserts on it directly.
-const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/project' });
+const DEFAULT_REPO_ROOT = '/project';
 
 export const runChatLayerBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
@@ -27,7 +26,7 @@ export const runChatLayerBrokerProxy = (): {
   setupWorktreeMissing: (params: { quest: Quest }) => void;
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
-  getSpawnedCwd: () => RepoRootCwd | undefined;
+  getSpawnedCwd: () => string | undefined;
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedWorkItemStatus: (params: {
     workItemId: WorkItem['id'];
@@ -105,7 +104,7 @@ export const runChatLayerBrokerProxy = (): {
 
     getSpawnedOptions: (): unknown => launchProxy.getSpawnedOptions(),
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): string | undefined => launchProxy.getSpawnedCwd(),
 
     getAllPersistedContents: (): readonly unknown[] => modifyProxy.getAllPersistedContents(),
 

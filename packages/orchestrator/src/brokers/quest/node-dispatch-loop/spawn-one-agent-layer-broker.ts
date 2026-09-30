@@ -28,7 +28,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -56,7 +56,7 @@ export const spawnOneAgentLayerBroker = async ({
   carriedSessionId,
 }: {
   instruction: SpawnInstruction;
-  cwd: RepoRootCwd;
+  cwd: string;
   registerProcess?: (params: {
     processId: ProcessId;
     questId: Quest['id'];

@@ -1,6 +1,5 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
@@ -40,7 +39,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId,
         processor,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -88,7 +87,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId,
         processor: {
           ...chatLineProcessTransformer(),
@@ -131,7 +130,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId,
         processor,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -163,7 +162,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId,
         processor: {
           ...chatLineProcessTransformer(),
@@ -201,7 +200,7 @@ describe('chatSubagentTailBroker', () => {
 
       const { stop } = await chatSubagentTailBroker({
         sessionId,
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId,
         processor,
         onEntries: ({ chatProcessId: cpId, entries }) => {
@@ -235,7 +234,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+        cwd: '/home/user/my-project',
         agentId: AgentIdStub({ value: 'agent-repo-root' }),
         processor: chatLineProcessTransformer(),
         onEntries: () => {},
@@ -260,7 +259,7 @@ describe('chatSubagentTailBroker', () => {
 
       await chatSubagentTailBroker({
         sessionId: SessionIdStub({ value: 'session-in-worktree' }),
-        cwd: RepoRootCwdStub({ value: '/home/user/my-project/worktrees/quest-c8171a64' }),
+        cwd: '/home/user/my-project/worktrees/quest-c8171a64',
         agentId: AgentIdStub({ value: 'agent-in-worktree' }),
         processor: chatLineProcessTransformer(),
         onEntries: () => {},

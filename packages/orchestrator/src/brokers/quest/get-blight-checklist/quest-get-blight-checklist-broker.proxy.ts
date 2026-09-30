@@ -13,7 +13,6 @@
  */
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
@@ -35,7 +34,7 @@ registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 type Quest = ReturnType<typeof QuestStub>;
 type FilePathValue = string;
 
-const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
+const DEFAULT_REPO_ROOT = '/home/testuser/my-guild';
 
 const isString = (arg: unknown): boolean => typeof arg === 'string';
 
@@ -177,7 +176,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
       cwdMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
+          cwd: worktreePath,
         }),
       );
     },

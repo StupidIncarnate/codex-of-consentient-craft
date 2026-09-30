@@ -1,10 +1,9 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { callerRepoRootBannerTransformer } from './caller-repo-root-banner-transformer';
 
 describe('callerRepoRootBannerTransformer', () => {
   it('VALID: {source: caller-cwd, configFound: true} => renders the resolved root with no warning', () => {
-    const repoRoot = RepoRootCwdStub({ value: '/repo/worktrees/siegelense' });
+    const repoRoot = '/repo/worktrees/siegelense';
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
@@ -18,7 +17,7 @@ describe('callerRepoRootBannerTransformer', () => {
   });
 
   it('EDGE: {source: server-cwd-fallback, configFound: true} => renders a WARNING naming the fallback root', () => {
-    const repoRoot = RepoRootCwdStub({ value: '/repo/codex-of-consentient-craft' });
+    const repoRoot = '/repo/codex-of-consentient-craft';
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
@@ -32,7 +31,7 @@ describe('callerRepoRootBannerTransformer', () => {
   });
 
   it('EDGE: {source: caller-cwd, configFound: false} => renders a WARNING that no config was found, even though the caller WAS identified', () => {
-    const repoRoot = RepoRootCwdStub({ value: '/tmp/scratch-harness-dir' });
+    const repoRoot = '/tmp/scratch-harness-dir';
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,
@@ -48,7 +47,7 @@ describe('callerRepoRootBannerTransformer', () => {
   });
 
   it('EDGE: {source: server-cwd-fallback, configFound: false} => renders BOTH warnings', () => {
-    const repoRoot = RepoRootCwdStub({ value: '/tmp/scratch-harness-dir' });
+    const repoRoot = '/tmp/scratch-harness-dir';
 
     const result = callerRepoRootBannerTransformer({
       repoRoot,

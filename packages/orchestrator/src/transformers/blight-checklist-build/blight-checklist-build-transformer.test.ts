@@ -2,7 +2,6 @@ import { BlightChecklistStub } from '@dungeonmaster/shared/contracts/blight-chec
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { blightChecklistBuildTransformer } from './blight-checklist-build-transformer';
 
@@ -513,7 +512,7 @@ describe('blightChecklistBuildTransformer', () => {
             location: '/home/testuser/my-guild/packages/orchestrator',
           }),
         ],
-        projectRoot: RepoRootCwdStub({ value: '/home/testuser/my-guild/' }),
+        projectRoot: '/home/testuser/my-guild/',
         baseRef,
       });
 
@@ -554,7 +553,7 @@ describe('blightChecklistBuildTransformer', () => {
             location: '/somewhere/else/packages/orchestrator',
           }),
         ],
-        projectRoot: RepoRootCwdStub({ value: '/home/testuser/my-guild' }),
+        projectRoot: '/home/testuser/my-guild',
         baseRef,
       });
 

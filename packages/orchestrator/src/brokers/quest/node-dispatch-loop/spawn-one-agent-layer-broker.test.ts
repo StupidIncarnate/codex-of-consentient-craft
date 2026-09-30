@@ -1,4 +1,3 @@
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
@@ -9,7 +8,7 @@ import { spawnOneAgentLayerBrokerProxy } from './spawn-one-agent-layer-broker.pr
 import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 
 const SESSION_ID = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
-const CWD = RepoRootCwdStub({ value: '/home/user/my-project' });
+const CWD = '/home/user/my-project';
 
 describe('spawnOneAgentLayerBroker', () => {
   describe('single attempt', () => {

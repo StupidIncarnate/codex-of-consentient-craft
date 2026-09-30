@@ -25,7 +25,6 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { repoRootCwdContract, type RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
@@ -38,7 +37,7 @@ export const callerRepoRootResolveBroker = async ({
 }: {
   meta: Record<string, unknown> | undefined;
 }): Promise<{
-  repoRoot: RepoRootCwd;
+  repoRoot: string;
   source: CallerRepoRootSource;
   configFound: boolean;
 }> => {
@@ -60,7 +59,7 @@ export const callerRepoRootResolveBroker = async ({
         throw error;
       }
       return {
-        repoRoot: repoRootCwdContract.parse(caller.cwd),
+        repoRoot: caller.cwd,
         source: callerRepoRootSourceContract.parse('caller-cwd'),
         configFound: false,
       };
@@ -80,7 +79,7 @@ export const callerRepoRootResolveBroker = async ({
       throw error;
     }
     return {
-      repoRoot: repoRootCwdContract.parse(serverCwd),
+      repoRoot: serverCwd,
       source: callerRepoRootSourceContract.parse('server-cwd-fallback'),
       configFound: false,
     };

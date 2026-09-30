@@ -2,7 +2,6 @@ import { setImmediate } from '#gateway/node/setImmediate';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 
 import { agentSpawnStreamJsonBrokerProxy } from '../spawn-stream-json/agent-spawn-stream-json-broker.proxy';
@@ -31,7 +30,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   getAllSpawnedArgs: () => readonly unknown[];
   getSpawnedOptions: () => unknown;
-  getSpawnedCwd: () => RepoRootCwd | undefined;
+  getSpawnedCwd: () => string | undefined;
 } => {
   claudeLineNormalizeBrokerProxy();
   const lineReader = lineReaderProxy();
@@ -145,6 +144,6 @@ export const agentSpawnUnifiedBrokerProxy = (): {
 
     getSpawnedOptions: (): unknown => spawnProxy.getSpawnedOptions(),
 
-    getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),
+    getSpawnedCwd: (): string | undefined => spawnProxy.getSpawnedCwd(),
   };
 };

@@ -1,7 +1,6 @@
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
@@ -27,7 +26,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-drift-11112222' }),
+          cwd: '/repo/worktrees/ensure-drift-11112222',
         }),
         trigger,
       });
@@ -61,7 +60,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-on-branch-33334444' }),
+          cwd: '/repo/worktrees/ensure-on-branch-33334444',
         }),
         trigger,
       });
@@ -94,7 +93,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-revparse-fail-bbbbcccc' }),
+          cwd: '/repo/worktrees/ensure-revparse-fail-bbbbcccc',
         }),
         trigger,
       });
@@ -137,7 +136,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-fail-55556666' }),
+          cwd: '/repo/worktrees/ensure-fail-55556666',
         }),
         trigger,
       });
@@ -171,7 +170,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'repo-root',
-          cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
+          cwd: '/test/repo/root',
         }),
         trigger: 'dispatch-scan',
       });
@@ -190,7 +189,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: '/repo/worktrees/ensure-no-branch-99990000' }),
+          cwd: '/repo/worktrees/ensure-no-branch-99990000',
         }),
         trigger: 'recover-guild-layer-responder',
       });

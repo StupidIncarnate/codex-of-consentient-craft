@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { worktreeAdd } from '#gateway/bin/git';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
@@ -50,7 +49,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       }),
       cwdResolution: QuestCwdResolutionStub({
         kind: 'worktree',
-        cwd: RepoRootCwdStub({ value: worktreeValue }),
+        cwd: worktreeValue,
       }),
       trigger: 'dispatch-scan',
     });
@@ -103,7 +102,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       }),
       cwdResolution: QuestCwdResolutionStub({
         kind: 'repo-root',
-        cwd: RepoRootCwdStub({ value: repoPath }),
+        cwd: repoPath,
       }),
       trigger: 'dispatch-scan',
     });
@@ -157,7 +156,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
       }),
       cwdResolution: QuestCwdResolutionStub({
         kind: 'worktree',
-        cwd: RepoRootCwdStub({ value: worktreeValue }),
+        cwd: worktreeValue,
       }),
       trigger: 'orchestration-resume',
     });

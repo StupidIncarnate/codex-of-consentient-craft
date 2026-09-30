@@ -14,7 +14,6 @@
  */
 
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
@@ -83,7 +82,7 @@ export const stepHandlerCommitBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
+          cwd: worktreePath,
         }),
       );
     },
@@ -113,7 +112,7 @@ export const stepHandlerCommitBrokerProxy = (): {
       cwdMock.calledWith([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: DEFAULT_WORKTREE_PATH }),
+          cwd: DEFAULT_WORKTREE_PATH,
         }),
       );
       workingTreeMock.calledWith([{ cwd: DEFAULT_WORKTREE_PATH }]).resolves([]);

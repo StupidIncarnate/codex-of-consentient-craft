@@ -1,6 +1,5 @@
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { smoketestEnsureGuildBroker } from './smoketest-ensure-guild-broker';
 import { smoketestEnsureGuildBrokerProxy } from './smoketest-ensure-guild-broker.proxy';
@@ -35,8 +34,8 @@ describe('smoketestEnsureGuildBroker', () => {
             questDirEntries: [],
           },
         ],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
-        guildRepoRoots: [RepoRootCwdStub({ value: CODEX_REPO_ROOT })],
+        homeRepoRoot: CODEX_REPO_ROOT,
+        guildRepoRoots: [CODEX_REPO_ROOT],
       });
 
       const result = await smoketestEnsureGuildBroker();
@@ -79,10 +78,10 @@ describe('smoketestEnsureGuildBroker', () => {
             questDirEntries: [],
           },
         ],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
+        homeRepoRoot: CODEX_REPO_ROOT,
         guildRepoRoots: [
-          RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
-          RepoRootCwdStub({ value: OTHER_REPO_ROOT }),
+          CODEX_REPO_ROOT,
+          OTHER_REPO_ROOT,
         ],
       });
 
@@ -126,10 +125,10 @@ describe('smoketestEnsureGuildBroker', () => {
             questDirEntries: [],
           },
         ],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
+        homeRepoRoot: CODEX_REPO_ROOT,
         guildRepoRoots: [
-          RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
-          RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
+          CODEX_REPO_ROOT,
+          CODEX_REPO_ROOT,
         ],
       });
 
@@ -162,8 +161,8 @@ describe('smoketestEnsureGuildBroker', () => {
             questDirEntries: [],
           },
         ],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
-        guildRepoRoots: [RepoRootCwdStub({ value: OTHER_REPO_ROOT })],
+        homeRepoRoot: CODEX_REPO_ROOT,
+        guildRepoRoots: [OTHER_REPO_ROOT],
       });
 
       await expect(smoketestEnsureGuildBroker()).rejects.toThrow(
@@ -180,7 +179,7 @@ describe('smoketestEnsureGuildBroker', () => {
         homeDir: '/home/testuser',
         homePath: HOME_PATH,
         guildEntries: [],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
+        homeRepoRoot: CODEX_REPO_ROOT,
         guildRepoRoots: [],
       });
 
@@ -224,8 +223,8 @@ describe('smoketestEnsureGuildBroker', () => {
             questDirEntries: [],
           },
         ],
-        homeRepoRoot: RepoRootCwdStub({ value: CODEX_REPO_ROOT }),
-        guildRepoRoots: [null, RepoRootCwdStub({ value: CODEX_REPO_ROOT })],
+        homeRepoRoot: CODEX_REPO_ROOT,
+        guildRepoRoots: [null, CODEX_REPO_ROOT],
       });
 
       const result = await smoketestEnsureGuildBroker();

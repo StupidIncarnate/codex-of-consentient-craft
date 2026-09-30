@@ -10,7 +10,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
@@ -152,7 +151,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     cwdResolveMock.calledWith([{ questId: quest.id }]).resolves(
       QuestCwdResolutionStub({
         kind: 'repo-root',
-        cwd: RepoRootCwdStub({ value: '/test/repo/root' }),
+        cwd: '/test/repo/root',
       }),
     );
   };
@@ -221,7 +220,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       cwdResolveMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
+          cwd: worktreePath,
         }),
       );
       worktreeRestoreMock
@@ -247,7 +246,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       cwdResolveMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: RepoRootCwdStub({ value: worktreePath }),
+          cwd: worktreePath,
         }),
       );
       worktreeRestoreMock

@@ -6,7 +6,6 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
@@ -40,7 +39,7 @@ registerModuleMock({ module: '../../../brokers/quest/cwd-resolve/quest-cwd-resol
 type Quest = ReturnType<typeof QuestStub>;
 type AbsoluteFilePath = string;
 type QuestBranchName = ReturnType<typeof QuestBranchNameStub>;
-type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
+type RepoRootCwd = string;
 
 type CapturedOrchestrationEmit = ReturnType<
   ReturnType<typeof orchestrationEventsStateProxy>['captureEmits']
@@ -104,7 +103,7 @@ export const OrchestrationResumeResponderProxy = (): {
   // child's own internal fs/broker mocks are never exercised.
   questCwdResolveBrokerProxy();
   const cwdResolveMock = registerMock({ fn: questCwdResolveBroker });
-  const defaultRepoRoot = RepoRootCwdStub({ value: '/test/repo/root' });
+  const defaultRepoRoot = '/test/repo/root';
 
   registerMock({ fn: randomUUID }).calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 

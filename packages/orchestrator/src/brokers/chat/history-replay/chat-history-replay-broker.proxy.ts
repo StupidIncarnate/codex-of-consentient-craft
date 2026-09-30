@@ -5,7 +5,7 @@ import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type { Quest, Session } from '@dungeonmaster/shared/contracts';
-import { repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   claudeProjectPathEncoderTransformer,
@@ -232,7 +232,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId, sessionId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'session',
-          cwd: repoRootCwdContract.parse(cwd),
+          cwd: cwd,
         }),
       );
       sessionPathOverridesRef.set(sessionId, cwd);
@@ -247,7 +247,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'worktree',
-          cwd: repoRootCwdContract.parse(worktreePath),
+          cwd: worktreePath,
         }),
       );
       projectPathOverrideRef.value = worktreePath;
@@ -256,7 +256,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'repo-root',
-          cwd: repoRootCwdContract.parse(repoRoot),
+          cwd: repoRoot,
         }),
       );
       projectPathOverrideRef.value = repoRoot;
